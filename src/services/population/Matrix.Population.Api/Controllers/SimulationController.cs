@@ -1,4 +1,5 @@
 using Matrix.Population.Application.UseCases.GenerateMonthlyIncomeForMonth;
+using Matrix.Population.Application.UseCases.InitializePopulation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,9 +22,19 @@ namespace Matrix.Population.Api.Controllers
             return Accepted(); // 202 – команда принята
         }
 
-        /// <summary>
-        /// Простейший health-check для фронта/оркестратора.
-        /// </summary>
+        [HttpPost("init")]
+        public async Task<IActionResult> InitializePopulation(
+            [FromQuery] int peopleCount = 10_000,
+            [FromQuery] int? randomSeed = null,
+            CancellationToken cancellationToken = default)
+        {
+            await _sender.Send(
+                new InitializePopulationCommand(peopleCount, randomSeed),
+                cancellationToken);
+
+            return Accepted(new { message = "Population initialization started." });
+        }
+
         [HttpGet("health")]
         public IActionResult Health() => Ok(new { status = "ok" });
     }
