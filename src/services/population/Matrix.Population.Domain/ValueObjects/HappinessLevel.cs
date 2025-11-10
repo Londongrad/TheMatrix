@@ -2,9 +2,14 @@
 
 namespace Matrix.Population.Domain.ValueObjects
 {
-    public readonly struct HappinessLevel(int value)
+    public readonly record struct HappinessLevel
     {
-        public int Value { get; } = GuardHelper.AgainstOutOfRange(value, 0, 100, nameof(Value));
+        public int Value { get; }
+
+        public HappinessLevel(int value)
+        {
+            Value = GuardHelper.AgainstOutOfRange(value, 0, 100, nameof(HappinessLevel));
+        }
 
         public static HappinessLevel From(int value) => new(value);
 
