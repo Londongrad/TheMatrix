@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Infrastruct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Api", "src\services\citycore\Matrix.CityCore.Api\Matrix.CityCore.Api.csproj", "{FF95C1E2-FA74-415E-8E47-795365F01C3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.ApiGateway", "src\gateways\Matrix.ApiGateway\Matrix.ApiGateway.csproj", "{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{FF95C1E2-FA74-415E-8E47-795365F01C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF95C1E2-FA74-415E-8E47-795365F01C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF95C1E2-FA74-415E-8E47-795365F01C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
