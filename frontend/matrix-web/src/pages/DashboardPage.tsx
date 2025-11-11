@@ -1,6 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
+import { getPopulationPreview } from "../api/population/client";
+import type { PersonDto } from "../api/population/types";
+import CitizenCard from "../components/population/CitizenCard";
 
 const DashboardPage: React.FC = () => {
+  const [citizens, setCitizens] = useState<PersonDto[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleTriggerStorm = () => {
     console.log("Trigger storm in district #1");
     // TODO: вызов backend, когда появится API
@@ -8,6 +15,21 @@ const DashboardPage: React.FC = () => {
 
   const handleTriggerBlackout = () => {
     console.log("Trigger blackout for 15 minutes");
+  };
+
+  const handleGenerateCitizensPreview = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const data = await getPopulationPreview(100);
+      setCitizens(data);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to load population preview.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,6 +69,33 @@ const DashboardPage: React.FC = () => {
             Spawn random event (soon)
           </button>
         </div>
+      </section>
+
+      <section className="population-preview">
+        <h2 className="section-title">Population preview</h2>
+        <div className="actions-row">
+          <button
+            className="btn btn-primary"
+            onClick={handleGenerateCitizensPreview}
+            disabled={isLoading}
+          >
+            {isLoading ? "Generating..." : "Generate 100 citizens"}
+          </button>
+        </div>
+
+        {error && <p className="error-text">{error}</p>}
+
+        {citizens.length > 0 && (
+          <div className="cards-grid citizens-grid">
+            {citizens.map((person) => (
+              <CitizenCard key={person.id} person={person} />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && !error && citizens.length === 0 && (
+          <p className="card-sub">No preview generated yet.</p>
+        )}
       </section>
     </div>
   );
