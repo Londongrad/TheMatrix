@@ -12,6 +12,17 @@ namespace Matrix.Population.Api.Configurations
 
             builder.Services.AddControllers();
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("Frontend", policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             services.AddApplication();
             services.AddInfrastructure(configuration);
         }
