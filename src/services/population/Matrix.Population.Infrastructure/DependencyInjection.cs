@@ -1,4 +1,5 @@
 ﻿using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Infrastructure.IntegrationEvents;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -22,9 +23,10 @@ namespace Matrix.Population.Infrastructure
             });
 
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
+            services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
 
             // сюда же потом добавим publisher (outbox / RabbitMQ / Kafka)
-            // services.AddScoped<IMonthlyIncomeEventPublisher, MonthlyIncomeEventPublisher>();
+            services.AddScoped<IMonthlyIncomeEventPublisher, MonthlyIncomeEventPublisher>();
 
             return services;
         }
