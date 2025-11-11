@@ -6,22 +6,15 @@ using MediatR;
 
 namespace Matrix.Population.Application.UseCases.GenerateMonthlyIncomeForMonth
 {
-    public sealed class GenerateMonthlyIncomeForMonthHandler
-    : IRequestHandler<GenerateMonthlyIncomeForMonthCommand, Unit>
+    public sealed class GenerateMonthlyIncomeForMonthHandler(
+        IPersonReadRepository personRepository,
+        IMonthlyIncomeEventPublisher eventPublisher,
+        MonthlyIncomeCalculator calculator)
+        : IRequestHandler<GenerateMonthlyIncomeForMonthCommand, Unit>
     {
-        private readonly IPersonReadRepository _personRepository;
-        private readonly IMonthlyIncomeEventPublisher _eventPublisher;
-        private readonly MonthlyIncomeCalculator _calculator;
-
-        public GenerateMonthlyIncomeForMonthHandler(
-            IPersonReadRepository personRepository,
-            IMonthlyIncomeEventPublisher eventPublisher,
-            MonthlyIncomeCalculator calculator)
-        {
-            _personRepository = personRepository;
-            _eventPublisher = eventPublisher;
-            _calculator = calculator;
-        }
+        private readonly IPersonReadRepository _personRepository = personRepository;
+        private readonly IMonthlyIncomeEventPublisher _eventPublisher = eventPublisher;
+        private readonly MonthlyIncomeCalculator _calculator = calculator;
 
         public async Task<Unit> Handle(
             GenerateMonthlyIncomeForMonthCommand request,
