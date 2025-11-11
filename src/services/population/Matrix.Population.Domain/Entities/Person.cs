@@ -15,6 +15,8 @@ namespace Matrix.Population.Domain.Entities
         public Age Age { get; private set; }
         public AgeGroup AgeGroup => AgeGroupRules.GetAgeGroup(Age);
 
+        public HappinessLevel Happiness { get; private set; }
+
         public EmploymentStatus EmploymentStatus { get; private set; }
         public Job? Job { get; private set; }
 
@@ -24,13 +26,16 @@ namespace Matrix.Population.Domain.Entities
             DistrictId districtId,
             Age age,
             EmploymentStatus employmentStatus,
+            HappinessLevel initialHappiness,
             Job? job = null)
         {
             Id = id;
             HouseholdId = householdId;
             DistrictId = districtId;
+
             Age = GuardHelper.AgainstNull(age, nameof(Age));
             EmploymentStatus = GuardHelper.AgainstInvalidEnum(employmentStatus, nameof(EmploymentStatus));
+            Happiness = initialHappiness;
             Job = job;
 
             EnsureConsistency();
@@ -54,6 +59,11 @@ namespace Matrix.Population.Domain.Entities
                 throw new DomainValidationException("Only employed person can have a job", nameof(Job));
         }
 
+        public void ChangeHappiness(int delta)
+        {
+            Happiness = Happiness.WithDelta(delta);
+        }
+
         public void AssignJob(Job job)
         {
             if (AgeGroup != AgeGroup.Adult)
@@ -61,6 +71,8 @@ namespace Matrix.Population.Domain.Entities
 
             Job = GuardHelper.AgainstNull(job, nameof(Job));
             EmploymentStatus = EmploymentStatus.Employed;
+
+            ChangeHappiness(+10);
 
             EnsureConsistency();
         }
@@ -72,6 +84,8 @@ namespace Matrix.Population.Domain.Entities
 
             Job = null;
             EmploymentStatus = EmploymentStatus.Unemployed;
+
+            ChangeHappiness(-10);
 
             EnsureConsistency();
         }
@@ -85,6 +99,8 @@ namespace Matrix.Population.Domain.Entities
                 EmploymentStatus = EmploymentStatus.Retired;
                 Job = null;
             }
+
+            ChangeHappiness(-1);
 
             EnsureConsistency();
         }
