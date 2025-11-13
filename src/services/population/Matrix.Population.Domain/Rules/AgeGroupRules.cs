@@ -8,9 +8,9 @@ namespace Matrix.Population.Domain.Rules
         public static AgeGroup GetAgeGroup(Age age)
         {
             if (age.Years < 7) return AgeGroup.Child;
-            if (age.Years < 23) return AgeGroup.Student;
+            if (age.Years < 23) return AgeGroup.Youth;
             if (age.Years < 66) return AgeGroup.Adult;
-            return AgeGroup.Retired;
+            return AgeGroup.Senior;
         }
     }
 }
