@@ -10,5 +10,9 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public HappinessLevel WithDelta(int delta)
             => From(Math.Clamp(Value + delta, 0, 100));
+
+        /// <summary> Default is 50. </summary>
+        public static HappinessLevel Default()
+            => From(50);
     }
 }
