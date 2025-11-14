@@ -1,11 +1,16 @@
-import React, { type PropsWithChildren } from "react";
-import Sidebar from "../components/Sidebar";
-import Topbar from "../components/Topbar";
+import React from "react";
+import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 
-const MainLayout: React.FC<PropsWithChildren> = ({ children }) => {
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="app-root">
       <Sidebar />
+
       <div className="app-main">
         <Topbar />
         <main className="app-content">{children}</main>

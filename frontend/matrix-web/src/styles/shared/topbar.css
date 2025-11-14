@@ -1,0 +1,19 @@
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: #020617;
+}
+
+.topbar-caption {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.topbar-user {
+  font-size: 14px;
+  color: #e5e7eb;
+}

@@ -1,28 +1,25 @@
 import type { PersonDto } from "./types";
 
 const POPULATION_API_BASE_URL =
-  import.meta.env.VITE_POPULATION_API_URL ?? "https://localhost:7297";
+  import.meta.env.VITE_POPULATION_API_URL ?? "https://localhost:7155";
 
-export async function getPopulationPreview(
-  count: number,
-  seed?: number
-): Promise<PersonDto[]> {
-  const params = new URLSearchParams();
-  params.set("peopleCount", count.toString());
-  if (seed !== undefined) {
-    params.set("randomSeed", seed.toString());
-  }
+export interface PagedResult<T> {
+  items: T[];
+  total: number;
+}
 
-  const url = `${POPULATION_API_BASE_URL}/api/population/simulation/init?${params.toString()}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-  });
+// новый метод для CitizensPage
+export async function getCitizensPage(
+  page: number,
+  pageSize: number
+): Promise<PagedResult<PersonDto>> {
+  const response = await fetch(
+    `${POPULATION_API_BASE_URL}/api/population/citizens?page=${page}&pageSize=${pageSize}`
+  );
 
   if (!response.ok) {
-    throw new Error(`Failed to load population preview: ${response.status}`);
+    throw new Error("Failed to load citizens");
   }
 
-  const data = (await response.json()) as PersonDto[];
-  return data;
+  return await response.json();
 }

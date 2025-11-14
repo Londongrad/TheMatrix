@@ -1,0 +1,43 @@
+/* ---- импортируем остальное ---- */
+
+@import "./App.css";
+@import "./sidebar.css";
+@import "./topbar.css";
+
+/* стили конкретных модулей */
+@import "../population/citizen-card.css";
+/* потом добавить economy и т.п. */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+body {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.app-root {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  padding: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
