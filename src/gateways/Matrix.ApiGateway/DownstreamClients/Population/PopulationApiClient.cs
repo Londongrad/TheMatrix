@@ -5,29 +5,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
     {
         private readonly HttpClient _client = client;
         private readonly ILogger<PopulationApiClient> _logger = logger;
-
-        private const string IncomeEndpointTemplate = "/api/population/Simulation/income/month/{0}";
+        
         private const string HealthEndpoint = "/api/population/Simulation/health";
         private const string InitializeEndpoint = "/api/population/Simulation/init";
-
-        public async Task TriggerMonthlyIncomeAsync(int month, CancellationToken cancellationToken = default)
-        {
-            // Должен быть POST, потому что в Population.Api стоит [HttpPost(...)]
-            var relativeUrl = string.Format(IncomeEndpointTemplate, month);
-
-            // Тело нам не нужно – просто команда без payload
-            using var response = await _client.PostAsync(relativeUrl, content: null, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning(
-                    "Failed to trigger monthly income for month {Month}. Status code: {StatusCode}",
-                    month,
-                    response.StatusCode);
-
-                response.EnsureSuccessStatusCode(); // бросит исключение
-            }
-        }
 
         public async Task InitializePopulationAsync(
             int peopleCount,
