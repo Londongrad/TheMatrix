@@ -10,12 +10,18 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
 
         public async Task<IReadOnlyCollection<Person>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var persons = await _dbContext
+            return await _dbContext
                 .Persons
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
+        }
 
-            return persons;
+        public async Task<Person?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext
+                .Persons
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id.Value == id, cancellationToken);
         }
     }
 }
