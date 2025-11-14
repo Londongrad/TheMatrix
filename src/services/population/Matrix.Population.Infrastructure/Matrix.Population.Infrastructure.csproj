@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj" />
     <ProjectReference Include="..\Matrix.Population.Application\Matrix.Population.Application.csproj" />
   </ItemGroup>
 

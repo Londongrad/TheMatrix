@@ -5,8 +5,6 @@ VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Population.Domain", "src\services\population\Matrix.Population.Domain\Matrix.Population.Domain.csproj", "{E9E71812-C75C-492E-859E-4E0E111451AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Domain", "src\building-blocks\Matrix.BuildingBlocks.Domain\Matrix.BuildingBlocks.Domain.csproj", "{D1BE3B16-2E3F-4DE5-B8DC-A457459325C5}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Population.Application", "src\services\population\Matrix.Population.Application\Matrix.Population.Application.csproj", "{2C1D9736-AADD-4BE8-9C69-EA3D9DE3CFF6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Population.Infrastructure", "src\services\population\Matrix.Population.Infrastructure\Matrix.Population.Infrastructure.csproj", "{5E3D4188-FCE1-4105-852D-214CB0F5FC3B}"
@@ -31,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Api", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.ApiGateway", "src\gateways\Matrix.ApiGateway\Matrix.ApiGateway.csproj", "{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Domain", "src\building-blocks\Matrix.BuildingBlocks.Domain\Matrix.BuildingBlocks.Domain.csproj", "{637EE457-655B-B0DA-7023-9810E42F0A19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Application", "src\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj", "{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,10 +43,6 @@ Global
 		{E9E71812-C75C-492E-859E-4E0E111451AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E9E71812-C75C-492E-859E-4E0E111451AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E9E71812-C75C-492E-859E-4E0E111451AF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D1BE3B16-2E3F-4DE5-B8DC-A457459325C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1BE3B16-2E3F-4DE5-B8DC-A457459325C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D1BE3B16-2E3F-4DE5-B8DC-A457459325C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D1BE3B16-2E3F-4DE5-B8DC-A457459325C5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2C1D9736-AADD-4BE8-9C69-EA3D9DE3CFF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2C1D9736-AADD-4BE8-9C69-EA3D9DE3CFF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C1D9736-AADD-4BE8-9C69-EA3D9DE3CFF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -93,6 +91,14 @@ Global
 		{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B910E5B-9701-4D85-8EBA-799F2A2FD00E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{637EE457-655B-B0DA-7023-9810E42F0A19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{637EE457-655B-B0DA-7023-9810E42F0A19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{637EE457-655B-B0DA-7023-9810E42F0A19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{637EE457-655B-B0DA-7023-9810E42F0A19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

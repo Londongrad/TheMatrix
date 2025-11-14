@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj" />
     <ProjectReference Include="..\Matrix.Population.Domain\Matrix.Population.Domain.csproj" />
   </ItemGroup>
 
