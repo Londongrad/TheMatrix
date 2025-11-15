@@ -24,6 +24,9 @@ namespace Matrix.Population.Domain.Entities
         public MaritalStatus MaritalStatus { get; private set; }
         public EducationLevel EducationLevel { get; private set; }
 
+        public HealthLevel Health { get; private set; }
+        public BodyWeight Weight { get; private set; }
+
         public HappinessLevel Happiness { get; private set; }
 
         public EmploymentStatus EmploymentStatus { get; private set; }
@@ -51,26 +54,28 @@ namespace Matrix.Population.Domain.Entities
             EmploymentStatus employmentStatus,
             HappinessLevel happinessLevel,
             Personality personality,
+            HealthLevel healthLevel,
+            BodyWeight weight,
             Job? job = null,
             DateOnly? currentDate = null)
         {
             Id = personId;
             HouseholdId = householdId;
             DistrictId = districtId;
+            Happiness = happinessLevel;
+            Health = healthLevel;
+            Weight = weight;
+            BirthDate = birthDate;
+
+            Job = job;
 
             Name = GuardHelper.AgainstNull(name, nameof(Name));
             Sex = GuardHelper.AgainstInvalidEnum(sex, nameof(Sex));
-            BirthDate = birthDate;
-
             LifeStatus = GuardHelper.AgainstInvalidEnum(lifeStatus, nameof(LifeStatus));
             MaritalStatus = GuardHelper.AgainstInvalidEnum(maritalStatus, nameof(MaritalStatus));
             EducationLevel = GuardHelper.AgainstInvalidEnum(educationLevel, nameof(EducationLevel));
             EmploymentStatus = GuardHelper.AgainstInvalidEnum(employmentStatus, nameof(EmploymentStatus));
-
-            Happiness = happinessLevel;
             Personality = GuardHelper.AgainstNull(personality, nameof(Personality));
-
-            Job = job;
 
             if (currentDate is not null)
             {
@@ -98,6 +103,8 @@ namespace Matrix.Population.Domain.Entities
             HappinessLevel happinessLevel,
             Personality personality,
             DateOnly birthDate,
+            HealthLevel healthLevel,
+            BodyWeight weight,
             Job? job,
             DateOnly currentDate)
         {
@@ -114,6 +121,8 @@ namespace Matrix.Population.Domain.Entities
                 employmentStatus: employmentStatus,
                 happinessLevel: happinessLevel,
                 personality: personality,
+                healthLevel: healthLevel,
+                weight: weight,
                 job: job,
                 currentDate: currentDate);
         }
@@ -130,6 +139,8 @@ namespace Matrix.Population.Domain.Entities
             DateOnly birthDate,
             EducationLevel educationLevel,
             HappinessLevel happinessLevel,
+            HealthLevel healthLevel,
+            BodyWeight weight,
             Personality personality,
             DateOnly currentDate)
         {
@@ -146,6 +157,8 @@ namespace Matrix.Population.Domain.Entities
                 employmentStatus: EmploymentStatus.Student,
                 happinessLevel: happinessLevel,
                 personality: personality,
+                weight: weight,
+                healthLevel: healthLevel,
                 job: null,
                 currentDate: currentDate);
 
@@ -174,6 +187,8 @@ namespace Matrix.Population.Domain.Entities
             EducationLevel educationLevel,
             HappinessLevel happinessLevel,
             Personality personality,
+            HealthLevel healthLevel,
+            BodyWeight weight,
             DateOnly currentDate)
         {
             var person = new Person(
@@ -189,6 +204,8 @@ namespace Matrix.Population.Domain.Entities
                 employmentStatus: EmploymentStatus.Retired,
                 happinessLevel: happinessLevel,
                 personality: personality,
+                healthLevel: healthLevel,
+                weight: weight,
                 job: null,
                 currentDate: currentDate);
 
@@ -213,6 +230,7 @@ namespace Matrix.Population.Domain.Entities
             PersonName name,
             Sex sex,
             DateOnly birthDate,
+            BodyWeight weight,
             Personality personality,
             DateOnly currentDate)
         {
@@ -228,6 +246,8 @@ namespace Matrix.Population.Domain.Entities
                 educationLevel: EducationLevel.None,
                 employmentStatus: EmploymentStatus.None,
                 happinessLevel: HappinessLevel.Default(),
+                healthLevel: HealthLevel.Default(),
+                weight: weight,
                 personality: personality,
                 job: null,
                 currentDate: currentDate);
@@ -245,6 +265,8 @@ namespace Matrix.Population.Domain.Entities
             DateOnly birthDate,
             EmploymentStatus employmentStatus,
             Personality personality,
+            HealthLevel healthLevel,
+            BodyWeight weight,
             Job? job,
             DateOnly currentDate)
         {
@@ -260,6 +282,8 @@ namespace Matrix.Population.Domain.Entities
                 educationLevel: EducationLevel.Primary,
                 employmentStatus: employmentStatus,
                 happinessLevel: HappinessLevel.Default(),
+                weight: weight,
+                healthLevel: healthLevel,
                 personality: personality,
                 job: job,
                 currentDate: currentDate);
@@ -350,13 +374,13 @@ namespace Matrix.Population.Domain.Entities
             {
                 EmploymentStatus = EmploymentStatus.Retired;
                 Job = null;
-                ChangeHappiness(-1);
+                ChangeHappiness(5);
             }
 
             EnsureConsistency(currentDate);
         }
 
-        public void Die(DateOnly currentDate)
+        public void Die()
         {
             if (!IsAlive)
                 return;
@@ -364,25 +388,49 @@ namespace Matrix.Population.Domain.Entities
             LifeStatus = LifeStatus.Deceased;
             Job = null;
             EmploymentStatus = EmploymentStatus.None;
+            Health = HealthLevel.From(0);
 
-            EnsureConsistency(currentDate);
+            EnsureConsistencyForDead();
+        }
+
+        #region [ Consistency Checks ]
+
+        private void EnsureConsistencyForDead()
+        {
+            if (IsAlive)
+            {
+                throw new DomainValidationException(
+                    $"{nameof(EnsureConsistencyForDead)} called for an alive person.",
+                    nameof(LifeStatus));
+            }
+
+            if (EmploymentStatus != EmploymentStatus.None)
+            {
+                throw new DomainValidationException(
+                    "Deceased person should have employmentStatus = None.",
+                    nameof(EmploymentStatus));
+            }
+
+            if (Job is not null)
+            {
+                throw new DomainValidationException(
+                    "Deceased person cannot have a job.",
+                    nameof(Job));
+            }
+
+            if (!Health.IsDead)
+            {
+                throw new DomainValidationException(
+                    "Deceased person must have zero health.",
+                    nameof(Health));
+            }
         }
 
         private void EnsureConsistency(DateOnly currentDate)
         {
             if (!IsAlive)
             {
-                if (EmploymentStatus != EmploymentStatus.None &&
-                    EmploymentStatus != EmploymentStatus.Retired)
-                {
-                    throw new DomainValidationException(
-                        "Deceased person cannot have active employment status.",
-                        nameof(EmploymentStatus));
-                }
-
-                if (Job is not null)
-                    throw new DomainValidationException("Deceased person cannot have a job.", nameof(Job));
-
+                EnsureConsistencyForDead();
                 return;
             }
 
@@ -413,6 +461,8 @@ namespace Matrix.Population.Domain.Entities
                 throw new DomainValidationException("Only employed person can have a job.", nameof(Job));
             }
         }
+
+        #endregion [ Consistency Checks ]
 
         #endregion [ Methods ]
     }
