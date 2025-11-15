@@ -17,7 +17,6 @@ namespace Matrix.Population.Api.Configurations
 
         private static void ConfigureControllers(this WebApplication app)
         {
-            app.UseCors("Frontend");
             app.MapControllers();
         }
     }
