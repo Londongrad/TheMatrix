@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Matrix.Population.Application.UseCases.InitializePopulation
 {
-    public sealed class InitializePopulationHandler(
+    public sealed class InitializePopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
         PopulationGenerator generator,
         IMapper mapper)
@@ -16,10 +16,12 @@ namespace Matrix.Population.Application.UseCases.InitializePopulation
         private readonly PopulationGenerator _generator = generator;
         private readonly IMapper _mapper = mapper;
 
-    public async Task<IReadOnlyList<PersonDto>> Handle(
-            InitializePopulationCommand request,
-            CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<PersonDto>> Handle(
+                InitializePopulationCommand request,
+                CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
+
             // 1. Очистить текущую популяцию (если это "reset")
             //await _personWriteRepository.DeleteAllAsync(cancellationToken);
 
