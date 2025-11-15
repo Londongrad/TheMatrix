@@ -282,6 +282,23 @@ namespace Matrix.Population.Domain.Entities
             Happiness = Happiness.WithDelta(finalDelta);
         }
 
+        public void ChangeHealth(int delta, DateOnly currentDate)
+        {
+            if (!IsAlive)
+                return;
+
+            Health = Health.WithDelta(delta);
+
+            // If health drops to zero, the person dies.
+            if (Health.IsDead && IsAlive)
+            {
+                Die();
+                return;
+            }
+
+            EnsureConsistency(currentDate);
+        }
+
         public void AssignJob(DateOnly currentDate, Job job)
         {
             if (!IsAlive)
