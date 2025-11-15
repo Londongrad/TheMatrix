@@ -1,4 +1,5 @@
-﻿using Matrix.Population.Application.Abstractions;
+﻿using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,23 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                 .Persons
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id.Value == id, cancellationToken);
+        }
+
+        public async Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(
+            Pagination pagination,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _dbContext.Persons.AsNoTracking();
+
+            int totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .OrderBy(p => p.Id)
+                .Skip(pagination.Skip)
+                .Take(pagination.PageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
         }
     }
 }
