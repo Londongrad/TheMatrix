@@ -64,6 +64,8 @@ namespace Matrix.Population.Domain.Services
             var birthDate = currentDate.AddYears(-ageYears);
             var age = Age.FromYears(ageYears);
             var ageGroup = AgeGroupRules.GetAgeGroup(age);
+            var health = CreateRandomHealth(random, ageGroup, ageYears);
+            var weight = CreateRandomWeight(random, sex, ageGroup, ageYears);
 
             var personality = Personality.CreateRandom(random);
 
@@ -87,6 +89,7 @@ namespace Matrix.Population.Domain.Services
                     name: name,
                     sex: sex,
                     birthDate: birthDate,
+                    weight: weight,
                     personality: personality,
                     currentDate: currentDate),
 
@@ -98,6 +101,8 @@ namespace Matrix.Population.Domain.Services
                         name: name,
                         sex: sex,
                         birthDate: birthDate,
+                        weight: weight,
+                        healthLevel: health,
                         educationLevel: educationLevel,
                         happinessLevel: happiness,
                         personality: personality,
@@ -110,6 +115,8 @@ namespace Matrix.Population.Domain.Services
                         districtId: districtId,
                         name: name,
                         sex: sex,
+                        weight: weight,
+                        healthLevel: health,
                         birthDate: birthDate,
                         employmentStatus: employmentStatus,
                         personality: personality,
@@ -123,6 +130,8 @@ namespace Matrix.Population.Domain.Services
                         districtId: districtId,
                         name: name,
                         sex: sex,
+                        weight: weight,
+                        healthLevel: health,
                         birthDate: birthDate,
                         maritalStatus: maritalStatus,
                         educationLevel: educationLevel,
@@ -153,6 +162,74 @@ namespace Matrix.Population.Domain.Services
             var lastName = lastNames[random.Next(lastNames.Length)];
 
             return new PersonName(firstName, lastName); // если есть отчество – добавишь третьим параметром
+        }
+
+        private BodyWeight CreateRandomWeight(
+            Random random,
+            Sex sex,
+            AgeGroup ageGroup,
+            int ageYears)
+        {
+            decimal kg;
+
+            if (ageGroup == AgeGroup.Child)
+            {
+                // очень грубые диапазоны по возрасту ребёнка
+                if (ageYears < 2)
+                    kg = random.Next(3, 15);     // 3–14 кг
+                else if (ageYears < 6)
+                    kg = random.Next(12, 26);    // 12–25 кг
+                else if (ageYears < 12)
+                    kg = random.Next(20, 46);    // 20–45 кг
+                else
+                    kg = random.Next(35, 71);    // 35–70 кг (подростки)
+            }
+            else if (ageGroup == AgeGroup.Youth)
+            {
+                kg = sex == Sex.Male
+                    ? random.Next(50, 86)        // 50–85
+                    : random.Next(45, 76);       // 45–75
+            }
+            else if (ageGroup == AgeGroup.Adult)
+            {
+                kg = sex == Sex.Male
+                    ? random.Next(60, 111)       // 60–110
+                    : random.Next(45, 96);       // 45–95
+            }
+            else // Senior
+            {
+                kg = sex == Sex.Male
+                    ? random.Next(55, 96)        // 55–95
+                    : random.Next(45, 86);       // 45–85
+            }
+
+            return BodyWeight.FromKilograms(kg);
+        }
+
+        private HealthLevel CreateRandomHealth(
+            Random random,
+            AgeGroup ageGroup,
+            int ageYears)
+        {
+            int value = ageGroup switch
+            {
+                AgeGroup.Child => random.Next(70, 101),   // дети в целом здоровые
+                AgeGroup.Youth => random.Next(60, 101),
+                AgeGroup.Adult => random.Next(50, 96),
+                AgeGroup.Senior => random.Next(30, 91),
+                _ => random.Next(40, 91)
+            };
+
+            // чуть подправим по возрасту внутри группы (чем старше, тем шанс пониже)
+            if (ageGroup is AgeGroup.Adult or AgeGroup.Youth)
+            {
+                if (ageYears > 40)
+                    value -= random.Next(0, 11); // -0..10
+            }
+
+            value = Math.Clamp(value, 0, 100);
+
+            return HealthLevel.From(value);
         }
 
         private int CreateRandomAgeYears(Random random)
