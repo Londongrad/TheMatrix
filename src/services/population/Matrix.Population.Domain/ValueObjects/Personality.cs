@@ -3,7 +3,7 @@ using Matrix.Population.Domain.Enums;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
-    public sealed class Personality
+    public sealed record class Personality
     {
         #region [ Properties ]
 
@@ -39,11 +39,11 @@ namespace Matrix.Population.Domain.ValueObjects
         }
 
         /// <summary>
-        /// Neutral personality with all traits set to 50.
+        /// Neutral personality with all traits set to 50
+        /// (does not amplify or dampen happiness changes).
         /// </summary>
         public static Personality Neutral()
         {
-
             return new(
                 optimism: 50,
                 discipline: 50,
@@ -136,11 +136,42 @@ namespace Matrix.Population.Domain.ValueObjects
             return modified;
         }
 
+        /// <summary>
+        /// Возвращает множитель склонности идти на риск (0.5..1.5).
+        /// </summary>
+        public decimal GetRiskFactor()
+        {
+            var normalized = (RiskTolerance - 50) / 50m; // -1..+1
+            return 1m + normalized * 0.5m; // 0.5..1.5
+        }
+
+        /// <summary>
+        /// Насколько человек склонен соблюдать правила (0..1).
+        /// </summary>
+        public decimal GetComplianceLevel()
+        {
+            // Высокая дисциплина → ближе к 1, низкая → ближе к 0
+            return Discipline / 100m;
+        }
+
+        /// <summary>
+        /// Множитель на количество социальных контактов (0.5..1.5).
+        /// </summary>
+        public decimal GetContactsFactor()
+        {
+            var normalized = (Sociability - 50) / 50m;
+            return 1m + normalized * 0.5m;
+        }
+
+        #region [ Helpers ]
+
         private static int NextTrait(Random random, int minInclusive, int maxInclusive)
         {
             // Random.Next верхнюю границу не включает, поэтому +1
             return random.Next(minInclusive, maxInclusive + 1);
         }
+
+        #endregion [ Helpers ]
 
         #endregion [ Methods ] 
     }
