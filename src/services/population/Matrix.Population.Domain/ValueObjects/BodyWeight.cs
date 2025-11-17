@@ -2,9 +2,14 @@
 
 namespace Matrix.Population.Domain.ValueObjects
 {
-    public readonly struct BodyWeight(decimal kilograms)
+    public record class BodyWeight
     {
-        public decimal Kilograms { get; } = GuardHelper.AgainstOutOfRange(kilograms, 2m, 400m, nameof(BodyWeight));
+        public decimal Kilograms { get; }
+
+        public BodyWeight(decimal kilograms)
+        {
+            Kilograms = GuardHelper.AgainstOutOfRange(kilograms, 2m, 400m, nameof(BodyWeight));
+        }
 
         public static BodyWeight FromKilograms(decimal kilograms) => new(kilograms);
 
