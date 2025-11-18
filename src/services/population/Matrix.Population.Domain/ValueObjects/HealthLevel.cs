@@ -2,9 +2,15 @@
 
 namespace Matrix.Population.Domain.ValueObjects
 {
-    public readonly struct HealthLevel(int value)
+    public readonly record struct HealthLevel
     {
-        public int Value { get; } = GuardHelper.AgainstOutOfRange(value, 0, 100, nameof(HealthLevel));
+        public int Value { get; }
+        public bool IsDead => Value == 0;
+
+        public HealthLevel(int value)
+        {
+            Value = GuardHelper.AgainstOutOfRange(value, 0, 100, nameof(HealthLevel));
+        }
 
         public static HealthLevel From(int value) => new(value);
 
@@ -15,7 +21,5 @@ namespace Matrix.Population.Domain.ValueObjects
             var newValue = Math.Clamp(Value + delta, 0, 100);
             return new HealthLevel(newValue);
         }
-
-        public bool IsDead => Value == 0;
     }
 }
