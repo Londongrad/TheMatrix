@@ -2,7 +2,7 @@
 
 namespace Matrix.Population.Domain.ValueObjects
 {
-    public sealed class Job
+    public sealed record class Job
     {
         public WorkplaceId WorkplaceId { get; }
         public string Title { get; }
