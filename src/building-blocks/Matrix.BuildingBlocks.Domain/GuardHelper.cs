@@ -121,5 +121,41 @@ namespace Matrix.BuildingBlocks.Domain
 
             return value;
         }
+
+        /// <summary>
+        /// Ensures that the given <see cref="DateOnly"/> value is valid, not default, and within allowed bounds.
+        /// </summary>
+        /// <param name="value">The date to validate.</param>
+        /// <param name="argumentName">The name of the argument being validated.</param>
+        /// <exception cref="DomainValidationException">Thrown when the date is default, in the future, or too far in the past.</exception>
+        public static void AgainstInvalidDateOnly(DateOnly? value, string argumentName)
+        {
+            if (value == null)
+                return;
+
+            if (value.Value == default)
+                throw new DomainValidationException($"{argumentName} cannot be default");
+
+            if (value < DateOnly.FromDateTime(new DateTime(0001, 1, 1)))
+                throw new DomainValidationException($"{argumentName} is too far in the past");
+        }
+
+        /// <summary>
+        /// Ensures that the provided date range is valid, where the start date is not later than the end date.
+        /// </summary>
+        /// <param name="from">The start date of the range.</param>
+        /// <param name="to">The end date of the range.</param>
+        /// <exception cref="DomainValidationException">Thrown when the start date is later than the end date.</exception>
+        public static void AgainstInvalidDateRange(DateOnly from, DateOnly? to)
+        {
+            if (to is null)
+                return;
+
+            AgainstInvalidDateOnly(from, nameof(from));
+            AgainstInvalidDateOnly(to, nameof(to));
+
+            if (from > to)
+                throw new DomainValidationException($"Invalid date range: from {from} cannot be later than to {to}");
+        }
     }
 }
