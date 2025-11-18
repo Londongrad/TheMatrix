@@ -33,6 +33,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Domai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Application", "src\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj", "{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Population.Contracts", "src\services\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj", "{9FBEE798-C99F-44A6-8E92-5D976252DF65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Infrastructure", "src\building-blocks\Matrix.BuildingBlocks.Infrastructure\Matrix.BuildingBlocks.Infrastructure.csproj", "{4B44ABF6-6BD0-44AB-814E-253DDD955165}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +103,14 @@ Global
 		{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76EF42EC-983E-0A0F-C38D-C6ABA22595B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FBEE798-C99F-44A6-8E92-5D976252DF65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FBEE798-C99F-44A6-8E92-5D976252DF65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FBEE798-C99F-44A6-8E92-5D976252DF65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FBEE798-C99F-44A6-8E92-5D976252DF65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B44ABF6-6BD0-44AB-814E-253DDD955165}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B44ABF6-6BD0-44AB-814E-253DDD955165}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B44ABF6-6BD0-44AB-814E-253DDD955165}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B44ABF6-6BD0-44AB-814E-253DDD955165}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
