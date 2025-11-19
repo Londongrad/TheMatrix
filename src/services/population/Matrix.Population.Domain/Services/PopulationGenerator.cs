@@ -12,7 +12,7 @@ namespace Matrix.Population.Domain.Services
         private readonly int _districtCount = Math.Max(1, districtCount);
         private readonly int _averageHouseholdSize = Math.Max(1, averageHouseholdSize);
 
-        public IReadOnlyList<Person> Generate(
+        public IReadOnlyCollection<Person> Generate(
             int peopleCount,
             DateOnly currentDate,
             int? randomSeed = null)
@@ -296,7 +296,7 @@ namespace Matrix.Population.Domain.Services
         private Job? CreateRandomJob(Random random)
         {
             var title = JobTitles[random.Next(JobTitles.Length)];
-            var workplaceId = new WorkplaceId(Guid.NewGuid());
+            var workplaceId = WorkplaceId.New();
 
             return new Job(workplaceId, title);
         }
