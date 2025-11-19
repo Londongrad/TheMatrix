@@ -22,8 +22,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
 
         public async Task DeleteAllAsync(CancellationToken cancellationToken = default)
         {
-            _dbContext.Persons.RemoveRange(_dbContext.Persons);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.Persons.ExecuteDeleteAsync(cancellationToken);
         }
 
         public async Task DeleteAsync(Person person, CancellationToken cancellationToken = default)
@@ -36,7 +35,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task UpdateRangeAsync(IReadOnlyList<Person> persons, CancellationToken cancellationToken = default)
+        public async Task UpdateRangeAsync(IReadOnlyCollection<Person> persons, CancellationToken cancellationToken = default)
         {
             const int batchSize = 1_000; // tune if needed
 
@@ -47,7 +46,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                     .Take(batchSize)
                     .ToList();
 
-                await _dbContext.Persons.AddRangeAsync(batch, cancellationToken);
+                _dbContext.Persons.UpdateRange(batch);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 // Important: clear change tracker to avoid memory leak

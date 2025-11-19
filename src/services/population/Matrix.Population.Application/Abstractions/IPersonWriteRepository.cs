@@ -12,7 +12,7 @@ namespace Matrix.Population.Application.Abstractions
         Task AddAsync(Person person, CancellationToken cancellationToken = default);
 
         Task UpdateAsync(Person person, CancellationToken cancellationToken = default);
-        Task UpdateRangeAsync(IReadOnlyList<Person> persons, CancellationToken cancellationToken = default);
+        Task UpdateRangeAsync(IReadOnlyCollection<Person> persons, CancellationToken cancellationToken = default);
 
     }
 }
