@@ -7,7 +7,7 @@ namespace Matrix.Population.Application.Abstractions
         Task DeleteAllAsync(CancellationToken cancellationToken = default);
         Task DeleteAsync(Person person, CancellationToken cancellationToken = default);
 
-        Task AddRangeAsync(IReadOnlyList<Person> persons, CancellationToken cancellationToken = default);
+        Task AddRangeAsync(IReadOnlyCollection<Person> persons, CancellationToken cancellationToken = default);
 
         Task AddAsync(Person person, CancellationToken cancellationToken = default);
 

@@ -1,5 +1,6 @@
 ﻿using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories
 {
@@ -9,12 +10,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
 
         public async Task AddAsync(Person person, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            _dbContext.Persons.Add(person);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task AddRangeAsync(IReadOnlyList<Person> persons, CancellationToken cancellationToken = default)
+        public async Task AddRangeAsync(IReadOnlyCollection<Person> persons, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            await _dbContext.Persons.AddRangeAsync(persons, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public async Task DeleteAllAsync(CancellationToken cancellationToken = default)
