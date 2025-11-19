@@ -1,6 +1,8 @@
 ﻿using Matrix.BuildingBlocks.Application.Models;
+using Matrix.BuildingBlocks.Infrastructure.Exceptions;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories
@@ -17,12 +19,12 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<Person?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Person> GetByIdAsync(PersonId id, CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .Persons
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id.Value == id, cancellationToken);
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+                ?? throw new NotFoundException(nameof(Person), id);
         }
 
         public async Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(
