@@ -27,12 +27,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
 
         public async Task DeleteAsync(Person person, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            _dbContext.Persons.Remove(person);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public async Task UpdateAsync(Person person, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            _dbContext.Update(person);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public async Task UpdateRangeAsync(IReadOnlyCollection<Person> persons, CancellationToken cancellationToken = default)
