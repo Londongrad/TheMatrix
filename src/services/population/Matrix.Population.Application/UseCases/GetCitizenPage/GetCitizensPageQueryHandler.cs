@@ -1,14 +1,13 @@
-﻿using AutoMapper;
-using Matrix.BuildingBlocks.Application.Models;
+﻿using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.DTOs;
+using Matrix.Population.Application.Mapping;
+using Matrix.Population.Contracts.Models;
 using MediatR;
 
 namespace Matrix.Population.Application.UseCases.GetCitizenPage
 {
     public sealed class GetCitizensPageQueryHandler(
-        IPersonReadRepository personReadRepository,
-        IMapper mapper)
+        IPersonReadRepository personReadRepository)
         : IRequestHandler<GetCitizensPageQuery, PagedResult<PersonDto>>
     {
         private readonly IPersonReadRepository _personReadRepository = personReadRepository;
@@ -17,10 +16,12 @@ namespace Matrix.Population.Application.UseCases.GetCitizenPage
             GetCitizensPageQuery request,
             CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(request);
+
             var (persons, totalCount) = await _personReadRepository
                 .GetPageAsync(request.Pagination, cancellationToken);
 
-            var dtos = mapper.Map<IReadOnlyCollection<PersonDto>>(persons);
+            var dtos = persons.ToDtoCollection();
 
             return new PagedResult<PersonDto>
             (
