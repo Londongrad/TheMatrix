@@ -1,0 +1,507 @@
+// src/features/population/components/CitizenDetailsModal.tsx
+import React, { useEffect, useState } from "react";
+import type { PersonDto } from "../../../api/population/types";
+import {
+  killCitizen,
+  resurrectCitizen,
+  updateCitizen,
+} from "../../../api/population/client";
+import { type UpdateCitizenRequest } from "../../../api/population/types";
+
+const MARITAL_STATUS_OPTIONS: string[] = [
+  "Single",
+  "Married",
+  "Divorced",
+  "Widowed",
+];
+
+const EMPLOYMENT_STATUS_OPTIONS: string[] = [
+  "None",
+  "Employed",
+  "Student",
+  "Unemployed",
+  "Retired",
+];
+
+const EDUCATIONAL_LEVEL_OPTIONS: string[] = [
+  "None",
+  "Primary",
+  "Secondary",
+  "Vocational",
+  "Higher",
+  "Postgraduate",
+];
+
+interface CitizenDetailsModalProps {
+  person: PersonDto | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onPersonUpdated?: (person: PersonDto) => void;
+}
+
+interface CitizenFormState {
+  fullName: string;
+  happiness: number;
+  maritalStatus: string;
+  educationLevel: string;
+  employmentStatus: string;
+  jobTitle: string;
+}
+
+const normalizeEnumValue = (value: string, options: string[]): string =>
+  options.includes(value) ? value : options[0];
+
+const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
+  person,
+  isOpen,
+  onClose,
+  onPersonUpdated,
+}) => {
+  const [form, setForm] = useState<CitizenFormState | null>(null);
+  const [initialForm, setInitialForm] = useState<CitizenFormState | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingHappiness, setIsEditingHappiness] = useState(false);
+
+  // когда открываем модалку для нового person — заполняем форму
+  useEffect(() => {
+    if (!person) {
+      setForm(null);
+      setInitialForm(null);
+      setError(null);
+      setIsEditingName(false);
+      setIsEditingHappiness(false);
+      return;
+    }
+
+    const state: CitizenFormState = {
+      fullName: person.fullName,
+      happiness: person.happiness,
+      maritalStatus: normalizeEnumValue(
+        person.maritalStatus,
+        MARITAL_STATUS_OPTIONS
+      ),
+      educationLevel: normalizeEnumValue(
+        person.educationLevel,
+        EDUCATIONAL_LEVEL_OPTIONS
+      ),
+      employmentStatus: normalizeEnumValue(
+        person.employmentStatus,
+        EMPLOYMENT_STATUS_OPTIONS
+      ),
+      jobTitle: person.jobTitle ?? "",
+    };
+
+    setForm(state);
+    setInitialForm(state);
+    setError(null);
+    setIsEditingName(false);
+    setIsEditingHappiness(false);
+  }, [person]);
+
+  const updateFormField = <K extends keyof CitizenFormState>(
+    field: K,
+    value: CitizenFormState[K]
+  ) => {
+    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  if (!isOpen || !person || !form) return null;
+
+  const isDead =
+    person.lifeStatus.toLowerCase() === "deceased" ||
+    person.lifeStatus.toLowerCase() === "dead";
+
+  const handleKill = async () => {
+    if (isDead) return;
+
+    const confirm = window.confirm(
+      `Are you sure you want to kill ${person.fullName}?`
+    );
+    if (!confirm) return;
+
+    try {
+      setIsBusy(true);
+      setError(null);
+
+      const updated = await killCitizen(person.id);
+      onPersonUpdated?.(updated);
+      // parent обновит person, useEffect перезабьёт форму
+    } catch (e) {
+      console.error(e);
+      setError("Failed to kill citizen.");
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleResurrect = async () => {
+    if (!isDead) return;
+
+    try {
+      setIsBusy(true);
+      setError(null);
+
+      const updated = await resurrectCitizen(person.id);
+      onPersonUpdated?.(updated);
+
+      const state: CitizenFormState = {
+        fullName: updated.fullName,
+        happiness: updated.happiness,
+        maritalStatus: normalizeEnumValue(
+          updated.maritalStatus,
+          MARITAL_STATUS_OPTIONS
+        ),
+        educationLevel: normalizeEnumValue(
+          updated.educationLevel,
+          EDUCATIONAL_LEVEL_OPTIONS
+        ),
+        employmentStatus: normalizeEnumValue(
+          updated.employmentStatus,
+          EMPLOYMENT_STATUS_OPTIONS
+        ),
+        jobTitle: updated.jobTitle ?? "",
+      };
+      setForm(state);
+      setInitialForm(state);
+      setIsEditingName(false);
+      setIsEditingHappiness(false);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to resurrect citizen.");
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleHappinessChange = (value: number) => {
+    const clamped = Math.min(100, Math.max(0, value));
+    updateFormField("happiness", clamped);
+  };
+
+  const handleResetHappiness = () => {
+    if (!initialForm) return;
+    setForm((prev) =>
+      prev ? { ...prev, happiness: initialForm.happiness } : prev
+    );
+  };
+
+  const buildPayload = (): UpdateCitizenRequest => {
+    if (!initialForm) return {};
+    const payload: UpdateCitizenRequest = {};
+
+    if (initialForm.fullName !== form.fullName) {
+      payload.fullName = form.fullName;
+    }
+    if (initialForm.happiness !== form.happiness) {
+      payload.happiness = form.happiness;
+    }
+    if (initialForm.maritalStatus !== form.maritalStatus) {
+      payload.maritalStatus = form.maritalStatus;
+    }
+    if (initialForm.educationLevel !== form.educationLevel) {
+      payload.educationLevel = form.educationLevel;
+    }
+    if (initialForm.employmentStatus !== form.employmentStatus) {
+      payload.employmentStatus = form.employmentStatus;
+    }
+    if (initialForm.jobTitle !== form.jobTitle) {
+      payload.jobTitle =
+        form.jobTitle.trim() === "" ? null : form.jobTitle.trim();
+    }
+
+    return payload;
+  };
+
+  const handleSave = async () => {
+    if (isDead) return; // мёртвых не редактируем
+    if (!form) return;
+
+    const payload = buildPayload();
+    if (Object.keys(payload).length === 0) {
+      // ничего не изменилось
+      setError(null);
+      return;
+    }
+
+    try {
+      setIsBusy(true);
+      setError(null);
+
+      const updated = await updateCitizen(person.id, payload);
+      onPersonUpdated?.(updated);
+
+      const state: CitizenFormState = {
+        fullName: updated.fullName,
+        happiness: updated.happiness,
+        maritalStatus: normalizeEnumValue(
+          updated.maritalStatus,
+          MARITAL_STATUS_OPTIONS
+        ),
+        educationLevel: normalizeEnumValue(
+          updated.educationLevel,
+          EDUCATIONAL_LEVEL_OPTIONS
+        ),
+        employmentStatus: normalizeEnumValue(
+          updated.employmentStatus,
+          EMPLOYMENT_STATUS_OPTIONS
+        ),
+        jobTitle: updated.jobTitle ?? "",
+      };
+      setForm(state);
+      setInitialForm(state);
+      setIsEditingName(false);
+      setIsEditingHappiness(false);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to save changes.");
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  // --- буллинги для кнопок ---
+  const hasHappinessChanges =
+    initialForm !== null && initialForm.happiness !== form.happiness;
+
+  const hasFormChanges =
+    initialForm !== null &&
+    (initialForm.fullName !== form.fullName ||
+      initialForm.happiness !== form.happiness ||
+      initialForm.maritalStatus !== form.maritalStatus ||
+      initialForm.educationLevel !== form.educationLevel ||
+      initialForm.employmentStatus !== form.employmentStatus ||
+      initialForm.jobTitle !== form.jobTitle);
+
+  return (
+    <div className="citizens-page-modal-backdrop" onClick={onClose}>
+      <div className="citizens-page-modal" onClick={(e) => e.stopPropagation()}>
+        <header className="citizens-page-modal-header">
+          <div>
+            <div className="citizens-page-modal-title-row">
+              {isEditingName ? (
+                <input
+                  type="text"
+                  className="citizens-page-modal-title-edit-input citizens-page-modal-input-text"
+                  disabled={isBusy || isDead}
+                  value={form.fullName}
+                  onChange={(e) => updateFormField("fullName", e.target.value)}
+                />
+              ) : (
+                <h2 className="citizens-page-modal-title">{form.fullName}</h2>
+              )}
+
+              {!isDead && (
+                <button
+                  type="button"
+                  className="icon-btn citizens-page-modal-title-edit-btn"
+                  disabled={isBusy}
+                  onClick={() => setIsEditingName((v) => !v)}
+                  title="Edit name"
+                >
+                  ✏️
+                </button>
+              )}
+            </div>
+
+            <p className="citizens-page-modal-subtitle">
+              {person.sex}, {person.age} y.o. ({person.ageGroup})
+            </p>
+            <p className="citizens-page-modal-subtitle">
+              Status: {person.lifeStatus}
+              {person.deathDate && ` • Died: ${person.deathDate}`}
+            </p>
+          </div>
+
+          <button className="icon-btn" onClick={onClose}>
+            ✕
+          </button>
+        </header>
+
+        <section className="citizens-page-modal-body">
+          <div className="citizens-page-modal-grid">
+            <div>
+              <h3 className="citizens-page-modal-section-title">Personal</h3>
+
+              <div className="citizens-page-modal-field">
+                <div className="citizens-page-modal-field-label">Marital</div>
+                <select
+                  className="citizens-page-modal-select"
+                  disabled={isDead || isBusy}
+                  value={form.maritalStatus}
+                  onChange={(e) =>
+                    updateFormField("maritalStatus", e.target.value)
+                  }
+                >
+                  {MARITAL_STATUS_OPTIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="citizens-page-modal-field">
+                <div className="citizens-page-modal-field-label">Education</div>
+                <select
+                  className="citizens-page-modal-select"
+                  disabled={isDead || isBusy}
+                  value={form.educationLevel}
+                  onChange={(e) =>
+                    updateFormField("educationLevel", e.target.value)
+                  }
+                >
+                  {EDUCATIONAL_LEVEL_OPTIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="citizens-page-modal-field">
+                <div className="citizens-page-modal-field-row">
+                  <div className="citizens-page-modal-field-label">
+                    Happiness (current)
+                  </div>
+                  {!isDead && (
+                    <button
+                      type="button"
+                      className="icon-btn citizens-page-modal-field-edit-btn"
+                      disabled={isBusy}
+                      onClick={() => setIsEditingHappiness((prev) => !prev)}
+                      title="Edit happiness"
+                    >
+                      ✏️
+                    </button>
+                  )}
+                </div>
+                <div className="citizens-page-modal-field-value">
+                  {form.happiness}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="citizens-page-modal-section-title">Employment</h3>
+
+              <div className="citizens-page-modal-field">
+                <div className="citizens-page-modal-field-label">
+                  Employment status
+                </div>
+                <select
+                  className="citizens-page-modal-select"
+                  disabled={isDead || isBusy}
+                  value={form.employmentStatus}
+                  onChange={(e) =>
+                    updateFormField("employmentStatus", e.target.value)
+                  }
+                >
+                  {EMPLOYMENT_STATUS_OPTIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="citizens-page-modal-field">
+                <div className="citizens-page-modal-field-label">Job title</div>
+                <input
+                  type="text"
+                  className="citizens-page-modal-input-text"
+                  disabled={isDead || isBusy}
+                  value={form.jobTitle}
+                  onChange={(e) => updateFormField("jobTitle", e.target.value)}
+                  placeholder="—"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Редактирование happiness — скрываемый блок */}
+          {isEditingHappiness && (
+            <div className="citizens-page-modal-edit-block">
+              <label className="citizens-page-modal-field-label">
+                Happiness (0–100)
+              </label>
+
+              <div className="citizens-page-modal-happiness-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  disabled={isDead || isBusy}
+                  value={form.happiness}
+                  onChange={(e) =>
+                    handleHappinessChange(Number(e.target.value))
+                  }
+                />
+
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  disabled={isDead || isBusy}
+                  value={form.happiness}
+                  onChange={(e) =>
+                    handleHappinessChange(Number(e.target.value))
+                  }
+                  className="citizens-page-modal-input-number"
+                />
+
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={isDead || isBusy || !hasHappinessChanges}
+                  onClick={handleResetHappiness}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          )}
+
+          {error && <p className="citizens-page-modal-error">{error}</p>}
+        </section>
+
+        <footer className="citizens-page-modal-footer">
+          <div className="citizens-page-modal-footer-group">
+            {!isDead && (
+              <button
+                className="btn btn-danger btn-sm"
+                disabled={isBusy}
+                onClick={handleKill}
+              >
+                Kill citizen
+              </button>
+            )}
+
+            {isDead && (
+              <button
+                className="btn btn-success btn-sm"
+                disabled={isBusy}
+                onClick={handleResurrect}
+              >
+                Resurrect citizen
+              </button>
+            )}
+          </div>
+
+          <div className="citizens-page-modal-footer-group">
+            <button
+              className="btn btn-sm"
+              disabled={isDead || isBusy || !hasFormChanges}
+              onClick={handleSave}
+            >
+              Save changes
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+export default CitizenDetailsModal;

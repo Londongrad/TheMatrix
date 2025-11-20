@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
+import { initializePopulation } from "../../../api/population/client";
 
 const DashboardPage: React.FC = () => {
+  const [generateCount, setGenerateCount] = useState(10000);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [initMessage, setInitMessage] = useState<string | null>(null);
+
   const handleTriggerStorm = () => {
     console.log("Trigger storm in district #1");
     // TODO: вызов backend, когда появится API
@@ -8,6 +14,31 @@ const DashboardPage: React.FC = () => {
 
   const handleTriggerBlackout = () => {
     console.log("Trigger blackout for 15 minutes");
+  };
+
+  const handleInitializePopulation = async () => {
+    // простая валидация
+    if (!Number.isFinite(generateCount) || generateCount <= 0) {
+      setInitError("Please enter a positive number of citizens.");
+      return;
+    }
+
+    try {
+      setIsInitializing(true);
+      setInitError(null);
+      setInitMessage(null);
+
+      await initializePopulation(generateCount);
+
+      setInitMessage(
+        `Population initialized with ${generateCount.toLocaleString()} citizens.`
+      );
+    } catch (e) {
+      console.error(e);
+      setInitError("Failed to initialize population.");
+    } finally {
+      setIsInitializing(false);
+    }
   };
 
   return (
@@ -47,6 +78,30 @@ const DashboardPage: React.FC = () => {
             Spawn random event (soon)
           </button>
         </div>
+      </section>
+
+      {/* новая секция генерации населения */}
+      <section className="actions" style={{ marginTop: "24px" }}>
+        <h2 className="section-title">Population initialization</h2>
+        <div className="actions-row">
+          <input
+            type="number"
+            min={1}
+            className="text-input"
+            value={generateCount}
+            onChange={(e) => setGenerateCount(Number(e.target.value))}
+          />
+          <button
+            className="btn btn-primary"
+            onClick={handleInitializePopulation}
+            disabled={isInitializing}
+          >
+            {isInitializing ? "Initializing..." : "Generate citizens"}
+          </button>
+        </div>
+
+        {initError && <p className="error-text">{initError}</p>}
+        {initMessage && <p className="card-sub">{initMessage}</p>}
       </section>
     </div>
   );

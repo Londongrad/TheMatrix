@@ -1,84 +1,52 @@
-import React, { useState } from "react";
+import React from "react";
 import type { PersonDto } from "../../../api/population/types";
 
 interface CitizenCardProps {
   person: PersonDto;
-
-  // Экшены делаем опциональными — на дашборде можно их не передавать
-  onKill?: (id: string) => void;
+  /** Открыть полный редактор / модалку */
   onEdit?: (id: string) => void;
-  onChangeHappiness?: (id: string, delta: number) => void;
-
-  // compact-режим для дашборда (без нижних кнопок)
+  /** Compact пока оставим на будущее, если захочешь другой стиль */
   compact?: boolean;
 }
 
 const CitizenCard: React.FC<CitizenCardProps> = ({
   person,
-  onKill,
   onEdit,
-  onChangeHappiness,
   compact = false,
 }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const toggleMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleOpenEditor = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setMenuOpen((prev) => !prev);
+    onEdit?.(person.id);
   };
 
-  const handleKill = () => onKill?.(person.id);
-  const handleEdit = () => onEdit?.(person.id);
+  const isDeceased =
+    person.lifeStatus.toLowerCase() === "deceased" ||
+    (person.deathDate && person.deathDate.trim().length > 0);
 
   return (
     <article
-      className={`card citizen-card ${compact ? "citizen-card-compact" : ""}`}
+      className={`card citizen-card ${compact ? "citizen-card-compact" : ""} ${
+        isDeceased ? "citizen-card--deceased" : ""
+      }`}
     >
       <header className="citizen-card-header">
         <div>
           <h3 className="card-title">{person.fullName}</h3>
-          <p className="card-sub">
+
+          <p className="card-sub citizen-card-sub">
             {person.sex}, {person.age} y.o. ({person.ageGroup})
+            {isDeceased && (
+              <span className="citizen-card-sub-status citizen-card-sub-status--deceased">
+                DECEASED
+              </span>
+            )}
           </p>
         </div>
 
-        {(onKill || onEdit || onChangeHappiness) && (
-          <div className="citizen-card-menu-wrapper">
-            <button className="icon-btn" onClick={toggleMenu}>
-              ⋯
-            </button>
-
-            {menuOpen && (
-              <div className="citizen-card-menu">
-                {onKill && (
-                  <button className="menu-item danger" onClick={handleKill}>
-                    Kill citizen
-                  </button>
-                )}
-                {onEdit && (
-                  <button className="menu-item" onClick={handleEdit}>
-                    Open full editor
-                  </button>
-                )}
-                {onChangeHappiness && (
-                  <>
-                    <button
-                      className="menu-item"
-                      onClick={() => onChangeHappiness(person.id, +10)}
-                    >
-                      +10 happiness
-                    </button>
-                    <button
-                      className="menu-item"
-                      onClick={() => onChangeHappiness(person.id, -10)}
-                    >
-                      -10 happiness
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+        {onEdit && (
+          <button className="icon-btn" onClick={handleOpenEditor}>
+            ⋯
+          </button>
         )}
       </header>
 
@@ -96,22 +64,11 @@ const CitizenCard: React.FC<CitizenCardProps> = ({
         <p>
           <strong>Happiness:</strong> {person.happiness}
         </p>
+        <p>
+          <strong>Birth date:</strong> {person.birthDate}
+          {isDeceased && person.deathDate && <> – {person.deathDate}</>}
+        </p>
       </section>
-
-      {(onKill || onEdit) && !compact && (
-        <footer className="citizen-card-footer">
-          {onKill && (
-            <button className="btn btn-danger btn-sm" onClick={handleKill}>
-              Kill
-            </button>
-          )}
-          {onEdit && (
-            <button className="btn btn-secondary btn-sm" onClick={handleEdit}>
-              Edit
-            </button>
-          )}
-        </footer>
-      )}
     </article>
   );
 };

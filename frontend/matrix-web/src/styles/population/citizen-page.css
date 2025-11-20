@@ -1,0 +1,42 @@
+/* CitizensPage.css — стили только для страницы Citizens */
+
+.citizens-page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  margin-bottom: 0;
+  min-height: 32px;
+}
+
+.citizens-page-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* локальная правка card-sub внутри тулбара */
+.citizens-page-toolbar-left .card-sub {
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* пагинация только на странице Citizens */
+.citizens-page-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* нижняя пагинация — отступ от карточек */
+.citizens-page-pagination--bottom {
+  margin-top: 10px;
+}
+
+.citizens-page-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}

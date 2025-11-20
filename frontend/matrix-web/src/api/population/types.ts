@@ -2,10 +2,11 @@ export interface PersonDto {
   id: string;
   fullName: string;
   sex: string;
-  birthDate: string; // DateOnly из .NET придет как строка "YYYY-MM-DD"
+  birthDate: string;
+  deathDate: string;
   age: number;
   ageGroup: string;
-
+  lifeStatus: string;
   maritalStatus: string;
   educationLevel: string;
 
@@ -13,4 +14,13 @@ export interface PersonDto {
 
   employmentStatus: string;
   jobTitle?: string | null;
+}
+
+export interface UpdateCitizenRequest {
+  happiness?: number; // опционально
+  fullName?: string; // опционально
+  maritalStatus?: string; // опционально
+  educationLevel?: string; // опционально
+  employmentStatus?: string; // опционально
+  jobTitle?: string | null; // опционально
 }
