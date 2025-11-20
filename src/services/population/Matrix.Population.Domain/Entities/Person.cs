@@ -14,18 +14,21 @@ namespace Matrix.Population.Domain.Entities
         public HouseholdId HouseholdId { get; }
         public DistrictId DistrictId { get; }
 
-        public PersonName Name { get; } = null!;
-        public LifeStatus LifeStatus { get; private set; }
-        public bool IsAlive => LifeStatus == LifeStatus.Alive;
+        public PersonName Name { get; private set; } = null!;
 
         public Sex Sex { get; }
-        public DateOnly BirthDate { get; }
+        
+        public LifeSpan LifeSpan { get; private set; } = null!;
+        public LifeStatus LifeStatus { get; private set; }
+        public bool IsAlive => LifeStatus == LifeStatus.Alive;
+        public DateOnly BirthDate => LifeSpan.BirthDate;
+        public DateOnly? DeathDate => LifeSpan.DeathDate;
 
         public MaritalStatus MaritalStatus { get; private set; }
         public EducationLevel EducationLevel { get; private set; }
 
         public HealthLevel Health { get; private set; }
-        public BodyWeight Weight { get; private set; }
+        public BodyWeight Weight { get; private set; } = null!;
 
         public HappinessLevel Happiness { get; private set; }
 
@@ -47,7 +50,7 @@ namespace Matrix.Population.Domain.Entities
             DistrictId districtId,
             PersonName name,
             Sex sex,
-            DateOnly birthDate,
+            LifeSpan lifeSpan,
             LifeStatus lifeStatus,
             MaritalStatus maritalStatus,
             EducationLevel educationLevel,
@@ -65,7 +68,7 @@ namespace Matrix.Population.Domain.Entities
             Happiness = happinessLevel;
             Health = healthLevel;
             Weight = weight;
-            BirthDate = birthDate;
+            LifeSpan = lifeSpan;
 
             Job = job;
 
@@ -108,13 +111,15 @@ namespace Matrix.Population.Domain.Entities
             Job? job,
             DateOnly currentDate)
         {
+            var lifeSpan = LifeSpan.FromBirthDate(birthDate);
+
             return new Person(
                 personId: id,
                 householdId: householdId,
                 districtId: districtId,
                 name: name,
                 sex: sex,
-                birthDate: birthDate,
+                lifeSpan: lifeSpan,
                 lifeStatus: lifeStatus,
                 maritalStatus: maritalStatus,
                 educationLevel: educationLevel,
@@ -144,8 +149,8 @@ namespace Matrix.Population.Domain.Entities
             Personality personality,
             DateOnly currentDate)
         {
-            var person = new Person(
-                personId: id,
+            var person = CreatePerson(
+                id: id,
                 householdId: householdId,
                 districtId: districtId,
                 name: name,
@@ -191,8 +196,8 @@ namespace Matrix.Population.Domain.Entities
             BodyWeight weight,
             DateOnly currentDate)
         {
-            var person = new Person(
-                personId: id,
+            var person = CreatePerson(
+                id: id,
                 householdId: householdId,
                 districtId: districtId,
                 name: name,
@@ -234,8 +239,8 @@ namespace Matrix.Population.Domain.Entities
             Personality personality,
             DateOnly currentDate)
         {
-            return new Person(
-                personId: id,
+            return CreatePerson(
+                id: id,
                 householdId: householdId,
                 districtId: districtId,
                 name: name,
@@ -270,8 +275,8 @@ namespace Matrix.Population.Domain.Entities
             Job? job,
             DateOnly currentDate)
         {
-            return new Person(
-                personId: id,
+            return CreatePerson(
+                id: id,
                 householdId: householdId,
                 districtId: districtId,
                 name: name,
@@ -294,10 +299,17 @@ namespace Matrix.Population.Domain.Entities
         #region [ Methods ]
 
         public Age GetAge(DateOnly currentDate) =>
-            Age.FromBirthDate(BirthDate, currentDate);
+            LifeSpan.GetAge(currentDate);
 
         public AgeGroup GetAgeGroup(DateOnly currentDate) =>
             AgeGroupRules.GetAgeGroup(GetAge(currentDate));
+
+        #region [ Happiness ]
+
+        public void SetHappiness(int value)
+        {
+            Happiness = HappinessLevel.From(value);
+        }
 
         public void ChangeHappiness(int delta)
         {
@@ -305,6 +317,10 @@ namespace Matrix.Population.Domain.Entities
             var finalDelta = Personality.ModifyHappinessDelta(delta);
             Happiness = Happiness.WithDelta(finalDelta);
         }
+
+        #endregion [ Happiness ]
+
+        #region [ Health ]
 
         public void ChangeHealth(int delta, DateOnly currentDate)
         {
@@ -314,14 +330,36 @@ namespace Matrix.Population.Domain.Entities
             Health = Health.WithDelta(delta);
 
             // If health drops to zero, the person dies.
-            if (Health.IsDead && IsAlive)
+            if (Health.IsDead)
             {
-                Die();
+                Die(currentDate);
                 return;
             }
 
             EnsureConsistency(currentDate);
         }
+
+        #endregion [ Health ]
+
+        #region [ Name ]
+
+        public void ChangeName(PersonName newName)
+        {
+            Name = GuardHelper.AgainstNull(newName, nameof(Name));
+        }
+
+        #endregion [ Name ]
+
+        #region [ Education ]
+
+        public void SetEducationLevel(EducationLevel newLevel)
+        {
+            EducationLevel = GuardHelper.AgainstInvalidEnum(newLevel, nameof(EducationLevel));
+        }
+
+        #endregion [ Education ]
+
+        #region [ Employment ]
 
         public void AssignJob(DateOnly currentDate, Job job)
         {
@@ -333,65 +371,156 @@ namespace Matrix.Population.Domain.Entities
 
             Job = GuardHelper.AgainstNull(job, nameof(Job));
             EmploymentStatus = EmploymentStatus.Employed;
-
             ChangeHappiness(+10);
-
             EnsureConsistency(currentDate);
         }
 
         public void Fire(DateOnly currentDate)
         {
             if (!IsAlive)
-                return;
+                throw new DomainValidationException("Deceased person cannot be fired.", nameof(LifeStatus));
 
             if (EmploymentStatus != EmploymentStatus.Employed)
-                return;
+                throw new DomainValidationException("Unemplyeed person cannot be fired.", nameof(LifeStatus));
 
             Job = null;
             EmploymentStatus = EmploymentStatus.Unemployed;
-
             ChangeHappiness(-10);
-
             EnsureConsistency(currentDate);
         }
 
-        /// <summary>
-        /// Called when simulation time moves forward, e.g. once per year.
-        /// Handles age-related transitions such as retirement.
-        /// </summary>
-        public void OnSimulationYearPassed(DateOnly currentDate)
+        public void Retire(DateOnly currentDate)
         {
             if (!IsAlive)
-            {
-                EnsureConsistency(currentDate);
-                return;
-            }
+                throw new DomainValidationException("Deceased person cannot retire.", nameof(LifeStatus));
 
             var ageGroup = GetAgeGroup(currentDate);
 
-            if (ageGroup == AgeGroup.Senior &&
-                EmploymentStatus != EmploymentStatus.Retired)
-            {
-                EmploymentStatus = EmploymentStatus.Retired;
-                Job = null;
-                ChangeHappiness(5);
-            }
+            if (ageGroup != AgeGroup.Senior)
+                throw new DomainValidationException("Only seniors can retire.", nameof(EmploymentStatus));
 
+            Job = null;
+            EmploymentStatus = EmploymentStatus.Retired;
+            ChangeHappiness(+5);
             EnsureConsistency(currentDate);
         }
 
-        public void Die()
+        public void SetEmploymentStatus(DateOnly currentDate, EmploymentStatus newStatus, Job? job = null)
+        {
+            GuardHelper.AgainstInvalidEnum(newStatus, nameof(newStatus));
+            switch (newStatus)
+            {
+                case EmploymentStatus.Employed:
+                    if (job is null)
+                        throw new DomainValidationException("Job must be provided when changing status to Employed.", nameof(job));
+                    AssignJob(currentDate, job);
+                    break;
+                case EmploymentStatus.Unemployed:
+                    Fire(currentDate);
+                    break;
+                case EmploymentStatus.Retired:
+                    Retire(currentDate);
+                    break;
+                case EmploymentStatus.Student:
+                    if (GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior)
+                        throw new DomainValidationException("Child/Senior cannot be a student.", nameof(EmploymentStatus));
+                    Job = null;
+                    EmploymentStatus = EmploymentStatus.Student;
+                    ChangeHappiness(+5);
+                    EnsureConsistency(currentDate);
+                    break;
+                case EmploymentStatus.None:
+                    Job = null;
+                    EmploymentStatus = EmploymentStatus.None;
+                    ChangeHappiness(-5);
+                    EnsureConsistency(currentDate);
+                    break;
+            }
+        }
+
+        #endregion [ Employment ]
+
+        #region [ Marital ]
+
+        public void Marry()
         {
             if (!IsAlive)
-                return;
+                throw new DomainValidationException("Deceased person cannot marry.", nameof(LifeStatus));
+            if (MaritalStatus == MaritalStatus.Married)
+                throw new DomainValidationException("Person is already married.", nameof(MaritalStatus));
+            MaritalStatus = MaritalStatus.Married;
+            ChangeHappiness(+15);
+        }
+
+        public void Divorce()
+        {
+            if (!IsAlive)
+                throw new DomainValidationException("Deceased person cannot divorce.", nameof(LifeStatus));
+            if (MaritalStatus == MaritalStatus.Single)
+                throw new DomainValidationException("Person is not married.", nameof(MaritalStatus));
+            MaritalStatus = MaritalStatus.Single;
+            ChangeHappiness(-15);
+        }
+
+        public void Widow()
+        {
+            if (!IsAlive)
+                throw new DomainValidationException("Deceased person cannot become a widow(er).", nameof(LifeStatus));
+            if (MaritalStatus == MaritalStatus.Single)
+                throw new DomainValidationException("Person is not married.", nameof(MaritalStatus));
+            MaritalStatus = MaritalStatus.Widowed;
+            ChangeHappiness(-20);
+        }
+
+        public void ChangeMaritalStatus(MaritalStatus newStatus)
+        {
+            GuardHelper.AgainstInvalidEnum(newStatus, nameof(newStatus));
+            switch (newStatus)
+            {
+                case MaritalStatus.Single:
+                    Divorce();
+                    break;
+                case MaritalStatus.Married:
+                    Marry();
+                    break;
+                case MaritalStatus.Widowed:
+                    Widow();
+                    break;
+            }
+        }
+
+        #endregion [ Marital ]
+
+        #region [ Die/Ressurect ]
+
+        public void Die(DateOnly currentDate)
+        {
+            if (!IsAlive)
+                throw new DomainValidationException("Person is already dead.");
 
             LifeStatus = LifeStatus.Deceased;
+            LifeSpan = LifeSpan.WithDeath(currentDate);
+
             Job = null;
             EmploymentStatus = EmploymentStatus.None;
             Health = HealthLevel.From(0);
 
             EnsureConsistencyForDead();
         }
+
+        public void Resurrect(DateOnly currentDate)
+        {
+            if (IsAlive)
+                throw new DomainValidationException("Person is already alive.");
+
+            LifeStatus = LifeStatus.Alive;
+            LifeSpan = LifeSpan.Resurrect();
+            Health = HealthLevel.From(100);
+
+            EnsureConsistency(currentDate);
+        }
+
+        #endregion [ Die/Ressurect ]
 
         #region [ Consistency Checks ]
 
@@ -402,6 +531,13 @@ namespace Matrix.Population.Domain.Entities
                 throw new DomainValidationException(
                     $"{nameof(EnsureConsistencyForDead)} called for an alive person.",
                     nameof(LifeStatus));
+            }
+
+            if (DeathDate is null)
+            {
+                throw new DomainValidationException(
+                    "Deceased person must have a death date.",
+                    nameof(LifeSpan));
             }
 
             if (EmploymentStatus != EmploymentStatus.None)
@@ -428,6 +564,21 @@ namespace Matrix.Population.Domain.Entities
 
         private void EnsureConsistency(DateOnly currentDate)
         {
+            // Согласованность LifeStatus <-> LifeSpan
+            if (LifeStatus == LifeStatus.Alive && DeathDate is not null)
+            {
+                throw new DomainValidationException(
+                    "Alive person cannot have a death date.",
+                    nameof(LifeStatus));
+            }
+
+            if (LifeStatus == LifeStatus.Deceased && DeathDate is null)
+            {
+                throw new DomainValidationException(
+                    "Deceased person must have a death date.",
+                    nameof(LifeStatus));
+            }
+
             if (!IsAlive)
             {
                 EnsureConsistencyForDead();
