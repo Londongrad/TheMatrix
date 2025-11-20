@@ -1,12 +1,10 @@
-﻿using Matrix.Population.Domain.Enums;
-
-namespace Matrix.Population.Contracts.Models
+﻿namespace Matrix.Population.Contracts.Models
 {
     public sealed record UpdatePersonRequest(
         string? FullName,
-        MaritalStatus? MaritalStatus,
-        EducationLevel? EducationLevel,
-        EmploymentStatus? EmploymentStatus,
+        string? MaritalStatus,
+        string? EducationLevel,
+        string? EmploymentStatus,
         string? JobTitle,
         int? Happiness
     );
