@@ -11,69 +11,159 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
         {
             builder.ToTable("Persons");
 
-            // Primary key
+            // PK
             builder.HasKey(p => p.Id);
 
-            // ValueObject PersonId <-> Guid
-            builder
-                .Property(p => p.Id)
+            // ----- Value Object Ids -----
+            builder.Property(p => p.Id)
+                .HasConversion(
+                    id => id.Value,                // PersonId -> Guid
+                    value => PersonId.From(value)); // Guid -> PersonId
+
+            builder.Property(p => p.HouseholdId)
                 .HasConversion(
                     id => id.Value,
-                    value => new PersonId(value))
-                .HasColumnName("id");
+                    value => HouseholdId.From(value));
 
-            builder
-                .Property(p => p.HouseholdId)
+            builder.Property(p => p.DistrictId)
                 .HasConversion(
                     id => id.Value,
-                    value => new HouseholdId(value))
-                .HasColumnName("household_id");
+                    value => DistrictId.From(value));
 
-            builder
-                .Property(p => p.DistrictId)
-                .HasConversion(
-                    id => id.Value,
-                    value => new DistrictId(value))
-                .HasColumnName("district_id");
+            // ----- Простые свойства / enum’ы -----
+            builder.Property(p => p.LifeStatus)
+                .HasConversion<string>()
+                .IsRequired();
 
-            // Age (ValueObject) <-> int (years)
-            builder
-                .Property(p => p.Age)
-                .HasConversion(
-                    age => age.Years,
-                    years => new Age(years))
-                .HasColumnName("age_years");
+            builder.Property(p => p.Sex)
+                .HasConversion<string>()
+                .IsRequired();
 
-            // EmploymentStatus enum как int
-            builder
-                .Property(p => p.EmploymentStatus)
-                .HasConversion<int>()
-                .HasColumnName("employment_status");
+            builder.Property(p => p.MaritalStatus)
+                .HasConversion<string>()
+                .IsRequired();
 
-            // Job как "owned entity"
-            builder.OwnsOne(p => p.Job, job =>
+            builder.Property(p => p.EducationLevel)
+                .HasConversion<string>()
+                .IsRequired();
+
+            builder.Property(p => p.EmploymentStatus)
+                .HasConversion<string>()
+                .IsRequired();
+
+            // ----- LifeSpan (value object с BirthDate / DeathDate) -----
+            builder.OwnsOne(p => p.LifeSpan, life =>
             {
-                job.Property(j => j.WorkplaceId)
+                // BirthDate (NOT NULL)
+                life.Property(l => l.BirthDate)
                     .HasConversion(
-                        id => id.Value,
-                        value => new WorkplaceId(value))
-                    .HasColumnName("job_workplace_id");
+                        d => d.ToDateTime(TimeOnly.MinValue),      // DateOnly -> DateTime
+                        dt => DateOnly.FromDateTime(dt))          // DateTime -> DateOnly
+                    .HasColumnName("BirthDate")
+                    .HasColumnType("date")
+                    .IsRequired();
 
-                job.Property(j => j.GrossMonthlySalary)
-                    .HasColumnName("job_gross_monthly_salary");
-
-                job.Property(j => j.IncomeTaxRate)
-                    .HasColumnName("job_income_tax_rate");
+                // DeathDate (NULLABLE)
+                life.Property(l => l.DeathDate)
+                    .HasConversion(
+                        d => d.HasValue
+                            ? d.Value.ToDateTime(TimeOnly.MinValue)
+                            : (DateTime?)null,
+                        dt => dt.HasValue
+                            ? DateOnly.FromDateTime(dt.Value)
+                            : (DateOnly?)null)
+                    .HasColumnName("DeathDate")
+                    .HasColumnType("date");
             });
 
-            // Можно добавить индексы
-            builder
-                .HasIndex(p => p.DistrictId)
-                .HasDatabaseName("ix_persons_district_id");
+            // Computed accessors на агрегате игнорируем,
+            // чтобы EF не пытался их мапить как отдельные колонки.
+            builder.Ignore(p => p.BirthDate);
+            builder.Ignore(p => p.DeathDate);
+            builder.Ignore(p => p.IsAlive);
 
-            builder
-                .HasIndex(p => p.HouseholdId)
-                .HasDatabaseName("ix_persons_household_id");
+
+            // ----- Name (value object) -----
+
+            builder.OwnsOne(p => p.Name, name =>
+            {
+                name.Property(n => n.FirstName)
+                    .HasColumnName("FirstName")
+                    .IsRequired();
+
+                name.Property(n => n.LastName)
+                    .HasColumnName("LastName")
+                    .IsRequired();
+
+                name.Property(n => n.Patronymic)
+                    .HasColumnName("MiddleName");
+            });
+
+            // ----- Happiness (value object) -----
+
+            builder.Property(p => p.Happiness)
+                .HasConversion(
+                    h => h.Value,
+                    v => HappinessLevel.From(v))
+                .HasColumnName("Happiness")
+                .IsRequired();
+
+            // ----- Health (value object) -----
+
+            builder.Property(p => p.Health)
+                .HasConversion(
+                    h => h.Value,
+                    v => HealthLevel.From(v))
+                .HasColumnName("Health")
+                .IsRequired();
+
+            // ----- Weight (value object) -----
+
+            builder.Property(p => p.Weight)
+                .HasConversion(
+                    w => w.Kilograms,        // из VO в decimal
+                    kg => new BodyWeight(kg) // из decimal обратно в VO
+                )
+                .HasColumnName("WeightKg")
+                .HasColumnType("decimal(5,2)");
+
+            // ----- Personality (complex VO) -----
+
+            builder.OwnsOne(p => p.Personality, pers =>
+            {
+                pers.Property(x => x.Optimism)
+                    .HasColumnName("Optimism")
+                    .IsRequired();
+
+                pers.Property(x => x.Discipline)
+                    .HasColumnName("Discipline")
+                    .IsRequired();
+
+                pers.Property(x => x.RiskTolerance)
+                    .HasColumnName("RiskTolerance")
+                    .IsRequired();
+
+                pers.Property(x => x.Sociability)
+                    .HasColumnName("Sociability")
+                    .IsRequired();
+            });
+
+            // ----- Job (owned, nullable) -----
+
+            builder.OwnsOne(p => p.Job, job =>
+            {
+                // WorkplaceId — value object
+                job.Property(j => j.WorkplaceId)
+                    .HasConversion(
+                        id => id.Value,            // WorkplaceId -> Guid
+                        value => WorkplaceId.From(value)) // Guid -> WorkplaceId
+                    .HasColumnName("WorkplaceId");
+
+                job.Property(j => j.Title)
+                    .HasColumnName("JobTitle")
+                    .HasMaxLength(200);
+            });
         }
+
     }
 }
