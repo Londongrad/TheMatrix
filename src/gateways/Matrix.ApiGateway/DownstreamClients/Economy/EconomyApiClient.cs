@@ -12,7 +12,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
 
         public async Task<EconomySummaryDto?> GetSummaryAsync(CancellationToken cancellationToken = default)
         {
-            // TODO: error handling / retries etc.
             var response = await _client.GetAsync(SummaryEndpoint, cancellationToken);
             response.EnsureSuccessStatusCode();
 
