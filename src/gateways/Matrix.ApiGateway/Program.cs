@@ -7,6 +7,5 @@ builder.ConfigureApplicationServices();
 var app = builder.Build();
 
 app.ConfigureApplicationMiddleware();
-app.ConfigureApplicationEndpoints();
 
 app.Run();

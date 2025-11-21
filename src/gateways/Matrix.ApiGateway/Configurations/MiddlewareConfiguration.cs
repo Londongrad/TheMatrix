@@ -4,15 +4,14 @@ namespace Matrix.ApiGateway.Configurations
     {
         public static void ConfigureApplicationMiddleware(this WebApplication app)
         {
-            app.UseSecurityPipeline();
-            app.UseCors("Frontend");
-        }
+            app.MapControllers();
 
-        private static void UseSecurityPipeline(this WebApplication app)
-        {
             app.UseHttpsRedirection();
-            //app.UseAuthentication();
-            //app.UseAuthorization();
+
+            app.UseCors("Frontend");
+
+            app.UseAuthentication();
+            app.UseAuthorization();
         }
     }
 }
