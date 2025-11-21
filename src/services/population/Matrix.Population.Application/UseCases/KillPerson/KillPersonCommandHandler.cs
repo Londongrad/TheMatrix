@@ -21,6 +21,7 @@ namespace Matrix.Population.Application.UseCases.KillPerson
             person.Die(DateOnly.FromDateTime(DateTime.UtcNow));
 
             await personWriteRepository.UpdateAsync(person, cancellationToken);
+            await personWriteRepository.SaveChangesAsync(cancellationToken);
 
             return person.ToDto();
         }

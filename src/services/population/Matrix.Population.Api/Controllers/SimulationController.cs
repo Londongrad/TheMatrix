@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.GetCitizenPage;
 using Matrix.Population.Application.UseCases.InitializePopulation;
 using Matrix.Population.Application.UseCases.KillPerson;
-using Matrix.Population.Application.UseCases.RessurectPerson;
+using Matrix.Population.Application.UseCases.ResurrectPerson;
 using Matrix.Population.Application.UseCases.UpdatePerson;
 using Matrix.Population.Contracts.Models;
 using MediatR;

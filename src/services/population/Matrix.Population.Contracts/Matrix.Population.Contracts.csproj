@@ -6,8 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Matrix.Population.Domain\Matrix.Population.Domain.csproj" />
-  </ItemGroup>
-
 </Project>
