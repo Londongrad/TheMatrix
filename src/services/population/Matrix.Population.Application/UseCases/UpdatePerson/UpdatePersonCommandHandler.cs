@@ -1,4 +1,5 @@
-﻿using Matrix.Population.Application.Abstractions;
+﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Entities;
@@ -27,7 +28,7 @@ namespace Matrix.Population.Application.UseCases.UpdatePerson
             ApplyHappiness(person, request.Changes);
 
             await personWriteRepository.UpdateAsync(person, cancellationToken);
-
+            await personWriteRepository.SaveChangesAsync(cancellationToken);
             return person.ToDto();
         }
 
@@ -41,12 +42,16 @@ namespace Matrix.Population.Application.UseCases.UpdatePerson
 
             if (changes.MaritalStatus is not null)
             {
-                person.ChangeMaritalStatus(changes.MaritalStatus.Value);
+                var maritalStatus
+                    = GuardHelper.AgainstInvalidStringToEnum<MaritalStatus>(changes.MaritalStatus, nameof(changes.MaritalStatus));
+                person.ChangeMaritalStatus(maritalStatus);
             }
 
             if (changes.EducationLevel is not null)
             {
-                person.SetEducationLevel(changes.EducationLevel.Value);
+                var educationLevel
+                    = GuardHelper.AgainstInvalidStringToEnum<EducationLevel>(changes.EducationLevel, nameof(changes.EducationLevel));
+                person.SetEducationLevel(educationLevel);
             }
         }
 
@@ -60,14 +65,17 @@ namespace Matrix.Population.Application.UseCases.UpdatePerson
                 return;
             }
 
-            if (changes.EmploymentStatus is EmploymentStatus.Employed && changes.JobTitle is not null)
+            var employmentStatus 
+                = GuardHelper.AgainstInvalidStringToEnum<EmploymentStatus>(changes.EmploymentStatus!, nameof(changes.EmploymentStatus));
+
+            if (changes.EmploymentStatus is "Employed" && changes.JobTitle is not null)
             {
                 // TODO: Заменить на реальный id работы
                 var job = new Job(WorkplaceId.New(), changes.JobTitle!);
-                person.SetEmploymentStatus(currentDate, changes.EmploymentStatus.Value, job);
+                person.SetEmploymentStatus(currentDate, employmentStatus, job);
                 return;
             }
-            person.SetEmploymentStatus(currentDate, changes.EmploymentStatus!.Value);
+            person.SetEmploymentStatus(currentDate, employmentStatus);
         }
 
         private static void ApplyHappiness(Person person, UpdatePersonRequest changes)
