@@ -1,71 +1,17 @@
-// CitizensPage.tsx
-import React, { useEffect, useState } from "react";
+import "../../../styles/population/citizen-page.css";
+import { useEffect, useState } from "react";
 import CitizenCard from "../components/CitizenCard";
 import CitizenDetailsModal from "../components/CitizenDetailsModal";
-import type { PersonDto } from "../../../api/population/types";
-import { getCitizensPage } from "../../../api/population/client";
+import type { PersonDto } from "../../../api/population/populationTypes";
+import { getCitizensPage } from "../../../api/population/populationApi";
+import Pagination from "../components/Pagination";
 
 const PAGE_SIZE = 100;
 
-interface PaginationProps {
-  page: number;
-  totalPages: number;
-  onChange: (page: number) => void;
-}
-
-const Pagination: React.FC<PaginationProps> = ({
-  page,
-  totalPages,
-  onChange,
-}) => {
-  const canGoPrev = page > 1;
-  const canGoNext = page < totalPages;
-
-  return (
-    <div className="citizens-page-pagination">
-      <button
-        className="btn btn-sm"
-        disabled={!canGoPrev}
-        onClick={() => canGoPrev && onChange(1)}
-      >
-        First
-      </button>
-
-      <button
-        className="btn btn-sm"
-        disabled={!canGoPrev}
-        onClick={() => canGoPrev && onChange(page - 1)}
-      >
-        Previous
-      </button>
-
-      <span className="pagination-info">
-        Page {page} of {totalPages}
-      </span>
-
-      <button
-        className="btn btn-sm"
-        disabled={!canGoNext}
-        onClick={() => canGoNext && onChange(page + 1)}
-      >
-        Next
-      </button>
-
-      <button
-        className="btn btn-sm"
-        disabled={!canGoNext}
-        onClick={() => canGoNext && onChange(totalPages)}
-      >
-        Last
-      </button>
-    </div>
-  );
-};
-
-const CitizensPage: React.FC = () => {
+const CitizensPage = () => {
   const [citizens, setCitizens] = useState<PersonDto[]>([]);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [totalCitizens, setTotalCitizens] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,9 +25,9 @@ const CitizensPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
 
-        const result = await getCitizensPage(page, PAGE_SIZE);
+        const result = await getCitizensPage(pageNumber, PAGE_SIZE);
         setCitizens(result.items);
-        setTotal(result.totalCount);
+        setTotalCitizens(result.totalCount);
       } catch (e) {
         console.error(e);
         setError("Failed to load citizens.");
@@ -91,12 +37,13 @@ const CitizensPage: React.FC = () => {
     };
 
     fetchPage();
-  }, [page]);
+  }, [pageNumber]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalCitizens / PAGE_SIZE));
 
-  const startIndex = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const endIndex = total === 0 ? 0 : Math.min(page * PAGE_SIZE, total);
+  const startIndex = totalCitizens === 0 ? 0 : (pageNumber - 1) * PAGE_SIZE + 1;
+  const endIndex =
+    totalCitizens === 0 ? 0 : Math.min(pageNumber * PAGE_SIZE, totalCitizens);
 
   const selectedCitizen =
     selectedCitizenId != null
@@ -111,7 +58,6 @@ const CitizensPage: React.FC = () => {
     setSelectedCitizenId(null);
   };
 
-  // единственный "экшен" страницы — принять обновлённого PersonDto
   const handlePersonUpdated = (updated: PersonDto) => {
     setCitizens((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
   };
@@ -120,35 +66,41 @@ const CitizensPage: React.FC = () => {
     <div className="citizens-page">
       <h1 className="page-title">Citizens</h1>
 
-      {error && <p className="error-text">{error}</p>}
-
       <div className="citizens-page-toolbar">
         <div className="citizens-page-toolbar-left">
           {isLoading && <span className="card-sub">Loading citizens...</span>}
-
-          {!isLoading && !error && total > 0 && (
+          {error && <p className="error-text">{error}</p>}
+          {!isLoading && !error && totalCitizens > 0 && (
             <span className="card-sub">
-              Showing {startIndex}–{endIndex} of {total} citizens
+              Showing {startIndex}–{endIndex} of {totalCitizens} citizens
             </span>
           )}
         </div>
 
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        <Pagination
+          page={pageNumber}
+          totalPages={totalPages}
+          onChange={setPageNumber}
+        />
       </div>
 
       {citizens.length > 0 && (
         <>
-          <div className="cards-grid citizens-page-cards-grid">
+          <div className="citizens-page-cards-grid">
             {citizens.map((person) => (
               <CitizenCard
                 key={person.id}
                 person={person}
-                onEdit={openEditor} // только открыть модалку
+                onEdit={openEditor}
               />
             ))}
           </div>
 
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          <Pagination
+            page={pageNumber}
+            totalPages={totalPages}
+            onChange={setPageNumber}
+          />
         </>
       )}
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { initializePopulation } from "../../../api/population/client";
+import { initializePopulation } from "../../../api/population/populationApi";
+import "../../../styles/citycore/dashboard.css";
 
 const DashboardPage: React.FC = () => {
   const [generateCount, setGenerateCount] = useState(10000);
@@ -42,7 +43,7 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="dashboard">
+    <>
       <h1 className="page-title">Dashboard</h1>
 
       <section className="cards-grid">
@@ -80,7 +81,7 @@ const DashboardPage: React.FC = () => {
         </div>
       </section>
 
-      {/* новая секция генерации населения */}
+      {/* секция генерации населения */}
       <section className="actions" style={{ marginTop: "24px" }}>
         <h2 className="section-title">Population initialization</h2>
         <div className="actions-row">
@@ -103,7 +104,7 @@ const DashboardPage: React.FC = () => {
         {initError && <p className="error-text">{initError}</p>}
         {initMessage && <p className="card-sub">{initMessage}</p>}
       </section>
-    </div>
+    </>
   );
 };
 

@@ -1,14 +1,17 @@
-// src/features/population/components/CitizenDetailsModal.tsx
-import React, { useEffect, useState } from "react";
-import type { PersonDto } from "../../../api/population/types";
+import "../../../styles/population/citizen-details-modal.css";
+import { useEffect, useState } from "react";
+import type {
+  PersonDto,
+  UpdateCitizenRequest,
+} from "../../../api/population/populationTypes";
 import {
   killCitizen,
   resurrectCitizen,
   updateCitizen,
-} from "../../../api/population/client";
-import { type UpdateCitizenRequest } from "../../../api/population/types";
+} from "../../../api/population/populationApi";
 
 const MARITAL_STATUS_OPTIONS: string[] = [
+  "Unknown",
   "Single",
   "Married",
   "Divorced",
@@ -16,6 +19,7 @@ const MARITAL_STATUS_OPTIONS: string[] = [
 ];
 
 const EMPLOYMENT_STATUS_OPTIONS: string[] = [
+  "Unknown",
   "None",
   "Employed",
   "Student",
@@ -24,6 +28,7 @@ const EMPLOYMENT_STATUS_OPTIONS: string[] = [
 ];
 
 const EDUCATIONAL_LEVEL_OPTIONS: string[] = [
+  "Unknown",
   "None",
   "Primary",
   "Secondary",
@@ -31,6 +36,28 @@ const EDUCATIONAL_LEVEL_OPTIONS: string[] = [
   "Higher",
   "Postgraduate",
 ];
+
+// Helper methods
+const normalizeEnumValue = (value: string, options: string[]): string =>
+  options.includes(value) ? value : "Unknown";
+
+const buildFormStateFromPerson = (p: PersonDto): CitizenFormState => ({
+  fullName: p.fullName,
+  happiness: p.happiness,
+
+  maritalStatus: normalizeEnumValue(p.maritalStatus, MARITAL_STATUS_OPTIONS),
+
+  educationLevel: normalizeEnumValue(
+    p.educationLevel,
+    EDUCATIONAL_LEVEL_OPTIONS
+  ),
+
+  employmentStatus: normalizeEnumValue(
+    p.employmentStatus,
+    EMPLOYMENT_STATUS_OPTIONS
+  ),
+  jobTitle: p.jobTitle ?? "",
+});
 
 interface CitizenDetailsModalProps {
   person: PersonDto | null;
@@ -48,21 +75,17 @@ interface CitizenFormState {
   jobTitle: string;
 }
 
-const normalizeEnumValue = (value: string, options: string[]): string =>
-  options.includes(value) ? value : options[0];
-
-const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
+const CitizenDetailsModal = ({
   person,
   isOpen,
   onClose,
   onPersonUpdated,
-}) => {
+}: CitizenDetailsModalProps) => {
   const [form, setForm] = useState<CitizenFormState | null>(null);
   const [initialForm, setInitialForm] = useState<CitizenFormState | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [isEditingHappiness, setIsEditingHappiness] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // когда открываем модалку для нового person — заполняем форму
   useEffect(() => {
@@ -70,34 +93,16 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
       setForm(null);
       setInitialForm(null);
       setError(null);
-      setIsEditingName(false);
-      setIsEditingHappiness(false);
+      setIsEditing(false);
       return;
     }
 
-    const state: CitizenFormState = {
-      fullName: person.fullName,
-      happiness: person.happiness,
-      maritalStatus: normalizeEnumValue(
-        person.maritalStatus,
-        MARITAL_STATUS_OPTIONS
-      ),
-      educationLevel: normalizeEnumValue(
-        person.educationLevel,
-        EDUCATIONAL_LEVEL_OPTIONS
-      ),
-      employmentStatus: normalizeEnumValue(
-        person.employmentStatus,
-        EMPLOYMENT_STATUS_OPTIONS
-      ),
-      jobTitle: person.jobTitle ?? "",
-    };
+    const state = buildFormStateFromPerson(person); // Собираем форму по общей константе
 
     setForm(state);
     setInitialForm(state);
     setError(null);
-    setIsEditingName(false);
-    setIsEditingHappiness(false);
+    setIsEditing(false);
   }, [person]);
 
   const updateFormField = <K extends keyof CitizenFormState>(
@@ -109,9 +114,7 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
 
   if (!isOpen || !person || !form) return null;
 
-  const isDead =
-    person.lifeStatus.toLowerCase() === "deceased" ||
-    person.lifeStatus.toLowerCase() === "dead";
+  const isDead = person.lifeStatus === "Deceased";
 
   const handleKill = async () => {
     if (isDead) return;
@@ -146,27 +149,11 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
       const updated = await resurrectCitizen(person.id);
       onPersonUpdated?.(updated);
 
-      const state: CitizenFormState = {
-        fullName: updated.fullName,
-        happiness: updated.happiness,
-        maritalStatus: normalizeEnumValue(
-          updated.maritalStatus,
-          MARITAL_STATUS_OPTIONS
-        ),
-        educationLevel: normalizeEnumValue(
-          updated.educationLevel,
-          EDUCATIONAL_LEVEL_OPTIONS
-        ),
-        employmentStatus: normalizeEnumValue(
-          updated.employmentStatus,
-          EMPLOYMENT_STATUS_OPTIONS
-        ),
-        jobTitle: updated.jobTitle ?? "",
-      };
+      const state = buildFormStateFromPerson(updated); // Собираем форму по общей константе
+
       setForm(state);
       setInitialForm(state);
-      setIsEditingName(false);
-      setIsEditingHappiness(false);
+      setIsEditing(false);
     } catch (e) {
       console.error(e);
       setError("Failed to resurrect citizen.");
@@ -203,10 +190,14 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
     if (initialForm.educationLevel !== form.educationLevel) {
       payload.educationLevel = form.educationLevel;
     }
-    if (initialForm.employmentStatus !== form.employmentStatus) {
+
+    const employmentStatusChanged =
+      initialForm.employmentStatus !== form.employmentStatus;
+    const jobTitleChanged = initialForm.jobTitle !== form.jobTitle;
+
+    // Если изменилось что-то в паре EmploymentStatus/JobTitle — шлём оба поля
+    if (employmentStatusChanged || jobTitleChanged) {
       payload.employmentStatus = form.employmentStatus;
-    }
-    if (initialForm.jobTitle !== form.jobTitle) {
       payload.jobTitle =
         form.jobTitle.trim() === "" ? null : form.jobTitle.trim();
     }
@@ -214,6 +205,22 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
     return payload;
   };
 
+  // При отмене редактирования - сбрасываем любые изменения
+  const handleToggleEditing = () => {
+    setIsEditing((prev) => {
+      const next = !prev;
+
+      // Выходим из Edit Mode → откатываем все поля к initialForm
+      if (prev && !next && initialForm) {
+        setForm(initialForm);
+        setError(null);
+      }
+
+      return next;
+    });
+  };
+
+  // Кнопка сохранения
   const handleSave = async () => {
     if (isDead) return; // мёртвых не редактируем
     if (!form) return;
@@ -232,27 +239,10 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
       const updated = await updateCitizen(person.id, payload);
       onPersonUpdated?.(updated);
 
-      const state: CitizenFormState = {
-        fullName: updated.fullName,
-        happiness: updated.happiness,
-        maritalStatus: normalizeEnumValue(
-          updated.maritalStatus,
-          MARITAL_STATUS_OPTIONS
-        ),
-        educationLevel: normalizeEnumValue(
-          updated.educationLevel,
-          EDUCATIONAL_LEVEL_OPTIONS
-        ),
-        employmentStatus: normalizeEnumValue(
-          updated.employmentStatus,
-          EMPLOYMENT_STATUS_OPTIONS
-        ),
-        jobTitle: updated.jobTitle ?? "",
-      };
+      const state = buildFormStateFromPerson(person);
       setForm(state);
       setInitialForm(state);
-      setIsEditingName(false);
-      setIsEditingHappiness(false);
+      setIsEditing(false);
     } catch (e) {
       console.error(e);
       setError("Failed to save changes.");
@@ -261,8 +251,8 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
     }
   };
 
-  // --- буллинги для кнопок ---
-  const hasHappinessChanges =
+  // --- Различные флаги ---
+  const hasHappinessChanges = // Для кнопки Reset
     initialForm !== null && initialForm.happiness !== form.happiness;
 
   const hasFormChanges =
@@ -274,13 +264,31 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
       initialForm.employmentStatus !== form.employmentStatus ||
       initialForm.jobTitle !== form.jobTitle);
 
+  // Проверка связанных полей EmploymentStatus & JobTitle
+  const isJobTitleEmpty = form.jobTitle.trim() === "";
+  const employmentRequiresJobTitle = form.employmentStatus === "Employed";
+  const hasEmploymentJobTitleError =
+    (employmentRequiresJobTitle && isJobTitleEmpty) ||
+    (!employmentRequiresJobTitle && !isJobTitleEmpty);
+
+  const hasErrors = hasEmploymentJobTitleError;
+
+  // Для кнопки SaveChanges
+  const cannotSave = !hasFormChanges || isDead || isBusy || hasErrors;
+
   return (
-    <div className="citizens-page-modal-backdrop" onClick={onClose}>
-      <div className="citizens-page-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="citizens-page-modal-backdrop">
+      <div
+        className={
+          "citizens-page-modal" + (isDead ? " citizens-page-modal--dead" : "")
+        }
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="citizens-page-modal-header">
           <div>
             <div className="citizens-page-modal-title-row">
-              {isEditingName ? (
+              {/* Edit name (hideable) */}
+              {isEditing ? (
                 <input
                   type="text"
                   className="citizens-page-modal-title-edit-input citizens-page-modal-input-text"
@@ -290,18 +298,6 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
                 />
               ) : (
                 <h2 className="citizens-page-modal-title">{form.fullName}</h2>
-              )}
-
-              {!isDead && (
-                <button
-                  type="button"
-                  className="icon-btn citizens-page-modal-title-edit-btn"
-                  disabled={isBusy}
-                  onClick={() => setIsEditingName((v) => !v)}
-                  title="Edit name"
-                >
-                  ✏️
-                </button>
               )}
             </div>
 
@@ -314,9 +310,23 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
             </p>
           </div>
 
-          <button className="icon-btn" onClick={onClose}>
-            ✕
-          </button>
+          {/* Action buttons section (edit/close modal) */}
+          <div>
+            {!isDead && (
+              <button
+                type="button"
+                className="icon-btn"
+                disabled={isBusy}
+                onClick={handleToggleEditing}
+              >
+                ✏️
+              </button>
+            )}
+
+            <button className="icon-btn" onClick={onClose}>
+              ✕
+            </button>
+          </div>
         </header>
 
         <section className="citizens-page-modal-body">
@@ -324,11 +334,12 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
             <div>
               <h3 className="citizens-page-modal-section-title">Personal</h3>
 
+              {/* Marital status */}
               <div className="citizens-page-modal-field">
                 <div className="citizens-page-modal-field-label">Marital</div>
                 <select
                   className="citizens-page-modal-select"
-                  disabled={isDead || isBusy}
+                  disabled={isDead || isBusy || !isEditing}
                   value={form.maritalStatus}
                   onChange={(e) =>
                     updateFormField("maritalStatus", e.target.value)
@@ -342,11 +353,12 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
                 </select>
               </div>
 
+              {/* Education */}
               <div className="citizens-page-modal-field">
                 <div className="citizens-page-modal-field-label">Education</div>
                 <select
                   className="citizens-page-modal-select"
-                  disabled={isDead || isBusy}
+                  disabled={isDead || isBusy || !isEditing}
                   value={form.educationLevel}
                   onChange={(e) =>
                     updateFormField("educationLevel", e.target.value)
@@ -360,29 +372,57 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
                 </select>
               </div>
 
+              {/* Happinness */}
               <div className="citizens-page-modal-field">
                 <div className="citizens-page-modal-field-row">
                   <div className="citizens-page-modal-field-label">
-                    Happiness (current)
+                    Happiness
                   </div>
-                  {!isDead && (
-                    <button
-                      type="button"
-                      className="icon-btn citizens-page-modal-field-edit-btn"
-                      disabled={isBusy}
-                      onClick={() => setIsEditingHappiness((prev) => !prev)}
-                      title="Edit happiness"
-                    >
-                      ✏️
-                    </button>
-                  )}
                 </div>
-                <div className="citizens-page-modal-field-value">
+                <div className="citizens-page-modal-happiness-row">
                   {form.happiness}
+
+                  {/* Edit happiness (hideable) */}
+                  {isEditing && (
+                    <>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        disabled={isDead || isBusy}
+                        value={form.happiness}
+                        onChange={(e) =>
+                          handleHappinessChange(Number(e.target.value))
+                        }
+                      />
+
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        disabled={isDead || isBusy}
+                        value={form.happiness}
+                        onChange={(e) =>
+                          handleHappinessChange(Number(e.target.value))
+                        }
+                        className="citizens-page-modal-input-number"
+                      />
+
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        disabled={isDead || isBusy || !hasHappinessChanges}
+                        onClick={handleResetHappiness}
+                      >
+                        Reset
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
+            {/* Employment */}
             <div>
               <h3 className="citizens-page-modal-section-title">Employment</h3>
 
@@ -392,7 +432,7 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
                 </div>
                 <select
                   className="citizens-page-modal-select"
-                  disabled={isDead || isBusy}
+                  disabled={isDead || isBusy || !isEditing}
                   value={form.employmentStatus}
                   onChange={(e) =>
                     updateFormField("employmentStatus", e.target.value)
@@ -406,66 +446,34 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
                 </select>
               </div>
 
+              {/* Job title */}
               <div className="citizens-page-modal-field">
                 <div className="citizens-page-modal-field-label">Job title</div>
                 <input
                   type="text"
                   className="citizens-page-modal-input-text"
-                  disabled={isDead || isBusy}
+                  disabled={isDead || isBusy || !isEditing}
                   value={form.jobTitle}
                   onChange={(e) => updateFormField("jobTitle", e.target.value)}
                   placeholder="—"
                 />
+                {/* Hideable validation error */}
+                {hasEmploymentJobTitleError && (
+                  <p className="citizens-page-modal-error">
+                    {employmentRequiresJobTitle &&
+                      "Job title is required when employment status is Employed."}
+                    {!employmentRequiresJobTitle && "Job title must be empty."}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Редактирование happiness — скрываемый блок */}
-          {isEditingHappiness && (
-            <div className="citizens-page-modal-edit-block">
-              <label className="citizens-page-modal-field-label">
-                Happiness (0–100)
-              </label>
-
-              <div className="citizens-page-modal-happiness-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  disabled={isDead || isBusy}
-                  value={form.happiness}
-                  onChange={(e) =>
-                    handleHappinessChange(Number(e.target.value))
-                  }
-                />
-
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  disabled={isDead || isBusy}
-                  value={form.happiness}
-                  onChange={(e) =>
-                    handleHappinessChange(Number(e.target.value))
-                  }
-                  className="citizens-page-modal-input-number"
-                />
-
-                <button
-                  type="button"
-                  className="btn btn-sm"
-                  disabled={isDead || isBusy || !hasHappinessChanges}
-                  onClick={handleResetHappiness}
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-          )}
-
-          {error && <p className="citizens-page-modal-error">{error}</p>}
+          {/* Errors */}
+          {error && <p className="error-text">{error}</p>}
         </section>
 
+        {/* Footer with kill, resurrect and save actions */}
         <footer className="citizens-page-modal-footer">
           <div className="citizens-page-modal-footer-group">
             {!isDead && (
@@ -490,13 +498,15 @@ const CitizenDetailsModal: React.FC<CitizenDetailsModalProps> = ({
           </div>
 
           <div className="citizens-page-modal-footer-group">
-            <button
-              className="btn btn-sm"
-              disabled={isDead || isBusy || !hasFormChanges}
-              onClick={handleSave}
-            >
-              Save changes
-            </button>
+            {isEditing && (
+              <button
+                className="btn btn-sm"
+                disabled={cannotSave}
+                onClick={handleSave}
+              >
+                Save changes
+              </button>
+            )}
           </div>
         </footer>
       </div>

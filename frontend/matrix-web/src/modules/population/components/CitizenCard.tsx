@@ -1,43 +1,39 @@
 import React from "react";
-import type { PersonDto } from "../../../api/population/types";
+import type { PersonDto } from "../../../api/population/populationTypes";
+import "../../../styles/population/citizen-card.css";
 
 interface CitizenCardProps {
   person: PersonDto;
-  /** Открыть полный редактор / модалку */
   onEdit?: (id: string) => void;
-  /** Compact пока оставим на будущее, если захочешь другой стиль */
-  compact?: boolean;
 }
 
-const CitizenCard: React.FC<CitizenCardProps> = ({
-  person,
-  onEdit,
-  compact = false,
-}) => {
-  const handleOpenEditor = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
+const CitizenCard = ({ person, onEdit }: CitizenCardProps) => {
+  const handleOpenEditor = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     onEdit?.(person.id);
   };
 
-  const isDeceased =
-    person.lifeStatus.toLowerCase() === "deceased" ||
-    (person.deathDate && person.deathDate.trim().length > 0);
+  const isDeceased = person.lifeStatus === "Deceased";
 
   return (
     <article
-      className={`card citizen-card ${compact ? "citizen-card-compact" : ""} ${
+      className={`card citizen-card ${
         isDeceased ? "citizen-card--deceased" : ""
       }`}
     >
       <header className="citizen-card-header">
         <div>
-          <h3 className="card-title">{person.fullName}</h3>
+          <h3 className="citizen-card-title">{person.fullName}</h3>
 
           <p className="card-sub citizen-card-sub">
             {person.sex}, {person.age} y.o. ({person.ageGroup})
-            {isDeceased && (
+            {isDeceased ? (
               <span className="citizen-card-sub-status citizen-card-sub-status--deceased">
-                DECEASED
+                DECEASED {person.deathDate}
+              </span>
+            ) : (
+              <span className="citizen-card-sub-status citizen-card-sub-status--alive">
+                {person.lifeStatus}
               </span>
             )}
           </p>
@@ -66,7 +62,6 @@ const CitizenCard: React.FC<CitizenCardProps> = ({
         </p>
         <p>
           <strong>Birth date:</strong> {person.birthDate}
-          {isDeceased && person.deathDate && <> – {person.deathDate}</>}
         </p>
       </section>
     </article>
