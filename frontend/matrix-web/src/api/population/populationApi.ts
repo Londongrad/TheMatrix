@@ -1,8 +1,6 @@
-import type { PersonDto } from "./types";
-import type { UpdateCitizenRequest } from "./types";
-
-const POPULATION_API_BASE_URL =
-  import.meta.env.VITE_POPULATION_API_URL ?? "https://localhost:7155";
+import type { PersonDto } from "./populationTypes";
+import type { UpdateCitizenRequest } from "./populationTypes";
+import { API_BASE_URL } from "../config";
 
 export interface PagedResult<T> {
   items: T[];
@@ -45,7 +43,7 @@ export async function initializePopulation(
   }
 
   const res = await fetch(
-    `${POPULATION_API_BASE_URL}/api/population/init?${params.toString()}`,
+    `${API_BASE_URL}/api/population/init?${params.toString()}`,
     { method: "POST" }
   );
 
@@ -59,7 +57,7 @@ export async function getCitizensPage(
   pageSize: number
 ): Promise<PagedResult<PersonDto>> {
   const response = await fetch(
-    `${POPULATION_API_BASE_URL}/api/population/citizens?pageNumber=${page}&pageSize=${pageSize}`
+    `${API_BASE_URL}/api/population/citizens?pageNumber=${page}&pageSize=${pageSize}`
   );
 
   return handleJson<PagedResult<PersonDto>>(
@@ -69,19 +67,17 @@ export async function getCitizensPage(
 }
 
 export async function killCitizen(id: string): Promise<PersonDto> {
-  const res = await fetch(
-    `${POPULATION_API_BASE_URL}/api/population/${id}/kill`,
-    { method: "POST" }
-  );
+  const res = await fetch(`${API_BASE_URL}/api/population/${id}/kill`, {
+    method: "POST",
+  });
 
   return handleJson<PersonDto>(res, "Failed to kill citizen");
 }
 
 export async function resurrectCitizen(id: string): Promise<PersonDto> {
-  const res = await fetch(
-    `${POPULATION_API_BASE_URL}/api/population/${id}/resurrect`,
-    { method: "POST" }
-  );
+  const res = await fetch(`${API_BASE_URL}/api/population/${id}/resurrect`, {
+    method: "POST",
+  });
 
   return handleJson<PersonDto>(res, "Failed to resurrect citizen");
 }
@@ -90,14 +86,11 @@ export async function updateCitizen(
   id: string,
   payload: UpdateCitizenRequest
 ): Promise<PersonDto> {
-  const res = await fetch(
-    `${POPULATION_API_BASE_URL}/api/population/${id}/update`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
+  const res = await fetch(`${API_BASE_URL}/api/population/${id}/update`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   return handleJson<PersonDto>(res, "Failed to update citizen");
 }
