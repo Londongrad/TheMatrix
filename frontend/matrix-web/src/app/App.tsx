@@ -1,26 +1,48 @@
-import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import DashboardPage from "../modules/city-core/pages/DashboardPage";
 import CitizensPage from "../modules/population/pages/CitizensPage";
 
-const App: React.FC = () => {
+import { AuthProvider } from "../api/auth/AuthContext";
+import { RequireAuth } from "../api/auth/RequireAuth";
+import { LoginPage } from "../modules/auth/pages/LoginPage";
+import { RegisterPage } from "../modules/auth/pages/RegisterPage";
+
+const App = () => {
   return (
     <BrowserRouter>
-      <MainLayout>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/citizens" element={<CitizensPage />} />
+          {/* публичные страницы */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-          {/* Заглушки на будущее */}
-          {/* <Route path="/incidents" element={<IncidentsPage />} /> */}
-          {/* <Route path="/systems" element={<SystemsPage />} /> */}
-          {/* <Route path="/settings" element={<SettingsPage />} /> */}
+          {/* защищённые страницы — только для залогиненных */}
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <MainLayout>
+                  <DashboardPage />
+                </MainLayout>
+              </RequireAuth>
+            }
+          />
 
-          {/* всё неизвестное ведём на дашборд */}
+          <Route
+            path="/citizens"
+            element={
+              <RequireAuth>
+                <MainLayout>
+                  <CitizensPage />
+                </MainLayout>
+              </RequireAuth>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </MainLayout>
+      </AuthProvider>
     </BrowserRouter>
   );
 };

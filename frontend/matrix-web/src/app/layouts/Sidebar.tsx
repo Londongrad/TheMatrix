@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import "../../styles/shared/sidebar.css";
 
 const buildLinkClass = ({ isActive }: { isActive: boolean }) =>
   "sidebar-link" + (isActive ? " sidebar-link-active" : "");

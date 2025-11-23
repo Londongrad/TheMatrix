@@ -1,4 +1,5 @@
 import React from "react";
+import "../../styles/shared/topbar.css";
 
 const Topbar: React.FC = () => {
   return (
