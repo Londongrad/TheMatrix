@@ -1,0 +1,373 @@
+/* ===== BACKDROP & CONTAINER =================================== */
+
+.citizens-page-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    circle at top,
+    rgba(15, 23, 42, 0.9),
+    rgba(2, 6, 23, 0.98)
+  );
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+/* Градиентный бордер + тёмный внутренний фон */
+.citizens-page-modal {
+  position: relative;
+  width: min(960px, 96vw);
+  max-height: 90vh;
+  padding: 1.75rem 1.9rem 1.4rem;
+  border-radius: 18px;
+
+  /* 1) внутренний фон (padding-box)
+     2) внешнее градиентное кольцо (border-box) */
+  background: linear-gradient(#020617, #020617) padding-box,
+    radial-gradient(
+        140% 200% at 0% 0%,
+        rgba(56, 189, 248, 0.55),
+        rgba(129, 140, 248, 0.25),
+        rgba(15, 23, 42, 0.95)
+      )
+      border-box;
+  border: 1px solid transparent;
+
+  box-shadow: 0 28px 120px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* Лёгкое свечение по верхнему краю, как у карточек */
+.citizens-page-modal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.35;
+  background: radial-gradient(
+      circle at 0% 0%,
+      rgba(56, 189, 248, 0.4),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(168, 85, 247, 0.35),
+      transparent 55%
+    );
+}
+
+/* Вариант для мёртвых — более холодный, “выцветший” градиент */
+.citizens-page-modal.citizens-page-modal--dead {
+  background: linear-gradient(#020617, #020617) padding-box,
+    radial-gradient(
+        150% 210% at 0% 0%,
+        rgba(31, 41, 55, 0.85),
+        rgba(15, 23, 42, 0.98)
+      )
+      border-box;
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.95);
+}
+
+.citizens-page-modal.citizens-page-modal--dead::before {
+  opacity: 0.15;
+}
+
+/* ===== HEADER ================================================= */
+
+.citizens-page-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+}
+
+.citizens-page-modal-header > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* строка с именем */
+.citizens-page-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%; /* строка с именем занимает всю ширину левого блока */
+}
+
+.citizens-page-modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.citizens-page-modal-subtitle {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 0.12rem;
+}
+
+/* чтобы строки статуса не слипались друг с другом */
+.citizens-page-modal-subtitle + .citizens-page-modal-subtitle {
+  margin-top: 0.16rem;
+}
+
+/* инпут для имени */
+.citizens-page-modal-title-edit-input {
+  width: 100%; /* растягиваем по всей ширине строки */
+  max-width: none; /* убираем ограничение 360px */
+
+  font-size: 1.3rem; /* как у заголовка h2 */
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Кнопки в правом углу (✏️ и ✕) */
+.citizens-page-modal-header .icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: radial-gradient(
+    circle at 30% 0%,
+    rgba(59, 130, 246, 0.28),
+    rgba(15, 23, 42, 0.95)
+  );
+  color: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 120ms ease-out, border-color 120ms ease-out,
+    transform 120ms ease-out, box-shadow 120ms ease-out, opacity 120ms ease-out;
+}
+
+.citizens-page-modal-header .icon-btn:hover {
+  background: radial-gradient(
+    circle at 30% 0%,
+    rgba(96, 165, 250, 0.4),
+    #020617
+  );
+  border-color: rgba(148, 163, 184, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.95);
+}
+
+/* ===== BODY / GRID ============================================ */
+
+.citizens-page-modal-body {
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* аккуратный скролл в теле модалки */
+.citizens-page-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.citizens-page-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.citizens-page-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.9);
+  border-radius: 999px;
+}
+
+.citizens-page-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 1.35rem;
+}
+
+.citizens-page-modal-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #9ca3af;
+  margin-bottom: 0.6rem;
+}
+
+.citizens-page-modal-field {
+  margin-bottom: 0.55rem;
+}
+
+.citizens-page-modal-field-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 0.12rem;
+}
+
+/* строка label + маленький элемент справа (если нужен) */
+.citizens-page-modal-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* ===== EDIT BLOCK (Happiness) ================================= */
+
+.citizens-page-modal-happiness-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+/* range растягиваем, чтобы выглядел как часть формы */
+.citizens-page-modal-happiness-row input[type="range"] {
+  flex: 1;
+  accent-color: #3b82f6;
+}
+
+/* тёмный number-input */
+.citizens-page-modal-input-number {
+  width: 64px;
+  padding: 0.25rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  text-align: center;
+  outline: none;
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  transition: border-color 120ms ease-out, box-shadow 120ms ease-out,
+    background 120ms ease-out;
+}
+
+.citizens-page-modal-input-number:focus {
+  border-color: rgba(96, 165, 250, 0.9);
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.8);
+  background: #020617;
+}
+
+.citizens-page-modal-input-number:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== INPUTS & SELECTS ======================================= */
+
+/* общий тёмный текстовый инпут (personal/employment + имя) */
+.citizens-page-modal-input-text,
+.citizens-page-modal-select {
+  width: 100%;
+  padding: 0.38rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: radial-gradient(circle at 0% 0%, rgba(15, 23, 42, 0.9), #020617);
+  color: #e5e7eb;
+  outline: none;
+  transition: border-color 120ms ease-out, box-shadow 120ms ease-out,
+    background 120ms ease-out;
+}
+
+.citizens-page-modal-input-text:focus,
+.citizens-page-modal-select:focus {
+  border-color: rgba(96, 165, 250, 0.9);
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.85);
+  background: #020617;
+}
+
+.citizens-page-modal-input-text:disabled,
+.citizens-page-modal-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* тёмный select для enum-ов (marital, employment, education) */
+.citizens-page-modal-select {
+  appearance: none;
+}
+
+/* Ошибки валидации полей */
+.citizens-page-modal-error {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: #f97373;
+}
+
+/* ===== FOOTER & BUTTONS ======================================= */
+
+.citizens-page-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.95);
+}
+
+.citizens-page-modal-footer-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* базовый стиль всех .btn внутри модалки */
+.citizens-page-modal .btn {
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: radial-gradient(circle at 0% 0%, rgba(15, 23, 42, 0.95), #020617);
+  color: #e5e7eb;
+  transition: background 120ms ease-out, transform 120ms ease-out,
+    box-shadow 120ms ease-out, border-color 120ms ease-out,
+    opacity 120ms ease-out;
+}
+
+.citizens-page-modal .btn.btn-sm {
+  padding: 0.3rem 0.75rem;
+}
+
+/* hover для обычных кнопок */
+.citizens-page-modal .btn:hover:not(:disabled) {
+  background: radial-gradient(circle at 0% 0%, rgba(31, 41, 55, 0.95), #020617);
+  border-color: rgba(148, 163, 184, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+  cursor: pointer;
+}
+
+/* disabled */
+.citizens-page-modal .btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Опасная кнопка (Kill citizen) */
+.citizens-page-modal .btn-danger {
+  background: radial-gradient(circle at 0% 0%, #7f1d1d, #b91c1c);
+  border-color: #ef4444;
+}
+
+.citizens-page-modal .btn-danger:hover:not(:disabled) {
+  background: radial-gradient(circle at 0% 0%, #991b1b, #dc2626);
+  border-color: #f97373;
+}
+
+/* Успешная (Resurrect citizen) */
+.citizens-page-modal .btn-success {
+  background: radial-gradient(circle at 0% 0%, #14532d, #166534);
+  border-color: #22c55e;
+}
+
+.citizens-page-modal .btn-success:hover:not(:disabled) {
+  background: radial-gradient(circle at 0% 0%, #15803d, #16a34a);
+  border-color: #4ade80;
+}
