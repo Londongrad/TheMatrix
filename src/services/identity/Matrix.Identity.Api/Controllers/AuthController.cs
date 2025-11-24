@@ -66,6 +66,7 @@ namespace Matrix.Identity.Api.Controllers
             var response = new LoginResponse
             {
                 AccessToken = result.AccessToken,
+                TokenType = result.TokenType,
                 ExpiresIn = result.AccessTokenExpiresInSeconds,
                 RefreshToken = result.RefreshToken,
                 RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc

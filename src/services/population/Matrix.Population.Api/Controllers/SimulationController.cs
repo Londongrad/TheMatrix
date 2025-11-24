@@ -78,8 +78,5 @@ namespace Matrix.Population.Api.Controllers
 
             return Ok(person);
         }
-
-        [HttpGet("health")]
-        public IActionResult Health() => Ok(new { status = "ok" });
     }
 }
