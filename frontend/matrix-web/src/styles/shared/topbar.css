@@ -1,3 +1,5 @@
+/* === Topbar container === */
+
 .topbar {
   height: 56px;
   border-bottom: 1px solid #1f2937;
@@ -5,15 +7,218 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: #020617;
+  background: #020617; /* тёмный фон */
+  color: #e5e7eb; /* светлый текст по умолчанию */
+  font-size: 14px;
 }
+
+/* Левая и правая части */
+
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Заголовок панели */
 
 .topbar-caption {
   font-size: 14px;
   color: #9ca3af;
+  letter-spacing: 0.03em;
 }
 
+/* === User widget (правый блок) === */
+
 .topbar-user {
-  font-size: 14px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Кнопка с аватаркой и именем */
+
+.user-menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+}
+
+.user-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35);
+}
+
+.user-menu-toggle:active {
+  transform: scale(0.98);
+}
+
+.user-menu-toggle:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Аватарка (инициал) */
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.5);
+}
+
+/* Текст: имя + роль */
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Стрелочка */
+
+.user-caret {
+  font-size: 0.8rem;
+  margin-left: 0.2rem;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  opacity: 0.9;
+}
+
+.user-caret.open {
+  transform: rotate(180deg);
+}
+
+/* === Dropdown меню === */
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 190px;
+  padding: 0.35rem 0.25rem;
+  border-radius: 0.7rem;
+  background: #020617;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(148, 163, 184, 0.35);
+  z-index: 50;
+
+  /* плавное появление */
+  animation: dropdownIn 0.14s ease-out;
+}
+
+/* Маленький треугольник над меню */
+
+.user-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 18px;
+  width: 10px;
+  height: 10px;
+  background: #020617;
+  transform: rotate(45deg);
+  box-shadow: -1px -1px 1px rgba(15, 23, 42, 0.8);
+}
+
+/* Пункты меню */
+
+.user-dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border: none;
+  background: transparent;
   color: #e5e7eb;
+  font-size: 0.85rem;
+  border-radius: 0.45rem;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, padding-left 0.12s ease;
+}
+
+.user-dropdown-item + .user-dropdown-item {
+  margin-top: 2px;
+}
+
+.user-dropdown-item:hover {
+  background: rgba(148, 163, 184, 0.18);
+  padding-left: 0.9rem;
+}
+
+/* Отдельное оформление logout */
+
+.user-dropdown-item.logout {
+  color: #fecaca;
+}
+
+.user-dropdown-item.logout:hover {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fee2e2;
+}
+
+/* Анимация появления меню */
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* === Анимированный бордер, пока меню открыто === */
+
+.user-menu-toggle--open {
+  border: 1px solid transparent;
+  background-image: linear-gradient(#020617, #020617),
+    linear-gradient(120deg, #38bdf8, #6366f1, #22c55e, #38bdf8);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  animation: userBorderShift 2.6s linear infinite;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.user-menu-toggle--open:hover {
+  /* лёгкий усиленный glow при ховере, пока меню открыто */
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.7),
+    0 0 14px rgba(56, 189, 248, 0.5);
+}
+
+@keyframes userBorderShift {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 200% 50%;
+  }
 }
