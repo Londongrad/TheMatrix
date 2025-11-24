@@ -6,7 +6,7 @@ interface Props {
   children: React.ReactElement;
 }
 
-export const RequireAuth: React.FC<Props> = ({ children }) => {
+export const RequireAuth = ({ children }: { children: Props }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 

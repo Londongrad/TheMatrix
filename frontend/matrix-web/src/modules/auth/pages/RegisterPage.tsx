@@ -3,7 +3,7 @@ import { useAuth } from "../../../api/auth/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import "../../../styles/auth/register-page.css";
 
-export const RegisterPage: React.FC = () => {
+export const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 

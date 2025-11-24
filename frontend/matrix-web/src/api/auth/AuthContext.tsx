@@ -29,9 +29,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const ACCESS_TOKEN_KEY = "matrix_access_token";
 const REFRESH_TOKEN_KEY = "matrix_refresh_token";
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<MeResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);

@@ -3,7 +3,7 @@ import { useAuth } from "../../../api/auth/AuthContext";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import "../../../styles/auth/login-page.css";
 
-export const LoginPage: React.FC = () => {
+export const LoginPage = () => {
   const { login: loginUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation() as { state?: { from?: Location } };
