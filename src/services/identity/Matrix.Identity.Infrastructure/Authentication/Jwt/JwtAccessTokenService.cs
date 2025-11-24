@@ -15,6 +15,8 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
 
         public AccessTokenModel Generate(User user)
         {
+            var username = user.Username.Value;
+
             var claims = new List<Claim>
             {
                 // основной идентификатор пользователя
@@ -24,8 +26,9 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
                 new(JwtRegisteredClaimNames.Email, user.Email.Value),
 
                 // username как "unique_name" + дублируем в ClaimTypes.Name
-                new(JwtRegisteredClaimNames.UniqueName, user.Username),
-                new(ClaimTypes.Name, user.Username),
+                new(JwtRegisteredClaimNames.UniqueName, username),
+                new(ClaimTypes.Name, username),
+                new("username", username),
 
                 // id токена
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())

@@ -27,12 +27,16 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                     .IsUnique();
             });
 
-            builder.Property(u => u.Username)
-                .HasMaxLength(32)
-                .IsRequired();
+            builder.OwnsOne(u => u.Username, username =>
+            {
+                username.Property(x => x.Value)
+                    .HasColumnName("Username")
+                    .HasMaxLength(32)
+                    .IsRequired();
 
-            builder.HasIndex(u => u.Username)
-                .IsUnique();
+                username.HasIndex(x => x.Value)
+                    .IsUnique();
+            });
 
             builder.Property(u => u.AvatarUrl)
                 .HasMaxLength(512);

@@ -15,8 +15,8 @@ namespace Matrix.Identity.Domain.Entities
 
         public Guid Id { get; private set; }
 
-        public string Username { get; private set; } = null!;
         public string? AvatarUrl { get; private set; }
+        public Username Username { get; private set; } = null!;
         public Email Email { get; private set; } = null!;
 
         /// <summary>
@@ -36,15 +36,13 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Constructors ]
 
-        private User()
-        {
-        }
+        private User() { }
 
-        private User(Email email, string username, string passwordHash)
+        private User(Email email, Username username, string passwordHash)
         {
             Id = Guid.NewGuid();
             Email = email;
-            Username = NormalizeUsername(username);
+            Username = username;
             PasswordHash = passwordHash;
             CreatedAtUtc = DateTime.UtcNow;
             IsEmailConfirmed = false;
@@ -55,32 +53,14 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Methods ]
 
-        public static User CreateNew(Email email, string username, string passwordHash)
+        public static User CreateNew(Email email, Username username, string passwordHash)
         {
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                throw new DomainValidationException("Username is required.", nameof(username));
-            }
-
-            if (username.Length is < 3 or > 32)
-            {
-                throw new DomainValidationException("Username must be between 3 and 32 characters.", nameof(username));
-            }
-
             if (string.IsNullOrWhiteSpace(passwordHash))
             {
                 throw new DomainValidationException("Password hash is required.", nameof(passwordHash));
             }
 
             return new User(email, username, passwordHash);
-        }
-
-        private static string NormalizeUsername(string username)
-            => username.Trim().ToLowerInvariant();
-
-        public void ChangeAvatar(string? avatarUrl)
-        {
-            AvatarUrl = avatarUrl;
         }
 
         public void ConfirmEmail()
@@ -93,20 +73,13 @@ namespace Matrix.Identity.Domain.Entities
             IsEmailConfirmed = true;
         }
 
-        public void Lock()
-        {
-            IsLocked = true;
-        }
+        public void ChangeAvatar(string? avatarUrl) => AvatarUrl = avatarUrl;
 
-        public void Unlock()
-        {
-            IsLocked = false;
-        }
+        public void Lock() => IsLocked = true;
 
-        public bool CanLogin()
-        {
-            return !IsLocked;
-        }
+        public void Unlock() => IsLocked = false;
+
+        public bool CanLogin() => !IsLocked;
 
         /// <summary>
         /// Выпускает новый refresh-токен и добавляет его к пользователю.

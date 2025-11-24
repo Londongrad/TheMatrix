@@ -8,34 +8,34 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
     {
         private readonly IdentityDbContext _dbContext = dbContext;
 
-        public async Task<User?> GetByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+        public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(
-                    u => u.Email.Value == normalizedEmail,
+                    u => u.Email.Value == email,
                     cancellationToken);
         }
 
-        public async Task<bool> IsEmailTakenAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+        public async Task<bool> IsEmailTakenAsync(string email, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Users
-                .AnyAsync(u => u.Email.Value == normalizedEmail, cancellationToken);
+                .AnyAsync(u => u.Email.Value == email, cancellationToken);
         }
 
-        public async Task<User?> GetByUsernameAsync(string normalizedUsername, CancellationToken cancellationToken = default)
+        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Users
                .Include(u => u.RefreshTokens)
                .FirstOrDefaultAsync(
-                   u => u.Username == normalizedUsername,
+                   u => u.Username.Value == username,
                    cancellationToken);
         }
 
-        public async Task<bool> IsUsernameTakenAsync(string normalizedUsername, CancellationToken cancellationToken = default)
+        public async Task<bool> IsUsernameTakenAsync(string username, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Users
-                .AnyAsync(u => u.Username == normalizedUsername, cancellationToken);
+                .AnyAsync(u => u.Username.Value == username, cancellationToken);
         }
 
         public async Task<User?> GetByRefreshTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)

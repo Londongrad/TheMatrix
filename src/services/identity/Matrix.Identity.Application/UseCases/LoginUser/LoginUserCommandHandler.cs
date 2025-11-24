@@ -39,8 +39,8 @@ namespace Matrix.Identity.Application.UseCases.LoginUser
             else
             {
                 // считаем, что это username
-                var normalizedUsername = request.Login.Trim().ToLowerInvariant();
-                user = await _userRepository.GetByUsernameAsync(normalizedUsername, cancellationToken);
+                var username = Username.Create(request.Login);
+                user = await _userRepository.GetByUsernameAsync(username.Value, cancellationToken);
             }
 
             if (user is null || !user.CanLogin())
