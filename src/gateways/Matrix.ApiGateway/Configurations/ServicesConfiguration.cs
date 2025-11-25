@@ -36,9 +36,10 @@ namespace Matrix.ApiGateway.Configurations
                 options.AddPolicy("Frontend", policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:5173")
+                        .WithOrigins("https://localhost:5173")
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                 });
             });
 
