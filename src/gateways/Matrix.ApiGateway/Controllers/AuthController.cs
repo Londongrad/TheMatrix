@@ -15,13 +15,25 @@ namespace Matrix.ApiGateway.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
+        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request, CancellationToken ct)
         {
             var response = await _identityApiClient.RegisterAsync(request, ct);
 
-            var content = await response.Content.ReadAsStringAsync(ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync(ct);
+                return StatusCode((int)response.StatusCode, body);
+            }
 
-            return StatusCode((int)response.StatusCode, content);
+            var registerResponse =
+            await response.Content.ReadFromJsonAsync<RegisterResponse>(ct);
+
+            if (registerResponse is null)
+            {
+                return StatusCode(500, "Invalid response from Identity service");
+            }
+
+            return Ok(registerResponse);
         }
 
         [AllowAnonymous]
