@@ -3,18 +3,12 @@ using System.Net;
 
 namespace Matrix.Identity.Api.Middleware
 {
-    public sealed class ExceptionHandlingMiddleware
-    {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-        public ExceptionHandlingMiddleware(
+    public sealed class ExceptionHandlingMiddleware(
             RequestDelegate next,
             ILogger<ExceptionHandlingMiddleware> logger)
         {
-            _next = next;
-            _logger = logger;
-        }
+        private readonly RequestDelegate _next = next;
+        private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
 
         public async Task Invoke(HttpContext context)
         {
