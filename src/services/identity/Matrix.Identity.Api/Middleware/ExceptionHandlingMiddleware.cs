@@ -4,9 +4,9 @@ using System.Net;
 namespace Matrix.Identity.Api.Middleware
 {
     public sealed class ExceptionHandlingMiddleware(
-            RequestDelegate next,
-            ILogger<ExceptionHandlingMiddleware> logger)
-        {
+        RequestDelegate next,
+        ILogger<ExceptionHandlingMiddleware> logger)
+    {
         private readonly RequestDelegate _next = next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
 
@@ -22,15 +22,33 @@ namespace Matrix.Identity.Api.Middleware
                 context.Response.StatusCode = (int)HttpStatusCode.Conflict;
                 await context.Response.WriteAsJsonAsync(new { error = ex.Message });
             }
+            catch (UsernameAlreadyInUseException ex)
+            {
+                _logger.LogWarning(ex, "Username already in use");
+                context.Response.StatusCode = (int)HttpStatusCode.Conflict;
+                await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+            }
             catch (InvalidCredentialsException ex)
             {
                 _logger.LogWarning(ex, "Invalid credentials");
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 await context.Response.WriteAsJsonAsync(new { error = ex.Message });
             }
+            catch (InvalidRefreshTokenException ex)
+            {
+                _logger.LogWarning(ex, "Invalid refresh token");
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning(ex, "Invalid argument");
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Invalid operation");
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 await context.Response.WriteAsJsonAsync(new { error = ex.Message });
             }
