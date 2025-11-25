@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { LoadingScreen } from "../../modules/auth/components/LoadingScreen";
 
 interface Props {
   children: React.ReactElement;
@@ -10,7 +11,7 @@ export const RequireAuth = ({ children }: Props) => {
   const location = useLocation();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingScreen />;
   }
 
   if (!user) {
