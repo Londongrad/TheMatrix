@@ -68,8 +68,15 @@ const CitizensPage = () => {
 
       <div className="citizens-page-toolbar">
         <div className="citizens-page-toolbar-left">
-          {isLoading && <span className="card-sub">Loading citizens...</span>}
+          {isLoading && (
+            <div className="citizens-loading-inline">
+              <span className="citizens-loading-spinner" />
+              <span className="card-sub">Loading citizens…</span>
+            </div>
+          )}
+
           {error && <p className="error-text">{error}</p>}
+
           {!isLoading && !error && totalCitizens > 0 && (
             <span className="card-sub">
               Showing {startIndex}–{endIndex} of {totalCitizens} citizens

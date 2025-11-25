@@ -33,3 +33,31 @@
   gap: 1.25rem;
   margin-top: 10px;
 }
+
+.citizens-loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.citizens-loading-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.4); /* серый контур */
+  border-top-color: #38bdf8; /* голубой акцент */
+  border-right-color: #22c55e; /* чуть "матричный" зелёный */
+  animation: citizens-loading-spin 0.6s linear infinite;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
+}
+
+.citizens-page-toolbar-left .card-sub {
+  margin: 0;
+  line-height: 1.2;
+}
+
+@keyframes citizens-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
