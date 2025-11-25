@@ -6,7 +6,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts
         public string TokenType { get; set; } = "Bearer";
         public int ExpiresIn { get; set; }
 
-        public string RefreshToken { get; init; } = null!;
+        public string RefreshToken { get; set; } = null!;
         public DateTime RefreshTokenExpiresAtUtc { get; init; }
     }
 }

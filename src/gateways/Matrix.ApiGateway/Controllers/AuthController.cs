@@ -12,6 +12,32 @@ namespace Matrix.ApiGateway.Controllers
     public sealed class AuthController(IIdentityApiClient identityApiClient) : ControllerBase
     {
         private readonly IIdentityApiClient _identityApiClient = identityApiClient;
+        private const string RefreshCookieName = "matrix_refresh_token";
+
+        private void SetRefreshCookie(string refreshToken, DateTime refreshExpiresAtUtc)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = refreshExpiresAtUtc,
+                Path = "/"
+            };
+
+            Response.Cookies.Append(RefreshCookieName, refreshToken, cookieOptions);
+        }
+
+        private void ClearRefreshCookie()
+        {
+            Response.Cookies.Delete(RefreshCookieName, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/"
+            });
+        }
 
         [AllowAnonymous]
         [HttpPost("register")]
@@ -47,32 +73,52 @@ namespace Matrix.ApiGateway.Controllers
                 return Unauthorized(new { error = "Invalid credentials or Identity service error." });
             }
 
+            SetRefreshCookie(loginResponse.RefreshToken, loginResponse.RefreshTokenExpiresAtUtc);
+
+            loginResponse.RefreshToken = string.Empty;
+
             return Ok(loginResponse);
         }
 
         [AllowAnonymous]
         [HttpPost("refresh")]
-        public async Task<ActionResult<LoginResponse>> Refresh(
-            [FromBody] RefreshRequest request,
-            CancellationToken ct)
+        public async Task<ActionResult<LoginResponse>> Refresh(CancellationToken ct)
         {
+            var refreshToken = Request.Cookies[RefreshCookieName];
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                return Unauthorized("No refresh token cookie");
+            }
+
+            var request = new RefreshRequest { RefreshToken = refreshToken };
+
             var result = await _identityApiClient.RefreshAsync(request, ct);
 
             if (result is null)
             {
-                return Unauthorized(new { error = "Invalid refresh token." });
+                ClearRefreshCookie();
+                return Unauthorized("Invalid refresh token");
             }
 
+            // Обновляем cookie новым refresh-токеном (ротация)
+            SetRefreshCookie(result.RefreshToken, result.RefreshTokenExpiresAtUtc);
+            result.RefreshToken = string.Empty;
             return Ok(result);
         }
 
         [AllowAnonymous]
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout(
-            [FromBody] RefreshRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> Logout(CancellationToken ct)
         {
-            await _identityApiClient.LogoutAsync(request, ct);
+            var refreshToken = Request.Cookies[RefreshCookieName];
+
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                var request = new RefreshRequest { RefreshToken = refreshToken };
+                await _identityApiClient.LogoutAsync(request, ct);
+            }
+
+            ClearRefreshCookie();
             return NoContent();
         }
 
