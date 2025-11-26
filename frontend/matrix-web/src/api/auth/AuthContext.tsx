@@ -1,5 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import type { MeResponse, LoginRequest } from "./authApi";
+// src/api/auth/AuthContext.tsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
+import type { MeResponse, LoginRequest } from "./authTypes";
 import {
   getMe,
   loginUser,
@@ -7,11 +15,11 @@ import {
   refreshAuth,
   logoutAuth,
 } from "./authApi";
+import { configureHttpAuth } from "../http";
 
 interface AuthContextValue {
   user: MeResponse | null;
-  token: string | null; // access token
-  refreshToken: string | null; // refresh token
+  token: string | null; // access token (in memory only)
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<void>;
   register: (data: {
@@ -20,61 +28,45 @@ interface AuthContextValue {
     password: string;
     confirmPassword: string;
   }) => Promise<void>;
-  logout: () => void;
-  refreshSession: () => Promise<void>;
+  logout: () => Promise<void>;
+  // теперь возвращает новый access token или null
+  refreshSession: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const ACCESS_TOKEN_KEY = "matrix_access_token";
-const REFRESH_TOKEN_KEY = "matrix_refresh_token";
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<MeResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // При монтировании: читаем токены из localStorage и дергаем /me
-  useEffect(() => {
-    const storedAccess = localStorage.getItem(ACCESS_TOKEN_KEY);
-    const storedRefresh = localStorage.getItem(REFRESH_TOKEN_KEY);
+  const hasTriedRefresh = useRef(false);
 
-    if (!storedAccess || !storedRefresh) {
-      setIsLoading(false);
-      return;
+  // 🔁 Обновление access-токена по refresh-куке
+  const refreshSession = useCallback(async (): Promise<string | null> => {
+    try {
+      const result = await refreshAuth(); // /api/auth/refresh
+      const newAccess = result.accessToken;
+
+      setToken(newAccess);
+
+      const me = await getMe(newAccess);
+      setUser(me);
+
+      return newAccess;
+    } catch {
+      // refresh умер / куки нет / ошибка сети
+      setToken(null);
+      setUser(null);
+      return null;
     }
-
-    (async () => {
-      try {
-        const me = await getMe(storedAccess);
-        setToken(storedAccess);
-        setRefreshToken(storedRefresh);
-        setUser(me);
-      } catch {
-        // токены протухли / невалидны
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-        setToken(null);
-        setRefreshToken(null);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
   }, []);
 
   const login = async (data: LoginRequest) => {
     const result = await loginUser(data);
 
     const access = result.accessToken;
-    const refresh = result.refreshToken;
-
-    localStorage.setItem(ACCESS_TOKEN_KEY, access);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
-
     setToken(access);
-    setRefreshToken(refresh);
 
     const me = await getMe(access);
     setUser(me);
@@ -97,45 +89,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await login({ login: data.email, password: data.password });
   };
 
-  // Обновление access/refresh по refresh-токену
-  const refreshSession = async () => {
-    if (!refreshToken) {
-      throw new Error("No refresh token");
+  const logout = async () => {
+    try {
+      await logoutAuth(); // бэк сам удалит refresh-куку
+    } catch {
+      // даже если ошибка, всё равно чистим локальное состояние
+    } finally {
+      setToken(null);
+      setUser(null);
     }
-
-    const result = await refreshAuth(refreshToken);
-
-    const newAccess = result.accessToken;
-    const newRefresh = result.refreshToken;
-
-    localStorage.setItem(ACCESS_TOKEN_KEY, newAccess);
-    localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
-
-    setToken(newAccess);
-    setRefreshToken(newRefresh);
-
-    const me = await getMe(newAccess);
-    setUser(me);
   };
 
-  const logout = () => {
-    if (refreshToken) {
-      // отзываем refresh-токен на бэке, но не ждем результат
-      logoutAuth(refreshToken).catch(() => {});
+  // При монтировании: один раз пробуем восстановить сессию по refresh-куке
+  useEffect(() => {
+    if (hasTriedRefresh.current) {
+      return;
     }
+    hasTriedRefresh.current = true;
 
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    (async () => {
+      await refreshSession(); // он сам выставит user/token или обнулит
+      setIsLoading(false);
+    })();
+  }, [refreshSession]);
 
-    setToken(null);
-    setRefreshToken(null);
-    setUser(null);
-  };
+  // 👉 Подключаем AuthContext к http-слою (для apiRequest)
+  useEffect(() => {
+    configureHttpAuth({
+      refreshToken: refreshSession,
+      onLogout: () => {
+        setToken(null);
+        setUser(null);
+      },
+    });
+  }, [refreshSession]);
 
   const value: AuthContextValue = {
     user,
     token,
-    refreshToken,
     isLoading,
     login,
     register,
