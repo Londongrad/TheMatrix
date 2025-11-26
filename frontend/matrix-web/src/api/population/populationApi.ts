@@ -1,37 +1,16 @@
-import type { PersonDto } from "./populationTypes";
-import type { UpdateCitizenRequest } from "./populationTypes";
-import { API_BASE_URL } from "../config";
+import type { PersonDto, UpdateCitizenRequest } from "./populationTypes";
+import { API_POPULATION_URL } from "../config";
+import { apiRequest } from "../http";
 
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;
 }
 
-// Helper
-async function handleJson<T>(
-  res: Response,
-  defaultMessage: string
-): Promise<T> {
-  if (!res.ok) {
-    let message = defaultMessage;
-
-    try {
-      const text = await res.text();
-      if (text) {
-        message = text;
-      }
-    } catch {
-      // если text() упадёт, остаётся defaultMessage
-    }
-
-    throw new Error(message);
-  }
-
-  return res.json() as Promise<T>;
-}
-
+// Инициализация населения
 export async function initializePopulation(
   peopleCount: number,
+  token: string,
   randomSeed?: number
 ): Promise<void> {
   const params = new URLSearchParams({
@@ -42,55 +21,68 @@ export async function initializePopulation(
     params.append("randomSeed", randomSeed.toString());
   }
 
-  const res = await fetch(
-    `${API_BASE_URL}/api/population/init?${params.toString()}`,
-    { method: "POST" }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to initialize population");
-  }
+  await apiRequest<void>(`${API_POPULATION_URL}/init?${params.toString()}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
 
+// Получение страницы граждан
 export async function getCitizensPage(
   page: number,
-  pageSize: number
+  pageSize: number,
+  token: string
 ): Promise<PagedResult<PersonDto>> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/population/citizens?pageNumber=${page}&pageSize=${pageSize}`
+  return await apiRequest<PagedResult<PersonDto>>(
+    `${API_POPULATION_URL}/citizens?pageNumber=${page}&pageSize=${pageSize}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
-
-  return handleJson<PagedResult<PersonDto>>(
-    response,
-    "Failed to load citizens"
-  );
 }
 
-export async function killCitizen(id: string): Promise<PersonDto> {
-  const res = await fetch(`${API_BASE_URL}/api/population/${id}/kill`, {
+// Убить гражданина
+export async function killCitizen(
+  id: string,
+  token: string
+): Promise<PersonDto> {
+  return await apiRequest<PersonDto>(`${API_POPULATION_URL}/${id}/kill`, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-
-  return handleJson<PersonDto>(res, "Failed to kill citizen");
 }
 
-export async function resurrectCitizen(id: string): Promise<PersonDto> {
-  const res = await fetch(`${API_BASE_URL}/api/population/${id}/resurrect`, {
+// Воскрешение гражданина
+export async function resurrectCitizen(
+  id: string,
+  token: string
+): Promise<PersonDto> {
+  return await apiRequest<PersonDto>(`${API_POPULATION_URL}/${id}/resurrect`, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-
-  return handleJson<PersonDto>(res, "Failed to resurrect citizen");
 }
 
+// Обновление гражданина
 export async function updateCitizen(
   id: string,
-  payload: UpdateCitizenRequest
+  payload: UpdateCitizenRequest,
+  token: string
 ): Promise<PersonDto> {
-  const res = await fetch(`${API_BASE_URL}/api/population/${id}/update`, {
+  return await apiRequest<PersonDto>(`${API_POPULATION_URL}/${id}/update`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(payload),
   });
-
-  return handleJson<PersonDto>(res, "Failed to update citizen");
 }
