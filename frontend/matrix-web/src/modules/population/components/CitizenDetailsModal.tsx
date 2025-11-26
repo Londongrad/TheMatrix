@@ -9,6 +9,7 @@ import {
   resurrectCitizen,
   updateCitizen,
 } from "../../../api/population/populationApi";
+import { useAuth } from "../../../api/auth/AuthContext";
 
 const MARITAL_STATUS_OPTIONS: string[] = [
   "Unknown",
@@ -87,6 +88,8 @@ const CitizenDetailsModal = ({
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
+  const { token } = useAuth(); // берем access токен
+
   // когда открываем модалку для нового person — заполняем форму
   useEffect(() => {
     if (!person) {
@@ -119,6 +122,11 @@ const CitizenDetailsModal = ({
   const handleKill = async () => {
     if (isDead) return;
 
+    if (!token) {
+      setError("Not authenticated.");
+      return;
+    }
+
     const confirm = window.confirm(
       `Are you sure you want to kill ${person.fullName}?`
     );
@@ -128,7 +136,7 @@ const CitizenDetailsModal = ({
       setIsBusy(true);
       setError(null);
 
-      const updated = await killCitizen(person.id);
+      const updated = await killCitizen(person.id, token);
       onPersonUpdated?.(updated);
       // parent обновит person, useEffect перезабьёт форму
     } catch (e) {
@@ -142,11 +150,16 @@ const CitizenDetailsModal = ({
   const handleResurrect = async () => {
     if (!isDead) return;
 
+    if (!token) {
+      setError("Not authenticated.");
+      return;
+    }
+
     try {
       setIsBusy(true);
       setError(null);
 
-      const updated = await resurrectCitizen(person.id);
+      const updated = await resurrectCitizen(person.id, token);
       onPersonUpdated?.(updated);
 
       const state = buildFormStateFromPerson(updated); // Собираем форму по общей константе
@@ -224,6 +237,10 @@ const CitizenDetailsModal = ({
   const handleSave = async () => {
     if (isDead) return; // мёртвых не редактируем
     if (!form) return;
+    if (!token) {
+      setError("Not authenticated.");
+      return;
+    }
 
     const payload = buildPayload();
     if (Object.keys(payload).length === 0) {
@@ -236,7 +253,7 @@ const CitizenDetailsModal = ({
       setIsBusy(true);
       setError(null);
 
-      const updated = await updateCitizen(person.id, payload);
+      const updated = await updateCitizen(person.id, payload, token);
       onPersonUpdated?.(updated);
 
       const state = buildFormStateFromPerson(person);

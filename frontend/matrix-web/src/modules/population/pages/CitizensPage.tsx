@@ -4,6 +4,7 @@ import CitizenCard from "../components/CitizenCard";
 import CitizenDetailsModal from "../components/CitizenDetailsModal";
 import type { PersonDto } from "../../../api/population/populationTypes";
 import { getCitizensPage } from "../../../api/population/populationApi";
+import { useAuth } from "../../../api/auth/AuthContext";
 import Pagination from "../components/Pagination";
 
 const PAGE_SIZE = 100;
@@ -15,17 +16,32 @@ const CitizensPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Access token
+  const { token } = useAuth();
+
   const [selectedCitizenId, setSelectedCitizenId] = useState<string | null>(
     null
   );
 
   useEffect(() => {
+    // 1. Если токена нет — не делаем запрос
+    if (!token) {
+      return;
+    }
+
+    // 2. Фиксируем токен в локальной переменной, чтобы TS понял, что он уже точно string
+    const accessToken = token;
+
     const fetchPage = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        const result = await getCitizensPage(pageNumber, PAGE_SIZE);
+        const result = await getCitizensPage(
+          pageNumber,
+          PAGE_SIZE,
+          accessToken
+        );
         setCitizens(result.items);
         setTotalCitizens(result.totalCount);
       } catch (e) {
@@ -37,7 +53,7 @@ const CitizensPage = () => {
     };
 
     fetchPage();
-  }, [pageNumber]);
+  }, [pageNumber, token]);
 
   const totalPages = Math.max(1, Math.ceil(totalCitizens / PAGE_SIZE));
 
