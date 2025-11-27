@@ -12,38 +12,24 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity
         private const string LogoutEndpoint = "api/auth/logout";
         private const string RefreshEndpoint = "api/auth/refresh";
 
-        public Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
         {
-            return _httpClient.PostAsJsonAsync(RegisterEndpoint, request, cancellationToken);
+            return await _httpClient.PostAsJsonAsync(RegisterEndpoint, request, ct);
         }
 
-        public async Task<LoginResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> LoginAsync(LoginRequest request, CancellationToken ct = default)
         {
-            var response = await _httpClient.PostAsJsonAsync(LoginEndpoint, request, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            return await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken);
+            return await _httpClient.PostAsJsonAsync(LoginEndpoint, request, ct);
         }
 
-        public async Task<LoginResponse?> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> RefreshAsync(RefreshRequest request, CancellationToken ct = default)
         {
-            var response = await _httpClient.PostAsJsonAsync(RefreshEndpoint, request, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            return await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken);
+            return await _httpClient.PostAsJsonAsync(RefreshEndpoint, request, ct);
         }
 
-        public async Task LogoutAsync(RefreshRequest request, CancellationToken cancellationToken = default)
+        public async Task LogoutAsync(RefreshRequest request, CancellationToken ct = default)
         {
-            await _httpClient.PostAsJsonAsync(LogoutEndpoint, request, cancellationToken);
+            await _httpClient.PostAsJsonAsync(LogoutEndpoint, request, ct);
         }
     }
 }

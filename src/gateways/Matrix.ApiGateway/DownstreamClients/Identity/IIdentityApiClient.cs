@@ -4,10 +4,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity
 {
     public interface IIdentityApiClient
     {
-        Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
-        Task<LoginResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+        Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
+        Task<HttpResponseMessage> LoginAsync(LoginRequest request, CancellationToken ct = default);
 
-        Task<LoginResponse?> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default);
-        Task LogoutAsync(RefreshRequest request, CancellationToken cancellationToken = default);
+        Task<HttpResponseMessage> RefreshAsync(RefreshRequest request, CancellationToken ct = default);
+        Task LogoutAsync(RefreshRequest request, CancellationToken ct = default);
     }
 }
