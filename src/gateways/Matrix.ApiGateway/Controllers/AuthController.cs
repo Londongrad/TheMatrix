@@ -1,9 +1,11 @@
+Ôªøusing System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
 using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts;
+using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace Matrix.ApiGateway.Controllers
 {
@@ -39,24 +41,42 @@ namespace Matrix.ApiGateway.Controllers
             });
         }
 
+        private static async Task<ContentResult> ProxyDownstreamErrorAsync(
+            HttpResponseMessage response,
+            CancellationToken ct)
+        {
+            var body = await response.Content.ReadAsStringAsync(ct);
+
+            return new ContentResult
+            {
+                StatusCode = (int)response.StatusCode,
+                Content = body,
+                ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json"
+            };
+        }
+
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request, CancellationToken ct)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
         {
             var response = await _identityApiClient.RegisterAsync(request, ct);
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync(ct);
-                return StatusCode((int)response.StatusCode, body);
+                return await ProxyDownstreamErrorAsync(response, ct);
             }
 
-            var registerResponse =
-            await response.Content.ReadFromJsonAsync<RegisterResponse>(ct);
+            var registerResponse = await response.Content.ReadFromJsonAsync<RegisterResponse>(cancellationToken: ct);
 
             if (registerResponse is null)
             {
-                return StatusCode(500, "Invalid response from Identity service");
+                var error = new ErrorResponse(
+                    Code: "Gateway.InvalidIdentityResponse",
+                    Message: "Invalid response from Identity service.",
+                    Errors: null,
+                    TraceId: HttpContext.TraceIdentifier);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
             }
 
             return Ok(registerResponse);
@@ -64,17 +84,28 @@ namespace Matrix.ApiGateway.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request, CancellationToken ct)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
         {
-            var loginResponse = await _identityApiClient.LoginAsync(request, ct);
+            var response = await _identityApiClient.LoginAsync(request, ct);
 
+            if (!response.IsSuccessStatusCode)
+            {
+                return await ProxyDownstreamErrorAsync(response, ct);
+            }
+
+            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
             if (loginResponse is null)
             {
-                return Unauthorized(new { error = "Invalid credentials or Identity service error." });
+                var error = new ErrorResponse(
+                    Code: "Gateway.InvalidIdentityResponse",
+                    Message: "Invalid response from Identity service.",
+                    Errors: null,
+                    TraceId: HttpContext.TraceIdentifier);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
             }
 
             SetRefreshCookie(loginResponse.RefreshToken, loginResponse.RefreshTokenExpiresAtUtc);
-
             loginResponse.RefreshToken = string.Empty;
 
             return Ok(loginResponse);
@@ -82,28 +113,53 @@ namespace Matrix.ApiGateway.Controllers
 
         [AllowAnonymous]
         [HttpPost("refresh")]
-        public async Task<ActionResult<LoginResponse>> Refresh(CancellationToken ct)
+        public async Task<IActionResult> Refresh(CancellationToken ct)
         {
             var refreshToken = Request.Cookies[RefreshCookieName];
-            if (string.IsNullOrEmpty(refreshToken))
+            if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                return Unauthorized("No refresh token cookie");
+                var error = new ErrorResponse(
+                    Code: "Auth.NoRefreshCookie",
+                    Message: "No refresh token cookie.",
+                    Errors: null,
+                    TraceId: HttpContext.TraceIdentifier);
+
+                return Unauthorized(error);
             }
 
             var request = new RefreshRequest { RefreshToken = refreshToken };
 
-            var result = await _identityApiClient.RefreshAsync(request, ct);
+            var response = await _identityApiClient.RefreshAsync(request, ct);
 
-            if (result is null)
+            if (!response.IsSuccessStatusCode)
             {
-                ClearRefreshCookie();
-                return Unauthorized("Invalid refresh token");
+                if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    ClearRefreshCookie();
+                }
+
+                return await ProxyDownstreamErrorAsync(response, ct);
             }
 
-            // Œ·ÌÓ‚ÎˇÂÏ cookie ÌÓ‚˚Ï refresh-ÚÓÍÂÌÓÏ (ÓÚ‡ˆËˇ)
-            SetRefreshCookie(result.RefreshToken, result.RefreshTokenExpiresAtUtc);
-            result.RefreshToken = string.Empty;
-            return Ok(result);
+            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
+            if (loginResponse is null)
+            {
+                ClearRefreshCookie();
+
+                var error = new ErrorResponse(
+                    Code: "Gateway.InvalidIdentityResponse",
+                    Message: "Invalid response from Identity service.",
+                    Errors: null,
+                    TraceId: HttpContext.TraceIdentifier);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
+            }
+
+            // —É—Å–ø–µ—à–Ω—ã–π refresh ‚Üí —Ä–æ—Ç–∞—Ü–∏—è –∫—É–∫–∏
+            SetRefreshCookie(loginResponse.RefreshToken, loginResponse.RefreshTokenExpiresAtUtc);
+            loginResponse.RefreshToken = string.Empty;
+
+            return Ok(loginResponse);
         }
 
         [AllowAnonymous]
@@ -115,6 +171,7 @@ namespace Matrix.ApiGateway.Controllers
             if (!string.IsNullOrEmpty(refreshToken))
             {
                 var request = new RefreshRequest { RefreshToken = refreshToken };
+
                 await _identityApiClient.LogoutAsync(request, ct);
             }
 
