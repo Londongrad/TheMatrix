@@ -1,4 +1,4 @@
-using Matrix.Identity.Api.Middleware;
+using Matrix.BuildingBlocks.Api.Middleware;
 
 namespace Matrix.Identity.Api.Configurations
 {

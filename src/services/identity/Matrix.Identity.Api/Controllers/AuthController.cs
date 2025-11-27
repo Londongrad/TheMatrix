@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace Matrix.Identity.Api.Controllers
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/[controller]")]
     public sealed class AuthController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
