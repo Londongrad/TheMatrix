@@ -6,13 +6,15 @@ using Matrix.Population.Application.UseCases.ResurrectPerson;
 using Matrix.Population.Application.UseCases.UpdatePerson;
 using Matrix.Population.Contracts.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Population.Api.Controllers
 {
+    [Authorize]
     [ApiController]
-    [Route("api/population")]
-    public class SimulationController(ISender sender) : ControllerBase
+    [Route("api/[controller]")]
+    public class PopulationController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
 
