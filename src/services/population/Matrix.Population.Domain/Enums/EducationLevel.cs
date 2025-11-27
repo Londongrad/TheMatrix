@@ -7,52 +7,68 @@
     ///     <description><see cref="None"/> – no formal education</description>
     ///   </item>
     ///   <item>
+    ///     <description><see cref="Preschool"/> – preschool / kindergarten (детский сад)</description>
+    ///   </item>
+    ///   <item>
     ///     <description><see cref="Primary"/> – completed primary / elementary school</description>
     ///   </item>
     ///   <item>
-    ///     <description><see cref="Secondary"/> – completed secondary / high school</description>
+    ///     <description><see cref="LowerSecondary"/> – lower secondary / middle school (e.g. grades 5–9)</description>
     ///   </item>
     ///   <item>
-    ///     <description><see cref="Vocational"/> – vocational or trade education after school</description>
+    ///     <description><see cref="UpperSecondary"/> – upper secondary / high school (e.g. grades 10–11/12)</description>
     ///   </item>
     ///   <item>
-    ///     <description><see cref="Higher"/> – higher education (e.g. bachelor’s degree)</description>
+    ///     <description><see cref="Vocational"/> – vocational / trade education after school (college, техникум)</description>
     ///   </item>
     ///   <item>
-    ///     <description><see cref="Postgraduate"/> – postgraduate education (e.g. master’s, PhD)</description>
+    ///     <description><see cref="Higher"/> – higher education (e.g. bachelor’s/specialist degree)</description>
+    ///   </item>
+    ///   <item>
+    ///     <description><see cref="Postgraduate"/> – postgraduate education (e.g. master’s, PhD, аспирантура)</description>
     ///   </item>
     /// </list>
     /// </summary>
     public enum EducationLevel
     {
         /// <summary>
-        /// No formal education.
+        /// No formal education (too young or never attended any institution).
         /// </summary>
         None = 0,
 
         /// <summary>
+        /// Preschool / kindergarten level (детский сад, дошкольное образование).
+        /// </summary>
+        Preschool = 1,
+
+        /// <summary>
         /// Completed primary / elementary school.
         /// </summary>
-        Primary = 1,
+        Primary = 2,
 
         /// <summary>
-        /// Completed secondary / high school.
+        /// Lower secondary / middle school (e.g. grades 5–9).
         /// </summary>
-        Secondary = 2,
+        LowerSecondary = 3,
 
         /// <summary>
-        /// Vocational or trade education after school.
+        /// Upper secondary / high school (e.g. grades 10–11).
         /// </summary>
-        Vocational = 3,
+        UpperSecondary = 4,
 
         /// <summary>
-        /// Higher education (e.g. bachelor’s degree).
+        /// Vocational or trade education after school (college, техникум).
         /// </summary>
-        Higher = 4,
+        Vocational = 5,
 
         /// <summary>
-        /// Postgraduate education (e.g. master’s, PhD).
+        /// Higher education (e.g. bachelor's degree, specialist).
         /// </summary>
-        Postgraduate = 5
+        Higher = 6,
+
+        /// <summary>
+        /// Postgraduate education (e.g. master's degree, PhD, аспирантура).
+        /// </summary>
+        Postgraduate = 7
     }
 }
