@@ -15,11 +15,11 @@
     ///   </item>
     ///   <item>
     ///     <term><see cref="Youth"/></term>
-    ///     <description>7–22 years</description>
+    ///     <description>7–17 years</description>
     ///   </item>
     ///   <item>
     ///     <term><see cref="Adult"/></term>
-    ///     <description>23–65 years</description>
+    ///     <description>18–65 years</description>
     ///   </item>
     ///   <item>
     ///     <term><see cref="Senior"/></term>
@@ -35,12 +35,12 @@
         Child,
 
         /// <summary>
-        /// 7–22
+        /// 7–17
         /// </summary>
         Youth,
 
         /// <summary>
-        /// 23–65
+        /// 18–65
         /// </summary>
         Adult,
 
