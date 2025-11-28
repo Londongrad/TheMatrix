@@ -1,5 +1,5 @@
 ﻿using Matrix.BuildingBlocks.Domain;
-using Matrix.BuildingBlocks.Domain.Exceptions;
+using Matrix.Population.Domain.Errors;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
@@ -24,9 +24,7 @@ namespace Matrix.Population.Domain.ValueObjects
         public static Age FromBirthDate(DateOnly birthDate, DateOnly currentDate)
         {
             if (currentDate < birthDate)
-                throw new DomainValidationException(
-                    "Current date cannot be earlier than birth date.",
-                    nameof(currentDate));
+                throw PopulationErrors.CurrentDateLessThanBirth();
 
             var years = currentDate.Year - birthDate.Year;
             if (currentDate < birthDate.AddYears(years))
@@ -41,15 +39,11 @@ namespace Matrix.Population.Domain.ValueObjects
         public Age AddYears(int years)
         {
             if (years <= 0)
-                throw new DomainValidationException(
-                    "Age increment must be positive.",
-                    nameof(years));
+                throw PopulationErrors.AgeIncrementMustBePositive(nameof(years));
 
             var newYears = Years + years;
             if (newYears > MaxYears)
-                throw new DomainValidationException(
-                    $"Age cannot exceed {MaxYears} years.",
-                    nameof(years));
+                throw PopulationErrors.AgeCannotExceedMaxYears(MaxYears, nameof(years));
 
             return new Age(newYears);
         }

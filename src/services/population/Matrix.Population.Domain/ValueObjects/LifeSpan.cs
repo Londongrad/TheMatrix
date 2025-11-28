@@ -1,5 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
-using Matrix.BuildingBlocks.Domain.Exceptions;
+﻿using Matrix.Population.Domain.Errors;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
@@ -17,9 +16,7 @@ namespace Matrix.Population.Domain.ValueObjects
         {
             if (deathDate is not null && deathDate < birthDate)
             {
-                throw new DomainValidationException(
-                    "Death date cannot be earlier than birth date.",
-                    nameof(deathDate));
+                throw PopulationErrors.DeathCannotBeEarlierThenBirth(nameof(deathDate));
             }
 
             BirthDate = birthDate;
