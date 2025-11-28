@@ -5,7 +5,6 @@ namespace Matrix.Population.Domain.ValueObjects
     public readonly record struct HealthLevel
     {
         public int Value { get; }
-        public bool IsDead => Value == 0;
 
         public HealthLevel(int value)
         {
