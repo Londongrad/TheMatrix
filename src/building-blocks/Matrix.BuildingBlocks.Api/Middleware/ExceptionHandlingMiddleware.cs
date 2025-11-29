@@ -1,5 +1,7 @@
 ﻿using Matrix.BuildingBlocks.Api.Errors;
+using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
+using Matrix.BuildingBlocks.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
@@ -46,9 +48,11 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (MatrixApplicationException ex)
             {
-                _logger.LogWarning(ex, "Handled domain exception with code {Code}", ex.Code);
+                _logger.LogWarning(ex, "Handled application exception with code {Code}", ex.Code);
 
-                context.Response.StatusCode = (int)ex.StatusCode;
+                var statusCode = MapToHttpStatusCode(ex.ErrorType);
+
+                context.Response.StatusCode = (int)statusCode;
                 context.Response.ContentType = "application/json";
 
                 var response = new ErrorResponse(
@@ -104,6 +108,20 @@ namespace Matrix.BuildingBlocks.Api.Middleware
 
                 await context.Response.WriteAsJsonAsync(response);
             }
+        }
+
+        private static HttpStatusCode MapToHttpStatusCode(ApplicationErrorType errorType)
+        {
+            return errorType switch
+            {
+                ApplicationErrorType.Validation => HttpStatusCode.BadRequest,
+                ApplicationErrorType.NotFound => HttpStatusCode.NotFound,
+                ApplicationErrorType.Unauthorized => HttpStatusCode.Unauthorized,
+                ApplicationErrorType.Forbidden => HttpStatusCode.Forbidden,
+                ApplicationErrorType.Conflict => HttpStatusCode.Conflict,
+                ApplicationErrorType.BusinessRule => HttpStatusCode.BadRequest,
+                _ => HttpStatusCode.BadRequest
+            };
         }
     }
 }
