@@ -1,19 +1,27 @@
-﻿using System.Net;
+﻿using Matrix.BuildingBlocks.Application.Enums;
 
 namespace Matrix.BuildingBlocks.Application.Exceptions
 {
-    /// <summary>
-    /// Base exception type for application layer errors in Matrix.
-    /// </summary>
-    public abstract class MatrixApplicationException(
+    public sealed class MatrixApplicationException(
         string code,
         string message,
-        HttpStatusCode statusCode = HttpStatusCode.BadRequest,
-        IDictionary<string, string[]>? errors = null) 
+        ApplicationErrorType errorType = ApplicationErrorType.BusinessRule,
+        IDictionary<string, string[]>? errors = null)
         : Exception(message)
     {
-        public string Code { get; } = code;
-        public HttpStatusCode StatusCode { get; } = statusCode;
+        public ApplicationErrorType ErrorType { get; } = errorType;
+
+        public string Code { get; } = string.IsNullOrWhiteSpace(code)
+            ? "Application.Error"
+            : code;
+
         public IDictionary<string, string[]>? Errors { get; } = errors;
+
+        public override string ToString()
+        {
+            var codePart = $"[{Code}]";
+
+            return $"[{GetType().Name}]: [{ErrorType}] [{codePart}] [{Message}{Environment.NewLine}{StackTrace}]";
+        }
     }
 }

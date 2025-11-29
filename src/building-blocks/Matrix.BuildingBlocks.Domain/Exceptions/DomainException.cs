@@ -18,14 +18,14 @@
 
         /// <summary>
         /// Опциональное имя свойства/поля, которого касается ошибка.
-        /// Например: "EmploymentStatus", "birthDate" и т.п.
+        /// Например: "EmploymentStatus", "BirthDate" и т.п.
         /// </summary>
         public string? PropertyName { get; } = string.IsNullOrWhiteSpace(propertyName)
                 ? null
                 : propertyName;
 
         /// <summary>
-        /// Упрощённый конструктор — если тебе нужно выбросить исключение напрямую,
+        /// Упрощённый конструктор — если нужно выбросить исключение напрямую,
         /// без явного кода. Код по умолчанию будет "Domain.ValidationError".
         /// </summary>
         public DomainException(string message, string? propertyName = null)
@@ -40,7 +40,7 @@
                 ? string.Empty
                 : $" (Property: {PropertyName})";
 
-            return $"{GetType().Name}: [{Code}]{propertyPart} {Message}";
+            return $"[{GetType().Name}]: [{Code}][{propertyPart}] [{Message}]";
         }
     }
 }
