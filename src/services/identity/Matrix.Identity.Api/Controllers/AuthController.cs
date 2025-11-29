@@ -17,6 +17,7 @@ namespace Matrix.Identity.Api.Controllers
     {
         private readonly ISender _sender = sender;
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register(
             [FromBody] RegisterRequest request,
@@ -46,6 +47,7 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login(
             [FromBody] LoginRequest request,
