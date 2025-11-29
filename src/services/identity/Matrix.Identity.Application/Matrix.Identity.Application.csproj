@@ -7,10 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj" />
     <ProjectReference Include="..\Matrix.Identity.Domain\Matrix.Identity.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.0" />
     <PackageReference Include="MediatR" Version="13.1.0" />
   </ItemGroup>
 

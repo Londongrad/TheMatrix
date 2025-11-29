@@ -19,8 +19,6 @@ namespace Matrix.Identity.Application.UseCases.RegisterUser
             RegisterUserCommand request,
             CancellationToken cancellationToken)
         {
-            ValidateCredentials(request);
-
             // создаём value objects (здесь и Trim, и ToLower, и regex-проверка)
             var email = Email.Create(request.Email);
             var username = Username.Create(request.Username);
@@ -50,27 +48,6 @@ namespace Matrix.Identity.Application.UseCases.RegisterUser
                 Username = user.Username.Value,
                 Email = user.Email.Value
             };
-        }
-
-        private static void ValidateCredentials(RegisterUserCommand request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Email))
-            {
-                throw new DomainValidationException("Email is required.", nameof(request.Email));
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Username))
-                throw new DomainValidationException("Username is required.", nameof(request.Username));
-
-            if (string.IsNullOrWhiteSpace(request.Password))
-            {
-                throw new DomainValidationException("Password is required.", nameof(request.Password));
-            }
-
-            if (request.Password != request.ConfirmPassword)
-            {
-                throw new DomainValidationException("Password and confirmation password do not match.");
-            }
         }
     }
 }
