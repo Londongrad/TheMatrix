@@ -19,6 +19,31 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             {
                 await _next(context);
             }
+            catch (DomainException ex)
+            {
+                _logger.LogWarning(ex, "Handled domain exception with code {Code}", ex.Code);
+
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.ContentType = "application/json";
+
+                IDictionary<string, string[]>? errors = null;
+
+                if (ex.PropertyName is not null)
+                {
+                    errors = new Dictionary<string, string[]>
+                    {
+                        [ex.PropertyName] = new[] { ex.Message }
+                    };
+                }
+
+                var response = new ErrorResponse(
+                    Code: ex.Code,
+                    Message: ex.Message,
+                    Errors: errors,
+                    TraceId: context.TraceIdentifier);
+
+                await context.Response.WriteAsJsonAsync(response);
+            }
             catch (MatrixApplicationException ex)
             {
                 _logger.LogWarning(ex, "Handled domain exception with code {Code}", ex.Code);
