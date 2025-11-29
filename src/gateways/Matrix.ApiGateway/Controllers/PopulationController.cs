@@ -1,10 +1,12 @@
 using Matrix.ApiGateway.DownstreamClients.Population;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/population")]
     public class PopulationController(IPopulationApiClient populationClient) : ControllerBase
