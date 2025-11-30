@@ -1,6 +1,5 @@
-﻿using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Errors;
+﻿using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Rules;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
@@ -17,11 +16,11 @@ namespace Matrix.Population.Domain.ValueObjects
         private LifeState() { }
         private LifeState(LifeStatus status, LifeSpan span, HealthLevel health)
         {
-            Status = GuardHelper.AgainstInvalidEnum(status, nameof(status));
-            Span = GuardHelper.AgainstNull(span, nameof(span));
-            Health = health;
+            LifeStateRules.Validate(status, span, health);
 
-            ValidateCombination(Status, Span, Health);
+            Status = status;
+            Span = span;
+            Health = health;
         }
 
         public static LifeState Create(
@@ -32,27 +31,15 @@ namespace Matrix.Population.Domain.ValueObjects
             return new LifeState(status, span, health);
         }
 
-        /// <summary>
-        /// Универсальное изменение жизненного состояния.
-        /// Снаружи ты говоришь, на что поменять, а здесь проверяются все инварианты.
-        /// </summary>
-        public LifeState Change(
-            LifeStatus newStatus,
-            HealthLevel newHealth,
-            DateOnly? newDeathDate)
+        public LifeState Change(LifeStatus newStatus, HealthLevel newHealth, DateOnly? newDeathDate)
         {
             var newSpan = LifeSpan.FromDates(
                 birthDate: Span.BirthDate,
                 deathDate: newDeathDate);
 
-            ValidateCombination(newStatus, newSpan, newHealth);
-
             return new LifeState(newStatus, newSpan, newHealth);
         }
 
-        /// <summary>
-        /// Меняем здоровье. Если упало до нуля, автоматически переходим в Deceased.
-        /// </summary>
         public LifeState WithHealthDelta(int delta, DateOnly currentDate)
         {
             if (!IsAlive)
@@ -61,39 +48,12 @@ namespace Matrix.Population.Domain.ValueObjects
             var newHealth = Health.WithDelta(delta);
 
             if (newHealth.Value > 0)
-            {
                 return Change(Status, newHealth, Span.DeathDate);
-            }
 
-            // здоровье стало 0 → статус Deceased + фиксируем дату смерти
             return Change(
                 newStatus: LifeStatus.Deceased,
                 newHealth: newHealth,
                 newDeathDate: currentDate);
-        }
-
-        private static void ValidateCombination(
-            LifeStatus status,
-            LifeSpan span,
-            HealthLevel health)
-        {
-            if (status == LifeStatus.Alive)
-            {
-                if (span.DeathDate is not null)
-                    throw PopulationErrors.AlivePersonCannotHaveDeathDate(nameof(status));
-
-                if (health.Value == 0)
-                    throw PopulationErrors.AlivePersonCannotHaveZeroHealth(nameof(health));
-            }
-
-            if (status == LifeStatus.Deceased)
-            {
-                if (span.DeathDate is null)
-                    throw PopulationErrors.DeceasedPersonMustHaveDeathDate(nameof(status));
-
-                if (health.Value > 0)
-                    throw PopulationErrors.DeceasedPersonMustHaveZeroHealth(nameof(health));
-            }
         }
     }
 }
