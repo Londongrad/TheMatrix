@@ -8,6 +8,8 @@ namespace Matrix.Population.Domain.ValueObjects
     {
         public EducationLevel Level { get; }
 
+        private EducationInfo() { }
+
         private EducationInfo(EducationLevel level)
         {
             Level = GuardHelper.AgainstInvalidEnum(level, nameof(level));

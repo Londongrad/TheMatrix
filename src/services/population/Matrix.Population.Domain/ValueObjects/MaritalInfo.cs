@@ -9,6 +9,7 @@ namespace Matrix.Population.Domain.ValueObjects
         public MaritalStatus Status { get; }
         public PersonId? SpouseId { get; }
 
+        private MaritalInfo() { }
         private MaritalInfo(MaritalStatus status, PersonId? spouseId)
         {
             Status = GuardHelper.AgainstInvalidEnum(status, nameof(status));

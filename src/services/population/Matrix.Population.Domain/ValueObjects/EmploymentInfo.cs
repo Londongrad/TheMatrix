@@ -8,15 +8,13 @@ namespace Matrix.Population.Domain.ValueObjects
         public EmploymentStatus Status { get; }
         public Job? Job { get; }
 
+        private EmploymentInfo() { }
         private EmploymentInfo(EmploymentStatus status, Job? job)
         {
             Status = status;
             Job = job;
         }
 
-        /// <summary>
-        /// Базовое создание. Используется в конструкторе Person.
-        /// </summary>
         public static EmploymentInfo Create(
             EmploymentStatus status,
             Job? job,

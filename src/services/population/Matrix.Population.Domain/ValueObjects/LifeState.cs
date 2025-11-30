@@ -7,13 +7,14 @@ namespace Matrix.Population.Domain.ValueObjects
     public sealed class LifeState
     {
         public LifeStatus Status { get; }
-        public LifeSpan Span { get; }
+        public LifeSpan Span { get; } = null!;
         public HealthLevel Health { get; }
 
         public bool IsAlive => Status == LifeStatus.Alive;
         public DateOnly BirthDate => Span.BirthDate;
         public DateOnly? DeathDate => Span.DeathDate;
 
+        private LifeState() { }
         private LifeState(LifeStatus status, LifeSpan span, HealthLevel health)
         {
             Status = GuardHelper.AgainstInvalidEnum(status, nameof(status));
