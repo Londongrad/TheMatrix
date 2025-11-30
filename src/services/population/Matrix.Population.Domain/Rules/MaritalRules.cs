@@ -61,6 +61,50 @@ namespace Matrix.Population.Domain.Rules
             if (spouseMarital.Status == MaritalStatus.Married)
                 throw DomainErrorsFactory.SpouseAlreadyMarried(spouseId);
         }
+
+        public static void ValidateDivorce(
+            PersonId personId,
+            LifeStatus personLifeStatus,
+            MaritalInfo personMarital,
+            PersonId spouseId,
+            LifeStatus spouceLifeStatus,
+            MaritalInfo spouseMarital)
+        {
+            if (personLifeStatus != LifeStatus.Alive && spouceLifeStatus != LifeStatus.Alive)
+                throw DomainErrorsFactory.DeceasedPersonCannotDivorce();
+
+            if (personId == spouseId)
+                throw DomainErrorsFactory.CannotDivorceSelf(personId);
+
+            if (personMarital.Status != MaritalStatus.Married)
+                throw DomainErrorsFactory.PersonNotMarried(personId);
+
+            if (spouseMarital.Status != MaritalStatus.Married)
+                throw DomainErrorsFactory.SpouseNotMarried(spouseId);
+        }
+
+        public static void ValidateWidowhood(
+            PersonId widowId,
+            LifeStatus widowLifeStatus,
+            MaritalInfo widowMarital,
+            PersonId deceasedId,
+            LifeStatus deceasedLifeStatus,
+            MaritalInfo deceasedMarital)
+        {
+            if (widowId == deceasedId)
+                throw DomainErrorsFactory.CannotBecomeWidowedOfSelf(widowId);
+
+            if (widowLifeStatus != LifeStatus.Alive)
+                throw DomainErrorsFactory.WidowMustBeAlive(widowId);
+
+            if (widowMarital.Status != MaritalStatus.Married)
+                throw DomainErrorsFactory.WidowMustBeMarried(widowId);
+
+            if (deceasedLifeStatus != LifeStatus.Deceased)
+                throw DomainErrorsFactory.DeceasedMustBeDeceased(deceasedId);
+
+            if (deceasedMarital.Status != MaritalStatus.Married)
+                throw DomainErrorsFactory.DeceasedMustBeMarried(deceasedId);
         }
     }
 }
