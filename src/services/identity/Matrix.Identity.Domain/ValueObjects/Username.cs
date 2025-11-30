@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain.Exceptions;
+﻿using Matrix.Identity.Domain.Errors;
 
 namespace Matrix.Identity.Domain.ValueObjects
 {
@@ -15,14 +15,14 @@ namespace Matrix.Identity.Domain.ValueObjects
         {
             if (string.IsNullOrWhiteSpace(raw))
             {
-                throw new DomainValidationException("Username is required.", nameof(raw));
+                throw DomainErrorsFactory.EmptyUsername(nameof(raw));
             }
 
             var trimmed = raw.Trim();
 
             if (trimmed.Length is < 3 or > 32)
             {
-                throw new DomainValidationException("Username must be between 3 and 32 characters.", nameof(raw));
+                throw DomainErrorsFactory.InvalidUsernameLength(trimmed.Length, nameof(trimmed));
             }
 
             var normalized = trimmed.ToLowerInvariant();

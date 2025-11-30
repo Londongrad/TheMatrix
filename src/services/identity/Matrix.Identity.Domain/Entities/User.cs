@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain.Exceptions;
+﻿using Matrix.Identity.Domain.Errors;
 using Matrix.Identity.Domain.ValueObjects;
 
 namespace Matrix.Identity.Domain.Entities
@@ -57,7 +57,7 @@ namespace Matrix.Identity.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(passwordHash))
             {
-                throw new DomainValidationException("Password hash is required.", nameof(passwordHash));
+                throw DomainErrorsFactory.EmptyPasswordHash(nameof(passwordHash));
             }
 
             return new User(email, username, passwordHash);
@@ -90,7 +90,7 @@ namespace Matrix.Identity.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(tokenHash))
             {
-                throw new DomainValidationException("Token hash is required.", nameof(tokenHash));
+                throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
             }
 
             var refreshToken = RefreshToken.Create(tokenHash, expiresAtUtc);

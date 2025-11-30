@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain.Exceptions;
+﻿using Matrix.Identity.Domain.Errors;
 using System.Text.RegularExpressions;
 
 namespace Matrix.Identity.Domain.ValueObjects
@@ -19,14 +19,14 @@ namespace Matrix.Identity.Domain.ValueObjects
         {
             if (string.IsNullOrWhiteSpace(email))
             {
-                throw new DomainValidationException("Email is required.", nameof(email));
+                throw DomainErrorsFactory.EmptyEmail(nameof(email));
             }
 
             email = email.Trim().ToLowerInvariant();
 
             if (!EmailRegex.IsMatch(email))
             {
-                throw new DomainValidationException("Email format is invalid.", nameof(email));
+                throw DomainErrorsFactory.InvalidEmailFormat(nameof(email));
             }
 
             return new Email(email);
