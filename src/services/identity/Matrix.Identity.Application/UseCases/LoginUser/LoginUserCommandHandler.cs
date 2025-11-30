@@ -1,5 +1,5 @@
 ﻿using Matrix.Identity.Application.Abstractions;
-using Matrix.Identity.Application.Exceptions;
+using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
@@ -25,7 +25,7 @@ namespace Matrix.Identity.Application.UseCases.LoginUser
             if (string.IsNullOrWhiteSpace(request.Login) ||
                 string.IsNullOrWhiteSpace(request.Password))
             {
-                throw new InvalidCredentialsException();
+                throw ApplicationErrorsFactory.InvalidCredentials();
             }
 
             User? user;
@@ -43,15 +43,21 @@ namespace Matrix.Identity.Application.UseCases.LoginUser
                 user = await _userRepository.GetByUsernameAsync(username.Value, cancellationToken);
             }
 
-            if (user is null || !user.CanLogin())
+            if (user == null)
             {
-                throw new InvalidCredentialsException();
+                throw ApplicationErrorsFactory.InvalidCredentials();
             }
 
             var passwordValid = _passwordHasher.Verify(user.PasswordHash, request.Password);
+
             if (!passwordValid)
             {
-                throw new InvalidCredentialsException();
+                throw ApplicationErrorsFactory.InvalidCredentials();
+            }
+
+            if (!user.CanLogin())
+            {
+                throw ApplicationErrorsFactory.UserBlocked();
             }
 
             // access token

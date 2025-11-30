@@ -1,6 +1,5 @@
-﻿using Matrix.BuildingBlocks.Domain.Exceptions;
-using Matrix.Identity.Application.Abstractions;
-using Matrix.Identity.Application.Exceptions;
+﻿using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
@@ -27,13 +26,13 @@ namespace Matrix.Identity.Application.UseCases.RegisterUser
                 .IsEmailTakenAsync(email.Value, cancellationToken);
 
             if (emailTaken)
-                throw new EmailAlreadyInUseException(email.Value);
+                throw ApplicationErrorsFactory.EmailAlreadyInUse(email.Value);
 
             var usernameTaken = await _userRepository
                 .IsUsernameTakenAsync(username.Value, cancellationToken);
 
             if (usernameTaken)
-                throw new UsernameAlreadyInUseException(username.Value);
+                throw ApplicationErrorsFactory.UsernameAlreadyInUse(username.Value);
 
             var passwordHash = _passwordHasher.Hash(request.Password);
 

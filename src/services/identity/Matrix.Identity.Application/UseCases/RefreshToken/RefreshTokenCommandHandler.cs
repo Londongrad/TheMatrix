@@ -1,5 +1,5 @@
 ﻿using Matrix.Identity.Application.Abstractions;
-using Matrix.Identity.Application.Exceptions;
+using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.LoginUser;
 using MediatR;
 
@@ -19,17 +19,15 @@ namespace Matrix.Identity.Application.UseCases.RefreshToken
         {
             var hash = _refreshTokenProvider.ComputeHash(request.RefreshToken);
 
-            var user = await _userRepository.GetByRefreshTokenHashAsync(hash, cancellationToken);
-            if (user is null)
-            {
-                throw new InvalidRefreshTokenException();
-            }
+            var user = await _userRepository.GetByRefreshTokenHashAsync(hash, cancellationToken)
+                ?? throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            var currentToken = user.RefreshTokens.Single(t => t.TokenHash == hash);
+            var currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash)
+                ?? throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             if (!currentToken.IsActive())
             {
-                throw new InvalidRefreshTokenException();
+                throw ApplicationErrorsFactory.InvalidRefreshToken();
             }
 
             // ротация: помечаем старый как отозванный
@@ -37,6 +35,7 @@ namespace Matrix.Identity.Application.UseCases.RefreshToken
 
             // генерим новый refresh
             var newDescriptor = _refreshTokenProvider.Generate();
+
             user.IssueRefreshToken(newDescriptor.TokenHash, newDescriptor.ExpiresAtUtc);
 
             // новый access
