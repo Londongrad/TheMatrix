@@ -16,5 +16,10 @@
         public const int OnMarry = +15;
         public const int OnDivorce = -15;
         public const int OnWidow = -30;
+
+        public const int OnHaveChild = +20;
+        public const int OnChildDie = -40;
+
+        public const int OnGraduate = +10;
     }
 }
