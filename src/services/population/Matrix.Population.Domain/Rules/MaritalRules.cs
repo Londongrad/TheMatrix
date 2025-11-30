@@ -20,16 +20,12 @@ namespace Matrix.Population.Domain.Rules
                 case MaritalStatus.Single:
                 case MaritalStatus.Widowed:
                     if (spouseId is not null)
-                        throw PopulationErrors.MaritalStatusCannotHaveSpouseId(nameof(spouseId));
+                        throw DomainErrorsFactory.MaritalStatusCannotHaveSpouseId(nameof(spouseId));
                     break;
 
                 case MaritalStatus.Married:
                     if (spouseId is null)
-                        throw PopulationErrors.MarriedMustHaveSpouseId(nameof(spouseId));
-                    break;
-
-                default:
-                    GuardHelper.AgainstInvalidEnum(status, nameof(status));
+                        throw DomainErrorsFactory.MarriedMustHaveSpouseId(nameof(spouseId));
                     break;
             }
         }
@@ -37,28 +33,34 @@ namespace Matrix.Population.Domain.Rules
         public static void ValidateNewMarriage(
             PersonId personId,
             Age personAge,
+            LifeStatus personLifeStatus,
             MaritalInfo personMarital,
             PersonId spouseId,
             Age spouseAge,
+            LifeStatus spouceLifeStatus,
             MaritalInfo spouseMarital)
         {
-            // 1) Нельзя жениться/выйти замуж на самого себя
+            // 1) Нельзя жениться/выйти замуж за самого себя
             if (personId == spouseId)
-                throw PopulationErrors.CannotMarrySelf(personId);
+                throw DomainErrorsFactory.CannotMarrySelf(personId);
 
             // 2) Минимальный возраст для обоих
             if (personAge.Years < MinimalMarriageAgeYears)
-                throw PopulationErrors.PersonTooYoungToMarry(personId, personAge.Years);
+                throw DomainErrorsFactory.PersonTooYoungToMarry(personId, personAge.Years);
 
             if (spouseAge.Years < MinimalMarriageAgeYears)
-                throw PopulationErrors.SpouseTooYoungToMarry(spouseId, spouseAge.Years);
+                throw DomainErrorsFactory.SpouseTooYoungToMarry(spouseId, spouseAge.Years);
 
             // 3) Нельзя вступать в новый брак, пока уже Married
             if (personMarital.Status == MaritalStatus.Married)
-                throw PopulationErrors.PersonAlreadyMarried(personId);
+                throw DomainErrorsFactory.PersonAlreadyMarried(personId);
+
+            if (personLifeStatus != LifeStatus.Alive && spouceLifeStatus != LifeStatus.Alive)
+                throw DomainErrorsFactory.DeceasedPersonCannotMarry();
 
             if (spouseMarital.Status == MaritalStatus.Married)
-                throw PopulationErrors.SpouseAlreadyMarried(spouseId);
+                throw DomainErrorsFactory.SpouseAlreadyMarried(spouseId);
+        }
         }
     }
 }

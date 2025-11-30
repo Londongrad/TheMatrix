@@ -17,51 +17,51 @@ namespace Matrix.Population.Domain.Rules
 
             // Downgrade — нельзя.
             if (to < from)
-                throw PopulationErrors.CannotDowngradeEducation(from, to);
+                throw DomainErrorsFactory.CannotDowngradeEducation(from, to);
 
             switch (from)
             {
                 case EducationLevel.None:
                     if (to != EducationLevel.Preschool)
-                        throw PopulationErrors.InvalidEducationTransition(from, to);
+                        throw DomainErrorsFactory.InvalidEducationTransition(from, to);
                     break;
 
                 case EducationLevel.Preschool:
                     if (to != EducationLevel.Primary)
-                        throw PopulationErrors.InvalidEducationTransition(from, to);
+                        throw DomainErrorsFactory.InvalidEducationTransition(from, to);
                     break;
 
                 case EducationLevel.Primary:
                     if (to != EducationLevel.LowerSecondary)
-                        throw PopulationErrors.InvalidEducationTransition(from, to);
+                        throw DomainErrorsFactory.InvalidEducationTransition(from, to);
                     break;
 
                 case EducationLevel.LowerSecondary:
                     if (to != EducationLevel.UpperSecondary)
-                        throw PopulationErrors.InvalidEducationTransition(from, to);
+                        throw DomainErrorsFactory.InvalidEducationTransition(from, to);
                     break;
 
                 case EducationLevel.UpperSecondary:
                     if (to is not (EducationLevel.Vocational or EducationLevel.Higher))
-                        throw PopulationErrors.InvalidEducationTransition(from, to);
+                        throw DomainErrorsFactory.InvalidEducationTransition(from, to);
                     break;
 
                 case EducationLevel.Vocational:
                     if (to != EducationLevel.Higher)
-                        throw PopulationErrors.InvalidEducationTransition(from, to);
+                        throw DomainErrorsFactory.InvalidEducationTransition(from, to);
                     break;
 
                 case EducationLevel.Higher:
                     if (to != EducationLevel.Postgraduate)
-                        throw PopulationErrors.InvalidEducationTransition(from, to);
+                        throw DomainErrorsFactory.InvalidEducationTransition(from, to);
                     break;
 
                 case EducationLevel.Postgraduate:
                     // Уже потолок — дальше нельзя.
-                    throw PopulationErrors.InvalidEducationTransition(from, to);
+                    throw DomainErrorsFactory.InvalidEducationTransition(from, to);
 
                 default:
-                    throw PopulationErrors.InvalidEducationTransition(from, to);
+                    throw DomainErrorsFactory.InvalidEducationTransition(from, to);
             }
         }
     }

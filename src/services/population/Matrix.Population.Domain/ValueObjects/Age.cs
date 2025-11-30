@@ -24,7 +24,7 @@ namespace Matrix.Population.Domain.ValueObjects
         public static Age FromBirthDate(DateOnly birthDate, DateOnly currentDate)
         {
             if (currentDate < birthDate)
-                throw PopulationErrors.CurrentDateLessThanBirth();
+                throw DomainErrorsFactory.CurrentDateLessThanBirth();
 
             var years = currentDate.Year - birthDate.Year;
             if (currentDate < birthDate.AddYears(years))
@@ -39,11 +39,11 @@ namespace Matrix.Population.Domain.ValueObjects
         public Age AddYears(int years)
         {
             if (years <= 0)
-                throw PopulationErrors.AgeIncrementMustBePositive(nameof(years));
+                throw DomainErrorsFactory.AgeIncrementMustBePositive(nameof(years));
 
             var newYears = Years + years;
             if (newYears > MaxYears)
-                throw PopulationErrors.AgeCannotExceedMaxYears(MaxYears, nameof(years));
+                throw DomainErrorsFactory.AgeCannotExceedMaxYears(MaxYears, nameof(years));
 
             return new Age(newYears);
         }

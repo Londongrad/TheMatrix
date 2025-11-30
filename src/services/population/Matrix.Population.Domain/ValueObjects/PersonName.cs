@@ -1,4 +1,5 @@
 ﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Domain.Errors;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
@@ -23,7 +24,7 @@ namespace Matrix.Population.Domain.ValueObjects
             var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 2 || parts.Length > 3)
             {
-                throw new ArgumentException("Full name must consist of first name, last name, and optional patronymic.", nameof(fullName));
+                throw DomainErrorsFactory.InvalidFullName(nameof(fullName));
             }
             var lastName = parts[0];
             var firstName = parts[1];

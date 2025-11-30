@@ -16,7 +16,7 @@ namespace Matrix.Population.Domain.ValueObjects
         {
             if (deathDate is not null && deathDate < birthDate)
             {
-                throw PopulationErrors.DeathCannotBeEarlierThenBirth(nameof(deathDate));
+                throw DomainErrorsFactory.DeathCannotBeEarlierThenBirth(nameof(deathDate));
             }
 
             BirthDate = birthDate;

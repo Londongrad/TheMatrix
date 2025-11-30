@@ -21,9 +21,9 @@ namespace Matrix.Population.Domain.Rules
             if (lifeStatus == LifeStatus.Deceased)
             {
                 if (status != EmploymentStatus.None)
-                    throw PopulationErrors.DeceasedPersonEmploymentStatusMustBeNone(nameof(status));
+                    throw DomainErrorsFactory.DeceasedPersonEmploymentStatusMustBeNone(nameof(status));
                 if (job is not null)
-                    throw PopulationErrors.DeceasedPersonCannotHaveJob(nameof(job));
+                    throw DomainErrorsFactory.DeceasedPersonCannotHaveJob(nameof(job));
                 return;
             }
 
@@ -31,26 +31,26 @@ namespace Matrix.Population.Domain.Rules
             if (ageGroup is AgeGroup.Child or AgeGroup.Youth &&
                 status == EmploymentStatus.Employed)
             {
-                throw PopulationErrors.ChildCannotBeEmployed(nameof(status));
+                throw DomainErrorsFactory.ChildCannotBeEmployed(nameof(status));
             }
 
             // 3. Пенсионер не может работать или быть студентом
             if (ageGroup is AgeGroup.Senior &&
                 (status is EmploymentStatus.Employed or EmploymentStatus.Student))
             {
-                throw PopulationErrors.RetiredPersonCannotBeEmployedOrStudent(nameof(status));
+                throw DomainErrorsFactory.RetiredPersonCannotBeEmployedOrStudent(nameof(status));
             }
 
             // 4. Работает → Job обязателен
             if (status == EmploymentStatus.Employed && job is null)
             {
-                throw PopulationErrors.EmployedPersonMustHaveJob(nameof(job));
+                throw DomainErrorsFactory.EmployedPersonMustHaveJob(nameof(job));
             }
 
             // 5. Не работает → Job должен быть null
             if (status != EmploymentStatus.Employed && job is not null)
             {
-                throw PopulationErrors.OnlyEmployedPersonCanHaveJob(nameof(job));
+                throw DomainErrorsFactory.OnlyEmployedPersonCanHaveJob(nameof(job));
             }
         }
     }
