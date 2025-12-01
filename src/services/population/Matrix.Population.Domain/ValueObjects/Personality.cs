@@ -5,6 +5,9 @@ namespace Matrix.Population.Domain.ValueObjects
 {
     public sealed record class Personality
     {
+        private const int TraitMinValue = 0;
+        private const int TraitMaxValue = 100;
+
         #region [ Properties ]
 
         // 0..100, where 50 = neutral, 0 = low, 100 = very high
@@ -19,10 +22,10 @@ namespace Matrix.Population.Domain.ValueObjects
 
         private Personality(int optimism, int discipline, int riskTolerance, int sociability)
         {
-            Optimism = GuardHelper.AgainstOutOfRange(optimism, 0, 100, nameof(Optimism));
-            Discipline = GuardHelper.AgainstOutOfRange(discipline, 0, 100, nameof(Discipline));
-            RiskTolerance = GuardHelper.AgainstOutOfRange(riskTolerance, 0, 100, nameof(RiskTolerance));
-            Sociability = GuardHelper.AgainstOutOfRange(sociability, 0, 100, nameof(Sociability));
+            Optimism = GuardHelper.AgainstOutOfRange(optimism, TraitMinValue, TraitMaxValue, nameof(Optimism));
+            Discipline = GuardHelper.AgainstOutOfRange(discipline, TraitMinValue, TraitMaxValue, nameof(Discipline));
+            RiskTolerance = GuardHelper.AgainstOutOfRange(riskTolerance, TraitMinValue, TraitMaxValue, nameof(RiskTolerance));
+            Sociability = GuardHelper.AgainstOutOfRange(sociability, TraitMinValue, TraitMaxValue, nameof(Sociability));
         }
 
         #endregion [ Constructors ]
