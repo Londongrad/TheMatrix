@@ -16,9 +16,11 @@ namespace Matrix.Population.Application.Mapping
             var age = person.GetAge(currentDate).Years;
             var ageGroup = person.GetAgeGroup(currentDate).ToString();
 
-            var birthDateStr = person.BirthDate.ToString("dd MMMM yyyy", CultureInfo.InvariantCulture);
+            var birthDateStr = person.Life.BirthDate
+                .ToString("dd MMMM yyyy", CultureInfo.InvariantCulture);
 
-            string? deathDateStr = person.DeathDate?.ToString("dd MMMM yyyy", CultureInfo.InvariantCulture);
+            string? deathDateStr = person.Life.DeathDate?
+                .ToString("dd MMMM yyyy", CultureInfo.InvariantCulture);
 
             return new PersonDto(
                 Id: person.Id.Value,
@@ -28,12 +30,12 @@ namespace Matrix.Population.Application.Mapping
                 DeathDate: deathDateStr,
                 Age: age,
                 AgeGroup: ageGroup,
-                LifeStatus: person.LifeStatus.ToString(),
-                MaritalStatus: person.MaritalStatus.ToString(),
-                EducationLevel: person.EducationLevel.ToString(),
+                LifeStatus: person.Life.Status.ToString(),
+                MaritalStatus: person.MaritalStatus.ToString(),      // если позже перейдёшь на MaritalInfo → Marital.Status
+                EducationLevel: person.EducationLevel.ToString(),    // если будет EducationInfo → Education.Level
                 Happiness: person.Happiness.Value,
-                EmploymentStatus: person.EmploymentStatus.ToString(),
-                JobTitle: person.Job?.Title
+                EmploymentStatus: person.Employment.Status.ToString(),
+                JobTitle: person.Employment.Job?.Title
             );
         }
 
