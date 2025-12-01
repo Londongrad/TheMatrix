@@ -11,8 +11,6 @@ namespace Matrix.Population.Api.Configurations
         private static void UseSecurityPipeline(this WebApplication app)
         {
             app.UseHttpsRedirection();
-            //app.UseAuthentication();
-            //app.UseAuthorization();
         }
 
         private static void ConfigureControllers(this WebApplication app)
