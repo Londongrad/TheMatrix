@@ -3,6 +3,7 @@ using System;
 using Matrix.Population.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Matrix.Population.Infrastructure.Migrations
 {
     [DbContext(typeof(PopulationDbContext))]
-    partial class PopulationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251129130009_RefactorPersonToValueObjects")]
+    partial class RefactorPersonToValueObjects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
