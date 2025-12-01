@@ -1,5 +1,4 @@
 ﻿using Matrix.BuildingBlocks.Application.Models;
-using Matrix.BuildingBlocks.Infrastructure.Exceptions;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.ValueObjects;
@@ -19,12 +18,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<Person> GetByIdAsync(PersonId id, CancellationToken cancellationToken = default)
+        public async Task<Person?> FindByIdAsync(PersonId id, CancellationToken cancellationToken = default)
         {
             return await _dbContext
                 .Persons
-                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
-                ?? throw new NotFoundException(nameof(Person), id);
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         }
 
         public async Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(

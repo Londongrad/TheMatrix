@@ -1,4 +1,5 @@
 ﻿using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.ValueObjects;
@@ -15,7 +16,8 @@ namespace Matrix.Population.Application.UseCases.KillPerson
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            var person = await personReadRepository.GetByIdAsync(PersonId.From(request.Id), cancellationToken);
+            var person = await personReadRepository.FindByIdAsync(PersonId.From(request.Id), cancellationToken)
+                ?? throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
             // TODO: Получать дату извне
             person.Die(DateOnly.FromDateTime(DateTime.UtcNow));

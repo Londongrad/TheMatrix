@@ -19,7 +19,8 @@ namespace Matrix.Population.Application.UseCases.ResurrectPerson
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            var person = await personReadRepository.GetByIdAsync(PersonId.From(request.Id), cancellationToken);
+            var person = await personReadRepository.FindByIdAsync(PersonId.From(request.Id), cancellationToken)
+                ?? throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
             // TODO: Брать дату извне
             person.Resurrect(DateOnly.FromDateTime(DateTime.UtcNow));

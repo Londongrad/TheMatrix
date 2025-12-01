@@ -18,7 +18,8 @@ namespace Matrix.Population.Application.UseCases.UpdatePerson
         {
             ArgumentNullException.ThrowIfNull(request.Changes);
 
-            var person = await personReadRepository.GetByIdAsync(PersonId.From(request.Id), cancellationToken);
+            var person = await personReadRepository.FindByIdAsync(PersonId.From(request.Id), cancellationToken) 
+                ?? throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
             // TODO: получать дату извне
             var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
