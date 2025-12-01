@@ -16,7 +16,7 @@ namespace Matrix.Population.Application.UseCases.GetCitizenPage
             GetCitizensPageQuery request,
             CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
 
             var (persons, totalCount) = await _personReadRepository
                 .GetPageAsync(request.Pagination, cancellationToken);

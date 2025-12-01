@@ -1,4 +1,5 @@
 ﻿using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.ValueObjects;
@@ -8,8 +9,7 @@ namespace Matrix.Population.Application.UseCases.ResurrectPerson
 {
     public sealed class ResurrectPersonCommandHandler(
         IPersonReadRepository personReadRepository,
-        IPersonWriteRepository personWriteRepository
-        )
+        IPersonWriteRepository personWriteRepository)
         : IRequestHandler<ResurrectPersonCommand, PersonDto>
     {
 
@@ -17,13 +17,12 @@ namespace Matrix.Population.Application.UseCases.ResurrectPerson
             ResurrectPersonCommand request,
             CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
 
             var person = await personReadRepository.FindByIdAsync(PersonId.From(request.Id), cancellationToken)
                 ?? throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
-            // TODO: Брать дату извне
-            person.Resurrect(DateOnly.FromDateTime(DateTime.UtcNow));
+            person.Resurrect();
 
             await personWriteRepository.UpdateAsync(person, cancellationToken);
             await personWriteRepository.SaveChangesAsync(cancellationToken);
