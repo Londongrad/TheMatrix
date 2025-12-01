@@ -1,5 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Domain.Enums;
+﻿using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
 
 namespace Matrix.Population.Domain.ValueObjects
@@ -12,11 +11,14 @@ namespace Matrix.Population.Domain.ValueObjects
         private MaritalInfo() { }
         private MaritalInfo(MaritalStatus status, PersonId? spouseId)
         {
-            Status = GuardHelper.AgainstInvalidEnum(status, nameof(status));
-            SpouseId = spouseId;
-
             MaritalRules.ValidateStatusCombination(Status, SpouseId);
+
+            Status = status;
+            SpouseId = spouseId;
         }
+
+        public static MaritalInfo FromStatus(MaritalStatus status, PersonId? spouseId) =>
+            new(status, spouseId);
 
         public static MaritalInfo Single() =>
             new(MaritalStatus.Single, null);
