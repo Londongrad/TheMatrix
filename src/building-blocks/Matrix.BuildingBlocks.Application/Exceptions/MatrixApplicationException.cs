@@ -6,7 +6,7 @@ namespace Matrix.BuildingBlocks.Application.Exceptions
         string code,
         string message,
         ApplicationErrorType errorType = ApplicationErrorType.BusinessRule,
-        IDictionary<string, string[]>? errors = null)
+        IReadOnlyDictionary<string, string[]>? errors = null)
         : Exception(message)
     {
         public ApplicationErrorType ErrorType { get; } = errorType;
@@ -15,7 +15,7 @@ namespace Matrix.BuildingBlocks.Application.Exceptions
             ? "Application.Error"
             : code;
 
-        public IDictionary<string, string[]>? Errors { get; } = errors;
+        public IReadOnlyDictionary<string, string[]>? Errors { get; } = errors;
 
         public override string ToString()
         {
