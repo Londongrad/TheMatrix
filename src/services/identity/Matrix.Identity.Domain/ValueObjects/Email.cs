@@ -1,13 +1,9 @@
-﻿using Matrix.Identity.Domain.Errors;
-using System.Text.RegularExpressions;
+﻿using Matrix.Identity.Domain.Rules;
 
 namespace Matrix.Identity.Domain.ValueObjects
 {
     public sealed record class Email
     {
-        private static readonly Regex EmailRegex =
-            new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
-
         public string Value { get; }
 
         private Email(string value)
@@ -17,19 +13,9 @@ namespace Matrix.Identity.Domain.ValueObjects
 
         public static Email Create(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw DomainErrorsFactory.EmptyEmail(nameof(email));
-            }
+            var validatedEmail = EmailRules.Validate(email);
 
-            email = email.Trim().ToLowerInvariant();
-
-            if (!EmailRegex.IsMatch(email))
-            {
-                throw DomainErrorsFactory.InvalidEmailFormat(nameof(email));
-            }
-
-            return new Email(email);
+            return new Email(validatedEmail);
         }
     }
 }

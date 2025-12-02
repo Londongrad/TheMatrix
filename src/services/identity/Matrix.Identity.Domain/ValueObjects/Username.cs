@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Errors;
+﻿using Matrix.Identity.Domain.Rules;
 
 namespace Matrix.Identity.Domain.ValueObjects
 {
@@ -13,19 +13,7 @@ namespace Matrix.Identity.Domain.ValueObjects
 
         public static Username Create(string raw)
         {
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-                throw DomainErrorsFactory.EmptyUsername(nameof(raw));
-            }
-
-            var trimmed = raw.Trim();
-
-            if (trimmed.Length is < 3 or > 32)
-            {
-                throw DomainErrorsFactory.InvalidUsernameLength(trimmed.Length, nameof(trimmed));
-            }
-
-            var normalized = trimmed.ToLowerInvariant();
+            var normalized = UsernameRules.Validate(raw);
 
             return new Username(normalized);
         }
