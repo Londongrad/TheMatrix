@@ -12,6 +12,18 @@ namespace Matrix.Identity.Domain.Errors
                 message: "Refresh token expiration must be in the future.",
                 propertyName: propertyName);
 
+        public static DomainException InvalidDeviceId(string? propertyName = null) =>
+            new(
+                code: "Identity.RefreshToken.InvalidDeviceId",
+                message: $"{propertyName} is null or empty.",
+                propertyName: propertyName);
+
+        public static DomainException InvalidDeviceName(string? propertyName = null) =>
+            new(
+                code: "Identity.RefreshToken.InvalidDeviceName",
+                message: $"{propertyName} is null or empty.",
+                propertyName: propertyName);
+
         public static DomainException RefreshTokenNotFound(string? propertyName = null) => 
             new(
                 code: "Identity.RefreshToken.NotFound",
