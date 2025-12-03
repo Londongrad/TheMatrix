@@ -1,4 +1,4 @@
-﻿namespace Matrix.Identity.Application.UseCases.RegisterUser
+﻿namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
 {
     public sealed class RegisterUserResult
     {

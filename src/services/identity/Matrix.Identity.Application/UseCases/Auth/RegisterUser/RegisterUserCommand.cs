@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.RegisterUser
+namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
 {
     public sealed record RegisterUserCommand(
         string Email,

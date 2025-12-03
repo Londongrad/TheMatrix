@@ -4,7 +4,7 @@ using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.RegisterUser
+namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
 {
     public sealed class RegisterUserHandler(
         IUserRepository userRepository,
