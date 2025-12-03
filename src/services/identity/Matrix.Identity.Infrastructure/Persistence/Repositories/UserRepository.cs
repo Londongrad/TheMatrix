@@ -8,65 +8,74 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
     {
         private readonly IdentityDbContext _dbContext = dbContext;
 
-        public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+        public async Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        {
+            return await _dbContext.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(
+                    u => u.Id == id,
+                    ct);
+        }
+
+        public async Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
         {
             return await _dbContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(
                     u => u.Email.Value == email,
-                    cancellationToken);
+                    ct);
         }
 
-        public async Task<bool> IsEmailTakenAsync(string email, CancellationToken cancellationToken = default)
+        public async Task<bool> IsEmailTakenAsync(string email, CancellationToken ct = default)
         {
             return await _dbContext.Users
-                .AnyAsync(u => u.Email.Value == email, cancellationToken);
+                .AnyAsync(u => u.Email.Value == email, ct);
         }
 
-        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
+        public async Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default)
         {
             return await _dbContext.Users
                .Include(u => u.RefreshTokens)
                .FirstOrDefaultAsync(
                    u => u.Username.Value == username,
-                   cancellationToken);
+                   ct);
         }
 
-        public async Task<bool> IsUsernameTakenAsync(string username, CancellationToken cancellationToken = default)
+        public async Task<bool> IsUsernameTakenAsync(string username, CancellationToken ct = default)
         {
             return await _dbContext.Users
-                .AnyAsync(u => u.Username.Value == username, cancellationToken);
+                .AnyAsync(u => u.Username.Value == username, ct);
         }
 
-        public async Task<User?> GetByRefreshTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)
+        public async Task<User?> GetByRefreshTokenHashAsync(string tokenHash, CancellationToken ct = default)
         {
             return await _dbContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(
                     u => u.RefreshTokens.Any(t => t.TokenHash == tokenHash),
-                    cancellationToken);
+                    ct);
         }
 
-        public async Task AddAsync(User user, CancellationToken cancellationToken = default)
+        public async Task AddAsync(User user, CancellationToken ct = default)
         {
-            await _dbContext.Users.AddAsync(user, cancellationToken);
+            await _dbContext.Users.AddAsync(user, ct);
         }
 
-        public Task DeleteAsync(User user, CancellationToken cancellationToken = default)
+        public Task DeleteAsync(User user, CancellationToken ct = default)
         {
             _dbContext.Users.Remove(user);
             return Task.CompletedTask;
         }
 
-        public Task Update(User user, CancellationToken cancellationToken = default)
+        public Task Update(User user, CancellationToken ct = default)
         {
             _dbContext.Users.Update(user);
             return Task.CompletedTask;
         }
 
-        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+        public async Task SaveChangesAsync(CancellationToken ct = default)
         {
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(ct);
         }
     }
 }

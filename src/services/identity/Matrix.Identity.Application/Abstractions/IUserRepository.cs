@@ -4,6 +4,8 @@ namespace Matrix.Identity.Application.Abstractions
 {
     public interface IUserRepository
     {
+        Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+
         Task<User?> GetByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default);
 
         Task<User?> GetByUsernameAsync(string login, CancellationToken cancellationToken = default);
