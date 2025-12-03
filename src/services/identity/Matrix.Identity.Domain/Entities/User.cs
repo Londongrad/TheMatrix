@@ -51,7 +51,7 @@ namespace Matrix.Identity.Domain.Entities
 
         #endregion [ Constructors ]
 
-        #region [ Methods ]
+        #region [ Factory Methods ]
 
         public static User CreateNew(Email email, Username username, string passwordHash)
         {
@@ -62,6 +62,10 @@ namespace Matrix.Identity.Domain.Entities
 
             return new User(email, username, passwordHash);
         }
+
+        #endregion [ Factory Methods ]
+
+        #region [ Methods ]
 
         public void ConfirmEmail()
         {
@@ -75,6 +79,16 @@ namespace Matrix.Identity.Domain.Entities
 
         public void ChangeAvatar(string? avatarUrl) => AvatarUrl = avatarUrl;
 
+        public void ChangePasswordHash(string newPasswordHash)
+        {
+            if (string.IsNullOrWhiteSpace(newPasswordHash))
+            {
+                throw DomainErrorsFactory.EmptyPasswordHash(nameof(newPasswordHash));
+            }
+
+            PasswordHash = newPasswordHash;
+        }
+
         public void Lock() => IsLocked = true;
 
         public void Unlock() => IsLocked = false;
@@ -86,14 +100,22 @@ namespace Matrix.Identity.Domain.Entities
         /// Сам токен (строка) уже должен быть сгенерирован где-то снаружи
         /// и, по-хорошему, захэширован.
         /// </summary>
-        public RefreshToken IssueRefreshToken(string tokenHash, DateTime expiresAtUtc)
+        public RefreshToken IssueRefreshToken(
+            string tokenHash,
+            DateTime expiresAtUtc,
+            DeviceInfo deviceInfo,
+            GeoLocation? geoLocation)
         {
             if (string.IsNullOrWhiteSpace(tokenHash))
             {
                 throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
             }
 
-            var refreshToken = RefreshToken.Create(tokenHash, expiresAtUtc);
+            var refreshToken = RefreshToken.Create(
+                tokenHash,
+                expiresAtUtc,
+                deviceInfo,
+                geoLocation);
 
             _refreshTokens.Add(refreshToken);
 
@@ -109,6 +131,17 @@ namespace Matrix.Identity.Domain.Entities
             }
 
             token.Revoke();
+        }
+
+        public void RevokeAllRefreshTokens()
+        {
+            foreach (var token in _refreshTokens)
+            {
+                if (token.IsActive())
+                {
+                    token.Revoke();
+                }
+            }
         }
 
         #endregion [ Methods ]
