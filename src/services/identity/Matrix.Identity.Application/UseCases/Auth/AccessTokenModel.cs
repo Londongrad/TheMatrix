@@ -1,4 +1,4 @@
-﻿namespace Matrix.Identity.Application.UseCases
+﻿namespace Matrix.Identity.Application.UseCases.Auth
 {
     public sealed class AccessTokenModel
     {
