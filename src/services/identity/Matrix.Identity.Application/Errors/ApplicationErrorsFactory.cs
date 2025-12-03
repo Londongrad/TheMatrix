@@ -34,5 +34,31 @@ namespace Matrix.Identity.Application.Errors
                 code: "Identity.UsernameAlreadyInUse",
                 message: $"Username '{username}' is already in use.",
                 errorType: ApplicationErrorType.Conflict);
+
+        public static MatrixApplicationException UserNotFound(Guid id)
+            => new(
+                code: "Identity.User.NotFound",
+                message: $"User '{id}' was not found.",
+                errorType: ApplicationErrorType.NotFound);
+
+        public static MatrixApplicationException PasswordsDoNotMatch()
+            => new(
+                code: "Identity.PasswordsDoNotMatch",
+                message: "Passwords do not match.",
+                errorType: ApplicationErrorType.Validation);
+
+        public static MatrixApplicationException InvalidCurrentPassword()
+            => new(
+                code: "Identity.InvalidCurrentPassword",
+                message: "Current password is incorrect.",
+                errorType: ApplicationErrorType.Unauthorized);
+
+        public static MatrixApplicationException ValidationFailed(
+            IDictionary<string, string[]> errors)
+            => new(
+                code: "Identity.ValidationFailed",
+                message: "One or more validation errors occurred.",
+                errorType: ApplicationErrorType.Validation,
+                errors: errors);
     }
 }
