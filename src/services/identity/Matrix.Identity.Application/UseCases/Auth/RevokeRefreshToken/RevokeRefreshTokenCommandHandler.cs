@@ -1,7 +1,7 @@
 ﻿using Matrix.Identity.Application.Abstractions;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.RevokeRefreshToken
+namespace Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken
 {
     public sealed class RevokeRefreshTokenCommandHandler(
         IUserRepository userRepository,
