@@ -1,4 +1,4 @@
-﻿namespace Matrix.Identity.Application.UseCases.LoginUser
+﻿namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
 {
     public sealed class LoginUserResult
     {

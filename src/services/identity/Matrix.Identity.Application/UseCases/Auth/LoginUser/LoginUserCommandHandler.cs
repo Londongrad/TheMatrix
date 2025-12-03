@@ -4,19 +4,21 @@ using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.LoginUser
+namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
 {
     public sealed class LoginUserHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         IAccessTokenService accessTokenService,
-        IRefreshTokenProvider refreshTokenProvider)
+        IRefreshTokenProvider refreshTokenProvider,
+        IGeoLocationService geoLocationService)
         : IRequestHandler<LoginUserCommand, LoginUserResult>
     {
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IPasswordHasher _passwordHasher = passwordHasher;
         private readonly IAccessTokenService _accessTokenService = accessTokenService;
         private readonly IRefreshTokenProvider _refreshTokenProvider = refreshTokenProvider;
+        private readonly IGeoLocationService _geoLocationService = geoLocationService;
 
         public async Task<LoginUserResult> Handle(
             LoginUserCommand request,
@@ -60,13 +62,35 @@ namespace Matrix.Identity.Application.UseCases.LoginUser
                 throw ApplicationErrorsFactory.UserBlocked();
             }
 
-            // access token
+            // 1) Access token
             var accessTokenModel = _accessTokenService.Generate(user);
 
-            // refresh token
+            // 2) Refresh token descriptor (сырое значение + hash + время жизни)
             var refreshDescriptor = _refreshTokenProvider.Generate();
 
-            user.IssueRefreshToken(refreshDescriptor.TokenHash, refreshDescriptor.ExpiresAtUtc);
+            // 3) Собираем DeviceInfo из команды
+            var deviceInfo = DeviceInfo.Create(
+                request.DeviceId,
+                request.DeviceName,
+                request.UserAgent,
+                request.IpAddress);
+
+            // 4) Пытаемся получить GeoLocation по IP (опционально)
+            GeoLocation? geoLocation = null;
+
+            if (!string.IsNullOrWhiteSpace(request.IpAddress))
+            {
+                geoLocation = await _geoLocationService.ResolveAsync(
+                    request.IpAddress,
+                    cancellationToken);
+            }
+
+            // 5) Выпускаем refresh-токен, уже привязанный к устройству + локации
+            user.IssueRefreshToken(
+                refreshDescriptor.TokenHash,
+                refreshDescriptor.ExpiresAtUtc,
+                deviceInfo,
+                geoLocation);
 
             await _userRepository.SaveChangesAsync(cancellationToken);
 
