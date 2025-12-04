@@ -1,5 +1,5 @@
 ﻿using Matrix.Identity.Application.Abstractions;
-using Matrix.Identity.Application.UseCases;
+using Matrix.Identity.Application.UseCases.Auth;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
