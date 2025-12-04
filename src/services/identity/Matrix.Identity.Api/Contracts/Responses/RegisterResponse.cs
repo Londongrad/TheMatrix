@@ -1,4 +1,4 @@
-namespace Matrix.Identity.Api.Contracts
+namespace Matrix.Identity.Api.Contracts.Responses
 {
     public sealed class RegisterResponse
     {

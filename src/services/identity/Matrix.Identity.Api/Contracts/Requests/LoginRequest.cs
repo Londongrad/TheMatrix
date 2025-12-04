@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Matrix.Identity.Api.Contracts
+namespace Matrix.Identity.Api.Contracts.Requests
 {
     public sealed class LoginRequest
     {
@@ -9,5 +9,11 @@ namespace Matrix.Identity.Api.Contracts
 
         [Required]
         public string Password { get; set; } = null!;
+
+        [Required]
+        public string DeviceId { get; set; } = null!;
+
+        [Required]
+        public string DeviceName { get; set; } = null!;
     }
 }

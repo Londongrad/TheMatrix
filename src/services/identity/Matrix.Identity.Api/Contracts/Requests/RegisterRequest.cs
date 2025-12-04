@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Matrix.Identity.Api.Contracts
+namespace Matrix.Identity.Api.Contracts.Requests
 {
     public sealed class RegisterRequest
     {
