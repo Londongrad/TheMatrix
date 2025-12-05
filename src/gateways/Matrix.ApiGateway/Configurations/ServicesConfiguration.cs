@@ -1,7 +1,8 @@
 using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Economy;
-using Matrix.ApiGateway.DownstreamClients.Identity;
+using Matrix.ApiGateway.DownstreamClients.Identity.Account;
+using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
 using Matrix.ApiGateway.DownstreamClients.Population;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -67,9 +68,20 @@ namespace Matrix.ApiGateway.Configurations
             });
 
             // Identity downstream client
-            services.AddHttpClient<IIdentityApiClient, IdentityApiClient>(client =>
+            // Общий baseUrl для Identity
+            var identityBaseUrl = downstream["Identity"]
+                ?? throw new InvalidOperationException("DownstreamServices:Identity is not configured.");
+
+            // Identity Auth client
+            services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(client =>
             {
-                client.BaseAddress = new Uri(downstream["Identity"]!);
+                client.BaseAddress = new Uri(identityBaseUrl);
+            });
+
+            // Identity Account client
+            services.AddHttpClient<IIdentityAccountClient, IdentityAccountApiClient>(client =>
+            {
+                client.BaseAddress = new Uri(identityBaseUrl);
             });
 
             return services;
