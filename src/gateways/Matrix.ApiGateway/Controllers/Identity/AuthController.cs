@@ -1,21 +1,24 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
-using Matrix.ApiGateway.DownstreamClients.Identity;
+using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts;
+using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers
+namespace Matrix.ApiGateway.Controllers.Identity
 {
     [ApiController]
     [Route("api/auth")]
-    public sealed class AuthController(IIdentityApiClient identityApiClient) : ControllerBase
+    public sealed class AuthController(IIdentityAuthClient identityApiClient) : ControllerBase
     {
-        private readonly IIdentityApiClient _identityApiClient = identityApiClient;
-        private const string RefreshCookieName = "matrix_refresh_token";
+        private readonly IIdentityAuthClient _identityApiClient = identityApiClient;
 
+        #region [ Cookie Management ]
+
+        private const string RefreshCookieName = "matrix_refresh_token";
         private void SetRefreshCookie(string refreshToken, DateTime refreshExpiresAtUtc)
         {
             var cookieOptions = new CookieOptions
@@ -41,6 +44,10 @@ namespace Matrix.ApiGateway.Controllers
             });
         }
 
+        #endregion [ Cookie Management ]
+
+        #region [ Proxy Downstream Errors ]
+
         private static async Task<ContentResult> ProxyDownstreamErrorAsync(
             HttpResponseMessage response,
             CancellationToken ct)
@@ -54,6 +61,10 @@ namespace Matrix.ApiGateway.Controllers
                 ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json"
             };
         }
+
+        #endregion [ Proxy Downstream Errors ]
+
+        #region [ Registration and Login ]
 
         [AllowAnonymous]
         [HttpPost("register")]
@@ -111,9 +122,15 @@ namespace Matrix.ApiGateway.Controllers
             return Ok(loginResponse);
         }
 
+        #endregion [ Registration and Login ]
+
+        #region [ Token Refresh and Logout ]
+
         [AllowAnonymous]
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh(CancellationToken ct)
+        public async Task<IActionResult> Refresh(
+            [FromBody] RefreshRequest request,
+            CancellationToken ct)
         {
             var refreshToken = Request.Cookies[RefreshCookieName];
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -127,7 +144,8 @@ namespace Matrix.ApiGateway.Controllers
                 return Unauthorized(error);
             }
 
-            var request = new RefreshRequest { RefreshToken = refreshToken };
+            // Куки контролируем мы, поэтому перезаписываем, даже если клиент что-то прислал
+            request.RefreshToken = refreshToken;
 
             var response = await _identityApiClient.RefreshAsync(request, ct);
 
@@ -179,6 +197,10 @@ namespace Matrix.ApiGateway.Controllers
             return NoContent();
         }
 
+        #endregion [ Token Refresh and Logout ]
+
+        #region [ Sessions Management ]
+
         [Authorize]
         [HttpGet("me")]
         public ActionResult<MeResponse> Me()
@@ -214,5 +236,82 @@ namespace Matrix.ApiGateway.Controllers
 
             return Ok(response);
         }
+
+        [Authorize]
+        [HttpGet("sessions")]
+        public async Task<IActionResult> GetSessions(CancellationToken ct)
+        {
+            var authorization = Request.Headers.Authorization.ToString();
+            if (string.IsNullOrWhiteSpace(authorization))
+            {
+                return Unauthorized();
+            }
+
+            var response = await _identityApiClient.GetSessionsAsync(authorization, ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return await ProxyDownstreamErrorAsync(response, ct);
+            }
+
+            var sessions = await response.Content.ReadFromJsonAsync<List<SessionResponse>>(cancellationToken: ct);
+            if (sessions is null)
+            {
+                var error = new ErrorResponse(
+                    Code: "Gateway.InvalidIdentityResponse",
+                    Message: "Invalid response from Identity service.",
+                    Errors: null,
+                    TraceId: HttpContext.TraceIdentifier);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
+            }
+
+            return Ok(sessions);
+        }
+
+        [Authorize]
+        [HttpDelete("sessions/{sessionId:guid}")]
+        public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken ct)
+        {
+            var authorization = Request.Headers.Authorization.ToString();
+            if (string.IsNullOrWhiteSpace(authorization))
+            {
+                return Unauthorized();
+            }
+
+            var response = await _identityApiClient.RevokeSessionAsync(authorization, sessionId, ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return await ProxyDownstreamErrorAsync(response, ct);
+            }
+
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpDelete("sessions")]
+        public async Task<IActionResult> RevokeAllSessions(CancellationToken ct)
+        {
+            var authorization = Request.Headers.Authorization.ToString();
+            if (string.IsNullOrWhiteSpace(authorization))
+            {
+                return Unauthorized();
+            }
+
+            var response = await _identityApiClient.RevokeAllSessionsAsync(authorization, ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return await ProxyDownstreamErrorAsync(response, ct);
+            }
+
+            // Мы только что убили все refresh-токены, чистим куку
+            ClearRefreshCookie();
+
+            return NoContent();
+        }
+
+        #endregion [ Sessions Management ]
     }
 }
