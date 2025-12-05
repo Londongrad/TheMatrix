@@ -54,7 +54,7 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Unauthorized);
 
         public static MatrixApplicationException ValidationFailed(
-            IDictionary<string, string[]> errors)
+            IReadOnlyDictionary<string, string[]> errors)
             => new(
                 code: "Identity.ValidationFailed",
                 message: "One or more validation errors occurred.",
