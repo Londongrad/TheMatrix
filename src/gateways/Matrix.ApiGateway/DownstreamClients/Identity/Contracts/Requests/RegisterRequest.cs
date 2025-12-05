@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests
 {
     public sealed class RegisterRequest
     {
