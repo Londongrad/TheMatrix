@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Api.Errors;
+using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Domain.Exceptions;
@@ -28,7 +28,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
 
-                IDictionary<string, string[]>? errors = null;
+                IReadOnlyDictionary<string, string[]>? errors = null;
 
                 if (ex.PropertyName is not null)
                 {
