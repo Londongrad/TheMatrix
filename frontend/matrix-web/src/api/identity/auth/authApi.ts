@@ -1,5 +1,5 @@
-import { API_AUTH_URL } from "../config";
-import { request } from "../http";
+import { API_AUTH_URL } from "@api/config";
+import { request } from "@api/http";
 import type {
   RegisterRequest,
   LoginRequest,

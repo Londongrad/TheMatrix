@@ -1,6 +1,6 @@
 import React from "react";
-import type { PersonDto } from "../../../api/population/populationTypes";
-import "../../../styles/population/citizen-card.css";
+import type { PersonDto } from "@api/population/populationTypes";
+import "@styles/population/citizen-card.css";
 
 interface CitizenCardProps {
   person: PersonDto;

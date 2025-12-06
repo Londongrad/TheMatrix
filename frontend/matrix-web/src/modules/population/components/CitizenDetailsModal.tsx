@@ -1,15 +1,15 @@
-import "../../../styles/population/citizen-details-modal.css";
 import { useEffect, useState } from "react";
 import type {
   PersonDto,
   UpdateCitizenRequest,
-} from "../../../api/population/populationTypes";
+} from "@api/population/populationTypes";
 import {
   killCitizen,
   resurrectCitizen,
   updateCitizen,
-} from "../../../api/population/populationApi";
-import { useAuth } from "../../../api/identity/AuthContext";
+} from "@api/population/populationApi";
+import { useAuth } from "@api/identity/auth/AuthContext";
+import "@styles/population/citizen-details-modal.css";
 
 const MARITAL_STATUS_OPTIONS: string[] = [
   "Unknown",

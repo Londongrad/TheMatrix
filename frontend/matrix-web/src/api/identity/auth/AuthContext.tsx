@@ -15,7 +15,7 @@ import {
   refreshAuth,
   logoutAuth,
 } from "./authApi";
-import { configureHttpAuth } from "../http";
+import { configureHttpAuth } from "@api/http";
 
 interface AuthContextValue {
   user: MeResponse | null;

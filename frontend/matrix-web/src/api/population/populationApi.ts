@@ -1,6 +1,6 @@
 import type { PersonDto, UpdateCitizenRequest } from "./populationTypes";
-import { API_POPULATION_URL } from "../config";
-import { apiRequest } from "../http";
+import { API_POPULATION_URL } from "@api/config";
+import { apiRequest } from "@api/http";
 
 export interface PagedResult<T> {
   items: T[];

@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { LoadingScreen } from "../../modules/identity/auth/components/LoadingScreen";
+import { LoadingScreen } from "@modules/identity/auth/components/LoadingScreen";
 
 interface Props {
   children: React.ReactElement;

@@ -1,4 +1,4 @@
-import "../../../../styles/identity/auth/loading-screen.css";
+import "@styles/identity/auth/loading-screen.css";
 
 export const LoadingScreen = () => {
   return (

@@ -1,4 +1,4 @@
-import "../../../styles/population/pagination.css";
+import "@styles/population/pagination.css";
 
 interface PaginationProps {
   page: number;

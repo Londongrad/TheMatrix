@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { initializePopulation } from "../../../api/population/populationApi";
-import "../../../styles/citycore/dashboard.css";
-import { useAuth } from "../../../api/identity/AuthContext";
+import { useState } from "react";
+import { initializePopulation } from "@api/population/populationApi";
+import { useAuth } from "@api/identity/auth/AuthContext";
+import "@styles/citycore/dashboard.css";
 
 const DashboardPage = () => {
   const [generateCount, setGenerateCount] = useState(10000);

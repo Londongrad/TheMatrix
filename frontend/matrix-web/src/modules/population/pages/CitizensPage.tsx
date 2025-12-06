@@ -1,11 +1,11 @@
-import "../../../styles/population/citizen-page.css";
 import { useEffect, useState } from "react";
-import CitizenCard from "../components/CitizenCard";
-import CitizenDetailsModal from "../components/CitizenDetailsModal";
-import type { PersonDto } from "../../../api/population/populationTypes";
-import { getCitizensPage } from "../../../api/population/populationApi";
-import { useAuth } from "../../../api/identity/AuthContext";
-import Pagination from "../components/Pagination";
+import CitizenCard from "@modules/population/components/CitizenCard";
+import CitizenDetailsModal from "@modules/population/components/CitizenDetailsModal";
+import type { PersonDto } from "@api/population/populationTypes";
+import { getCitizensPage } from "@api/population/populationApi";
+import { useAuth } from "@api/identity/auth/AuthContext";
+import Pagination from "@modules/population/components/Pagination";
+import "@styles/population/citizen-page.css";
 
 const PAGE_SIZE = 100;
 

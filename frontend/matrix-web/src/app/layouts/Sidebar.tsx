@@ -1,11 +1,10 @@
-import React from "react";
 import { NavLink } from "react-router-dom";
-import "../../styles/shared/sidebar.css";
+import "@styles/shared/sidebar.css";
 
 const buildLinkClass = ({ isActive }: { isActive: boolean }) =>
   "sidebar-link" + (isActive ? " sidebar-link-active" : "");
 
-const Sidebar: React.FC = () => {
+const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-title">The Matrix</div>
