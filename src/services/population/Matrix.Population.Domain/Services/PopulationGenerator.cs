@@ -1,16 +1,32 @@
-﻿using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Services
 {
-    public sealed class PopulationGenerator(
-        int districtCount = 5,
-        int averageHouseholdSize = 3)
+    public sealed class PopulationGenerator
     {
-        private readonly int _districtCount = Math.Max(1, districtCount);
-        private readonly int _averageHouseholdSize = Math.Max(1, averageHouseholdSize);
+
+        #region [ Fields ]
+
+        private static readonly string[] JobTitles =
+        [
+            "Software Engineer",
+            "Teacher",
+            "Doctor",
+            "Nurse",
+            "Builder",
+            "Store Clerk",
+            "Taxi Driver",
+            "Accountant",
+            "Electrician",
+            "Plumber"
+        ];
+
+        #endregion [ Fields ]
+
+        #region [ Generate ]
 
         public IReadOnlyCollection<Person> Generate(
             int peopleCount,
@@ -18,26 +34,19 @@ namespace Matrix.Population.Domain.Services
             int? randomSeed = null)
         {
             if (peopleCount <= 0)
-                return Array.Empty<Person>();
+                return [];
 
-            var random = randomSeed.HasValue
+            Random random = randomSeed.HasValue
                 ? new Random(randomSeed.Value)
                 : new Random();
 
             var result = new List<Person>(peopleCount);
 
-            var districts = CreateDistricts(_districtCount);
-            var households = CreateHouseholds(random, peopleCount, districts);
-
             for (int i = 0; i < peopleCount; i++)
             {
-                var (householdId, districtId) =
-                    households[random.Next(households.Count)];
-
-                var person = CreateRandomPerson(
+                Person person = CreateRandomPerson(
                     random,
-                    householdId,
-                    districtId,
+                    HouseholdId.New(),
                     currentDate);
 
                 result.Add(person);
@@ -46,208 +55,189 @@ namespace Matrix.Population.Domain.Services
             return result;
         }
 
-        // ----------------- Создание одного Person -----------------
+        #endregion [ Generate ]
+
+        #region [ CreateRandomPerson ]
 
         private Person CreateRandomPerson(
             Random random,
             HouseholdId householdId,
-            DistrictId districtId,
             DateOnly currentDate)
         {
             var personId = PersonId.New();
 
-            var sex = CreateRandomSex(random);
-            var name = CreateRandomName(random, sex);
+            Sex sex = CreateRandomSex(random);
+            PersonName name = CreateRandomName(random, sex);
 
             // Возраст в годах + BirthDate + AgeGroup
-            var ageYears = CreateRandomAgeYears(random);
-            var birthDate = currentDate.AddYears(-ageYears);
+            int ageYears = CreateRandomAgeYears(random);
+
+            DateOnly birthDate = currentDate.AddYears(-ageYears);
+
             var age = Age.FromYears(ageYears);
-            var ageGroup = AgeGroupRules.GetAgeGroup(age);
-            var health = CreateRandomHealth(random, ageGroup, ageYears);
-            var weight = CreateRandomWeight(random, sex, ageGroup, ageYears);
+
+            AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
+
+            HealthLevel health = CreateRandomHealth(random, ageYears);
+
+            BodyWeight weight = CreateRandomWeight(random, sex, ageYears);
 
             var personality = Personality.CreateRandom(random);
 
-            var employmentStatus = CreateRandomEmploymentStatus(random, ageGroup);
-            var job = employmentStatus == EmploymentStatus.Employed
+            EmploymentStatus employmentStatus = CreateRandomEmploymentStatus(random, ageGroup);
+
+            Job? job = employmentStatus == EmploymentStatus.Employed
                 ? CreateRandomJob(random)
                 : null;
 
-            var happiness = CreateInitialHappiness(random, ageGroup, employmentStatus);
+            HappinessLevel happiness = CreateInitialHappiness(random, ageGroup, employmentStatus);
 
-            var educationLevel = CreateRandomEducationLevel(random, ageGroup, ageYears);
-            var maritalStatus = CreateRandomMaritalStatus(random, ageGroup, ageYears);
+            EducationLevel educationLevel = CreateRandomEducationLevel(random, ageYears);
 
-            // Выбор фабрики Person в зависимости от возраста/статуса
-            return ageGroup switch
-            {
-                AgeGroup.Child => Person.CreateNewborn(
-                    id: personId,
-                    householdId: householdId,
-                    districtId: districtId,
-                    name: name,
-                    sex: sex,
-                    birthDate: birthDate,
-                    weight: weight,
-                    personality: personality,
-                    currentDate: currentDate),
+            MaritalStatus maritalStatus = CreateRandomMaritalStatus(random, ageGroup, ageYears);
 
-                AgeGroup.Youth or AgeGroup.Adult when employmentStatus == EmploymentStatus.Student =>
-                    Person.CreateStudent(
-                        id: personId,
-                        householdId: householdId,
-                        districtId: districtId,
-                        name: name,
-                        sex: sex,
-                        birthDate: birthDate,
-                        weight: weight,
-                        healthLevel: health,
-                        educationLevel: educationLevel,
-                        happinessLevel: happiness,
-                        personality: personality,
-                        currentDate: currentDate),
-
-                AgeGroup.Youth or AgeGroup.Adult =>
-                    Person.CreateAdult(
-                        id: personId,
-                        householdId: householdId,
-                        districtId: districtId,
-                        name: name,
-                        sex: sex,
-                        weight: weight,
-                        healthLevel: health,
-                        birthDate: birthDate,
-                        employmentStatus: employmentStatus,
-                        personality: personality,
-                        job: job,
-                        currentDate: currentDate),
-
-                AgeGroup.Senior =>
-                    Person.CreateSenior(
-                        id: personId,
-                        householdId: householdId,
-                        districtId: districtId,
-                        name: name,
-                        sex: sex,
-                        weight: weight,
-                        healthLevel: health,
-                        birthDate: birthDate,
-                        maritalStatus: maritalStatus,
-                        educationLevel: educationLevel,
-                        happinessLevel: happiness,
-                        personality: personality,
-                        currentDate: currentDate),
-
-                _ => throw new InvalidOperationException("Unknown age group")
-            };
+            return Person.CreatePerson(
+                id: personId,
+                householdId: householdId,
+                name: name,
+                sex: sex,
+                lifeStatus: LifeStatus.Alive,
+                maritalStatus: maritalStatus,
+                spouseId: null,
+                educationLevel: educationLevel,
+                employmentStatus: employmentStatus,
+                happinessLevel: happiness,
+                personality: personality,
+                birthDate: birthDate,
+                healthLevel: health,
+                weight: weight,
+                job: job,
+                currentDate: currentDate
+            );
         }
 
-        // ----------------- Черты человека -----------------
+        #endregion [ CreateRandomPerson ]
 
-        private Sex CreateRandomSex(Random random) =>
+        #region [ Sex, Name, Weight ]
+
+        private static Sex CreateRandomSex(Random random) =>
             random.Next(0, 2) == 0 ? Sex.Male : Sex.Female;
 
-        private PersonName CreateRandomName(Random random, Sex sex)
+        private static PersonName CreateRandomName(Random random, Sex sex)
         {
             // Очень простой генератор имён, можно потом заменить на нормальный справочник.
             string[] maleFirstNames = ["Иван", "Алексей", "Михаил", "Дмитрий", "Сергей"];
             string[] femaleFirstNames = ["Анна", "Мария", "Екатерина", "Ольга", "Наталья"];
             string[] lastNames = ["Иванов", "Петров", "Сидоров", "Смирнов", "Ковалёв"];
 
-            var firstName = sex == Sex.Male
+            string firstName = sex == Sex.Male
                 ? maleFirstNames[random.Next(maleFirstNames.Length)]
                 : femaleFirstNames[random.Next(femaleFirstNames.Length)];
 
-            var lastName = lastNames[random.Next(lastNames.Length)];
+            string lastName = lastNames[random.Next(lastNames.Length)];
 
             return new PersonName(firstName, lastName); // если есть отчество – добавишь третьим параметром
         }
 
-        private BodyWeight CreateRandomWeight(
-            Random random,
-            Sex sex,
-            AgeGroup ageGroup,
-            int ageYears)
+        private static BodyWeight CreateRandomWeight(Random random, Sex sex, int ageYears)
         {
-            decimal kg;
+            decimal kg = ageYears switch
+            {
+                // младенцы/ранний возраст
+                < 1 => random.Next(3, 11),   // 3–10
+                < 3 => random.Next(8, 16),   // 8–15
 
-            if (ageGroup == AgeGroup.Child)
-            {
-                // очень грубые диапазоны по возрасту ребёнка
-                if (ageYears < 2)
-                    kg = random.Next(3, 15);     // 3–14 кг
-                else if (ageYears < 6)
-                    kg = random.Next(12, 26);    // 12–25 кг
-                else if (ageYears < 12)
-                    kg = random.Next(20, 46);    // 20–45 кг
-                else
-                    kg = random.Next(35, 71);    // 35–70 кг (подростки)
-            }
-            else if (ageGroup == AgeGroup.Youth)
-            {
-                kg = sex == Sex.Male
-                    ? random.Next(50, 86)        // 50–85
-                    : random.Next(45, 76);       // 45–75
-            }
-            else if (ageGroup == AgeGroup.Adult)
-            {
-                kg = sex == Sex.Male
-                    ? random.Next(60, 111)       // 60–110
-                    : random.Next(45, 96);       // 45–95
-            }
-            else // Senior
-            {
-                kg = sex == Sex.Male
-                    ? random.Next(55, 96)        // 55–95
-                    : random.Next(45, 86);       // 45–85
-            }
+                // дошкольники
+                < 7 => random.Next(12, 26),  // 12–25
+
+                // дети
+                < 13 => random.Next(20, 46),  // 20–45
+
+                // подростки (уже заметна разница по полу)
+                < 18 => sex == Sex.Male
+                    ? random.Next(40, 86)     // 40–85
+                    : random.Next(38, 76),    // 38–75
+
+                // взрослые
+                < 66 => sex == Sex.Male
+                    ? random.Next(60, 111)    // 60–110
+                    : random.Next(45, 96),    // 45–95
+
+                // пожилые
+                _ => sex == Sex.Male
+                    ? random.Next(55, 96)     // 55–95
+                    : random.Next(45, 86),    // 45–85
+            };
 
             return BodyWeight.FromKilograms(kg);
         }
 
-        private HealthLevel CreateRandomHealth(
-            Random random,
-            AgeGroup ageGroup,
-            int ageYears)
+        #endregion [ Sex, Name, Weight ]
+
+        #region [ Health, Age, Happiness ]
+
+        private static HealthLevel CreateRandomHealth(Random random, int ageYears)
         {
-            int value = ageGroup switch
+            int value = ageYears switch
             {
-                AgeGroup.Child => random.Next(70, 101),   // дети в целом здоровые
-                AgeGroup.Youth => random.Next(60, 101),
-                AgeGroup.Adult => random.Next(50, 96),
-                AgeGroup.Senior => random.Next(30, 91),
-                _ => random.Next(40, 91)
+                < 7 => random.Next(70, 101), // маленькие дети
+                < 18 => random.Next(60, 101), // подростки
+                < 40 => random.Next(50, 96),  // взрослые
+                < 66 => random.Next(45, 91),  // 40–65
+                < 80 => random.Next(35, 86),  // пожилые
+                _ => random.Next(30, 81),  // 80+
             };
 
-            // чуть подправим по возрасту внутри группы (чем старше, тем шанс пониже)
-            if (ageGroup is AgeGroup.Adult or AgeGroup.Youth)
+            // Доп. спад после 40 (нарастающий)
+            if (ageYears > 40)
             {
-                if (ageYears > 40)
-                    value -= random.Next(0, 11); // -0..10
+                int extraPenalty = Math.Min(20, (ageYears - 40) / 2); // 0..20
+                value -= random.Next(0, 6) + extraPenalty;           // -0..5 - extra
             }
 
             value = Math.Clamp(value, 0, 100);
-
             return HealthLevel.From(value);
         }
 
-        private int CreateRandomAgeYears(Random random)
+        private static int CreateRandomAgeYears(Random random)
         {
             // 20% дети, 60% взрослые, 20% пенсионеры.
-            var roll = random.NextDouble();
+            double roll = random.NextDouble();
 
-            if (roll < 0.2)        // дети
-                return random.Next(0, 18);    // [0..17]
+            if (roll < 0.2) // дети
+                return random.Next(0, 18); // [0..17]
 
-            if (roll < 0.8)        // взрослые
-                return random.Next(18, 66);   // [18..65]
+            if (roll < 0.8) // взрослые
+                return random.Next(18, 66); // [18..65]
 
             // пенсионеры
-            return random.Next(66, 121);      // [66..120]
+            return random.Next(66, 121); // [66..120]
         }
 
-        private EmploymentStatus CreateRandomEmploymentStatus(
+        private static HappinessLevel CreateInitialHappiness(
+            Random random,
+            AgeGroup ageGroup,
+            EmploymentStatus employmentStatus)
+        {
+            // Базовый уровень 40–80
+            int value = random.Next(40, 81); // [40..80]
+
+            if (employmentStatus == EmploymentStatus.Employed && ageGroup == AgeGroup.Adult)
+                value += random.Next(0, 11); // +0..10
+            else if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
+                value -= random.Next(5, 16); // -5..15
+            else if
+                (employmentStatus == EmploymentStatus.Retired) value += random.Next(0, 6); // пенсионеры чуть довольнее
+
+            value = Math.Clamp(value, 0, 100);
+            return HappinessLevel.From(value);
+        }
+
+        #endregion [ Health, Age, Happiness ]
+
+        #region [ Employment ]
+
+        private static EmploymentStatus CreateRandomEmploymentStatus(
             Random random,
             AgeGroup ageGroup)
         {
@@ -265,10 +255,10 @@ namespace Matrix.Population.Domain.Services
             };
         }
 
-        private EmploymentStatus CreateRandomAdultEmploymentStatus(Random random)
+        private static EmploymentStatus CreateRandomAdultEmploymentStatus(Random random)
         {
             // Взрослые: 70% работают, 15% безработные, 15% студенты
-            var roll = random.NextDouble();
+            double roll = random.NextDouble();
 
             if (roll < 0.70)
                 return EmploymentStatus.Employed;
@@ -279,92 +269,97 @@ namespace Matrix.Population.Domain.Services
             return EmploymentStatus.Student;
         }
 
-        private static readonly string[] JobTitles =
+        private static Job? CreateRandomJob(Random random)
         {
-            "Software Engineer",
-            "Teacher",
-            "Doctor",
-            "Nurse",
-            "Builder",
-            "Store Clerk",
-            "Taxi Driver",
-            "Accountant",
-            "Electrician",
-            "Plumber"
-        };
-
-        private Job? CreateRandomJob(Random random)
-        {
-            var title = JobTitles[random.Next(JobTitles.Length)];
+            string title = JobTitles[random.Next(JobTitles.Length)];
             var workplaceId = WorkplaceId.New();
 
             return new Job(workplaceId, title);
         }
 
-        private HappinessLevel CreateInitialHappiness(
-            Random random,
-            AgeGroup ageGroup,
-            EmploymentStatus employmentStatus)
+        #endregion [ Employment ]
+
+        #region [ Education ]
+
+        private static EducationLevel CreateRandomEducationLevel(Random r, int ageYears)
         {
-            // Базовый уровень 40–80
-            var value = random.Next(40, 81); // [40..80]
-
-            if (employmentStatus == EmploymentStatus.Employed && ageGroup == AgeGroup.Adult)
+            return ageYears switch
             {
-                value += random.Next(0, 11); // +0..10
-            }
-            else if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
-            {
-                value -= random.Next(5, 16); // -5..15
-            }
-            else if (employmentStatus == EmploymentStatus.Retired)
-            {
-                value += random.Next(0, 6); // пенсионеры чуть довольнее
-            }
+                // 0-2
+                <= 2 => EducationLevel.None,
 
-            value = Math.Clamp(value, 0, 100);
-            return HappinessLevel.From(value);
-        }
+                // 3-6
+                <= 6 => Pick(r,
+                            (EducationLevel.Preschool, 0.80),
+                            (EducationLevel.None, 0.20)),
 
-        private EducationLevel CreateRandomEducationLevel(
-            Random random,
-            AgeGroup ageGroup,
-            int ageYears)
-        {
-            return ageGroup switch
-            {
-                AgeGroup.Child => ageYears switch
-                {
-                    < 6 => EducationLevel.None,
-                    < 15 => EducationLevel.Primary,
-                    _ => EducationLevel.Secondary
-                },
+                // 7-10
+                <= 10 => Pick(r,
+                            (EducationLevel.Primary, 0.97),
+                            (EducationLevel.LowerSecondary, 0.03)), // редкое "ускорение"
 
-                AgeGroup.Adult => GetAdultEducation(random),
+                // 11-14
+                <= 14 => Pick(r,
+                            (EducationLevel.LowerSecondary, 0.85),
+                            (EducationLevel.Primary, 0.15)),
 
-                AgeGroup.Senior => GetSeniorEducation(random),
+                // 15-17
+                <= 17 => Pick(r,
+                            (EducationLevel.UpperSecondary, 0.72),
+                            (EducationLevel.LowerSecondary, 0.18),
+                            (EducationLevel.Vocational, 0.10)),
 
-                _ => EducationLevel.None
+                // 18-21
+                <= 21 => Pick(r,
+                            (EducationLevel.UpperSecondary, 0.25),
+                            (EducationLevel.Vocational, 0.33),
+                            (EducationLevel.Higher, 0.40),
+                            (EducationLevel.LowerSecondary, 0.02)),
+
+                // 22–65
+                <= 65 => Pick(r,
+                            (EducationLevel.None, 0.01),
+                            (EducationLevel.Primary, 0.08),
+                            (EducationLevel.LowerSecondary, 0.22),
+                            (EducationLevel.UpperSecondary, 0.30),
+                            (EducationLevel.Vocational, 0.22),
+                            (EducationLevel.Higher, 0.15),
+                            (EducationLevel.Postgraduate, 0.02)),
+
+                // 66+
+                _ => Pick(r,
+                            (EducationLevel.None, 0.02),
+                            (EducationLevel.Primary, 0.18),
+                            (EducationLevel.LowerSecondary, 0.34),
+                            (EducationLevel.UpperSecondary, 0.25),
+                            (EducationLevel.Vocational, 0.12),
+                            (EducationLevel.Higher, 0.08),
+                            (EducationLevel.Postgraduate, 0.01)),
             };
-
-            EducationLevel GetAdultEducation(Random r)
-            {
-                var roll = r.NextDouble();
-                if (roll < 0.2) return EducationLevel.Primary;
-                if (roll < 0.8) return EducationLevel.Secondary;
-                return EducationLevel.Higher;
-            }
-
-            EducationLevel GetSeniorEducation(Random r)
-            {
-                var roll = r.NextDouble();
-                if (roll < 0.6) return EducationLevel.Primary;
-                if (roll < 0.95) return EducationLevel.Secondary;
-                return EducationLevel.Higher;
-            }
         }
 
-        private MaritalStatus CreateRandomMaritalStatus(
+        private static EducationLevel Pick(Random r, params (EducationLevel level, double weight)[] items)
+        {
+            double total = 0;
+            for (int i = 0; i < items.Length; i++) total += items[i].weight;
+
+            double roll = r.NextDouble() * total;
+            double acc = 0;
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                acc += items[i].weight;
+                if (roll < acc) return items[i].level;
+            }
+
+            return items[^1].level;
+        }
+
+        #endregion [ Education ]
+
+        #region [ Marital ]
+
+        private static MaritalStatus CreateRandomMaritalStatus(
             Random random,
             AgeGroup ageGroup,
             int ageYears)
@@ -374,7 +369,7 @@ namespace Matrix.Population.Domain.Services
 
             if (ageGroup == AgeGroup.Adult)
             {
-                var roll = random.NextDouble();
+                double roll = random.NextDouble();
 
                 if (ageYears < 25)
                 {
@@ -399,45 +394,13 @@ namespace Matrix.Population.Domain.Services
 
             // Пенсионеры
             {
-                var roll = random.NextDouble();
+                double roll = random.NextDouble();
                 if (roll < 0.5) return MaritalStatus.Married;
                 if (roll < 0.8) return MaritalStatus.Widowed;
                 return MaritalStatus.Divorced;
             }
         }
 
-        // ----------------- Districts / Households -----------------
-
-        private IReadOnlyList<DistrictId> CreateDistricts(int districtCount)
-        {
-            var districts = new List<DistrictId>(districtCount);
-
-            for (int i = 0; i < districtCount; i++)
-            {
-                districts.Add(DistrictId.New());
-            }
-
-            return districts;
-        }
-
-        private IReadOnlyList<(HouseholdId HouseholdId, DistrictId DistrictId)> CreateHouseholds(
-            Random random,
-            int peopleCount,
-            IReadOnlyList<DistrictId> districts)
-        {
-            var householdCount = Math.Max(1, peopleCount / _averageHouseholdSize);
-
-            var households = new List<(HouseholdId, DistrictId)>(householdCount);
-
-            for (int i = 0; i < householdCount; i++)
-            {
-                var district = districts[random.Next(districts.Count)];
-                var householdId = HouseholdId.New();
-
-                households.Add((householdId, district));
-            }
-
-            return households;
-        }
+        #endregion [ Marital ]
     }
 }
