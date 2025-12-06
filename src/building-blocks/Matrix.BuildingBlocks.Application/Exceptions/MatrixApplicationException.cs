@@ -19,7 +19,7 @@ namespace Matrix.BuildingBlocks.Application.Exceptions
 
         public override string ToString()
         {
-            var codePart = $"[{Code}]";
+            string codePart = $"[{Code}]";
 
             return $"[{GetType().Name}]: [{ErrorType}] [{codePart}] [{Message}{Environment.NewLine}{StackTrace}]";
         }

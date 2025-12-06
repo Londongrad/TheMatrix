@@ -13,7 +13,7 @@ namespace Matrix.Population.Domain.Rules
             MaritalStatus status,
             PersonId? spouseId)
         {
-            GuardHelper.AgainstInvalidEnum(status, nameof(status));
+            GuardHelper.AgainstInvalidEnum(value: status, propertyName: nameof(status));
 
             switch (status)
             {
@@ -46,10 +46,10 @@ namespace Matrix.Population.Domain.Rules
 
             // 2) Минимальный возраст для обоих
             if (personAge.Years < MinimalMarriageAgeYears)
-                throw DomainErrorsFactory.PersonTooYoungToMarry(personId, personAge.Years);
+                throw DomainErrorsFactory.PersonTooYoungToMarry(personId: personId, ageYears: personAge.Years);
 
             if (spouseAge.Years < MinimalMarriageAgeYears)
-                throw DomainErrorsFactory.SpouseTooYoungToMarry(spouseId, spouseAge.Years);
+                throw DomainErrorsFactory.SpouseTooYoungToMarry(spouseId: spouseId, ageYears: spouseAge.Years);
 
             // 3) Нельзя вступать в новый брак, пока уже Married
             if (personMarital.Status == MaritalStatus.Married)

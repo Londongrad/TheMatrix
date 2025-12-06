@@ -13,9 +13,9 @@ namespace Matrix.Population.Domain.Rules
             LifeStatus lifeStatus,
             AgeGroup ageGroup)
         {
-            GuardHelper.AgainstInvalidEnum(status, nameof(status));
-            GuardHelper.AgainstInvalidEnum(lifeStatus, nameof(lifeStatus));
-            GuardHelper.AgainstInvalidEnum(ageGroup, nameof(ageGroup));
+            GuardHelper.AgainstInvalidEnum(value: status, propertyName: nameof(status));
+            GuardHelper.AgainstInvalidEnum(value: lifeStatus, propertyName: nameof(lifeStatus));
+            GuardHelper.AgainstInvalidEnum(value: ageGroup, propertyName: nameof(ageGroup));
 
             // 1. Мёртвый человек
             if (lifeStatus == LifeStatus.Deceased)
@@ -30,28 +30,20 @@ namespace Matrix.Population.Domain.Rules
             // 2. Детям нельзя работать
             if (ageGroup is AgeGroup.Child or AgeGroup.Youth &&
                 status == EmploymentStatus.Employed)
-            {
                 throw DomainErrorsFactory.ChildCannotBeEmployed(nameof(status));
-            }
 
             // 3. Пенсионер не может работать или быть студентом
             if (ageGroup is AgeGroup.Senior &&
-                (status is EmploymentStatus.Employed or EmploymentStatus.Student))
-            {
+                status is EmploymentStatus.Employed or EmploymentStatus.Student)
                 throw DomainErrorsFactory.RetiredPersonCannotBeEmployedOrStudent(nameof(status));
-            }
 
             // 4. Работает → Job обязателен
             if (status == EmploymentStatus.Employed && job is null)
-            {
                 throw DomainErrorsFactory.EmployedPersonMustHaveJob(nameof(job));
-            }
 
             // 5. Не работает → Job должен быть null
             if (status != EmploymentStatus.Employed && job is not null)
-            {
                 throw DomainErrorsFactory.OnlyEmployedPersonCanHaveJob(nameof(job));
-            }
         }
     }
 }

@@ -12,8 +12,8 @@ namespace Matrix.Population.Domain.Rules
             LifeSpan span,
             HealthLevel health)
         {
-            GuardHelper.AgainstInvalidEnum(status, nameof(status));
-            GuardHelper.AgainstNull(span, nameof(span));
+            GuardHelper.AgainstInvalidEnum(value: status, propertyName: nameof(status));
+            GuardHelper.AgainstNull(value: span, propertyName: nameof(span));
 
             if (status == LifeStatus.Alive)
             {

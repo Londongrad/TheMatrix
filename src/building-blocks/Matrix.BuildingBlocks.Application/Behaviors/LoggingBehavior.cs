@@ -1,6 +1,6 @@
-﻿using MediatR;
+﻿using System.Diagnostics;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 
 namespace Matrix.BuildingBlocks.Application.Behaviors
 {
@@ -16,20 +16,20 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
             RequestHandlerDelegate<TResponse> next,
             CancellationToken cancellationToken)
         {
-            var requestName = typeof(TRequest).Name;
+            string requestName = typeof(TRequest).Name;
 
-            _logger.LogInformation("Handling request {RequestName}", requestName);
+            _logger.LogInformation(message: "Handling request {RequestName}", requestName);
 
             var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                var response = await next();
+                TResponse response = await next();
 
                 stopwatch.Stop();
 
                 _logger.LogInformation(
-                    "Handled request {RequestName} in {ElapsedMilliseconds} ms",
+                    message: "Handled request {RequestName} in {ElapsedMilliseconds} ms",
                     requestName,
                     stopwatch.ElapsedMilliseconds);
 
@@ -40,8 +40,8 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
                 stopwatch.Stop();
 
                 _logger.LogError(
-                    ex,
-                    "Error handling request {RequestName} after {ElapsedMilliseconds} ms",
+                    exception: ex,
+                    message: "Error handling request {RequestName} after {ElapsedMilliseconds} ms",
                     requestName,
                     stopwatch.ElapsedMilliseconds);
 

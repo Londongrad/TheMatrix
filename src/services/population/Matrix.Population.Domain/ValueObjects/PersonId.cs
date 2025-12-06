@@ -4,12 +4,12 @@ namespace Matrix.Population.Domain.ValueObjects
 {
     public readonly record struct PersonId
     {
-        public Guid Value { get; }
-
         private PersonId(Guid value)
         {
-            Value = GuardHelper.AgainstEmptyGuid(value, nameof(PersonId));
+            Value = GuardHelper.AgainstEmptyGuid(id: value, propertyName: nameof(PersonId));
         }
+
+        public Guid Value { get; }
 
         public static PersonId New() => new(Guid.NewGuid());
 

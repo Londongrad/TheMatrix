@@ -4,13 +4,13 @@ namespace Matrix.Population.Domain.ValueObjects
 {
     public sealed record class Job
     {
-        public WorkplaceId WorkplaceId { get; }
-        public string Title { get; }
-
         public Job(WorkplaceId workplaceId, string title)
         {
             WorkplaceId = workplaceId;
-            Title = GuardHelper.AgainstNullOrEmpty(title, nameof(Title));
+            Title = GuardHelper.AgainstNullOrEmpty(value: title, propertyName: nameof(Title));
         }
+
+        public WorkplaceId WorkplaceId { get; }
+        public string Title { get; }
     }
 }

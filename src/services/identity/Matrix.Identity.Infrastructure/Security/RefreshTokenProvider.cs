@@ -1,8 +1,8 @@
-﻿using Matrix.Identity.Application.Abstractions;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
 using Microsoft.Extensions.Options;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Matrix.Identity.Infrastructure.Security
 {
@@ -13,21 +13,21 @@ namespace Matrix.Identity.Infrastructure.Security
         public RefreshTokenDescriptor Generate()
         {
             // 64 байта крипто-рандома
-            var bytes = new byte[64];
+            byte[] bytes = new byte[64];
             RandomNumberGenerator.Fill(bytes);
-            var token = Convert.ToBase64String(bytes);
+            string token = Convert.ToBase64String(bytes);
 
-            var hash = ComputeHash(token);
-            var expiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays);
+            string hash = ComputeHash(token);
+            DateTime expiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays);
 
-            return new RefreshTokenDescriptor(token, hash, expiresAt);
+            return new RefreshTokenDescriptor(Token: token, TokenHash: hash, ExpiresAtUtc: expiresAt);
         }
 
         public string ComputeHash(string token)
         {
             using var sha = SHA256.Create();
-            var bytes = Encoding.UTF8.GetBytes(token);
-            var hash = sha.ComputeHash(bytes);
+            byte[] bytes = Encoding.UTF8.GetBytes(token);
+            byte[] hash = sha.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }
     }

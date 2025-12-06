@@ -5,10 +5,10 @@ namespace Matrix.BuildingBlocks.Domain.Errors
     public static class DomainErrors
     {
         public static DomainException NullOrEmpty(string propertyName) =>
-                new(
-                    code: "Domain.Guard.NullOrEmpty",
-                    message: $"{propertyName} cannot be null or empty.",
-                    propertyName: propertyName);
+            new(
+                code: "Domain.Guard.NullOrEmpty",
+                message: $"{propertyName} cannot be null or empty.",
+                propertyName: propertyName);
 
         public static DomainException EmptyGuid(string propertyName) =>
             new(

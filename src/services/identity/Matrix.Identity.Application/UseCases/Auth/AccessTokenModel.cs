@@ -7,7 +7,7 @@
         public string TokenType { get; init; } = "Bearer";
 
         /// <summary>
-        /// Время жизни токена в секундах.
+        ///     Время жизни токена в секундах.
         /// </summary>
         public required int ExpiresInSeconds { get; init; }
     }

@@ -3,7 +3,7 @@
 namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
 {
     public sealed class RegisterUserCommandValidator
-    : AbstractValidator<RegisterUserCommand>
+        : AbstractValidator<RegisterUserCommand>
     {
         public RegisterUserCommandValidator()
         {

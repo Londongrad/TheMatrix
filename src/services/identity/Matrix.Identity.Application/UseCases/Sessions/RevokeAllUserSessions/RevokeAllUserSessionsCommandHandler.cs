@@ -1,5 +1,6 @@
 ﻿using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions
@@ -14,8 +15,8 @@ namespace Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions
             RevokeAllUserSessionsCommand request,
             CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken)
-                ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            User user = await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
+                        ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             user.RevokeAllRefreshTokens();
 

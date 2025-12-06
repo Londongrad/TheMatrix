@@ -11,6 +11,18 @@ namespace Matrix.Identity.Domain.Entities
 
         #endregion [ Fields ]
 
+        #region [ Factory Methods ]
+
+        public static User CreateNew(Email email, Username username, string passwordHash)
+        {
+            if (string.IsNullOrWhiteSpace(passwordHash))
+                throw DomainErrorsFactory.EmptyPasswordHash(nameof(passwordHash));
+
+            return new User(email: email, username: username, passwordHash: passwordHash);
+        }
+
+        #endregion [ Factory Methods ]
+
         #region [ Properties ]
 
         public Guid Id { get; private set; }
@@ -20,7 +32,7 @@ namespace Matrix.Identity.Domain.Entities
         public Email Email { get; private set; } = null!;
 
         /// <summary>
-        /// Хэш пароля. Сам хэш вычисляется вне домена (в Application/Infrastructure).
+        ///     Хэш пароля. Сам хэш вычисляется вне домена (в Application/Infrastructure).
         /// </summary>
         public string PasswordHash { get; private set; } = null!;
 
@@ -36,7 +48,9 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Constructors ]
 
-        private User() { }
+        private User()
+        {
+        }
 
         private User(Email email, Username username, string passwordHash)
         {
@@ -51,28 +65,11 @@ namespace Matrix.Identity.Domain.Entities
 
         #endregion [ Constructors ]
 
-        #region [ Factory Methods ]
-
-        public static User CreateNew(Email email, Username username, string passwordHash)
-        {
-            if (string.IsNullOrWhiteSpace(passwordHash))
-            {
-                throw DomainErrorsFactory.EmptyPasswordHash(nameof(passwordHash));
-            }
-
-            return new User(email, username, passwordHash);
-        }
-
-        #endregion [ Factory Methods ]
-
         #region [ Methods ]
 
         public void ConfirmEmail()
         {
-            if (IsEmailConfirmed)
-            {
-                return;
-            }
+            if (IsEmailConfirmed) return;
 
             IsEmailConfirmed = true;
         }
@@ -82,9 +79,7 @@ namespace Matrix.Identity.Domain.Entities
         public void ChangePasswordHash(string newPasswordHash)
         {
             if (string.IsNullOrWhiteSpace(newPasswordHash))
-            {
                 throw DomainErrorsFactory.EmptyPasswordHash(nameof(newPasswordHash));
-            }
 
             PasswordHash = newPasswordHash;
         }
@@ -96,9 +91,9 @@ namespace Matrix.Identity.Domain.Entities
         public bool CanLogin() => !IsLocked;
 
         /// <summary>
-        /// Выпускает новый refresh-токен и добавляет его к пользователю.
-        /// Сам токен (строка) уже должен быть сгенерирован где-то снаружи
-        /// и, по-хорошему, захэширован.
+        ///     Выпускает новый refresh-токен и добавляет его к пользователю.
+        ///     Сам токен (строка) уже должен быть сгенерирован где-то снаружи
+        ///     и, по-хорошему, захэширован.
         /// </summary>
         public RefreshToken IssueRefreshToken(
             string tokenHash,
@@ -106,16 +101,13 @@ namespace Matrix.Identity.Domain.Entities
             DeviceInfo deviceInfo,
             GeoLocation? geoLocation)
         {
-            if (string.IsNullOrWhiteSpace(tokenHash))
-            {
-                throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
-            }
+            if (string.IsNullOrWhiteSpace(tokenHash)) throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
 
             var refreshToken = RefreshToken.Create(
-                tokenHash,
-                expiresAtUtc,
-                deviceInfo,
-                geoLocation);
+                tokenHash: tokenHash,
+                expiresAtUtc: expiresAtUtc,
+                deviceInfo: deviceInfo,
+                geoLocation: geoLocation);
 
             _refreshTokens.Add(refreshToken);
 
@@ -124,24 +116,17 @@ namespace Matrix.Identity.Domain.Entities
 
         public void RevokeRefreshToken(Guid refreshTokenId)
         {
-            var token = _refreshTokens.FirstOrDefault(t => t.Id == refreshTokenId);
-            if (token is null)
-            {
-                return;
-            }
+            RefreshToken? token = _refreshTokens.FirstOrDefault(t => t.Id == refreshTokenId);
+            if (token is null) return;
 
             token.Revoke();
         }
 
         public void RevokeAllRefreshTokens()
         {
-            foreach (var token in _refreshTokens)
-            {
+            foreach (RefreshToken token in _refreshTokens)
                 if (token.IsActive())
-                {
                     token.Revoke();
-                }
-            }
         }
 
         #endregion [ Methods ]

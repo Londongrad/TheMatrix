@@ -1,3 +1,4 @@
+using System.Text;
 using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Economy;
@@ -6,7 +7,6 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
 using Matrix.ApiGateway.DownstreamClients.Population;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace Matrix.ApiGateway.Configurations
 {
@@ -14,8 +14,8 @@ namespace Matrix.ApiGateway.Configurations
     {
         public static void ConfigureApplicationServices(this WebApplicationBuilder builder)
         {
-            var services = builder.Services;
-            var configuration = builder.Configuration;
+            IServiceCollection services = builder.Services;
+            ConfigurationManager configuration = builder.Configuration;
 
             services
                 .AddPresentationLayer()
@@ -34,7 +34,7 @@ namespace Matrix.ApiGateway.Configurations
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("Frontend", policy =>
+                options.AddPolicy(name: "Frontend", configurePolicy: policy =>
                 {
                     policy
                         .WithOrigins("https://localhost:5173")
@@ -46,11 +46,12 @@ namespace Matrix.ApiGateway.Configurations
 
             return services;
         }
+
         private static IServiceCollection AddDownstreamClients(
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var downstream = configuration.GetSection("DownstreamServices");
+            IConfigurationSection downstream = configuration.GetSection("DownstreamServices");
 
             services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>(client =>
             {
@@ -69,8 +70,9 @@ namespace Matrix.ApiGateway.Configurations
 
             // Identity downstream client
             // Общий baseUrl для Identity
-            var identityBaseUrl = downstream["Identity"]
-                ?? throw new InvalidOperationException("DownstreamServices:Identity is not configured.");
+            string identityBaseUrl = downstream["Identity"]
+                                     ?? throw new InvalidOperationException(
+                                         "DownstreamServices:Identity is not configured.");
 
             // Identity Auth client
             services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(client =>
@@ -91,9 +93,9 @@ namespace Matrix.ApiGateway.Configurations
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var jwtSection = configuration.GetSection("Jwt");
-            var jwtOptions = jwtSection.Get<JwtOptions>()
-                             ?? throw new InvalidOperationException("Jwt configuration is missing.");
+            IConfigurationSection jwtSection = configuration.GetSection("Jwt");
+            JwtOptions jwtOptions = jwtSection.Get<JwtOptions>()
+                                    ?? throw new InvalidOperationException("Jwt configuration is missing.");
 
             services
                 .AddAuthentication(options =>

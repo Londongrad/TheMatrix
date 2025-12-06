@@ -1,5 +1,6 @@
 ﻿using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
@@ -9,25 +10,23 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
         IPasswordHasher passwordHasher)
         : IRequestHandler<ChangePasswordCommand>
     {
-        private readonly IUserRepository _userRepository = userRepository;
         private readonly IPasswordHasher _passwordHasher = passwordHasher;
+        private readonly IUserRepository _userRepository = userRepository;
 
         public async Task Handle(
             ChangePasswordCommand request,
             CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken) 
-                ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            User user = await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
+                        ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             // проверяем текущий пароль
-            var isCurrentValid = _passwordHasher.Verify(user.PasswordHash, request.CurrentPassword);
-            if (!isCurrentValid)
-            {
-                throw ApplicationErrorsFactory.InvalidCurrentPassword();
-            }
+            bool isCurrentValid = _passwordHasher.Verify(passwordHash: user.PasswordHash,
+                providedPassword: request.CurrentPassword);
+            if (!isCurrentValid) throw ApplicationErrorsFactory.InvalidCurrentPassword();
 
             // хэшируем новый пароль и сохраняем в домен
-            var newPasswordHash = _passwordHasher.Hash(request.NewPassword);
+            string newPasswordHash = _passwordHasher.Hash(request.NewPassword);
             user.ChangePasswordHash(newPasswordHash);
 
             await _userRepository.SaveChangesAsync(cancellationToken);

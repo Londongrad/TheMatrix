@@ -1,7 +1,8 @@
-﻿using Matrix.BuildingBlocks.Application.Models;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Domain.Entities;
 using MediatR;
 
 namespace Matrix.Population.Application.UseCases.GetCitizenPage
@@ -10,18 +11,16 @@ namespace Matrix.Population.Application.UseCases.GetCitizenPage
         IPersonReadRepository personReadRepository)
         : IRequestHandler<GetCitizensPageQuery, PagedResult<PersonDto>>
     {
-        private readonly IPersonReadRepository _personReadRepository = personReadRepository;
-
         public async Task<PagedResult<PersonDto>> Handle(
             GetCitizensPageQuery request,
             CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request, nameof(request));
+            ArgumentNullException.ThrowIfNull(argument: request);
 
-            var (persons, totalCount) = await _personReadRepository
-                .GetPageAsync(request.Pagination, cancellationToken);
+            (IReadOnlyCollection<Person> persons, int totalCount) = await personReadRepository
+                .GetPageAsync(pagination: request.Pagination, cancellationToken: cancellationToken);
 
-            var dtos = persons.ToDtoCollection();
+            IReadOnlyCollection<PersonDto> dtos = persons.ToDtoCollection();
 
             return new PagedResult<PersonDto>
             (

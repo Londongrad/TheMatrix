@@ -10,18 +10,15 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
         : IPipelineBehavior<TRequest, TResponse>
         where TRequest : notnull
     {
-        private readonly IEnumerable<IValidator<TRequest>> _validators = validators;
         private readonly IValidationExceptionFactory _errorFactory = errorFactory;
+        private readonly IEnumerable<IValidator<TRequest>> _validators = validators;
 
         public async Task<TResponse> Handle(
             TRequest request,
             RequestHandlerDelegate<TResponse> next,
             CancellationToken cancellationToken)
         {
-            if (!_validators.Any())
-            {
-                return await next();
-            }
+            if (!_validators.Any()) return await next();
 
             var context = new ValidationContext<TRequest>(request);
 
@@ -36,10 +33,10 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
                 var errors = failures
                     .GroupBy(f => f.PropertyName)
                     .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(f => f.ErrorMessage).ToArray());
+                        keySelector: g => g.Key,
+                        elementSelector: g => g.Select(f => f.ErrorMessage).ToArray());
 
-                throw _errorFactory.Create(typeof(TRequest), errors);
+                throw _errorFactory.Create(requestType: typeof(TRequest), errors: errors);
             }
 
             return await next();

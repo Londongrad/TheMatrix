@@ -21,15 +21,9 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangeAvatar
 
         private static bool BeValidUrl(string? url)
         {
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                return true; // null/пустая строка допустима (сброс аватара)
-            }
+            if (string.IsNullOrWhiteSpace(url)) return true; // null/пустая строка допустима (сброс аватара)
 
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            {
-                return false;
-            }
+            if (!Uri.TryCreate(uriString: url, uriKind: UriKind.Absolute, result: out Uri? uri)) return false;
 
             // вариант 1: через Uri.* (обычные сравнения)
             return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;

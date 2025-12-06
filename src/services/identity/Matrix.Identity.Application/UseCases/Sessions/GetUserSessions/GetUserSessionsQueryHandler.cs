@@ -1,12 +1,13 @@
 ﻿using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Sessions.GetUserSessions
 {
     public sealed class GetUserSessionsQueryHandler(
-    IUserRepository userRepository)
-    : IRequestHandler<GetUserSessionsQuery, IReadOnlyCollection<UserSessionResult>>
+        IUserRepository userRepository)
+        : IRequestHandler<GetUserSessionsQuery, IReadOnlyCollection<UserSessionResult>>
     {
         private readonly IUserRepository _userRepository = userRepository;
 
@@ -14,10 +15,10 @@ namespace Matrix.Identity.Application.UseCases.Sessions.GetUserSessions
             GetUserSessionsQuery request,
             CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken)
-                ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            User user = await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
+                        ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
-            var sessions = user.RefreshTokens
+            UserSessionResult[] sessions = user.RefreshTokens
                 .OrderByDescending(t => t.CreatedAtUtc)
                 .Select(t => new UserSessionResult
                 {

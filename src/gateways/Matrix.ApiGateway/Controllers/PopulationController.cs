@@ -14,10 +14,10 @@ namespace Matrix.ApiGateway.Controllers
         private readonly IPopulationApiClient _populationClient = populationClient;
 
         /// <summary>
-        /// Инициализировать популяцию через gateway.
+        ///     Инициализировать популяцию через gateway.
         /// </summary>
         /// <remarks>
-        /// Проксирует вызов в Population API: POST /api/population/init
+        ///     Проксирует вызов в Population API: POST /api/population/init
         /// </remarks>
         [HttpPost("init")]
         public async Task<IActionResult> InitializePopulation(
@@ -26,25 +26,25 @@ namespace Matrix.ApiGateway.Controllers
             CancellationToken cancellationToken = default)
         {
             await _populationClient.InitializePopulationAsync(
-                peopleCount,
-                randomSeed,
-                cancellationToken);
+                peopleCount: peopleCount,
+                randomSeed: randomSeed,
+                cancellationToken: cancellationToken);
 
             return Accepted(new { message = "Population initialization started." });
         }
 
         /// <summary>
-        /// Убить гражданина по ID.
+        ///     Убить гражданина по ID.
         /// </summary>
         /// <remarks>
-        /// Проксирует вызов в Population API: POST /api/population/{id}/kill
+        ///     Проксирует вызов в Population API: POST /api/population/{id}/kill
         /// </remarks>
         [HttpPost("{id:guid}/kill")]
         public async Task<IActionResult> KillPerson(
             Guid id,
             CancellationToken cancellationToken = default)
         {
-            PersonDto person = await _populationClient.KillPersonAsync(id, cancellationToken);
+            PersonDto person = await _populationClient.KillPersonAsync(id: id, cancellationToken: cancellationToken);
             return Ok(person);
         }
 
@@ -53,7 +53,8 @@ namespace Matrix.ApiGateway.Controllers
             Guid id,
             CancellationToken cancellationToken = default)
         {
-            PersonDto person = await _populationClient.ResurrectPersonAsync(id, cancellationToken);
+            PersonDto person =
+                await _populationClient.ResurrectPersonAsync(id: id, cancellationToken: cancellationToken);
             return Ok(person);
         }
 
@@ -63,38 +64,40 @@ namespace Matrix.ApiGateway.Controllers
             [FromBody] UpdatePersonRequest request,
             CancellationToken cancellationToken = default)
         {
-            PersonDto person = await _populationClient.UpdatePersonAsync(id, request, cancellationToken);
+            PersonDto person =
+                await _populationClient.UpdatePersonAsync(id: id, request: request,
+                    cancellationToken: cancellationToken);
             return Ok(person);
         }
 
         /// <summary>
-        /// Получить страницу граждан.
+        ///     Получить страницу граждан.
         /// </summary>
         /// <remarks>
-        /// Проксирует вызов в Population API: GET /api/population/citizens?pageNumber=&pageSize=
+        ///     Проксирует вызов в Population API: GET /api/population/citizens?pageNumber=&pageSize=
         /// </remarks>
         [HttpGet("citizens")]
-        [ProducesResponseType(typeof(PagedResult<PersonDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(type: typeof(PagedResult<PersonDto>), statusCode: StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 100,
             CancellationToken cancellationToken = default)
         {
-            var result = await _populationClient.GetCitizensPageAsync(
-                pageNumber,
-                pageSize,
-                cancellationToken);
+            PagedResult<PersonDto> result = await _populationClient.GetCitizensPageAsync(
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
 
         /// <summary>
-        /// Health-check Population через Gateway.
+        ///     Health-check Population через Gateway.
         /// </summary>
         [HttpGet("health")]
         public async Task<IActionResult> Health(CancellationToken cancellationToken)
         {
-            var isHealthy = await _populationClient.HealthAsync(cancellationToken);
+            bool isHealthy = await _populationClient.HealthAsync(cancellationToken);
 
             return Ok(new { status = isHealthy ? "ok" : "degraded" });
         }

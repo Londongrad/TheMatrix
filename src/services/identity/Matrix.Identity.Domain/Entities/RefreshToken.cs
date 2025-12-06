@@ -5,12 +5,31 @@ namespace Matrix.Identity.Domain.Entities
 {
     public sealed class RefreshToken
     {
+        #region [ Factory Methods ]
+
+        public static RefreshToken Create(
+            string tokenHash,
+            DateTime expiresAtUtc,
+            DeviceInfo deviceInfo,
+            GeoLocation? geoLocation)
+        {
+            RefreshTokenRules.Validate(expiresAtUtc);
+
+            return new RefreshToken(
+                tokenHash: tokenHash,
+                expiresAtUtc: expiresAtUtc,
+                deviceInfo: deviceInfo,
+                geoLocation: geoLocation);
+        }
+
+        #endregion [ Factory Methods ]
+
         #region [ Properties ]
 
         public Guid Id { get; private set; }
         public string TokenHash { get; private set; } = null!;
         public DateTime CreatedAtUtc { get; private set; }
-        public DateTime ExpiresAtUtc { get; private set; }
+        public DateTime ExpiresAtUtc { get; }
         public bool IsRevoked { get; private set; }
 
         public DeviceInfo DeviceInfo { get; private set; } = null!;
@@ -21,7 +40,9 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Constructors ]
 
-        private RefreshToken() { }
+        private RefreshToken()
+        {
+        }
 
         private RefreshToken(
             string tokenHash,
@@ -40,25 +61,6 @@ namespace Matrix.Identity.Domain.Entities
         }
 
         #endregion [ Constructors ]
-
-        #region [ Factory Methods ]
-
-        public static RefreshToken Create(
-            string tokenHash,
-            DateTime expiresAtUtc,
-            DeviceInfo deviceInfo,
-            GeoLocation? geoLocation)
-        {
-            RefreshTokenRules.Validate(expiresAtUtc);
-
-            return new RefreshToken(
-                tokenHash,
-                expiresAtUtc,
-                deviceInfo,
-                geoLocation);
-        }
-
-        #endregion [ Factory Methods ]
 
         #region [ Methods ]
 

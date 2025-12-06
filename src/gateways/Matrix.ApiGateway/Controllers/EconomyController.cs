@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Controllers
@@ -12,7 +13,7 @@ namespace Matrix.ApiGateway.Controllers
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
         {
-            var summary = await _economyClient.GetSummaryAsync(cancellationToken);
+            EconomySummaryDto? summary = await _economyClient.GetSummaryAsync(cancellationToken);
 
             if (summary is null)
                 return StatusCode(StatusCodes.Status502BadGateway);
@@ -24,7 +25,7 @@ namespace Matrix.ApiGateway.Controllers
         [HttpGet("health")]
         public async Task<IActionResult> Health(CancellationToken cancellationToken)
         {
-            var isHealthy = await _economyClient.HealthAsync(cancellationToken);
+            bool isHealthy = await _economyClient.HealthAsync(cancellationToken);
             return Ok(new { status = isHealthy ? "ok" : "degraded" });
         }
     }

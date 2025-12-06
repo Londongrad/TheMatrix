@@ -6,14 +6,16 @@ namespace Matrix.Population.Domain.ValueObjects
 {
     public sealed class EducationInfo
     {
-        public EducationLevel Level { get; }
-
-        private EducationInfo() { }
+        private EducationInfo()
+        {
+        }
 
         private EducationInfo(EducationLevel level)
         {
-            Level = GuardHelper.AgainstInvalidEnum(level, nameof(level));
+            Level = GuardHelper.AgainstInvalidEnum(value: level, propertyName: nameof(level));
         }
+
+        public EducationLevel Level { get; }
 
         public static EducationInfo FromLevel(EducationLevel level) =>
             new(level);
@@ -23,7 +25,7 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public EducationInfo GraduateTo(EducationLevel newLevel)
         {
-            EducationRules.ValidateTransition(Level, newLevel);
+            EducationRules.ValidateTransition(from: Level, to: newLevel);
             return new EducationInfo(newLevel);
         }
     }

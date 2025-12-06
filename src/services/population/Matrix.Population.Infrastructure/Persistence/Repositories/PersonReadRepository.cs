@@ -22,18 +22,18 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
         {
             return await _dbContext
                 .Persons
-                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(predicate: p => p.Id == id, cancellationToken: cancellationToken);
         }
 
         public async Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(
             Pagination pagination,
             CancellationToken cancellationToken = default)
         {
-            var query = _dbContext.Persons.AsNoTracking();
+            IQueryable<Person> query = _dbContext.Persons.AsNoTracking();
 
             int totalCount = await query.CountAsync(cancellationToken);
 
-            var items = await query
+            List<Person> items = await query
                 .OrderBy(p => p.Id)
                 .Skip(pagination.Skip)
                 .Take(pagination.PageSize)

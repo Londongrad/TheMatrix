@@ -23,23 +23,23 @@ namespace Matrix.Population.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             await _sender.Send(
-                new InitializePopulationCommand(peopleCount, randomSeed),
-                cancellationToken);
+                request: new InitializePopulationCommand(PeopleCount: peopleCount, RandomSeed: randomSeed),
+                cancellationToken: cancellationToken);
 
             return NoContent();
         }
 
         [HttpGet("citizens")]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
-           [FromQuery] int pageNumber = 1,
-           [FromQuery] int pageSize = 100,
-           CancellationToken cancellationToken = default)
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 100,
+            CancellationToken cancellationToken = default)
         {
-            var pagination = new Pagination(pageNumber, pageSize);
+            var pagination = new Pagination(pageNumber: pageNumber, pageSize: pageSize);
 
             var query = new GetCitizensPageQuery(pagination);
 
-            PagedResult<PersonDto> result = await _sender.Send(query, cancellationToken);
+            PagedResult<PersonDto> result = await _sender.Send(request: query, cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -50,8 +50,8 @@ namespace Matrix.Population.Api.Controllers
             [FromBody] UpdatePersonRequest request,
             CancellationToken cancellationToken = default)
         {
-            var cmd = new UpdatePersonCommand(id, request);
-            var person = await _sender.Send(cmd, cancellationToken);
+            var cmd = new UpdatePersonCommand(Id: id, Changes: request);
+            PersonDto person = await _sender.Send(request: cmd, cancellationToken: cancellationToken);
             return Ok(person);
         }
 
@@ -61,8 +61,8 @@ namespace Matrix.Population.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             PersonDto person = await _sender.Send(
-                new ResurrectPersonCommand(id),
-                cancellationToken);
+                request: new ResurrectPersonCommand(id),
+                cancellationToken: cancellationToken);
 
             return Ok(person);
         }
@@ -73,8 +73,8 @@ namespace Matrix.Population.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             PersonDto person = await _sender.Send(
-                new KillPersonCommand(id),
-                cancellationToken);
+                request: new KillPersonCommand(id),
+                cancellationToken: cancellationToken);
 
             return Ok(person);
         }

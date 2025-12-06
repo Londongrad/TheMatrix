@@ -1,8 +1,8 @@
 ﻿namespace Matrix.Population.Domain.Rules
 {
     /// <summary>
-    /// Базовые изменения уровня счастья при разных жизненных событиях.
-    /// Это "сырые" дельты, которые потом модифицируются Personality.
+    ///     Базовые изменения уровня счастья при разных жизненных событиях.
+    ///     Это "сырые" дельты, которые потом модифицируются Personality.
     /// </summary>
     public static class PersonHappinessDeltas
     {

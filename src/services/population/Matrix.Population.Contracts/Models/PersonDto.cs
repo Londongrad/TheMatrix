@@ -2,7 +2,6 @@
 {
     public sealed record class PersonDto(
         Guid Id,
-
         string FullName,
         string Sex,
         string BirthDate,
@@ -15,5 +14,5 @@
         int Happiness,
         string EmploymentStatus,
         string? JobTitle
-        );
+    );
 }

@@ -16,7 +16,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                 .ValueGeneratedNever();
 
             // Email (Value Object)
-            builder.OwnsOne(u => u.Email, email =>
+            builder.OwnsOne(navigationExpression: u => u.Email, buildAction: email =>
             {
                 email.Property(e => e.Value)
                     .HasColumnName("Email")
@@ -28,7 +28,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             });
 
             // Username (Value Object)
-            builder.OwnsOne(u => u.Username, username =>
+            builder.OwnsOne(navigationExpression: u => u.Username, buildAction: username =>
             {
                 username.Property(x => x.Value)
                     .HasColumnName("Username")
@@ -55,7 +55,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             // RefreshTokens как owned-коллекция
-            builder.OwnsMany(u => u.RefreshTokens, token =>
+            builder.OwnsMany(navigationExpression: u => u.RefreshTokens, buildAction: token =>
             {
                 token.ToTable("UserRefreshTokens");
 
@@ -85,7 +85,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                 token.HasIndex(t => t.TokenHash);
 
                 // DeviceInfo (Value Object внутри refresh-токена)
-                token.OwnsOne(t => t.DeviceInfo, device =>
+                token.OwnsOne(navigationExpression: t => t.DeviceInfo, buildAction: device =>
                 {
                     device.Property(d => d.DeviceId)
                         .HasColumnName("DeviceId")
@@ -108,7 +108,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                 });
 
                 // GeoLocation (Value Object внутри refresh-токена)
-                token.OwnsOne(t => t.GeoLocation, geo =>
+                token.OwnsOne(navigationExpression: t => t.GeoLocation, buildAction: geo =>
                 {
                     geo.Property(g => g.Country)
                         .HasColumnName("Country")

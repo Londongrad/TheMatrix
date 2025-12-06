@@ -7,8 +7,8 @@ namespace Matrix.Population.Api.Configurations
     {
         public static void ConfigureApplicationServices(this WebApplicationBuilder builder)
         {
-            var services = builder.Services;
-            var configuration = builder.Configuration;
+            IServiceCollection services = builder.Services;
+            ConfigurationManager configuration = builder.Configuration;
 
             builder.Services.AddControllers();
 

@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Matrix.Identity.Api.Contracts.Requests;
 using Matrix.Identity.Api.Contracts.Responses;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
@@ -10,8 +12,6 @@ using Matrix.Identity.Application.UseCases.Sessions.RevokeUserSession;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace Matrix.Identity.Api.Controllers
 {
@@ -21,6 +21,40 @@ namespace Matrix.Identity.Api.Controllers
     {
         private readonly ISender _sender = sender;
 
+        #region [ Me ]
+
+        [Authorize]
+        [HttpGet("me")]
+        public ActionResult<MeResponse> Me()
+        {
+            Claim? userIdClaim =
+                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                User.FindFirst(ClaimTypes.NameIdentifier);
+
+            Claim? emailClaim =
+                User.FindFirst(JwtRegisteredClaimNames.Email) ??
+                User.FindFirst(ClaimTypes.Email);
+
+            Claim? usernameClaim =
+                User.FindFirst(JwtRegisteredClaimNames.UniqueName) ??
+                User.FindFirst(ClaimTypes.Name);
+
+            if (userIdClaim is null || emailClaim is null || usernameClaim is null) return Unauthorized();
+
+            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return Unauthorized();
+
+            var response = new MeResponse
+            {
+                UserId = userId,
+                Email = emailClaim.Value,
+                Username = usernameClaim.Value
+            };
+
+            return Ok(response);
+        }
+
+        #endregion [ Me ]
+
         #region [ Register & Login ]
 
         [AllowAnonymous]
@@ -29,19 +63,16 @@ namespace Matrix.Identity.Api.Controllers
             [FromBody] RegisterRequest request,
             CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid)
-            {
-                return ValidationProblem(ModelState);
-            }
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
             var command = new RegisterUserCommand(
-                request.Email,
-                request.Username,
-                request.Password,
-                request.ConfirmPassword
+                Email: request.Email,
+                Username: request.Username,
+                Password: request.Password,
+                ConfirmPassword: request.ConfirmPassword
             );
 
-            var result = await _sender.Send(command, cancellationToken);
+            RegisterUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             var response = new RegisterResponse
             {
@@ -59,25 +90,22 @@ namespace Matrix.Identity.Api.Controllers
             [FromBody] LoginRequest request,
             CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid)
-            {
-                return ValidationProblem(ModelState);
-            }
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
             // берём user-agent и ip из HTTP-контекста
-            var userAgent = Request.Headers.UserAgent.ToString();
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string userAgent = Request.Headers.UserAgent.ToString();
+            string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
             var command = new LoginUserCommand(
-                request.Login,
-                request.Password,
-                request.DeviceId,
-                request.DeviceName,
-                userAgent,
-                ipAddress
+                Login: request.Login,
+                Password: request.Password,
+                DeviceId: request.DeviceId,
+                DeviceName: request.DeviceName,
+                UserAgent: userAgent,
+                IpAddress: ipAddress
             );
 
-            var result = await _sender.Send(command, cancellationToken);
+            LoginUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             var response = new LoginResponse
             {
@@ -101,17 +129,17 @@ namespace Matrix.Identity.Api.Controllers
             [FromBody] RefreshRequest request,
             CancellationToken cancellationToken)
         {
-            var userAgent = Request.Headers.UserAgent.ToString();
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string userAgent = Request.Headers.UserAgent.ToString();
+            string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
             var command = new RefreshTokenCommand(
-                request.RefreshToken,
-                request.DeviceId,
-                userAgent,
-                ipAddress
+                RefreshToken: request.RefreshToken,
+                DeviceId: request.DeviceId,
+                UserAgent: userAgent,
+                IpAddress: ipAddress
             );
 
-            var result = await _sender.Send(command, cancellationToken);
+            LoginUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             var response = new LoginResponse
             {
@@ -132,7 +160,7 @@ namespace Matrix.Identity.Api.Controllers
             CancellationToken cancellationToken)
         {
             var command = new RevokeRefreshTokenCommand(request.RefreshToken);
-            await _sender.Send(command, cancellationToken);
+            await _sender.Send(request: command, cancellationToken: cancellationToken);
             return NoContent();
         }
 
@@ -145,18 +173,17 @@ namespace Matrix.Identity.Api.Controllers
         public async Task<ActionResult<List<SessionResponse>>> GetSessions(
             CancellationToken cancellationToken)
         {
-            var userIdClaim =
+            Claim? userIdClaim =
                 User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (userIdClaim is null || !Guid.TryParse(userIdClaim.Value, out var userId))
-            {
+            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
                 return Unauthorized();
-            }
 
             var query = new GetUserSessionsQuery(userId);
 
-            var sessions = await _sender.Send(query, cancellationToken);
+            IReadOnlyCollection<UserSessionResult> sessions =
+                await _sender.Send(request: query, cancellationToken: cancellationToken);
 
             var response = sessions
                 .Select(s => new SessionResponse
@@ -184,18 +211,16 @@ namespace Matrix.Identity.Api.Controllers
             Guid sessionId,
             CancellationToken cancellationToken)
         {
-            var userIdClaim =
+            Claim? userIdClaim =
                 User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (userIdClaim is null || !Guid.TryParse(userIdClaim.Value, out var userId))
-            {
+            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
                 return Unauthorized();
-            }
 
-            var command = new RevokeUserSessionCommand(userId, sessionId);
+            var command = new RevokeUserSessionCommand(UserId: userId, SessionId: sessionId);
 
-            await _sender.Send(command, cancellationToken);
+            await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             // Даже если sessionId не нашёлся – всё равно 204, запрос идемпотентный
             return NoContent();
@@ -206,63 +231,21 @@ namespace Matrix.Identity.Api.Controllers
         public async Task<IActionResult> RevokeAllSessions(
             CancellationToken cancellationToken)
         {
-            var userIdClaim =
+            Claim? userIdClaim =
                 User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (userIdClaim is null || !Guid.TryParse(userIdClaim.Value, out var userId))
-            {
+            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
                 return Unauthorized();
-            }
 
             var command = new RevokeAllUserSessionsCommand(userId);
 
-            await _sender.Send(command, cancellationToken);
+            await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             // Idempotent: даже если все токены уже были отозваны, просто возвращаем 204
             return NoContent();
         }
 
         #endregion [ Sessions ]
-
-        #region [ Me ]
-
-        [Authorize]
-        [HttpGet("me")]
-        public ActionResult<MeResponse> Me()
-        {
-            var userIdClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirst(ClaimTypes.NameIdentifier);
-
-            var emailClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Email) ??
-                User.FindFirst(ClaimTypes.Email);
-
-            var usernameClaim =
-                User.FindFirst(JwtRegisteredClaimNames.UniqueName) ??
-                User.FindFirst(ClaimTypes.Name);
-
-            if (userIdClaim is null || emailClaim is null || usernameClaim is null)
-            {
-                return Unauthorized();
-            }
-
-            if (!Guid.TryParse(userIdClaim.Value, out var userId))
-            {
-                return Unauthorized();
-            }
-
-            var response = new MeResponse
-            {
-                UserId = userId,
-                Email = emailClaim.Value,
-                Username = usernameClaim.Value
-            };
-
-            return Ok(response);
-        }
-
-        #endregion [ Me ]
     }
 }

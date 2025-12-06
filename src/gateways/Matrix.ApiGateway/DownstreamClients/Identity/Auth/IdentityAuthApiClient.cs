@@ -4,8 +4,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
 {
     public sealed class IdentityAuthApiClient(HttpClient httpClient) : IIdentityAuthClient
     {
-        private readonly HttpClient _httpClient = httpClient;
-
         private const string RegisterEndpoint = "api/auth/register";
         private const string LoginEndpoint = "api/auth/login";
 
@@ -13,58 +11,49 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
         private const string RefreshEndpoint = "api/auth/refresh";
 
         private const string SessionsEndpoint = "api/auth/sessions";
+        private readonly HttpClient _httpClient = httpClient;
 
-        public async Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
-        {
-            return await _httpClient.PostAsJsonAsync(RegisterEndpoint, request, ct);
-        }
+        public async Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken ct = default) =>
+            await _httpClient.PostAsJsonAsync(requestUri: RegisterEndpoint, value: request, cancellationToken: ct);
 
-        public async Task<HttpResponseMessage> LoginAsync(LoginRequest request, CancellationToken ct = default)
-        {
-            return await _httpClient.PostAsJsonAsync(LoginEndpoint, request, ct);
-        }
+        public async Task<HttpResponseMessage> LoginAsync(LoginRequest request, CancellationToken ct = default) =>
+            await _httpClient.PostAsJsonAsync(requestUri: LoginEndpoint, value: request, cancellationToken: ct);
 
-        public async Task<HttpResponseMessage> RefreshAsync(RefreshRequest request, CancellationToken ct = default)
-        {
-            return await _httpClient.PostAsJsonAsync(RefreshEndpoint, request, ct);
-        }
+        public async Task<HttpResponseMessage> RefreshAsync(RefreshRequest request, CancellationToken ct = default) =>
+            await _httpClient.PostAsJsonAsync(requestUri: RefreshEndpoint, value: request, cancellationToken: ct);
 
-        public async Task LogoutAsync(RefreshRequest request, CancellationToken ct = default)
-        {
-            await _httpClient.PostAsJsonAsync(LogoutEndpoint, request, ct);
-        }
+        public async Task LogoutAsync(RefreshRequest request, CancellationToken ct = default) =>
+            await _httpClient.PostAsJsonAsync(requestUri: LogoutEndpoint, value: request, cancellationToken: ct);
 
-        public async Task<HttpResponseMessage> GetSessionsAsync(string authorizationHeader, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> GetSessionsAsync(string authorizationHeader,
+            CancellationToken ct = default)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, SessionsEndpoint);
+            using var request = new HttpRequestMessage(method: HttpMethod.Get, requestUri: SessionsEndpoint);
             if (!string.IsNullOrWhiteSpace(authorizationHeader))
-            {
-                request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
-            }
+                request.Headers.TryAddWithoutValidation(name: "Authorization", value: authorizationHeader);
 
-            return await _httpClient.SendAsync(request, ct);
+            return await _httpClient.SendAsync(request: request, cancellationToken: ct);
         }
 
-        public async Task<HttpResponseMessage> RevokeSessionAsync(string authorizationHeader, Guid sessionId, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> RevokeSessionAsync(string authorizationHeader, Guid sessionId,
+            CancellationToken ct = default)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Delete, $"{SessionsEndpoint}/{sessionId}");
+            using var request =
+                new HttpRequestMessage(method: HttpMethod.Delete, requestUri: $"{SessionsEndpoint}/{sessionId}");
             if (!string.IsNullOrWhiteSpace(authorizationHeader))
-            {
-                request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
-            }
+                request.Headers.TryAddWithoutValidation(name: "Authorization", value: authorizationHeader);
 
-            return await _httpClient.SendAsync(request, ct);
+            return await _httpClient.SendAsync(request: request, cancellationToken: ct);
         }
 
-        public async Task<HttpResponseMessage> RevokeAllSessionsAsync(string authorizationHeader, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> RevokeAllSessionsAsync(string authorizationHeader,
+            CancellationToken ct = default)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Delete, SessionsEndpoint);
+            using var request = new HttpRequestMessage(method: HttpMethod.Delete, requestUri: SessionsEndpoint);
             if (!string.IsNullOrWhiteSpace(authorizationHeader))
-            {
-                request.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
-            }
+                request.Headers.TryAddWithoutValidation(name: "Authorization", value: authorizationHeader);
 
-            return await _httpClient.SendAsync(request, ct);
+            return await _httpClient.SendAsync(request: request, cancellationToken: ct);
         }
     }
 }

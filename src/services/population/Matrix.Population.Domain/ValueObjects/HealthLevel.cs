@@ -7,12 +7,13 @@ namespace Matrix.Population.Domain.ValueObjects
         public const int MinHealth = 0;
         public const int MaxHealth = 100;
 
-        public int Value { get; }
-
         public HealthLevel(int value)
         {
-            Value = GuardHelper.AgainstOutOfRange(value, MinHealth, MaxHealth, nameof(HealthLevel));
+            Value = GuardHelper.AgainstOutOfRange(value: value, min: MinHealth, max: MaxHealth,
+                propertyName: nameof(HealthLevel));
         }
+
+        public int Value { get; }
 
         public static HealthLevel From(int value) => new(value);
 
@@ -20,7 +21,7 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public HealthLevel WithDelta(int delta)
         {
-            var newValue = Math.Clamp(Value + delta, MinHealth, MaxHealth);
+            int newValue = Math.Clamp(value: Value + delta, min: MinHealth, max: MaxHealth);
             return new HealthLevel(newValue);
         }
     }

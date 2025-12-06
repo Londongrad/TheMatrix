@@ -11,7 +11,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
         Task LogoutAsync(RefreshRequest request, CancellationToken ct = default);
 
         Task<HttpResponseMessage> GetSessionsAsync(string authorizationHeader, CancellationToken ct = default);
-        Task<HttpResponseMessage> RevokeSessionAsync(string authorizationHeader, Guid sessionId, CancellationToken ct = default);
+
+        Task<HttpResponseMessage> RevokeSessionAsync(string authorizationHeader, Guid sessionId,
+            CancellationToken ct = default);
+
         Task<HttpResponseMessage> RevokeAllSessionsAsync(string authorizationHeader, CancellationToken ct = default);
     }
 }

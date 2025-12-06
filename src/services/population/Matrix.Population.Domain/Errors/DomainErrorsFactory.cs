@@ -6,6 +6,16 @@ namespace Matrix.Population.Domain.Errors
 {
     public static class DomainErrorsFactory
     {
+        #region [ Person - Name ]
+
+        public static DomainException InvalidFullName(string? propertyName = null)
+            => new(
+                code: "Population.Person.Name.InvalidFullName",
+                message: "Full name must consist of first name, last name, and optional patronymic.",
+                propertyName: propertyName);
+
+        #endregion [ Person - Name ]
+
         #region [ Person - Life ]
 
         public static DomainException PersonAlreadyDead(string? propertyName = null) =>
@@ -250,13 +260,15 @@ namespace Matrix.Population.Domain.Errors
                 message: $"Person '{personId}' cannot divorce themselves.",
                 propertyName: propertyName);
 
-        public static DomainException PersonTooYoungToMarry(PersonId personId, int ageYears, string? propertyName = null)
+        public static DomainException PersonTooYoungToMarry(PersonId personId, int ageYears,
+            string? propertyName = null)
             => new(
                 code: "Population.Person.Marital.PersonTooYoung",
-                message: $"Person '{personId}' is too young to marry (age: {ageYears}).", 
+                message: $"Person '{personId}' is too young to marry (age: {ageYears}).",
                 propertyName: propertyName);
 
-        public static DomainException SpouseTooYoungToMarry(PersonId spouseId, int ageYears, string? propertyName = null)
+        public static DomainException SpouseTooYoungToMarry(PersonId spouseId, int ageYears,
+            string? propertyName = null)
             => new(
                 code: "Population.Person.Marital.SpouseTooYoung",
                 message: $"Spouse '{spouseId}' is too young to marry (age: {ageYears}).",
@@ -321,15 +333,5 @@ namespace Matrix.Population.Domain.Errors
                 propertyName: propertyName);
 
         #endregion [ Person - Age ]
-
-        #region [ Person - Name ]
-
-        public static DomainException InvalidFullName(string? propertyName = null)
-            => new(
-                code: "Population.Person.Name.InvalidFullName",
-                message: "Full name must consist of first name, last name, and optional patronymic.",
-                propertyName: propertyName);
-
-        #endregion [ Person - Name ]
     }
 }

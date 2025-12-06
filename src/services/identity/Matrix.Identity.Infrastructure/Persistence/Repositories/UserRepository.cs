@@ -13,8 +13,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             return await _dbContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(
-                    u => u.Id == id,
-                    ct);
+                    predicate: u => u.Id == id,
+                    cancellationToken: ct);
         }
 
         public async Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
@@ -22,29 +22,29 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             return await _dbContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(
-                    u => u.Email.Value == email,
-                    ct);
+                    predicate: u => u.Email.Value == email,
+                    cancellationToken: ct);
         }
 
         public async Task<bool> IsEmailTakenAsync(string email, CancellationToken ct = default)
         {
             return await _dbContext.Users
-                .AnyAsync(u => u.Email.Value == email, ct);
+                .AnyAsync(predicate: u => u.Email.Value == email, cancellationToken: ct);
         }
 
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default)
         {
             return await _dbContext.Users
-               .Include(u => u.RefreshTokens)
-               .FirstOrDefaultAsync(
-                   u => u.Username.Value == username,
-                   ct);
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(
+                    predicate: u => u.Username.Value == username,
+                    cancellationToken: ct);
         }
 
         public async Task<bool> IsUsernameTakenAsync(string username, CancellationToken ct = default)
         {
             return await _dbContext.Users
-                .AnyAsync(u => u.Username.Value == username, ct);
+                .AnyAsync(predicate: u => u.Username.Value == username, cancellationToken: ct);
         }
 
         public async Task<User?> GetByRefreshTokenHashAsync(string tokenHash, CancellationToken ct = default)
@@ -52,14 +52,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             return await _dbContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(
-                    u => u.RefreshTokens.Any(t => t.TokenHash == tokenHash),
-                    ct);
+                    predicate: u => u.RefreshTokens.Any(t => t.TokenHash == tokenHash),
+                    cancellationToken: ct);
         }
 
-        public async Task AddAsync(User user, CancellationToken ct = default)
-        {
-            await _dbContext.Users.AddAsync(user, ct);
-        }
+        public async Task AddAsync(User user, CancellationToken ct = default) =>
+            await _dbContext.Users.AddAsync(entity: user, cancellationToken: ct);
 
         public Task DeleteAsync(User user, CancellationToken ct = default)
         {
@@ -73,9 +71,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             return Task.CompletedTask;
         }
 
-        public async Task SaveChangesAsync(CancellationToken ct = default)
-        {
-            await _dbContext.SaveChangesAsync(ct);
-        }
+        public async Task SaveChangesAsync(CancellationToken ct = default) => await _dbContext.SaveChangesAsync(ct);
     }
 }

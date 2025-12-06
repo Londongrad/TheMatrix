@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Reflection;
+using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
 using Matrix.Identity.Application.Errors;
@@ -11,20 +12,19 @@ namespace Matrix.Identity.Application
     {
         public static void AddApplication(this IServiceCollection services)
         {
-            var assembly = typeof(DependencyInjection).Assembly;
+            Assembly assembly = typeof(DependencyInjection).Assembly;
 
-            services.AddMediatR(cfg =>
-            {
-                cfg.RegisterServicesFromAssembly(assembly);
-            });
+            services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
 
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped<IValidationExceptionFactory, IdentityValidationErrorFactory>();
 
             // Behaviors (используем общие из BuildingBlocks)ors
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            services.AddTransient(serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(LoggingBehavior<,>));
+            services.AddTransient(serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(ValidationBehavior<,>));
         }
     }
 }

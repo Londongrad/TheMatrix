@@ -6,16 +6,13 @@ namespace Matrix.Identity.Domain.Rules
     {
         public static string Validate(string username)
         {
-            var normalizedUsername = username.Trim().ToLowerInvariant();
+            string normalizedUsername = username.Trim().ToLowerInvariant();
 
             if (string.IsNullOrWhiteSpace(normalizedUsername))
-            {
                 throw DomainErrorsFactory.EmptyUsername(nameof(username));
-            }
             if (normalizedUsername.Length is < 3 or > 32)
-            {
-                throw DomainErrorsFactory.InvalidUsernameLength(normalizedUsername.Length, nameof(username));
-            }
+                throw DomainErrorsFactory.InvalidUsernameLength(actualLength: normalizedUsername.Length,
+                    propertyName: nameof(username));
 
             return normalizedUsername;
         }

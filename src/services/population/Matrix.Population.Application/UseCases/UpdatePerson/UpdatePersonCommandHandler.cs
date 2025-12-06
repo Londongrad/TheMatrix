@@ -18,17 +18,19 @@ namespace Matrix.Population.Application.UseCases.UpdatePerson
         {
             ArgumentNullException.ThrowIfNull(request.Changes);
 
-            var person = await personReadRepository.FindByIdAsync(PersonId.From(request.Id), cancellationToken) 
+            Person person =
+                await personReadRepository.FindByIdAsync(id: PersonId.From(request.Id),
+                    cancellationToken: cancellationToken)
                 ?? throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
             // TODO: получать дату извне
             var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            ApplyBasicInfo(person, request.Changes);
-            ApplyEmployment(person, request.Changes, currentDate);
-            ApplyHappiness(person, request.Changes);
+            ApplyBasicInfo(person: person, changes: request.Changes);
+            ApplyEmployment(person: person, changes: request.Changes, currentDate: currentDate);
+            ApplyHappiness(person: person, changes: request.Changes);
 
-            await personWriteRepository.UpdateAsync(person, cancellationToken);
+            await personWriteRepository.UpdateAsync(person: person, cancellationToken: cancellationToken);
             await personWriteRepository.SaveChangesAsync(cancellationToken);
             return person.ToDto();
         }
@@ -43,15 +45,17 @@ namespace Matrix.Population.Application.UseCases.UpdatePerson
 
             if (changes.MaritalStatus is not null)
             {
-                var maritalStatus
-                    = GuardHelper.AgainstInvalidStringToEnum<MaritalStatus>(changes.MaritalStatus, nameof(changes.MaritalStatus));
+                MaritalStatus maritalStatus
+                    = GuardHelper.AgainstInvalidStringToEnum<MaritalStatus>(value: changes.MaritalStatus,
+                        propertyName: nameof(changes.MaritalStatus));
                 person.ChangeMaritalStatus(maritalStatus);
             }
 
             if (changes.EducationLevel is not null)
             {
-                var educationLevel
-                    = GuardHelper.AgainstInvalidStringToEnum<EducationLevel>(changes.EducationLevel, nameof(changes.EducationLevel));
+                EducationLevel educationLevel
+                    = GuardHelper.AgainstInvalidStringToEnum<EducationLevel>(value: changes.EducationLevel,
+                        propertyName: nameof(changes.EducationLevel));
                 person.SetEducationLevel(educationLevel);
             }
         }
@@ -61,21 +65,20 @@ namespace Matrix.Population.Application.UseCases.UpdatePerson
             UpdatePersonRequest changes,
             DateOnly currentDate)
         {
-            if (changes.EmploymentStatus is null && changes.JobTitle is null)
-            {
-                return;
-            }
+            if (changes.EmploymentStatus is null && changes.JobTitle is null) return;
 
-            var employmentStatus 
-                = GuardHelper.AgainstInvalidStringToEnum<EmploymentStatus>(changes.EmploymentStatus!, nameof(changes.EmploymentStatus));
+            EmploymentStatus employmentStatus
+                = GuardHelper.AgainstInvalidStringToEnum<EmploymentStatus>(value: changes.EmploymentStatus!,
+                    propertyName: nameof(changes.EmploymentStatus));
 
             if (changes.EmploymentStatus is "Employed" && changes.JobTitle is not null)
             {
                 // TODO: Заменить на реальный id работы
-                var job = new Job(WorkplaceId.New(), changes.JobTitle!);
+                var job = new Job(workplaceId: WorkplaceId.New(), title: changes.JobTitle!);
                 person.SetEmploymentStatus(currentDate, employmentStatus, job);
                 return;
             }
+
             person.SetEmploymentStatus(currentDate, employmentStatus);
         }
 

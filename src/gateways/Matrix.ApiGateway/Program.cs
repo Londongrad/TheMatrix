@@ -1,10 +1,10 @@
 using Matrix.ApiGateway.Configurations;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.ConfigureApplicationServices();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 app.ConfigureApplicationMiddleware();
 

@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.ValueObjects;
+using Matrix.Identity.Domain.ValueObjects;
 
 namespace Matrix.Identity.Application.Abstractions
 {

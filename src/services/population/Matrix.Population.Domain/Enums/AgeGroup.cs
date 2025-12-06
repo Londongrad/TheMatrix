@@ -1,51 +1,59 @@
 ﻿namespace Matrix.Population.Domain.Enums
 {
     /// <summary>
-    /// Age group of a person.
+    ///     Age group of a person.
     /// </summary>
     /// <remarks>
-    /// <list type="table">
-    ///   <listheader>
-    ///     <term>Value</term>
-    ///     <description>Age range</description>
-    ///   </listheader>
-    ///   <item>
-    ///     <term><see cref="Child"/></term>
-    ///     <description>0–6 years</description>
-    ///   </item>
-    ///   <item>
-    ///     <term><see cref="Youth"/></term>
-    ///     <description>7–17 years</description>
-    ///   </item>
-    ///   <item>
-    ///     <term><see cref="Adult"/></term>
-    ///     <description>18–65 years</description>
-    ///   </item>
-    ///   <item>
-    ///     <term><see cref="Senior"/></term>
-    ///     <description>66+ years</description>
-    ///   </item>
-    /// </list>
+    ///     <list type="table">
+    ///         <listheader>
+    ///             <term>Value</term>
+    ///             <description>Age range</description>
+    ///         </listheader>
+    ///         <item>
+    ///             <term>
+    ///                 <see cref="Child" />
+    ///             </term>
+    ///             <description>0–6 years</description>
+    ///         </item>
+    ///         <item>
+    ///             <term>
+    ///                 <see cref="Youth" />
+    ///             </term>
+    ///             <description>7–17 years</description>
+    ///         </item>
+    ///         <item>
+    ///             <term>
+    ///                 <see cref="Adult" />
+    ///             </term>
+    ///             <description>18–65 years</description>
+    ///         </item>
+    ///         <item>
+    ///             <term>
+    ///                 <see cref="Senior" />
+    ///             </term>
+    ///             <description>66+ years</description>
+    ///         </item>
+    ///     </list>
     /// </remarks>
     public enum AgeGroup
     {
         /// <summary>
-        /// 0–6
+        ///     0–6
         /// </summary>
         Child,
 
         /// <summary>
-        /// 7–17
+        ///     7–17
         /// </summary>
         Youth,
 
         /// <summary>
-        /// 18–65
+        ///     18–65
         /// </summary>
         Adult,
 
         /// <summary>
-        /// 66+
+        ///     66+
         /// </summary>
         Senior
     }

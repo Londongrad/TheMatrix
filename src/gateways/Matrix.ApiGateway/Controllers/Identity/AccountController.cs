@@ -18,7 +18,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
             HttpResponseMessage response,
             CancellationToken ct)
         {
-            var body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(ct);
 
             return new ContentResult
             {
@@ -31,7 +31,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         private string? GetAuthorizationHeader()
         {
-            var auth = Request.Headers.Authorization.ToString();
+            string auth = Request.Headers.Authorization.ToString();
             return string.IsNullOrWhiteSpace(auth) ? null : auth;
         }
 
@@ -40,7 +40,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
             [FromBody] ChangeAvatarRequest request,
             CancellationToken ct)
         {
-            var authorization = GetAuthorizationHeader();
+            string? authorization = GetAuthorizationHeader();
             if (authorization is null)
             {
                 var error = new ErrorResponse(
@@ -52,13 +52,10 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 return Unauthorized(error);
             }
 
-            var response = await _identityAccountClient
-                .ChangeAvatarAsync(authorization, request, ct);
+            HttpResponseMessage response = await _identityAccountClient
+                .ChangeAvatarAsync(authorizationHeader: authorization, request: request, ct: ct);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return await ProxyDownstreamErrorAsync(response, ct);
-            }
+            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
 
             return NoContent();
         }
@@ -68,7 +65,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
             [FromBody] ChangePasswordRequest request,
             CancellationToken ct)
         {
-            var authorization = GetAuthorizationHeader();
+            string? authorization = GetAuthorizationHeader();
             if (authorization is null)
             {
                 var error = new ErrorResponse(
@@ -80,13 +77,10 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 return Unauthorized(error);
             }
 
-            var response = await _identityAccountClient
-                .ChangePasswordAsync(authorization, request, ct);
+            HttpResponseMessage response = await _identityAccountClient
+                .ChangePasswordAsync(authorizationHeader: authorization, request: request, ct: ct);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return await ProxyDownstreamErrorAsync(response, ct);
-            }
+            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
 
             return NoContent();
         }

@@ -1,9 +1,9 @@
-﻿using Matrix.BuildingBlocks.Domain.Errors;
+using Matrix.BuildingBlocks.Domain.Errors;
 
 namespace Matrix.BuildingBlocks.Domain
 {
     /// <summary>
-    /// Provides helper methods to enforce domain invariants and guard against invalid values.
+    ///     Provides helper methods to enforce domain invariants and guard against invalid values.
     /// </summary>
     public static class GuardHelper
     {
@@ -35,7 +35,7 @@ namespace Matrix.BuildingBlocks.Domain
             where TEnum : struct, Enum
         {
             if (!Enum.IsDefined(value))
-                throw DomainErrors.InvalidEnum(value, propertyName);
+                throw DomainErrors.InvalidEnum(value: value, propertyName: propertyName);
 
             return value;
         }
@@ -43,8 +43,8 @@ namespace Matrix.BuildingBlocks.Domain
         public static TEnum AgainstInvalidStringToEnum<TEnum>(string value, string propertyName)
             where TEnum : struct, Enum
         {
-            if (!Enum.TryParse(value, true, out TEnum newEnum))
-                throw DomainErrors.InvalidStringToEnum<TEnum>(value, propertyName);
+            if (!Enum.TryParse(value: value, ignoreCase: true, result: out TEnum newEnum))
+                throw DomainErrors.InvalidStringToEnum<TEnum>(value: value, propertyName: propertyName);
 
             return newEnum;
         }
@@ -71,7 +71,7 @@ namespace Matrix.BuildingBlocks.Domain
             where T : struct, IComparable<T>
         {
             if (value.CompareTo(min) < 0 || value.CompareTo(max) > 0)
-                throw DomainErrors.OutOfRange(min, max, propertyName);
+                throw DomainErrors.OutOfRange(min: min, max: max, propertyName: propertyName);
 
             return value;
         }
@@ -84,7 +84,7 @@ namespace Matrix.BuildingBlocks.Domain
             if (value.Value == default)
                 throw DomainErrors.DefaultDateOnly(argumentName);
 
-            if (value.Value < DateOnly.FromDateTime(new DateTime(0001, 1, 1)))
+            if (value.Value < DateOnly.FromDateTime(new DateTime(year: 0001, month: 1, day: 1)))
                 throw DomainErrors.DateTooFarInPast(argumentName);
         }
 
@@ -93,11 +93,12 @@ namespace Matrix.BuildingBlocks.Domain
             if (to is null)
                 return;
 
-            AgainstInvalidDateOnly(from, nameof(from));
-            AgainstInvalidDateOnly(to, nameof(to));
+            AgainstInvalidDateOnly(value: from, argumentName: nameof(from));
+            AgainstInvalidDateOnly(value: to, argumentName: nameof(to));
 
             if (from > to.Value)
-                throw DomainErrors.InvalidDateRange(from, to.Value, nameof(from), nameof(to));
+                throw DomainErrors.InvalidDateRange(from: from, to: to.Value, fromName: nameof(from),
+                    toName: nameof(to));
         }
     }
 }

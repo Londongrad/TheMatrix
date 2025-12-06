@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.CityCore;
+using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Controllers
@@ -12,7 +13,7 @@ namespace Matrix.ApiGateway.Controllers
         [HttpGet("time")]
         public async Task<IActionResult> GetCurrentTime(CancellationToken cancellationToken)
         {
-            var dto = await _cityCoreClient.GetCurrentTimeAsync(cancellationToken);
+            CitySimulationTimeDto? dto = await _cityCoreClient.GetCurrentTimeAsync(cancellationToken);
 
             if (dto is null)
                 return StatusCode(StatusCodes.Status502BadGateway);
@@ -27,7 +28,7 @@ namespace Matrix.ApiGateway.Controllers
         [HttpGet("health")]
         public async Task<IActionResult> Health(CancellationToken cancellationToken)
         {
-            var isHealthy = await _cityCoreClient.HealthAsync(cancellationToken);
+            bool isHealthy = await _cityCoreClient.HealthAsync(cancellationToken);
 
             return Ok(new { status = isHealthy ? "ok" : "degraded" });
         }

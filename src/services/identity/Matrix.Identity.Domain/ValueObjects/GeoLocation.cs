@@ -2,11 +2,9 @@
 {
     public sealed record GeoLocation
     {
-        public string Country { get; } = null!;
-        public string? Region { get; }
-        public string? City { get; }
-
-        private GeoLocation() { }
+        private GeoLocation()
+        {
+        }
 
         private GeoLocation(string country, string? region, string? city)
         {
@@ -15,17 +13,20 @@
             City = city;
         }
 
+        public string Country { get; } = null!;
+        public string? Region { get; }
+        public string? City { get; }
+
         public static GeoLocation Create(string country, string? region, string? city)
         {
             if (string.IsNullOrWhiteSpace(country))
-            {
-                throw new ArgumentException("Country cannot be null or whitespace.", nameof(country));
-            }
+                throw new ArgumentException(message: "Country cannot be null or whitespace.",
+                    paramName: nameof(country));
 
-            var normalizedRegion = string.IsNullOrWhiteSpace(region) ? null : region.Trim();
-            var normalizedCity = string.IsNullOrWhiteSpace(city) ? null : city.Trim();
+            string? normalizedRegion = string.IsNullOrWhiteSpace(region) ? null : region.Trim();
+            string? normalizedCity = string.IsNullOrWhiteSpace(city) ? null : city.Trim();
 
-            return new GeoLocation(country.Trim(), normalizedRegion, normalizedCity);
+            return new GeoLocation(country: country.Trim(), region: normalizedRegion, city: normalizedCity);
         }
     }
 }

@@ -8,16 +8,16 @@ namespace Matrix.Population.Domain.ValueObjects
         public const int MinYears = 0;
         public const int MaxYears = 120;
 
-        public int Years { get; }
-
         private Age(int years)
         {
             Years = GuardHelper.AgainstOutOfRange(
-                years,
-                MinYears,
-                MaxYears,
-                nameof(Age));
+                value: years,
+                min: MinYears,
+                max: MaxYears,
+                propertyName: nameof(Age));
         }
+
+        public int Years { get; }
 
         public static Age FromYears(int years) => new(years);
 
@@ -26,7 +26,7 @@ namespace Matrix.Population.Domain.ValueObjects
             if (currentDate < birthDate)
                 throw DomainErrorsFactory.CurrentDateLessThanBirth();
 
-            var years = currentDate.Year - birthDate.Year;
+            int years = currentDate.Year - birthDate.Year;
             if (currentDate < birthDate.AddYears(years))
                 years--;
 
@@ -34,16 +34,16 @@ namespace Matrix.Population.Domain.ValueObjects
         }
 
         /// <summary>
-        /// Returns a new Age with increased years.
+        ///     Returns a new Age with increased years.
         /// </summary>
         public Age AddYears(int years)
         {
             if (years <= 0)
                 throw DomainErrorsFactory.AgeIncrementMustBePositive(nameof(years));
 
-            var newYears = Years + years;
+            int newYears = Years + years;
             if (newYears > MaxYears)
-                throw DomainErrorsFactory.AgeCannotExceedMaxYears(MaxYears, nameof(years));
+                throw DomainErrorsFactory.AgeCannotExceedMaxYears(maxYears: MaxYears, propertyName: nameof(years));
 
             return new Age(newYears);
         }

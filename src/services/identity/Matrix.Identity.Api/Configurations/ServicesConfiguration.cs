@@ -1,9 +1,9 @@
+using System.Text;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace Matrix.Identity.Api.Configurations
 {
@@ -11,14 +11,14 @@ namespace Matrix.Identity.Api.Configurations
     {
         public static void ConfigureApplicationServices(this WebApplicationBuilder builder)
         {
-            var services = builder.Services;
-            var configuration = builder.Configuration;
+            IServiceCollection services = builder.Services;
+            ConfigurationManager configuration = builder.Configuration;
 
             services
-                .AddPresentationLayer()          // Controllers + Swagger
-                .AddApplicationLayer()           // MediatR, Application
+                .AddPresentationLayer() // Controllers + Swagger
+                .AddApplicationLayer() // MediatR, Application
                 .AddInfrastructureLayer(configuration) // DbContext, репы, JwtAccessTokenService, PasswordHasher
-                .AddSecurityLayer(configuration);      // Authentication + Authorization
+                .AddSecurityLayer(configuration); // Authentication + Authorization
         }
 
         private static IServiceCollection AddPresentationLayer(this IServiceCollection services)
@@ -49,9 +49,9 @@ namespace Matrix.Identity.Api.Configurations
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var jwtSection = configuration.GetSection("Jwt");
-            var jwtOptions = jwtSection.Get<JwtOptions>()
-                             ?? throw new InvalidOperationException("Jwt configuration is missing.");
+            IConfigurationSection jwtSection = configuration.GetSection("Jwt");
+            JwtOptions jwtOptions = jwtSection.Get<JwtOptions>()
+                                    ?? throw new InvalidOperationException("Jwt configuration is missing.");
 
             services
                 .AddAuthentication(options =>

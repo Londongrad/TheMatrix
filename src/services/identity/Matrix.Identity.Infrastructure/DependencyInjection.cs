@@ -17,13 +17,11 @@ namespace Matrix.Identity.Infrastructure
             IConfiguration configuration)
         {
             // DbContext
-            var connectionString = configuration.GetConnectionString("IdentityDb")
-                ?? throw new InvalidOperationException("Connection string 'IdentityDb' is not configured.");
+            string connectionString = configuration.GetConnectionString("IdentityDb")
+                                      ?? throw new InvalidOperationException(
+                                          "Connection string 'IdentityDb' is not configured.");
 
-            services.AddDbContext<IdentityDbContext>(options =>
-            {
-                options.UseNpgsql(connectionString);
-            });
+            services.AddDbContext<IdentityDbContext>(options => { options.UseNpgsql(connectionString); });
 
             // Jwt options
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));

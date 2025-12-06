@@ -15,6 +15,6 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
         public Money Subtract(Money other) => new(Amount - other.Amount);
 
         public override string ToString()
-            => Amount.ToString("F2", CultureInfo.InvariantCulture);
+            => Amount.ToString(format: "F2", provider: CultureInfo.InvariantCulture);
     }
 }

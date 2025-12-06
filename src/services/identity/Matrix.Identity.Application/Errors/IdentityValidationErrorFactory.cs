@@ -10,7 +10,7 @@ namespace Matrix.Identity.Application.Errors
             Type requestType,
             IReadOnlyDictionary<string, string[]> errors)
         {
-            var code = $"Identity.{requestType.Name}.ValidationFailed";
+            string code = $"Identity.{requestType.Name}.ValidationFailed";
 
             return new MatrixApplicationException(
                 code: code,

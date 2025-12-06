@@ -7,81 +7,10 @@ namespace Matrix.Population.Domain.Entities
 {
     public sealed class Person
     {
-        #region [ Properties ]
-
-        public PersonId Id { get; private set; }
-        public HouseholdId HouseholdId { get; private set; }
-
-        public PersonName Name { get; private set; } = null!;
-        public Sex Sex { get; private set; }
-
-        public LifeState Life { get; private set; } = null!;
-
-        public MaritalInfo Marital { get; private set; } = null!;
-        public EducationInfo Education { get; private set; } = null!;
-        public EmploymentInfo Employment { get; private set; } = null!;
-
-        public BodyWeight Weight { get; private set; } = null!;
-        public HappinessLevel Happiness { get; private set; }
-        public Personality Personality { get; private set; } = null!;
-
-        #endregion [ Properties ]
-
-        #region [ Convenience shortcuts ]
-
-        public bool IsAlive => Life.Status == LifeStatus.Alive;
-        public LifeStatus LifeStatus => Life.Status;
-        public DateOnly BirthDate => Life.Span.BirthDate;
-        public DateOnly? DeathDate => Life.Span.DeathDate;
-        public HealthLevel Health => Life.Health;
-
-        public MaritalStatus MaritalStatus => Marital.Status;
-        public PersonId? SpouseId => Marital.SpouseId;
-
-        public EducationLevel EducationLevel => Education.Level;
-
-        #endregion [ Convenience shortcuts ]
-
-        #region [ Constructors ]
-
-        // Для EF Core
-        private Person() { }
-
-        private Person(
-            PersonId id,
-            HouseholdId householdId,
-            PersonName name,
-            Sex sex,
-            LifeState life,
-            MaritalInfo marital,
-            EducationInfo education,
-            EmploymentInfo employment,
-            HappinessLevel happiness,
-            Personality personality,
-            BodyWeight weight)
-        {
-            Id = id;
-            HouseholdId = householdId;
-
-            Name = GuardHelper.AgainstNull(name, nameof(Name));
-            Sex = GuardHelper.AgainstInvalidEnum(sex, nameof(Sex));
-
-            Life = GuardHelper.AgainstNull(life, nameof(Life));
-            Marital = GuardHelper.AgainstNull(marital, nameof(Marital));
-            Education = GuardHelper.AgainstNull(education, nameof(Education));
-            Employment = GuardHelper.AgainstNull(employment, nameof(Employment));
-
-            Happiness = happiness;
-            Personality = GuardHelper.AgainstNull(personality, nameof(Personality));
-            Weight = GuardHelper.AgainstNull(weight, nameof(Weight));
-        }
-
-        #endregion [ Constructors ]
-
         #region [ Factory Methods ]
 
         /// <summary>
-        /// Generic person creation.
+        ///     Generic person creation.
         /// </summary>
         public static Person CreatePerson(
             PersonId id,
@@ -107,16 +36,16 @@ namespace Matrix.Population.Domain.Entities
                 span: lifeSpan,
                 health: healthLevel);
 
-            var age = lifeSpan.GetAge(currentDate);
-            var ageGroup = AgeGroupRules.GetAgeGroup(age);
+            Age age = lifeSpan.GetAge(currentDate);
+            AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
 
             var employment = EmploymentInfo.Create(
-                employmentStatus,
-                job,
-                lifeStatus,
-                ageGroup);
+                status: employmentStatus,
+                job: job,
+                lifeStatus: lifeStatus,
+                ageGroup: ageGroup);
 
-            var marital = MaritalInfo.FromStatus(maritalStatus, spouseId);
+            var marital = MaritalInfo.FromStatus(status: maritalStatus, spouseId: spouseId);
             var education = EducationInfo.FromLevel(educationLevel);
 
             return new Person(
@@ -135,6 +64,79 @@ namespace Matrix.Population.Domain.Entities
 
         #endregion [ Factory Methods ]
 
+        #region [ Properties ]
+
+        public PersonId Id { get; private set; }
+        public HouseholdId HouseholdId { get; private set; }
+
+        public PersonName Name { get; private set; } = null!;
+        public Sex Sex { get; private set; }
+
+        public LifeState Life { get; private set; } = null!;
+
+        public MaritalInfo Marital { get; private set; } = null!;
+        public EducationInfo Education { get; private set; } = null!;
+        public EmploymentInfo Employment { get; private set; } = null!;
+
+        public BodyWeight Weight { get; private set; } = null!;
+        public HappinessLevel Happiness { get; private set; }
+        public Personality Personality { get; } = null!;
+
+        #endregion [ Properties ]
+
+        #region [ Convenience shortcuts ]
+
+        public bool IsAlive => Life.Status == LifeStatus.Alive;
+        public LifeStatus LifeStatus => Life.Status;
+        public DateOnly BirthDate => Life.Span.BirthDate;
+        public DateOnly? DeathDate => Life.Span.DeathDate;
+        public HealthLevel Health => Life.Health;
+
+        public MaritalStatus MaritalStatus => Marital.Status;
+        public PersonId? SpouseId => Marital.SpouseId;
+
+        public EducationLevel EducationLevel => Education.Level;
+
+        #endregion [ Convenience shortcuts ]
+
+        #region [ Constructors ]
+
+        // Для EF Core
+        private Person()
+        {
+        }
+
+        private Person(
+            PersonId id,
+            HouseholdId householdId,
+            PersonName name,
+            Sex sex,
+            LifeState life,
+            MaritalInfo marital,
+            EducationInfo education,
+            EmploymentInfo employment,
+            HappinessLevel happiness,
+            Personality personality,
+            BodyWeight weight)
+        {
+            Id = id;
+            HouseholdId = householdId;
+
+            Name = GuardHelper.AgainstNull(value: name, propertyName: nameof(Name));
+            Sex = GuardHelper.AgainstInvalidEnum(value: sex, propertyName: nameof(Sex));
+
+            Life = GuardHelper.AgainstNull(value: life, propertyName: nameof(Life));
+            Marital = GuardHelper.AgainstNull(value: marital, propertyName: nameof(Marital));
+            Education = GuardHelper.AgainstNull(value: education, propertyName: nameof(Education));
+            Employment = GuardHelper.AgainstNull(value: employment, propertyName: nameof(Employment));
+
+            Happiness = happiness;
+            Personality = GuardHelper.AgainstNull(value: personality, propertyName: nameof(Personality));
+            Weight = GuardHelper.AgainstNull(value: weight, propertyName: nameof(Weight));
+        }
+
+        #endregion [ Constructors ]
+
         #region [ Methods ]
 
         #region [ Age ]
@@ -151,7 +153,7 @@ namespace Matrix.Population.Domain.Entities
 
         public void ChangeHappiness(int delta)
         {
-            var finalDelta = Personality.ModifyHappinessDelta(delta);
+            int finalDelta = Personality.ModifyHappinessDelta(delta);
             Happiness = Happiness.WithDelta(finalDelta);
         }
 
@@ -161,22 +163,19 @@ namespace Matrix.Population.Domain.Entities
 
         public void ChangeHealth(int delta, DateOnly currentDate)
         {
-            var wasAlive = IsAlive;
+            bool wasAlive = IsAlive;
 
-            Life = Life.WithHealthDelta(delta, currentDate);
+            Life = Life.WithHealthDelta(delta: delta, currentDate: currentDate);
 
             if (wasAlive && !IsAlive)
-            {
                 // Человек умер из-за здоровья - чистим работу
                 Employment = Employment.Change(
                     newStatus: EmploymentStatus.None,
                     newJob: null,
                     lifeStatus: LifeStatus,
                     ageGroup: GetAgeGroup(currentDate));
-
-                // Возможно: создать событие PersonDiedEvent
-                // AddDomainEvent(new PersonDiedEvent(Id, currentDate, Marital.SpouseId));
-            }
+            // Возможно: создать событие PersonDiedEvent
+            // AddDomainEvent(new PersonDiedEvent(Id, currentDate, Marital.SpouseId));
         }
 
         public void Die(DateOnly currentDate)
@@ -187,7 +186,7 @@ namespace Matrix.Population.Domain.Entities
                 newDeathDate: currentDate);
 
             Employment = Employment.Change(
-                EmploymentStatus.None,
+                newStatus: EmploymentStatus.None,
                 newJob: null,
                 lifeStatus: LifeStatus,
                 ageGroup: GetAgeGroup(currentDate));
@@ -207,25 +206,20 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Name ]
 
-        public void ChangeName(PersonName newName)
-        {
-            Name = GuardHelper.AgainstNull(newName, nameof(Name));
-        }
+        public void ChangeName(PersonName newName) =>
+            Name = GuardHelper.AgainstNull(value: newName, propertyName: nameof(Name));
 
         #endregion [ Name ]
 
         #region [ Education ]
 
         /// <summary>
-        /// Жёсткая установка уровня (для генерации / миграций).
+        ///     Жёсткая установка уровня (для генерации / миграций).
         /// </summary>
-        public void SetEducationLevel(EducationLevel newLevel)
-        {
-            Education = EducationInfo.FromLevel(newLevel);
-        }
+        public void SetEducationLevel(EducationLevel newLevel) => Education = EducationInfo.FromLevel(newLevel);
 
         /// <summary>
-        /// Доменный переход: человек получает новый уровень образования.
+        ///     Доменный переход: человек получает новый уровень образования.
         /// </summary>
         public void GraduateTo(EducationLevel newLevel)
         {
@@ -241,7 +235,7 @@ namespace Matrix.Population.Domain.Entities
         {
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Employed,
-                newJob: GuardHelper.AgainstNull(job, nameof(job)),
+                newJob: GuardHelper.AgainstNull(value: job, propertyName: nameof(job)),
                 lifeStatus: LifeStatus,
                 ageGroup: GetAgeGroup(currentDate));
 

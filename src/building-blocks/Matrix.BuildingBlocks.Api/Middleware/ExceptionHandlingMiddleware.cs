@@ -1,10 +1,10 @@
+using System.Net;
 using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Net;
 
 namespace Matrix.BuildingBlocks.Api.Middleware
 {
@@ -12,8 +12,8 @@ namespace Matrix.BuildingBlocks.Api.Middleware
         RequestDelegate next,
         ILogger<ExceptionHandlingMiddleware> logger)
     {
-        private readonly RequestDelegate _next = next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
+        private readonly RequestDelegate _next = next;
 
         public async Task Invoke(HttpContext context)
         {
@@ -23,7 +23,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (DomainException ex)
             {
-                _logger.LogWarning(ex, "Handled domain exception with code {Code}", ex.Code);
+                _logger.LogWarning(exception: ex, message: "Handled domain exception with code {Code}", ex.Code);
 
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
@@ -31,12 +31,10 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 IReadOnlyDictionary<string, string[]>? errors = null;
 
                 if (ex.PropertyName is not null)
-                {
                     errors = new Dictionary<string, string[]>
                     {
                         [ex.PropertyName] = new[] { ex.Message }
                     };
-                }
 
                 var response = new ErrorResponse(
                     Code: ex.Code,
@@ -48,9 +46,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (MatrixApplicationException ex)
             {
-                _logger.LogWarning(ex, "Handled application exception with code {Code}", ex.Code);
+                _logger.LogWarning(exception: ex, message: "Handled application exception with code {Code}", ex.Code);
 
-                var statusCode = MapToHttpStatusCode(ex.ErrorType);
+                HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
 
                 context.Response.StatusCode = (int)statusCode;
                 context.Response.ContentType = "application/json";
@@ -65,7 +63,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Invalid argument");
+                _logger.LogWarning(exception: ex, message: "Invalid argument");
 
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
@@ -80,7 +78,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Invalid operation");
+                _logger.LogWarning(exception: ex, message: "Invalid operation");
 
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
@@ -95,7 +93,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception");
+                _logger.LogError(exception: ex, message: "Unhandled exception");
 
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "application/json";

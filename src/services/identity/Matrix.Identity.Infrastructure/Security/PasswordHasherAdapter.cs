@@ -12,14 +12,15 @@ namespace Matrix.Identity.Infrastructure.Security
         {
             // временный User только для соли, но можно и настоящий, если есть
             var fakeUser = (User?)null;
-            return _inner.HashPassword(fakeUser!, password);
+            return _inner.HashPassword(user: fakeUser!, password: password);
         }
 
         public bool Verify(string passwordHash, string providedPassword)
         {
             var fakeUser = (User?)null;
 
-            var result = _inner.VerifyHashedPassword(fakeUser!, passwordHash, providedPassword);
+            PasswordVerificationResult result = _inner.VerifyHashedPassword(user: fakeUser!,
+                hashedPassword: passwordHash, providedPassword: providedPassword);
 
             return result is PasswordVerificationResult.Success or PasswordVerificationResult.SuccessRehashNeeded;
         }

@@ -11,8 +11,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
         IPasswordHasher passwordHasher)
         : IRequestHandler<RegisterUserCommand, RegisterUserResult>
     {
-        private readonly IUserRepository _userRepository = userRepository;
         private readonly IPasswordHasher _passwordHasher = passwordHasher;
+        private readonly IUserRepository _userRepository = userRepository;
 
         public async Task<RegisterUserResult> Handle(
             RegisterUserCommand request,
@@ -22,23 +22,23 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
             var email = Email.Create(request.Email);
             var username = Username.Create(request.Username);
 
-            var emailTaken = await _userRepository
-                .IsEmailTakenAsync(email.Value, cancellationToken);
+            bool emailTaken = await _userRepository
+                .IsEmailTakenAsync(normalizedEmail: email.Value, cancellationToken: cancellationToken);
 
             if (emailTaken)
                 throw ApplicationErrorsFactory.EmailAlreadyInUse(email.Value);
 
-            var usernameTaken = await _userRepository
-                .IsUsernameTakenAsync(username.Value, cancellationToken);
+            bool usernameTaken = await _userRepository
+                .IsUsernameTakenAsync(normalizedUsername: username.Value, cancellationToken: cancellationToken);
 
             if (usernameTaken)
                 throw ApplicationErrorsFactory.UsernameAlreadyInUse(username.Value);
 
-            var passwordHash = _passwordHasher.Hash(request.Password);
+            string passwordHash = _passwordHasher.Hash(request.Password);
 
-            var user = User.CreateNew(email, username, passwordHash);
+            var user = User.CreateNew(email: email, username: username, passwordHash: passwordHash);
 
-            await _userRepository.AddAsync(user, cancellationToken);
+            await _userRepository.AddAsync(user: user, cancellationToken: cancellationToken);
             await _userRepository.SaveChangesAsync(cancellationToken);
 
             return new RegisterUserResult

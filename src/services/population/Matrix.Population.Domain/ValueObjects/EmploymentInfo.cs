@@ -5,15 +5,18 @@ namespace Matrix.Population.Domain.ValueObjects
 {
     public sealed record class EmploymentInfo
     {
-        public EmploymentStatus Status { get; }
-        public Job? Job { get; }
+        private EmploymentInfo()
+        {
+        }
 
-        private EmploymentInfo() { }
         private EmploymentInfo(EmploymentStatus status, Job? job)
         {
             Status = status;
             Job = job;
         }
+
+        public EmploymentStatus Status { get; }
+        public Job? Job { get; }
 
         public static EmploymentInfo Create(
             EmploymentStatus status,
@@ -21,8 +24,8 @@ namespace Matrix.Population.Domain.ValueObjects
             LifeStatus lifeStatus,
             AgeGroup ageGroup)
         {
-            EmploymentRules.ValidateCombination(status, job, lifeStatus, ageGroup);
-            return new EmploymentInfo(status, job);
+            EmploymentRules.ValidateCombination(status: status, job: job, lifeStatus: lifeStatus, ageGroup: ageGroup);
+            return new EmploymentInfo(status: status, job: job);
         }
 
         public EmploymentInfo Change(
@@ -31,8 +34,9 @@ namespace Matrix.Population.Domain.ValueObjects
             LifeStatus lifeStatus,
             AgeGroup ageGroup)
         {
-            EmploymentRules.ValidateCombination(newStatus, newJob, lifeStatus, ageGroup);
-            return new EmploymentInfo(newStatus, newJob);
+            EmploymentRules.ValidateCombination(status: newStatus, job: newJob, lifeStatus: lifeStatus,
+                ageGroup: ageGroup);
+            return new EmploymentInfo(status: newStatus, job: newJob);
         }
     }
 }

@@ -4,16 +4,16 @@ namespace Matrix.Identity.Domain.ValueObjects
 {
     public sealed record class Username
     {
-        public string Value { get; }
-
         private Username(string value)
         {
             Value = value;
         }
 
+        public string Value { get; }
+
         public static Username Create(string raw)
         {
-            var normalized = UsernameRules.Validate(raw);
+            string normalized = UsernameRules.Validate(raw);
 
             return new Username(normalized);
         }

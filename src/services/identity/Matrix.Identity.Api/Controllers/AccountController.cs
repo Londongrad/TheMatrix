@@ -1,11 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Matrix.Identity.Api.Contracts.Requests;
 using Matrix.Identity.Application.UseCases.Account.ChangeAvatar;
 using Matrix.Identity.Application.UseCases.Account.ChangePassword;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace Matrix.Identity.Api.Controllers
 {
@@ -21,16 +21,13 @@ namespace Matrix.Identity.Api.Controllers
             [FromBody] ChangeAvatarRequest request,
             CancellationToken cancellationToken)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized();
-            }
+            Guid? userId = GetCurrentUserId();
+            if (userId is null) return Unauthorized();
 
             // аватарка может быть null (сброс)
-            var command = new ChangeAvatarCommand(userId.Value, request.AvatarUrl);
+            var command = new ChangeAvatarCommand(UserId: userId.Value, AvatarUrl: request.AvatarUrl);
 
-            await _sender.Send(command, cancellationToken);
+            await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             return NoContent();
         }
@@ -40,43 +37,31 @@ namespace Matrix.Identity.Api.Controllers
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid)
-            {
-                return ValidationProblem(ModelState);
-            }
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized();
-            }
+            Guid? userId = GetCurrentUserId();
+            if (userId is null) return Unauthorized();
 
             var command = new ChangePasswordCommand(
-                userId.Value,
-                request.CurrentPassword,
-                request.NewPassword,
-                request.ConfirmPassword);
+                UserId: userId.Value,
+                CurrentPassword: request.CurrentPassword,
+                NewPassword: request.NewPassword,
+                ConfirmPassword: request.ConfirmPassword);
 
-            await _sender.Send(command, cancellationToken);
+            await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             return NoContent();
         }
 
         private Guid? GetCurrentUserId()
         {
-            var userIdClaim =
+            Claim? userIdClaim =
                 User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (userIdClaim is null)
-            {
-                return null;
-            }
+            if (userIdClaim is null) return null;
 
-            if (!Guid.TryParse(userIdClaim.Value, out var userId))
-            {
-                return null;
-            }
+            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return null;
 
             return userId;
         }

@@ -5,5 +5,5 @@ using MediatR;
 namespace Matrix.Population.Application.UseCases.GetCitizenPage
 {
     public sealed record GetCitizensPageQuery(Pagination Pagination)
-    : IRequest<PagedResult<PersonDto>>;
+        : IRequest<PagedResult<PersonDto>>;
 }

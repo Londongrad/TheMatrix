@@ -10,13 +10,13 @@ namespace Matrix.Population.Application.Errors
             Type requestType,
             IReadOnlyDictionary<string, string[]> errors)
         {
-            var code = $"Population.{requestType.Name}.ValidationFailed";
-            
+            string code = $"Population.{requestType.Name}.ValidationFailed";
+
             return new MatrixApplicationException(
-                code,
-                "One or more validation errors occurred.",
-                ApplicationErrorType.Validation,
-                errors);
+                code: code,
+                message: "One or more validation errors occurred.",
+                errorType: ApplicationErrorType.Validation,
+                errors: errors);
         }
     }
 }

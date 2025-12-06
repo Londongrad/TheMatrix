@@ -19,7 +19,7 @@ namespace Matrix.Identity.Api.Contracts.Responses
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// Convenience-строка для фронта: "City, Region, Country" / null
+        ///     Convenience-строка для фронта: "City, Region, Country" / null
         /// </summary>
         public string? Location
         {
@@ -27,22 +27,13 @@ namespace Matrix.Identity.Api.Contracts.Responses
             {
                 var parts = new List<string>(3);
 
-                if (!string.IsNullOrWhiteSpace(City))
-                {
-                    parts.Add(City);
-                }
+                if (!string.IsNullOrWhiteSpace(City)) parts.Add(City);
 
-                if (!string.IsNullOrWhiteSpace(Region))
-                {
-                    parts.Add(Region);
-                }
+                if (!string.IsNullOrWhiteSpace(Region)) parts.Add(Region);
 
-                if (!string.IsNullOrWhiteSpace(Country))
-                {
-                    parts.Add(Country);
-                }
+                if (!string.IsNullOrWhiteSpace(Country)) parts.Add(Country);
 
-                return parts.Count == 0 ? null : string.Join(", ", parts);
+                return parts.Count == 0 ? null : string.Join(separator: ", ", values: parts);
             }
         }
     }

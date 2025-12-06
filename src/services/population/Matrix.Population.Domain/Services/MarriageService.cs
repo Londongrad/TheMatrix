@@ -1,5 +1,6 @@
 ﻿using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Rules;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Services
 {
@@ -7,8 +8,8 @@ namespace Matrix.Population.Domain.Services
     {
         public void RegisterMarriage(Person person, Person spouse, DateOnly currentDate)
         {
-            var personAge = person.GetAge(currentDate);
-            var spouseAge = spouse.GetAge(currentDate);
+            Age personAge = person.GetAge(currentDate);
+            Age spouseAge = spouse.GetAge(currentDate);
 
             // Общие правила (возраст, не сам с собой, не уже женат и т.п.)
             MaritalRules.ValidateNewMarriage(
@@ -54,7 +55,7 @@ namespace Matrix.Population.Domain.Services
         {
             MaritalRules.ValidateWidowhood(
                 widowId: widow.Id,
-                widowLifeStatus: widow.LifeStatus,  // или widow.Life.Status
+                widowLifeStatus: widow.LifeStatus, // или widow.Life.Status
                 widowMarital: widow.Marital,
                 deceasedId: deceased.Id,
                 deceasedLifeStatus: deceased.LifeStatus,

@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Entities;
 
 namespace Matrix.Identity.Application.Abstractions
 {

@@ -1,11 +1,11 @@
-﻿using Matrix.Identity.Application.Abstractions;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Application.UseCases.Auth;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace Matrix.Identity.Infrastructure.Authentication.Jwt
 {
@@ -15,29 +15,29 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
 
         public AccessTokenModel Generate(User user)
         {
-            var username = user.Username.Value;
+            string username = user.Username.Value;
 
             var claims = new List<Claim>
             {
                 // основной идентификатор пользователя
-                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new(type: JwtRegisteredClaimNames.Sub, value: user.Id.ToString()),
 
                 // email
-                new(JwtRegisteredClaimNames.Email, user.Email.Value),
+                new(type: JwtRegisteredClaimNames.Email, value: user.Email.Value),
 
                 // username как "unique_name" + дублируем в ClaimTypes.Name
-                new(JwtRegisteredClaimNames.UniqueName, username),
-                new(ClaimTypes.Name, username),
-                new("username", username),
+                new(type: JwtRegisteredClaimNames.UniqueName, value: username),
+                new(type: ClaimTypes.Name, value: username),
+                new(type: "username", value: username),
 
                 // id токена
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new(type: JwtRegisteredClaimNames.Jti, value: Guid.NewGuid().ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var creds = new SigningCredentials(key: key, algorithm: SecurityAlgorithms.HmacSha256);
 
-            var expiresAt = DateTime.UtcNow.AddMinutes(_options.AccessTokenLifetimeMinutes);
+            DateTime expiresAt = DateTime.UtcNow.AddMinutes(_options.AccessTokenLifetimeMinutes);
 
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer,
@@ -46,7 +46,7 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
                 expires: expiresAt,
                 signingCredentials: creds);
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            string? tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
             return new AccessTokenModel
             {

@@ -5,28 +5,31 @@ namespace Matrix.Population.Domain.ValueObjects
 {
     public sealed class MaritalInfo
     {
-        public MaritalStatus Status { get; }
-        public PersonId? SpouseId { get; }
+        private MaritalInfo()
+        {
+        }
 
-        private MaritalInfo() { }
         private MaritalInfo(MaritalStatus status, PersonId? spouseId)
         {
-            MaritalRules.ValidateStatusCombination(Status, SpouseId);
+            MaritalRules.ValidateStatusCombination(status: Status, spouseId: SpouseId);
 
             Status = status;
             SpouseId = spouseId;
         }
 
+        public MaritalStatus Status { get; }
+        public PersonId? SpouseId { get; }
+
         public static MaritalInfo FromStatus(MaritalStatus status, PersonId? spouseId) =>
-            new(status, spouseId);
+            new(status: status, spouseId: spouseId);
 
         public static MaritalInfo Single() =>
-            new(MaritalStatus.Single, null);
+            new(status: MaritalStatus.Single, spouseId: null);
 
         public static MaritalInfo Widowed() =>
-            new(MaritalStatus.Widowed, null);
+            new(status: MaritalStatus.Widowed, spouseId: null);
 
         public static MaritalInfo MarriedWith(PersonId spouseId) =>
-            new(MaritalStatus.Married, spouseId);
+            new(status: MaritalStatus.Married, spouseId: spouseId);
     }
 }

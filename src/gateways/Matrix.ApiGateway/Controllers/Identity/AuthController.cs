@@ -16,43 +16,13 @@ namespace Matrix.ApiGateway.Controllers.Identity
     {
         private readonly IIdentityAuthClient _identityApiClient = identityApiClient;
 
-        #region [ Cookie Management ]
-
-        private const string RefreshCookieName = "matrix_refresh_token";
-        private void SetRefreshCookie(string refreshToken, DateTime refreshExpiresAtUtc)
-        {
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = refreshExpiresAtUtc,
-                Path = "/"
-            };
-
-            Response.Cookies.Append(RefreshCookieName, refreshToken, cookieOptions);
-        }
-
-        private void ClearRefreshCookie()
-        {
-            Response.Cookies.Delete(RefreshCookieName, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Path = "/"
-            });
-        }
-
-        #endregion [ Cookie Management ]
-
         #region [ Proxy Downstream Errors ]
 
         private static async Task<ContentResult> ProxyDownstreamErrorAsync(
             HttpResponseMessage response,
             CancellationToken ct)
         {
-            var body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(ct);
 
             return new ContentResult
             {
@@ -64,20 +34,49 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         #endregion [ Proxy Downstream Errors ]
 
+        #region [ Cookie Management ]
+
+        private const string RefreshCookieName = "matrix_refresh_token";
+
+        private void SetRefreshCookie(string refreshToken, DateTime refreshExpiresAtUtc)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = refreshExpiresAtUtc,
+                Path = "/"
+            };
+
+            Response.Cookies.Append(key: RefreshCookieName, value: refreshToken, options: cookieOptions);
+        }
+
+        private void ClearRefreshCookie()
+        {
+            Response.Cookies.Delete(key: RefreshCookieName, options: new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/"
+            });
+        }
+
+        #endregion [ Cookie Management ]
+
         #region [ Registration and Login ]
 
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
         {
-            var response = await _identityApiClient.RegisterAsync(request, ct);
+            HttpResponseMessage response = await _identityApiClient.RegisterAsync(request: request, ct: ct);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return await ProxyDownstreamErrorAsync(response, ct);
-            }
+            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
 
-            var registerResponse = await response.Content.ReadFromJsonAsync<RegisterResponse>(cancellationToken: ct);
+            RegisterResponse? registerResponse =
+                await response.Content.ReadFromJsonAsync<RegisterResponse>(cancellationToken: ct);
 
             if (registerResponse is null)
             {
@@ -87,7 +86,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
                     Errors: null,
                     TraceId: HttpContext.TraceIdentifier);
 
-                return StatusCode(StatusCodes.Status500InternalServerError, error);
+                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
             }
 
             return Ok(registerResponse);
@@ -97,14 +96,12 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
         {
-            var response = await _identityApiClient.LoginAsync(request, ct);
+            HttpResponseMessage response = await _identityApiClient.LoginAsync(request: request, ct: ct);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return await ProxyDownstreamErrorAsync(response, ct);
-            }
+            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
 
-            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
+            LoginResponse? loginResponse =
+                await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
             if (loginResponse is null)
             {
                 var error = new ErrorResponse(
@@ -113,10 +110,11 @@ namespace Matrix.ApiGateway.Controllers.Identity
                     Errors: null,
                     TraceId: HttpContext.TraceIdentifier);
 
-                return StatusCode(StatusCodes.Status500InternalServerError, error);
+                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
             }
 
-            SetRefreshCookie(loginResponse.RefreshToken, loginResponse.RefreshTokenExpiresAtUtc);
+            SetRefreshCookie(refreshToken: loginResponse.RefreshToken,
+                refreshExpiresAtUtc: loginResponse.RefreshTokenExpiresAtUtc);
             loginResponse.RefreshToken = string.Empty;
 
             return Ok(loginResponse);
@@ -132,7 +130,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
             [FromBody] RefreshRequest request,
             CancellationToken ct)
         {
-            var refreshToken = Request.Cookies[RefreshCookieName];
+            string? refreshToken = Request.Cookies[RefreshCookieName];
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
                 var error = new ErrorResponse(
@@ -147,19 +145,18 @@ namespace Matrix.ApiGateway.Controllers.Identity
             // Куки контролируем мы, поэтому перезаписываем, даже если клиент что-то прислал
             request.RefreshToken = refreshToken;
 
-            var response = await _identityApiClient.RefreshAsync(request, ct);
+            HttpResponseMessage response = await _identityApiClient.RefreshAsync(request: request, ct: ct);
 
             if (!response.IsSuccessStatusCode)
             {
                 if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-                {
                     ClearRefreshCookie();
-                }
 
-                return await ProxyDownstreamErrorAsync(response, ct);
+                return await ProxyDownstreamErrorAsync(response: response, ct: ct);
             }
 
-            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
+            LoginResponse? loginResponse =
+                await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
             if (loginResponse is null)
             {
                 ClearRefreshCookie();
@@ -170,11 +167,12 @@ namespace Matrix.ApiGateway.Controllers.Identity
                     Errors: null,
                     TraceId: HttpContext.TraceIdentifier);
 
-                return StatusCode(StatusCodes.Status500InternalServerError, error);
+                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
             }
 
             // успешный refresh → ротация куки
-            SetRefreshCookie(loginResponse.RefreshToken, loginResponse.RefreshTokenExpiresAtUtc);
+            SetRefreshCookie(refreshToken: loginResponse.RefreshToken,
+                refreshExpiresAtUtc: loginResponse.RefreshTokenExpiresAtUtc);
             loginResponse.RefreshToken = string.Empty;
 
             return Ok(loginResponse);
@@ -184,13 +182,13 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(CancellationToken ct)
         {
-            var refreshToken = Request.Cookies[RefreshCookieName];
+            string? refreshToken = Request.Cookies[RefreshCookieName];
 
             if (!string.IsNullOrEmpty(refreshToken))
             {
                 var request = new RefreshRequest { RefreshToken = refreshToken };
 
-                await _identityApiClient.LogoutAsync(request, ct);
+                await _identityApiClient.LogoutAsync(request: request, ct: ct);
             }
 
             ClearRefreshCookie();
@@ -205,27 +203,21 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpGet("me")]
         public ActionResult<MeResponse> Me()
         {
-            var userIdClaim =
+            Claim? userIdClaim =
                 User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
-            var emailClaim =
+            Claim? emailClaim =
                 User.FindFirst(JwtRegisteredClaimNames.Email) ??
                 User.FindFirst(ClaimTypes.Email);
 
-            var usernameClaim =
+            Claim? usernameClaim =
                 User.FindFirst(JwtRegisteredClaimNames.UniqueName) ??
                 User.FindFirst(ClaimTypes.Name);
 
-            if (userIdClaim is null || emailClaim is null || usernameClaim is null)
-            {
-                return Unauthorized();
-            }
+            if (userIdClaim is null || emailClaim is null || usernameClaim is null) return Unauthorized();
 
-            if (!Guid.TryParse(userIdClaim.Value, out var userId))
-            {
-                return Unauthorized();
-            }
+            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return Unauthorized();
 
             var response = new MeResponse
             {
@@ -241,20 +233,16 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpGet("sessions")]
         public async Task<IActionResult> GetSessions(CancellationToken ct)
         {
-            var authorization = Request.Headers.Authorization.ToString();
-            if (string.IsNullOrWhiteSpace(authorization))
-            {
-                return Unauthorized();
-            }
+            string authorization = Request.Headers.Authorization.ToString();
+            if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
 
-            var response = await _identityApiClient.GetSessionsAsync(authorization, ct);
+            HttpResponseMessage response =
+                await _identityApiClient.GetSessionsAsync(authorizationHeader: authorization, ct: ct);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return await ProxyDownstreamErrorAsync(response, ct);
-            }
+            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
 
-            var sessions = await response.Content.ReadFromJsonAsync<List<SessionResponse>>(cancellationToken: ct);
+            List<SessionResponse>? sessions =
+                await response.Content.ReadFromJsonAsync<List<SessionResponse>>(cancellationToken: ct);
             if (sessions is null)
             {
                 var error = new ErrorResponse(
@@ -263,7 +251,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
                     Errors: null,
                     TraceId: HttpContext.TraceIdentifier);
 
-                return StatusCode(StatusCodes.Status500InternalServerError, error);
+                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
             }
 
             return Ok(sessions);
@@ -273,18 +261,14 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpDelete("sessions/{sessionId:guid}")]
         public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken ct)
         {
-            var authorization = Request.Headers.Authorization.ToString();
-            if (string.IsNullOrWhiteSpace(authorization))
-            {
-                return Unauthorized();
-            }
+            string authorization = Request.Headers.Authorization.ToString();
+            if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
 
-            var response = await _identityApiClient.RevokeSessionAsync(authorization, sessionId, ct);
+            HttpResponseMessage response =
+                await _identityApiClient.RevokeSessionAsync(authorizationHeader: authorization, sessionId: sessionId,
+                    ct: ct);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return await ProxyDownstreamErrorAsync(response, ct);
-            }
+            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
 
             return NoContent();
         }
@@ -293,18 +277,13 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpDelete("sessions")]
         public async Task<IActionResult> RevokeAllSessions(CancellationToken ct)
         {
-            var authorization = Request.Headers.Authorization.ToString();
-            if (string.IsNullOrWhiteSpace(authorization))
-            {
-                return Unauthorized();
-            }
+            string authorization = Request.Headers.Authorization.ToString();
+            if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
 
-            var response = await _identityApiClient.RevokeAllSessionsAsync(authorization, ct);
+            HttpResponseMessage response =
+                await _identityApiClient.RevokeAllSessionsAsync(authorizationHeader: authorization, ct: ct);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return await ProxyDownstreamErrorAsync(response, ct);
-            }
+            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
 
             // Мы только что убили все refresh-токены, чистим куку
             ClearRefreshCookie();

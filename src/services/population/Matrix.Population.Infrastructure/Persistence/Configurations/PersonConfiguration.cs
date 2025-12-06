@@ -17,14 +17,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             builder.Property(p => p.Id)
                 .HasConversion(
-                    id => id.Value,              // PersonId -> Guid
-                    value => PersonId.From(value)); // Guid -> PersonId
+                    convertToProviderExpression: id => id.Value, // PersonId -> Guid
+                    convertFromProviderExpression: value => PersonId.From(value)); // Guid -> PersonId
 
             // Если HouseholdId есть у Person – мапим его так.
             builder.Property(p => p.HouseholdId)
                 .HasConversion(
-                    id => id.Value,
-                    value => HouseholdId.From(value))
+                    convertToProviderExpression: id => id.Value,
+                    convertFromProviderExpression: value => HouseholdId.From(value))
                 .IsRequired();
 
             // ---------- Простые enum’ы / свойства ----------
@@ -36,22 +36,22 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
             // Happiness (VO)
             builder.Property(p => p.Happiness)
                 .HasConversion(
-                    h => h.Value,
-                    v => HappinessLevel.From(v))
+                    convertToProviderExpression: h => h.Value,
+                    convertFromProviderExpression: v => HappinessLevel.From(v))
                 .HasColumnName("Happiness")
                 .IsRequired();
 
             // Вес
             builder.Property(p => p.Weight)
                 .HasConversion(
-                    w => w.Kilograms,
-                    kg => new BodyWeight(kg))
+                    convertToProviderExpression: w => w.Kilograms,
+                    convertFromProviderExpression: kg => new BodyWeight(kg))
                 .HasColumnName("WeightKg")
                 .HasColumnType("decimal(5,2)");
 
             // ---------- Name (VO) ----------
 
-            builder.OwnsOne(p => p.Name, name =>
+            builder.OwnsOne(navigationExpression: p => p.Name, buildAction: name =>
             {
                 name.Property(n => n.FirstName)
                     .HasColumnName("FirstName")
@@ -67,7 +67,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             // ---------- Life (LifeState: Status + Span + Health) ----------
 
-            builder.OwnsOne(p => p.Life, life =>
+            builder.OwnsOne(navigationExpression: p => p.Life, buildAction: life =>
             {
                 life.Property(l => l.Status)
                     .HasConversion<string>()
@@ -76,29 +76,29 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
                 life.Property(l => l.Health)
                     .HasConversion(
-                        h => h.Value,
-                        v => HealthLevel.From(v))
+                        convertToProviderExpression: h => h.Value,
+                        convertFromProviderExpression: v => HealthLevel.From(v))
                     .HasColumnName("Health")
                     .IsRequired();
 
-                life.OwnsOne(l => l.Span, span =>
+                life.OwnsOne(navigationExpression: l => l.Span, buildAction: span =>
                 {
                     span.Property(s => s.BirthDate)
                         .HasConversion(
-                            d => d.ToDateTime(TimeOnly.MinValue),
-                            dt => DateOnly.FromDateTime(dt))
+                            convertToProviderExpression: d => d.ToDateTime(TimeOnly.MinValue),
+                            convertFromProviderExpression: dt => DateOnly.FromDateTime(dt))
                         .HasColumnName("BirthDate")
                         .HasColumnType("date")
                         .IsRequired();
 
                     span.Property(s => s.DeathDate)
                         .HasConversion(
-                            d => d.HasValue
+                            convertToProviderExpression: d => d.HasValue
                                 ? d.Value.ToDateTime(TimeOnly.MinValue)
                                 : (DateTime?)null,
-                            dt => dt.HasValue
+                            convertFromProviderExpression: dt => dt.HasValue
                                 ? DateOnly.FromDateTime(dt.Value)
-                                : (DateOnly?)null)
+                                : null)
                         .HasColumnName("DeathDate")
                         .HasColumnType("date");
                 });
@@ -118,7 +118,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             // ---------- Education (EducationInfo VO) ----------
 
-            builder.OwnsOne(p => p.Education, edu =>
+            builder.OwnsOne(navigationExpression: p => p.Education, buildAction: edu =>
             {
                 edu.Property(e => e.Level)
                     .HasConversion<string>()
@@ -128,7 +128,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             // ---------- Marital (MaritalInfo VO) ----------
 
-            builder.OwnsOne(p => p.Marital, marital =>
+            builder.OwnsOne(navigationExpression: p => p.Marital, buildAction: marital =>
             {
                 marital.Property(m => m.Status)
                     .HasConversion<string>()
@@ -138,26 +138,26 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                 // SpouseId: PersonId? -> Guid?
                 marital.Property(m => m.SpouseId)
                     .HasConversion(
-                        id => id.HasValue ? id.Value.Value : (Guid?)null,
-                        value => value.HasValue ? PersonId.From(value.Value) : null)
+                        convertToProviderExpression: id => id.HasValue ? id.Value.Value : (Guid?)null,
+                        convertFromProviderExpression: value => value.HasValue ? PersonId.From(value.Value) : null)
                     .HasColumnName("SpouseId");
             });
 
             // ---------- Employment (EmploymentInfo VO + вложенный Job) ----------
 
-            builder.OwnsOne(p => p.Employment, employment =>
+            builder.OwnsOne(navigationExpression: p => p.Employment, buildAction: employment =>
             {
                 employment.Property(e => e.Status)
                     .HasConversion<string>()
                     .HasColumnName("EmploymentStatus")
                     .IsRequired();
 
-                employment.OwnsOne(e => e.Job, job =>
+                employment.OwnsOne(navigationExpression: e => e.Job, buildAction: job =>
                 {
                     job.Property(j => j.WorkplaceId)
                         .HasConversion(
-                            id => id.Value,
-                            value => WorkplaceId.From(value))
+                            convertToProviderExpression: id => id.Value,
+                            convertFromProviderExpression: value => WorkplaceId.From(value))
                         .HasColumnName("WorkplaceId");
 
                     job.Property(j => j.Title)
@@ -168,7 +168,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             // ---------- Personality (VO) ----------
 
-            builder.OwnsOne(p => p.Personality, pers =>
+            builder.OwnsOne(navigationExpression: p => p.Personality, buildAction: pers =>
             {
                 pers.Property(x => x.Optimism)
                     .HasColumnName("Optimism")
