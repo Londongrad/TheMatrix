@@ -9,7 +9,7 @@ import {
   resurrectCitizen,
   updateCitizen,
 } from "../../../api/population/populationApi";
-import { useAuth } from "../../../api/auth/AuthContext";
+import { useAuth } from "../../../api/identity/AuthContext";
 
 const MARITAL_STATUS_OPTIONS: string[] = [
   "Unknown",

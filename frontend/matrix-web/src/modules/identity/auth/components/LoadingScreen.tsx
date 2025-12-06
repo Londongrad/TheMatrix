@@ -1,7 +1,6 @@
-import React from "react";
-import "../../../styles/auth/loading-screen.css";
+import "../../../../styles/identity/auth/loading-screen.css";
 
-export const LoadingScreen: React.FC = () => {
+export const LoadingScreen = () => {
   return (
     <div className="loading-overlay">
       <div className="loading-core">

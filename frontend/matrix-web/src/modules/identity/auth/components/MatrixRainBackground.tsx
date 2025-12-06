@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import "../../../styles/auth/matrix-rain.css";
+import "../../../../styles/identity/auth/matrix-rain.css";
 
 const MatrixRainBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { initializePopulation } from "../../../api/population/populationApi";
 import "../../../styles/citycore/dashboard.css";
+import { useAuth } from "../../../api/identity/AuthContext";
 
-const DashboardPage: React.FC = () => {
+const DashboardPage = () => {
   const [generateCount, setGenerateCount] = useState(10000);
   const [isInitializing, setIsInitializing] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [initMessage, setInitMessage] = useState<string | null>(null);
+
+  const { token } = useAuth(); // берем access токен
 
   const handleTriggerStorm = () => {
     console.log("Trigger storm in district #1");
@@ -24,12 +27,17 @@ const DashboardPage: React.FC = () => {
       return;
     }
 
+    if (!token) {
+      setInitError("Not authenticated.");
+      return;
+    }
+
     try {
       setIsInitializing(true);
       setInitError(null);
       setInitMessage(null);
 
-      await initializePopulation(generateCount);
+      await initializePopulation(generateCount, token);
 
       setInitMessage(
         `Population initialized with ${generateCount.toLocaleString()} citizens.`

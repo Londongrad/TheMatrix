@@ -2,12 +2,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import DashboardPage from "../modules/city-core/pages/DashboardPage";
 import CitizensPage from "../modules/population/pages/CitizensPage";
-import UserSettingsPage from "../app/layouts/UserSettingsPage";
+import UserSettingsPage from "../modules/identity/account/pages/UserSettingsPage";
 
-import { AuthProvider } from "../api/auth/AuthContext";
-import { RequireAuth } from "../api/auth/RequireAuth";
-import { LoginPage } from "../modules/auth/pages/LoginPage";
-import { RegisterPage } from "../modules/auth/pages/RegisterPage";
+import { AuthProvider } from "../api/identity/AuthContext";
+import { RequireAuth } from "../api/identity/RequireAuth";
+import { LoginPage } from "../modules/identity/auth/pages/LoginPage";
+import { RegisterPage } from "../modules/identity/auth/pages/RegisterPage";
 
 const App = () => {
   return (

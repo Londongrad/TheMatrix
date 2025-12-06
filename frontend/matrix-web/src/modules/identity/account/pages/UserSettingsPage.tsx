@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useAuth } from "../../api/auth/AuthContext";
-import "../../styles/shared/user-settings-page.css";
+import { useAuth } from "../../../../api/identity/AuthContext";
+import "../../../../styles/identity/account/user-settings-page.css";
 
 const UserSettingsPage = () => {
   const { user } = useAuth();

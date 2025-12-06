@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useAuth } from "../../../api/auth/AuthContext";
+import { useAuth } from "../../../../api/identity/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import "../../../styles/auth/register-page.css";
+import "../../../../styles/identity/auth/register-page.css";
 import MatrixRainBackground from "../components/MatrixRainBackground";
 
 export const RegisterPage = () => {
