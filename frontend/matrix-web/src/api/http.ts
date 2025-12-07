@@ -1,5 +1,3 @@
-// src/api/http.ts
-
 export class HttpError extends Error {
   status: number;
 
@@ -32,14 +30,23 @@ export async function request<T>(
 ): Promise<T> {
   let response: Response;
 
+  // 👇 добавляем определение, FormData это или нет
+  const isFormData = options.body instanceof FormData;
+
+  // если FormData → НЕ ставим Content-Type
+  const baseHeaders: HeadersInit = options.headers ?? {};
+  const headers: HeadersInit = isFormData
+    ? baseHeaders
+    : {
+        "Content-Type": "application/json",
+        ...baseHeaders,
+      };
+
   try {
     response = await fetch(url, {
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers ?? {}),
-      },
       ...options,
+      headers,
     });
   } catch {
     // Сетевая ошибка / сервер упал
@@ -50,24 +57,58 @@ export async function request<T>(
   }
 
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
+    const status = response.status;
+    let message = `Request failed with status ${status}`;
 
     try {
+      const contentType = response.headers.get("Content-Type") || "";
       const text = await response.text();
+
       if (text) {
-        message = text;
+        // если пришёл JSON (ProblemDetails)
+        if (contentType.includes("application/json")) {
+          try {
+            const data = JSON.parse(text);
+
+            if (typeof data === "string") {
+              message = data;
+            } else if (data.detail) {
+              // ASP.NET Core ProblemDetails.Detail
+              message = data.detail;
+            } else if (data.title) {
+              // ASP.NET Core ProblemDetails.Title
+              message = data.title;
+            } else {
+              message = text;
+            }
+          } catch {
+            // не смогли распарсить json → оставляем сырой текст
+            message = text;
+          }
+        } else {
+          // не json → просто показываем текст
+          message = text;
+        }
       }
     } catch {
       // игнорируем, оставляем дефолтное message
     }
 
-    throw new HttpError(response.status, message);
+    // Доп. обработка для 415, если вдруг бек ничего умного не дал
+    if (status === 415 && message === `Request failed with status ${status}`) {
+      message =
+        "Сервер не принимает такой формат файла. Попробуйте загрузить PNG или JPG размером до 2 МБ.";
+    }
+
+    throw new HttpError(status, message);
   }
 
   if (response.status === 204) {
+    // No Content
     return undefined as T;
   }
 
+  // предполагаем JSON-ответ
   return (await response.json()) as T;
 }
 
