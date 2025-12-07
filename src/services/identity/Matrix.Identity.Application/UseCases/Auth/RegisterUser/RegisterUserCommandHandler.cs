@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;

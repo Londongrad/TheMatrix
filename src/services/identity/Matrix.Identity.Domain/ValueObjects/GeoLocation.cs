@@ -1,4 +1,4 @@
-﻿namespace Matrix.Identity.Domain.ValueObjects
+namespace Matrix.Identity.Domain.ValueObjects
 {
     public sealed record GeoLocation
     {

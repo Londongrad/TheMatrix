@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Errors;
+using Matrix.Identity.Domain.Errors;
 
 namespace Matrix.Identity.Domain.Rules
 {

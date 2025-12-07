@@ -1,4 +1,4 @@
-﻿namespace Matrix.Identity.Infrastructure.Authentication.Jwt
+namespace Matrix.Identity.Infrastructure.Authentication.Jwt
 {
     public sealed class JwtOptions
     {

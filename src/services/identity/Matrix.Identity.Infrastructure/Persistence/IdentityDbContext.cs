@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence

@@ -19,7 +19,7 @@ namespace Matrix.Identity.Api.Contracts.Responses
         public bool IsActive { get; set; }
 
         /// <summary>
-        ///     Convenience-строка для фронта: "City, Region, Country" / null
+        ///     Convenience-СЃС‚СЂРѕРєР° РґР»СЏ С„СЂРѕРЅС‚Р°: "City, Region, Country" / null
         /// </summary>
         public string? Location
         {

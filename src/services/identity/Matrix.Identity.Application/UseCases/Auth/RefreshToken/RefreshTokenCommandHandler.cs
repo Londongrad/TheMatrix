@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using Matrix.Identity.Domain.Entities;

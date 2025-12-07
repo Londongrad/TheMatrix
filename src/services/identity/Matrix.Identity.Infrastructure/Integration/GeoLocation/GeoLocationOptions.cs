@@ -1,4 +1,4 @@
-﻿namespace Matrix.Identity.Infrastructure.Integration.GeoLocation
+namespace Matrix.Identity.Infrastructure.Integration.GeoLocation
 {
     /// <summary>
     ///     Configuration for GeoLocationService.

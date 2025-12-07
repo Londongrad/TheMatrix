@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Rules;
+using Matrix.Identity.Domain.Rules;
 
 namespace Matrix.Identity.Domain.ValueObjects
 {

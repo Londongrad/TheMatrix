@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Matrix.Identity.Domain.Errors;
 
 namespace Matrix.Identity.Domain.Rules

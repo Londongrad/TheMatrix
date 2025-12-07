@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using Matrix.Identity.Application.Abstractions;
 using Microsoft.Extensions.Logging;
