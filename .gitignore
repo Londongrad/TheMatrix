@@ -11,6 +11,10 @@
 *.sln.docstates
 appsettings.Development.json
 
+# user uploaded avatars
+**/wwwroot/avatars/**
+!**/wwwroot/avatars/.gitkeep
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
