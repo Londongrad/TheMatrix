@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Exceptions;
+using Matrix.BuildingBlocks.Application.Exceptions;
 
 namespace Matrix.BuildingBlocks.Application.Abstractions
 {

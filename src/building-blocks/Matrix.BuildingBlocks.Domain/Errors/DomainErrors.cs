@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain.Exceptions;
+using Matrix.BuildingBlocks.Domain.Exceptions;
 
 namespace Matrix.BuildingBlocks.Domain.Errors
 {

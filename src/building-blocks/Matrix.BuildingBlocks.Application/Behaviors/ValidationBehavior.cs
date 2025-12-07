@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using MediatR;
 
@@ -18,7 +18,7 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
             RequestHandlerDelegate<TResponse> next,
             CancellationToken cancellationToken)
         {
-            if (!_validators.Any()) return await next();
+            if (!_validators.Any()) return await next(cancellationToken);
 
             var context = new ValidationContext<TRequest>(request);
 
@@ -28,18 +28,16 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
                 .Where(f => f is not null)
                 .ToList();
 
-            if (failures.Count > 0)
-            {
-                var errors = failures
-                    .GroupBy(f => f.PropertyName)
-                    .ToDictionary(
-                        keySelector: g => g.Key,
-                        elementSelector: g => g.Select(f => f.ErrorMessage).ToArray());
+            if (failures.Count == 0)
+                return await next(cancellationToken);
 
-                throw _errorFactory.Create(requestType: typeof(TRequest), errors: errors);
-            }
+            var errors = failures
+                .GroupBy(f => f.PropertyName)
+                .ToDictionary(
+                    keySelector: g => g.Key,
+                    elementSelector: g => g.Select(f => f.ErrorMessage).ToArray());
 
-            return await next();
+            throw _errorFactory.Create(requestType: typeof(TRequest), errors: errors);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Matrix.BuildingBlocks.Application.Enums
+namespace Matrix.BuildingBlocks.Application.Enums
 {
     /// <summary>
     ///     Тип прикладочной ошибки (не привязан к HTTP напрямую).

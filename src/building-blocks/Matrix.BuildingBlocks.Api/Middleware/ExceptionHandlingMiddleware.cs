@@ -33,7 +33,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 if (ex.PropertyName is not null)
                     errors = new Dictionary<string, string[]>
                     {
-                        [ex.PropertyName] = new[] { ex.Message }
+                        [ex.PropertyName] = [ex.Message]
                     };
 
                 var response = new ErrorResponse(
