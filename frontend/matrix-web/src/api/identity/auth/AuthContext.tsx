@@ -31,6 +31,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   // теперь возвращает новый access token или null
   refreshSession: () => Promise<string | null>;
+  reloadMe: () => Promise<MeResponse | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -61,6 +62,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return null;
     }
   }, []);
+
+  const reloadMe = useCallback(async (): Promise<MeResponse | null> => {
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const me = await getMe(token);
+      setUser(me);
+      return me;
+    } catch {
+      // do not reset auth state here
+      return null;
+    }
+  }, [token]);
 
   const login = async (data: LoginRequest) => {
     const result = await loginUser(data);
@@ -132,6 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     register,
     logout,
     refreshSession,
+    reloadMe,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
