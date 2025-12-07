@@ -3,7 +3,6 @@ using Matrix.Population.Application.UseCases.GetCitizenPage;
 using Matrix.Population.Application.UseCases.InitializePopulation;
 using Matrix.Population.Application.UseCases.KillPerson;
 using Matrix.Population.Application.UseCases.ResurrectPerson;
-using Matrix.Population.Application.UseCases.UpdatePerson;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -42,17 +41,6 @@ namespace Matrix.Population.Api.Controllers
             PagedResult<PersonDto> result = await _sender.Send(request: query, cancellationToken: cancellationToken);
 
             return Ok(result);
-        }
-
-        [HttpPut("citizens/{id:guid}")]
-        public async Task<ActionResult<PersonDto>> UpdateCitizen(
-            Guid id,
-            [FromBody] UpdatePersonRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            var cmd = new UpdatePersonCommand(Id: id, Changes: request);
-            PersonDto person = await _sender.Send(request: cmd, cancellationToken: cancellationToken);
-            return Ok(person);
         }
 
         [HttpPost("{id:guid}/resurrect")]
