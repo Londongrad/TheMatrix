@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
 {
@@ -24,14 +24,6 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
                 .WithMessage("New password must contain at least one digit.")
                 .Matches("[^a-zA-Z0-9]")
                 .WithMessage("New password must contain at least one special character.");
-
-            RuleFor(x => x.ConfirmPassword)
-                .NotEmpty()
-                .WithMessage("Password confirmation is required.");
-
-            RuleFor(x => x)
-                .Must(x => x.NewPassword == x.ConfirmPassword)
-                .WithMessage("Passwords do not match.");
         }
     }
 }
