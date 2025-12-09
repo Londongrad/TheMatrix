@@ -1,17 +1,15 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Matrix.Identity.Api.Contracts.Requests;
-using Matrix.Identity.Application.UseCases.Account.ChangeAvatar;
+using Matrix.Identity.Api.Contracts.Responses;
+using Matrix.Identity.Application.UseCases.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Account.ChangePassword;
+using Matrix.Identity.Application.UseCases.Account.GetUserProfile;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Identity.Api.Controllers
 {
-    [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/internal/[controller]/{userId:guid}")]
     public class AccountController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
@@ -43,53 +41,46 @@ namespace Matrix.Identity.Api.Controllers
         #region [ Avatar & Password ]
 
         [HttpPut("avatar")]
-        public async Task<IActionResult> ChangeAvatar(
-            [FromBody] ChangeAvatarRequest request,
+        [RequestSizeLimit(2 * 1024 * 1024)]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ChangeAvatarResponse>> ChangeAvatar(
+            [FromRoute] Guid userId,
+            IFormFile? avatar,
             CancellationToken cancellationToken)
         {
-            Guid? userId = GetCurrentUserId();
-            if (userId is null) return Unauthorized();
+            if (avatar is null || avatar.Length == 0) return BadRequest("Avatar file is required.");
 
-            // аватарка может быть null (сброс)
-            var command = new ChangeAvatarCommand(UserId: userId.Value, AvatarUrl: request.AvatarUrl);
+            await using Stream stream = avatar.OpenReadStream();
 
-            await _sender.Send(request: command, cancellationToken: cancellationToken);
+            var command = new ChangeAvatarFromFileCommand(
+                UserId: userId,
+                FileStream: stream,
+                FileName: avatar.FileName,
+                ContentType: avatar.ContentType ?? "image/png"
+            );
 
-            return NoContent();
+            string newAvatarPath = await _sender.Send(request: command, cancellationToken: cancellationToken);
+
+            var response = new ChangeAvatarResponse(newAvatarPath);
+            return Ok(response);
         }
 
         [HttpPut("password")]
         public async Task<IActionResult> ChangePassword(
+            [FromRoute] Guid userId,
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-
-            Guid? userId = GetCurrentUserId();
-            if (userId is null) return Unauthorized();
-
             var command = new ChangePasswordCommand(
-                UserId: userId.Value,
+                UserId: userId,
                 CurrentPassword: request.CurrentPassword,
-                NewPassword: request.NewPassword,
-                ConfirmPassword: request.ConfirmPassword);
+                NewPassword: request.NewPassword);
 
             await _sender.Send(request: command, cancellationToken: cancellationToken);
 
             return NoContent();
         }
 
-        private Guid? GetCurrentUserId()
-        {
-            Claim? userIdClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim is null) return null;
-
-            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return null;
-
-            return userId;
-        }
+        #endregion [ Avatar & Password ]
     }
 }
