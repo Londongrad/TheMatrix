@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Matrix.ApiGateway.DownstreamClients.Identity.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
 using Matrix.BuildingBlocks.Api.Errors;
@@ -6,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Controllers.Identity
 {
-    [ApiController]
-    [Route("api/account")]
     [Authorize]
+    [ApiController]
+    [Route("api/[controller]")]
     public sealed class AccountController(IIdentityAccountClient identityAccountClient)
         : ControllerBase
     {
@@ -16,9 +18,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         private static async Task<ContentResult> ProxyDownstreamErrorAsync(
             HttpResponseMessage response,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
-            string body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken: cancellationToken);
 
             return new ContentResult
             {
@@ -29,23 +31,30 @@ namespace Matrix.ApiGateway.Controllers.Identity
             };
         }
 
-        private string? GetAuthorizationHeader()
-        {
-            string auth = Request.Headers.Authorization.ToString();
-            return string.IsNullOrWhiteSpace(auth) ? null : auth;
-        }
-
         [HttpPut("avatar")]
+        [RequestSizeLimit(2 * 1024 * 1024)]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> ChangeAvatar(
-            [FromBody] ChangeAvatarRequest request,
-            CancellationToken ct)
+            IFormFile? avatar,
+            CancellationToken cancellationToken)
         {
-            string? authorization = GetAuthorizationHeader();
-            if (authorization is null)
+            if (avatar is null || avatar.Length == 0)
             {
                 var error = new ErrorResponse(
-                    Code: "Gateway.MissingAuthorizationHeader",
-                    Message: "Authorization header is required.",
+                    Code: "Gateway.EmptyAvatar",
+                    Message: "Avatar file is required.",
+                    Errors: null,
+                    TraceId: HttpContext.TraceIdentifier);
+
+                return BadRequest(error);
+            }
+
+            Guid? userId = GetCurrentUserId();
+            if (userId is null)
+            {
+                var error = new ErrorResponse(
+                    Code: "Gateway.MissingUserIdClaim",
+                    Message: "User id claim is missing in token.",
                     Errors: null,
                     TraceId: HttpContext.TraceIdentifier);
 
@@ -53,24 +62,35 @@ namespace Matrix.ApiGateway.Controllers.Identity
             }
 
             HttpResponseMessage response = await _identityAccountClient
-                .ChangeAvatarAsync(authorizationHeader: authorization, request: request, ct: ct);
+                .ChangeAvatarAsync(userId: userId.Value, avatar: avatar, cancellationToken: cancellationToken);
 
-            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+            if (!response.IsSuccessStatusCode)
+                // ошибки просто проксируем как есть
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
 
-            return NoContent();
+            // ✅ Успех: прокидываем тело ответа Identity дальше на фронт
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            return new ContentResult
+            {
+                StatusCode = (int)response.StatusCode,
+                Content = body,
+                ContentType = response.Content.Headers.ContentType?.ToString()
+                              ?? "application/json"
+            };
         }
 
         [HttpPut("password")]
         public async Task<IActionResult> ChangePassword(
             [FromBody] ChangePasswordRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
-            string? authorization = GetAuthorizationHeader();
-            if (authorization is null)
+            Guid? userId = GetCurrentUserId();
+            if (userId is null)
             {
                 var error = new ErrorResponse(
-                    Code: "Gateway.MissingAuthorizationHeader",
-                    Message: "Authorization header is required.",
+                    Code: "Gateway.MissingUserIdClaim",
+                    Message: "User id claim is missing in token.",
                     Errors: null,
                     TraceId: HttpContext.TraceIdentifier);
 
@@ -78,9 +98,10 @@ namespace Matrix.ApiGateway.Controllers.Identity
             }
 
             HttpResponseMessage response = await _identityAccountClient
-                .ChangePasswordAsync(authorizationHeader: authorization, request: request, ct: ct);
+                .ChangePasswordAsync(userId: userId.Value, request: request, cancellationToken: cancellationToken);
 
-            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+            if (!response.IsSuccessStatusCode)
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
 
             return NoContent();
         }
