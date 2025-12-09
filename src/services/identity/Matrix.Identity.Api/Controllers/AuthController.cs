@@ -10,66 +10,27 @@ using Matrix.Identity.Application.UseCases.Sessions.GetUserSessions;
 using Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions;
 using Matrix.Identity.Application.UseCases.Sessions.RevokeUserSession;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Identity.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/internal/[controller]")]
     public sealed class AuthController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
 
-        #region [ Me ]
-
-        [Authorize]
-        [HttpGet("me")]
-        public ActionResult<MeResponse> Me()
-        {
-            Claim? userIdClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirst(ClaimTypes.NameIdentifier);
-
-            Claim? emailClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Email) ??
-                User.FindFirst(ClaimTypes.Email);
-
-            Claim? usernameClaim =
-                User.FindFirst(JwtRegisteredClaimNames.UniqueName) ??
-                User.FindFirst(ClaimTypes.Name);
-
-            if (userIdClaim is null || emailClaim is null || usernameClaim is null) return Unauthorized();
-
-            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return Unauthorized();
-
-            var response = new MeResponse
-            {
-                UserId = userId,
-                Email = emailClaim.Value,
-                Username = usernameClaim.Value
-            };
-
-            return Ok(response);
-        }
-
-        #endregion [ Me ]
-
         #region [ Register & Login ]
 
-        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register(
             [FromBody] RegisterRequest request,
             CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-
             var command = new RegisterUserCommand(
                 Email: request.Email,
                 Username: request.Username,
-                Password: request.Password,
-                ConfirmPassword: request.ConfirmPassword
+                Password: request.Password
             );
 
             RegisterUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
@@ -84,15 +45,12 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
-        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login(
             [FromBody] LoginRequest request,
             CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-
-            // берём user-agent и ip из HTTP-контекста
+            // Р±РµСЂС‘Рј user-agent Рё ip РёР· HTTP-РєРѕРЅС‚РµРєСЃС‚Р°
             string userAgent = Request.Headers.UserAgent.ToString();
             string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
@@ -123,7 +81,6 @@ namespace Matrix.Identity.Api.Controllers
 
         #region [ Refresh & Logout ]
 
-        [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<ActionResult<LoginResponse>> Refresh(
             [FromBody] RefreshRequest request,
@@ -153,10 +110,9 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
-        [AllowAnonymous] // refresh/logout у нас по refresh-токену, access необязателен
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(
-            [FromBody] RefreshRequest request,
+            [FromBody] LogoutRequest request,
             CancellationToken cancellationToken)
         {
             var command = new RevokeRefreshTokenCommand(request.RefreshToken);
@@ -168,7 +124,6 @@ namespace Matrix.Identity.Api.Controllers
 
         #region [ Sessions ]
 
-        [Authorize]
         [HttpGet("sessions")]
         public async Task<ActionResult<List<SessionResponse>>> GetSessions(
             CancellationToken cancellationToken)
@@ -205,7 +160,6 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
-        [Authorize]
         [HttpDelete("sessions/{sessionId:guid}")]
         public async Task<IActionResult> RevokeSession(
             Guid sessionId,
@@ -222,11 +176,10 @@ namespace Matrix.Identity.Api.Controllers
 
             await _sender.Send(request: command, cancellationToken: cancellationToken);
 
-            // Даже если sessionId не нашёлся – всё равно 204, запрос идемпотентный
+            // Р”Р°Р¶Рµ РµСЃР»Рё sessionId РЅРµ РЅР°С€С‘Р»СЃСЏ вЂ“ РІСЃС‘ СЂР°РІРЅРѕ 204, Р·Р°РїСЂРѕСЃ РёРґРµРјРїРѕС‚РµРЅС‚РЅС‹Р№
             return NoContent();
         }
 
-        [Authorize]
         [HttpDelete("sessions")]
         public async Task<IActionResult> RevokeAllSessions(
             CancellationToken cancellationToken)
@@ -242,7 +195,7 @@ namespace Matrix.Identity.Api.Controllers
 
             await _sender.Send(request: command, cancellationToken: cancellationToken);
 
-            // Idempotent: даже если все токены уже были отозваны, просто возвращаем 204
+            // Idempotent: РґР°Р¶Рµ РµСЃР»Рё РІСЃРµ С‚РѕРєРµРЅС‹ СѓР¶Рµ Р±С‹Р»Рё РѕС‚РѕР·РІР°РЅС‹, РїСЂРѕСЃС‚Рѕ РІРѕР·РІСЂР°С‰Р°РµРј 204
             return NoContent();
         }
 
