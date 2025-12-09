@@ -6,10 +6,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
     public sealed class PopulationApiClient(HttpClient client)
         : IPopulationApiClient
     {
-        private const string HealthEndpoint = "/api/population/health";
-        private const string InitializeEndpoint = "/api/population/init";
-        private const string GetPagedEndpoint = "/api/population/citizens";
+        #region [ Fields ]
+
         private readonly HttpClient _client = client;
+
+        #endregion [ Fields ]
 
         public async Task InitializePopulationAsync(
             int peopleCount,
@@ -26,13 +27,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
                 await _client.PostAsync(requestUri: url, content: null, cancellationToken: cancellationToken);
 
             response.EnsureSuccessStatusCode();
-        }
-
-        public async Task<bool> HealthAsync(CancellationToken cancellationToken = default)
-        {
-            using HttpResponseMessage response =
-                await _client.GetAsync(requestUri: HealthEndpoint, cancellationToken: cancellationToken);
-            return response.IsSuccessStatusCode;
         }
 
         public async Task<PersonDto> KillPersonAsync(
@@ -95,5 +89,14 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
             return dto ?? throw new InvalidOperationException("Population API returned empty body for KillPerson.");
         }
+
+        #region [ Constants ]
+
+        private const string PopulationBaseEndpoint = "/api/population";
+
+        private const string InitializeEndpoint = PopulationBaseEndpoint + "init";
+        private const string GetPagedEndpoint = PopulationBaseEndpoint + "citizens";
+
+        #endregion [ Constants ]
     }
 }

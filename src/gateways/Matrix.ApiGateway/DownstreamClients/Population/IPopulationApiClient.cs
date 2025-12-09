@@ -5,14 +5,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
 {
     public interface IPopulationApiClient
     {
-        /// <summary>Инициализирует/пересоздаёт популяцию.</summary>
+        /// <summary>РРЅРёС†РёР°Р»РёР·РёСЂСѓРµС‚/РїРµСЂРµСЃРѕР·РґР°С‘С‚ РїРѕРїСѓР»СЏС†РёСЋ.</summary>
         Task InitializePopulationAsync(
             int peopleCount,
             int? randomSeed = null,
             CancellationToken cancellationToken = default);
-
-        /// <summary>Health-check сервиса Population.</summary>
-        Task<bool> HealthAsync(CancellationToken cancellationToken = default);
 
         Task<PersonDto> KillPersonAsync(
             Guid id,
