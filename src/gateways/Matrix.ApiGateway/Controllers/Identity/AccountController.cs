@@ -84,5 +84,18 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
             return NoContent();
         }
+
+        private Guid? GetCurrentUserId()
+        {
+            Claim? userIdClaim =
+                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim is null) return null;
+
+            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return null;
+
+            return userId;
+        }
     }
 }
