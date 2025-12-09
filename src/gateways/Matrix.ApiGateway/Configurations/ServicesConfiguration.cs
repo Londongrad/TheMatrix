@@ -5,7 +5,9 @@ using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Identity.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
 using Matrix.ApiGateway.DownstreamClients.Population;
+using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.ApiGateway.Configurations
@@ -26,7 +28,28 @@ namespace Matrix.ApiGateway.Configurations
 
         private static IServiceCollection AddPresentationLayer(this IServiceCollection services)
         {
-            services.AddControllers();
+            // При ModelState invalid, возвращаем кастомный ответ с ошибками валидации
+            services.AddControllers()
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var errors = context.ModelState
+                            .Where(kvp => kvp.Value?.Errors.Count > 0)
+                            .ToDictionary(
+                                keySelector: kvp => kvp.Key,
+                                elementSelector: kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                            );
+
+                        var error = new ErrorResponse(
+                            Code: "Gateway.ValidationError",
+                            Message: "Validation failed.",
+                            Errors: errors,
+                            TraceId: context.HttpContext.TraceIdentifier);
+
+                        return new BadRequestObjectResult(error);
+                    };
+                });
             return services;
         }
 
@@ -69,7 +92,7 @@ namespace Matrix.ApiGateway.Configurations
             });
 
             // Identity downstream client
-            // ����� baseUrl ��� Identity
+            // Общий baseUrl для Identity
             string identityBaseUrl = downstream["Identity"]
                                      ?? throw new InvalidOperationException(
                                          "DownstreamServices:Identity is not configured.");
