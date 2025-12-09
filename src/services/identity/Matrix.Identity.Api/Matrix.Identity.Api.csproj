@@ -21,4 +21,8 @@
     <ProjectReference Include="..\Matrix.Identity.Infrastructure\Matrix.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>
