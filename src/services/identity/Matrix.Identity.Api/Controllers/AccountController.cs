@@ -16,6 +16,32 @@ namespace Matrix.Identity.Api.Controllers
     {
         private readonly ISender _sender = sender;
 
+        #region [ Profile ]
+
+        [HttpGet("profile")]
+        public async Task<ActionResult<UserProfileResponse>> GetProfile(
+            [FromRoute] Guid userId,
+            CancellationToken cancellationToken)
+        {
+            var query = new GetUserProfileQuery(userId);
+
+            UserProfileResult result = await _sender.Send(request: query, cancellationToken: cancellationToken);
+
+            var response = new UserProfileResponse
+            {
+                UserId = result.UserId,
+                Email = result.Email,
+                Username = result.Username,
+                AvatarUrl = result.AvatarUrl
+            };
+
+            return Ok(response);
+        }
+
+        #endregion [ Profile ]
+
+        #region [ Avatar & Password ]
+
         [HttpPut("avatar")]
         public async Task<IActionResult> ChangeAvatar(
             [FromBody] ChangeAvatarRequest request,
