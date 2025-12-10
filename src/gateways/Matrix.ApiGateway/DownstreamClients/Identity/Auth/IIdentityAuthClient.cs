@@ -4,17 +4,19 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
 {
     public interface IIdentityAuthClient
     {
-        Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
-        Task<HttpResponseMessage> LoginAsync(LoginRequest request, CancellationToken ct = default);
+        Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+        Task<HttpResponseMessage> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
 
-        Task<HttpResponseMessage> RefreshAsync(RefreshRequest request, CancellationToken ct = default);
-        Task LogoutAsync(RefreshRequest request, CancellationToken ct = default);
+        Task<HttpResponseMessage> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default);
+        Task LogoutAsync(LogoutRequest request, CancellationToken cancellationToken = default);
 
-        Task<HttpResponseMessage> GetSessionsAsync(string authorizationHeader, CancellationToken ct = default);
+        Task<HttpResponseMessage> GetSessionsAsync(string authorizationHeader,
+            CancellationToken cancellationToken = default);
 
         Task<HttpResponseMessage> RevokeSessionAsync(string authorizationHeader, Guid sessionId,
-            CancellationToken ct = default);
+            CancellationToken cancellationToken = default);
 
-        Task<HttpResponseMessage> RevokeAllSessionsAsync(string authorizationHeader, CancellationToken ct = default);
+        Task<HttpResponseMessage> RevokeAllSessionsAsync(string authorizationHeader,
+            CancellationToken cancellationToken = default);
     }
 }
