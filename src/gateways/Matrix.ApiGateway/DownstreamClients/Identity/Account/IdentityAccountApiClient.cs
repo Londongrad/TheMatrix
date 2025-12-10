@@ -4,40 +4,49 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
 {
     public sealed class IdentityAccountApiClient(HttpClient httpClient) : IIdentityAccountClient
     {
-        private const string ChangeAvatarEndpoint = "api/account/avatar";
-        private const string ChangePasswordEndpoint = "api/account/password";
+        // Базовый префикс для всех эндпоинтов этого контроллера в Identity
+        private const string AccountBaseEndpoint = "api/internal/account";
+
+        private const string AvatarSegment = "avatar";
+        private const string PasswordSegment = "password";
+
         private readonly HttpClient _httpClient = httpClient;
 
         public async Task<HttpResponseMessage> ChangeAvatarAsync(
-            string authorizationHeader,
-            ChangeAvatarRequest request,
-            CancellationToken ct = default)
+            Guid userId,
+            IFormFile avatar,
+            CancellationToken cancellationToken = default)
         {
-            var message = new HttpRequestMessage(method: HttpMethod.Put, requestUri: ChangeAvatarEndpoint)
+            // Если Identity ждёт multipart/form-data
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(avatar.OpenReadStream());
+            content.Add(content: streamContent, name: "avatar", fileName: avatar.FileName);
+
+            // /api/internal/account/{userId}/avatar
+            string endpoint = $"{AccountBaseEndpoint}/{userId:D}/{AvatarSegment}";
+
+            var message = new HttpRequestMessage(method: HttpMethod.Put, requestUri: endpoint)
             {
-                Content = JsonContent.Create(request)
+                Content = content
             };
 
-            if (!string.IsNullOrWhiteSpace(authorizationHeader))
-                message.Headers.TryAddWithoutValidation(name: "Authorization", value: authorizationHeader);
-
-            return await _httpClient.SendAsync(request: message, cancellationToken: ct);
+            return await _httpClient.SendAsync(request: message, cancellationToken: cancellationToken);
         }
 
         public async Task<HttpResponseMessage> ChangePasswordAsync(
-            string authorizationHeader,
+            Guid userId,
             ChangePasswordRequest request,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
-            var message = new HttpRequestMessage(method: HttpMethod.Put, requestUri: ChangePasswordEndpoint)
+            // /api/internal/account/{userId}/password
+            string endpoint = $"{AccountBaseEndpoint}/{userId:D}/{PasswordSegment}";
+
+            var message = new HttpRequestMessage(method: HttpMethod.Put, requestUri: endpoint)
             {
                 Content = JsonContent.Create(request)
             };
 
-            if (!string.IsNullOrWhiteSpace(authorizationHeader))
-                message.Headers.TryAddWithoutValidation(name: "Authorization", value: authorizationHeader);
-
-            return await _httpClient.SendAsync(request: message, cancellationToken: ct);
+            return await _httpClient.SendAsync(request: message, cancellationToken: cancellationToken);
         }
     }
 }

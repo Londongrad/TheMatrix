@@ -5,13 +5,13 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
     public interface IIdentityAccountClient
     {
         Task<HttpResponseMessage> ChangeAvatarAsync(
-            string authorizationHeader,
-            ChangeAvatarRequest request,
-            CancellationToken ct = default);
+            Guid userId,
+            IFormFile avatar,
+            CancellationToken cancellationToken = default);
 
         Task<HttpResponseMessage> ChangePasswordAsync(
-            string authorizationHeader,
+            Guid userId,
             ChangePasswordRequest request,
-            CancellationToken ct = default);
+            CancellationToken cancellationToken = default);
     }
 }
