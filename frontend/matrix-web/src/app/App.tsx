@@ -8,52 +8,55 @@ import { AuthProvider } from "@api/identity/auth/AuthContext";
 import { RequireAuth } from "@api/identity/auth/RequireAuth";
 import { LoginPage } from "@modules/identity/auth/pages/LoginPage";
 import { RegisterPage } from "@modules/identity/auth/pages/RegisterPage";
+import { ConfirmProvider } from "@modules/shared/components/ConfirmDialog";
 
 const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* публичные страницы */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+        <ConfirmProvider>
+          <Routes>
+            {/* публичные страницы */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          {/* защищённые страницы — только для залогиненных */}
-          <Route
-            path="/"
-            element={
-              <RequireAuth>
-                <MainLayout>
-                  <DashboardPage />
-                </MainLayout>
-              </RequireAuth>
-            }
-          />
+            {/* защищённые страницы — только для залогиненных */}
+            <Route
+              path="/"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <DashboardPage />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
 
-          <Route
-            path="/userSettings"
-            element={
-              <RequireAuth>
-                <MainLayout>
-                  <UserSettingsPage />
-                </MainLayout>
-              </RequireAuth>
-            }
-          />
+            <Route
+              path="/userSettings"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <UserSettingsPage />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
 
-          <Route
-            path="/citizens"
-            element={
-              <RequireAuth>
-                <MainLayout>
-                  <CitizensPage />
-                </MainLayout>
-              </RequireAuth>
-            }
-          />
+            <Route
+              path="/citizens"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <CitizensPage />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ConfirmProvider>
       </AuthProvider>
     </BrowserRouter>
   );
