@@ -1,15 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useAuth } from "@api/identity/auth/AuthContext";
+import { changePassword, updateAvatar } from "@api/identity/account/accountApi";
+import { useConfirm } from "@modules/shared/components/ConfirmDialog";
+import DeleteAccountDialog from "../components/DeleteAccountDialog";
 import "@styles/identity/account/user-settings-page.css";
 
 const UserSettingsPage = () => {
-  const { user } = useAuth();
+  const { user, token, reloadMe, patchUser } = useAuth();
+  const confirm = useConfirm();
 
   const typedUser = user as any;
+  const avatarUrl: string | undefined = typedUser?.avatarUrl;
 
   const [displayName, setDisplayName] = useState<string>(
     typedUser?.username ?? ""
   );
+  const [securityError, setSecurityError] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [email, setEmail] = useState<string>(typedUser?.email ?? "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -22,6 +30,13 @@ const UserSettingsPage = () => {
   const [profileSaved, setProfileSaved] = useState(false);
   const [securitySaved, setSecuritySaved] = useState(false);
   const [preferencesSaved, setPreferencesSaved] = useState(false);
+
+  // Окно удаления аккаунта
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const initial = (displayName || email || "O").charAt(0).toUpperCase();
 
@@ -44,13 +59,54 @@ const UserSettingsPage = () => {
     simulateSave(setProfileSaved, setIsSavingProfile);
   };
 
-  const handleSecuritySubmit = (e: React.FormEvent) => {
+  // ========== PASSWORD CHANGE =============
+  const handleSecuritySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: здесь потом будет вызов API смены пароля
-    simulateSave(setSecuritySaved, setIsSavingSecurity);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmNewPassword("");
+
+    setSecurityError(null);
+
+    if (!token) {
+      setSecurityError("You are not authenticated.");
+      return;
+    }
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setSecurityError("Please fill in all password fields.");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setSecurityError("New password and confirmation do not match.");
+      return;
+    }
+
+    try {
+      setIsSavingSecurity(true);
+      setSecuritySaved(false);
+
+      await changePassword(
+        {
+          currentPassword,
+          newPassword,
+          confirmNewPassword,
+        },
+        token
+      );
+
+      setSecuritySaved(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+
+      setTimeout(() => setSecuritySaved(false), 2000);
+    } catch (err: any) {
+      console.error(err);
+      setSecurityError(
+        err?.message || "Failed to change password. Please try again."
+      );
+    } finally {
+      setIsSavingSecurity(false);
+    }
   };
 
   const handlePreferencesSubmit = (e: React.FormEvent) => {
@@ -59,19 +115,80 @@ const UserSettingsPage = () => {
     simulateSave(setPreferencesSaved, setIsSavingPreferences);
   };
 
-  const handleDeleteAccount = () => {
-    const confirmed = window.confirm(
-      "This is a stub.\nIn the future this will permanently delete your account and all simulated data.\n\nAre you sure you want to continue?"
-    );
-    if (confirmed) {
-      // TODO: сюда потом повесим реальный delete-account API
-      console.log("Delete account (stub)");
+  const handleDeleteAccountClick = () => {
+    setDeleteError(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteAccount = async (password: string) => {
+    if (!token) {
+      setDeleteError("You are not authenticated.");
+      return;
+    }
+
+    try {
+      setIsDeletingAccount(true);
+      setDeleteError(null);
+
+      // TODO: здесь будет реальный delete-account API, например:
+      // await deleteAccount({ password }, token);
+      console.log("Delete account with password:", password);
+
+      // после успешного удаления:
+      // await logout();
+      // window.location.href = "/goodbye";
+    } catch (err) {
+      console.error(err);
+      setDeleteError("Failed to delete account. Please check your password.");
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
+  // =============== AVATAR ==================
   const handleAvatarClick = () => {
-    // TODO: здесь можно будет открыть модалку выбора аватарки / загрузки файла
-    alert("Avatar change is not implemented yet (stub).");
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!token) {
+      setAvatarError("You are not authenticated.");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Please select an image file.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError("Maximum avatar size is 2 MB.");
+      return;
+    }
+
+    try {
+      setAvatarError(null);
+      setIsUploadingAvatar(true);
+
+      const result = await updateAvatar(file, token);
+
+      patchUser({ avatarUrl: result.avatarUrl });
+    } catch (err: any) {
+      console.error(err);
+      setAvatarError(
+        err?.message || "Failed to upload avatar. Please try again."
+      );
+    } finally {
+      setIsUploadingAvatar(false);
+      e.target.value = "";
+    }
   };
 
   return (
@@ -99,24 +216,48 @@ const UserSettingsPage = () => {
             </div>
           </div>
 
+          {/* Avatar */}
           <div className="settings-avatar-row">
             <button
               type="button"
               className="settings-avatar"
               onClick={handleAvatarClick}
+              disabled={isUploadingAvatar}
             >
-              <span className="settings-avatar-initial">{initial}</span>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={displayName || email || "Avatar"}
+                  className="settings-avatar-image"
+                />
+              ) : (
+                <span className="settings-avatar-initial">{initial}</span>
+              )}
             </button>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept="image/*"
+              onChange={handleAvatarChange}
+            />
+
             <div className="settings-avatar-text">
               <div className="settings-avatar-name">
                 {displayName || "Overseer"}
               </div>
               <div className="settings-avatar-meta">
-                Avatar customization coming soon.
+                {isUploadingAvatar
+                  ? "Uploading avatar..."
+                  : "Click to change avatar."}
               </div>
             </div>
           </div>
 
+          {avatarError && <p className="settings-error-text">{avatarError}</p>}
+
+          {/* Username */}
           <form className="settings-form" onSubmit={handleProfileSubmit}>
             <div className="settings-field">
               <div className="settings-label-row">
@@ -135,6 +276,7 @@ const UserSettingsPage = () => {
               />
             </div>
 
+            {/* Email */}
             <div className="settings-field">
               <div className="settings-label-row">
                 <label className="settings-label" htmlFor="email">
@@ -227,6 +369,10 @@ const UserSettingsPage = () => {
                 placeholder="••••••••"
               />
             </div>
+
+            {securityError && (
+              <p className="settings-error-text">{securityError}</p>
+            )}
 
             <div className="settings-actions-row">
               {securitySaved && (
@@ -336,12 +482,25 @@ const UserSettingsPage = () => {
             <button
               type="button"
               className="settings-button settings-button--danger"
-              onClick={handleDeleteAccount}
+              onClick={handleDeleteAccountClick}
             >
               Delete account
             </button>
           </div>
         </section>
+
+        <DeleteAccountDialog
+          open={isDeleteDialogOpen}
+          isSubmitting={isDeletingAccount}
+          error={deleteError}
+          onClose={() => {
+            if (!isDeletingAccount) {
+              setIsDeleteDialogOpen(false);
+              setDeleteError(null);
+            }
+          }}
+          onConfirm={handleConfirmDeleteAccount}
+        />
       </div>
     </div>
   );

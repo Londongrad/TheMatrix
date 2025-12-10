@@ -99,6 +99,13 @@
   margin: 0.75rem 0 1rem;
 }
 
+.settings-avatar-image {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
 .settings-avatar {
   width: 52px;
   height: 52px;
@@ -122,6 +129,18 @@
   transform: translateY(-1px) scale(1.02);
   filter: brightness(1.05);
   box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 0 22px rgba(59, 130, 246, 0.9);
+}
+
+.settings-avatar:disabled {
+  cursor: progress;
+  opacity: 0.75;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.settings-avatar:disabled:hover {
+  transform: none;
+  filter: none;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
 }
 
 .settings-avatar-initial {
@@ -367,6 +386,14 @@
   font-size: 0.84rem;
   color: #fecaca;
   margin-top: 0.5rem;
+}
+
+.settings-error-text {
+  margin-top: 0.5rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #f97373;
 }
 
 /* Адаптив */
