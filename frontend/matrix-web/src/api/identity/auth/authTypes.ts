@@ -28,6 +28,7 @@ export interface MeResponse {
   userId: string;
   email: string;
   username: string;
+  avatarUrl: string | null;
 }
 
 export interface SessionInfo {

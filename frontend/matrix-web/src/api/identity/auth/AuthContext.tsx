@@ -32,6 +32,7 @@ interface AuthContextValue {
   // теперь возвращает новый access token или null
   refreshSession: () => Promise<string | null>;
   reloadMe: () => Promise<MeResponse | null>;
+  patchUser: (patch: Partial<MeResponse>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -77,6 +78,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return null;
     }
   }, [token]);
+
+  const patchUser = useCallback((patch: Partial<MeResponse>) => {
+    setUser((prev) => (prev ? { ...prev, ...patch } : prev));
+  }, []);
 
   const login = async (data: LoginRequest) => {
     const result = await loginUser(data);
@@ -149,6 +154,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     logout,
     refreshSession,
     reloadMe,
+    patchUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
