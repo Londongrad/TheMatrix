@@ -1,17 +1,20 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using Matrix.ApiGateway.Contracts.Identity.Auth.Requests;
+using Matrix.ApiGateway.Contracts.Identity.Auth.Responses;
 using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
-using Matrix.ApiGateway.DownstreamClients.Identity.Contracts;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
+using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Responses;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Controllers.Identity
 {
+    [Authorize]
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/[controller]")]
     public sealed class AuthController(IIdentityAuthClient identityApiClient) : ControllerBase
     {
         private readonly IIdentityAuthClient _identityApiClient = identityApiClient;
@@ -20,9 +23,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         private static async Task<ContentResult> ProxyDownstreamErrorAsync(
             HttpResponseMessage response,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
-            string body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
 
             return new ContentResult
             {
@@ -65,43 +68,61 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         #endregion [ Cookie Management ]
 
-        #region [ Registration and Login ]
+        #region [ Registration and Login endpoints ]
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request,
+            CancellationToken cancellationToken)
         {
-            HttpResponseMessage response = await _identityApiClient.RegisterAsync(request: request, ct: ct);
+            var registerRequest = new RegisterRequest
+            {
+                Email = request.Email,
+                Username = request.Username,
+                Password = request.Password
+            };
 
-            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+            HttpResponseMessage response =
+                await _identityApiClient.RegisterAsync(request: registerRequest, cancellationToken: cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
 
             RegisterResponse? registerResponse =
-                await response.Content.ReadFromJsonAsync<RegisterResponse>(cancellationToken: ct);
+                await response.Content.ReadFromJsonAsync<RegisterResponse>(cancellationToken);
 
-            if (registerResponse is null)
-            {
-                var error = new ErrorResponse(
-                    Code: "Gateway.InvalidIdentityResponse",
-                    Message: "Invalid response from Identity service.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+            if (registerResponse is not null) return Ok(registerResponse);
 
-                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
-            }
+            var error = new ErrorResponse(
+                Code: "Gateway.InvalidIdentityResponse",
+                Message: "Invalid response from Identity service.",
+                Errors: null,
+                TraceId: HttpContext.TraceIdentifier);
 
-            return Ok(registerResponse);
+            return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request, CancellationToken cancellationToken)
         {
-            HttpResponseMessage response = await _identityApiClient.LoginAsync(request: request, ct: ct);
+            var loginRequest = new LoginRequest
+            {
+                Login = request.Login,
+                Password = request.Password,
+                DeviceId = request.DeviceId,
+                DeviceName = request.DeviceName
+            };
 
-            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+            HttpResponseMessage response =
+                await _identityApiClient.LoginAsync(request: loginRequest, cancellationToken: cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
 
             LoginResponse? loginResponse =
-                await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
+                await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken);
+
             if (loginResponse is null)
             {
                 var error = new ErrorResponse(
@@ -120,15 +141,15 @@ namespace Matrix.ApiGateway.Controllers.Identity
             return Ok(loginResponse);
         }
 
-        #endregion [ Registration and Login ]
+        #endregion [ Registration and Login endpoints ]
 
-        #region [ Token Refresh and Logout ]
+        #region [ Token Refresh and Logout endpoints ]
 
         [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(
-            [FromBody] RefreshRequest request,
-            CancellationToken ct)
+            [FromBody] RefreshRequestDto requestDto,
+            CancellationToken cancellationToken)
         {
             string? refreshToken = Request.Cookies[RefreshCookieName];
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -142,21 +163,22 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 return Unauthorized(error);
             }
 
-            // Куки контролируем мы, поэтому перезаписываем, даже если клиент что-то прислал
-            request.RefreshToken = refreshToken;
+            var request = new RefreshRequest { DeviceId = requestDto.DeviceId, RefreshToken = refreshToken };
 
-            HttpResponseMessage response = await _identityApiClient.RefreshAsync(request: request, ct: ct);
+            HttpResponseMessage response =
+                await _identityApiClient.RefreshAsync(request: request, cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
                 if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
                     ClearRefreshCookie();
 
-                return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
             }
 
             LoginResponse? loginResponse =
-                await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
+                await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken);
+
             if (loginResponse is null)
             {
                 ClearRefreshCookie();
@@ -180,26 +202,25 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         [AllowAnonymous]
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout(CancellationToken ct)
+        public async Task<IActionResult> Logout(CancellationToken cancellationToken)
         {
             string? refreshToken = Request.Cookies[RefreshCookieName];
 
             if (!string.IsNullOrEmpty(refreshToken))
             {
-                var request = new RefreshRequest { RefreshToken = refreshToken };
+                var request = new LogoutRequest { RefreshToken = refreshToken };
 
-                await _identityApiClient.LogoutAsync(request: request, ct: ct);
+                await _identityApiClient.LogoutAsync(request: request, cancellationToken: cancellationToken);
             }
 
             ClearRefreshCookie();
             return NoContent();
         }
 
-        #endregion [ Token Refresh and Logout ]
+        #endregion [ Token Refresh and Logout endpoints ]
 
-        #region [ Sessions Management ]
+        #region [ Sessions Management endpoints ]
 
-        [Authorize]
         [HttpGet("me")]
         public ActionResult<MeResponse> Me()
         {
@@ -215,11 +236,13 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 User.FindFirst(JwtRegisteredClaimNames.UniqueName) ??
                 User.FindFirst(ClaimTypes.Name);
 
-            if (userIdClaim is null || emailClaim is null || usernameClaim is null) return Unauthorized();
+            if (userIdClaim is null
+                || emailClaim is null
+                || usernameClaim is null
+                || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
+                return Unauthorized();
 
-            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return Unauthorized();
-
-            var response = new MeResponse
+            var response = new MeResponseDto
             {
                 UserId = userId,
                 Email = emailClaim.Value,
@@ -229,61 +252,61 @@ namespace Matrix.ApiGateway.Controllers.Identity
             return Ok(response);
         }
 
-        [Authorize]
         [HttpGet("sessions")]
-        public async Task<IActionResult> GetSessions(CancellationToken ct)
+        public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)
         {
             string authorization = Request.Headers.Authorization.ToString();
             if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
 
             HttpResponseMessage response =
-                await _identityApiClient.GetSessionsAsync(authorizationHeader: authorization, ct: ct);
+                await _identityApiClient.GetSessionsAsync(authorizationHeader: authorization,
+                    cancellationToken: cancellationToken);
 
-            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+            if (!response.IsSuccessStatusCode)
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
 
             List<SessionResponse>? sessions =
-                await response.Content.ReadFromJsonAsync<List<SessionResponse>>(cancellationToken: ct);
-            if (sessions is null)
-            {
-                var error = new ErrorResponse(
-                    Code: "Gateway.InvalidIdentityResponse",
-                    Message: "Invalid response from Identity service.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+                await response.Content.ReadFromJsonAsync<List<SessionResponse>>(cancellationToken);
 
-                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
-            }
+            if (sessions is not null) return Ok(sessions);
 
-            return Ok(sessions);
+            var error = new ErrorResponse(
+                Code: "Gateway.InvalidIdentityResponse",
+                Message: "Invalid response from Identity service.",
+                Errors: null,
+                TraceId: HttpContext.TraceIdentifier);
+
+            return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
         }
 
-        [Authorize]
         [HttpDelete("sessions/{sessionId:guid}")]
-        public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken ct)
+        public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken cancellationToken)
         {
             string authorization = Request.Headers.Authorization.ToString();
             if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
 
             HttpResponseMessage response =
                 await _identityApiClient.RevokeSessionAsync(authorizationHeader: authorization, sessionId: sessionId,
-                    ct: ct);
+                    cancellationToken: cancellationToken);
 
-            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+            if (!response.IsSuccessStatusCode)
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
 
             return NoContent();
         }
 
-        [Authorize]
         [HttpDelete("sessions")]
-        public async Task<IActionResult> RevokeAllSessions(CancellationToken ct)
+        public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {
             string authorization = Request.Headers.Authorization.ToString();
             if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
 
             HttpResponseMessage response =
-                await _identityApiClient.RevokeAllSessionsAsync(authorizationHeader: authorization, ct: ct);
+                await _identityApiClient.RevokeAllSessionsAsync(authorizationHeader: authorization,
+                    cancellationToken: cancellationToken);
 
-            if (!response.IsSuccessStatusCode) return await ProxyDownstreamErrorAsync(response: response, ct: ct);
+            if (!response.IsSuccessStatusCode)
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
 
             // Мы только что убили все refresh-токены, чистим куку
             ClearRefreshCookie();
@@ -291,6 +314,6 @@ namespace Matrix.ApiGateway.Controllers.Identity
             return NoContent();
         }
 
-        #endregion [ Sessions Management ]
+        #endregion [ Sessions Management endpoints ]
     }
 }
