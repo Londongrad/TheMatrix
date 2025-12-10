@@ -10,13 +10,13 @@ interface DeleteAccountDialogProps {
   onConfirm: (password: string) => void;
 }
 
-const DeleteAccountDialog: React.FC<DeleteAccountDialogProps> = ({
+const DeleteAccountDialog = ({
   open,
   isSubmitting,
   error,
   onClose,
   onConfirm,
-}) => {
+}: DeleteAccountDialogProps) => {
   const [password, setPassword] = useState("");
 
   // при закрытии очищаем пароль
