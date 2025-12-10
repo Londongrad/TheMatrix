@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Responses
 {
     public sealed class SessionResponse
     {
@@ -18,7 +18,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts
 
         public bool IsActive { get; set; }
 
-        // Просто пробрасываем то, что посчитал Identity
+        // РџСЂРѕСЃС‚Рѕ РїСЂРѕР±СЂР°СЃС‹РІР°РµРј С‚Рѕ, С‡С‚Рѕ РїРѕСЃС‡РёС‚Р°Р» Identity
         public string? Location { get; set; }
     }
 }

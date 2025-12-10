@@ -2,8 +2,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests
 {
     public sealed class ChangePasswordRequest
     {
-        public string CurrentPassword { get; set; } = null!;
-        public string NewPassword { get; set; } = null!;
-        public string ConfirmPassword { get; set; } = null!;
+        public required string CurrentPassword { get; set; }
+        public required string NewPassword { get; set; }
+        public required string ConfirmPassword { get; set; }
     }
 }

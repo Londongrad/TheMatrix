@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Responses
 {
     public sealed class RegisterResponse
     {
