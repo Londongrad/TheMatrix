@@ -3,3 +3,7 @@ export interface ChangePasswordRequest {
   newPassword: string;
   confirmNewPassword: string;
 }
+
+export interface ChangeAvatarResponse {
+  avatarUrl: string;
+}

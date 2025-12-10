@@ -1,6 +1,9 @@
 import { API_ACCOUNT_URL } from "@api/config";
 import { apiRequest } from "@api/http";
-import type { ChangePasswordRequest } from "./accountTypes";
+import type {
+  ChangeAvatarResponse,
+  ChangePasswordRequest,
+} from "./accountTypes";
 
 // Если бек возвращает только 204 NoContent:
 export async function changePassword(
@@ -19,11 +22,11 @@ export async function changePassword(
 export async function updateAvatar(
   file: File,
   accessToken: string
-): Promise<void> {
+): Promise<ChangeAvatarResponse> {
   const formData = new FormData();
   formData.append("avatar", file);
 
-  await apiRequest<void>(`${API_ACCOUNT_URL}/avatar`, {
+  return await apiRequest<ChangeAvatarResponse>(`${API_ACCOUNT_URL}/avatar`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${accessToken}`,
