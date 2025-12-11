@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Rules;
+using Matrix.Identity.Domain.Rules;
 using Matrix.Identity.Domain.ValueObjects;
 
 namespace Matrix.Identity.Domain.Entities
@@ -11,7 +11,8 @@ namespace Matrix.Identity.Domain.Entities
             string tokenHash,
             DateTime expiresAtUtc,
             DeviceInfo deviceInfo,
-            GeoLocation? geoLocation)
+            GeoLocation? geoLocation,
+            bool isPersistent)
         {
             RefreshTokenRules.Validate(expiresAtUtc);
 
@@ -19,7 +20,8 @@ namespace Matrix.Identity.Domain.Entities
                 tokenHash: tokenHash,
                 expiresAtUtc: expiresAtUtc,
                 deviceInfo: deviceInfo,
-                geoLocation: geoLocation);
+                geoLocation: geoLocation,
+                isPersistent: isPersistent);
         }
 
         #endregion [ Factory Methods ]
@@ -31,6 +33,7 @@ namespace Matrix.Identity.Domain.Entities
         public DateTime CreatedAtUtc { get; private set; }
         public DateTime ExpiresAtUtc { get; }
         public bool IsRevoked { get; private set; }
+        public bool IsPersistent { get; private set; }
 
         public DeviceInfo DeviceInfo { get; private set; } = null!;
         public GeoLocation? GeoLocation { get; private set; }
@@ -48,13 +51,15 @@ namespace Matrix.Identity.Domain.Entities
             string tokenHash,
             DateTime expiresAtUtc,
             DeviceInfo deviceInfo,
-            GeoLocation? geoLocation)
+            GeoLocation? geoLocation,
+            bool isPersistent)
         {
             Id = Guid.NewGuid();
             TokenHash = tokenHash;
             CreatedAtUtc = DateTime.UtcNow;
             ExpiresAtUtc = expiresAtUtc;
             IsRevoked = false;
+            IsPersistent = isPersistent;
 
             DeviceInfo = deviceInfo;
             GeoLocation = geoLocation;

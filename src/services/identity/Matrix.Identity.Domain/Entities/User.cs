@@ -99,7 +99,8 @@ namespace Matrix.Identity.Domain.Entities
             string tokenHash,
             DateTime expiresAtUtc,
             DeviceInfo deviceInfo,
-            GeoLocation? geoLocation)
+            GeoLocation? geoLocation,
+            bool isPersistent)
         {
             if (string.IsNullOrWhiteSpace(tokenHash)) throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
 
@@ -107,7 +108,8 @@ namespace Matrix.Identity.Domain.Entities
                 tokenHash: tokenHash,
                 expiresAtUtc: expiresAtUtc,
                 deviceInfo: deviceInfo,
-                geoLocation: geoLocation);
+                geoLocation: geoLocation,
+                isPersistent: isPersistent);
 
             _refreshTokens.Add(refreshToken);
 
