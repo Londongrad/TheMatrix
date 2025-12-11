@@ -24,13 +24,6 @@ export interface LoginResponse {
   refreshTokenExpiresAtUtc: string;
 }
 
-export interface MeResponse {
-  userId: string;
-  email: string;
-  username: string;
-  avatarUrl: string | null;
-}
-
 export interface SessionInfo {
   id: string;
 

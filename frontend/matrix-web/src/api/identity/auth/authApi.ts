@@ -52,15 +52,6 @@ export async function logoutAuth(): Promise<void> {
   });
 }
 
-export async function getMe(token: string): Promise<MeResponse> {
-  return await request<MeResponse>(`${API_AUTH_URL}/me`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
 // ---- работа с сессиями ----
 
 export async function getSessions(token: string): Promise<SessionInfo[]> {
