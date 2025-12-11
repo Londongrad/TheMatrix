@@ -1,11 +1,12 @@
 // rc/api/http.ts
-
 export class HttpError extends Error {
   status: number;
+  payload?: unknown; // весь распарсенный JSON ответа
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, payload?: unknown) {
     super(message);
     this.status = status;
+    this.payload = payload;
   }
 }
 
@@ -61,6 +62,7 @@ export async function request<T>(
   if (!response.ok) {
     const status = response.status;
     let message = `Request failed with status ${status}`;
+    let payload: unknown = undefined; // 👈 ВНЕ try
 
     try {
       const contentType = response.headers.get("Content-Type") || "";
@@ -71,6 +73,7 @@ export async function request<T>(
         if (contentType.includes("application/json")) {
           try {
             const data = JSON.parse(text);
+            payload = data; // 👈 сохраняем JSON
 
             if (typeof data === "string") {
               message = data;
@@ -80,6 +83,17 @@ export async function request<T>(
             } else if (data.title) {
               // ASP.NET Core ProblemDetails.Title
               message = data.title;
+            } else if (data.message) {
+              // формат ErrorResponse: { code, message, errors, traceId }
+              message = data.message;
+
+              if (data.errors && typeof data.errors === "object") {
+                const dict = data.errors as Record<string, string[]>;
+                const firstError = Object.values(dict).flat()[0];
+                if (firstError) {
+                  message = firstError;
+                }
+              }
             } else {
               message = text;
             }
@@ -93,7 +107,7 @@ export async function request<T>(
         }
       }
     } catch {
-      // игнорируем, оставляем дефолтное message
+      // оставляем дефолтное message
     }
 
     // Доп. обработка для 415, если вдруг бек ничего умного не дал
@@ -102,7 +116,8 @@ export async function request<T>(
         "Сервер не принимает такой формат файла. Попробуйте загрузить PNG или JPG размером до 2 МБ.";
     }
 
-    throw new HttpError(status, message);
+    // 👇 Передаём payload дальше
+    throw new HttpError(status, message, payload);
   }
 
   if (response.status === 204) {
