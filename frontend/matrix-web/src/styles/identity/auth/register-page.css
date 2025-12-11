@@ -290,6 +290,26 @@
     0 0 0 1px rgba(15, 23, 42, 0.9);
   transition: transform 0.08s ease-out, box-shadow 0.12s ease-out,
     filter 0.12s ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Спиннер в кнопке регистрации */
+.register-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.55);
+  border-top-color: #e5e7eb;
+  animation: register-spinner-spin 0.6s linear infinite;
+}
+
+@keyframes register-spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .register-button:hover {
@@ -321,6 +341,12 @@
   color: #38bdf8;
   text-decoration: none;
   font-weight: 500;
+}
+
+/* Состояние "загрузка" для ссылок (Login / Sign in) */
+.register-link--disabled {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .register-switch a:hover {

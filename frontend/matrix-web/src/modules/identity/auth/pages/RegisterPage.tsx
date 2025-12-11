@@ -18,6 +18,13 @@ export const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Бонус: простая проверка совпадения паролей на клиенте
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -76,7 +83,17 @@ export const RegisterPage = () => {
             <h1 className="register-title">Register</h1>
             <p className="register-subtitle">
               Choose your credentials to enter the Matrix. Already have an
-              account? <Link to="/login">Sign in</Link>.
+              account?{" "}
+              <Link
+                to="/login"
+                className={isSubmitting ? "register-link--disabled" : ""}
+                onClick={(e) => {
+                  if (isSubmitting) e.preventDefault();
+                }}
+              >
+                Sign in
+              </Link>
+              .
             </p>
 
             <form className="register-form" onSubmit={handleSubmit}>
@@ -91,6 +108,7 @@ export const RegisterPage = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -106,6 +124,7 @@ export const RegisterPage = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="matrix_god"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -120,6 +139,7 @@ export const RegisterPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -134,6 +154,7 @@ export const RegisterPage = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -144,12 +165,24 @@ export const RegisterPage = () => {
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Registering..." : "Register"}
+                {isSubmitting && (
+                  <span className="register-spinner" aria-hidden="true" />
+                )}
+                <span>{isSubmitting ? "Registering..." : "Register"}</span>
               </button>
             </form>
 
             <div className="register-switch">
-              Already have an account? <Link to="/login">Login</Link>
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className={isSubmitting ? "register-link--disabled" : ""}
+                onClick={(e) => {
+                  if (isSubmitting) e.preventDefault();
+                }}
+              >
+                Login
+              </Link>
             </div>
           </div>
         </div>
