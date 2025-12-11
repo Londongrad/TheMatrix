@@ -1,10 +1,10 @@
+// src/api/auth/authApi.ts
 import { API_AUTH_URL } from "@api/config";
 import { request } from "@api/http";
 import type {
   RegisterRequest,
   LoginRequest,
   LoginResponse,
-  MeResponse,
   SessionInfo,
 } from "./authTypes";
 import { getOrCreateDeviceId, getOrCreateDeviceName } from "./deviceInfo";
@@ -20,9 +20,13 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
   const deviceId = getOrCreateDeviceId();
   const deviceName = getOrCreateDeviceName();
 
+  const { login, password, rememberMe = true } = data;
+
   // payload, который ждёт Gateway/Identity
   const payload = {
-    ...data,
+    login,
+    password,
+    rememberMe,
     deviceId,
     deviceName,
   };
