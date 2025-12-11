@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Application.UseCases.Auth.LoginUser;
+using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken

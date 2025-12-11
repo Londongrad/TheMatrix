@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
 
