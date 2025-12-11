@@ -7,18 +7,14 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import type { MeResponse, LoginRequest } from "./authTypes";
-import {
-  getMe,
-  loginUser,
-  registerUser,
-  refreshAuth,
-  logoutAuth,
-} from "./authApi";
+import type { LoginRequest } from "./authTypes";
+import type { ProfileResponse } from "@api/identity/account/accountTypes";
+import { getProfile } from "@api/identity/account/accountApi";
+import { loginUser, registerUser, refreshAuth, logoutAuth } from "./authApi";
 import { configureHttpAuth } from "@api/http";
 
 interface AuthContextValue {
-  user: MeResponse | null;
+  user: ProfileResponse | null;
   token: string | null; // access token (in memory only)
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<void>;
@@ -31,14 +27,14 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   // теперь возвращает новый access token или null
   refreshSession: () => Promise<string | null>;
-  reloadMe: () => Promise<MeResponse | null>;
-  patchUser: (patch: Partial<MeResponse>) => void;
+  reloadMe: () => Promise<ProfileResponse | null>;
+  patchUser: (patch: Partial<ProfileResponse>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<MeResponse | null>(null);
+  const [user, setUser] = useState<ProfileResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -52,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       setToken(newAccess);
 
-      const me = await getMe(newAccess);
+      const me = await getProfile(newAccess);
       setUser(me);
 
       return newAccess;
@@ -64,13 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const reloadMe = useCallback(async (): Promise<MeResponse | null> => {
+  const reloadMe = useCallback(async (): Promise<ProfileResponse | null> => {
     if (!token) {
       return null;
     }
 
     try {
-      const me = await getMe(token);
+      const me = await getProfile(token);
       setUser(me);
       return me;
     } catch {
@@ -79,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [token]);
 
-  const patchUser = useCallback((patch: Partial<MeResponse>) => {
+  const patchUser = useCallback((patch: Partial<ProfileResponse>) => {
     setUser((prev) => (prev ? { ...prev, ...patch } : prev));
   }, []);
 
@@ -89,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const access = result.accessToken;
     setToken(access);
 
-    const me = await getMe(access);
+    const me = await getProfile(access);
     setUser(me);
   };
 
@@ -107,7 +103,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     // После регистрации сразу логинимся
-    await login({ login: data.email, password: data.password });
+    await login({
+      login: data.email,
+      password: data.password,
+      rememberMe: true,
+    });
   };
 
   const logout = async () => {
