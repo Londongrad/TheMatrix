@@ -82,6 +82,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                 expiresAtUtc: newDescriptor.ExpiresAtUtc,
                 deviceInfo: updatedDeviceInfo,
                 geoLocation: geoLocation);
+                isPersistent: currentToken.IsPersistent);
 
             // 11) Новый access token
             AccessTokenModel accessModel = _accessTokenService.Generate(user);
@@ -94,7 +95,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                 TokenType = accessModel.TokenType,
                 AccessTokenExpiresInSeconds = accessModel.ExpiresInSeconds,
                 RefreshToken = newDescriptor.Token,
-                RefreshTokenExpiresAtUtc = newDescriptor.ExpiresAtUtc
+                RefreshTokenExpiresAtUtc = newDescriptor.ExpiresAtUtc,
+                IsPersistent = currentToken.IsPersistent
             };
         }
     }

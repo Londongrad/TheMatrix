@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
 {
-    public sealed class LoginUserHandler(
+    public sealed class LoginUserCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         IAccessTokenService accessTokenService,
@@ -58,7 +58,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
             AccessTokenModel accessTokenModel = _accessTokenService.Generate(user);
 
             // 2) Refresh token descriptor (сырое значение + hash + время жизни)
-            RefreshTokenDescriptor refreshDescriptor = _refreshTokenProvider.Generate();
+            RefreshTokenDescriptor refreshDescriptor = _refreshTokenProvider.Generate(request.RememberMe);
 
             // 3) Собираем DeviceInfo из команды
             var deviceInfo = DeviceInfo.Create(
@@ -80,7 +80,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
                 tokenHash: refreshDescriptor.TokenHash,
                 expiresAtUtc: refreshDescriptor.ExpiresAtUtc,
                 deviceInfo: deviceInfo,
-                geoLocation: geoLocation);
+                geoLocation: geoLocation,
+                isPersistent: request.RememberMe);
 
             await _userRepository.SaveChangesAsync(cancellationToken);
 
@@ -90,7 +91,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
                 TokenType = accessTokenModel.TokenType,
                 AccessTokenExpiresInSeconds = accessTokenModel.ExpiresInSeconds,
                 RefreshToken = refreshDescriptor.Token,
-                RefreshTokenExpiresAtUtc = refreshDescriptor.ExpiresAtUtc
+                RefreshTokenExpiresAtUtc = refreshDescriptor.ExpiresAtUtc,
+                IsPersistent = request.RememberMe
             };
         }
     }

@@ -7,7 +7,7 @@ namespace Matrix.Identity.Application.Abstractions
 
     public interface IRefreshTokenProvider
     {
-        RefreshTokenDescriptor Generate();
+        RefreshTokenDescriptor Generate(bool isPersistent);
         string ComputeHash(string token);
     }
 }

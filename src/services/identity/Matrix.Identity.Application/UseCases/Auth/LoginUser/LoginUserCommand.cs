@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
 {
@@ -8,6 +8,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
         string DeviceId,
         string DeviceName,
         string UserAgent,
-        string? IpAddress)
+        string? IpAddress,
+        bool RememberMe)
         : IRequest<LoginUserResult>;
 }
