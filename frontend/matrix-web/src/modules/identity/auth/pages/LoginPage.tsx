@@ -13,6 +13,7 @@ export const LoginPage = () => {
 
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true); // NEW: запомнить устройство
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,13 +23,18 @@ export const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
-      await loginUser({ login, password });
+      await loginUser({ login, password, rememberMe }); // NEW: передаём rememberMe
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    if (isSubmitting) return;
+    navigate("/forgot-password"); // потом сделаем страницу
   };
 
   return (
@@ -78,8 +84,16 @@ export const LoginPage = () => {
             <h1 className="login-title">Login</h1>
             <p className="login-subtitle">
               Enter your credentials to access the dashboard.{" "}
-              <Link to="/register">Create an account</Link> if you don&apos;t
-              have one yet.
+              <Link
+                to="/register"
+                className={isSubmitting ? "login-link--disabled" : ""}
+                onClick={(e) => {
+                  if (isSubmitting) e.preventDefault();
+                }}
+              >
+                Create an account
+              </Link>{" "}
+              if you don&apos;t have one yet.
             </p>
 
             <form className="login-form" onSubmit={handleSubmit}>
@@ -95,6 +109,7 @@ export const LoginPage = () => {
                   onChange={(e) => setLogin(e.target.value)}
                   placeholder="you@example.com or matrix_god"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -109,7 +124,30 @@ export const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  disabled={isSubmitting}
                 />
+              </div>
+
+              {/* NEW: Remember me + Forgot password */}
+              <div className="login-extra-row">
+                <label className="login-remember">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={isSubmitting}
+                  />
+                  <span>Remember this device</span>
+                </label>
+
+                <button
+                  type="button"
+                  className="login-forgot"
+                  onClick={handleForgotPassword}
+                  disabled={isSubmitting}
+                >
+                  Forgot password?
+                </button>
               </div>
 
               {error && <div className="login-error">{error}</div>}
@@ -119,12 +157,24 @@ export const LoginPage = () => {
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Logging in..." : "Login"}
+                {isSubmitting && (
+                  <span className="login-spinner" aria-hidden="true" />
+                )}
+                <span>{isSubmitting ? "Logging in..." : "Login"}</span>
               </button>
             </form>
 
             <div className="login-switch">
-              Don&apos;t have an account? <Link to="/register">Register</Link>
+              Don&apos;t have an account?{" "}
+              <Link
+                to="/register"
+                className={isSubmitting ? "login-link--disabled" : ""}
+                onClick={(e) => {
+                  if (isSubmitting) e.preventDefault();
+                }}
+              >
+                Register
+              </Link>
             </div>
           </div>
         </div>

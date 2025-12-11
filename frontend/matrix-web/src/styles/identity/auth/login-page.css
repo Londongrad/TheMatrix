@@ -225,6 +225,49 @@
   gap: 0.35rem;
 }
 
+/* строка "Remember" + "Forgot" */
+.login-extra-row {
+  margin-top: 0.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.login-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.login-remember input {
+  cursor: pointer;
+  accent-color: #38bdf8; /* поддерживается в современных браузерах */
+}
+
+.login-forgot {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #38bdf8;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.login-forgot:hover {
+  text-decoration: underline;
+}
+
+.login-forgot:disabled {
+  opacity: 0.6;
+  cursor: default;
+  text-decoration: none;
+}
+
 .login-label-row {
   display: flex;
   justify-content: space-between;
@@ -301,6 +344,12 @@
     0 0 0 1px rgba(15, 23, 42, 0.9);
   transition: transform 0.08s ease-out, box-shadow 0.12s ease-out,
     filter 0.12s ease-out;
+
+  /* NEW: для спиннера + текста */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .login-button:hover {
@@ -321,6 +370,22 @@
   box-shadow: none;
 }
 
+/* Спиннер загрузки в кнопке */
+.login-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.55); /* тусклый круг */
+  border-top-color: #e5e7eb; /* светлый "сектор" */
+  animation: login-spinner-spin 0.6s linear infinite;
+}
+
+@keyframes login-spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .login-switch {
   margin-top: 1.25rem;
   font-size: 0.86rem;
@@ -336,6 +401,12 @@
 
 .login-switch a:hover {
   text-decoration: underline;
+}
+
+/* Состояние "загружает" для ссылок (Register / Create an account) */
+.login-link--disabled {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 @media (max-width: 900px) {
