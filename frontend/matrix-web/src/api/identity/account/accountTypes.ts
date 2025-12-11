@@ -1,3 +1,4 @@
+// src/api/account/accountTypes.ts
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
@@ -6,4 +7,11 @@ export interface ChangePasswordRequest {
 
 export interface ChangeAvatarResponse {
   avatarUrl: string;
+}
+
+export interface ProfileResponse {
+  userId: string;
+  email: string;
+  username: string;
+  avatarUrl: string | null;
 }
