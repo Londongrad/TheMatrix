@@ -1,15 +1,15 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Matrix.Identity.Api.Contracts.Requests
 {
     public sealed class LoginRequest
     {
-        [Required] public string Login { get; set; } = null!;
+        public required string Login { get; set; }
 
-        [Required] public string Password { get; set; } = null!;
+        public required string Password { get; set; }
 
-        [Required] public string DeviceId { get; set; } = null!;
+        public required string DeviceId { get; set; }
 
-        [Required] public string DeviceName { get; set; } = null!;
+        public required string DeviceName { get; set; }
+
+        public bool RememberMe { get; set; } = true;
     }
 }
