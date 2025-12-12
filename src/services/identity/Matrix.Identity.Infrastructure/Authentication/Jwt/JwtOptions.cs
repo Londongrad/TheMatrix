@@ -2,14 +2,16 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
 {
     public sealed class JwtOptions
     {
-        public string Issuer { get; set; } = null!;
+        public required string Issuer { get; set; }
 
-        public string Audience { get; set; } = null!;
+        public required string Audience { get; set; }
 
-        public string SigningKey { get; set; } = null!;
+        public required string SigningKey { get; set; }
 
-        public int AccessTokenLifetimeMinutes { get; set; }
+        public int AccessTokenLifetimeMinutes { get; set; } = 30;
 
-        public int RefreshTokenLifetimeDays { get; set; }
+        public int RefreshTokenLifetimeDays { get; set; } = 7;
+
+        public int ShortRefreshTokenLifetimeHours { get; set; } = 8;
     }
 }
