@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using Matrix.Identity.Application.Abstractions;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
@@ -10,7 +10,7 @@ namespace Matrix.Identity.Infrastructure.Security
     {
         private readonly JwtOptions _options = options.Value;
 
-        public RefreshTokenDescriptor Generate()
+        public RefreshTokenDescriptor Generate(bool isPersistent)
         {
             // 64 байта крипто-рандома
             byte[] bytes = new byte[64];
@@ -18,7 +18,10 @@ namespace Matrix.Identity.Infrastructure.Security
             string token = Convert.ToBase64String(bytes);
 
             string hash = ComputeHash(token);
-            DateTime expiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays);
+
+            DateTime expiresAt = isPersistent
+                ? DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays)
+                : DateTime.UtcNow.AddHours(_options.ShortRefreshTokenLifetimeHours);
 
             return new RefreshTokenDescriptor(Token: token, TokenHash: hash, ExpiresAtUtc: expiresAt);
         }
