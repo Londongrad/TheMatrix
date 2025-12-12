@@ -4,6 +4,5 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests
     {
         public required string CurrentPassword { get; set; }
         public required string NewPassword { get; set; }
-        public required string ConfirmPassword { get; set; }
     }
 }
