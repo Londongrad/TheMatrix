@@ -66,7 +66,8 @@ namespace Matrix.Identity.Api.Controllers
                 DeviceId: request.DeviceId,
                 DeviceName: request.DeviceName,
                 UserAgent: userAgent,
-                IpAddress: ipAddress
+                IpAddress: ipAddress,
+                RememberMe: request.RememberMe
             );
 
             LoginUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
@@ -77,7 +78,8 @@ namespace Matrix.Identity.Api.Controllers
                 TokenType = result.TokenType,
                 ExpiresIn = result.AccessTokenExpiresInSeconds,
                 RefreshToken = result.RefreshToken,
-                RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc
+                RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc,
+                IsPersistent = result.IsPersistent
             };
 
             return Ok(response);
@@ -116,7 +118,8 @@ namespace Matrix.Identity.Api.Controllers
                 TokenType = result.TokenType,
                 ExpiresIn = result.AccessTokenExpiresInSeconds,
                 RefreshToken = result.RefreshToken,
-                RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc
+                RefreshTokenExpiresAtUtc = result.RefreshTokenExpiresAtUtc,
+                IsPersistent = result.IsPersistent
             };
 
             return Ok(response);
