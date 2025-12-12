@@ -52,7 +52,13 @@ namespace Matrix.Identity.Api.Controllers
         {
             // берём user-agent и ip из HTTP-контекста
             string userAgent = Request.Headers.UserAgent.ToString();
-            string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            string? ipAddress = null;
+            if (Request.Headers.TryGetValue(key: "X-Real-IP", value: out StringValues realIpHeader))
+                ipAddress = realIpHeader.ToString();
+
+            // fallback на RemoteIpAddress, если что-то пошло не так
+            ipAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
 
             var command = new LoginUserCommand(
                 Login: request.Login,
@@ -87,7 +93,13 @@ namespace Matrix.Identity.Api.Controllers
             CancellationToken cancellationToken)
         {
             string userAgent = Request.Headers.UserAgent.ToString();
-            string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            string? ipAddress = null;
+            if (Request.Headers.TryGetValue(key: "X-Real-IP", value: out StringValues realIpHeader))
+                ipAddress = realIpHeader.ToString();
+
+            // fallback на RemoteIpAddress, если что-то пошло не так
+            ipAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
 
             var command = new RefreshTokenCommand(
                 RefreshToken: request.RefreshToken,
