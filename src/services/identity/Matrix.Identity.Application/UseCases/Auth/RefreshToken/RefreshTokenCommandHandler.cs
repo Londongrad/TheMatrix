@@ -21,70 +21,76 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
 
         public async Task<LoginUserResult> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            // 1) Считаем хэш полученного refresh token'а
+            // 1) Хэш текущего refresh
             string hash = _refreshTokenProvider.ComputeHash(request.RefreshToken);
 
-            // 2) Ищем пользователя по этому хэшу
-            User user = await _userRepository.GetByRefreshTokenHashAsync(tokenHash: hash,
+            // 2) Находим пользователя с этим токеном
+            User user = await _userRepository.GetByRefreshTokenHashAsync(
+                            tokenHash: hash,
                             cancellationToken: cancellationToken)
                         ?? throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            // 3) Ищем конкретный токен у пользователя
+            // 3) Находим КОНКРЕТНЫЙ токен
             Domain.Entities.RefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash)
                                                         ?? throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            // 4) Проверяем, что он ещё активен
-            if (!currentToken.IsActive()) throw ApplicationErrorsFactory.InvalidRefreshToken();
+            // 4) Проверяем активность
+            if (!currentToken.IsActive())
+                throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            // 5) Проверяем, что запрос пришёл с того же устройства
+            // 5) Проверяем, что DeviceId совпадает
             DeviceInfo currentDeviceInfo = currentToken.DeviceInfo;
 
             if (!string.Equals(a: currentDeviceInfo.DeviceId, b: request.DeviceId,
                     comparisonType: StringComparison.Ordinal))
             {
-                // Можно дополнительно revoke'нуть старый токен как скомпрометированный
                 currentToken.Revoke();
                 await _userRepository.SaveChangesAsync(cancellationToken);
-
-                // Снаружи это выглядит просто как "invalid refresh token"
                 throw ApplicationErrorsFactory.InvalidRefreshToken();
             }
 
-            // 6) Собираем обновлённый DeviceInfo:
-            //    - DeviceId и DeviceName берём из существующего токена
-            //    - UserAgent и IpAddress берём из текущего запроса
-            var updatedDeviceInfo = DeviceInfo.Create(
+            // 6) Собираем обновлённый DeviceInfo ДЛЯ ТЕКУЩЕГО токена
+            var updatedDeviceInfoForCurrent = DeviceInfo.Create(
                 deviceId: currentDeviceInfo.DeviceId,
                 deviceName: currentDeviceInfo.DeviceName,
                 userAgent: request.UserAgent,
-                ipAddress: request.IpAddress);
+                ipAddress: request.IpAddress
+            );
 
-            // 7) Опционально резолвим геолокацию по IP
+            // 7) Опционально геолокация
             GeoLocation? geoLocation = null;
-
             if (!string.IsNullOrWhiteSpace(request.IpAddress))
                 geoLocation = await _geoLocationService.ResolveAsync(
-                    ipAddress: request.IpAddress,
+                    ipAddress: request.IpAddress!,
                     cancellationToken: cancellationToken);
 
             // 8) Обновляем "последнее использование" старого токена
-            currentToken.Touch(deviceInfo: updatedDeviceInfo, geoLocation: geoLocation);
+            currentToken.Touch(deviceInfo: updatedDeviceInfoForCurrent, geoLocation: geoLocation);
 
-            // 9) Ротация: помечаем старый как отозванный
+            // 9) Ревокаем старый токен
             currentToken.Revoke();
 
-            // 10) Генерим новый refresh
-            RefreshTokenDescriptor newDescriptor = _refreshTokenProvider.Generate();
+            // 10) Генерим новый refresh + DeviceInfo ДЛЯ НОВОГО токена
+            RefreshTokenDescriptor newDescriptor = _refreshTokenProvider.Generate(currentToken.IsPersistent);
 
-            // Привязываем новый refresh-токен к тому же устройству и локации
+            // По какой-то причине использование этого handler'а с одним DeviceInfo(но обновленным) экземпляром
+            // приводит к багу (что-то типа EF Core не может расшарить сущность). Так что дублируем создание и кладем
+            // в токен новый экземпляр DeviceInfo
+            var deviceInfoForNewToken = DeviceInfo.Create(
+                deviceId: currentDeviceInfo.DeviceId,
+                deviceName: currentDeviceInfo.DeviceName,
+                userAgent: request.UserAgent,
+                ipAddress: request.IpAddress
+            );
+
             user.IssueRefreshToken(
                 tokenHash: newDescriptor.TokenHash,
                 expiresAtUtc: newDescriptor.ExpiresAtUtc,
-                deviceInfo: updatedDeviceInfo,
-                geoLocation: geoLocation);
+                deviceInfo: deviceInfoForNewToken, // новый экземпляр
+                geoLocation: geoLocation,
                 isPersistent: currentToken.IsPersistent);
 
-            // 11) Новый access token
+            // 11) Новый access-token
             AccessTokenModel accessModel = _accessTokenService.Generate(user);
 
             await _userRepository.SaveChangesAsync(cancellationToken);
