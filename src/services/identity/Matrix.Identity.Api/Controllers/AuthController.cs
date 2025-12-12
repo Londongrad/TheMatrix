@@ -1,5 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Matrix.Identity.Api.Contracts.Requests;
 using Matrix.Identity.Api.Contracts.Responses;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
@@ -11,6 +9,7 @@ using Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions;
 using Matrix.Identity.Application.UseCases.Sessions.RevokeUserSession;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace Matrix.Identity.Api.Controllers
 {
@@ -139,17 +138,11 @@ namespace Matrix.Identity.Api.Controllers
 
         #region [ Sessions ]
 
-        [HttpGet("sessions")]
+        [HttpGet("{userId:guid}/sessions")]
         public async Task<ActionResult<List<SessionResponse>>> GetSessions(
+            [FromRoute] Guid userId,
             CancellationToken cancellationToken)
         {
-            Claim? userIdClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
-                return Unauthorized();
-
             var query = new GetUserSessionsQuery(userId);
 
             IReadOnlyCollection<UserSessionResult> sessions =
@@ -175,18 +168,12 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("sessions/{sessionId:guid}")]
+        [HttpDelete("{userId:guid}/sessions/{sessionId:guid}")]
         public async Task<IActionResult> RevokeSession(
-            Guid sessionId,
+            [FromRoute] Guid userId,
+            [FromRoute] Guid sessionId,
             CancellationToken cancellationToken)
         {
-            Claim? userIdClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
-                return Unauthorized();
-
             var command = new RevokeUserSessionCommand(UserId: userId, SessionId: sessionId);
 
             await _sender.Send(request: command, cancellationToken: cancellationToken);
@@ -195,17 +182,11 @@ namespace Matrix.Identity.Api.Controllers
             return NoContent();
         }
 
-        [HttpDelete("sessions")]
+        [HttpDelete("{userId:guid}/sessions")]
         public async Task<IActionResult> RevokeAllSessions(
+            [FromRoute] Guid userId,
             CancellationToken cancellationToken)
         {
-            Claim? userIdClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
-                return Unauthorized();
-
             var command = new RevokeAllUserSessionsCommand(userId);
 
             await _sender.Send(request: command, cancellationToken: cancellationToken);
