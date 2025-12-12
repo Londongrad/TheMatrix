@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -77,6 +77,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                     .IsRequired();
 
                 token.Property(t => t.IsRevoked)
+                    .IsRequired();
+
+                token.Property(t => t.IsPersistent)
+                    .HasDefaultValue(true)
                     .IsRequired();
 
                 token.Property(t => t.LastUsedAtUtc);
