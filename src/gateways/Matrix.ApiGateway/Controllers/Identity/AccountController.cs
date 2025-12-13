@@ -1,5 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Matrix.ApiGateway.Contracts.Identity.Account;
+using Matrix.ApiGateway.Contracts.Identity.Auth.Requests;
+using Matrix.ApiGateway.Controllers.Common;
 using Matrix.ApiGateway.DownstreamClients.Identity.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
 using Matrix.BuildingBlocks.Api.Errors;
@@ -12,23 +15,42 @@ namespace Matrix.ApiGateway.Controllers.Identity
     [ApiController]
     [Route("api/[controller]")]
     public sealed class AccountController(IIdentityAccountClient identityAccountClient)
-        : ControllerBase
+        : GatewayControllerBase
     {
         private readonly IIdentityAccountClient _identityAccountClient = identityAccountClient;
 
-        private static async Task<ContentResult> ProxyDownstreamErrorAsync(
-            HttpResponseMessage response,
-            CancellationToken cancellationToken)
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetMyProfile(CancellationToken cancellationToken)
         {
-            string body = await response.Content.ReadAsStringAsync(cancellationToken: cancellationToken);
-
-            return new ContentResult
+            Guid? userId = GetCurrentUserId();
+            if (userId is null)
             {
-                StatusCode = (int)response.StatusCode,
-                Content = body,
-                ContentType = response.Content.Headers.ContentType?.ToString()
-                              ?? "application/json"
-            };
+                ErrorResponse error = CreateError(
+                    code: "Gateway.MissingUserIdClaim",
+                    message: "User id claim is missing in token.");
+
+                return Unauthorized(error);
+            }
+
+            HttpResponseMessage response =
+                await _identityAccountClient.GetProfileAsync(userId: userId.Value,
+                    cancellationToken: cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
+
+            UserProfileResponseDto? profile =
+                await response.Content.ReadFromJsonAsync<UserProfileResponseDto>(cancellationToken);
+
+            if (profile is not null) return Ok(profile);
+
+            {
+                ErrorResponse error = CreateError(
+                    code: "Gateway.InvalidIdentityResponse",
+                    message: "Invalid response from Identity service.");
+
+                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
+            }
         }
 
         [HttpPut("avatar")]
@@ -40,11 +62,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
         {
             if (avatar is null || avatar.Length == 0)
             {
-                var error = new ErrorResponse(
-                    Code: "Gateway.EmptyAvatar",
-                    Message: "Avatar file is required.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+                ErrorResponse error = CreateError(
+                    code: "Gateway.EmptyAvatar",
+                    message: "Avatar file is required.");
 
                 return BadRequest(error);
             }
@@ -52,11 +72,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
             Guid? userId = GetCurrentUserId();
             if (userId is null)
             {
-                var error = new ErrorResponse(
-                    Code: "Gateway.MissingUserIdClaim",
-                    Message: "User id claim is missing in token.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+                ErrorResponse error = CreateError(
+                    code: "Gateway.MissingUserIdClaim",
+                    message: "User id claim is missing in token.");
 
                 return Unauthorized(error);
             }
@@ -82,20 +100,24 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         [HttpPut("password")]
         public async Task<IActionResult> ChangePassword(
-            [FromBody] ChangePasswordRequest request,
+            [FromBody] ChangePasswordRequestDto requestDto,
             CancellationToken cancellationToken)
         {
             Guid? userId = GetCurrentUserId();
             if (userId is null)
             {
-                var error = new ErrorResponse(
-                    Code: "Gateway.MissingUserIdClaim",
-                    Message: "User id claim is missing in token.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+                ErrorResponse error = CreateError(
+                    code: "Gateway.MissingUserIdClaim",
+                    message: "User id claim is missing in token.");
 
                 return Unauthorized(error);
             }
+
+            var request = new ChangePasswordRequest
+            {
+                CurrentPassword = requestDto.CurrentPassword,
+                NewPassword = requestDto.NewPassword
+            };
 
             HttpResponseMessage response = await _identityAccountClient
                 .ChangePasswordAsync(userId: userId.Value, request: request, cancellationToken: cancellationToken);
@@ -114,9 +136,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
             if (userIdClaim is null) return null;
 
-            if (!Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)) return null;
-
-            return userId;
+            return Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)
+                ? userId
+                : null;
         }
     }
 }
