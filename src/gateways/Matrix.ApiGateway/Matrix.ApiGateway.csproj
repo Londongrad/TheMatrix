@@ -17,4 +17,8 @@
     <ProjectReference Include="..\..\services\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Contracts\Identity\Auth\Responses\" />
+  </ItemGroup>
+
 </Project>

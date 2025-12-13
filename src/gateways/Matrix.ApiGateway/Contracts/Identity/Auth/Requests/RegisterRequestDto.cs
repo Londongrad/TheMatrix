@@ -4,15 +4,15 @@ namespace Matrix.ApiGateway.Contracts.Identity.Auth.Requests
 {
     public class RegisterRequestDto
     {
-        [Required] [EmailAddress] public string Email { get; set; } = null!;
+        [Required] [EmailAddress] public required string Email { get; set; }
 
         [Required]
         [MinLength(3)]
         [MaxLength(16)]
-        public string Username { get; set; } = null!;
+        public required string Username { get; set; }
 
-        [MinLength(6)] public required string Password { get; set; }
+        [Required] [MinLength(6)] public required string Password { get; set; }
 
-        [Required] [Compare(nameof(Password))] public string ConfirmPassword { get; set; } = null!;
+        [Compare(nameof(Password))] public required string ConfirmPassword { get; set; }
     }
 }
