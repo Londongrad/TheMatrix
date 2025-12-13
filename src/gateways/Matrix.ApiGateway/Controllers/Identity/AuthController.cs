@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using Matrix.ApiGateway.Contracts.Identity.Auth.Requests;
-using Matrix.ApiGateway.Contracts.Identity.Auth.Responses;
+using Matrix.ApiGateway.Controllers.Common;
 using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Responses;
@@ -15,27 +15,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public sealed class AuthController(IIdentityAuthClient identityApiClient) : ControllerBase
+    public sealed class AuthController(IIdentityAuthClient identityApiClient) : GatewayControllerBase
     {
         private readonly IIdentityAuthClient _identityApiClient = identityApiClient;
-
-        #region [ Proxy Downstream Errors ]
-
-        private static async Task<ContentResult> ProxyDownstreamErrorAsync(
-            HttpResponseMessage response,
-            CancellationToken cancellationToken)
-        {
-            string body = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            return new ContentResult
-            {
-                StatusCode = (int)response.StatusCode,
-                Content = body,
-                ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json"
-            };
-        }
-
-        #endregion [ Proxy Downstream Errors ]
 
         #region [ Cookie Management ]
 
@@ -97,11 +79,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
             if (registerResponse is not null) return Ok(registerResponse);
 
-            var error = new ErrorResponse(
-                Code: "Gateway.InvalidIdentityResponse",
-                Message: "Invalid response from Identity service.",
-                Errors: null,
-                TraceId: HttpContext.TraceIdentifier);
+            ErrorResponse error = CreateError(
+                code: "Gateway.InvalidIdentityResponse",
+                message: "Invalid response from Identity service.");
 
             return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
         }
@@ -137,11 +117,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
             if (loginResponse is null)
             {
-                var error = new ErrorResponse(
-                    Code: "Gateway.InvalidIdentityResponse",
-                    Message: "Invalid response from Identity service.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+                ErrorResponse error = CreateError(
+                    code: "Gateway.InvalidIdentityResponse",
+                    message: "Invalid response from Identity service.");
 
                 return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
             }
@@ -169,11 +147,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
             string? refreshToken = Request.Cookies[RefreshCookieName];
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                var error = new ErrorResponse(
-                    Code: "Auth.NoRefreshCookie",
-                    Message: "No refresh token cookie.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+                ErrorResponse error = CreateError(
+                    code: "Auth.NoRefreshCookie",
+                    message: "No refresh token cookie.");
 
                 return Unauthorized(error);
             }
@@ -205,11 +181,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
             {
                 ClearRefreshCookie();
 
-                var error = new ErrorResponse(
-                    Code: "Gateway.InvalidIdentityResponse",
-                    Message: "Invalid response from Identity service.",
-                    Errors: null,
-                    TraceId: HttpContext.TraceIdentifier);
+                ErrorResponse error = CreateError(
+                    code: "Gateway.InvalidIdentityResponse",
+                    message: "Invalid response from Identity service.");
 
                 return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
             }
@@ -295,11 +269,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
             if (sessions is not null) return Ok(sessions);
 
-            var error = new ErrorResponse(
-                Code: "Gateway.InvalidIdentityResponse",
-                Message: "Invalid response from Identity service.",
-                Errors: null,
-                TraceId: HttpContext.TraceIdentifier);
+            ErrorResponse error = CreateError(
+                code: "Gateway.InvalidIdentityResponse",
+                message: "Invalid response from Identity service.");
 
             return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
         }
