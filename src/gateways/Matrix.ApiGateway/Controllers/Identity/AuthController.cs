@@ -119,8 +119,15 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 RememberMe = request.RememberMe
             };
 
+            string? clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string userAgent = Request.Headers.UserAgent.ToString();
+
             HttpResponseMessage response =
-                await _identityApiClient.LoginAsync(request: loginRequest, cancellationToken: cancellationToken);
+                await _identityApiClient.LoginAsync(
+                    request: loginRequest,
+                    clientIp: clientIp,
+                    userAgent: userAgent,
+                    cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
                 return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
@@ -171,10 +178,17 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 return Unauthorized(error);
             }
 
-            var request = new RefreshRequest { DeviceId = requestDto.DeviceId, RefreshToken = refreshToken };
+            string? clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string userAgent = Request.Headers.UserAgent.ToString();
+
+            var refreshRequest = new RefreshRequest { DeviceId = requestDto.DeviceId, RefreshToken = refreshToken };
 
             HttpResponseMessage response =
-                await _identityApiClient.RefreshAsync(request: request, cancellationToken: cancellationToken);
+                await _identityApiClient.RefreshAsync(
+                    request: refreshRequest,
+                    clientIp: clientIp,
+                    userAgent: userAgent,
+                    cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
