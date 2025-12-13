@@ -41,16 +41,20 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         private const string RefreshCookieName = "matrix_refresh_token";
 
-        private void SetRefreshCookie(string refreshToken, DateTime refreshExpiresAtUtc)
+        private void SetRefreshCookie(string refreshToken, DateTime refreshExpiresAtUtc, bool isPersistent)
         {
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = refreshExpiresAtUtc,
                 Path = "/"
             };
+
+            if (isPersistent)
+                // persistent cookie – живёт до RefreshTokenExpiresAtUtc
+                cookieOptions.Expires = refreshExpiresAtUtc;
+            // иначе: НИЧЕГО не ставим → сессионная кука (пропадёт при закрытии браузера)
 
             Response.Cookies.Append(key: RefreshCookieName, value: refreshToken, options: cookieOptions);
         }
@@ -111,7 +115,8 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 Login = request.Login,
                 Password = request.Password,
                 DeviceId = request.DeviceId,
-                DeviceName = request.DeviceName
+                DeviceName = request.DeviceName,
+                RememberMe = request.RememberMe
             };
 
             HttpResponseMessage response =
@@ -134,8 +139,11 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
             }
 
-            SetRefreshCookie(refreshToken: loginResponse.RefreshToken,
-                refreshExpiresAtUtc: loginResponse.RefreshTokenExpiresAtUtc);
+            SetRefreshCookie(
+                refreshToken: loginResponse.RefreshToken,
+                refreshExpiresAtUtc: loginResponse.RefreshTokenExpiresAtUtc,
+                isPersistent: loginResponse.IsPersistent);
+
             loginResponse.RefreshToken = string.Empty;
 
             return Ok(loginResponse);
@@ -193,8 +201,11 @@ namespace Matrix.ApiGateway.Controllers.Identity
             }
 
             // успешный refresh → ротация куки
-            SetRefreshCookie(refreshToken: loginResponse.RefreshToken,
-                refreshExpiresAtUtc: loginResponse.RefreshTokenExpiresAtUtc);
+            SetRefreshCookie(
+                refreshToken: loginResponse.RefreshToken,
+                refreshExpiresAtUtc: loginResponse.RefreshTokenExpiresAtUtc,
+                isPersistent: loginResponse.IsPersistent);
+
             loginResponse.RefreshToken = string.Empty;
 
             return Ok(loginResponse);
