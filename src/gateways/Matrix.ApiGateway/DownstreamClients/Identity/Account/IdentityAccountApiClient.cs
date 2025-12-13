@@ -7,10 +7,16 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
         // Базовый префикс для всех эндпоинтов этого контроллера в Identity
         private const string AccountBaseEndpoint = "api/internal/account";
 
+        private const string ProfileSegment = "profile";
         private const string AvatarSegment = "avatar";
         private const string PasswordSegment = "password";
 
         private readonly HttpClient _httpClient = httpClient;
+
+        public Task<HttpResponseMessage> GetProfileAsync(Guid userId, CancellationToken cancellationToken) =>
+            _httpClient.GetAsync(
+                requestUri: $"{AccountBaseEndpoint}/{userId:D}/{ProfileSegment}",
+                cancellationToken: cancellationToken);
 
         public async Task<HttpResponseMessage> ChangeAvatarAsync(
             Guid userId,

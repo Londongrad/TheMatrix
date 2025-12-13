@@ -13,5 +13,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
             Guid userId,
             ChangePasswordRequest request,
             CancellationToken cancellationToken = default);
+
+        Task<HttpResponseMessage> GetProfileAsync(Guid userId, CancellationToken cancellationToken);
     }
 }
