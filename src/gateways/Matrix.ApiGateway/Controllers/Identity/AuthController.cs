@@ -220,46 +220,19 @@ namespace Matrix.ApiGateway.Controllers.Identity
 
         #region [ Sessions Management endpoints ]
 
-        [HttpGet("me")]
-        public ActionResult<MeResponse> Me()
+        [HttpGet("sessions")]
+        public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)
         {
+            // userId только из клеймов (Gateway – граница)
             Claim? userIdClaim =
                 User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
-            Claim? emailClaim =
-                User.FindFirst(JwtRegisteredClaimNames.Email) ??
-                User.FindFirst(ClaimTypes.Email);
-
-            Claim? usernameClaim =
-                User.FindFirst(JwtRegisteredClaimNames.UniqueName) ??
-                User.FindFirst(ClaimTypes.Name);
-
-            if (userIdClaim is null
-                || emailClaim is null
-                || usernameClaim is null
-                || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
+            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
                 return Unauthorized();
 
-            var response = new MeResponseDto
-            {
-                UserId = userId,
-                Email = emailClaim.Value,
-                Username = usernameClaim.Value
-            };
-
-            return Ok(response);
-        }
-
-        [HttpGet("sessions")]
-        public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)
-        {
-            string authorization = Request.Headers.Authorization.ToString();
-            if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
-
             HttpResponseMessage response =
-                await _identityApiClient.GetSessionsAsync(authorizationHeader: authorization,
-                    cancellationToken: cancellationToken);
+                await _identityApiClient.GetSessionsAsync(userId: userId, cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
                 return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
@@ -279,11 +252,15 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpDelete("sessions/{sessionId:guid}")]
         public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken cancellationToken)
         {
-            string authorization = Request.Headers.Authorization.ToString();
-            if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
+            Claim? userIdClaim =
+                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
+                return Unauthorized();
 
             HttpResponseMessage response =
-                await _identityApiClient.RevokeSessionAsync(authorizationHeader: authorization, sessionId: sessionId,
+                await _identityApiClient.RevokeSessionAsync(userId: userId, sessionId: sessionId,
                     cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -295,11 +272,15 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpDelete("sessions")]
         public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {
-            string authorization = Request.Headers.Authorization.ToString();
-            if (string.IsNullOrWhiteSpace(authorization)) return Unauthorized();
+            Claim? userIdClaim =
+                User.FindFirst(JwtRegisteredClaimNames.Sub) ??
+                User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim is null || !Guid.TryParse(input: userIdClaim.Value, result: out Guid userId))
+                return Unauthorized();
 
             HttpResponseMessage response =
-                await _identityApiClient.RevokeAllSessionsAsync(authorizationHeader: authorization,
+                await _identityApiClient.RevokeAllSessionsAsync(userId: userId,
                     cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
