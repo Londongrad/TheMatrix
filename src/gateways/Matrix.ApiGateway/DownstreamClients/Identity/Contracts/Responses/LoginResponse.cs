@@ -8,5 +8,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Responses
 
         public required string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiresAtUtc { get; init; }
+
+        public bool IsPersistent { get; set; }
     }
 }
