@@ -13,9 +13,15 @@ namespace Matrix.Population.Domain.Rules
             LifeStatus lifeStatus,
             AgeGroup ageGroup)
         {
-            GuardHelper.AgainstInvalidEnum(value: status, propertyName: nameof(status));
-            GuardHelper.AgainstInvalidEnum(value: lifeStatus, propertyName: nameof(lifeStatus));
-            GuardHelper.AgainstInvalidEnum(value: ageGroup, propertyName: nameof(ageGroup));
+            GuardHelper.AgainstInvalidEnum(
+                value: status,
+                propertyName: nameof(status));
+            GuardHelper.AgainstInvalidEnum(
+                value: lifeStatus,
+                propertyName: nameof(lifeStatus));
+            GuardHelper.AgainstInvalidEnum(
+                value: ageGroup,
+                propertyName: nameof(ageGroup));
 
             // 1. Мёртвый человек
             if (lifeStatus == LifeStatus.Deceased)

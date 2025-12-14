@@ -4,6 +4,8 @@ namespace Matrix.Identity.Application.Abstractions
     {
         string Hash(string password);
 
-        bool Verify(string passwordHash, string providedPassword);
+        bool Verify(
+            string passwordHash,
+            string providedPassword);
     }
 }

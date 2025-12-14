@@ -5,8 +5,7 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions
 {
-    public sealed class RevokeAllUserSessionsCommandHandler(
-        IUserRepository userRepository)
+    public sealed class RevokeAllUserSessionsCommandHandler(IUserRepository userRepository)
         : IRequestHandler<RevokeAllUserSessionsCommand>
     {
         private readonly IUserRepository _userRepository = userRepository;
@@ -15,8 +14,10 @@ namespace Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions
             RevokeAllUserSessionsCommand request,
             CancellationToken cancellationToken)
         {
-            User user = await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
-                        ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            User user = await _userRepository.GetByIdAsync(
+                            userId: request.UserId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             user.RevokeAllRefreshTokens();
 

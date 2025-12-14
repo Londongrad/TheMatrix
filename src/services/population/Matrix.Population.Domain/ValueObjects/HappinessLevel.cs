@@ -9,19 +9,33 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public HappinessLevel(int value)
         {
-            Value = GuardHelper.AgainstOutOfRange(value: value, min: MinHappiness, max: MaxHappiness,
+            Value = GuardHelper.AgainstOutOfRange(
+                value: value,
+                min: MinHappiness,
+                max: MaxHappiness,
                 propertyName: nameof(HappinessLevel));
         }
 
         public int Value { get; }
 
-        public static HappinessLevel From(int value) => new(value);
+        public static HappinessLevel From(int value)
+        {
+            return new HappinessLevel(value);
+        }
 
         public HappinessLevel WithDelta(int delta)
-            => From(Math.Clamp(value: Value + delta, min: MinHappiness, max: MaxHappiness));
+        {
+            return From(
+                Math.Clamp(
+                    value: Value + delta,
+                    min: MinHappiness,
+                    max: MaxHappiness));
+        }
 
         /// <summary> Default is 50. </summary>
         public static HappinessLevel Default()
-            => From(50);
+        {
+            return From(50);
+        }
     }
 }

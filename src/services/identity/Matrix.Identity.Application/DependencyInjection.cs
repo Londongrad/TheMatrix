@@ -21,9 +21,11 @@ namespace Matrix.Identity.Application
             services.AddScoped<IValidationExceptionFactory, IdentityValidationErrorFactory>();
 
             // Behaviors (используем общие из BuildingBlocks)ors
-            services.AddTransient(serviceType: typeof(IPipelineBehavior<,>),
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(LoggingBehavior<,>));
-            services.AddTransient(serviceType: typeof(IPipelineBehavior<,>),
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(ValidationBehavior<,>));
         }
     }

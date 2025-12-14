@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Errors;
+using Matrix.Identity.Domain.Errors;
 
 namespace Matrix.Identity.Domain.Rules
 {
@@ -6,7 +6,8 @@ namespace Matrix.Identity.Domain.Rules
     {
         public static void Validate(DateTime expiresAtUtc)
         {
-            if (expiresAtUtc <= DateTime.UtcNow) throw DomainErrorsFactory.InvalidExpireDate(nameof(expiresAtUtc));
+            if (expiresAtUtc <= DateTime.UtcNow)
+                throw DomainErrorsFactory.InvalidExpireDate(nameof(expiresAtUtc));
         }
     }
 }

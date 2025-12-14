@@ -8,29 +8,48 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
     {
         private readonly PopulationDbContext _dbContext = context;
 
-        public async Task AddAsync(Person person, CancellationToken cancellationToken = default) =>
-            await _dbContext.Persons.AddAsync(entity: person, cancellationToken: cancellationToken);
+        public async Task AddAsync(
+            Person person,
+            CancellationToken cancellationToken = default)
+        {
+            await _dbContext.Persons.AddAsync(
+                entity: person,
+                cancellationToken: cancellationToken);
+        }
 
-        public async Task AddRangeAsync(IReadOnlyCollection<Person> persons,
-            CancellationToken cancellationToken = default) =>
-            await _dbContext.Persons.AddRangeAsync(entities: persons, cancellationToken: cancellationToken);
+        public async Task AddRangeAsync(
+            IReadOnlyCollection<Person> persons,
+            CancellationToken cancellationToken = default)
+        {
+            await _dbContext.Persons.AddRangeAsync(
+                entities: persons,
+                cancellationToken: cancellationToken);
+        }
 
-        public async Task DeleteAllAsync(CancellationToken cancellationToken = default) =>
+        public async Task DeleteAllAsync(CancellationToken cancellationToken = default)
+        {
             await _dbContext.Persons.ExecuteDeleteAsync(cancellationToken);
+        }
 
-        public Task DeleteAsync(Person person, CancellationToken cancellationToken = default)
+        public Task DeleteAsync(
+            Person person,
+            CancellationToken cancellationToken = default)
         {
             _dbContext.Persons.Remove(person);
             return Task.CompletedTask;
         }
 
-        public Task UpdateAsync(Person person, CancellationToken cancellationToken = default)
+        public Task UpdateAsync(
+            Person person,
+            CancellationToken cancellationToken = default)
         {
             _dbContext.Persons.Update(person);
             return Task.CompletedTask;
         }
 
-        public async Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
             await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

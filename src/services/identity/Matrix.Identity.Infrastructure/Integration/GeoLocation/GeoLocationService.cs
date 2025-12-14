@@ -33,14 +33,20 @@ namespace Matrix.Identity.Infrastructure.Integration.GeoLocation
             CancellationToken cancellationToken = default)
         {
             // Feature toggle
-            if (!_options.Enabled) return null;
+            if (!_options.Enabled)
+                return null;
 
-            if (string.IsNullOrWhiteSpace(ipAddress)) return null;
+            if (string.IsNullOrWhiteSpace(ipAddress))
+                return null;
 
             // Basic validation to avoid calling external API for garbage input
-            if (!IPAddress.TryParse(ipString: ipAddress, address: out _))
+            if (!IPAddress.TryParse(
+                    ipString: ipAddress,
+                    address: out _))
             {
-                _logger.LogDebug(message: "Skipping GeoIP lookup for invalid IP: {IpAddress}", ipAddress);
+                _logger.LogDebug(
+                    message: "Skipping GeoIP lookup for invalid IP: {IpAddress}",
+                    ipAddress);
                 return null;
             }
 
@@ -55,7 +61,9 @@ namespace Matrix.Identity.Infrastructure.Integration.GeoLocation
 
                 if (response is null)
                 {
-                    _logger.LogWarning(message: "GeoIP provider returned null response for IP {IpAddress}", ipAddress);
+                    _logger.LogWarning(
+                        message: "GeoIP provider returned null response for IP {IpAddress}",
+                        ipAddress);
                     return null;
                 }
 
@@ -98,7 +106,9 @@ namespace Matrix.Identity.Infrastructure.Integration.GeoLocation
         private string BuildRequestUrl(string ipAddress)
         {
             // Простая подстановка {ip}
-            return _options.EndpointTemplate.Replace(oldValue: "{ip}", newValue: ipAddress,
+            return _options.EndpointTemplate.Replace(
+                oldValue: "{ip}",
+                newValue: ipAddress,
                 comparisonType: StringComparison.Ordinal);
         }
     }

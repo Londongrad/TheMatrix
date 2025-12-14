@@ -22,7 +22,9 @@ namespace Matrix.Population.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             await _sender.Send(
-                request: new InitializePopulationCommand(PeopleCount: peopleCount, RandomSeed: randomSeed),
+                request: new InitializePopulationCommand(
+                    PeopleCount: peopleCount,
+                    RandomSeed: randomSeed),
                 cancellationToken: cancellationToken);
 
             return NoContent();
@@ -34,11 +36,15 @@ namespace Matrix.Population.Api.Controllers
             [FromQuery] int pageSize = 100,
             CancellationToken cancellationToken = default)
         {
-            var pagination = new Pagination(pageNumber: pageNumber, pageSize: pageSize);
+            var pagination = new Pagination(
+                pageNumber: pageNumber,
+                pageSize: pageSize);
 
             var query = new GetCitizensPageQuery(pagination);
 
-            PagedResult<PersonDto> result = await _sender.Send(request: query, cancellationToken: cancellationToken);
+            PagedResult<PersonDto> result = await _sender.Send(
+                request: query,
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }

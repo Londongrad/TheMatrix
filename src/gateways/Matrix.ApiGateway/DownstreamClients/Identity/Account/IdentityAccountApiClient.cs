@@ -13,10 +13,14 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
 
         private readonly HttpClient _httpClient = httpClient;
 
-        public Task<HttpResponseMessage> GetProfileAsync(Guid userId, CancellationToken cancellationToken) =>
-            _httpClient.GetAsync(
+        public Task<HttpResponseMessage> GetProfileAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            return _httpClient.GetAsync(
                 requestUri: $"{AccountBaseEndpoint}/{userId:D}/{ProfileSegment}",
                 cancellationToken: cancellationToken);
+        }
 
         public async Task<HttpResponseMessage> ChangeAvatarAsync(
             Guid userId,
@@ -26,17 +30,24 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
             // Если Identity ждёт multipart/form-data
             using var content = new MultipartFormDataContent();
             var streamContent = new StreamContent(avatar.OpenReadStream());
-            content.Add(content: streamContent, name: "avatar", fileName: avatar.FileName);
+            content.Add(
+                content: streamContent,
+                name: "avatar",
+                fileName: avatar.FileName);
 
             // /api/internal/account/{userId}/avatar
             string endpoint = $"{AccountBaseEndpoint}/{userId:D}/{AvatarSegment}";
 
-            var message = new HttpRequestMessage(method: HttpMethod.Put, requestUri: endpoint)
+            var message = new HttpRequestMessage(
+                method: HttpMethod.Put,
+                requestUri: endpoint)
             {
                 Content = content
             };
 
-            return await _httpClient.SendAsync(request: message, cancellationToken: cancellationToken);
+            return await _httpClient.SendAsync(
+                request: message,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<HttpResponseMessage> ChangePasswordAsync(
@@ -47,12 +58,16 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
             // /api/internal/account/{userId}/password
             string endpoint = $"{AccountBaseEndpoint}/{userId:D}/{PasswordSegment}";
 
-            var message = new HttpRequestMessage(method: HttpMethod.Put, requestUri: endpoint)
+            var message = new HttpRequestMessage(
+                method: HttpMethod.Put,
+                requestUri: endpoint)
             {
                 Content = JsonContent.Create(request)
             };
 
-            return await _httpClient.SendAsync(request: message, cancellationToken: cancellationToken);
+            return await _httpClient.SendAsync(
+                request: message,
+                cancellationToken: cancellationToken);
         }
     }
 }

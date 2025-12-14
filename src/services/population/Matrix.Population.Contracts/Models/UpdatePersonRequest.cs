@@ -6,6 +6,5 @@
         string? EducationLevel,
         string? EmploymentStatus,
         string? JobTitle,
-        int? Happiness
-    );
+        int? Happiness);
 }

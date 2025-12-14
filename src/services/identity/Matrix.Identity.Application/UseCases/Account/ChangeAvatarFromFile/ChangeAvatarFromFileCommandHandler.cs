@@ -17,12 +17,16 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangeAvatarFromFile
             ChangeAvatarFromFileCommand request,
             CancellationToken cancellationToken)
         {
-            User user = await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
-                        ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            User user = await _userRepository.GetByIdAsync(
+                            userId: request.UserId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             // если была старая аватарка — опционально удалить
             if (!string.IsNullOrEmpty(user.AvatarUrl))
-                await _avatarStorage.DeleteAsync(path: user.AvatarUrl!, cancellationToken: cancellationToken);
+                await _avatarStorage.DeleteAsync(
+                    path: user.AvatarUrl!,
+                    cancellationToken: cancellationToken);
 
             // сохраняем новый файл
             string newAvatarPath = await _avatarStorage.SaveAsync(

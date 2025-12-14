@@ -1,4 +1,4 @@
-﻿using Matrix.Identity.Domain.Errors;
+using Matrix.Identity.Domain.Errors;
 using Matrix.Identity.Domain.ValueObjects;
 
 namespace Matrix.Identity.Domain.Entities
@@ -13,12 +13,18 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Factory Methods ]
 
-        public static User CreateNew(Email email, Username username, string passwordHash)
+        public static User CreateNew(
+            Email email,
+            Username username,
+            string passwordHash)
         {
             if (string.IsNullOrWhiteSpace(passwordHash))
                 throw DomainErrorsFactory.EmptyPasswordHash(nameof(passwordHash));
 
-            return new User(email: email, username: username, passwordHash: passwordHash);
+            return new User(
+                email: email,
+                username: username,
+                passwordHash: passwordHash);
         }
 
         #endregion [ Factory Methods ]
@@ -48,11 +54,12 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Constructors ]
 
-        private User()
-        {
-        }
+        private User() { }
 
-        private User(Email email, Username username, string passwordHash)
+        private User(
+            Email email,
+            Username username,
+            string passwordHash)
         {
             Id = Guid.NewGuid();
             Email = email;
@@ -69,12 +76,16 @@ namespace Matrix.Identity.Domain.Entities
 
         public void ConfirmEmail()
         {
-            if (IsEmailConfirmed) return;
+            if (IsEmailConfirmed)
+                return;
 
             IsEmailConfirmed = true;
         }
 
-        public void ChangeAvatar(string? avatarUrl) => AvatarUrl = avatarUrl;
+        public void ChangeAvatar(string? avatarUrl)
+        {
+            AvatarUrl = avatarUrl;
+        }
 
         public void ChangePasswordHash(string newPasswordHash)
         {
@@ -84,11 +95,20 @@ namespace Matrix.Identity.Domain.Entities
             PasswordHash = newPasswordHash;
         }
 
-        public void Lock() => IsLocked = true;
+        public void Lock()
+        {
+            IsLocked = true;
+        }
 
-        public void Unlock() => IsLocked = false;
+        public void Unlock()
+        {
+            IsLocked = false;
+        }
 
-        public bool CanLogin() => !IsLocked;
+        public bool CanLogin()
+        {
+            return !IsLocked;
+        }
 
         /// <summary>
         ///     Выпускает новый refresh-токен и добавляет его к пользователю.
@@ -102,7 +122,8 @@ namespace Matrix.Identity.Domain.Entities
             GeoLocation? geoLocation,
             bool isPersistent)
         {
-            if (string.IsNullOrWhiteSpace(tokenHash)) throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
+            if (string.IsNullOrWhiteSpace(tokenHash))
+                throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
 
             var refreshToken = RefreshToken.Create(
                 tokenHash: tokenHash,
@@ -119,7 +140,8 @@ namespace Matrix.Identity.Domain.Entities
         public void RevokeRefreshToken(Guid refreshTokenId)
         {
             RefreshToken? token = _refreshTokens.FirstOrDefault(t => t.Id == refreshTokenId);
-            if (token is null) return;
+            if (token is null)
+                return;
 
             token.Revoke();
         }

@@ -20,13 +20,16 @@ namespace Matrix.Population.Application.UseCases.ResurrectPerson
             ArgumentNullException.ThrowIfNull(argument: request);
 
             Person person =
-                await personReadRepository.FindByIdAsync(id: PersonId.From(request.Id),
-                    cancellationToken: cancellationToken)
-                ?? throw ApplicationErrorsFactory.PersonNotFound(request.Id);
+                await personReadRepository.FindByIdAsync(
+                    id: PersonId.From(request.Id),
+                    cancellationToken: cancellationToken) ??
+                throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
             person.Resurrect();
 
-            await personWriteRepository.UpdateAsync(person: person, cancellationToken: cancellationToken);
+            await personWriteRepository.UpdateAsync(
+                person: person,
+                cancellationToken: cancellationToken);
             await personWriteRepository.SaveChangesAsync(cancellationToken);
 
             return person.ToDto();

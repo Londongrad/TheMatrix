@@ -6,7 +6,10 @@ namespace Matrix.Population.Domain.Services
 {
     public sealed class MarriageDomainService
     {
-        public void RegisterMarriage(Person person, Person spouse, DateOnly currentDate)
+        public void RegisterMarriage(
+            Person person,
+            Person spouse,
+            DateOnly currentDate)
         {
             Age personAge = person.GetAge(currentDate);
             Age spouseAge = spouse.GetAge(currentDate);
@@ -31,7 +34,10 @@ namespace Matrix.Population.Domain.Services
             // spouse.AddDomainEvent(new PersonMarriedEvent(spouse.Id, person.Id, currentDate));
         }
 
-        public void RegisterDivorce(Person person, Person spouse, DateOnly currentDate)
+        public void RegisterDivorce(
+            Person person,
+            Person spouse,
+            DateOnly currentDate)
         {
             // Общие правила (возраст, не сам с собой, не уже разведен и т.п.)
             MaritalRules.ValidateDivorce(
@@ -51,7 +57,9 @@ namespace Matrix.Population.Domain.Services
             // spouse.AddDomainEvent(new PersonDivorcedEvent(spouse.Id, person.Id, currentDate));
         }
 
-        public void RegisterWidowhood(Person widow, Person deceased)
+        public void RegisterWidowhood(
+            Person widow,
+            Person deceased)
         {
             MaritalRules.ValidateWidowhood(
                 widowId: widow.Id,

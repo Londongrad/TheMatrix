@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence
 {
-    public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : DbContext(options)
+    public class IdentityDbContext(DbContextOptions<IdentityDbContext> options)
+        : DbContext(options)
     {
         public DbSet<User> Users => Set<User>();
 

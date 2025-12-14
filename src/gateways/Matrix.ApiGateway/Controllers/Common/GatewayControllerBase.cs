@@ -18,17 +18,20 @@ namespace Matrix.ApiGateway.Controllers.Common
             {
                 StatusCode = (int)response.StatusCode,
                 Content = body,
-                ContentType = response.Content.Headers.ContentType?.ToString()
-                              ?? "application/json"
+                ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json"
             };
         }
 
-        protected ErrorResponse CreateError(string code, string message,
+        protected ErrorResponse CreateError(
+            string code,
+            string message,
             IReadOnlyDictionary<string, string[]>? errors = null)
-            => new(
+        {
+            return new ErrorResponse(
                 Code: code,
                 Message: message,
                 Errors: errors,
                 TraceId: HttpContext.TraceIdentifier);
+        }
     }
 }

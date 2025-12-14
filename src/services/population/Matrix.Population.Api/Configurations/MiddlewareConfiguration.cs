@@ -8,8 +8,14 @@ namespace Matrix.Population.Api.Configurations
             app.UseSecurityPipeline();
         }
 
-        private static void UseSecurityPipeline(this WebApplication app) => app.UseHttpsRedirection();
+        private static void UseSecurityPipeline(this WebApplication app)
+        {
+            app.UseHttpsRedirection();
+        }
 
-        private static void ConfigureControllers(this WebApplication app) => app.MapControllers();
+        private static void ConfigureControllers(this WebApplication app)
+        {
+            app.MapControllers();
+        }
     }
 }

@@ -7,7 +7,9 @@ namespace Matrix.BuildingBlocks.Domain
     /// </summary>
     public static class GuardHelper
     {
-        public static string AgainstNullOrEmpty(string? value, string propertyName)
+        public static string AgainstNullOrEmpty(
+            string? value,
+            string propertyName)
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw DomainErrors.NullOrEmpty(propertyName);
@@ -15,7 +17,9 @@ namespace Matrix.BuildingBlocks.Domain
             return value;
         }
 
-        public static Guid AgainstEmptyGuid(Guid id, string propertyName)
+        public static Guid AgainstEmptyGuid(
+            Guid id,
+            string propertyName)
         {
             if (id == Guid.Empty)
                 throw DomainErrors.EmptyGuid(propertyName);
@@ -23,7 +27,10 @@ namespace Matrix.BuildingBlocks.Domain
             return id;
         }
 
-        public static T AgainstNull<T>(T? value, string propertyName) where T : class
+        public static T AgainstNull<T>(
+            T? value,
+            string propertyName)
+            where T : class
         {
             if (value is null)
                 throw DomainErrors.Null(propertyName);
@@ -31,73 +38,111 @@ namespace Matrix.BuildingBlocks.Domain
             return value;
         }
 
-        public static TEnum AgainstInvalidEnum<TEnum>(TEnum value, string propertyName)
+        public static TEnum AgainstInvalidEnum<TEnum>(
+            TEnum value,
+            string propertyName)
             where TEnum : struct, Enum
         {
             if (!Enum.IsDefined(value))
-                throw DomainErrors.InvalidEnum(value: value, propertyName: propertyName);
+                throw DomainErrors.InvalidEnum(
+                    value: value,
+                    propertyName: propertyName);
 
             return value;
         }
 
-        public static TEnum AgainstInvalidStringToEnum<TEnum>(string value, string propertyName)
+        public static TEnum AgainstInvalidStringToEnum<TEnum>(
+            string value,
+            string propertyName)
             where TEnum : struct, Enum
         {
-            if (!Enum.TryParse(value: value, ignoreCase: true, result: out TEnum newEnum))
-                throw DomainErrors.InvalidStringToEnum<TEnum>(value: value, propertyName: propertyName);
+            if (!Enum.TryParse(
+                    value: value,
+                    ignoreCase: true,
+                    result: out TEnum newEnum))
+                throw DomainErrors.InvalidStringToEnum<TEnum>(
+                    value: value,
+                    propertyName: propertyName);
 
             return newEnum;
         }
 
-        public static T AgainstNonPositiveNumber<T>(T value, string propertyName)
+        public static T AgainstNonPositiveNumber<T>(
+            T value,
+            string propertyName)
             where T : struct, IComparable<T>
         {
-            if (value.CompareTo(default) <= 0)
+            if (value.CompareTo(default(T)) <= 0)
                 throw DomainErrors.NonPositiveNumber(propertyName);
 
             return value;
         }
 
-        public static T AgainstNegativeNumber<T>(T value, string propertyName)
+        public static T AgainstNegativeNumber<T>(
+            T value,
+            string propertyName)
             where T : struct, IComparable<T>
         {
-            if (value.CompareTo(default) < 0)
+            if (value.CompareTo(default(T)) < 0)
                 throw DomainErrors.NegativeNumber(propertyName);
 
             return value;
         }
 
-        public static T AgainstOutOfRange<T>(T value, T min, T max, string propertyName)
+        public static T AgainstOutOfRange<T>(
+            T value,
+            T min,
+            T max,
+            string propertyName)
             where T : struct, IComparable<T>
         {
             if (value.CompareTo(min) < 0 || value.CompareTo(max) > 0)
-                throw DomainErrors.OutOfRange(min: min, max: max, propertyName: propertyName);
+                throw DomainErrors.OutOfRange(
+                    min: min,
+                    max: max,
+                    propertyName: propertyName);
 
             return value;
         }
 
-        public static void AgainstInvalidDateOnly(DateOnly? value, string argumentName)
+        public static void AgainstInvalidDateOnly(
+            DateOnly? value,
+            string argumentName)
         {
             if (value is null)
                 return;
 
-            if (value.Value == default)
+            if (value.Value == default(DateOnly))
                 throw DomainErrors.DefaultDateOnly(argumentName);
 
-            if (value.Value < DateOnly.FromDateTime(new DateTime(year: 0001, month: 1, day: 1)))
+            if (value.Value <
+                DateOnly.FromDateTime(
+                    new DateTime(
+                        year: 0001,
+                        month: 1,
+                        day: 1)))
                 throw DomainErrors.DateTooFarInPast(argumentName);
         }
 
-        public static void AgainstInvalidDateRange(DateOnly from, DateOnly? to)
+        public static void AgainstInvalidDateRange(
+            DateOnly from,
+            DateOnly? to)
         {
             if (to is null)
                 return;
 
-            AgainstInvalidDateOnly(value: from, argumentName: nameof(from));
-            AgainstInvalidDateOnly(value: to, argumentName: nameof(to));
+            AgainstInvalidDateOnly(
+                value: from,
+                argumentName: nameof(from));
+            AgainstInvalidDateOnly(
+                value: to,
+                argumentName: nameof(to));
 
             if (from > to.Value)
-                throw DomainErrors.InvalidDateRange(from: from, to: to.Value, fromName: nameof(from),
+                throw DomainErrors.InvalidDateRange(
+                    from: from,
+                    to: to.Value,
+                    fromName: nameof(from),
                     toName: nameof(to));
         }
     }

@@ -23,7 +23,9 @@ namespace Matrix.Identity.Api.Controllers
         {
             var query = new GetUserProfileQuery(userId);
 
-            UserProfileResult result = await _sender.Send(request: query, cancellationToken: cancellationToken);
+            UserProfileResult result = await _sender.Send(
+                request: query,
+                cancellationToken: cancellationToken);
 
             var response = new UserProfileResponse
             {
@@ -48,7 +50,8 @@ namespace Matrix.Identity.Api.Controllers
             IFormFile? avatar,
             CancellationToken cancellationToken)
         {
-            if (avatar is null || avatar.Length == 0) return BadRequest("Avatar file is required.");
+            if (avatar is null || avatar.Length == 0)
+                return BadRequest("Avatar file is required.");
 
             await using Stream stream = avatar.OpenReadStream();
 
@@ -56,10 +59,11 @@ namespace Matrix.Identity.Api.Controllers
                 UserId: userId,
                 FileStream: stream,
                 FileName: avatar.FileName,
-                ContentType: avatar.ContentType ?? "image/png"
-            );
+                ContentType: avatar.ContentType ?? "image/png");
 
-            string newAvatarPath = await _sender.Send(request: command, cancellationToken: cancellationToken);
+            string newAvatarPath = await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
 
             var response = new ChangeAvatarResponse(newAvatarPath);
             return Ok(response);
@@ -76,7 +80,9 @@ namespace Matrix.Identity.Api.Controllers
                 CurrentPassword: request.CurrentPassword,
                 NewPassword: request.NewPassword);
 
-            await _sender.Send(request: command, cancellationToken: cancellationToken);
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
 
             return NoContent();
         }

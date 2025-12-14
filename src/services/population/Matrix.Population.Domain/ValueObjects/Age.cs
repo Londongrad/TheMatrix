@@ -19,9 +19,14 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public int Years { get; }
 
-        public static Age FromYears(int years) => new(years);
+        public static Age FromYears(int years)
+        {
+            return new Age(years);
+        }
 
-        public static Age FromBirthDate(DateOnly birthDate, DateOnly currentDate)
+        public static Age FromBirthDate(
+            DateOnly birthDate,
+            DateOnly currentDate)
         {
             if (currentDate < birthDate)
                 throw DomainErrorsFactory.CurrentDateLessThanBirth();
@@ -43,7 +48,9 @@ namespace Matrix.Population.Domain.ValueObjects
 
             int newYears = Years + years;
             if (newYears > MaxYears)
-                throw DomainErrorsFactory.AgeCannotExceedMaxYears(maxYears: MaxYears, propertyName: nameof(years));
+                throw DomainErrorsFactory.AgeCannotExceedMaxYears(
+                    maxYears: MaxYears,
+                    propertyName: nameof(years));
 
             return new Age(newYears);
         }

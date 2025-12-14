@@ -26,7 +26,11 @@ namespace Matrix.ApiGateway.Controllers
         public async Task<IActionResult> Health(CancellationToken cancellationToken)
         {
             bool isHealthy = await _economyClient.HealthAsync(cancellationToken);
-            return Ok(new { status = isHealthy ? "ok" : "degraded" });
+            return Ok(
+                new
+                {
+                    status = isHealthy ? "ok" : "degraded"
+                });
         }
     }
 }

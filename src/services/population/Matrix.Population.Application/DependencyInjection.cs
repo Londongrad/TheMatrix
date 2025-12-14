@@ -21,9 +21,11 @@ namespace Matrix.Population.Application
             services.AddScoped<IValidationExceptionFactory, PopulationValidationErrorFactory>();
 
             // Behaviors (используем общие из BuildingBlocks)
-            services.AddTransient(serviceType: typeof(IPipelineBehavior<,>),
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(LoggingBehavior<,>));
-            services.AddTransient(serviceType: typeof(IPipelineBehavior<,>),
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(ValidationBehavior<,>));
         }
     }

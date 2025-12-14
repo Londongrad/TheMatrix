@@ -43,9 +43,7 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Constructors ]
 
-        private RefreshToken()
-        {
-        }
+        private RefreshToken() { }
 
         private RefreshToken(
             string tokenHash,
@@ -69,13 +67,24 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Methods ]
 
-        public bool IsExpired() => DateTime.UtcNow >= ExpiresAtUtc;
+        public bool IsExpired()
+        {
+            return DateTime.UtcNow >= ExpiresAtUtc;
+        }
 
-        public void Revoke() => IsRevoked = true;
+        public void Revoke()
+        {
+            IsRevoked = true;
+        }
 
-        public bool IsActive() => !IsRevoked && !IsExpired();
+        public bool IsActive()
+        {
+            return !IsRevoked && !IsExpired();
+        }
 
-        public void Touch(DeviceInfo deviceInfo, GeoLocation? geoLocation)
+        public void Touch(
+            DeviceInfo deviceInfo,
+            GeoLocation? geoLocation)
         {
             LastUsedAtUtc = DateTime.UtcNow;
             DeviceInfo = deviceInfo;

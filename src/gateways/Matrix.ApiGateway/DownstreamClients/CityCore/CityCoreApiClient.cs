@@ -2,7 +2,9 @@ using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore
 {
-    internal sealed class CityCoreApiClient(HttpClient client, ILogger<CityCoreApiClient> logger)
+    internal sealed class CityCoreApiClient(
+        HttpClient client,
+        ILogger<CityCoreApiClient> logger)
         : ICityCoreApiClient
     {
         private const string TimeEndpoint = "/api/citycore/Simulation/time";
@@ -10,11 +12,12 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
         private readonly HttpClient _client = client;
         private readonly ILogger<CityCoreApiClient> _logger = logger;
 
-        public async Task<CitySimulationTimeDto?> GetCurrentTimeAsync(
-            CancellationToken cancellationToken = default)
+        public async Task<CitySimulationTimeDto?> GetCurrentTimeAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response =
-                await _client.GetAsync(requestUri: TimeEndpoint, cancellationToken: cancellationToken);
+                await _client.GetAsync(
+                    requestUri: TimeEndpoint,
+                    cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -34,7 +37,9 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
         public async Task<bool> HealthAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response =
-                await _client.GetAsync(requestUri: HealthEndpoint, cancellationToken: cancellationToken);
+                await _client.GetAsync(
+                    requestUri: HealthEndpoint,
+                    cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {

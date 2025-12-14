@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
 using Matrix.Population.Domain.ValueObjects;
@@ -45,7 +45,9 @@ namespace Matrix.Population.Domain.Entities
                 lifeStatus: lifeStatus,
                 ageGroup: ageGroup);
 
-            var marital = MaritalInfo.FromStatus(status: maritalStatus, spouseId: spouseId);
+            var marital = MaritalInfo.FromStatus(
+                status: maritalStatus,
+                spouseId: spouseId);
             var education = EducationInfo.FromLevel(educationLevel);
 
             return new Person(
@@ -102,9 +104,7 @@ namespace Matrix.Population.Domain.Entities
         #region [ Constructors ]
 
         // Для EF Core
-        private Person()
-        {
-        }
+        private Person() { }
 
         private Person(
             PersonId id,
@@ -122,17 +122,33 @@ namespace Matrix.Population.Domain.Entities
             Id = id;
             HouseholdId = householdId;
 
-            Name = GuardHelper.AgainstNull(value: name, propertyName: nameof(Name));
-            Sex = GuardHelper.AgainstInvalidEnum(value: sex, propertyName: nameof(Sex));
+            Name = GuardHelper.AgainstNull(
+                value: name,
+                propertyName: nameof(Name));
+            Sex = GuardHelper.AgainstInvalidEnum(
+                value: sex,
+                propertyName: nameof(Sex));
 
-            Life = GuardHelper.AgainstNull(value: life, propertyName: nameof(Life));
-            Marital = GuardHelper.AgainstNull(value: marital, propertyName: nameof(Marital));
-            Education = GuardHelper.AgainstNull(value: education, propertyName: nameof(Education));
-            Employment = GuardHelper.AgainstNull(value: employment, propertyName: nameof(Employment));
+            Life = GuardHelper.AgainstNull(
+                value: life,
+                propertyName: nameof(Life));
+            Marital = GuardHelper.AgainstNull(
+                value: marital,
+                propertyName: nameof(Marital));
+            Education = GuardHelper.AgainstNull(
+                value: education,
+                propertyName: nameof(Education));
+            Employment = GuardHelper.AgainstNull(
+                value: employment,
+                propertyName: nameof(Employment));
 
             Happiness = happiness;
-            Personality = GuardHelper.AgainstNull(value: personality, propertyName: nameof(Personality));
-            Weight = GuardHelper.AgainstNull(value: weight, propertyName: nameof(Weight));
+            Personality = GuardHelper.AgainstNull(
+                value: personality,
+                propertyName: nameof(Personality));
+            Weight = GuardHelper.AgainstNull(
+                value: weight,
+                propertyName: nameof(Weight));
         }
 
         #endregion [ Constructors ]
@@ -141,11 +157,15 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Age ]
 
-        public Age GetAge(DateOnly currentDate) =>
-            Life.Span.GetAge(currentDate);
+        public Age GetAge(DateOnly currentDate)
+        {
+            return Life.Span.GetAge(currentDate);
+        }
 
-        public AgeGroup GetAgeGroup(DateOnly currentDate) =>
-            AgeGroupRules.GetAgeGroup(GetAge(currentDate));
+        public AgeGroup GetAgeGroup(DateOnly currentDate)
+        {
+            return AgeGroupRules.GetAgeGroup(GetAge(currentDate));
+        }
 
         #endregion [ Age ]
 
@@ -161,11 +181,15 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Health / Life ]
 
-        public void ChangeHealth(int delta, DateOnly currentDate)
+        public void ChangeHealth(
+            int delta,
+            DateOnly currentDate)
         {
             bool wasAlive = IsAlive;
 
-            Life = Life.WithHealthDelta(delta: delta, currentDate: currentDate);
+            Life = Life.WithHealthDelta(
+                delta: delta,
+                currentDate: currentDate);
 
             if (wasAlive && !IsAlive)
                 // Человек умер из-за здоровья - чистим работу
@@ -206,8 +230,12 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Name ]
 
-        public void ChangeName(PersonName newName) =>
-            Name = GuardHelper.AgainstNull(value: newName, propertyName: nameof(Name));
+        public void ChangeName(PersonName newName)
+        {
+            Name = GuardHelper.AgainstNull(
+                value: newName,
+                propertyName: nameof(Name));
+        }
 
         #endregion [ Name ]
 
@@ -216,7 +244,10 @@ namespace Matrix.Population.Domain.Entities
         /// <summary>
         ///     Жёсткая установка уровня (для генерации / миграций).
         /// </summary>
-        public void SetEducationLevel(EducationLevel newLevel) => Education = EducationInfo.FromLevel(newLevel);
+        public void SetEducationLevel(EducationLevel newLevel)
+        {
+            Education = EducationInfo.FromLevel(newLevel);
+        }
 
         /// <summary>
         ///     Доменный переход: человек получает новый уровень образования.
@@ -231,11 +262,15 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Employment ]
 
-        public void AssignJob(DateOnly currentDate, Job job)
+        public void AssignJob(
+            DateOnly currentDate,
+            Job job)
         {
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Employed,
-                newJob: GuardHelper.AgainstNull(value: job, propertyName: nameof(job)),
+                newJob: GuardHelper.AgainstNull(
+                    value: job,
+                    propertyName: nameof(job)),
                 lifeStatus: LifeStatus,
                 ageGroup: GetAgeGroup(currentDate));
 

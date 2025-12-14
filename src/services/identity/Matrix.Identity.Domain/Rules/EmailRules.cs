@@ -6,15 +6,20 @@ namespace Matrix.Identity.Domain.Rules
     public static class EmailRules
     {
         private static readonly Regex EmailRegex =
-            new(pattern: @"^[^@\s]+@[^@\s]+\.[^@\s]+$", options: RegexOptions.Compiled);
+            new(
+                pattern: @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+                options: RegexOptions.Compiled);
 
         public static string Validate(string email)
         {
-            if (string.IsNullOrWhiteSpace(email)) throw DomainErrorsFactory.EmptyEmail(nameof(email));
+            if (string.IsNullOrWhiteSpace(email))
+                throw DomainErrorsFactory.EmptyEmail(nameof(email));
 
-            string normalizedEmail = email.Trim().ToLowerInvariant();
+            string normalizedEmail = email.Trim()
+                                          .ToLowerInvariant();
 
-            if (!EmailRegex.IsMatch(normalizedEmail)) throw DomainErrorsFactory.InvalidEmailFormat(nameof(email));
+            if (!EmailRegex.IsMatch(normalizedEmail))
+                throw DomainErrorsFactory.InvalidEmailFormat(nameof(email));
             return normalizedEmail;
         }
     }

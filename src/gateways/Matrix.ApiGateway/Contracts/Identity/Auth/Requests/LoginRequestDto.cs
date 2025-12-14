@@ -5,11 +5,15 @@ namespace Matrix.ApiGateway.Contracts.Identity.Auth.Requests
     public sealed class LoginRequestDto
     {
         [Required]
-        [StringLength(20, MinimumLength = 3)]
+        [StringLength(
+            20,
+            MinimumLength = 3)]
         public required string Login { get; set; }
 
         [Required]
-        [StringLength(20, MinimumLength = 6)]
+        [StringLength(
+            20,
+            MinimumLength = 6)]
         public required string Password { get; set; }
 
         [Required]

@@ -18,7 +18,10 @@ namespace Matrix.Identity.Api.Configurations
             app.UseAuthorization();
         }
 
-        private static void ConfigureControllers(this WebApplication app) => app.MapControllers();
+        private static void ConfigureControllers(this WebApplication app)
+        {
+            app.MapControllers();
+        }
 
         private static void ConfigureMiddleware(this WebApplication app)
         {

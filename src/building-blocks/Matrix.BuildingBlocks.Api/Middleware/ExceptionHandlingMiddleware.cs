@@ -12,18 +12,18 @@ namespace Matrix.BuildingBlocks.Api.Middleware
         RequestDelegate next,
         ILogger<ExceptionHandlingMiddleware> logger)
     {
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
-        private readonly RequestDelegate _next = next;
-
         public async Task Invoke(HttpContext context)
         {
             try
             {
-                await _next(context);
+                await next(context);
             }
             catch (DomainException ex)
             {
-                _logger.LogWarning(exception: ex, message: "Handled domain exception with code {Code}", ex.Code);
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Handled domain exception with code {Code}",
+                    ex.Code);
 
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
@@ -46,7 +46,10 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (MatrixApplicationException ex)
             {
-                _logger.LogWarning(exception: ex, message: "Handled application exception with code {Code}", ex.Code);
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Handled application exception with code {Code}",
+                    ex.Code);
 
                 HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
 
@@ -63,7 +66,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(exception: ex, message: "Invalid argument");
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Invalid argument");
 
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
@@ -78,7 +83,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(exception: ex, message: "Invalid operation");
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Invalid operation");
 
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
@@ -93,7 +100,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(exception: ex, message: "Unhandled exception");
+                logger.LogError(
+                    exception: ex,
+                    message: "Unhandled exception");
 
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "application/json";

@@ -30,7 +30,11 @@ namespace Matrix.ApiGateway.Controllers
                 randomSeed: randomSeed,
                 cancellationToken: cancellationToken);
 
-            return Accepted(new { message = "Population initialization started." });
+            return Accepted(
+                new
+                {
+                    message = "Population initialization started."
+                });
         }
 
         /// <summary>
@@ -44,7 +48,9 @@ namespace Matrix.ApiGateway.Controllers
             Guid id,
             CancellationToken cancellationToken = default)
         {
-            PersonDto person = await _populationClient.KillPersonAsync(id: id, cancellationToken: cancellationToken);
+            PersonDto person = await _populationClient.KillPersonAsync(
+                id: id,
+                cancellationToken: cancellationToken);
             return Ok(person);
         }
 
@@ -54,7 +60,9 @@ namespace Matrix.ApiGateway.Controllers
             CancellationToken cancellationToken = default)
         {
             PersonDto person =
-                await _populationClient.ResurrectPersonAsync(id: id, cancellationToken: cancellationToken);
+                await _populationClient.ResurrectPersonAsync(
+                    id: id,
+                    cancellationToken: cancellationToken);
             return Ok(person);
         }
 
@@ -65,7 +73,9 @@ namespace Matrix.ApiGateway.Controllers
             CancellationToken cancellationToken = default)
         {
             PersonDto person =
-                await _populationClient.UpdatePersonAsync(id: id, request: request,
+                await _populationClient.UpdatePersonAsync(
+                    id: id,
+                    request: request,
                     cancellationToken: cancellationToken);
             return Ok(person);
         }
@@ -77,7 +87,9 @@ namespace Matrix.ApiGateway.Controllers
         ///     Проксирует вызов в Population API: GET /api/population/citizens?pageNumber=&pageSize=
         /// </remarks>
         [HttpGet("citizens")]
-        [ProducesResponseType(type: typeof(PagedResult<PersonDto>), statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(
+            type: typeof(PagedResult<PersonDto>),
+            statusCode: StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 100,

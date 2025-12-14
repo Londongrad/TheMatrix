@@ -6,6 +6,5 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangeAvatarFromFile
         Guid UserId,
         Stream FileStream,
         string FileName,
-        string ContentType
-    ) : IRequest<string>;
+        string ContentType) : IRequest<string>;
 }

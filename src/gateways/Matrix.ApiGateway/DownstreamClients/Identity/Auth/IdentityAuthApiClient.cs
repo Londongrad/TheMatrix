@@ -18,12 +18,16 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
             string? userAgent)
         {
             if (!string.IsNullOrWhiteSpace(clientIp))
-                request.Headers.TryAddWithoutValidation(name: "X-Real-IP", value: clientIp);
+                request.Headers.TryAddWithoutValidation(
+                    name: "X-Real-IP",
+                    value: clientIp);
 
             if (!string.IsNullOrWhiteSpace(userAgent))
             {
                 request.Headers.Remove("User-Agent");
-                request.Headers.TryAddWithoutValidation(name: "User-Agent", value: userAgent);
+                request.Headers.TryAddWithoutValidation(
+                    name: "User-Agent",
+                    value: userAgent);
             }
         }
 
@@ -31,10 +35,15 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
 
         #region [ Register & Login ]
 
-        public async Task<HttpResponseMessage> RegisterAsync(RegisterRequest request,
-            CancellationToken cancellationToken = default) =>
-            await _httpClient.PostAsJsonAsync(requestUri: RegisterEndpoint, value: request,
+        public async Task<HttpResponseMessage> RegisterAsync(
+            RegisterRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            return await _httpClient.PostAsJsonAsync(
+                requestUri: RegisterEndpoint,
+                value: request,
                 cancellationToken: cancellationToken);
+        }
 
         public async Task<HttpResponseMessage> LoginAsync(
             LoginRequest request,
@@ -42,14 +51,21 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
             string? userAgent,
             CancellationToken cancellationToken = default)
         {
-            using var httpRequest = new HttpRequestMessage(method: HttpMethod.Post, requestUri: LoginEndpoint)
+            using var httpRequest = new HttpRequestMessage(
+                method: HttpMethod.Post,
+                requestUri: LoginEndpoint)
             {
                 Content = JsonContent.Create(request)
             };
 
-            AddClientInfoHeaders(request: httpRequest, clientIp: clientIp, userAgent: userAgent);
+            AddClientInfoHeaders(
+                request: httpRequest,
+                clientIp: clientIp,
+                userAgent: userAgent);
 
-            return await _httpClient.SendAsync(request: httpRequest, cancellationToken: cancellationToken);
+            return await _httpClient.SendAsync(
+                request: httpRequest,
+                cancellationToken: cancellationToken);
         }
 
         #endregion [ Register & Login ]
@@ -62,52 +78,81 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
             string? userAgent,
             CancellationToken cancellationToken = default)
         {
-            using var httpRequest = new HttpRequestMessage(method: HttpMethod.Post, requestUri: RefreshEndpoint)
+            using var httpRequest = new HttpRequestMessage(
+                method: HttpMethod.Post,
+                requestUri: RefreshEndpoint)
             {
                 Content = JsonContent.Create(request)
             };
 
-            AddClientInfoHeaders(request: httpRequest, clientIp: clientIp, userAgent: userAgent);
+            AddClientInfoHeaders(
+                request: httpRequest,
+                clientIp: clientIp,
+                userAgent: userAgent);
 
-            return await _httpClient.SendAsync(request: httpRequest, cancellationToken: cancellationToken);
+            return await _httpClient.SendAsync(
+                request: httpRequest,
+                cancellationToken: cancellationToken);
         }
 
-        public async Task LogoutAsync(LogoutRequest request, CancellationToken cancellationToken = default) =>
-            await _httpClient.PostAsJsonAsync(requestUri: LogoutEndpoint, value: request,
+        public async Task LogoutAsync(
+            LogoutRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            await _httpClient.PostAsJsonAsync(
+                requestUri: LogoutEndpoint,
+                value: request,
                 cancellationToken: cancellationToken);
+        }
 
         #endregion [ Refresh & Logout ]
 
         #region [ Sessions ]
 
-        public async Task<HttpResponseMessage> GetSessionsAsync(Guid userId,
+        public async Task<HttpResponseMessage> GetSessionsAsync(
+            Guid userId,
             CancellationToken cancellationToken = default)
         {
             string endpoint = $"{AuthBaseUrl}/{userId} + {SessionsSegment}";
 
-            using var request = new HttpRequestMessage(method: HttpMethod.Get, requestUri: endpoint);
+            using var request = new HttpRequestMessage(
+                method: HttpMethod.Get,
+                requestUri: endpoint);
 
-            return await _httpClient.SendAsync(request: request, cancellationToken: cancellationToken);
+            return await _httpClient.SendAsync(
+                request: request,
+                cancellationToken: cancellationToken);
         }
 
-        public async Task<HttpResponseMessage> RevokeSessionAsync(Guid userId, Guid sessionId,
+        public async Task<HttpResponseMessage> RevokeSessionAsync(
+            Guid userId,
+            Guid sessionId,
             CancellationToken cancellationToken = default)
         {
             string endpoint = $"{AuthBaseUrl}/{userId} + {SessionsSegment}";
 
-            using var request = new HttpRequestMessage(method: HttpMethod.Delete, requestUri: endpoint);
+            using var request = new HttpRequestMessage(
+                method: HttpMethod.Delete,
+                requestUri: endpoint);
 
-            return await _httpClient.SendAsync(request: request, cancellationToken: cancellationToken);
+            return await _httpClient.SendAsync(
+                request: request,
+                cancellationToken: cancellationToken);
         }
 
-        public async Task<HttpResponseMessage> RevokeAllSessionsAsync(Guid userId,
+        public async Task<HttpResponseMessage> RevokeAllSessionsAsync(
+            Guid userId,
             CancellationToken cancellationToken = default)
         {
             string endpoint = $"{AuthBaseUrl}/{userId} + {SessionsSegment}";
 
-            using var request = new HttpRequestMessage(method: HttpMethod.Delete, requestUri: endpoint);
+            using var request = new HttpRequestMessage(
+                method: HttpMethod.Delete,
+                requestUri: endpoint);
 
-            return await _httpClient.SendAsync(request: request, cancellationToken: cancellationToken);
+            return await _httpClient.SendAsync(
+                request: request,
+                cancellationToken: cancellationToken);
         }
 
         #endregion [ Sessions ]

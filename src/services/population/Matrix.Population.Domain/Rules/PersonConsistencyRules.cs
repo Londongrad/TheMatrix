@@ -26,7 +26,9 @@ namespace Matrix.Population.Domain.Rules
         ///     Проверки для уже умершего человека:
         ///     дата смерти, работа, здоровье.
         /// </summary>
-        public static void ValidateForDead(LifeState life, EmploymentInfo employment)
+        public static void ValidateForDead(
+            LifeState life,
+            EmploymentInfo employment)
         {
             if (life.IsAlive)
                 throw DomainErrorsFactory.EnsureConsistencyForDeadCalledForAlivePerson(nameof(LifeState.Status));

@@ -30,7 +30,11 @@ namespace Matrix.ApiGateway.Controllers
         {
             bool isHealthy = await _cityCoreClient.HealthAsync(cancellationToken);
 
-            return Ok(new { status = isHealthy ? "ok" : "degraded" });
+            return Ok(
+                new
+                {
+                    status = isHealthy ? "ok" : "degraded"
+                });
         }
     }
 }

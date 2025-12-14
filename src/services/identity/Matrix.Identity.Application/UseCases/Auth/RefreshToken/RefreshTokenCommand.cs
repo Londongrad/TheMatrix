@@ -7,6 +7,5 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
         string RefreshToken,
         string DeviceId,
         string UserAgent,
-        string? IpAddress
-    ) : IRequest<LoginUserResult>;
+        string? IpAddress) : IRequest<LoginUserResult>;
 }

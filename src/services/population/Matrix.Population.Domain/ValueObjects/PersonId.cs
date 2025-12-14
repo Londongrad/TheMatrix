@@ -6,13 +6,21 @@ namespace Matrix.Population.Domain.ValueObjects
     {
         private PersonId(Guid value)
         {
-            Value = GuardHelper.AgainstEmptyGuid(id: value, propertyName: nameof(PersonId));
+            Value = GuardHelper.AgainstEmptyGuid(
+                id: value,
+                propertyName: nameof(PersonId));
         }
 
         public Guid Value { get; }
 
-        public static PersonId New() => new(Guid.NewGuid());
+        public static PersonId New()
+        {
+            return new PersonId(Guid.NewGuid());
+        }
 
-        public static PersonId From(Guid value) => new(value);
+        public static PersonId From(Guid value)
+        {
+            return new PersonId(value);
+        }
     }
 }

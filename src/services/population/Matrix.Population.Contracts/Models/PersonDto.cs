@@ -13,6 +13,5 @@
         string EducationLevel,
         int Happiness,
         string EmploymentStatus,
-        string? JobTitle
-    );
+        string? JobTitle);
 }

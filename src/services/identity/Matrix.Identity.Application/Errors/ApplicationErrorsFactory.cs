@@ -6,59 +6,76 @@ namespace Matrix.Identity.Application.Errors
     public static class ApplicationErrorsFactory
     {
         public static MatrixApplicationException InvalidCredentials()
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.InvalidCredentials",
                 message: "Invalid login or password.",
                 errorType: ApplicationErrorType.Unauthorized);
+        }
 
         public static MatrixApplicationException UserBlocked()
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.UserBlocked",
                 message: "User account is blocked and cannot be used to sign in.",
                 errorType: ApplicationErrorType.Forbidden);
+        }
 
         public static MatrixApplicationException InvalidRefreshToken()
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.InvalidRefreshToken",
                 message: "The provided refresh token is invalid or has expired.",
                 errorType: ApplicationErrorType.Unauthorized);
+        }
 
         public static MatrixApplicationException EmailAlreadyInUse(string email)
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.EmailAlreadyInUse",
                 message: $"Email '{email}' is already in use.",
                 errorType: ApplicationErrorType.Conflict);
+        }
 
         public static MatrixApplicationException UsernameAlreadyInUse(string username)
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.UsernameAlreadyInUse",
                 message: $"Username '{username}' is already in use.",
                 errorType: ApplicationErrorType.Conflict);
+        }
 
         public static MatrixApplicationException UserNotFound(Guid id)
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.User.NotFound",
                 message: $"User '{id}' was not found.",
                 errorType: ApplicationErrorType.NotFound);
+        }
 
         public static MatrixApplicationException PasswordsDoNotMatch()
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.PasswordsDoNotMatch",
                 message: "Passwords do not match.",
                 errorType: ApplicationErrorType.Validation);
+        }
 
         public static MatrixApplicationException InvalidCurrentPassword()
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Identity.InvalidCurrentPassword",
                 message: "Current password is incorrect.",
                 errorType: ApplicationErrorType.Unauthorized);
+        }
 
-        public static MatrixApplicationException ValidationFailed(
-            IReadOnlyDictionary<string, string[]> errors)
-            => new(
+        public static MatrixApplicationException ValidationFailed(IReadOnlyDictionary<string, string[]> errors)
+        {
+            return new MatrixApplicationException(
                 code: "Identity.ValidationFailed",
                 message: "One or more validation errors occurred.",
                 errorType: ApplicationErrorType.Validation,
                 errors: errors);
+        }
     }
 }

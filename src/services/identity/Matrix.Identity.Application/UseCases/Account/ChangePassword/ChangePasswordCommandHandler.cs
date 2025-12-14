@@ -17,13 +17,17 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
             ChangePasswordCommand request,
             CancellationToken cancellationToken)
         {
-            User user = await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
-                        ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            User user = await _userRepository.GetByIdAsync(
+                            userId: request.UserId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             // проверяем текущий пароль
-            bool isCurrentValid = _passwordHasher.Verify(passwordHash: user.PasswordHash,
+            bool isCurrentValid = _passwordHasher.Verify(
+                passwordHash: user.PasswordHash,
                 providedPassword: request.CurrentPassword);
-            if (!isCurrentValid) throw ApplicationErrorsFactory.InvalidCurrentPassword();
+            if (!isCurrentValid)
+                throw ApplicationErrorsFactory.InvalidCurrentPassword();
 
             // хэшируем новый пароль и сохраняем в домен
             string newPasswordHash = _passwordHasher.Hash(request.NewPassword);

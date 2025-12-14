@@ -34,25 +34,32 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
             {
                 // считаем, что это email
                 var email = Email.Create(request.Login);
-                user = await _userRepository.GetByEmailAsync(normalizedEmail: email.Value,
+                user = await _userRepository.GetByEmailAsync(
+                    normalizedEmail: email.Value,
                     cancellationToken: cancellationToken);
             }
             else
             {
                 // считаем, что это username
                 var username = Username.Create(request.Login);
-                user = await _userRepository.GetByUsernameAsync(login: username.Value,
+                user = await _userRepository.GetByUsernameAsync(
+                    login: username.Value,
                     cancellationToken: cancellationToken);
             }
 
-            if (user == null) throw ApplicationErrorsFactory.InvalidCredentials();
+            if (user == null)
+                throw ApplicationErrorsFactory.InvalidCredentials();
 
             bool passwordValid =
-                _passwordHasher.Verify(passwordHash: user.PasswordHash, providedPassword: request.Password);
+                _passwordHasher.Verify(
+                    passwordHash: user.PasswordHash,
+                    providedPassword: request.Password);
 
-            if (!passwordValid) throw ApplicationErrorsFactory.InvalidCredentials();
+            if (!passwordValid)
+                throw ApplicationErrorsFactory.InvalidCredentials();
 
-            if (!user.CanLogin()) throw ApplicationErrorsFactory.UserBlocked();
+            if (!user.CanLogin())
+                throw ApplicationErrorsFactory.UserBlocked();
 
             // 1) Access token
             AccessTokenModel accessTokenModel = _accessTokenService.Generate(user);

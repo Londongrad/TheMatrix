@@ -5,8 +5,7 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Account.GetUserProfile
 {
-    public sealed class GetUserProfileQueryHandler(
-        IUserRepository userRepository)
+    public sealed class GetUserProfileQueryHandler(IUserRepository userRepository)
         : IRequestHandler<GetUserProfileQuery, UserProfileResult>
     {
         private readonly IUserRepository _userRepository = userRepository;
@@ -16,8 +15,10 @@ namespace Matrix.Identity.Application.UseCases.Account.GetUserProfile
             CancellationToken cancellationToken)
         {
             User user =
-                await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
-                ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+                await _userRepository.GetByIdAsync(
+                    userId: request.UserId,
+                    cancellationToken: cancellationToken) ??
+                throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             return new UserProfileResult
             {

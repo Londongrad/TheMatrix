@@ -19,12 +19,16 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
         {
             // Собираем querystring руками, чтобы без зависимостей
             string query = $"?peopleCount={peopleCount}";
-            if (randomSeed.HasValue) query += $"&randomSeed={randomSeed.Value}";
+            if (randomSeed.HasValue)
+                query += $"&randomSeed={randomSeed.Value}";
 
             string url = InitializeEndpoint + query;
 
             using HttpResponseMessage response =
-                await _client.PostAsync(requestUri: url, content: null, cancellationToken: cancellationToken);
+                await _client.PostAsync(
+                    requestUri: url,
+                    content: null,
+                    cancellationToken: cancellationToken);
 
             response.EnsureSuccessStatusCode();
         }
@@ -36,7 +40,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             string url = $"/api/population/{id}/kill";
 
             using HttpResponseMessage response =
-                await _client.PostAsync(requestUri: url, content: null, cancellationToken: cancellationToken);
+                await _client.PostAsync(
+                    requestUri: url,
+                    content: null,
+                    cancellationToken: cancellationToken);
             response.EnsureSuccessStatusCode();
 
             PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
@@ -50,7 +57,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             string url = $"/api/population/{id}/resurrect";
 
             using HttpResponseMessage response =
-                await _client.PostAsync(requestUri: url, content: null, cancellationToken: cancellationToken);
+                await _client.PostAsync(
+                    requestUri: url,
+                    content: null,
+                    cancellationToken: cancellationToken);
             response.EnsureSuccessStatusCode();
 
             PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
@@ -67,22 +77,29 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             string url = GetPagedEndpoint + query;
 
             using HttpResponseMessage response =
-                await _client.GetAsync(requestUri: url, cancellationToken: cancellationToken);
+                await _client.GetAsync(
+                    requestUri: url,
+                    cancellationToken: cancellationToken);
             response.EnsureSuccessStatusCode();
 
             PagedResult<PersonDto>? result = await response.Content
-                .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);
+                                                           .ReadFromJsonAsync<PagedResult<PersonDto>>(
+                                                                cancellationToken: cancellationToken);
 
             // Если вдруг API вернёт пустое тело — это уже баг, не бизнес-кейс
             return result ?? throw new InvalidOperationException("Empty response from Population API.");
         }
 
-        public async Task<PersonDto> UpdatePersonAsync(Guid id, UpdatePersonRequest request,
+        public async Task<PersonDto> UpdatePersonAsync(
+            Guid id,
+            UpdatePersonRequest request,
             CancellationToken cancellationToken = default)
         {
             string url = $"/api/population/citizens/{id}";
 
-            using HttpResponseMessage response = await _client.PutAsJsonAsync(requestUri: url, value: request,
+            using HttpResponseMessage response = await _client.PutAsJsonAsync(
+                requestUri: url,
+                value: request,
                 cancellationToken: cancellationToken);
             response.EnsureSuccessStatusCode();
 

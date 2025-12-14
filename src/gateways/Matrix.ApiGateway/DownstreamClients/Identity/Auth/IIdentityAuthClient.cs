@@ -29,7 +29,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
             CancellationToken cancellationToken = default);
 
         Task<HttpResponseMessage> RevokeSessionAsync(
-            Guid userId, Guid sessionId,
+            Guid userId,
+            Guid sessionId,
             CancellationToken cancellationToken = default);
 
         Task<HttpResponseMessage> RevokeAllSessionsAsync(

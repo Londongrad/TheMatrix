@@ -2,7 +2,9 @@ using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 
 namespace Matrix.ApiGateway.DownstreamClients.Economy
 {
-    internal sealed class EconomyApiClient(HttpClient client, ILogger<EconomyApiClient> logger) : IEconomyApiClient
+    internal sealed class EconomyApiClient(
+        HttpClient client,
+        ILogger<EconomyApiClient> logger) : IEconomyApiClient
     {
         private const string SummaryEndpoint = "/api/economy/Budget/summary";
         private const string HealthEndpoint = "/api/economy/Budget/health";
@@ -12,7 +14,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
         public async Task<EconomySummaryDto?> GetSummaryAsync(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response =
-                await _client.GetAsync(requestUri: SummaryEndpoint, cancellationToken: cancellationToken);
+                await _client.GetAsync(
+                    requestUri: SummaryEndpoint,
+                    cancellationToken: cancellationToken);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<EconomySummaryDto>(cancellationToken: cancellationToken);
@@ -21,11 +25,14 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
         public async Task<bool> HealthAsync(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response =
-                await _client.GetAsync(requestUri: HealthEndpoint, cancellationToken: cancellationToken);
+                await _client.GetAsync(
+                    requestUri: HealthEndpoint,
+                    cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning(message: "Economy health check failed with status code {StatusCode}",
+                _logger.LogWarning(
+                    message: "Economy health check failed with status code {StatusCode}",
                     response.StatusCode);
                 return false;
             }

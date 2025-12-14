@@ -4,11 +4,13 @@ namespace Matrix.Identity.Domain.ValueObjects
 {
     public sealed record DeviceInfo
     {
-        private DeviceInfo()
-        {
-        }
+        private DeviceInfo() { }
 
-        private DeviceInfo(string deviceId, string deviceName, string userAgent, string? ipAddress)
+        private DeviceInfo(
+            string deviceId,
+            string deviceName,
+            string userAgent,
+            string? ipAddress)
         {
             DeviceId = deviceId;
             DeviceName = deviceName;
@@ -28,7 +30,9 @@ namespace Matrix.Identity.Domain.ValueObjects
             string? ipAddress)
         {
             (string deviceIdTrimmed, string deviceNameTrimmed) =
-                DeviceInfoRules.Validate(deviceId: deviceId, deviceName: deviceName);
+                DeviceInfoRules.Validate(
+                    deviceId: deviceId,
+                    deviceName: deviceName);
 
             userAgent ??= string.Empty;
 
@@ -42,7 +46,15 @@ namespace Matrix.Identity.Domain.ValueObjects
         /// <summary>
         ///     Creates a new instance with the same device id/name but updated client info.
         /// </summary>
-        public DeviceInfo WithClientInfo(string userAgent, string? ipAddress)
-            => Create(deviceId: DeviceId, deviceName: DeviceName, userAgent: userAgent, ipAddress: ipAddress);
+        public DeviceInfo WithClientInfo(
+            string userAgent,
+            string? ipAddress)
+        {
+            return Create(
+                deviceId: DeviceId,
+                deviceName: DeviceName,
+                userAgent: userAgent,
+                ipAddress: ipAddress);
+        }
     }
 }

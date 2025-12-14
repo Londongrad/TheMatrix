@@ -5,8 +5,7 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Sessions.RevokeUserSession
 {
-    public sealed class RevokeUserSessionCommandHandler(
-        IUserRepository userRepository)
+    public sealed class RevokeUserSessionCommandHandler(IUserRepository userRepository)
         : IRequestHandler<RevokeUserSessionCommand>
     {
         private readonly IUserRepository _userRepository = userRepository;
@@ -15,8 +14,10 @@ namespace Matrix.Identity.Application.UseCases.Sessions.RevokeUserSession
             RevokeUserSessionCommand request,
             CancellationToken cancellationToken)
         {
-            User user = await _userRepository.GetByIdAsync(userId: request.UserId, cancellationToken: cancellationToken)
-                        ?? throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            User user = await _userRepository.GetByIdAsync(
+                            userId: request.UserId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             // Домен сам решает, есть такой токен или нет.
             // Если нет – просто ничего не сделает (idempotent).

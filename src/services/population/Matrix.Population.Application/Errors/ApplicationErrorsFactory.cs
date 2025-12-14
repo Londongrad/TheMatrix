@@ -6,9 +6,11 @@ namespace Matrix.Population.Application.Errors
     public static class ApplicationErrorsFactory
     {
         public static MatrixApplicationException PersonNotFound(Guid id)
-            => new(
+        {
+            return new MatrixApplicationException(
                 code: "Population.Person.NotFound",
                 message: $"Person '{id}' was not found.",
                 errorType: ApplicationErrorType.NotFound);
+        }
     }
 }

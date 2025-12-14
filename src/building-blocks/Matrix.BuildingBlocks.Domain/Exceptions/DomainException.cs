@@ -1,4 +1,4 @@
-﻿namespace Matrix.BuildingBlocks.Domain.Exceptions
+namespace Matrix.BuildingBlocks.Domain.Exceptions
 {
     /// <summary>
     ///     Represents a business rule violation inside the domain model.
@@ -7,16 +7,22 @@
         string code,
         string message,
         string? propertyName = null,
-        Exception? innerException = null) : Exception(message: message, innerException: innerException)
+        Exception? innerException = null)
+        : Exception(
+            message: message,
+            innerException: innerException)
     {
         /// <summary>
         ///     Упрощённый конструктор — если нужно выбросить исключение напрямую,
         ///     без явного кода. Код по умолчанию будет "Domain.ValidationError".
         /// </summary>
-        public DomainException(string message, string? propertyName = null)
-            : this(code: "Domain.ValidationError", message: message, propertyName: propertyName)
-        {
-        }
+        public DomainException(
+            string message,
+            string? propertyName = null)
+            : this(
+                code: "Domain.ValidationError",
+                message: message,
+                propertyName: propertyName) { }
 
         /// <summary>
         ///     Machine-readable error code. Например: "Population.Person.ChildCannotBeEmployed".

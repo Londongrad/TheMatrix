@@ -19,7 +19,9 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
         private readonly IRefreshTokenProvider _refreshTokenProvider = refreshTokenProvider;
         private readonly IUserRepository _userRepository = userRepository;
 
-        public async Task<LoginUserResult> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        public async Task<LoginUserResult> Handle(
+            RefreshTokenCommand request,
+            CancellationToken cancellationToken)
         {
             // 1) Хэш текущего refresh
             string hash = _refreshTokenProvider.ComputeHash(request.RefreshToken);
@@ -27,12 +29,12 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
             // 2) Находим пользователя с этим токеном
             User user = await _userRepository.GetByRefreshTokenHashAsync(
                             tokenHash: hash,
-                            cancellationToken: cancellationToken)
-                        ?? throw ApplicationErrorsFactory.InvalidRefreshToken();
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             // 3) Находим КОНКРЕТНЫЙ токен
-            Domain.Entities.RefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash)
-                                                        ?? throw ApplicationErrorsFactory.InvalidRefreshToken();
+            Domain.Entities.RefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash) ??
+                                                        throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             // 4) Проверяем активность
             if (!currentToken.IsActive())
@@ -41,7 +43,9 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
             // 5) Проверяем, что DeviceId совпадает
             DeviceInfo currentDeviceInfo = currentToken.DeviceInfo;
 
-            if (!string.Equals(a: currentDeviceInfo.DeviceId, b: request.DeviceId,
+            if (!string.Equals(
+                    a: currentDeviceInfo.DeviceId,
+                    b: request.DeviceId,
                     comparisonType: StringComparison.Ordinal))
             {
                 currentToken.Revoke();
@@ -54,8 +58,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                 deviceId: currentDeviceInfo.DeviceId,
                 deviceName: currentDeviceInfo.DeviceName,
                 userAgent: request.UserAgent,
-                ipAddress: request.IpAddress
-            );
+                ipAddress: request.IpAddress);
 
             // 7) Опционально геолокация
             GeoLocation? geoLocation = null;
@@ -65,7 +68,9 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                     cancellationToken: cancellationToken);
 
             // 8) Обновляем "последнее использование" старого токена
-            currentToken.Touch(deviceInfo: updatedDeviceInfoForCurrent, geoLocation: geoLocation);
+            currentToken.Touch(
+                deviceInfo: updatedDeviceInfoForCurrent,
+                geoLocation: geoLocation);
 
             // 9) Ревокаем старый токен
             currentToken.Revoke();
@@ -80,8 +85,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                 deviceId: currentDeviceInfo.DeviceId,
                 deviceName: currentDeviceInfo.DeviceName,
                 userAgent: request.UserAgent,
-                ipAddress: request.IpAddress
-            );
+                ipAddress: request.IpAddress);
 
             user.IssueRefreshToken(
                 tokenHash: newDescriptor.TokenHash,

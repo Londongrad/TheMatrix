@@ -29,10 +29,11 @@ namespace Matrix.Identity.Api.Controllers
             var command = new RegisterUserCommand(
                 Email: request.Email,
                 Username: request.Username,
-                Password: request.Password
-            );
+                Password: request.Password);
 
-            RegisterUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
+            RegisterUserResult result = await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
 
             var response = new RegisterResponse
             {
@@ -53,7 +54,9 @@ namespace Matrix.Identity.Api.Controllers
             string userAgent = Request.Headers.UserAgent.ToString();
 
             string? ipAddress = null;
-            if (Request.Headers.TryGetValue(key: "X-Real-IP", value: out StringValues realIpHeader))
+            if (Request.Headers.TryGetValue(
+                    key: "X-Real-IP",
+                    value: out StringValues realIpHeader))
                 ipAddress = realIpHeader.ToString();
 
             // fallback на RemoteIpAddress, если что-то пошло не так
@@ -66,10 +69,11 @@ namespace Matrix.Identity.Api.Controllers
                 DeviceName: request.DeviceName,
                 UserAgent: userAgent,
                 IpAddress: ipAddress,
-                RememberMe: request.RememberMe
-            );
+                RememberMe: request.RememberMe);
 
-            LoginUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
+            LoginUserResult result = await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
 
             var response = new LoginResponse
             {
@@ -96,7 +100,9 @@ namespace Matrix.Identity.Api.Controllers
             string userAgent = Request.Headers.UserAgent.ToString();
 
             string? ipAddress = null;
-            if (Request.Headers.TryGetValue(key: "X-Real-IP", value: out StringValues realIpHeader))
+            if (Request.Headers.TryGetValue(
+                    key: "X-Real-IP",
+                    value: out StringValues realIpHeader))
                 ipAddress = realIpHeader.ToString();
 
             // fallback на RemoteIpAddress, если что-то пошло не так
@@ -106,10 +112,11 @@ namespace Matrix.Identity.Api.Controllers
                 RefreshToken: request.RefreshToken,
                 DeviceId: request.DeviceId,
                 UserAgent: userAgent,
-                IpAddress: ipAddress
-            );
+                IpAddress: ipAddress);
 
-            LoginUserResult result = await _sender.Send(request: command, cancellationToken: cancellationToken);
+            LoginUserResult result = await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
 
             var response = new LoginResponse
             {
@@ -130,7 +137,9 @@ namespace Matrix.Identity.Api.Controllers
             CancellationToken cancellationToken)
         {
             var command = new RevokeRefreshTokenCommand(request.RefreshToken);
-            await _sender.Send(request: command, cancellationToken: cancellationToken);
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
             return NoContent();
         }
 
@@ -146,24 +155,26 @@ namespace Matrix.Identity.Api.Controllers
             var query = new GetUserSessionsQuery(userId);
 
             IReadOnlyCollection<UserSessionResult> sessions =
-                await _sender.Send(request: query, cancellationToken: cancellationToken);
+                await _sender.Send(
+                    request: query,
+                    cancellationToken: cancellationToken);
 
             var response = sessions
-                .Select(s => new SessionResponse
-                {
-                    Id = s.Id,
-                    DeviceId = s.DeviceId,
-                    DeviceName = s.DeviceName,
-                    UserAgent = s.UserAgent,
-                    IpAddress = s.IpAddress,
-                    Country = s.Country,
-                    Region = s.Region,
-                    City = s.City,
-                    CreatedAtUtc = s.CreatedAtUtc,
-                    LastUsedAtUtc = s.LastUsedAtUtc,
-                    IsActive = s.IsActive
-                })
-                .ToList();
+                          .Select(s => new SessionResponse
+                           {
+                               Id = s.Id,
+                               DeviceId = s.DeviceId,
+                               DeviceName = s.DeviceName,
+                               UserAgent = s.UserAgent,
+                               IpAddress = s.IpAddress,
+                               Country = s.Country,
+                               Region = s.Region,
+                               City = s.City,
+                               CreatedAtUtc = s.CreatedAtUtc,
+                               LastUsedAtUtc = s.LastUsedAtUtc,
+                               IsActive = s.IsActive
+                           })
+                          .ToList();
 
             return Ok(response);
         }
@@ -174,9 +185,13 @@ namespace Matrix.Identity.Api.Controllers
             [FromRoute] Guid sessionId,
             CancellationToken cancellationToken)
         {
-            var command = new RevokeUserSessionCommand(UserId: userId, SessionId: sessionId);
+            var command = new RevokeUserSessionCommand(
+                UserId: userId,
+                SessionId: sessionId);
 
-            await _sender.Send(request: command, cancellationToken: cancellationToken);
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
 
             // Даже если sessionId не нашёлся – всё равно 204, запрос идемпотентный
             return NoContent();
@@ -189,7 +204,9 @@ namespace Matrix.Identity.Api.Controllers
         {
             var command = new RevokeAllUserSessionsCommand(userId);
 
-            await _sender.Send(request: command, cancellationToken: cancellationToken);
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
 
             // Idempotent: даже если все токены уже были отозваны, просто возвращаем 204
             return NoContent();

@@ -26,13 +26,17 @@ namespace Matrix.BuildingBlocks.Application.Models
         ///     The number of the current page (1-based index).
         /// </summary>
         public int PageNumber { get; init; } =
-            GuardHelper.AgainstNonPositiveNumber(value: pageNumber, propertyName: nameof(PageNumber));
+            GuardHelper.AgainstNonPositiveNumber(
+                value: pageNumber,
+                propertyName: nameof(PageNumber));
 
         /// <summary>
         ///     The number of items per page.
         /// </summary>
         public int PageSize { get; init; } =
-            GuardHelper.AgainstNonPositiveNumber(value: pageSize, propertyName: nameof(PageSize));
+            GuardHelper.AgainstNonPositiveNumber(
+                value: pageSize,
+                propertyName: nameof(PageSize));
 
         /// <summary>
         ///     The total number of pages based on <see cref="TotalCount" /> and <see cref="PageSize" />.

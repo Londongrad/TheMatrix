@@ -12,16 +12,22 @@ namespace Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken
         private readonly IRefreshTokenProvider _refreshTokenProvider = refreshTokenProvider;
         private readonly IUserRepository _userRepository = userRepository;
 
-        public async Task Handle(RevokeRefreshTokenCommand request, CancellationToken cancellationToken)
+        public async Task Handle(
+            RevokeRefreshTokenCommand request,
+            CancellationToken cancellationToken)
         {
             string hash = _refreshTokenProvider.ComputeHash(request.RefreshToken);
 
             User? user =
-                await _userRepository.GetByRefreshTokenHashAsync(tokenHash: hash, cancellationToken: cancellationToken);
-            if (user is null) return; // тихо выходим
+                await _userRepository.GetByRefreshTokenHashAsync(
+                    tokenHash: hash,
+                    cancellationToken: cancellationToken);
+            if (user is null)
+                return; // тихо выходим
 
             Domain.Entities.RefreshToken? token = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash);
-            if (token is null) return;
+            if (token is null)
+                return;
 
             if (!token.IsRevoked)
             {

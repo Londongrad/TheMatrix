@@ -23,7 +23,10 @@ namespace Matrix.Identity.Infrastructure.Security
                 ? DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays)
                 : DateTime.UtcNow.AddHours(_options.ShortRefreshTokenLifetimeHours);
 
-            return new RefreshTokenDescriptor(Token: token, TokenHash: hash, ExpiresAtUtc: expiresAt);
+            return new RefreshTokenDescriptor(
+                Token: token,
+                TokenHash: hash,
+                ExpiresAtUtc: expiresAt);
         }
 
         public string ComputeHash(string token)

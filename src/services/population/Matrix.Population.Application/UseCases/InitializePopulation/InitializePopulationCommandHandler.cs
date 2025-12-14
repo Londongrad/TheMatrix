@@ -24,7 +24,9 @@ namespace Matrix.Population.Application.UseCases.InitializePopulation
                 currentDate: DateOnly.FromDateTime(DateTime.UtcNow),
                 randomSeed: request.RandomSeed);
 
-            await personWriteRepository.AddRangeAsync(persons: persons, cancellationToken: cancellationToken);
+            await personWriteRepository.AddRangeAsync(
+                persons: persons,
+                cancellationToken: cancellationToken);
 
             await personWriteRepository.SaveChangesAsync(cancellationToken);
         }

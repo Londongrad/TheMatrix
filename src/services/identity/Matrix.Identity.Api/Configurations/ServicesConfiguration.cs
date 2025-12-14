@@ -15,10 +15,10 @@ namespace Matrix.Identity.Api.Configurations
             ConfigurationManager configuration = builder.Configuration;
 
             services
-                .AddPresentationLayer() // Controllers + Swagger
-                .AddApplicationLayer() // MediatR, Application
-                .AddInfrastructureLayer(configuration) // DbContext, репы, JwtAccessTokenService, PasswordHasher
-                .AddSecurityLayer(configuration); // Authentication + Authorization
+               .AddPresentationLayer() // Controllers + Swagger
+               .AddApplicationLayer() // MediatR, Application
+               .AddInfrastructureLayer(configuration) // DbContext, репы, JwtAccessTokenService, PasswordHasher
+               .AddSecurityLayer(configuration); // Authentication + Authorization
         }
 
         private static IServiceCollection AddPresentationLayer(this IServiceCollection services)
@@ -50,16 +50,16 @@ namespace Matrix.Identity.Api.Configurations
             IConfiguration configuration)
         {
             IConfigurationSection jwtSection = configuration.GetSection("Jwt");
-            JwtOptions jwtOptions = jwtSection.Get<JwtOptions>()
-                                    ?? throw new InvalidOperationException("Jwt configuration is missing.");
+            JwtOptions jwtOptions = jwtSection.Get<JwtOptions>() ??
+                                    throw new InvalidOperationException("Jwt configuration is missing.");
 
             services
-                .AddAuthentication(options =>
+               .AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
-                .AddJwtBearer(options =>
+               .AddJwtBearer(options =>
                 {
                     options.RequireHttpsMetadata = false; // dev only
                     options.SaveToken = true;
@@ -68,14 +68,10 @@ namespace Matrix.Identity.Api.Configurations
                     {
                         ValidateIssuer = true,
                         ValidIssuer = jwtOptions.Issuer,
-
                         ValidateAudience = true,
                         ValidAudience = jwtOptions.Audience,
-
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
-
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };

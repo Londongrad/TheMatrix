@@ -20,22 +20,37 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
             var claims = new List<Claim>
             {
                 // основной идентификатор пользователя
-                new(type: JwtRegisteredClaimNames.Sub, value: user.Id.ToString()),
+                new(
+                    type: JwtRegisteredClaimNames.Sub,
+                    value: user.Id.ToString()),
 
                 // email
-                new(type: JwtRegisteredClaimNames.Email, value: user.Email.Value),
+                new(
+                    type: JwtRegisteredClaimNames.Email,
+                    value: user.Email.Value),
 
                 // username как "unique_name" + дублируем в ClaimTypes.Name
-                new(type: JwtRegisteredClaimNames.UniqueName, value: username),
-                new(type: ClaimTypes.Name, value: username),
-                new(type: "username", value: username),
+                new(
+                    type: JwtRegisteredClaimNames.UniqueName,
+                    value: username),
+                new(
+                    type: ClaimTypes.Name,
+                    value: username),
+                new(
+                    type: "username",
+                    value: username),
 
                 // id токена
-                new(type: JwtRegisteredClaimNames.Jti, value: Guid.NewGuid().ToString())
+                new(
+                    type: JwtRegisteredClaimNames.Jti,
+                    value: Guid.NewGuid()
+                               .ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
-            var creds = new SigningCredentials(key: key, algorithm: SecurityAlgorithms.HmacSha256);
+            var creds = new SigningCredentials(
+                key: key,
+                algorithm: SecurityAlgorithms.HmacSha256);
 
             DateTime expiresAt = DateTime.UtcNow.AddMinutes(_options.AccessTokenLifetimeMinutes);
 

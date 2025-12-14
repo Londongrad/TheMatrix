@@ -10,15 +10,31 @@ namespace Matrix.Population.Domain.ValueObjects
 
         #region [ Constructors ]
 
-        private Personality(int optimism, int discipline, int riskTolerance, int sociability)
+        private Personality(
+            int optimism,
+            int discipline,
+            int riskTolerance,
+            int sociability)
         {
-            Optimism = GuardHelper.AgainstOutOfRange(value: optimism, min: TraitMinValue, max: TraitMaxValue,
+            Optimism = GuardHelper.AgainstOutOfRange(
+                value: optimism,
+                min: TraitMinValue,
+                max: TraitMaxValue,
                 propertyName: nameof(Optimism));
-            Discipline = GuardHelper.AgainstOutOfRange(value: discipline, min: TraitMinValue, max: TraitMaxValue,
+            Discipline = GuardHelper.AgainstOutOfRange(
+                value: discipline,
+                min: TraitMinValue,
+                max: TraitMaxValue,
                 propertyName: nameof(Discipline));
-            RiskTolerance = GuardHelper.AgainstOutOfRange(value: riskTolerance, min: TraitMinValue, max: TraitMaxValue,
+            RiskTolerance = GuardHelper.AgainstOutOfRange(
+                value: riskTolerance,
+                min: TraitMinValue,
+                max: TraitMaxValue,
                 propertyName: nameof(RiskTolerance));
-            Sociability = GuardHelper.AgainstOutOfRange(value: sociability, min: TraitMinValue, max: TraitMaxValue,
+            Sociability = GuardHelper.AgainstOutOfRange(
+                value: sociability,
+                min: TraitMinValue,
+                max: TraitMaxValue,
                 propertyName: nameof(Sociability));
         }
 
@@ -40,8 +56,14 @@ namespace Matrix.Population.Domain.ValueObjects
             int optimism,
             int discipline,
             int riskTolerance,
-            int sociability) =>
-            new(optimism: optimism, discipline: discipline, riskTolerance: riskTolerance, sociability: sociability);
+            int sociability)
+        {
+            return new Personality(
+                optimism: optimism,
+                discipline: discipline,
+                riskTolerance: riskTolerance,
+                sociability: sociability);
+        }
 
         /// <summary>
         ///     Neutral personality with all traits set to 50
@@ -53,8 +75,7 @@ namespace Matrix.Population.Domain.ValueObjects
                 optimism: 50,
                 discipline: 50,
                 riskTolerance: 50,
-                sociability: 50
-            );
+                sociability: 50);
         }
 
         /// <summary>
@@ -71,46 +92,130 @@ namespace Matrix.Population.Domain.ValueObjects
             return archetype switch
             {
                 PersonalityArchetype.Optimist => new Personality(
-                    optimism: NextTrait(random: random, minInclusive: 70, maxInclusive: 100),
-                    discipline: NextTrait(random: random, minInclusive: 40, maxInclusive: 80),
-                    riskTolerance: NextTrait(random: random, minInclusive: 40, maxInclusive: 80),
-                    sociability: NextTrait(random: random, minInclusive: 40, maxInclusive: 90)),
+                    optimism: NextTrait(
+                        random: random,
+                        minInclusive: 70,
+                        maxInclusive: 100),
+                    discipline: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 80),
+                    riskTolerance: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 80),
+                    sociability: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 90)),
 
                 PersonalityArchetype.Pessimist => new Personality(
-                    optimism: NextTrait(random: random, minInclusive: 0, maxInclusive: 40),
-                    discipline: NextTrait(random: random, minInclusive: 40, maxInclusive: 80),
-                    riskTolerance: NextTrait(random: random, minInclusive: 10, maxInclusive: 60),
-                    sociability: NextTrait(random: random, minInclusive: 10, maxInclusive: 70)),
+                    optimism: NextTrait(
+                        random: random,
+                        minInclusive: 0,
+                        maxInclusive: 40),
+                    discipline: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 80),
+                    riskTolerance: NextTrait(
+                        random: random,
+                        minInclusive: 10,
+                        maxInclusive: 60),
+                    sociability: NextTrait(
+                        random: random,
+                        minInclusive: 10,
+                        maxInclusive: 70)),
 
                 PersonalityArchetype.RiskTaker => new Personality(
-                    optimism: NextTrait(random: random, minInclusive: 40, maxInclusive: 90),
-                    discipline: NextTrait(random: random, minInclusive: 20, maxInclusive: 70),
-                    riskTolerance: NextTrait(random: random, minInclusive: 70, maxInclusive: 100),
-                    sociability: NextTrait(random: random, minInclusive: 30, maxInclusive: 90)),
+                    optimism: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 90),
+                    discipline: NextTrait(
+                        random: random,
+                        minInclusive: 20,
+                        maxInclusive: 70),
+                    riskTolerance: NextTrait(
+                        random: random,
+                        minInclusive: 70,
+                        maxInclusive: 100),
+                    sociability: NextTrait(
+                        random: random,
+                        minInclusive: 30,
+                        maxInclusive: 90)),
 
                 PersonalityArchetype.Cautious => new Personality(
-                    optimism: NextTrait(random: random, minInclusive: 30, maxInclusive: 70),
-                    discipline: NextTrait(random: random, minInclusive: 50, maxInclusive: 100),
-                    riskTolerance: NextTrait(random: random, minInclusive: 0, maxInclusive: 40),
-                    sociability: NextTrait(random: random, minInclusive: 20, maxInclusive: 70)),
+                    optimism: NextTrait(
+                        random: random,
+                        minInclusive: 30,
+                        maxInclusive: 70),
+                    discipline: NextTrait(
+                        random: random,
+                        minInclusive: 50,
+                        maxInclusive: 100),
+                    riskTolerance: NextTrait(
+                        random: random,
+                        minInclusive: 0,
+                        maxInclusive: 40),
+                    sociability: NextTrait(
+                        random: random,
+                        minInclusive: 20,
+                        maxInclusive: 70)),
 
                 PersonalityArchetype.Workaholic => new Personality(
-                    optimism: NextTrait(random: random, minInclusive: 40, maxInclusive: 80),
-                    discipline: NextTrait(random: random, minInclusive: 70, maxInclusive: 100),
-                    riskTolerance: NextTrait(random: random, minInclusive: 30, maxInclusive: 70),
-                    sociability: NextTrait(random: random, minInclusive: 10, maxInclusive: 60)),
+                    optimism: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 80),
+                    discipline: NextTrait(
+                        random: random,
+                        minInclusive: 70,
+                        maxInclusive: 100),
+                    riskTolerance: NextTrait(
+                        random: random,
+                        minInclusive: 30,
+                        maxInclusive: 70),
+                    sociability: NextTrait(
+                        random: random,
+                        minInclusive: 10,
+                        maxInclusive: 60)),
 
                 PersonalityArchetype.SocialButterfly => new Personality(
-                    optimism: NextTrait(random: random, minInclusive: 50, maxInclusive: 100),
-                    discipline: NextTrait(random: random, minInclusive: 30, maxInclusive: 70),
-                    riskTolerance: NextTrait(random: random, minInclusive: 40, maxInclusive: 80),
-                    sociability: NextTrait(random: random, minInclusive: 70, maxInclusive: 100)),
+                    optimism: NextTrait(
+                        random: random,
+                        minInclusive: 50,
+                        maxInclusive: 100),
+                    discipline: NextTrait(
+                        random: random,
+                        minInclusive: 30,
+                        maxInclusive: 70),
+                    riskTolerance: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 80),
+                    sociability: NextTrait(
+                        random: random,
+                        minInclusive: 70,
+                        maxInclusive: 100)),
 
                 _ => new Personality( // Balanced
-                    optimism: NextTrait(random: random, minInclusive: 40, maxInclusive: 60),
-                    discipline: NextTrait(random: random, minInclusive: 40, maxInclusive: 60),
-                    riskTolerance: NextTrait(random: random, minInclusive: 40, maxInclusive: 60),
-                    sociability: NextTrait(random: random, minInclusive: 40, maxInclusive: 60))
+                    optimism: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 60),
+                    discipline: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 60),
+                    riskTolerance: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 60),
+                    sociability: NextTrait(
+                        random: random,
+                        minInclusive: 40,
+                        maxInclusive: 60))
             };
         }
 
@@ -170,10 +275,15 @@ namespace Matrix.Population.Domain.ValueObjects
 
         #region [ Helpers ]
 
-        private static int NextTrait(Random random, int minInclusive, int maxInclusive)
+        private static int NextTrait(
+            Random random,
+            int minInclusive,
+            int maxInclusive)
         {
             // Random.Next верхнюю границу не включает, поэтому +1
-            return random.Next(minValue: minInclusive, maxValue: maxInclusive + 1);
+            return random.Next(
+                minValue: minInclusive,
+                maxValue: maxInclusive + 1);
         }
 
         #endregion [ Helpers ]

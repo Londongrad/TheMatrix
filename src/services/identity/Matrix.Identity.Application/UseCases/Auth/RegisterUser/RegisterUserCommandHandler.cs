@@ -23,22 +23,31 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
             var username = Username.Create(request.Username);
 
             bool emailTaken = await _userRepository
-                .IsEmailTakenAsync(normalizedEmail: email.Value, cancellationToken: cancellationToken);
+               .IsEmailTakenAsync(
+                    normalizedEmail: email.Value,
+                    cancellationToken: cancellationToken);
 
             if (emailTaken)
                 throw ApplicationErrorsFactory.EmailAlreadyInUse(email.Value);
 
             bool usernameTaken = await _userRepository
-                .IsUsernameTakenAsync(normalizedUsername: username.Value, cancellationToken: cancellationToken);
+               .IsUsernameTakenAsync(
+                    normalizedUsername: username.Value,
+                    cancellationToken: cancellationToken);
 
             if (usernameTaken)
                 throw ApplicationErrorsFactory.UsernameAlreadyInUse(username.Value);
 
             string passwordHash = _passwordHasher.Hash(request.Password);
 
-            var user = User.CreateNew(email: email, username: username, passwordHash: passwordHash);
+            var user = User.CreateNew(
+                email: email,
+                username: username,
+                passwordHash: passwordHash);
 
-            await _userRepository.AddAsync(user: user, cancellationToken: cancellationToken);
+            await _userRepository.AddAsync(
+                user: user,
+                cancellationToken: cancellationToken);
             await _userRepository.SaveChangesAsync(cancellationToken);
 
             return new RegisterUserResult

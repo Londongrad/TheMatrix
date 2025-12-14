@@ -18,8 +18,8 @@ namespace Matrix.Identity.Infrastructure
             IConfiguration configuration)
         {
             // DbContext
-            string connectionString = configuration.GetConnectionString("IdentityDb")
-                                      ?? throw new InvalidOperationException(
+            string connectionString = configuration.GetConnectionString("IdentityDb") ??
+                                      throw new InvalidOperationException(
                                           "Connection string 'IdentityDb' is not configured.");
 
             services.AddDbContext<IdentityDbContext>(options => { options.UseNpgsql(connectionString); });
@@ -47,8 +47,7 @@ namespace Matrix.Identity.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            services.Configure<GeoLocationOptions>(
-                configuration.GetSection(GeoLocationOptions.SectionName));
+            services.Configure<GeoLocationOptions>(configuration.GetSection(GeoLocationOptions.SectionName));
 
             // HttpClient factory + IGeoLocationService
             services.AddHttpClient<IGeoLocationService, GeoLocationService>();

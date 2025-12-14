@@ -33,23 +33,29 @@ namespace Matrix.ApiGateway.Controllers.Identity
             }
 
             HttpResponseMessage response =
-                await _identityAccountClient.GetProfileAsync(userId: userId.Value,
+                await _identityAccountClient.GetProfileAsync(
+                    userId: userId.Value,
                     cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
-                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
+                return await ProxyDownstreamErrorAsync(
+                    response: response,
+                    cancellationToken: cancellationToken);
 
             UserProfileResponseDto? profile =
                 await response.Content.ReadFromJsonAsync<UserProfileResponseDto>(cancellationToken);
 
-            if (profile is not null) return Ok(profile);
+            if (profile is not null)
+                return Ok(profile);
 
             {
                 ErrorResponse error = CreateError(
                     code: "Gateway.InvalidIdentityResponse",
                     message: "Invalid response from Identity service.");
 
-                return StatusCode(statusCode: StatusCodes.Status500InternalServerError, value: error);
+                return StatusCode(
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    value: error);
             }
         }
 
@@ -80,11 +86,16 @@ namespace Matrix.ApiGateway.Controllers.Identity
             }
 
             HttpResponseMessage response = await _identityAccountClient
-                .ChangeAvatarAsync(userId: userId.Value, avatar: avatar, cancellationToken: cancellationToken);
+               .ChangeAvatarAsync(
+                    userId: userId.Value,
+                    avatar: avatar,
+                    cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
                 // ошибки просто проксируем как есть
-                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
+                return await ProxyDownstreamErrorAsync(
+                    response: response,
+                    cancellationToken: cancellationToken);
 
             // ✅ Успех: прокидываем тело ответа Identity дальше на фронт
             string body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -93,8 +104,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
             {
                 StatusCode = (int)response.StatusCode,
                 Content = body,
-                ContentType = response.Content.Headers.ContentType?.ToString()
-                              ?? "application/json"
+                ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json"
             };
         }
 
@@ -120,10 +130,15 @@ namespace Matrix.ApiGateway.Controllers.Identity
             };
 
             HttpResponseMessage response = await _identityAccountClient
-                .ChangePasswordAsync(userId: userId.Value, request: request, cancellationToken: cancellationToken);
+               .ChangePasswordAsync(
+                    userId: userId.Value,
+                    request: request,
+                    cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
-                return await ProxyDownstreamErrorAsync(response: response, cancellationToken: cancellationToken);
+                return await ProxyDownstreamErrorAsync(
+                    response: response,
+                    cancellationToken: cancellationToken);
 
             return NoContent();
         }
@@ -134,9 +149,12 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 User.FindFirst(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (userIdClaim is null) return null;
+            if (userIdClaim is null)
+                return null;
 
-            return Guid.TryParse(input: userIdClaim.Value, result: out Guid userId)
+            return Guid.TryParse(
+                input: userIdClaim.Value,
+                result: out Guid userId)
                 ? userId
                 : null;
         }

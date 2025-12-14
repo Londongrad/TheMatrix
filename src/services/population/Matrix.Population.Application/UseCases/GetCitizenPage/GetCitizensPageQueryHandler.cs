@@ -7,8 +7,7 @@ using MediatR;
 
 namespace Matrix.Population.Application.UseCases.GetCitizenPage
 {
-    public sealed class GetCitizensPageQueryHandler(
-        IPersonReadRepository personReadRepository)
+    public sealed class GetCitizensPageQueryHandler(IPersonReadRepository personReadRepository)
         : IRequestHandler<GetCitizensPageQuery, PagedResult<PersonDto>>
     {
         public async Task<PagedResult<PersonDto>> Handle(
@@ -18,17 +17,17 @@ namespace Matrix.Population.Application.UseCases.GetCitizenPage
             ArgumentNullException.ThrowIfNull(argument: request);
 
             (IReadOnlyCollection<Person> persons, int totalCount) = await personReadRepository
-                .GetPageAsync(pagination: request.Pagination, cancellationToken: cancellationToken);
+               .GetPageAsync(
+                    pagination: request.Pagination,
+                    cancellationToken: cancellationToken);
 
             IReadOnlyCollection<PersonDto> dtos = persons.ToDtoCollection();
 
-            return new PagedResult<PersonDto>
-            (
+            return new PagedResult<PersonDto>(
                 items: dtos,
                 totalCount: totalCount,
                 pageNumber: request.Pagination.PageNumber,
-                pageSize: request.Pagination.PageSize
-            );
+                pageSize: request.Pagination.PageSize);
         }
     }
 }

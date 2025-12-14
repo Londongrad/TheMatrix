@@ -7,11 +7,11 @@ namespace Matrix.Population.Domain.ValueObjects
     /// </summary>
     public sealed record LifeSpan
     {
-        private LifeSpan()
-        {
-        }
+        private LifeSpan() { }
 
-        private LifeSpan(DateOnly birthDate, DateOnly? deathDate)
+        private LifeSpan(
+            DateOnly birthDate,
+            DateOnly? deathDate)
         {
             if (deathDate is not null && deathDate < birthDate)
                 throw DomainErrorsFactory.DeathCannotBeEarlierThenBirth(nameof(deathDate));
@@ -26,19 +26,31 @@ namespace Matrix.Population.Domain.ValueObjects
         /// <summary>
         ///     Creates a life span for a living person without a death date.
         /// </summary>
-        public static LifeSpan FromBirthDate(DateOnly birthDate) =>
-            new(birthDate: birthDate, deathDate: null);
+        public static LifeSpan FromBirthDate(DateOnly birthDate)
+        {
+            return new LifeSpan(
+                birthDate: birthDate,
+                deathDate: null);
+        }
 
         /// <summary>
         ///     Creates a life span from explicit dates (mostly for persistence).
         /// </summary>
-        public static LifeSpan FromDates(DateOnly birthDate, DateOnly? deathDate) =>
-            new(birthDate: birthDate, deathDate: deathDate);
+        public static LifeSpan FromDates(
+            DateOnly birthDate,
+            DateOnly? deathDate)
+        {
+            return new LifeSpan(
+                birthDate: birthDate,
+                deathDate: deathDate);
+        }
 
         public Age GetAge(DateOnly currentDate)
         {
             DateOnly effectiveDate = DeathDate ?? currentDate;
-            return Age.FromBirthDate(birthDate: BirthDate, currentDate: effectiveDate);
+            return Age.FromBirthDate(
+                birthDate: BirthDate,
+                currentDate: effectiveDate);
         }
     }
 }

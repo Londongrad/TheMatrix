@@ -1,4 +1,4 @@
-﻿namespace Matrix.BuildingBlocks.Application.Models
+namespace Matrix.BuildingBlocks.Application.Models
 {
     /// <summary>
     ///     Represents pagination parameters for data retrieval operations.
@@ -33,13 +33,18 @@
         ///     rather than silently correcting them. This approach helps detect programming errors early
         ///     and maintain consistency across data retrieval operations.
         /// </remarks>
-        public Pagination(int pageNumber, int pageSize)
+        public Pagination(
+            int pageNumber,
+            int pageSize)
         {
             if (pageNumber < 1)
-                throw new ArgumentOutOfRangeException(paramName: nameof(pageNumber),
+                throw new ArgumentOutOfRangeException(
+                    paramName: nameof(pageNumber),
                     message: "Page number must be greater than 0.");
+
             if (pageSize is < 1 or > MaxPageSize)
-                throw new ArgumentOutOfRangeException(paramName: nameof(pageSize),
+                throw new ArgumentOutOfRangeException(
+                    paramName: nameof(pageSize),
                     message: $"Page size must be between 1 and {MaxPageSize}.");
 
             PageNumber = pageNumber;
@@ -49,7 +54,9 @@
         /// <summary>
         ///     Provides a default pagination configuration (page 1, 100 items per page).
         /// </summary>
-        public static Pagination Default => new(pageNumber: 1, pageSize: 100);
+        public static Pagination Default => new(
+            pageNumber: 1,
+            pageSize: 100);
 
         /// <summary>Gets the number of the page to retrieve. Must be greater than 0.</summary>
         public int PageNumber { get; init; }
@@ -72,7 +79,9 @@
         /// <summary>
         ///     Deconstructs the current <see cref="Pagination" /> instance into its components.
         /// </summary>
-        public void Deconstruct(out int pageNumber, out int pageSize)
+        public void Deconstruct(
+            out int pageNumber,
+            out int pageSize)
         {
             pageNumber = PageNumber;
             pageSize = PageSize;

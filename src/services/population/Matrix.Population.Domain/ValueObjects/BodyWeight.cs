@@ -9,14 +9,23 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public BodyWeight(decimal kilograms)
         {
-            Kilograms = GuardHelper.AgainstOutOfRange(value: kilograms, min: MinWeight, max: MaxWeight,
+            Kilograms = GuardHelper.AgainstOutOfRange(
+                value: kilograms,
+                min: MinWeight,
+                max: MaxWeight,
                 propertyName: nameof(BodyWeight));
         }
 
         public decimal Kilograms { get; }
 
-        public static BodyWeight FromKilograms(decimal kilograms) => new(kilograms);
+        public static BodyWeight FromKilograms(decimal kilograms)
+        {
+            return new BodyWeight(kilograms);
+        }
 
-        public override string ToString() => $"{Kilograms:0.#} kg";
+        public override string ToString()
+        {
+            return $"{Kilograms:0.#} kg";
+        }
     }
 }

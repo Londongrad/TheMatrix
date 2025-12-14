@@ -13,8 +13,8 @@ namespace Matrix.Population.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            string connectionString = configuration.GetConnectionString("PopulationDb")
-                                      ?? throw new InvalidOperationException(
+            string connectionString = configuration.GetConnectionString("PopulationDb") ??
+                                      throw new InvalidOperationException(
                                           "Connection string 'PopulationDb' is not configured.");
 
             services.AddDbContext<PopulationDbContext>(options => { options.UseNpgsql(connectionString); });
