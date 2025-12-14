@@ -17,7 +17,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             int? randomSeed = null,
             CancellationToken cancellationToken = default)
         {
-            // Собираем querystring руками, чтобы без зависимостей
+            // РЎРѕР±РёСЂР°РµРј querystring СЂСѓРєР°РјРё, С‡С‚РѕР±С‹ Р±РµР· Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№
             string query = $"?peopleCount={peopleCount}";
             if (randomSeed.HasValue) query += $"&randomSeed={randomSeed.Value}";
 
@@ -73,7 +73,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             PagedResult<PersonDto>? result = await response.Content
                 .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);
 
-            // Если вдруг API вернёт пустое тело — это уже баг, не бизнес-кейс
+            // Р•СЃР»Рё РІРґСЂСѓРі API РІРµСЂРЅС‘С‚ РїСѓСЃС‚РѕРµ С‚РµР»Рѕ вЂ” СЌС‚Рѕ СѓР¶Рµ Р±Р°Рі, РЅРµ Р±РёР·РЅРµСЃ-РєРµР№СЃ
             return result ?? throw new InvalidOperationException("Empty response from Population API.");
         }
 
@@ -92,7 +92,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
 
         #region [ Constants ]
 
-        private const string PopulationBaseEndpoint = "/api/population";
+        private const string PopulationBaseEndpoint = "/api/population/";
 
         private const string InitializeEndpoint = PopulationBaseEndpoint + "init";
         private const string GetPagedEndpoint = PopulationBaseEndpoint + "citizens";
