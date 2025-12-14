@@ -1,6 +1,6 @@
 using Matrix.Identity.Domain.Entities;
 
-namespace Matrix.Identity.Application.Abstractions
+namespace Matrix.Identity.Application.Abstractions.Persistence
 {
     public interface IUserRepository
     {

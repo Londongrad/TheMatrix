@@ -1,4 +1,4 @@
-namespace Matrix.Identity.Application.Abstractions
+namespace Matrix.Identity.Application.Abstractions.Services
 {
     public sealed record RefreshTokenDescriptor(
         string Token,
