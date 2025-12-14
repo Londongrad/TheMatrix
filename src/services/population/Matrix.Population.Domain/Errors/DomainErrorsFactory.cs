@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain.Exceptions;
+using Matrix.BuildingBlocks.Domain.Exceptions;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.ValueObjects;
 

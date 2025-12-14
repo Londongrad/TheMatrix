@@ -1,9 +1,13 @@
-﻿using Matrix.Identity.Domain.Rules;
+using Matrix.BuildingBlocks.Domain;
+using Matrix.Identity.Domain.Errors;
 
 namespace Matrix.Identity.Domain.ValueObjects
 {
-    public sealed record class Username
+    public sealed record Username
     {
+        public const int MinLength = 3;
+        public const int MaxLength = 16;
+
         private Username(string value)
         {
             Value = value;
@@ -13,7 +17,18 @@ namespace Matrix.Identity.Domain.ValueObjects
 
         public static Username Create(string raw)
         {
-            string normalized = UsernameRules.Validate(raw);
+            string normalized = GuardHelper.AgainstNullOrWhiteSpace(
+                value: raw,
+                errorFactory: DomainErrorsFactory.EmptyUsername,
+                trim: true,
+                propertyName: nameof(Username));
+
+            GuardHelper.AgainstOutOfRange(
+                value: normalized.Length,
+                min: MinLength,
+                max: MaxLength,
+                errorFactory: DomainErrorsFactory.InvalidUsernameLength,
+                nameof(Username));
 
             return new Username(normalized);
         }

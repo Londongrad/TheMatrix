@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.UseCases.Auth;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.Extensions.Options;

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
 using Microsoft.Extensions.Options;
 

@@ -1,4 +1,4 @@
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Services;
 using Microsoft.Extensions.Hosting;
 
 namespace Matrix.Identity.Infrastructure.Storage

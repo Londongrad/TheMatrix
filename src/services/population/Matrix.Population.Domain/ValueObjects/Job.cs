@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.BuildingBlocks.Domain;
 
 namespace Matrix.Population.Domain.ValueObjects
 {
@@ -9,7 +9,7 @@ namespace Matrix.Population.Domain.ValueObjects
             string title)
         {
             WorkplaceId = workplaceId;
-            Title = GuardHelper.AgainstNullOrEmpty(
+            Title = GuardHelper.AgainstNullOrWhiteSpace(
                 value: title,
                 propertyName: nameof(Title));
         }

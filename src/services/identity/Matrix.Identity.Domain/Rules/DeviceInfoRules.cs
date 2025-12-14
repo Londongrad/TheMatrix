@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Identity.Domain.Errors;
 
 namespace Matrix.Identity.Domain.Rules
@@ -8,12 +9,15 @@ namespace Matrix.Identity.Domain.Rules
             string deviceId,
             string deviceName)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw DomainErrorsFactory.InvalidDeviceId(nameof(deviceId));
-            if (string.IsNullOrWhiteSpace(deviceName))
-                throw DomainErrorsFactory.InvalidDeviceName(nameof(deviceName));
+            string id = GuardHelper.AgainstNullOrWhiteSpace(
+                value: deviceId,
+                errorFactory: DomainErrorsFactory.InvalidDeviceId);
 
-            return (deviceId.Trim(), deviceName.Trim());
+            string name = GuardHelper.AgainstNullOrWhiteSpace(
+                value: deviceName,
+                errorFactory: DomainErrorsFactory.InvalidDeviceName);
+
+            return (id, name);
         }
     }
 }

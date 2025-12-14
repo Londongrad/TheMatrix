@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using DomainGeoLocation = Matrix.Identity.Domain.ValueObjects.GeoLocation;

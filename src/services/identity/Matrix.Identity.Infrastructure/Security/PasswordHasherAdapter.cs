@@ -1,6 +1,6 @@
-﻿using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
-using IPasswordHasher = Matrix.Identity.Application.Abstractions.IPasswordHasher;
+using IPasswordHasher = Matrix.Identity.Application.Abstractions.Services.IPasswordHasher;
 
 namespace Matrix.Identity.Infrastructure.Security
 {

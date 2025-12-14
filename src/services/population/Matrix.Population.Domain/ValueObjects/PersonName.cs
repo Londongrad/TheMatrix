@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
 
 namespace Matrix.Population.Domain.ValueObjects
@@ -12,10 +12,10 @@ namespace Matrix.Population.Domain.ValueObjects
             string lastName,
             string? patronymic = null)
         {
-            FirstName = GuardHelper.AgainstNullOrEmpty(
+            FirstName = GuardHelper.AgainstNullOrWhiteSpace(
                 value: firstName,
                 propertyName: nameof(FirstName));
-            LastName = GuardHelper.AgainstNullOrEmpty(
+            LastName = GuardHelper.AgainstNullOrWhiteSpace(
                 value: lastName,
                 propertyName: nameof(LastName));
             Patronymic = patronymic;
@@ -27,7 +27,7 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public static PersonName FromFullName(string fullName)
         {
-            GuardHelper.AgainstNullOrEmpty(
+            GuardHelper.AgainstNullOrWhiteSpace(
                 value: fullName,
                 propertyName: nameof(fullName));
             string[] parts = fullName.Split(

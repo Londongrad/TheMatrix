@@ -1,4 +1,5 @@
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
 using Matrix.Identity.Infrastructure.Integration.GeoLocation;
 using Matrix.Identity.Infrastructure.Persistence;

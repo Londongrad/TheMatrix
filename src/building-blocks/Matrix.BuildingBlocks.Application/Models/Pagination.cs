@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Domain;
+
 namespace Matrix.BuildingBlocks.Application.Models
 {
     /// <summary>
@@ -37,15 +39,15 @@ namespace Matrix.BuildingBlocks.Application.Models
             int pageNumber,
             int pageSize)
         {
-            if (pageNumber < 1)
-                throw new ArgumentOutOfRangeException(
-                    paramName: nameof(pageNumber),
-                    message: "Page number must be greater than 0.");
+            GuardHelper.AgainstNonPositiveNumber(
+                pageNumber,
+                nameof(PageNumber));
 
-            if (pageSize is < 1 or > MaxPageSize)
-                throw new ArgumentOutOfRangeException(
-                    paramName: nameof(pageSize),
-                    message: $"Page size must be between 1 and {MaxPageSize}.");
+            GuardHelper.AgainstOutOfRange(
+                pageSize,
+                1,
+                MaxPageSize,
+                nameof(PageSize));
 
             PageNumber = pageNumber;
             PageSize = pageSize;
