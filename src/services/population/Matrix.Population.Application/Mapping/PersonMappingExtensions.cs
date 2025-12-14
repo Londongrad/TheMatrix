@@ -16,14 +16,14 @@ namespace Matrix.Population.Application.Mapping
             ArgumentNullException.ThrowIfNull(person);
 
             int age = person.GetAge(currentDate)
-                            .Years;
+               .Years;
             string ageGroup = person.GetAgeGroup(currentDate)
-                                    .ToString();
+               .ToString();
 
             string birthDateStr = person.Life.BirthDate
-                                        .ToString(
-                                             format: "dd MMMM yyyy",
-                                             provider: CultureInfo.InvariantCulture);
+               .ToString(
+                    format: "dd MMMM yyyy",
+                    provider: CultureInfo.InvariantCulture);
 
             string? deathDateStr = person.Life.DeathDate?
                .ToString(
@@ -64,8 +64,8 @@ namespace Matrix.Population.Application.Mapping
             ArgumentNullException.ThrowIfNull(persons);
 
             return persons
-                  .Select(p => p.ToDto(currentDate))
-                  .ToArray();
+               .Select(p => p.ToDto(currentDate))
+               .ToArray();
         }
 
         /// <summary>

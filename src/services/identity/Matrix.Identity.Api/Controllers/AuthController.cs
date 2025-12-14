@@ -160,21 +160,21 @@ namespace Matrix.Identity.Api.Controllers
                     cancellationToken: cancellationToken);
 
             var response = sessions
-                          .Select(s => new SessionResponse
-                           {
-                               Id = s.Id,
-                               DeviceId = s.DeviceId,
-                               DeviceName = s.DeviceName,
-                               UserAgent = s.UserAgent,
-                               IpAddress = s.IpAddress,
-                               Country = s.Country,
-                               Region = s.Region,
-                               City = s.City,
-                               CreatedAtUtc = s.CreatedAtUtc,
-                               LastUsedAtUtc = s.LastUsedAtUtc,
-                               IsActive = s.IsActive
-                           })
-                          .ToList();
+               .Select(s => new SessionResponse
+                {
+                    Id = s.Id,
+                    DeviceId = s.DeviceId,
+                    DeviceName = s.DeviceName,
+                    UserAgent = s.UserAgent,
+                    IpAddress = s.IpAddress,
+                    Country = s.Country,
+                    Region = s.Region,
+                    City = s.City,
+                    CreatedAtUtc = s.CreatedAtUtc,
+                    LastUsedAtUtc = s.LastUsedAtUtc,
+                    IsActive = s.IsActive
+                })
+               .ToList();
 
             return Ok(response);
         }

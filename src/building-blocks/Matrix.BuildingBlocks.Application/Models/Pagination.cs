@@ -40,14 +40,14 @@ namespace Matrix.BuildingBlocks.Application.Models
             int pageSize)
         {
             GuardHelper.AgainstNonPositiveNumber(
-                pageNumber,
-                nameof(PageNumber));
+                value: pageNumber,
+                propertyName: nameof(PageNumber));
 
             GuardHelper.AgainstOutOfRange(
-                pageSize,
-                1,
-                MaxPageSize,
-                nameof(PageSize));
+                value: pageSize,
+                min: 1,
+                max: MaxPageSize,
+                propertyName: nameof(PageSize));
 
             PageNumber = pageNumber;
             PageSize = pageSize;

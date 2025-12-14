@@ -44,7 +44,7 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
                 new(
                     type: JwtRegisteredClaimNames.Jti,
                     value: Guid.NewGuid()
-                               .ToString())
+                       .ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));

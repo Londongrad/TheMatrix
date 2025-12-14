@@ -13,7 +13,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.HasKey(u => u.Id);
 
             builder.Property(u => u.Id)
-                   .ValueGeneratedNever();
+               .ValueGeneratedNever();
 
             // Email (Value Object)
             builder.OwnsOne(
@@ -21,12 +21,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                 buildAction: email =>
                 {
                     email.Property(e => e.Value)
-                         .HasColumnName("Email")
-                         .HasMaxLength(256)
-                         .IsRequired();
+                       .HasColumnName("Email")
+                       .HasMaxLength(256)
+                       .IsRequired();
 
                     email.HasIndex(e => e.Value)
-                         .IsUnique();
+                       .IsUnique();
                 });
 
             // Username (Value Object)
@@ -35,28 +35,28 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                 buildAction: username =>
                 {
                     username.Property(x => x.Value)
-                            .HasColumnName("Username")
-                            .HasMaxLength(32)
-                            .IsRequired();
+                       .HasColumnName("Username")
+                       .HasMaxLength(32)
+                       .IsRequired();
 
                     username.HasIndex(x => x.Value)
-                            .IsUnique();
+                       .IsUnique();
                 });
 
             builder.Property(u => u.AvatarUrl)
-                   .HasMaxLength(512);
+               .HasMaxLength(512);
 
             builder.Property(u => u.PasswordHash)
-                   .IsRequired();
+               .IsRequired();
 
             builder.Property(u => u.CreatedAtUtc)
-                   .IsRequired();
+               .IsRequired();
 
             builder.Property(u => u.IsEmailConfirmed)
-                   .IsRequired();
+               .IsRequired();
 
             builder.Property(u => u.IsLocked)
-                   .IsRequired();
+               .IsRequired();
 
             // RefreshTokens как owned-коллекция
             builder.OwnsMany(
@@ -66,29 +66,29 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                     token.ToTable("UserRefreshTokens");
 
                     token.WithOwner()
-                         .HasForeignKey("UserId");
+                       .HasForeignKey("UserId");
 
                     token.HasKey(t => t.Id);
 
                     token.Property(t => t.Id)
-                         .ValueGeneratedNever();
+                       .ValueGeneratedNever();
 
                     token.Property(t => t.TokenHash)
-                         .HasMaxLength(512)
-                         .IsRequired();
+                       .HasMaxLength(512)
+                       .IsRequired();
 
                     token.Property(t => t.CreatedAtUtc)
-                         .IsRequired();
+                       .IsRequired();
 
                     token.Property(t => t.ExpiresAtUtc)
-                         .IsRequired();
+                       .IsRequired();
 
                     token.Property(t => t.IsRevoked)
-                         .IsRequired();
+                       .IsRequired();
 
                     token.Property(t => t.IsPersistent)
-                         .HasDefaultValue(true)
-                         .IsRequired();
+                       .HasDefaultValue(true)
+                       .IsRequired();
 
                     token.Property(t => t.LastUsedAtUtc);
 
@@ -101,23 +101,23 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                         buildAction: device =>
                         {
                             device.Property(d => d.DeviceId)
-                                  .HasColumnName("DeviceId")
-                                  .HasMaxLength(128)
-                                  .IsRequired();
+                               .HasColumnName("DeviceId")
+                               .HasMaxLength(128)
+                               .IsRequired();
 
                             device.Property(d => d.DeviceName)
-                                  .HasColumnName("DeviceName")
-                                  .HasMaxLength(256)
-                                  .IsRequired();
+                               .HasColumnName("DeviceName")
+                               .HasMaxLength(256)
+                               .IsRequired();
 
                             device.Property(d => d.UserAgent)
-                                  .HasColumnName("UserAgent")
-                                  .HasMaxLength(512)
-                                  .IsRequired();
+                               .HasColumnName("UserAgent")
+                               .HasMaxLength(512)
+                               .IsRequired();
 
                             device.Property(d => d.IpAddress)
-                                  .HasColumnName("IpAddress")
-                                  .HasMaxLength(64);
+                               .HasColumnName("IpAddress")
+                               .HasMaxLength(64);
                         });
 
                     // GeoLocation (Value Object внутри refresh-токена)
@@ -141,7 +141,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
 
             // Навигация на коллекцию через приватное поле _refreshTokens
             builder.Navigation(u => u.RefreshTokens)
-                   .UsePropertyAccessMode(PropertyAccessMode.Field);
+               .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

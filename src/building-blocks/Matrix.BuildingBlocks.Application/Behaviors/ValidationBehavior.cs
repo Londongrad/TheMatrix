@@ -21,21 +21,21 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
             var context = new ValidationContext<TRequest>(request);
 
             var failures = validators
-                          .Select(v => v.Validate(context))
-                          .SelectMany(r => r.Errors)
-                          .Where(f => f is not null)
-                          .ToList();
+               .Select(v => v.Validate(context))
+               .SelectMany(r => r.Errors)
+               .Where(f => f is not null)
+               .ToList();
 
             if (failures.Count == 0)
                 return await next(cancellationToken);
 
             var errors = failures
-                        .GroupBy(f => f.PropertyName)
-                        .ToDictionary(
-                             keySelector: g => g.Key,
-                             elementSelector: g =>
-                                 g.Select(f => f.ErrorMessage)
-                                  .ToArray());
+               .GroupBy(f => f.PropertyName)
+               .ToDictionary(
+                    keySelector: g => g.Key,
+                    elementSelector: g =>
+                        g.Select(f => f.ErrorMessage)
+                           .ToArray());
 
             throw errorFactory.Create(
                 requestType: typeof(TRequest),

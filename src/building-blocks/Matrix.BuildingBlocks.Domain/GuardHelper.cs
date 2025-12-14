@@ -19,7 +19,9 @@ namespace Matrix.BuildingBlocks.Domain
             where T : struct
         {
             if (!condition)
-                throw errorFactory(value, propertyName);
+                throw errorFactory(
+                    arg1: value,
+                    arg2: propertyName);
         }
 
         #endregion [ Conditions ]
@@ -87,7 +89,9 @@ namespace Matrix.BuildingBlocks.Domain
             where T : struct
         {
             if (value is not null)
-                throw errorFactory(value.Value, propertyName);
+                throw errorFactory(
+                    arg1: value.Value,
+                    arg2: propertyName);
         }
 
         #endregion [ NullOrEmpty ]

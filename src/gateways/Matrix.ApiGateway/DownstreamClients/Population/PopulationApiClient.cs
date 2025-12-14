@@ -83,8 +83,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             response.EnsureSuccessStatusCode();
 
             PagedResult<PersonDto>? result = await response.Content
-                                                           .ReadFromJsonAsync<PagedResult<PersonDto>>(
-                                                                cancellationToken: cancellationToken);
+               .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);
 
             // Если вдруг API вернёт пустое тело — это уже баг, не бизнес-кейс
             return result ?? throw new InvalidOperationException("Empty response from Population API.");

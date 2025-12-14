@@ -51,11 +51,11 @@ namespace Matrix.Identity.Infrastructure.Storage
             // относительный путь, который пойдёт в AvatarUrl и в <img src="...">
             // /avatars/xxx.png
             string relativePath = Path.Combine(
-                                           path1: "avatars",
-                                           path2: finalFileName)
-                                      .Replace(
-                                           oldValue: "\\",
-                                           newValue: "/");
+                    path1: "avatars",
+                    path2: finalFileName)
+               .Replace(
+                    oldValue: "\\",
+                    newValue: "/");
 
             return "/" + relativePath;
         }

@@ -30,27 +30,27 @@ namespace Matrix.ApiGateway.Configurations
         {
             // При ModelState invalid, возвращаем кастомный ответ с ошибками валидации
             services.AddControllers()
-                    .ConfigureApiBehaviorOptions(options =>
-                     {
-                         options.InvalidModelStateResponseFactory = context =>
-                         {
-                             var errors = context.ModelState
-                                                 .Where(kvp => kvp.Value?.Errors.Count > 0)
-                                                 .ToDictionary(
-                                                      keySelector: kvp => kvp.Key,
-                                                      elementSelector: kvp => kvp.Value!.Errors
-                                                         .Select(e => e.ErrorMessage)
-                                                         .ToArray());
+               .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var errors = context.ModelState
+                           .Where(kvp => kvp.Value?.Errors.Count > 0)
+                           .ToDictionary(
+                                keySelector: kvp => kvp.Key,
+                                elementSelector: kvp => kvp.Value!.Errors
+                                   .Select(e => e.ErrorMessage)
+                                   .ToArray());
 
-                             var error = new ErrorResponse(
-                                 Code: "Gateway.ValidationError",
-                                 Message: "Validation failed.",
-                                 Errors: errors,
-                                 TraceId: context.HttpContext.TraceIdentifier);
+                        var error = new ErrorResponse(
+                            Code: "Gateway.ValidationError",
+                            Message: "Validation failed.",
+                            Errors: errors,
+                            TraceId: context.HttpContext.TraceIdentifier);
 
-                             return new BadRequestObjectResult(error);
-                         };
-                     });
+                        return new BadRequestObjectResult(error);
+                    };
+                });
             return services;
         }
 

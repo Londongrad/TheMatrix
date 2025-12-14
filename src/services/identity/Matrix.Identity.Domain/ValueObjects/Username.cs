@@ -28,7 +28,7 @@ namespace Matrix.Identity.Domain.ValueObjects
                 min: MinLength,
                 max: MaxLength,
                 errorFactory: DomainErrorsFactory.InvalidUsernameLength,
-                nameof(Username));
+                propertyName: nameof(Username));
 
             return new Username(normalized);
         }

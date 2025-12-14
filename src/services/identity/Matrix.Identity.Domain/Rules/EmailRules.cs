@@ -16,7 +16,7 @@ namespace Matrix.Identity.Domain.Rules
                 throw DomainErrorsFactory.EmptyEmail(nameof(email));
 
             string normalizedEmail = email.Trim()
-                                          .ToLowerInvariant();
+               .ToLowerInvariant();
 
             if (!EmailRegex.IsMatch(normalizedEmail))
                 throw DomainErrorsFactory.InvalidEmailFormat(nameof(email));

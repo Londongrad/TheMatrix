@@ -7,6 +7,7 @@ namespace Matrix.Identity.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<User> Users => Set<User>();
+        public DbSet<OneTimeToken> OneTimeTokens => Set<OneTimeToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

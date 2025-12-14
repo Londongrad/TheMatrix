@@ -13,9 +13,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
         public async Task<IReadOnlyCollection<Person>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext
-                        .Persons
-                        .AsNoTracking()
-                        .ToListAsync(cancellationToken);
+               .Persons
+               .AsNoTracking()
+               .ToListAsync(cancellationToken);
         }
 
         public async Task<Person?> FindByIdAsync(
@@ -23,10 +23,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbContext
-                        .Persons
-                        .FirstOrDefaultAsync(
-                             predicate: p => p.Id == id,
-                             cancellationToken: cancellationToken);
+               .Persons
+               .FirstOrDefaultAsync(
+                    predicate: p => p.Id == id,
+                    cancellationToken: cancellationToken);
         }
 
         public async Task<(IReadOnlyCollection<Person> Items, int TotalCount)> GetPageAsync(
@@ -38,10 +38,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             int totalCount = await query.CountAsync(cancellationToken);
 
             List<Person> items = await query
-                                      .OrderBy(p => p.Id)
-                                      .Skip(pagination.Skip)
-                                      .Take(pagination.PageSize)
-                                      .ToListAsync(cancellationToken);
+               .OrderBy(p => p.Id)
+               .Skip(pagination.Skip)
+               .Take(pagination.PageSize)
+               .ToListAsync(cancellationToken);
 
             return (items, totalCount);
         }
