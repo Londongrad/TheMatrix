@@ -4,19 +4,36 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
 {
     public interface IIdentityAuthClient
     {
-        Task<HttpResponseMessage> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
-        Task<HttpResponseMessage> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
-
-        Task<HttpResponseMessage> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default);
-        Task LogoutAsync(LogoutRequest request, CancellationToken cancellationToken = default);
-
-        Task<HttpResponseMessage> GetSessionsAsync(string authorizationHeader,
+        Task<HttpResponseMessage> RegisterAsync(
+            RegisterRequest request,
             CancellationToken cancellationToken = default);
 
-        Task<HttpResponseMessage> RevokeSessionAsync(string authorizationHeader, Guid sessionId,
+        Task<HttpResponseMessage> LoginAsync(
+            LoginRequest request,
+            string? clientIp,
+            string? userAgent,
             CancellationToken cancellationToken = default);
 
-        Task<HttpResponseMessage> RevokeAllSessionsAsync(string authorizationHeader,
+        Task<HttpResponseMessage> RefreshAsync(
+            RefreshRequest request,
+            string? clientIp,
+            string? userAgent,
+            CancellationToken cancellationToken = default);
+
+        Task LogoutAsync(
+            LogoutRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task<HttpResponseMessage> GetSessionsAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default);
+
+        Task<HttpResponseMessage> RevokeSessionAsync(
+            Guid userId, Guid sessionId,
+            CancellationToken cancellationToken = default);
+
+        Task<HttpResponseMessage> RevokeAllSessionsAsync(
+            Guid userId,
             CancellationToken cancellationToken = default);
     }
 }
