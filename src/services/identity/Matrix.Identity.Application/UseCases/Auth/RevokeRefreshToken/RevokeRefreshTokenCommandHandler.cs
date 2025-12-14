@@ -1,4 +1,5 @@
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
 
@@ -9,17 +10,14 @@ namespace Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken
         IRefreshTokenProvider refreshTokenProvider)
         : IRequestHandler<RevokeRefreshTokenCommand>
     {
-        private readonly IRefreshTokenProvider _refreshTokenProvider = refreshTokenProvider;
-        private readonly IUserRepository _userRepository = userRepository;
-
         public async Task Handle(
             RevokeRefreshTokenCommand request,
             CancellationToken cancellationToken)
         {
-            string hash = _refreshTokenProvider.ComputeHash(request.RefreshToken);
+            string hash = refreshTokenProvider.ComputeHash(request.RefreshToken);
 
             User? user =
-                await _userRepository.GetByRefreshTokenHashAsync(
+                await userRepository.GetByRefreshTokenHashAsync(
                     tokenHash: hash,
                     cancellationToken: cancellationToken);
             if (user is null)
@@ -32,7 +30,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken
             if (!token.IsRevoked)
             {
                 token.Revoke();
-                await _userRepository.SaveChangesAsync(cancellationToken);
+                await userRepository.SaveChangesAsync(cancellationToken);
             }
         }
     }

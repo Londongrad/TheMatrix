@@ -1,4 +1,5 @@
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using Matrix.Identity.Domain.Entities;
@@ -14,20 +15,15 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
         IGeoLocationService geoLocationService)
         : IRequestHandler<RefreshTokenCommand, LoginUserResult>
     {
-        private readonly IAccessTokenService _accessTokenService = accessTokenService;
-        private readonly IGeoLocationService _geoLocationService = geoLocationService;
-        private readonly IRefreshTokenProvider _refreshTokenProvider = refreshTokenProvider;
-        private readonly IUserRepository _userRepository = userRepository;
-
         public async Task<LoginUserResult> Handle(
             RefreshTokenCommand request,
             CancellationToken cancellationToken)
         {
             // 1) Хэш текущего refresh
-            string hash = _refreshTokenProvider.ComputeHash(request.RefreshToken);
+            string hash = refreshTokenProvider.ComputeHash(request.RefreshToken);
 
             // 2) Находим пользователя с этим токеном
-            User user = await _userRepository.GetByRefreshTokenHashAsync(
+            User user = await userRepository.GetByRefreshTokenHashAsync(
                             tokenHash: hash,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.InvalidRefreshToken();
@@ -49,7 +45,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                     comparisonType: StringComparison.Ordinal))
             {
                 currentToken.Revoke();
-                await _userRepository.SaveChangesAsync(cancellationToken);
+                await userRepository.SaveChangesAsync(cancellationToken);
                 throw ApplicationErrorsFactory.InvalidRefreshToken();
             }
 
@@ -63,7 +59,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
             // 7) Опционально геолокация
             GeoLocation? geoLocation = null;
             if (!string.IsNullOrWhiteSpace(request.IpAddress))
-                geoLocation = await _geoLocationService.ResolveAsync(
+                geoLocation = await geoLocationService.ResolveAsync(
                     ipAddress: request.IpAddress!,
                     cancellationToken: cancellationToken);
 
@@ -76,7 +72,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
             currentToken.Revoke();
 
             // 10) Генерим новый refresh + DeviceInfo ДЛЯ НОВОГО токена
-            RefreshTokenDescriptor newDescriptor = _refreshTokenProvider.Generate(currentToken.IsPersistent);
+            RefreshTokenDescriptor newDescriptor = refreshTokenProvider.Generate(currentToken.IsPersistent);
 
             // По какой-то причине использование этого handler'а с одним DeviceInfo(но обновленным) экземпляром
             // приводит к багу (что-то типа EF Core не может расшарить сущность). Так что дублируем создание и кладем
@@ -95,9 +91,9 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                 isPersistent: currentToken.IsPersistent);
 
             // 11) Новый access-token
-            AccessTokenModel accessModel = _accessTokenService.Generate(user);
+            AccessTokenModel accessModel = accessTokenService.Generate(user);
 
-            await _userRepository.SaveChangesAsync(cancellationToken);
+            await userRepository.SaveChangesAsync(cancellationToken);
 
             return new LoginUserResult
             {

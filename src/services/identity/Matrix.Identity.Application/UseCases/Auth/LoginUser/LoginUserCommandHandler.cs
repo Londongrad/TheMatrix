@@ -1,4 +1,5 @@
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
@@ -14,12 +15,6 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
         IGeoLocationService geoLocationService)
         : IRequestHandler<LoginUserCommand, LoginUserResult>
     {
-        private readonly IAccessTokenService _accessTokenService = accessTokenService;
-        private readonly IGeoLocationService _geoLocationService = geoLocationService;
-        private readonly IPasswordHasher _passwordHasher = passwordHasher;
-        private readonly IRefreshTokenProvider _refreshTokenProvider = refreshTokenProvider;
-        private readonly IUserRepository _userRepository = userRepository;
-
         public async Task<LoginUserResult> Handle(
             LoginUserCommand request,
             CancellationToken cancellationToken)
@@ -34,7 +29,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
             {
                 // считаем, что это email
                 var email = Email.Create(request.Login);
-                user = await _userRepository.GetByEmailAsync(
+                user = await userRepository.GetByEmailAsync(
                     normalizedEmail: email.Value,
                     cancellationToken: cancellationToken);
             }
@@ -42,7 +37,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
             {
                 // считаем, что это username
                 var username = Username.Create(request.Login);
-                user = await _userRepository.GetByUsernameAsync(
+                user = await userRepository.GetByUsernameAsync(
                     login: username.Value,
                     cancellationToken: cancellationToken);
             }
@@ -51,7 +46,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
                 throw ApplicationErrorsFactory.InvalidCredentials();
 
             bool passwordValid =
-                _passwordHasher.Verify(
+                passwordHasher.Verify(
                     passwordHash: user.PasswordHash,
                     providedPassword: request.Password);
 
@@ -62,10 +57,10 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
                 throw ApplicationErrorsFactory.UserBlocked();
 
             // 1) Access token
-            AccessTokenModel accessTokenModel = _accessTokenService.Generate(user);
+            AccessTokenModel accessTokenModel = accessTokenService.Generate(user);
 
             // 2) Refresh token descriptor (сырое значение + hash + время жизни)
-            RefreshTokenDescriptor refreshDescriptor = _refreshTokenProvider.Generate(request.RememberMe);
+            RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);
 
             // 3) Собираем DeviceInfo из команды
             var deviceInfo = DeviceInfo.Create(
@@ -78,7 +73,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
             GeoLocation? geoLocation = null;
 
             if (!string.IsNullOrWhiteSpace(request.IpAddress))
-                geoLocation = await _geoLocationService.ResolveAsync(
+                geoLocation = await geoLocationService.ResolveAsync(
                     ipAddress: request.IpAddress,
                     cancellationToken: cancellationToken);
 
@@ -90,7 +85,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
                 geoLocation: geoLocation,
                 isPersistent: request.RememberMe);
 
-            await _userRepository.SaveChangesAsync(cancellationToken);
+            await userRepository.SaveChangesAsync(cancellationToken);
 
             return new LoginUserResult
             {

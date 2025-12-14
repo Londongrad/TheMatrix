@@ -1,4 +1,5 @@
-using Matrix.Identity.Application.Abstractions;
+using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
@@ -11,9 +12,6 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
         IPasswordHasher passwordHasher)
         : IRequestHandler<RegisterUserCommand, RegisterUserResult>
     {
-        private readonly IPasswordHasher _passwordHasher = passwordHasher;
-        private readonly IUserRepository _userRepository = userRepository;
-
         public async Task<RegisterUserResult> Handle(
             RegisterUserCommand request,
             CancellationToken cancellationToken)
@@ -22,7 +20,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
             var email = Email.Create(request.Email);
             var username = Username.Create(request.Username);
 
-            bool emailTaken = await _userRepository
+            bool emailTaken = await userRepository
                .IsEmailTakenAsync(
                     normalizedEmail: email.Value,
                     cancellationToken: cancellationToken);
@@ -30,7 +28,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
             if (emailTaken)
                 throw ApplicationErrorsFactory.EmailAlreadyInUse(email.Value);
 
-            bool usernameTaken = await _userRepository
+            bool usernameTaken = await userRepository
                .IsUsernameTakenAsync(
                     normalizedUsername: username.Value,
                     cancellationToken: cancellationToken);
@@ -38,17 +36,17 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
             if (usernameTaken)
                 throw ApplicationErrorsFactory.UsernameAlreadyInUse(username.Value);
 
-            string passwordHash = _passwordHasher.Hash(request.Password);
+            string passwordHash = passwordHasher.Hash(request.Password);
 
             var user = User.CreateNew(
                 email: email,
                 username: username,
                 passwordHash: passwordHash);
 
-            await _userRepository.AddAsync(
+            await userRepository.AddAsync(
                 user: user,
                 cancellationToken: cancellationToken);
-            await _userRepository.SaveChangesAsync(cancellationToken);
+            await userRepository.SaveChangesAsync(cancellationToken);
 
             return new RegisterUserResult
             {
