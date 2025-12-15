@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
@@ -31,6 +32,7 @@ namespace Matrix.Identity.Infrastructure
 
             // Repositories
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
