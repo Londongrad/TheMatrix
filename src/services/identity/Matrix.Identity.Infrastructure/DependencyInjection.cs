@@ -4,7 +4,8 @@ using Matrix.Identity.Infrastructure.Authentication.Jwt;
 using Matrix.Identity.Infrastructure.Integration.GeoLocation;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
-using Matrix.Identity.Infrastructure.Security;
+using Matrix.Identity.Infrastructure.Security.PasswordHashing;
+using Matrix.Identity.Infrastructure.Security.Tokens;
 using Matrix.Identity.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,7 +33,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
 
             // Security services
-            services.AddScoped<IPasswordHasher, PasswordHasherAdapter>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
             services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
 

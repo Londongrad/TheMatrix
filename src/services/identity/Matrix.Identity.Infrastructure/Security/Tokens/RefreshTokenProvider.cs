@@ -4,7 +4,7 @@ using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
 using Microsoft.Extensions.Options;
 
-namespace Matrix.Identity.Infrastructure.Security
+namespace Matrix.Identity.Infrastructure.Security.Tokens
 {
     public sealed class RefreshTokenProvider(IOptions<JwtOptions> options) : IRefreshTokenProvider
     {
