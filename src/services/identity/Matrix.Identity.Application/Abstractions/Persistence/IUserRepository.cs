@@ -32,12 +32,6 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             string normalizedUsername,
             CancellationToken cancellationToken = default);
 
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
-
-        Task Update(
-            User user,
-            CancellationToken cancellationToken = default);
-
         Task<User?> GetByRefreshTokenHashAsync(
             string tokenHash,
             CancellationToken cancellationToken = default);

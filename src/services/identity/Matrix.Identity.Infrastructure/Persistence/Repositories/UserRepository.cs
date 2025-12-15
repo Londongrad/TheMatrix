@@ -88,18 +88,5 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             Users.Remove(user);
             return Task.CompletedTask;
         }
-
-        public Task Update(
-            User user,
-            CancellationToken ct = default)
-        {
-            Users.Update(user);
-            return Task.CompletedTask;
-        }
-
-        public async Task SaveChangesAsync(CancellationToken ct = default)
-        {
-            await dbContext.SaveChangesAsync(ct);
-        }
     }
 }
