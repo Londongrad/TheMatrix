@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
@@ -8,7 +9,8 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
 {
     public sealed class ChangePasswordCommandHandler(
         IUserRepository userRepository,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<ChangePasswordCommand>
     {
         public async Task Handle(
@@ -31,7 +33,7 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
             string newPasswordHash = passwordHasher.Hash(request.NewPassword);
             user.ChangePasswordHash(newPasswordHash);
 
-            await userRepository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
@@ -12,7 +13,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
         IPasswordHasher passwordHasher,
         IAccessTokenService accessTokenService,
         IRefreshTokenProvider refreshTokenProvider,
-        IGeoLocationService geoLocationService)
+        IGeoLocationService geoLocationService,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<LoginUserCommand, LoginUserResult>
     {
         public async Task<LoginUserResult> Handle(
@@ -85,7 +87,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
                 geoLocation: geoLocation,
                 isPersistent: request.RememberMe);
 
-            await userRepository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new LoginUserResult
             {

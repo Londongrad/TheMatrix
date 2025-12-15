@@ -1,9 +1,11 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
+using DomainRefreshToken = Matrix.Identity.Domain.Entities.RefreshToken;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
@@ -12,7 +14,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
         IUserRepository userRepository,
         IAccessTokenService accessTokenService,
         IRefreshTokenProvider refreshTokenProvider,
-        IGeoLocationService geoLocationService)
+        IGeoLocationService geoLocationService,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<RefreshTokenCommand, LoginUserResult>
     {
         public async Task<LoginUserResult> Handle(
@@ -29,8 +32,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                         throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             // 3) Находим КОНКРЕТНЫЙ токен
-            Domain.Entities.RefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash) ??
-                                                        throw ApplicationErrorsFactory.InvalidRefreshToken();
+            DomainRefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash) ??
+                                              throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             // 4) Проверяем активность
             if (!currentToken.IsActive())
@@ -45,7 +48,9 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                     comparisonType: StringComparison.Ordinal))
             {
                 currentToken.Revoke();
-                await userRepository.SaveChangesAsync(cancellationToken);
+
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
                 throw ApplicationErrorsFactory.InvalidRefreshToken();
             }
 
@@ -93,7 +98,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
             // 11) Новый access-token
             AccessTokenModel accessModel = accessTokenService.Generate(user);
 
-            await userRepository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new LoginUserResult
             {

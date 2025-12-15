@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
@@ -8,7 +9,8 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangeAvatarFromFile
 {
     public sealed class ChangeAvatarFromFileCommandHandler(
         IUserRepository userRepository,
-        IAvatarStorage avatarStorage)
+        IAvatarStorage avatarStorage,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<ChangeAvatarFromFileCommand, string>
     {
         public async Task<string> Handle(
@@ -35,7 +37,7 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangeAvatarFromFile
 
             user.ChangeAvatar(newAvatarPath);
 
-            await userRepository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             // возвращаем путь/URL
             return newAvatarPath;

@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
@@ -7,7 +8,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken
 {
     public sealed class RevokeRefreshTokenCommandHandler(
         IUserRepository userRepository,
-        IRefreshTokenProvider refreshTokenProvider)
+        IRefreshTokenProvider refreshTokenProvider,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<RevokeRefreshTokenCommand>
     {
         public async Task Handle(
@@ -16,10 +18,10 @@ namespace Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken
         {
             string hash = refreshTokenProvider.ComputeHash(request.RefreshToken);
 
-            User? user =
-                await userRepository.GetByRefreshTokenHashAsync(
-                    tokenHash: hash,
-                    cancellationToken: cancellationToken);
+            User? user = await userRepository.GetByRefreshTokenHashAsync(
+                tokenHash: hash,
+                cancellationToken: cancellationToken);
+
             if (user is null)
                 return; // тихо выходим
 
@@ -30,7 +32,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken
             if (!token.IsRevoked)
             {
                 token.Revoke();
-                await userRepository.SaveChangesAsync(cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
             }
         }
     }

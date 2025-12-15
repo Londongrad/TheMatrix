@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
@@ -9,7 +10,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
 {
     public sealed class RegisterUserHandler(
         IUserRepository userRepository,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<RegisterUserCommand, RegisterUserResult>
     {
         public async Task<RegisterUserResult> Handle(
@@ -46,7 +48,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
             await userRepository.AddAsync(
                 user: user,
                 cancellationToken: cancellationToken);
-            await userRepository.SaveChangesAsync(cancellationToken);
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new RegisterUserResult
             {
