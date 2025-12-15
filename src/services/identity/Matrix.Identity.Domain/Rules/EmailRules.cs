@@ -20,6 +20,7 @@ namespace Matrix.Identity.Domain.Rules
 
             if (!EmailRegex.IsMatch(normalizedEmail))
                 throw DomainErrorsFactory.InvalidEmailFormat(nameof(email));
+
             return normalizedEmail;
         }
     }
