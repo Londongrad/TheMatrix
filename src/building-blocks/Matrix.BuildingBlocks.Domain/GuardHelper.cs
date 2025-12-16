@@ -47,7 +47,9 @@ namespace Matrix.BuildingBlocks.Domain
             if (string.IsNullOrWhiteSpace(value))
                 throw errorFactory(propertyName);
 
-            return trim ? value.Trim() : value;
+            return trim
+                ? value.Trim()
+                : value;
         }
 
         public static Guid AgainstEmptyGuid(

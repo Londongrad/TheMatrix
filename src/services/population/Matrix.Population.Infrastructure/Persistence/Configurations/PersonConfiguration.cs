@@ -1,4 +1,4 @@
-﻿using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -148,9 +148,13 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                     // SpouseId: PersonId? -> Guid?
                     marital.Property(m => m.SpouseId)
                        .HasConversion(
-                            convertToProviderExpression: id => id.HasValue ? id.Value.Value : (Guid?)null,
+                            convertToProviderExpression: id => id.HasValue
+                                ? id.Value.Value
+                                : (Guid?)null,
                             convertFromProviderExpression: value
-                                => value.HasValue ? PersonId.From(value.Value) : null)
+                                => value.HasValue
+                                    ? PersonId.From(value.Value)
+                                    : null)
                        .HasColumnName("SpouseId");
                 });
 

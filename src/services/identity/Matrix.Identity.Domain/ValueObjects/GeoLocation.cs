@@ -28,8 +28,12 @@ namespace Matrix.Identity.Domain.ValueObjects
                     message: "Country cannot be null or whitespace.",
                     paramName: nameof(country));
 
-            string? normalizedRegion = string.IsNullOrWhiteSpace(region) ? null : region.Trim();
-            string? normalizedCity = string.IsNullOrWhiteSpace(city) ? null : city.Trim();
+            string? normalizedRegion = string.IsNullOrWhiteSpace(region)
+                ? null
+                : region.Trim();
+            string? normalizedCity = string.IsNullOrWhiteSpace(city)
+                ? null
+                : city.Trim();
 
             return new GeoLocation(
                 country: country.Trim(),

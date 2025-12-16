@@ -18,7 +18,7 @@ namespace Matrix.ApiGateway.Controllers
             if (summary is null)
                 return StatusCode(StatusCodes.Status502BadGateway);
 
-            // Здесь можно адаптировать DTO под фронт, если нужно
+            // Р—РґРµСЃСЊ РјРѕР¶РЅРѕ Р°РґР°РїС‚РёСЂРѕРІР°С‚СЊ DTO РїРѕРґ С„СЂРѕРЅС‚, РµСЃР»Рё РЅСѓР¶РЅРѕ
             return Ok(summary);
         }
 
@@ -29,7 +29,9 @@ namespace Matrix.ApiGateway.Controllers
             return Ok(
                 new
                 {
-                    status = isHealthy ? "ok" : "degraded"
+                    status = isHealthy
+                        ? "ok"
+                        : "degraded"
                 });
         }
     }

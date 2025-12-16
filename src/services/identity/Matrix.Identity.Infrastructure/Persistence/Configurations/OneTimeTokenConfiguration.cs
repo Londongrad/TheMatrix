@@ -13,27 +13,27 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.UserId)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.Purpose)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.TokenHash)
-                .IsRequired()
-                .HasMaxLength(256);
+               .IsRequired()
+               .HasMaxLength(256);
 
             builder.Property(x => x.CreatedAtUtc)
-                .IsRequired();
+               .IsRequired();
             builder.Property(x => x.ExpiresAtUtc)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.UsedAtUtc);
             builder.Property(x => x.RevokedAtUtc);
 
             builder.HasOne<User>()
-                .WithMany()
-                .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+               .WithMany()
+               .HasForeignKey(x => x.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

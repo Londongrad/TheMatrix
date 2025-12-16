@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.Abstractions;
+﻿using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
@@ -65,8 +65,8 @@ namespace Matrix.Identity.Application.UseCases.Account.SendEmailConfirmation
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             string link = frontendLinkBuilder.BuildConfirmEmailLink(
-                user.Id,
-                rawToken);
+                userId: user.Id,
+                rawToken: rawToken);
 
             await emailSender.SendEmailConfirmation(
                 toEmail: user.Email.Value,

@@ -81,20 +81,17 @@ namespace Matrix.ApiGateway.Configurations
 
             services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>(client =>
             {
-                client.BaseAddress = new Uri(
-                    downstream["CityCore"]!);
+                client.BaseAddress = new Uri(downstream["CityCore"]!);
             });
 
             services.AddHttpClient<IEconomyApiClient, EconomyApiClient>(client =>
             {
-                client.BaseAddress = new Uri(
-                    downstream["Economy"]!);
+                client.BaseAddress = new Uri(downstream["Economy"]!);
             });
 
             services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(client =>
             {
-                client.BaseAddress = new Uri(
-                    downstream["Population"]!);
+                client.BaseAddress = new Uri(downstream["Population"]!);
             });
 
             // Identity downstream client
@@ -106,8 +103,7 @@ namespace Matrix.ApiGateway.Configurations
             // Identity Auth client
             services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(client =>
             {
-                client.BaseAddress = new Uri(
-                    identityBaseUrl);
+                client.BaseAddress = new Uri(identityBaseUrl);
             });
 
             // Identity Account client

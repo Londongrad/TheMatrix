@@ -5,8 +5,8 @@ using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
-using DomainRefreshToken = Matrix.Identity.Domain.Entities.RefreshToken;
 using MediatR;
+using DomainRefreshToken = Matrix.Identity.Domain.Entities.RefreshToken;
 
 namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
 {

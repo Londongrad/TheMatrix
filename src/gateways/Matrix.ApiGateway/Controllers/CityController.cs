@@ -18,11 +18,11 @@ namespace Matrix.ApiGateway.Controllers
             if (dto is null)
                 return StatusCode(StatusCodes.Status502BadGateway);
 
-            // Можно отдать dto как есть
+            // РњРѕР¶РЅРѕ РѕС‚РґР°С‚СЊ dto РєР°Рє РµСЃС‚СЊ
             return Ok(dto);
 
-            // либо при желании адаптировать под фронт,
-            // если захочешь другие имена/формат
+            // Р»РёР±Рѕ РїСЂРё Р¶РµР»Р°РЅРёРё Р°РґР°РїС‚РёСЂРѕРІР°С‚СЊ РїРѕРґ С„СЂРѕРЅС‚,
+            // РµСЃР»Рё Р·Р°С…РѕС‡РµС€СЊ РґСЂСѓРіРёРµ РёРјРµРЅР°/С„РѕСЂРјР°С‚
         }
 
         [HttpGet("health")]
@@ -33,7 +33,9 @@ namespace Matrix.ApiGateway.Controllers
             return Ok(
                 new
                 {
-                    status = isHealthy ? "ok" : "degraded"
+                    status = isHealthy
+                        ? "ok"
+                        : "degraded"
                 });
         }
     }

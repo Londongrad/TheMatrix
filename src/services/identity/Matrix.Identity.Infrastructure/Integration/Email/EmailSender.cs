@@ -1,12 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Matrix.Identity.Infrastructure.Integration.Email
 {
-    internal class EmailSender
-    {
-    }
+    internal class EmailSender { }
 }

@@ -241,7 +241,9 @@ namespace Matrix.Population.Domain.ValueObjects
 
             // Если эмоция была, но округление убило дельту — вернём хотя бы 1/-1
             if (modified == 0)
-                modified = baseDelta > 0 ? 1 : -1;
+                modified = baseDelta > 0
+                    ? 1
+                    : -1;
 
             return modified;
         }

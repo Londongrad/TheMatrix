@@ -37,7 +37,9 @@ namespace Matrix.Population.Domain.ValueObjects
                 throw DomainErrorsFactory.InvalidFullName(nameof(fullName));
             string lastName = parts[0];
             string firstName = parts[1];
-            string? patronymic = parts.Length == 3 ? parts[2] : null;
+            string? patronymic = parts.Length == 3
+                ? parts[2]
+                : null;
             return new PersonName(
                 firstName: firstName,
                 lastName: lastName,

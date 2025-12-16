@@ -16,7 +16,9 @@ namespace Matrix.Identity.Domain.Entities
         {
             DateTime created = createdAtUtc ?? DateTime.UtcNow;
 
-            OneTimeTokenRules.ValidateExpiration(createdAtUtc!.Value, expiresAtUtc);
+            OneTimeTokenRules.ValidateExpiration(
+                createdAtUtc: createdAtUtc!.Value,
+                expiresAtUtc: expiresAtUtc);
 
             return new OneTimeToken(
                 userId: userId,
