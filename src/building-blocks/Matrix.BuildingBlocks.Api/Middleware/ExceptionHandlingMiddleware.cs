@@ -98,6 +98,44 @@ namespace Matrix.BuildingBlocks.Api.Middleware
 
                 await context.Response.WriteAsJsonAsync(response);
             }
+            catch (TaskCanceledException ex) when (!context.RequestAborted.IsCancellationRequested)
+            {
+                // Это именно таймаут HttpClient (а не отмена клиентом)
+                logger.LogWarning(ex, "Gateway timeout while calling downstream service");
+
+                context.Response.StatusCode = (int)HttpStatusCode.GatewayTimeout;
+                context.Response.ContentType = "application/json";
+
+                var response = new ErrorResponse(
+                    Code: "Common.GatewayTimeout",
+                    Message: "Downstream service did not respond in time.",
+                    Errors: null,
+                    TraceId: context.TraceIdentifier);
+
+                await context.Response.WriteAsJsonAsync(response);
+            }
+            catch (OperationCanceledException ex) when (context.RequestAborted.IsCancellationRequested)
+            {
+                // Клиент сам оборвал запрос (закрыл вкладку/навигация/abort)
+                logger.LogInformation(ex, "Request aborted by client");
+                // Можно просто ничего не писать в response
+            }
+            catch (HttpRequestException ex)
+            {
+                // Сюда часто попадает EnsureSuccessStatusCode() или проблемы сети/SSL/DNS
+                logger.LogWarning(ex, "Bad gateway while calling downstream service");
+
+                context.Response.StatusCode = (int)HttpStatusCode.BadGateway;
+                context.Response.ContentType = "application/json";
+
+                var response = new ErrorResponse(
+                    Code: "Common.BadGateway",
+                    Message: "Downstream service error.",
+                    Errors: null,
+                    TraceId: context.TraceIdentifier);
+
+                await context.Response.WriteAsJsonAsync(response);
+            }
             catch (Exception ex)
             {
                 logger.LogError(
