@@ -1,4 +1,5 @@
 using System.Text;
+using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
@@ -17,7 +18,7 @@ namespace Matrix.Identity.Api.Configurations
             services
                .AddPresentationLayer() // Controllers + Swagger
                .AddApplicationLayer() // MediatR, Application
-               .AddInfrastructureLayer(configuration) // DbContext, репы, JwtAccessTokenService, PasswordHasher
+               .AddInfrastructureLayer(configuration) // DbContext, СЂРµРїС‹, JwtAccessTokenService, PasswordHasher
                .AddSecurityLayer(configuration); // Authentication + Authorization
         }
 
@@ -78,6 +79,8 @@ namespace Matrix.Identity.Api.Configurations
                 });
 
             services.AddAuthorization();
+
+            services.AddMatrixPermissionsPolicies();
 
             return services;
         }
