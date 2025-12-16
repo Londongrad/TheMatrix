@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.Population.Application;
 using Matrix.Population.Infrastructure;
 
@@ -11,7 +12,7 @@ namespace Matrix.Population.Api.Configurations
             ConfigurationManager configuration = builder.Configuration;
 
             builder.Services.AddControllers();
-
+            services.AddMatrixPermissionsPolicies();
             services.AddApplication();
             services.AddInfrastructure(configuration);
         }
