@@ -18,6 +18,7 @@ namespace Matrix.Identity.Application.UseCases.Sessions.GetUserSessions
                         throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             UserSessionResult[] sessions = user.RefreshTokens
+               .Where(s => s.IsActive())
                .OrderByDescending(t => t.CreatedAtUtc)
                .Select(t => new UserSessionResult
                 {
