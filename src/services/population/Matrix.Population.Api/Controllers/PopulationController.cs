@@ -1,8 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.GetCitizenPage;
 using Matrix.Population.Application.UseCases.InitializePopulation;
-using Matrix.Population.Application.UseCases.KillPerson;
-using Matrix.Population.Application.UseCases.ResurrectPerson;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Matrix.Population.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/internal/[controller]")]
     public class PopulationController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
@@ -47,30 +45,6 @@ namespace Matrix.Population.Api.Controllers
                 cancellationToken: cancellationToken);
 
             return Ok(result);
-        }
-
-        [HttpPost("{id:guid}/resurrect")]
-        public async Task<IActionResult> ResurrectPerson(
-            Guid id,
-            CancellationToken cancellationToken = default)
-        {
-            PersonDto person = await _sender.Send(
-                request: new ResurrectPersonCommand(id),
-                cancellationToken: cancellationToken);
-
-            return Ok(person);
-        }
-
-        [HttpPost("{id:guid}/kill")]
-        public async Task<IActionResult> KillPerson(
-            Guid id,
-            CancellationToken cancellationToken = default)
-        {
-            PersonDto person = await _sender.Send(
-                request: new KillPersonCommand(id),
-                cancellationToken: cancellationToken);
-
-            return Ok(person);
         }
     }
 }
