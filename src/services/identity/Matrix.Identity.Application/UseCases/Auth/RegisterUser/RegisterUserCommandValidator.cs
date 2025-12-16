@@ -1,10 +1,14 @@
 using FluentValidation;
+using Matrix.Identity.Domain.ValueObjects;
 
 namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
 {
     public sealed class RegisterUserCommandValidator
         : AbstractValidator<RegisterUserCommand>
     {
+        private const int MinPasswordLength = 6;
+        private const int MaxPasswordLength = 20;
+
         public RegisterUserCommandValidator()
         {
             RuleFor(x => x.Email)
@@ -16,16 +20,18 @@ namespace Matrix.Identity.Application.UseCases.Auth.RegisterUser
             RuleFor(x => x.Username)
                .NotEmpty()
                .WithMessage("Username is required.")
-               .MinimumLength(3)
-               .WithMessage("Username must be at least 3 characters long.")
-               .MaximumLength(15)
-               .WithMessage("Username must be at most 15 characters long.");
+               .MinimumLength(Username.MinLength)
+               .WithMessage($"Username must be at least {Username.MinLength} characters long.")
+               .MaximumLength(Username.MaxLength)
+               .WithMessage($"Username must be at most {Username.MaxLength} characters long.");
 
             RuleFor(x => x.Password)
                .NotEmpty()
                .WithMessage("New password is required.")
-               .MinimumLength(6)
-               .WithMessage("New password must be at least 6 characters long.")
+               .MinimumLength(MinPasswordLength)
+               .WithMessage($"New password must be at least {MinPasswordLength} characters long.")
+               .MaximumLength(MaxPasswordLength)
+               .WithMessage($"New password must be at most {MaxPasswordLength} characters long.")
                .Matches("[a-z]")
                .WithMessage("New password must contain at least one lowercase letter.")
                .Matches("[A-Z]")
