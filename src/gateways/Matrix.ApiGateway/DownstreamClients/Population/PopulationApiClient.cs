@@ -12,6 +12,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
 
         #endregion [ Fields ]
 
+        #region [ Methods ]
+
         public async Task InitializePopulationAsync(
             int peopleCount,
             int? randomSeed = null,
@@ -19,6 +21,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
         {
             // Собираем querystring руками, чтобы без зависимостей
             string query = $"?peopleCount={peopleCount}";
+
             if (randomSeed.HasValue)
                 query += $"&randomSeed={randomSeed.Value}";
 
@@ -44,6 +47,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
                     requestUri: url,
                     content: null,
                     cancellationToken: cancellationToken);
+
             response.EnsureSuccessStatusCode();
 
             PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
@@ -61,6 +65,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
                     requestUri: url,
                     content: null,
                     cancellationToken: cancellationToken);
+
             response.EnsureSuccessStatusCode();
 
             PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
@@ -80,7 +85,17 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
                 await _client.GetAsync(
                     requestUri: url,
                     cancellationToken: cancellationToken);
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                // ВАЖНО: покажи в логе реальный URL (с BaseAddress)
+                string realUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
+
+                throw new InvalidOperationException(
+                    $"Population API call failed. Status={(int)response.StatusCode} ({response.StatusCode}). Url={realUrl}. Body={body}");
+            }
 
             PagedResult<PersonDto>? result = await response.Content
                .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);
@@ -106,9 +121,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Population
             return dto ?? throw new InvalidOperationException("Population API returned empty body for KillPerson.");
         }
 
+        #endregion [ Methods ]
+
         #region [ Constants ]
 
-        private const string PopulationBaseEndpoint = "/api/population/";
+        private const string PopulationBaseEndpoint = "/api/internal/population/";
 
         private const string InitializeEndpoint = PopulationBaseEndpoint + "init";
         private const string GetPagedEndpoint = PopulationBaseEndpoint + "citizens";
