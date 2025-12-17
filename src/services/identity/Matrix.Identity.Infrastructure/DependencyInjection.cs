@@ -2,12 +2,15 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
+using Matrix.Identity.Infrastructure.Integration.Email;
 using Matrix.Identity.Infrastructure.Integration.GeoLocation;
+using Matrix.Identity.Infrastructure.Integration.Links;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
 using Matrix.Identity.Infrastructure.Security.PasswordHashing;
 using Matrix.Identity.Infrastructure.Security.Tokens;
 using Matrix.Identity.Infrastructure.Storage;
+using Matrix.Identity.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,11 +36,17 @@ namespace Matrix.Identity.Infrastructure
             // Repositories
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IOneTimeTokenRepository, OneTimeTokenRepository>();
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
             services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
+            services.AddScoped<IOneTimeTokenService, OneTimeTokenService>();
+
+            services.AddScoped<IClock, SystemClock>();
+            services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<IFrontendLinkBuilder, FrontendLinkBuilder>();
 
             services.AddScoped<IAvatarStorage, FileSystemAvatarStorage>();
 

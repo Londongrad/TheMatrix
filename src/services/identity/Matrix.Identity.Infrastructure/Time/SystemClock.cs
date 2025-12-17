@@ -1,4 +1,9 @@
+using Matrix.Identity.Application.Abstractions.Services;
+
 namespace Matrix.Identity.Infrastructure.Time
 {
-    internal class SystemClock { }
+    public class SystemClock : IClock
+    {
+        public DateTime UtcNow { get; }
+    }
 }
