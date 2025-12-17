@@ -113,7 +113,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
             Guid userId,
             CancellationToken cancellationToken = default)
         {
-            string endpoint = $"{AuthBaseUrl}/{userId} + {SessionsSegment}";
+            string endpoint = $"{AuthBaseUrl}/{userId}" + $"{SessionsSegment}";
 
             using var request = new HttpRequestMessage(
                 method: HttpMethod.Get,
@@ -129,7 +129,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
             Guid sessionId,
             CancellationToken cancellationToken = default)
         {
-            string endpoint = $"{AuthBaseUrl}/{userId} + {SessionsSegment}";
+            string endpoint = $"{AuthBaseUrl}/{userId}" + $"{SessionsSegment}/{sessionId}";
 
             using var request = new HttpRequestMessage(
                 method: HttpMethod.Delete,
@@ -144,7 +144,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
             Guid userId,
             CancellationToken cancellationToken = default)
         {
-            string endpoint = $"{AuthBaseUrl}/{userId} + {SessionsSegment}";
+            string endpoint = $"{AuthBaseUrl}/{userId}" + $"{SessionsSegment}";
 
             using var request = new HttpRequestMessage(
                 method: HttpMethod.Delete,
