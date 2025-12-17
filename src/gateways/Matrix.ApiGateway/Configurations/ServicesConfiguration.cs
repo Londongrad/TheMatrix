@@ -3,6 +3,7 @@ using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Identity.Account;
+using Matrix.ApiGateway.DownstreamClients.Identity.Assets;
 using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
 using Matrix.ApiGateway.DownstreamClients.Population;
 using Matrix.BuildingBlocks.Api.Errors;
@@ -80,19 +81,22 @@ namespace Matrix.ApiGateway.Configurations
             IConfigurationSection downstream = configuration.GetSection("DownstreamServices");
 
             services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(downstream["CityCore"]!);
-            });
+                {
+                    client.BaseAddress = new Uri(downstream["CityCore"]!);
+                })
+               .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IEconomyApiClient, EconomyApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(downstream["Economy"]!);
-            });
+                {
+                    client.BaseAddress = new Uri(downstream["Economy"]!);
+                })
+               .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(downstream["Population"]!);
-            });
+                {
+                    client.BaseAddress = new Uri(downstream["Population"]!);
+                })
+               .ConfigureHttpClient(ConfigureTimeout);
 
             // Identity downstream client
             // Общий baseUrl для Identity
@@ -102,15 +106,24 @@ namespace Matrix.ApiGateway.Configurations
 
             // Identity Auth client
             services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(identityBaseUrl);
-            });
+                {
+                    client.BaseAddress = new Uri(identityBaseUrl);
+                })
+               .ConfigureHttpClient(ConfigureTimeout);
 
             // Identity Account client
             services.AddHttpClient<IIdentityAccountClient, IdentityAccountApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(identityBaseUrl);
-            });
+                {
+                    client.BaseAddress = new Uri(identityBaseUrl);
+                })
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            // Static files (e.g. avatars)
+            services.AddHttpClient<IIdentityAssetsClient, IdentityAssetsApiClient>(client =>
+                {
+                    client.BaseAddress = new Uri(identityBaseUrl);
+                })
+               .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
         }
@@ -150,6 +163,17 @@ namespace Matrix.ApiGateway.Configurations
             services.AddAuthorization();
 
             return services;
+        }
+
+        private static void ConfigureTimeout(
+            IServiceProvider sp,
+            HttpClient client)
+        {
+            IHostEnvironment env = sp.GetRequiredService<IHostEnvironment>();
+
+            client.Timeout = env.IsDevelopment()
+                ? TimeSpan.FromMinutes(10)
+                : TimeSpan.FromSeconds(20);
         }
     }
 }
