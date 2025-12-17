@@ -4,6 +4,7 @@ using Matrix.ApiGateway.Contracts.Identity.Account;
 using Matrix.ApiGateway.Contracts.Identity.Auth.Requests;
 using Matrix.ApiGateway.Controllers.Common;
 using Matrix.ApiGateway.DownstreamClients.Identity.Account;
+using Matrix.ApiGateway.DownstreamClients.Identity.Assets;
 using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authorization;
@@ -17,10 +18,8 @@ namespace Matrix.ApiGateway.Controllers.Identity
     public sealed class AccountController(IIdentityAccountClient identityAccountClient)
         : GatewayControllerBase
     {
-        private readonly IIdentityAccountClient _identityAccountClient = identityAccountClient;
-
         [HttpGet("profile")]
-        public async Task<IActionResult> GetMyProfile(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
         {
             Guid? userId = GetCurrentUserId();
             if (userId is null)
@@ -33,7 +32,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
             }
 
             HttpResponseMessage response =
-                await _identityAccountClient.GetProfileAsync(
+                await identityAccountClient.GetProfileAsync(
                     userId: userId.Value,
                     cancellationToken: cancellationToken);
 
@@ -46,7 +45,10 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 await response.Content.ReadFromJsonAsync<UserProfileResponseDto>(cancellationToken);
 
             if (profile is not null)
+            {
+                profile.AvatarUrl = ToPublicAvatarUrl(profile.AvatarUrl);
                 return Ok(profile);
+            }
 
             {
                 ErrorResponse error = CreateError(
@@ -85,7 +87,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 return Unauthorized(error);
             }
 
-            HttpResponseMessage response = await _identityAccountClient
+            HttpResponseMessage response = await identityAccountClient
                .ChangeAvatarAsync(
                     userId: userId.Value,
                     avatar: avatar,
@@ -97,15 +99,47 @@ namespace Matrix.ApiGateway.Controllers.Identity
                     response: response,
                     cancellationToken: cancellationToken);
 
-            // ✅ Успех: прокидываем тело ответа Identity дальше на фронт
-            string body = await response.Content.ReadAsStringAsync(cancellationToken);
+            ChangeAvatarResponseDto? dto =
+                await response.Content.ReadFromJsonAsync<ChangeAvatarResponseDto>(cancellationToken: cancellationToken);
 
-            return new ContentResult
+            if (dto is null || string.IsNullOrWhiteSpace(dto.AvatarUrl))
             {
-                StatusCode = (int)response.StatusCode,
-                Content = body,
-                ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json"
-            };
+                ErrorResponse error = CreateError(
+                    code: "Gateway.InvalidIdentityResponse",
+                    message: "Invalid response from Identity service.");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
+            }
+
+            // ✅ Переписываем на публичный URL gateway (чтобы не было localhost:5173/avatars/...)
+            dto.AvatarUrl = ToPublicAvatarUrl(dto.AvatarUrl);
+
+            // Возвращаем нормальный JSON
+            return Ok(dto);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("/avatars/{fileName}")]
+        public async Task<IActionResult> GetAvatar(
+            [FromRoute] string fileName,
+            [FromServices] IIdentityAssetsClient identityAssetsClient,
+            CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) ||
+                fileName.Contains("..") ||
+                fileName.Contains('/') ||
+                fileName.Contains('\\'))
+                return BadRequest();
+
+            using HttpResponseMessage resp = await identityAssetsClient.GetAvatarAsync(fileName, ct);
+
+            if (!resp.IsSuccessStatusCode)
+                return StatusCode((int)resp.StatusCode);
+
+            string contentType = resp.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+            byte[] bytes = await resp.Content.ReadAsByteArrayAsync(ct);
+
+            return File(bytes, contentType);
         }
 
         [HttpPut("password")]
@@ -129,7 +163,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 NewPassword = requestDto.NewPassword
             };
 
-            HttpResponseMessage response = await _identityAccountClient
+            HttpResponseMessage response = await identityAccountClient
                .ChangePasswordAsync(
                     userId: userId.Value,
                     request: request,
@@ -157,6 +191,20 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 result: out Guid userId)
                 ? userId
                 : null;
+        }
+
+        private string? ToPublicAvatarUrl(string? avatarUrl)
+        {
+            if (string.IsNullOrWhiteSpace(avatarUrl))
+                return null;
+
+            if (Uri.TryCreate(avatarUrl, UriKind.Absolute, out _))
+                return avatarUrl;
+
+            if (!avatarUrl.StartsWith('/'))
+                avatarUrl = "/" + avatarUrl;
+
+            return $"{Request.Scheme}://{Request.Host}{avatarUrl}";
         }
     }
 }
