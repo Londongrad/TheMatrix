@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 
