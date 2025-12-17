@@ -5,15 +5,9 @@ namespace Matrix.ApiGateway.Contracts.Identity.Auth.Requests
     public sealed class ChangePasswordRequestDto
     {
         [Required]
-        [StringLength(
-            20,
-            MinimumLength = 6)]
         public string CurrentPassword { get; set; } = null!;
 
         [Required]
-        [StringLength(
-            20,
-            MinimumLength = 6)]
         public string NewPassword { get; set; } = null!;
 
         [Required]
