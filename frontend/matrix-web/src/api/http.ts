@@ -1,7 +1,7 @@
-// rc/api/http.ts
+// src/api/http.ts
 export class HttpError extends Error {
   status: number;
-  payload?: unknown; // весь распарсенный JSON ответа
+  payload?: unknown;
 
   constructor(status: number, message: string, payload?: unknown) {
     super(message);
@@ -10,20 +10,84 @@ export class HttpError extends Error {
   }
 }
 
-// Колбэки, которые подкинет AuthContext
+const MAX_PUBLIC_MESSAGE_LEN = 180;
+
+function looksLikeStackTrace(text: string): boolean {
+  const t = text.toLowerCase();
+  return (
+    t.includes("microsoft.aspnetcore") ||
+    t.includes("system.") ||
+    (t.includes("exception") && t.includes(" at ")) ||
+    t.includes("developer exception page") ||
+    t.includes("stack trace")
+  );
+}
+
+function toSafeMessage(text: string): string {
+  const firstLine = text.split("\n").find(Boolean)?.trim() ?? "";
+  const short = firstLine.slice(0, MAX_PUBLIC_MESSAGE_LEN);
+  return short || "Server error. Please try again.";
+}
+
 type RefreshTokenFn = () => Promise<string | null>;
 type LogoutFn = () => void;
+type GetAccessTokenFn = () => string | null;
 
 let refreshTokenFn: RefreshTokenFn | null = null;
 let logoutFn: LogoutFn | null = null;
+let getAccessTokenFn: GetAccessTokenFn | null = null;
 
-// AuthContext один раз вызовет это при старте
+// single-flight refresh (один refresh на всех)
+let refreshInFlight: Promise<string | null> | null = null;
+
 export function configureHttpAuth(options: {
   refreshToken: RefreshTokenFn;
   onLogout: LogoutFn;
+  getAccessToken: GetAccessTokenFn;
 }) {
   refreshTokenFn = options.refreshToken;
   logoutFn = options.onLogout;
+  getAccessTokenFn = options.getAccessToken;
+}
+
+function normalizeHeaders(init?: HeadersInit): Record<string, string> {
+  const headers = new Headers(init);
+  const obj: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    obj[key] = value;
+  });
+  return obj;
+}
+
+function addAuthHeaderIfMissing(
+  options: RequestInit,
+  token: string
+): RequestInit {
+  const hasAuth = new Headers(options.headers).has("Authorization");
+  if (hasAuth) return options;
+
+  const headersObj = normalizeHeaders(options.headers);
+  headersObj["Authorization"] = `Bearer ${token}`;
+
+  return { ...options, headers: headersObj };
+}
+
+function setAuthHeader(options: RequestInit, token: string): RequestInit {
+  const headersObj = normalizeHeaders(options.headers);
+  headersObj["Authorization"] = `Bearer ${token}`;
+  return { ...options, headers: headersObj };
+}
+
+async function refreshOnce(): Promise<string | null> {
+  if (!refreshTokenFn) return null;
+
+  if (!refreshInFlight) {
+    refreshInFlight = refreshTokenFn().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+
+  return await refreshInFlight;
 }
 
 // Базовый helper над fetch
@@ -62,7 +126,7 @@ export async function request<T>(
   if (!response.ok) {
     const status = response.status;
     let message = `Request failed with status ${status}`;
-    let payload: unknown = undefined; // 👈 ВНЕ try
+    let payload: unknown = undefined;
 
     try {
       const contentType = response.headers.get("Content-Type") || "";
@@ -78,39 +142,39 @@ export async function request<T>(
             if (typeof data === "string") {
               message = data;
             } else if (data.detail) {
-              // ASP.NET Core ProblemDetails.Detail
               message = data.detail;
             } else if (data.title) {
-              // ASP.NET Core ProblemDetails.Title
               message = data.title;
             } else if (data.message) {
-              // формат ErrorResponse: { code, message, errors, traceId }
               message = data.message;
 
-              if (data.errors && typeof data.errors === "object") {
-                const dict = data.errors as Record<string, string[]>;
+              const errors = data.errors;
+              if (errors && typeof errors === "object") {
+                const dict = errors as Record<string, string[]>;
                 const firstError = Object.values(dict).flat()[0];
-                if (firstError) {
-                  message = firstError;
-                }
+                if (firstError) message = firstError;
               }
             } else {
               message = text;
             }
           } catch {
-            // не смогли распарсить json → оставляем сырой текст
             message = text;
           }
         } else {
-          // не json → просто показываем текст
-          message = text;
+          // НЕ показываем портянку пользователю
+          payload = text;
+
+          if (looksLikeStackTrace(text) || text.length > 500) {
+            message = "Server error. Please try again.";
+          } else {
+            message = toSafeMessage(text);
+          }
         }
       }
     } catch {
-      // оставляем дефолтное message
+      // ignore
     }
 
-    // Доп. обработка для 415, если вдруг бек ничего умного не дал
     if (status === 415 && message === `Request failed with status ${status}`) {
       message =
         "Сервер не принимает такой формат файла. Попробуйте загрузить PNG или JPG размером до 2 МБ.";
@@ -129,42 +193,45 @@ export async function request<T>(
   return (await response.json()) as T;
 }
 
-// 🔥 Глобальный клиент с авто-refresh на 401 + /forbidden на 403
+// 🔥 Глобальный клиент с авто-token + авто-refresh на 401 + /forbidden на 403
 export async function apiRequest<T>(
   url: string,
   options: RequestInit = {},
-  opts: { enableAuthRefresh?: boolean } = {}
+  opts: {
+    enableAuthRefresh?: boolean;
+    attachAccessToken?: boolean;
+  } = {}
 ): Promise<T> {
-  const { enableAuthRefresh = true } = opts;
+  const { enableAuthRefresh = true, attachAccessToken = true } = opts;
+
+  // 1) Первая попытка: автоматически подставим access token, если его не передали в headers
+  let firstOptions = options;
+
+  if (attachAccessToken && getAccessTokenFn) {
+    const token = getAccessTokenFn();
+    if (token) {
+      firstOptions = addAuthHeaderIfMissing(firstOptions, token);
+    }
+  }
 
   try {
-    // первая попытка
-    return await request<T>(url, options);
+    return await request<T>(url, firstOptions);
   } catch (err) {
     if (err instanceof HttpError) {
-      // 401 → пробуем refresh, если настроен
-      if (err.status === 401 && enableAuthRefresh && refreshTokenFn) {
+      // 401 → пробуем refresh, если включено
+      if (err.status === 401 && enableAuthRefresh) {
         try {
-          const newToken = await refreshTokenFn();
+          const newToken = await refreshOnce();
 
-          // refresh не удался → выходим из системы
           if (!newToken) {
             logoutFn?.();
             throw err;
           }
 
-          // повторяем запрос с новым access token
-          const headers: HeadersInit = {
-            ...(options.headers ?? {}),
-            Authorization: `Bearer ${newToken}`,
-          };
-
-          return await request<T>(url, {
-            ...options,
-            headers,
-          });
+          // 2) Повторяем запрос уже с новым access token (перезаписываем Authorization)
+          const retryOptions = setAuthHeader(options, newToken);
+          return await request<T>(url, retryOptions);
         } catch {
-          // refresh упал (401/500/сеть) → принудительный logout
           logoutFn?.();
           throw err;
         }
@@ -176,7 +243,6 @@ export async function apiRequest<T>(
       }
     }
 
-    // всё остальное отдаём наверх (компонент/страница покажет ошибку)
     throw err;
   }
 }
