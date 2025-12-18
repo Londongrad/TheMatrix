@@ -15,7 +15,7 @@ import { configureHttpAuth } from "@api/http";
 
 interface AuthContextValue {
   user: ProfileResponse | null;
-  token: string | null; // access token (in memory only)
+  token: string | null;
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<void>;
   register: (data: {
@@ -25,7 +25,6 @@ interface AuthContextValue {
     confirmPassword: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
-  // теперь возвращает новый access token или null
   refreshSession: () => Promise<string | null>;
   reloadMe: () => Promise<ProfileResponse | null>;
   patchUser: (patch: Partial<ProfileResponse>) => void;
@@ -36,44 +35,44 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<ProfileResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const tokenRef = useRef<string | null>(null);
 
+  const [isLoading, setIsLoading] = useState(true);
   const hasTriedRefresh = useRef(false);
 
-  // 🔁 Обновление access-токена по refresh-куке
+  const setAccessToken = useCallback((value: string | null) => {
+    tokenRef.current = value;
+    setToken(value);
+  }, []);
+
+  // 🔁 Обновление access-токена по refresh-куке (ТОЛЬКО токен)
   const refreshSession = useCallback(async (): Promise<string | null> => {
     try {
       const result = await refreshAuth(); // /api/auth/refresh
       const newAccess = result.accessToken;
 
-      setToken(newAccess);
-
-      const me = await getProfile(newAccess);
-      setUser(me);
+      setAccessToken(newAccess); // tokenRef + state
 
       return newAccess;
     } catch {
-      // refresh умер / куки нет / ошибка сети
-      setToken(null);
+      setAccessToken(null);
       setUser(null);
       return null;
     }
-  }, []);
+  }, [setAccessToken]);
 
   const reloadMe = useCallback(async (): Promise<ProfileResponse | null> => {
-    if (!token) {
-      return null;
-    }
+    const current = tokenRef.current;
+    if (!current) return null;
 
     try {
-      const me = await getProfile(token);
+      const me = await getProfile();
       setUser(me);
       return me;
     } catch {
-      // do not reset auth state here
       return null;
     }
-  }, [token]);
+  }, []);
 
   const patchUser = useCallback((patch: Partial<ProfileResponse>) => {
     setUser((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -81,11 +80,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (data: LoginRequest) => {
     const result = await loginUser(data);
-
     const access = result.accessToken;
-    setToken(access);
 
-    const me = await getProfile(access);
+    setAccessToken(access);
+
+    const me = await getProfile();
     setUser(me);
   };
 
@@ -102,7 +101,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       confirmPassword: data.confirmPassword,
     });
 
-    // После регистрации сразу логинимся
     await login({
       login: data.email,
       password: data.password,
@@ -116,34 +114,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch {
       // даже если ошибка, всё равно чистим локальное состояние
     } finally {
-      setToken(null);
+      setAccessToken(null);
       setUser(null);
     }
   };
 
   // При монтировании: один раз пробуем восстановить сессию по refresh-куке
   useEffect(() => {
-    if (hasTriedRefresh.current) {
-      return;
-    }
+    if (hasTriedRefresh.current) return;
     hasTriedRefresh.current = true;
 
     (async () => {
-      await refreshSession(); // он сам выставит user/token или обнулит
+      const access = await refreshSession();
+      if (access) {
+        await reloadMe(); // отдельный вызов профиля ОДИН РАЗ на старте
+      }
       setIsLoading(false);
     })();
-  }, [refreshSession]);
+  }, [refreshSession, reloadMe]);
 
-  // 👉 Подключаем AuthContext к http-слою (для apiRequest)
+  // 🔥 configure один раз (refreshSession стабилен через useCallback)
   useEffect(() => {
     configureHttpAuth({
       refreshToken: refreshSession,
       onLogout: () => {
-        setToken(null);
+        setAccessToken(null);
         setUser(null);
       },
+      getAccessToken: () => tokenRef.current,
     });
-  }, [refreshSession]);
+  }, [refreshSession, setAccessToken]);
 
   const value: AuthContextValue = {
     user,
@@ -162,8 +162,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 };
