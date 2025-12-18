@@ -61,11 +61,35 @@ const Topbar = () => {
             }`}
             onClick={handleToggle}
           >
-            <div className="user-avatar">{initial}</div>
+            <div className="user-avatar">
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={displayName}
+                  className="user-avatar-image"
+                  draggable={false}
+                />
+              ) : (
+                initial
+              )}
+            </div>
             <div className="user-text">
               <span className="user-name">{displayName}</span>
             </div>
-            <span className={`user-caret ${isOpen ? "open" : ""}`}>⌄</span>
+            <span
+              className={`user-caret ${isOpen ? "open" : ""}`}
+              aria-hidden="true"
+            >
+              <svg className="user-caret-icon" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </button>
 
           {isOpen && (
