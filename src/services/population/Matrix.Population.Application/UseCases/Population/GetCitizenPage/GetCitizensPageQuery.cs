@@ -1,8 +1,8 @@
-﻿using Matrix.BuildingBlocks.Application.Models;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.GetCitizenPage
+namespace Matrix.Population.Application.UseCases.Population.GetCitizenPage
 {
     public sealed record GetCitizensPageQuery(Pagination Pagination)
         : IRequest<PagedResult<PersonDto>>;

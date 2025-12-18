@@ -2,10 +2,10 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
-using Matrix.Population.Domain.Entities;
 using MediatR;
+using DomainPerson = Matrix.Population.Domain.Entities.Person;
 
-namespace Matrix.Population.Application.UseCases.GetCitizenPage
+namespace Matrix.Population.Application.UseCases.Population.GetCitizenPage
 {
     public sealed class GetCitizensPageQueryHandler(IPersonReadRepository personReadRepository)
         : IRequestHandler<GetCitizensPageQuery, PagedResult<PersonDto>>
@@ -16,7 +16,7 @@ namespace Matrix.Population.Application.UseCases.GetCitizenPage
         {
             ArgumentNullException.ThrowIfNull(argument: request);
 
-            (IReadOnlyCollection<Person> persons, int totalCount) = await personReadRepository
+            (IReadOnlyCollection<DomainPerson> persons, int totalCount) = await personReadRepository
                .GetPageAsync(
                     pagination: request.Pagination,
                     cancellationToken: cancellationToken);

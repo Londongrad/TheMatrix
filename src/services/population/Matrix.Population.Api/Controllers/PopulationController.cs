@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Population.Application.UseCases.GetCitizenPage;
-using Matrix.Population.Application.UseCases.InitializePopulation;
+using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
+using Matrix.Population.Application.UseCases.Population.InitializePopulation;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

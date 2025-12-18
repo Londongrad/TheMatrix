@@ -1,5 +1,5 @@
-using Matrix.Population.Application.UseCases.KillPerson;
-using Matrix.Population.Application.UseCases.ResurrectPerson;
+using Matrix.Population.Application.UseCases.Person.KillPerson;
+using Matrix.Population.Application.UseCases.Person.ResurrectPerson;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

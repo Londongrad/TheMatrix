@@ -1,9 +1,8 @@
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Services;
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.InitializePopulation
+namespace Matrix.Population.Application.UseCases.Population.InitializePopulation
 {
     public sealed class InitializePopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
@@ -19,7 +18,7 @@ namespace Matrix.Population.Application.UseCases.InitializePopulation
             await personWriteRepository.DeleteAllAsync(cancellationToken);
 
             // TODO: Получать дату извне
-            IReadOnlyCollection<Person> persons = generator.Generate(
+            IReadOnlyCollection<Domain.Entities.Person> persons = generator.Generate(
                 peopleCount: request.PeopleCount,
                 currentDate: DateOnly.FromDateTime(DateTime.UtcNow),
                 randomSeed: request.RandomSeed);

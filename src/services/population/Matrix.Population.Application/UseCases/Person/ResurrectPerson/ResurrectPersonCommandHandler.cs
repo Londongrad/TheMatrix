@@ -1,32 +1,30 @@
-﻿using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
-using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.KillPerson
+namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
 {
-    public class KillPersonCommandHandler(
+    public sealed class ResurrectPersonCommandHandler(
         IPersonReadRepository personReadRepository,
         IPersonWriteRepository personWriteRepository)
-        : IRequestHandler<KillPersonCommand, PersonDto>
+        : IRequestHandler<ResurrectPersonCommand, PersonDto>
     {
         public async Task<PersonDto> Handle(
-            KillPersonCommand request,
-            CancellationToken cancellationToken = default)
+            ResurrectPersonCommand request,
+            CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(argument: request);
 
-            Person person =
+            Domain.Entities.Person person =
                 await personReadRepository.FindByIdAsync(
                     id: PersonId.From(request.Id),
                     cancellationToken: cancellationToken) ??
                 throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
-            // TODO: Получать дату извне
-            person.Die(DateOnly.FromDateTime(DateTime.UtcNow));
+            person.Resurrect();
 
             await personWriteRepository.UpdateAsync(
                 person: person,
