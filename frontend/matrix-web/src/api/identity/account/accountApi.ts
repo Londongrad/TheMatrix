@@ -1,4 +1,4 @@
-// src/api/account/accountApi.tsx
+// src/api/account/accountApi.ts
 import { API_ACCOUNT_URL } from "@api/config";
 import { apiRequest } from "@api/http";
 import type {
@@ -7,41 +7,27 @@ import type {
   ProfileResponse,
 } from "./accountTypes";
 
-export async function getProfile(token: string): Promise<ProfileResponse> {
+export async function getProfile(): Promise<ProfileResponse> {
   return await apiRequest<ProfileResponse>(`${API_ACCOUNT_URL}/profile`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }
 
-// Если бек возвращает только 204 NoContent:
 export async function changePassword(
-  payload: ChangePasswordRequest,
-  accessToken: string
+  payload: ChangePasswordRequest
 ): Promise<void> {
   await apiRequest<void>(`${API_ACCOUNT_URL}/password`, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
     body: JSON.stringify(payload),
   });
 }
 
-export async function updateAvatar(
-  file: File,
-  accessToken: string
-): Promise<ChangeAvatarResponse> {
+export async function updateAvatar(file: File): Promise<ChangeAvatarResponse> {
   const formData = new FormData();
   formData.append("avatar", file);
 
   return await apiRequest<ChangeAvatarResponse>(`${API_ACCOUNT_URL}/avatar`, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
     body: formData,
   });
 }
