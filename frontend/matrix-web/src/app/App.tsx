@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import DashboardPage from "@modules/city-core/pages/DashboardPage";
 import CitizensPage from "@modules/population/pages/CitizensPage";
-import UserSettingsPage from "@modules/identity/account/pages/UserSettingsPage";
+import UserSettingsPage from "@modules/identity/account/pages/user-settings/UserSettingsPage";
 
 import { AuthProvider } from "@api/identity/auth/AuthContext";
 import { RequireAuth } from "@api/identity/auth/RequireAuth";

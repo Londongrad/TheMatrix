@@ -32,7 +32,7 @@ interface ConfirmDialogProps extends DialogState {
   onCancel: () => void;
 }
 
-const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+const ConfirmDialog = ({
   open,
   title = "Are you sure?",
   description,
@@ -41,7 +41,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   tone = "default",
   onConfirm,
   onCancel,
-}) => {
+}: ConfirmDialogProps) => {
   if (!open) return null;
 
   const dialog = (

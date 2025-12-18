@@ -417,3 +417,247 @@
     margin-bottom: 1.1rem;
   }
 }
+
+/* ===== Sessions section ===== */
+
+.settings-divider {
+  height: 1px;
+  margin: 1.1rem 0 1rem;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(148, 163, 184, 0.35),
+    transparent
+  );
+}
+
+.settings-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.settings-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.settings-section-subtitle {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: #9ca3af;
+}
+
+.settings-muted {
+  font-size: 0.84rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+/* sessions list */
+
+.settings-session-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.settings-session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(55, 65, 81, 0.92);
+  background: rgba(2, 6, 23, 0.55);
+  padding: 0.75rem 0.85rem;
+}
+
+.settings-session-item--current {
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2),
+    0 12px 34px rgba(8, 47, 73, 0.55);
+}
+
+.settings-session-item--inactive {
+  opacity: 0.75;
+}
+
+.settings-session-main {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-session-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.settings-session-device {
+  font-weight: 600;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: #9ca3af;
+  font-size: 0.78rem;
+}
+
+.settings-session-chip {
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.settings-session-ua {
+  font-size: 0.78rem;
+  color: rgba(156, 163, 175, 0.9);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-session-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* pill */
+
+.settings-pill {
+  font-size: 0.72rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  color: #bae6fd;
+}
+
+.settings-pill--inactive {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+}
+
+/* button variants */
+
+.settings-button--secondary {
+  background-image: none;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: #e5e7eb;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.85),
+    0 0 0 1px rgba(15, 23, 42, 0.95);
+}
+
+.settings-button--ghost-danger {
+  background-image: none;
+  background: transparent;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+  box-shadow: none;
+  padding: 0.45rem 0.85rem;
+}
+
+.settings-button--danger-outline {
+  background-image: none;
+  background: rgba(127, 29, 29, 0.16);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+  box-shadow: 0 12px 30px rgba(127, 29, 29, 0.25);
+}
+
+.settings-actions-row--sessions {
+  justify-content: flex-start;
+  margin-top: 0.2rem;
+}
+
+/* skeleton */
+
+.settings-session-skeleton {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.settings-session-skeleton-line {
+  height: 54px;
+  border-radius: 0.9rem;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  animation: settingsPulse 1.1s ease-in-out infinite;
+}
+
+.settings-card--span-2 {
+  grid-column: 1 / -1;
+}
+
+/* красивый alert */
+.settings-alert {
+  border-radius: 0.9rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(2, 6, 23, 0.45);
+  color: #e5e7eb;
+}
+
+.settings-alert--error {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.18);
+  color: #fecaca;
+}
+
+.settings-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.settings-sessions-summary {
+  margin-top: 0.25rem;
+}
+
+.settings-sessions-body {
+  margin-top: 0.25rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.settings-strong {
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+@keyframes settingsPulse {
+  0% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
