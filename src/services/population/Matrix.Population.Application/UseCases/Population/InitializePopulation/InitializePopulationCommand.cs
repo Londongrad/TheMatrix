@@ -1,8 +1,12 @@
+using Matrix.BuildingBlocks.Application.Authorization;
 using MediatR;
 
 namespace Matrix.Population.Application.UseCases.Population.InitializePopulation
 {
     public sealed record InitializePopulationCommand(
         int PeopleCount,
-        int? RandomSeed) : IRequest;
+        int? RandomSeed) : IRequest, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.PopulationPeopleCreate;
+    }
 }

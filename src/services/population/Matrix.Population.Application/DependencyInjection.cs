@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
 using Matrix.Population.Application.Errors;
@@ -27,6 +27,9 @@ namespace Matrix.Population.Application
             services.AddTransient(
                 serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(ValidationBehavior<,>));
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(PermissionBehavior<,>));
         }
     }
 }
