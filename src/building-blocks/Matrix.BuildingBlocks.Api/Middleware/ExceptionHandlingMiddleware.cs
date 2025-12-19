@@ -1,5 +1,6 @@
 using System.Net;
 using Matrix.BuildingBlocks.Api.Errors;
+using Matrix.BuildingBlocks.Api.Exceptions;
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Domain.Exceptions;
@@ -120,6 +121,33 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 logger.LogInformation(ex, "Request aborted by client");
                 // Можно просто ничего не писать в response
             }
+            catch (Exception ex) when (ex is IHttpResponseException httpEx)
+            {
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Downstream error from {Service}. Status {Status}. Url {Url}",
+                    httpEx.ServiceName,
+                    (int)httpEx.StatusCode,
+                    httpEx.RequestUrl);
+
+                context.Response.StatusCode = (int)httpEx.StatusCode;
+                context.Response.ContentType = httpEx.ContentType ?? "application/json";
+
+                if (!string.IsNullOrWhiteSpace(httpEx.Body))
+                {
+                    await context.Response.WriteAsync(httpEx.Body);
+                    return;
+                }
+
+                var response = new ErrorResponse(
+                    Code: "Common.DownstreamError",
+                    Message: "Downstream service error.",
+                    Errors: null,
+                    TraceId: context.TraceIdentifier);
+
+                await context.Response.WriteAsJsonAsync(response);
+            }
+
             catch (HttpRequestException ex)
             {
                 // Сюда часто попадает EnsureSuccessStatusCode() или проблемы сети/SSL/DNS
