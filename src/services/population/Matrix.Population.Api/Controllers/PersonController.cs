@@ -1,7 +1,9 @@
+using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.Population.Application.UseCases.Person.KillPerson;
 using Matrix.Population.Application.UseCases.Person.ResurrectPerson;
 using Matrix.Population.Contracts.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Population.Api.Controllers
@@ -13,6 +15,7 @@ namespace Matrix.Population.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpPost("resurrect")]
+        [Authorize(Policy = PermissionKeys.PopulationPeopleResurrect)]
         public async Task<IActionResult> ResurrectPerson(
             [FromRoute]Guid personId,
             CancellationToken cancellationToken = default)
@@ -25,6 +28,7 @@ namespace Matrix.Population.Api.Controllers
         }
 
         [HttpPost("kill")]
+        [Authorize(Policy = PermissionKeys.PopulationPeopleKill)]
         public async Task<IActionResult> KillPerson(
             [FromRoute] Guid personId,
             CancellationToken cancellationToken = default)
