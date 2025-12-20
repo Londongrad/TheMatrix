@@ -49,6 +49,7 @@ namespace Matrix.Identity.Domain.Entities
         public DateTime CreatedAtUtc { get; private set; }
 
         public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+        public int PermissionsVersion { get; private set; }
 
         #endregion [ Properties ]
 
@@ -68,6 +69,8 @@ namespace Matrix.Identity.Domain.Entities
             CreatedAtUtc = DateTime.UtcNow;
             IsEmailConfirmed = false;
             IsLocked = false;
+
+            PermissionsVersion = 1;
         }
 
         #endregion [ Constructors ]
@@ -151,6 +154,11 @@ namespace Matrix.Identity.Domain.Entities
             foreach (RefreshToken token in _refreshTokens)
                 if (token.IsActive())
                     token.Revoke();
+        }
+
+        public void BumpPermissionsVersion()
+        {
+            PermissionsVersion++;
         }
 
         #endregion [ Methods ]
