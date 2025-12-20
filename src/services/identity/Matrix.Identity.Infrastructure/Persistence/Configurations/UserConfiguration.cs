@@ -58,6 +58,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.Property(u => u.IsLocked)
                .IsRequired();
 
+            builder.Property(x => x.PermissionsVersion)
+               .IsRequired()
+               .HasDefaultValue(1);
+
             // RefreshTokens как owned-коллекция
             builder.OwnsMany(
                 navigationExpression: u => u.RefreshTokens,

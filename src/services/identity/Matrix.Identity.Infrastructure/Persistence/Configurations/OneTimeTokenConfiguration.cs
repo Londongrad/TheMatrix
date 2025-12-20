@@ -8,7 +8,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<OneTimeToken> builder)
         {
-            builder.ToTable("one_time_tokens");
+            builder.ToTable("OneTimeTokens");
 
             builder.HasKey(x => x.Id);
 
