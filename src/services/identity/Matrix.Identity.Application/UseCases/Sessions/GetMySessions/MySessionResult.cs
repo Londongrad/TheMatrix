@@ -1,6 +1,6 @@
-﻿namespace Matrix.Identity.Application.UseCases.Sessions.GetUserSessions
+﻿namespace Matrix.Identity.Application.UseCases.Sessions.GetMySessions
 {
-    public sealed class UserSessionResult
+    public sealed class MySessionResult
     {
         public Guid Id { get; init; }
 

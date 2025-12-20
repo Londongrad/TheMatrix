@@ -1,24 +1,28 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions
+namespace Matrix.Identity.Application.UseCases.Sessions.RevokeAllMySessions
 {
-    public sealed class RevokeAllUserSessionsCommandHandler(
+    public sealed class RevokeAllMySessionsCommandHandler(
         IUserRepository userRepository,
-        IUnitOfWork unitOfWork)
-        : IRequestHandler<RevokeAllUserSessionsCommand>
+        IUnitOfWork unitOfWork,
+        ICurrentUserContext currentUser)
+        : IRequestHandler<RevokeAllMySessionsCommand>
     {
         public async Task Handle(
-            RevokeAllUserSessionsCommand request,
+            RevokeAllMySessionsCommand request,
             CancellationToken cancellationToken)
         {
+            Guid userId = currentUser.GetUserIdOrThrow();
+
             User user = await userRepository.GetByIdAsync(
-                            userId: request.UserId,
+                            userId: userId,
                             cancellationToken: cancellationToken) ??
-                        throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+                        throw ApplicationErrorsFactory.UserNotFound(userId);
 
             user.RevokeAllRefreshTokens();
 

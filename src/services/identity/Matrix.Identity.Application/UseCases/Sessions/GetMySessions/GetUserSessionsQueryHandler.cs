@@ -1,26 +1,32 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.Sessions.GetUserSessions
+namespace Matrix.Identity.Application.UseCases.Sessions.GetMySessions
 {
-    public sealed class GetUserSessionsQueryHandler(IUserRepository userRepository)
-        : IRequestHandler<GetUserSessionsQuery, IReadOnlyCollection<UserSessionResult>>
+    public sealed class GetUserSessionsQueryHandler(
+        IUserRepository userRepository,
+        ICurrentUserContext currentUser)
+        : IRequestHandler<GetMySessionsQuery, IReadOnlyCollection<MySessionResult>>
     {
-        public async Task<IReadOnlyCollection<UserSessionResult>> Handle(
-            GetUserSessionsQuery request,
+        public async Task<IReadOnlyCollection<MySessionResult>> Handle(
+            GetMySessionsQuery request,
             CancellationToken cancellationToken)
         {
-            User user = await userRepository.GetByIdAsync(
-                            userId: request.UserId,
-                            cancellationToken: cancellationToken) ??
-                        throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            Guid userId = currentUser.GetUserIdOrThrow();
 
-            UserSessionResult[] sessions = user.RefreshTokens
+            User user = await userRepository.GetByIdAsync(
+                            userId: userId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(userId);
+
+            MySessionResult[] sessions = user.RefreshTokens
                .Where(s => s.IsActive())
                .OrderByDescending(t => t.CreatedAtUtc)
-               .Select(t => new UserSessionResult
+               .Select(t => new MySessionResult
                 {
                     Id = t.Id,
                     DeviceId = t.DeviceInfo.DeviceId,
