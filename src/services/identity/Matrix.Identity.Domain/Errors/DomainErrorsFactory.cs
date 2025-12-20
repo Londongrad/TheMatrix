@@ -188,5 +188,71 @@ namespace Matrix.Identity.Domain.Errors
         }
 
         #endregion [ DeviceInfo ]
+
+        #region [ Role ]
+
+        public static DomainException EmptyRoleId(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.Role.EmptyId",
+                message: "Role id cannot be empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException EmptyRoleName(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.Role.Name.Empty",
+                message: "Role name is required.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException InvalidRoleNameLength(
+            int maxLength,
+            int actualLength,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.Role.Name.InvalidLength",
+                message: $"Role name must be at most {maxLength} characters. Actual length {actualLength}.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Role ]
+
+        #region [ UserRole ]
+
+        public static DomainException EmptyUserId(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.User.EmptyId",
+                message: "User id cannot be empty.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ UserRole ]
+
+        #region [ Permission ]
+
+        public static DomainException EmptyPermissionKey(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.Permission.Key.Empty",
+                message: "Permission key is required.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException InvalidPermissionKeyLength(
+            int maxLength,
+            int actualLength,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.Permission.Key.InvalidLength",
+                message: $"Permission key must be at most {maxLength} characters. Actual length {actualLength}.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Permission ]
     }
 }
