@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.UseCases.Auth;
 using Matrix.Identity.Domain.Entities;
@@ -13,23 +15,22 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
     {
         private readonly JwtOptions _options = options.Value;
 
-        public AccessTokenModel Generate(User user)
+        public AccessTokenModel Generate(
+            User user,
+            IReadOnlyCollection<string> roles,
+            IReadOnlyCollection<string> permissions,
+            int permissionsVersion)
         {
             string username = user.Username.Value;
 
             var claims = new List<Claim>
             {
-                // основной идентификатор пользователя
                 new(
                     type: JwtRegisteredClaimNames.Sub,
                     value: user.Id.ToString()),
-
-                // email
                 new(
                     type: JwtRegisteredClaimNames.Email,
                     value: user.Email.Value),
-
-                // username как "unique_name" + дублируем в ClaimTypes.Name
                 new(
                     type: JwtRegisteredClaimNames.UniqueName,
                     value: username),
@@ -39,16 +40,33 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
                 new(
                     type: "username",
                     value: username),
-
-                // id токена
                 new(
                     type: JwtRegisteredClaimNames.Jti,
                     value: Guid.NewGuid()
-                       .ToString())
+                       .ToString()),
+                new(
+                    type: "pv",
+                    value: permissionsVersion.ToString(CultureInfo.InvariantCulture))
             };
 
+            foreach (string role in roles.OrderBy(
+                         keySelector: x => x,
+                         comparer: StringComparer.Ordinal))
+                claims.Add(
+                    new Claim(
+                        type: ClaimTypes.Role,
+                        value: role));
+
+            foreach (string permission in permissions.OrderBy(
+                         keySelector: x => x,
+                         comparer: StringComparer.Ordinal))
+                claims.Add(
+                    new Claim(
+                        type: PermissionClaimTypes.Permission,
+                        value: permission));
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
-            var creds = new SigningCredentials(
+            var credentials = new SigningCredentials(
                 key: key,
                 algorithm: SecurityAlgorithms.HmacSha256);
 
@@ -59,7 +77,7 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
                 audience: _options.Audience,
                 claims: claims,
                 expires: expiresAt,
-                signingCredentials: creds);
+                signingCredentials: credentials);
 
             string? tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
