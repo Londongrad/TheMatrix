@@ -1,6 +1,6 @@
-namespace Matrix.Identity.Application.UseCases.Account.GetUserProfile
+namespace Matrix.Identity.Application.UseCases.Account.GetMyProfile
 {
-    public sealed class UserProfileResult
+    public sealed class MyProfileResult
     {
         public Guid UserId { get; init; }
         public string Email { get; init; } = null!;
