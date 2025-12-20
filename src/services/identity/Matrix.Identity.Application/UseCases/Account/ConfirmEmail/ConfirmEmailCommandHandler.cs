@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
@@ -13,20 +14,23 @@ namespace Matrix.Identity.Application.UseCases.Account.ConfirmEmail
         IOneTimeTokenRepository oneTimeTokenRepository,
         IOneTimeTokenService oneTimeTokenService,
         IClock clock,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICurrentUserContext currentUser)
         : IRequestHandler<ConfirmEmailCommand>
     {
         public async Task Handle(
             ConfirmEmailCommand request,
             CancellationToken cancellationToken)
         {
+            Guid userId = currentUser.GetUserIdOrThrow();
+
             // For confirmation flow it's OK to treat "user not found" as invalid token.
             User? user = await userRepository.GetByIdAsync(
-                userId: request.UserId,
+                userId: userId,
                 cancellationToken: cancellationToken);
 
             if (user is null)
-                throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(request.UserId));
+                throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(userId));
 
             if (user.IsEmailConfirmed)
                 return; // idempotent

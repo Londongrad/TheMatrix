@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
@@ -10,17 +11,20 @@ namespace Matrix.Identity.Application.UseCases.Account.ChangePassword
     public sealed class ChangePasswordCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICurrentUserContext currentUser)
         : IRequestHandler<ChangePasswordCommand>
     {
         public async Task Handle(
             ChangePasswordCommand request,
             CancellationToken cancellationToken)
         {
+            Guid userId = currentUser.GetUserIdOrThrow();
+
             User user = await userRepository.GetByIdAsync(
-                            userId: request.UserId,
+                            userId: userId,
                             cancellationToken: cancellationToken) ??
-                        throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+                        throw ApplicationErrorsFactory.UserNotFound(userId);
 
             // проверяем текущий пароль
             bool isCurrentValid = passwordHasher.Verify(
