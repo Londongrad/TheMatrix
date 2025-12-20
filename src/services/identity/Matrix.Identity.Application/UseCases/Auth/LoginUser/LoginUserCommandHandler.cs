@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
@@ -14,7 +15,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
         IAccessTokenService accessTokenService,
         IRefreshTokenProvider refreshTokenProvider,
         IGeoLocationService geoLocationService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEffectivePermissionsService permissionsService)
         : IRequestHandler<LoginUserCommand, LoginUserResult>
     {
         public async Task<LoginUserResult> Handle(
@@ -58,20 +60,29 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
             if (!user.CanLogin())
                 throw ApplicationErrorsFactory.UserBlocked();
 
-            // 1) Access token
-            AccessTokenModel accessTokenModel = accessTokenService.Generate(user);
+            // 1) Get effective permissions and roles
+            AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
+                userId: user.Id,
+                ct: cancellationToken);
 
-            // 2) Refresh token descriptor (сырое значение + hash + время жизни)
+            // 2) Access token
+            AccessTokenModel accessTokenModel = accessTokenService.Generate(
+                user: user,
+                roles: ctx.Roles,
+                permissions: ctx.Permissions,
+                permissionsVersion: ctx.PermissionsVersion);
+
+            // 3) Refresh token descriptor (сырое значение + hash + время жизни)
             RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);
 
-            // 3) Собираем DeviceInfo из команды
+            // 4) Собираем DeviceInfo из команды
             var deviceInfo = DeviceInfo.Create(
                 deviceId: request.DeviceId,
                 deviceName: request.DeviceName,
                 userAgent: request.UserAgent,
                 ipAddress: request.IpAddress);
 
-            // 4) Пытаемся получить GeoLocation по IP (опционально)
+            // 5) Пытаемся получить GeoLocation по IP (опционально)
             GeoLocation? geoLocation = null;
 
             if (!string.IsNullOrWhiteSpace(request.IpAddress))
@@ -79,7 +90,7 @@ namespace Matrix.Identity.Application.UseCases.Auth.LoginUser
                     ipAddress: request.IpAddress,
                     cancellationToken: cancellationToken);
 
-            // 5) Выпускаем refresh-токен, уже привязанный к устройству + локации
+            // 6) Выпускаем refresh-токен, уже привязанный к устройству + локации
             user.IssueRefreshToken(
                 tokenHash: refreshDescriptor.TokenHash,
                 expiresAtUtc: refreshDescriptor.ExpiresAtUtc,

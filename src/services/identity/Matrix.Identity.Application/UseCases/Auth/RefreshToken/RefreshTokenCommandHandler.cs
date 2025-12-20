@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using Matrix.Identity.Domain.Entities;
@@ -15,7 +16,8 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
         IAccessTokenService accessTokenService,
         IRefreshTokenProvider refreshTokenProvider,
         IGeoLocationService geoLocationService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEffectivePermissionsService permissionsService)
         : IRequestHandler<RefreshTokenCommand, LoginUserResult>
     {
         public async Task<LoginUserResult> Handle(
@@ -95,8 +97,17 @@ namespace Matrix.Identity.Application.UseCases.Auth.RefreshToken
                 geoLocation: geoLocation,
                 isPersistent: currentToken.IsPersistent);
 
-            // 11) Новый access-token
-            AccessTokenModel accessModel = accessTokenService.Generate(user);
+            // 11) Get user's permissions and roles
+            AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
+                userId: user.Id,
+                ct: cancellationToken);
+
+            // 12) New access-token
+            AccessTokenModel accessModel = accessTokenService.Generate(
+                user: user,
+                roles: ctx.Roles,
+                permissions: ctx.Permissions,
+                permissionsVersion: ctx.PermissionsVersion);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
