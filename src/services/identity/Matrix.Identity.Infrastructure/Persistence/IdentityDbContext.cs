@@ -9,6 +9,14 @@ namespace Matrix.Identity.Infrastructure.Persistence
         public DbSet<User> Users => Set<User>();
         public DbSet<OneTimeToken> OneTimeTokens => Set<OneTimeToken>();
 
+        public DbSet<Permission> Permissions => Set<Permission>();
+
+        public DbSet<Role> Roles => Set<Role>();
+        public DbSet<UserRole> UserRoles => Set<UserRole>();
+
+        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+        public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
