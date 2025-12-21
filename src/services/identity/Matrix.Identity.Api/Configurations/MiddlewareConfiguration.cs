@@ -6,9 +6,9 @@ namespace Matrix.Identity.Api.Configurations
     {
         public static void ConfigureApplicationMiddleware(this WebApplication app)
         {
-            app.ConfigureControllers();
-            app.UseSecurityPipeline();
             app.ConfigureMiddleware();
+            app.UseSecurityPipeline();
+            app.ConfigureControllers();
         }
 
         private static void UseSecurityPipeline(this WebApplication app)

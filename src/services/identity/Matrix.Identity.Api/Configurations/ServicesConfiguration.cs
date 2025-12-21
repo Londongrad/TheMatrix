@@ -1,5 +1,6 @@
 using System.Text;
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
@@ -81,6 +82,9 @@ namespace Matrix.Identity.Api.Configurations
             services.AddAuthorization();
 
             services.AddMatrixPermissionsPolicies();
+
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
 
             return services;
         }
