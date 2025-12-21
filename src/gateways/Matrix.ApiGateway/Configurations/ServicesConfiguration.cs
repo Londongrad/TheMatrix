@@ -1,11 +1,12 @@
 using System.Text;
 using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Identity.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Assets;
 using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
-using Matrix.ApiGateway.DownstreamClients.Population;
+using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -78,24 +79,30 @@ namespace Matrix.ApiGateway.Configurations
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            services.AddHttpContextAccessor();
+            services.AddTransient<ForwardAuthorizationHeaderHandler>();
+
             IConfigurationSection downstream = configuration.GetSection("DownstreamServices");
 
             services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>(client =>
                 {
                     client.BaseAddress = new Uri(downstream["CityCore"]!);
                 })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IEconomyApiClient, EconomyApiClient>(client =>
                 {
                     client.BaseAddress = new Uri(downstream["Economy"]!);
                 })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(client =>
                 {
                     client.BaseAddress = new Uri(downstream["Population"]!);
                 })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             // Identity downstream client
@@ -109,6 +116,7 @@ namespace Matrix.ApiGateway.Configurations
                 {
                     client.BaseAddress = new Uri(identityBaseUrl);
                 })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             // Identity Account client
@@ -116,6 +124,7 @@ namespace Matrix.ApiGateway.Configurations
                 {
                     client.BaseAddress = new Uri(identityBaseUrl);
                 })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             // Static files (e.g. avatars)
@@ -123,6 +132,7 @@ namespace Matrix.ApiGateway.Configurations
                 {
                     client.BaseAddress = new Uri(identityBaseUrl);
                 })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
