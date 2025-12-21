@@ -1,4 +1,4 @@
-﻿using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Entities;
 
 namespace Matrix.Population.Application.Abstractions
 {
