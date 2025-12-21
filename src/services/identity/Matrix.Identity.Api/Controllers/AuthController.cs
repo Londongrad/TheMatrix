@@ -4,9 +4,6 @@ using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using Matrix.Identity.Application.UseCases.Auth.RefreshToken;
 using Matrix.Identity.Application.UseCases.Auth.RegisterUser;
 using Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken;
-using Matrix.Identity.Application.UseCases.Sessions.GetUserSessions;
-using Matrix.Identity.Application.UseCases.Sessions.RevokeAllUserSessions;
-using Matrix.Identity.Application.UseCases.Sessions.RevokeUserSession;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -14,12 +11,16 @@ using Microsoft.Extensions.Primitives;
 namespace Matrix.Identity.Api.Controllers
 {
     [ApiController]
-    [Route("api/internal/[controller]")]
+    [Route("api/[controller]")]
     public sealed class AuthController(ISender sender) : ControllerBase
     {
+        #region [ Fields ]
+
         private readonly ISender _sender = sender;
 
-        #region [ Register & Login ]
+        #endregion [ Fields ]
+
+        #region [ Register ]
 
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register(
@@ -44,6 +45,10 @@ namespace Matrix.Identity.Api.Controllers
 
             return Ok(response);
         }
+
+        #endregion [ Register ]
+
+        #region [ Login ]
 
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login(
@@ -88,9 +93,9 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
-        #endregion [ Register & Login ]
+        #endregion [ Login ]
 
-        #region [ Refresh & Logout ]
+        #region [ Refresh ]
 
         [HttpPost("refresh")]
         public async Task<ActionResult<LoginResponse>> Refresh(
@@ -131,6 +136,10 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
+        #endregion [ Refresh ]
+
+        #region [ Logout ]
+
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(
             [FromBody] LogoutRequest request,
@@ -143,75 +152,6 @@ namespace Matrix.Identity.Api.Controllers
             return NoContent();
         }
 
-        #endregion [ Refresh & Logout ]
-
-        #region [ Sessions ]
-
-        [HttpGet("{userId:guid}/sessions")]
-        public async Task<ActionResult<List<SessionResponse>>> GetSessions(
-            [FromRoute] Guid userId,
-            CancellationToken cancellationToken)
-        {
-            var query = new GetUserSessionsQuery(userId);
-
-            IReadOnlyCollection<UserSessionResult> sessions =
-                await _sender.Send(
-                    request: query,
-                    cancellationToken: cancellationToken);
-
-            var response = sessions
-               .Select(s => new SessionResponse
-                {
-                    Id = s.Id,
-                    DeviceId = s.DeviceId,
-                    DeviceName = s.DeviceName,
-                    UserAgent = s.UserAgent,
-                    IpAddress = s.IpAddress,
-                    Country = s.Country,
-                    Region = s.Region,
-                    City = s.City,
-                    CreatedAtUtc = s.CreatedAtUtc,
-                    LastUsedAtUtc = s.LastUsedAtUtc,
-                    IsActive = s.IsActive
-                })
-               .ToList();
-
-            return Ok(response);
-        }
-
-        [HttpDelete("{userId:guid}/sessions/{sessionId:guid}")]
-        public async Task<IActionResult> RevokeSession(
-            [FromRoute] Guid userId,
-            [FromRoute] Guid sessionId,
-            CancellationToken cancellationToken)
-        {
-            var command = new RevokeUserSessionCommand(
-                UserId: userId,
-                SessionId: sessionId);
-
-            await _sender.Send(
-                request: command,
-                cancellationToken: cancellationToken);
-
-            // Даже если sessionId не нашёлся – всё равно 204, запрос идемпотентный
-            return NoContent();
-        }
-
-        [HttpDelete("{userId:guid}/sessions")]
-        public async Task<IActionResult> RevokeAllSessions(
-            [FromRoute] Guid userId,
-            CancellationToken cancellationToken)
-        {
-            var command = new RevokeAllUserSessionsCommand(userId);
-
-            await _sender.Send(
-                request: command,
-                cancellationToken: cancellationToken);
-
-            // Idempotent: даже если все токены уже были отозваны, просто возвращаем 204
-            return NoContent();
-        }
-
-        #endregion [ Sessions ]
+        #endregion [ Logout ]
     }
 }
