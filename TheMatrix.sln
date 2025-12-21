@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Identity.Api", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Api", "src\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj", "{736BD4E0-E592-4E24-8923-C1DA1D12CC31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Identity.Contracts", "src\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj", "{D3E1C099-E0C1-49B3-9EE1-DC98785E31EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{736BD4E0-E592-4E24-8923-C1DA1D12CC31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{736BD4E0-E592-4E24-8923-C1DA1D12CC31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{736BD4E0-E592-4E24-8923-C1DA1D12CC31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E1C099-E0C1-49B3-9EE1-DC98785E31EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E1C099-E0C1-49B3-9EE1-DC98785E31EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E1C099-E0C1-49B3-9EE1-DC98785E31EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E1C099-E0C1-49B3-9EE1-DC98785E31EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

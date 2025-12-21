@@ -1,22 +1,22 @@
-namespace Matrix.Identity.Api.Contracts.Responses
+namespace Matrix.Identity.Contracts.Sessions.Responses
 {
     public sealed class SessionResponse
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; init; }
 
-        public string DeviceId { get; set; } = null!;
-        public string DeviceName { get; set; } = null!;
-        public string UserAgent { get; set; } = null!;
-        public string? IpAddress { get; set; }
+        public string DeviceId { get; init; } = null!;
+        public string DeviceName { get; init; } = null!;
+        public string UserAgent { get; init; } = null!;
+        public string? IpAddress { get; init; }
 
-        public string? Country { get; set; }
-        public string? Region { get; set; }
-        public string? City { get; set; }
+        public string? Country { get; init; }
+        public string? Region { get; init; }
+        public string? City { get; init; }
 
-        public DateTime CreatedAtUtc { get; set; }
-        public DateTime? LastUsedAtUtc { get; set; }
+        public DateTime CreatedAtUtc { get; init; }
+        public DateTime? LastUsedAtUtc { get; init; }
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; init; }
 
         /// <summary>
         ///     Convenience-строка для фронта: "City, Region, Country" / null
