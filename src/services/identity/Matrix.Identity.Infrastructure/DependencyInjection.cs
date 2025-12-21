@@ -1,12 +1,15 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Infrastructure.Authentication.Jwt;
+using Matrix.Identity.Infrastructure.Authorization;
 using Matrix.Identity.Infrastructure.Integration.Email;
 using Matrix.Identity.Infrastructure.Integration.GeoLocation;
 using Matrix.Identity.Infrastructure.Integration.Links;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
+using Matrix.Identity.Infrastructure.Persistence.Seed;
 using Matrix.Identity.Infrastructure.Security.PasswordHashing;
 using Matrix.Identity.Infrastructure.Security.Tokens;
 using Matrix.Identity.Infrastructure.Storage;
@@ -49,6 +52,14 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IFrontendLinkBuilder, FrontendLinkBuilder>();
 
             services.AddScoped<IAvatarStorage, FileSystemAvatarStorage>();
+
+            // Authorization
+            services.AddScoped<IEffectivePermissionsService, EffectivePermissionsService>();
+
+            // Seeding
+            services.AddScoped<PermissionsSeeder>();
+            services.AddScoped<RolesSeeder>();
+            services.AddScoped<BootstrapAdminSeeder>();
 
             // External services
             services.AddGeoLocation(configuration);
