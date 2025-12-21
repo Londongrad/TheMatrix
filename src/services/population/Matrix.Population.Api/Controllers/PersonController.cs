@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Matrix.Population.Api.Controllers
 {
     [ApiController]
-    [Route("api/internal/[controller]/{personId:guid}")]
+    [Authorize]
+    [Route("api/[controller]/{personId:guid}")]
     public class PersonController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;

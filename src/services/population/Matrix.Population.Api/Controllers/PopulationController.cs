@@ -10,13 +10,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace Matrix.Population.Api.Controllers
 {
     [ApiController]
-    [Route("api/internal/[controller]")]
+    [Authorize]
+    [Route("api/[controller]")]
     public class PopulationController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
 
         [HttpPost("init")]
-        [Authorize(Policy = PermissionKeys.PopulationPeopleCreate)]
+        [Authorize(Policy = PermissionKeys.PopulationPeopleInitialize)]
         public async Task<IActionResult> InitializePopulation(
             [FromQuery] int peopleCount = 10_000,
             [FromQuery] int? randomSeed = null,
