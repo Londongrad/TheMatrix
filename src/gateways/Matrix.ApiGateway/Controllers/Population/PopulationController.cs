@@ -1,14 +1,14 @@
-using Matrix.ApiGateway.DownstreamClients.Population;
+using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers
+namespace Matrix.ApiGateway.Controllers.Population
 {
     [Authorize]
     [ApiController]
-    [Route("api/population")]
+    [Route("api/[controller]")]
     public class PopulationController(IPopulationApiClient populationClient) : ControllerBase
     {
         private readonly IPopulationApiClient _populationClient = populationClient;
@@ -35,49 +35,6 @@ namespace Matrix.ApiGateway.Controllers
                 {
                     message = "Population initialization started."
                 });
-        }
-
-        /// <summary>
-        ///     Убить гражданина по ID.
-        /// </summary>
-        /// <remarks>
-        ///     Проксирует вызов в Population API: POST /api/population/{id}/kill
-        /// </remarks>
-        [HttpPost("{id:guid}/kill")]
-        public async Task<IActionResult> KillPerson(
-            Guid id,
-            CancellationToken cancellationToken = default)
-        {
-            PersonDto person = await _populationClient.KillPersonAsync(
-                id: id,
-                cancellationToken: cancellationToken);
-            return Ok(person);
-        }
-
-        [HttpPost("{id:guid}/resurrect")]
-        public async Task<IActionResult> ResurrectPerson(
-            Guid id,
-            CancellationToken cancellationToken = default)
-        {
-            PersonDto person =
-                await _populationClient.ResurrectPersonAsync(
-                    id: id,
-                    cancellationToken: cancellationToken);
-            return Ok(person);
-        }
-
-        [HttpPut("{id:guid}/update")]
-        public async Task<IActionResult> UpdatePerson(
-            Guid id,
-            [FromBody] UpdatePersonRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            PersonDto person =
-                await _populationClient.UpdatePersonAsync(
-                    id: id,
-                    request: request,
-                    cancellationToken: cancellationToken);
-            return Ok(person);
         }
 
         /// <summary>
