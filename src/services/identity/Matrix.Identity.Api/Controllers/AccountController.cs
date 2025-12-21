@@ -2,14 +2,16 @@ using Matrix.Identity.Api.Contracts.Requests;
 using Matrix.Identity.Api.Contracts.Responses;
 using Matrix.Identity.Application.UseCases.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Account.ChangePassword;
-using Matrix.Identity.Application.UseCases.Account.GetUserProfile;
+using Matrix.Identity.Application.UseCases.Account.GetMyProfile;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Identity.Api.Controllers
 {
     [ApiController]
-    [Route("api/internal/[controller]/{userId:guid}")]
+    [Authorize]
+    [Route("api/[controller]")]
     public class AccountController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
@@ -18,12 +20,11 @@ namespace Matrix.Identity.Api.Controllers
 
         [HttpGet("profile")]
         public async Task<ActionResult<UserProfileResponse>> GetProfile(
-            [FromRoute] Guid userId,
             CancellationToken cancellationToken)
         {
-            var query = new GetUserProfileQuery(userId);
+            var query = new GetMyProfileQuery();
 
-            UserProfileResult result = await _sender.Send(
+            MyProfileResult result = await _sender.Send(
                 request: query,
                 cancellationToken: cancellationToken);
 
@@ -46,7 +47,6 @@ namespace Matrix.Identity.Api.Controllers
         [RequestSizeLimit(2 * 1024 * 1024)]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<ChangeAvatarResponse>> ChangeAvatar(
-            [FromRoute] Guid userId,
             IFormFile? avatar,
             CancellationToken cancellationToken)
         {
@@ -56,7 +56,6 @@ namespace Matrix.Identity.Api.Controllers
             await using Stream stream = avatar.OpenReadStream();
 
             var command = new ChangeAvatarFromFileCommand(
-                UserId: userId,
                 FileStream: stream,
                 FileName: avatar.FileName,
                 ContentType: avatar.ContentType ?? "image/png");
@@ -71,12 +70,10 @@ namespace Matrix.Identity.Api.Controllers
 
         [HttpPut("password")]
         public async Task<IActionResult> ChangePassword(
-            [FromRoute] Guid userId,
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)
         {
             var command = new ChangePasswordCommand(
-                UserId: userId,
                 CurrentPassword: request.CurrentPassword,
                 NewPassword: request.NewPassword);
 
