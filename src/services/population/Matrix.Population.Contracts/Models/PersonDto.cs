@@ -1,4 +1,4 @@
-﻿namespace Matrix.Population.Contracts.Models
+namespace Matrix.Population.Contracts.Models
 {
     public sealed record class PersonDto(
         Guid Id,

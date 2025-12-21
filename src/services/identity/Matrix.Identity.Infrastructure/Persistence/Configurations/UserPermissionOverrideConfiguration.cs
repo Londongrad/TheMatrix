@@ -10,7 +10,11 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
         {
             builder.ToTable("UserPermissionOverrides");
 
-            builder.HasKey(x => new { x.UserId, x.PermissionKey });
+            builder.HasKey(x => new
+            {
+                x.UserId,
+                x.PermissionKey
+            });
 
             builder.Property(x => x.PermissionKey)
                .HasMaxLength(200)

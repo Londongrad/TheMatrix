@@ -102,7 +102,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             catch (TaskCanceledException ex) when (!context.RequestAborted.IsCancellationRequested)
             {
                 // Это именно таймаут HttpClient (а не отмена клиентом)
-                logger.LogWarning(ex, "Gateway timeout while calling downstream service");
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Gateway timeout while calling downstream service");
 
                 context.Response.StatusCode = (int)HttpStatusCode.GatewayTimeout;
                 context.Response.ContentType = "application/json";
@@ -118,7 +120,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             catch (OperationCanceledException ex) when (context.RequestAborted.IsCancellationRequested)
             {
                 // Клиент сам оборвал запрос (закрыл вкладку/навигация/abort)
-                logger.LogInformation(ex, "Request aborted by client");
+                logger.LogInformation(
+                    exception: ex,
+                    message: "Request aborted by client");
                 // Можно просто ничего не писать в response
             }
             catch (Exception ex) when (ex is IHttpResponseException httpEx)
@@ -151,7 +155,9 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             catch (HttpRequestException ex)
             {
                 // Сюда часто попадает EnsureSuccessStatusCode() или проблемы сети/SSL/DNS
-                logger.LogWarning(ex, "Bad gateway while calling downstream service");
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Bad gateway while calling downstream service");
 
                 context.Response.StatusCode = (int)HttpStatusCode.BadGateway;
                 context.Response.ContentType = "application/json";

@@ -11,8 +11,12 @@ namespace Matrix.Identity.Domain.Entities
             Guid userId,
             Guid roleId)
         {
-            UserId = GuardHelper.AgainstEmptyGuid(userId, DomainErrorsFactory.EmptyUserId);
-            RoleId = GuardHelper.AgainstEmptyGuid(roleId, DomainErrorsFactory.EmptyRoleId);
+            UserId = GuardHelper.AgainstEmptyGuid(
+                id: userId,
+                errorFactory: DomainErrorsFactory.EmptyUserId);
+            RoleId = GuardHelper.AgainstEmptyGuid(
+                id: roleId,
+                errorFactory: DomainErrorsFactory.EmptyRoleId);
         }
 
         public Guid UserId { get; private set; }

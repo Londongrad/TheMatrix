@@ -4,7 +4,13 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Assets
     {
         private readonly HttpClient _httpClient = httpClient;
 
-        public Task<HttpResponseMessage> GetAvatarAsync(string fileName, CancellationToken ct)
-            => _httpClient.GetAsync($"/avatars/{fileName}", ct);
+        public Task<HttpResponseMessage> GetAvatarAsync(
+            string fileName,
+            CancellationToken ct)
+        {
+            return _httpClient.GetAsync(
+                requestUri: $"/avatars/{fileName}",
+                cancellationToken: ct);
+        }
     }
 }

@@ -108,7 +108,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
                     code: "Gateway.InvalidIdentityResponse",
                     message: "Invalid response from Identity service.");
 
-                return StatusCode(StatusCodes.Status500InternalServerError, error);
+                return StatusCode(
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    value: error);
             }
 
             // ✅ Переписываем на публичный URL gateway (чтобы не было localhost:5173/avatars/...)
@@ -131,7 +133,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 fileName.Contains('\\'))
                 return BadRequest();
 
-            using HttpResponseMessage resp = await identityAssetsClient.GetAvatarAsync(fileName, ct);
+            using HttpResponseMessage resp = await identityAssetsClient.GetAvatarAsync(
+                fileName: fileName,
+                cancellationToken: ct);
 
             if (!resp.IsSuccessStatusCode)
                 return StatusCode((int)resp.StatusCode);
@@ -139,7 +143,9 @@ namespace Matrix.ApiGateway.Controllers.Identity
             string contentType = resp.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
             byte[] bytes = await resp.Content.ReadAsByteArrayAsync(ct);
 
-            return File(bytes, contentType);
+            return File(
+                fileContents: bytes,
+                contentType: contentType);
         }
 
         [HttpPut("password")]
@@ -198,7 +204,10 @@ namespace Matrix.ApiGateway.Controllers.Identity
             if (string.IsNullOrWhiteSpace(avatarUrl))
                 return null;
 
-            if (Uri.TryCreate(avatarUrl, UriKind.Absolute, out _))
+            if (Uri.TryCreate(
+                    uriString: avatarUrl,
+                    uriKind: UriKind.Absolute,
+                    result: out _))
                 return avatarUrl;
 
             if (!avatarUrl.StartsWith('/'))

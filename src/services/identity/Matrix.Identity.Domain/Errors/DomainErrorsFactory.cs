@@ -17,6 +17,18 @@ namespace Matrix.Identity.Domain.Errors
 
         #endregion [ Common ]
 
+        #region [ UserRole ]
+
+        public static DomainException EmptyUserId(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.User.EmptyId",
+                message: "User id cannot be empty.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ UserRole ]
+
         #region [ User - Credentials ]
 
         public static DomainException EmptyEmail(string? propertyName = null)
@@ -219,18 +231,6 @@ namespace Matrix.Identity.Domain.Errors
         }
 
         #endregion [ Role ]
-
-        #region [ UserRole ]
-
-        public static DomainException EmptyUserId(string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Identity.User.EmptyId",
-                message: "User id cannot be empty.",
-                propertyName: propertyName);
-        }
-
-        #endregion [ UserRole ]
 
         #region [ Permission ]
 

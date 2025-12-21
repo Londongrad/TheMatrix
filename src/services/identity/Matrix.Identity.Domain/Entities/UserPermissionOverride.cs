@@ -15,14 +15,19 @@ namespace Matrix.Identity.Domain.Entities
             string permissionKey,
             PermissionEffect effect)
         {
-            UserId = GuardHelper.AgainstEmptyGuid(userId, DomainErrorsFactory.EmptyUserId);
+            UserId = GuardHelper.AgainstEmptyGuid(
+                id: userId,
+                errorFactory: DomainErrorsFactory.EmptyUserId);
 
             permissionKey = GuardHelper.AgainstNullOrWhiteSpace(
                 value: permissionKey,
                 errorFactory: DomainErrorsFactory.EmptyPermissionKey);
 
             if (permissionKey.Length > PermissionKeyMaxLength)
-                throw DomainErrorsFactory.InvalidPermissionKeyLength(PermissionKeyMaxLength, permissionKey.Length, nameof(permissionKey));
+                throw DomainErrorsFactory.InvalidPermissionKeyLength(
+                    maxLength: PermissionKeyMaxLength,
+                    actualLength: permissionKey.Length,
+                    propertyName: nameof(permissionKey));
 
             PermissionKey = permissionKey;
             Effect = effect;

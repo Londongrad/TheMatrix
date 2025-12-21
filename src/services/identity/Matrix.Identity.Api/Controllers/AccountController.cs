@@ -19,8 +19,7 @@ namespace Matrix.Identity.Api.Controllers
         #region [ Profile ]
 
         [HttpGet("profile")]
-        public async Task<ActionResult<UserProfileResponse>> GetProfile(
-            CancellationToken cancellationToken)
+        public async Task<ActionResult<UserProfileResponse>> GetProfile(CancellationToken cancellationToken)
         {
             var query = new GetMyProfileQuery();
 

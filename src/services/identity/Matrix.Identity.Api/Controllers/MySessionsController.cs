@@ -52,8 +52,7 @@ namespace Matrix.Identity.Api.Controllers
             [FromRoute] Guid sessionId,
             CancellationToken cancellationToken)
         {
-            var command = new RevokeMySessionCommand(
-                SessionId: sessionId);
+            var command = new RevokeMySessionCommand(SessionId: sessionId);
 
             await _sender.Send(
                 request: command,
@@ -64,8 +63,7 @@ namespace Matrix.Identity.Api.Controllers
         }
 
         [HttpDelete("sessions")]
-        public async Task<IActionResult> RevokeAllSessions(
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {
             var command = new RevokeAllMySessionsCommand();
 

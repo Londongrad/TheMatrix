@@ -9,10 +9,12 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
         {
             throw new NotImplementedException();
         }
+
         public string HashToken(string rawToken)
         {
             throw new NotImplementedException();
         }
+
         public TimeSpan GetTtl(OneTimeTokenPurpose purpose)
         {
             throw new NotImplementedException();
