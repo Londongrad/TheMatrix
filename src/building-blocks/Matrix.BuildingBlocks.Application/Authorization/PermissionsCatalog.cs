@@ -28,5 +28,15 @@ namespace Matrix.BuildingBlocks.Application.Authorization
                 Group: "People",
                 Description: "Resurrect a person")
         ];
+
+        public static IReadOnlyCollection<string> AllKeys =>
+            All.Select(x => x.Key)
+               .ToArray();
+
+        public static PermissionDefinition GetOrThrow(string key)
+        {
+            PermissionDefinition? item = All.FirstOrDefault(x => x.Key == key);
+            return item ?? throw new InvalidOperationException($"Permission not found in catalog: {key}");
+        }
     }
 }
