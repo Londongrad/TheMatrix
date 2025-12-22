@@ -7,6 +7,6 @@ namespace Matrix.Population.Application.UseCases.Population.InitializePopulation
         int PeopleCount,
         int? RandomSeed) : IRequest, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.PopulationPeopleCreate;
+        public string PermissionKey => PermissionKeys.PopulationPeopleInitialize;
     }
 }
