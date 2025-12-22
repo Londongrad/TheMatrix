@@ -9,13 +9,16 @@ namespace Matrix.BuildingBlocks.Api.Authorization
         {
             services.AddAuthorization(options =>
             {
-                foreach (PermissionDefinition p in PermissionsCatalog.All)
+                foreach (string key in PermissionsCatalog.AllKeys)
                     options.AddPolicy(
-                        name: p.Key,
+                        name: key,
                         configurePolicy: policy =>
+                        {
+                            policy.RequireAuthenticatedUser();
                             policy.RequireClaim(
                                 claimType: PermissionClaimTypes.Permission,
-                                p.Key));
+                                key);
+                        });
             });
 
             return services;
