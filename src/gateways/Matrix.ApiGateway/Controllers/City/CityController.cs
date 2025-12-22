@@ -2,7 +2,7 @@ using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers
+namespace Matrix.ApiGateway.Controllers.City
 {
     [ApiController]
     [Route("api/city")]

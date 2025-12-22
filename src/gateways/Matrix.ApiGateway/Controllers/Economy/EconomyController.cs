@@ -2,7 +2,7 @@ using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers
+namespace Matrix.ApiGateway.Controllers.Economy
 {
     [ApiController]
     [Route("api/economy")]
