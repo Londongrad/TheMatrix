@@ -1,7 +1,7 @@
-using Matrix.Identity.Api.Contracts.Responses;
 using Matrix.Identity.Application.UseCases.Sessions.GetMySessions;
 using Matrix.Identity.Application.UseCases.Sessions.RevokeAllMySessions;
 using Matrix.Identity.Application.UseCases.Sessions.RevokeMySession;
+using Matrix.Identity.Contracts.Sessions.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,16 +9,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace Matrix.Identity.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/me/sessions")]
     [Authorize]
     public class MySessionsController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
 
-        [HttpGet("sessions")]
-        public async Task<ActionResult<List<SessionResponse>>> GetSessions(
-            [FromRoute] Guid userId,
-            CancellationToken cancellationToken)
+        [HttpGet]
+        public async Task<ActionResult<List<SessionResponse>>> GetSessions(CancellationToken cancellationToken)
         {
             var query = new GetMySessionsQuery();
 
@@ -47,7 +45,7 @@ namespace Matrix.Identity.Api.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("sessions/{sessionId:guid}")]
+        [HttpDelete("{sessionId:guid}")]
         public async Task<IActionResult> RevokeSession(
             [FromRoute] Guid sessionId,
             CancellationToken cancellationToken)
@@ -62,7 +60,7 @@ namespace Matrix.Identity.Api.Controllers
             return NoContent();
         }
 
-        [HttpDelete("sessions")]
+        [HttpDelete]
         public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {
             var command = new RevokeAllMySessionsCommand();
