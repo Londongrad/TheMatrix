@@ -1,8 +1,8 @@
-using Matrix.Identity.Api.Contracts.Requests;
-using Matrix.Identity.Api.Contracts.Responses;
 using Matrix.Identity.Application.UseCases.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Account.ChangePassword;
 using Matrix.Identity.Application.UseCases.Account.GetMyProfile;
+using Matrix.Identity.Contracts.Account.Requests;
+using Matrix.Identity.Contracts.Account.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -63,7 +63,10 @@ namespace Matrix.Identity.Api.Controllers
                 request: command,
                 cancellationToken: cancellationToken);
 
-            var response = new ChangeAvatarResponse(newAvatarPath);
+            var response = new ChangeAvatarResponse
+            {
+                AvatarUrl = newAvatarPath
+            };
             return Ok(response);
         }
 

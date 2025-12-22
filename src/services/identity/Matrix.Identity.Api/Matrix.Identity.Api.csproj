@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj" />
+    <ProjectReference Include="..\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj" />
     <ProjectReference Include="..\Matrix.Identity.Infrastructure\Matrix.Identity.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -1,9 +1,9 @@
-using Matrix.Identity.Api.Contracts.Requests;
-using Matrix.Identity.Api.Contracts.Responses;
 using Matrix.Identity.Application.UseCases.Auth.LoginUser;
 using Matrix.Identity.Application.UseCases.Auth.RefreshToken;
 using Matrix.Identity.Application.UseCases.Auth.RegisterUser;
 using Matrix.Identity.Application.UseCases.Auth.RevokeRefreshToken;
+using Matrix.Identity.Contracts.Auth.Requests;
+using Matrix.Identity.Contracts.Auth.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
