@@ -1,40 +1,24 @@
-using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
+using Matrix.Identity.Contracts.Auth.Requests;
+using Matrix.Identity.Contracts.Auth.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
 {
     public interface IIdentityAuthClient
     {
-        Task<HttpResponseMessage> RegisterAsync(
+        Task<RegisterResponse> RegisterAsync(
             RegisterRequest request,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
 
-        Task<HttpResponseMessage> LoginAsync(
+        Task<LoginResponse> LoginAsync(
             LoginRequest request,
-            string? clientIp,
-            string? userAgent,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
 
-        Task<HttpResponseMessage> RefreshAsync(
+        Task<LoginResponse> RefreshAsync(
             RefreshRequest request,
-            string? clientIp,
-            string? userAgent,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
 
         Task LogoutAsync(
             LogoutRequest request,
-            CancellationToken cancellationToken = default);
-
-        Task<HttpResponseMessage> GetSessionsAsync(
-            Guid userId,
-            CancellationToken cancellationToken = default);
-
-        Task<HttpResponseMessage> RevokeSessionAsync(
-            Guid userId,
-            Guid sessionId,
-            CancellationToken cancellationToken = default);
-
-        Task<HttpResponseMessage> RevokeAllSessionsAsync(
-            Guid userId,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
     }
 }
