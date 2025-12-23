@@ -6,7 +6,9 @@ using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Identity.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Assets;
 using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
+using Matrix.ApiGateway.DownstreamClients.Identity.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -80,6 +82,7 @@ namespace Matrix.ApiGateway.Configurations
             IConfiguration configuration)
         {
             services.AddHttpContextAccessor();
+            services.AddTransient<ForwardClientInfoHeadersHandler>();
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
 
             IConfigurationSection downstream = configuration.GetSection("DownstreamServices");
@@ -98,12 +101,29 @@ namespace Matrix.ApiGateway.Configurations
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(client =>
+            #region [ Population http clients ]
+
+            string populationBaseUrl = downstream["Population"] ??
+                                       throw new InvalidOperationException(
+                                           "DownstreamServices:Population is not configured.");
+
+            services.AddHttpClient<IPersonApiClient, PersonApiClient>(client =>
                 {
-                    client.BaseAddress = new Uri(downstream["Population"]!);
+                    client.BaseAddress = new Uri(populationBaseUrl);
                 })
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
+
+            services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(client =>
+                {
+                    client.BaseAddress = new Uri(populationBaseUrl);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            #endregion [ Population http clients ]
+
+            #region [ Identity http clients ]
 
             // Identity downstream client
             // Общий baseUrl для Identity
@@ -111,12 +131,12 @@ namespace Matrix.ApiGateway.Configurations
                                      throw new InvalidOperationException(
                                          "DownstreamServices:Identity is not configured.");
 
-            // Identity Auth client
+            // Identity Auth client (обычно анонимный, Authorization header не нужен, но client-info полезен)
             services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(client =>
                 {
                     client.BaseAddress = new Uri(identityBaseUrl);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<ForwardClientInfoHeadersHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             // Identity Account client
@@ -134,6 +154,17 @@ namespace Matrix.ApiGateway.Configurations
                 })
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
+
+            // Sessions (требует [Authorize], значит нужен forward Authorization)
+            services.AddHttpClient<IIdentitySessionsClient, IdentitySessionsApiClient>(client =>
+                {
+                    client.BaseAddress = new Uri(identityBaseUrl);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<ForwardClientInfoHeadersHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            #endregion [ Identity http clients ]
 
             return services;
         }
