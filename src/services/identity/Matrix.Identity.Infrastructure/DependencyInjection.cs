@@ -9,6 +9,7 @@ using Matrix.Identity.Infrastructure.Integration.GeoLocation;
 using Matrix.Identity.Infrastructure.Integration.Links;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
+using Matrix.Identity.Infrastructure.Persistence.Repositories.Admin;
 using Matrix.Identity.Infrastructure.Persistence.Seed;
 using Matrix.Identity.Infrastructure.Security.PasswordHashing;
 using Matrix.Identity.Infrastructure.Security.Tokens;
@@ -40,6 +41,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IOneTimeTokenRepository, OneTimeTokenRepository>();
+            services.AddScoped<IUserAdminReadRepository, UserAdminReadRepository>();
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
