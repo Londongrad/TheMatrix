@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+
 namespace Matrix.ApiGateway.DownstreamClients.Common
 {
     public sealed class ForwardAuthorizationHeaderHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
@@ -8,12 +10,13 @@ namespace Matrix.ApiGateway.DownstreamClients.Common
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            string? auth = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();
+            string? raw = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
 
-            if (!string.IsNullOrWhiteSpace(auth))
-                request.Headers.TryAddWithoutValidation(
-                    name: "Authorization",
-                    value: auth);
+            if (!string.IsNullOrWhiteSpace(raw) &&
+                AuthenticationHeaderValue.TryParse(
+                    input: raw,
+                    parsedValue: out AuthenticationHeaderValue? headerValue))
+                request.Headers.Authorization = headerValue;
 
             return base.SendAsync(
                 request: request,
