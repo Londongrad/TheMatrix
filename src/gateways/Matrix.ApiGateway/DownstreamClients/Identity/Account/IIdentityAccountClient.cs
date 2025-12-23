@@ -1,21 +1,18 @@
-using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
+using Matrix.Identity.Contracts.Account.Requests;
+using Matrix.Identity.Contracts.Account.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
 {
     public interface IIdentityAccountClient
     {
-        Task<HttpResponseMessage> ChangeAvatarAsync(
-            Guid userId,
+        Task<ChangeAvatarResponse> ChangeAvatarAsync(
             IFormFile avatar,
             CancellationToken cancellationToken = default);
 
-        Task<HttpResponseMessage> ChangePasswordAsync(
-            Guid userId,
+        Task ChangePasswordAsync(
             ChangePasswordRequest request,
             CancellationToken cancellationToken = default);
 
-        Task<HttpResponseMessage> GetProfileAsync(
-            Guid userId,
-            CancellationToken cancellationToken);
+        Task<UserProfileResponse> GetProfileAsync(CancellationToken cancellationToken);
     }
 }

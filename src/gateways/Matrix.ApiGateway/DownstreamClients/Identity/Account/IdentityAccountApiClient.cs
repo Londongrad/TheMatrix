@@ -1,73 +1,73 @@
-using Matrix.ApiGateway.DownstreamClients.Identity.Contracts.Requests;
+using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.Identity.Contracts.Account.Requests;
+using Matrix.Identity.Contracts.Account.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
 {
     public sealed class IdentityAccountApiClient(HttpClient httpClient) : IIdentityAccountClient
     {
-        // Базовый префикс для всех эндпоинтов этого контроллера в Identity
-        private const string AccountBaseEndpoint = "api/internal/account";
-
-        private const string ProfileSegment = "profile";
-        private const string AvatarSegment = "avatar";
-        private const string PasswordSegment = "password";
+        #region [ Fields ]
 
         private readonly HttpClient _httpClient = httpClient;
 
-        public Task<HttpResponseMessage> GetProfileAsync(
-            Guid userId,
-            CancellationToken cancellationToken)
+        #endregion [ Fields ]
+
+        #region [ Methods ]
+
+        public async Task<UserProfileResponse> GetProfileAsync(CancellationToken ct)
         {
-            return _httpClient.GetAsync(
-                requestUri: $"{AccountBaseEndpoint}/{userId:D}/{ProfileSegment}",
-                cancellationToken: cancellationToken);
+            using HttpResponseMessage response = await _httpClient.GetAsync(
+                requestUri: ProfileEndpoint,
+                cancellationToken: ct);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<UserProfileResponse>(
+                serviceName: ServiceName,
+                ct: ct,
+                requestUrl: ProfileEndpoint);
         }
 
-        public async Task<HttpResponseMessage> ChangeAvatarAsync(
-            Guid userId,
+        public async Task<ChangeAvatarResponse> ChangeAvatarAsync(
             IFormFile avatar,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            // Если Identity ждёт multipart/form-data
-            using var content = new MultipartFormDataContent();
-            var streamContent = new StreamContent(avatar.OpenReadStream());
-            content.Add(
-                content: streamContent,
-                name: "avatar",
-                fileName: avatar.FileName);
+            using HttpResponseMessage response = await _httpClient.PutMultipartFileAsync(
+                requestUri: AvatarEndpoint,
+                formFieldName: "avatar",
+                file: avatar,
+                ct: ct);
 
-            // /api/internal/account/{userId}/avatar
-            string endpoint = $"{AccountBaseEndpoint}/{userId:D}/{AvatarSegment}";
-
-            var message = new HttpRequestMessage(
-                method: HttpMethod.Put,
-                requestUri: endpoint)
-            {
-                Content = content
-            };
-
-            return await _httpClient.SendAsync(
-                request: message,
-                cancellationToken: cancellationToken);
+            return await response.ReadJsonOrThrowDownstreamAsync<ChangeAvatarResponse>(
+                serviceName: ServiceName,
+                ct: ct,
+                requestUrl: AvatarEndpoint);
         }
 
-        public async Task<HttpResponseMessage> ChangePasswordAsync(
-            Guid userId,
+        public async Task ChangePasswordAsync(
             ChangePasswordRequest request,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            // /api/internal/account/{userId}/password
-            string endpoint = $"{AccountBaseEndpoint}/{userId:D}/{PasswordSegment}";
+            using HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
+                requestUri: PasswordEndpoint,
+                value: request,
+                cancellationToken: ct);
 
-            var message = new HttpRequestMessage(
-                method: HttpMethod.Put,
-                requestUri: endpoint)
-            {
-                Content = JsonContent.Create(request)
-            };
-
-            return await _httpClient.SendAsync(
-                request: message,
-                cancellationToken: cancellationToken);
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                ct: ct);
         }
+
+        #endregion [ Methods ]
+
+        #region [ Constants ]
+
+        private const string ServiceName = "Identity";
+
+        private const string AccountBaseEndpoint = "/api/account";
+
+        private const string ProfileEndpoint = AccountBaseEndpoint + "/profile";
+        private const string AvatarEndpoint = AccountBaseEndpoint + "/avatar";
+        private const string PasswordEndpoint = AccountBaseEndpoint + "/password";
+
+        #endregion [ Constants ]
     }
 }
