@@ -9,7 +9,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
     {
         private readonly IdentityDbContext _db = db;
 
-        public async Task<IReadOnlyCollection<PermissionCatalogItemResult>> GetPermissionsAsync(CancellationToken ct)
+        public async Task<IReadOnlyCollection<PermissionCatalogItemResult>> GetPermissionsAsync(CancellationToken cancellationToken)
         {
             return await _db.Permissions
                .AsNoTracking()
@@ -24,12 +24,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                     Description = p.Description,
                     IsDeprecated = p.IsDeprecated
                 })
-               .ToListAsync(ct);
+               .ToListAsync(cancellationToken);
         }
 
         public async Task<PermissionCatalogItemResult?> GetPermissionAsync(
             string permissionKey,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             return await _db.Permissions
                .AsNoTracking()
@@ -42,7 +42,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                     Description = p.Description,
                     IsDeprecated = p.IsDeprecated
                 })
-               .FirstOrDefaultAsync(ct);
+               .FirstOrDefaultAsync(cancellationToken);
         }
     }
 }
