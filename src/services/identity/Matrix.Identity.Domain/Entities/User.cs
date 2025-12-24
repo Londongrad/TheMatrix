@@ -1,3 +1,4 @@
+using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.Errors;
 using Matrix.Identity.Domain.ValueObjects;
 
@@ -31,7 +32,7 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Properties ]
 
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
 
         public string? AvatarUrl { get; private set; }
         public Username Username { get; private set; } = null!;
@@ -129,6 +130,7 @@ namespace Matrix.Identity.Domain.Entities
                 throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
 
             var refreshToken = RefreshToken.Create(
+                userId: Id,
                 tokenHash: tokenHash,
                 expiresAtUtc: expiresAtUtc,
                 deviceInfo: deviceInfo,
@@ -140,20 +142,29 @@ namespace Matrix.Identity.Domain.Entities
             return refreshToken;
         }
 
-        public void RevokeRefreshToken(Guid refreshTokenId)
+        public void RevokeRefreshToken(
+            Guid refreshTokenId,
+            RefreshTokenRevocationReason reason,
+            DateTime? revokedAtUtc = null)
         {
             RefreshToken? token = _refreshTokens.FirstOrDefault(t => t.Id == refreshTokenId);
             if (token is null)
                 return;
 
-            token.Revoke();
+            token.Revoke(
+                reason: reason,
+                revokedAtUtc: revokedAtUtc);
         }
 
-        public void RevokeAllRefreshTokens()
+        public void RevokeAllRefreshTokens(
+            RefreshTokenRevocationReason reason,
+            DateTime? revokedAtUtc = null)
         {
             foreach (RefreshToken token in _refreshTokens)
                 if (token.IsActive())
-                    token.Revoke();
+                    token.Revoke(
+                        reason: reason,
+                        revokedAtUtc: revokedAtUtc);
         }
 
         public void BumpPermissionsVersion()
