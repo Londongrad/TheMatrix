@@ -1,6 +1,6 @@
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
-using Matrix.Identity.Contracts.Account.Requests;
-using Matrix.Identity.Contracts.Account.Responses;
+using Matrix.Identity.Contracts.Self.Account.Requests;
+using Matrix.Identity.Contracts.Self.Account.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
 {

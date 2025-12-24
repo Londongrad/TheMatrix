@@ -41,7 +41,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
             string formFieldName,
             IFormFile file,
             CancellationToken ct = default)
-        {   
+        {
             ArgumentNullException.ThrowIfNull(client);
 
             // Важно: контент и stream должны жить до завершения SendAsync.

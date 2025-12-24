@@ -3,8 +3,8 @@ using Matrix.ApiGateway.Contracts.Requests;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
 using Matrix.BuildingBlocks.Api.Errors;
-using Matrix.Identity.Contracts.Auth.Requests;
-using Matrix.Identity.Contracts.Auth.Responses;
+using Matrix.Identity.Contracts.Self.Auth.Requests;
+using Matrix.Identity.Contracts.Self.Auth.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

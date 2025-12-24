@@ -1,5 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
-using Matrix.Identity.Contracts.Sessions.Responses;
+using Matrix.Identity.Contracts.Self.Sessions.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Sessions
 {

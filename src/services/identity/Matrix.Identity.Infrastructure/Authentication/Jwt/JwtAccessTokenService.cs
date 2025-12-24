@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.Identity.Application.Abstractions.Services;
-using Matrix.Identity.Application.UseCases.Auth;
+using Matrix.Identity.Application.UseCases.Self.Auth;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

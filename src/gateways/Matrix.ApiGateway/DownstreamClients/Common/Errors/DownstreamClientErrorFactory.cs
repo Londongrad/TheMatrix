@@ -21,7 +21,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Errors
                 Errors: null,
                 TraceId: null);
 
-            string body = JsonSerializer.Serialize(error, JsonOptions);
+            string body = JsonSerializer.Serialize(
+                value: error,
+                options: JsonOptions);
 
             return new DownstreamServiceException(
                 serviceName: serviceName,
@@ -43,7 +45,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Errors
                 Errors: null,
                 TraceId: null);
 
-            string body = JsonSerializer.Serialize(error, JsonOptions);
+            string body = JsonSerializer.Serialize(
+                value: error,
+                options: JsonOptions);
 
             return new DownstreamServiceException(
                 serviceName: serviceName,

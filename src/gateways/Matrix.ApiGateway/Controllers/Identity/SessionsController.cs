@@ -1,5 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.Identity.Sessions;
-using Matrix.Identity.Contracts.Sessions.Responses;
+using Matrix.Identity.Contracts.Self.Sessions.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,9 +20,13 @@ namespace Matrix.ApiGateway.Controllers.Identity
         }
 
         [HttpDelete("{sessionId:guid}")]
-        public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken ct)
+        public async Task<IActionResult> RevokeSession(
+            Guid sessionId,
+            CancellationToken ct)
         {
-            await _sessionsClient.RevokeSessionAsync(sessionId, ct);
+            await _sessionsClient.RevokeSessionAsync(
+                sessionId: sessionId,
+                ct: ct);
             return NoContent();
         }
 

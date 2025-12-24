@@ -74,31 +74,26 @@ namespace Matrix.BuildingBlocks.Application.Authorization
                 Service: IdentityService,
                 Group: "Me",
                 Description: "View own profile."),
-
             new(
                 Key: PermissionKeys.IdentityMePasswordChange,
                 Service: IdentityService,
                 Group: "Me",
                 Description: "Change own password."),
-
             new(
                 Key: PermissionKeys.IdentityMeAvatarChange,
                 Service: IdentityService,
                 Group: "Me",
                 Description: "Change own avatar."),
-
             new(
                 Key: PermissionKeys.IdentityMeSessionsRead,
                 Service: IdentityService,
                 Group: "Me Sessions",
                 Description: "View own sessions (refresh tokens)."),
-
             new(
                 Key: PermissionKeys.IdentityMeSessionsRevoke,
                 Service: IdentityService,
                 Group: "Me Sessions",
                 Description: "Revoke one of own sessions (refresh token)."),
-
             new(
                 Key: PermissionKeys.IdentityMeSessionsRevokeAll,
                 Service: IdentityService,

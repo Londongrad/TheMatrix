@@ -9,6 +9,7 @@ import { RequireAuth } from "@api/identity/auth/RequireAuth";
 import { LoginPage } from "@modules/identity/auth/pages/LoginPage";
 import { RegisterPage } from "@modules/identity/auth/pages/RegisterPage";
 import { ConfirmProvider } from "@modules/shared/components/ConfirmDialog";
+import ForbiddenPage from "@modules/shared/pages/ForbiddenPage";
 
 const App = () => {
   return (
@@ -19,7 +20,7 @@ const App = () => {
             {/* публичные страницы */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-
+            <Route path="/forbidden" element={<ForbiddenPage />} />
             {/* защищённые страницы — только для залогиненных */}
             <Route
               path="/"

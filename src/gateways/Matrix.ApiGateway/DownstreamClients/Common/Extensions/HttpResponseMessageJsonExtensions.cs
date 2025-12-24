@@ -12,7 +12,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
             string? requestUrl = null)
             where T : class
         {
-            await response.EnsureSuccessOrThrowDownstreamAsync(serviceName, ct);
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: serviceName,
+                ct: ct);
 
             try
             {

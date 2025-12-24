@@ -1,0 +1,7 @@
+using MediatR;
+
+namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
+{
+    public sealed record GetMySessionsQuery
+        : IRequest<IReadOnlyCollection<MySessionResult>>;
+}
