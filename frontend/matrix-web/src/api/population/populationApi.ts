@@ -1,5 +1,5 @@
-import type { PersonDto, UpdateCitizenRequest } from "./populationTypes";
-import { API_POPULATION_URL } from "@api/config";
+import type { PersonDto } from "./populationTypes";
+import { API_POPULATION_URL, API_PERSON_URL } from "@api/config";
 import { apiRequest } from "@api/http";
 
 export interface PagedResult<T> {
@@ -51,7 +51,7 @@ export async function killCitizen(
   id: string,
   token: string
 ): Promise<PersonDto> {
-  return await apiRequest<PersonDto>(`${API_POPULATION_URL}/${id}/kill`, {
+  return await apiRequest<PersonDto>(`${API_PERSON_URL}/${id}/kill`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -64,25 +64,10 @@ export async function resurrectCitizen(
   id: string,
   token: string
 ): Promise<PersonDto> {
-  return await apiRequest<PersonDto>(`${API_POPULATION_URL}/${id}/resurrect`, {
+  return await apiRequest<PersonDto>(`${API_PERSON_URL}/${id}/resurrect`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  });
-}
-
-// Обновление гражданина
-export async function updateCitizen(
-  id: string,
-  payload: UpdateCitizenRequest,
-  token: string
-): Promise<PersonDto> {
-  return await apiRequest<PersonDto>(`${API_POPULATION_URL}/${id}/update`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
   });
 }
