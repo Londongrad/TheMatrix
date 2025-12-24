@@ -32,10 +32,12 @@ function toSafeMessage(text: string): string {
 type RefreshTokenFn = () => Promise<string | null>;
 type LogoutFn = () => void;
 type GetAccessTokenFn = () => string | null;
+type ForbiddenFn = (info: { url: string }) => void;
 
 let refreshTokenFn: RefreshTokenFn | null = null;
 let logoutFn: LogoutFn | null = null;
 let getAccessTokenFn: GetAccessTokenFn | null = null;
+let forbiddenFn: ForbiddenFn | null = null;
 
 // single-flight refresh (один refresh на всех)
 let refreshInFlight: Promise<string | null> | null = null;
@@ -44,10 +46,12 @@ export function configureHttpAuth(options: {
   refreshToken: RefreshTokenFn;
   onLogout: LogoutFn;
   getAccessToken: GetAccessTokenFn;
+  onForbidden?: ForbiddenFn;
 }) {
   refreshTokenFn = options.refreshToken;
   logoutFn = options.onLogout;
   getAccessTokenFn = options.getAccessToken;
+  forbiddenFn = options.onForbidden ?? null;
 }
 
 function normalizeHeaders(init?: HeadersInit): Record<string, string> {
@@ -237,9 +241,10 @@ export async function apiRequest<T>(
         }
       }
 
-      // 403 → страница "Нет доступа"
+      // 403 → SPA forbidden (без window.location.href)
       if (err.status === 403) {
-        window.location.href = "/forbidden";
+        forbiddenFn?.({ url });
+        throw err; // можно оставить: пусть запрос считается неуспешным
       }
     }
 

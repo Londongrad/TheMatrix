@@ -1,12 +1,14 @@
 // src/api/auth/AuthContext.tsx
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
   useState,
   useRef,
   useCallback,
+  type PropsWithChildren,
 } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import type { LoginRequest } from "./authTypes";
 import type { ProfileResponse } from "@api/identity/account/accountTypes";
 import { getProfile } from "@api/identity/account/accountApi";
@@ -32,13 +34,16 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<ProfileResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const tokenRef = useRef<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const hasTriedRefresh = useRef(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const setAccessToken = useCallback((value: string | null) => {
     tokenRef.current = value;
@@ -142,8 +147,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
       },
       getAccessToken: () => tokenRef.current,
+      onForbidden: ({ url }) => {
+        // чтобы не зациклиться, если уже на forbidden
+        if (location.pathname !== "/forbidden") {
+          navigate("/forbidden", {
+            replace: true,
+            state: { from: location.pathname, url },
+          });
+        }
+      },
     });
-  }, [refreshSession, setAccessToken]);
+  }, [refreshSession, setAccessToken, navigate, location.pathname]);
 
   const value: AuthContextValue = {
     user,
