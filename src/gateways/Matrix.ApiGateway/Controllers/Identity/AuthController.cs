@@ -26,22 +26,22 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register(
             [FromBody] RegisterRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             RegisterResponse response = await _identityAuthClient.RegisterAsync(
                 request: request,
-                ct: ct);
+                cancellationToken: cancellationToken);
             return Ok(response);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login(
             [FromBody] LoginRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             LoginResponse response = await _identityAuthClient.LoginAsync(
                 request: request,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             SetRefreshCookie(
                 refreshToken: response.RefreshToken,
@@ -61,7 +61,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
         [HttpPost("refresh")]
         public async Task<ActionResult<LoginResponse>> Refresh(
             [FromBody] RefreshRequestDto request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string? refreshToken = Request.Cookies[RefreshCookieName];
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -83,7 +83,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
             {
                 LoginResponse response = await _identityAuthClient.RefreshAsync(
                     request: downstreamRequest,
-                    ct: ct);
+                    cancellationToken: cancellationToken);
 
                 SetRefreshCookie(
                     refreshToken: response.RefreshToken,
@@ -104,7 +104,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
         }
 
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout(CancellationToken ct)
+        public async Task<IActionResult> Logout(CancellationToken cancellationToken)
         {
             string? refreshToken = Request.Cookies[RefreshCookieName];
 
@@ -116,7 +116,7 @@ namespace Matrix.ApiGateway.Controllers.Identity
                 };
                 await _identityAuthClient.LogoutAsync(
                     request: request,
-                    ct: ct);
+                    cancellationToken: cancellationToken);
             }
 
             ClearRefreshCookie();

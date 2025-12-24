@@ -21,40 +21,40 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Sessions
 
         #region [ Methods ]
 
-        public async Task<IReadOnlyCollection<SessionResponse>> GetSessionsAsync(CancellationToken ct = default)
+        public async Task<IReadOnlyCollection<SessionResponse>> GetSessionsAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: Base,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<IReadOnlyCollection<SessionResponse>>(
                 serviceName: ServiceName,
-                ct: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: Base);
         }
 
         public async Task RevokeSessionAsync(
             Guid sessionId,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.DeleteAsync(
                 requestUri: $"{Base}/{sessionId}",
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: ct);
+                cancellationToken: cancellationToken);
         }
 
-        public async Task RevokeAllSessionsAsync(CancellationToken ct = default)
+        public async Task RevokeAllSessionsAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.DeleteAsync(
                 requestUri: Base,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: ct);
+                cancellationToken: cancellationToken);
         }
 
         #endregion [ Methods ]

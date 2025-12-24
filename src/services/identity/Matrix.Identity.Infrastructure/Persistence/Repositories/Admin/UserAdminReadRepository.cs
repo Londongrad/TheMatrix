@@ -13,14 +13,14 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 
         public async Task<PagedResult<UserListItemResult>> GetUsersPageAsync(
             Pagination pagination,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             // В реальных системах всегда есть paging + AsNoTracking + projection.
             IQueryable<User> query = _db.Users
                .AsNoTracking()
                .OrderByDescending(x => x.CreatedAtUtc);
 
-            int totalCount = await query.CountAsync(ct);
+            int totalCount = await query.CountAsync(cancellationToken);
 
             List<UserListItemResult> items = await query
                .Skip(pagination.Skip)
@@ -35,7 +35,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                     IsLocked = u.IsLocked,
                     CreatedAtUtc = u.CreatedAtUtc
                 })
-               .ToListAsync(ct);
+               .ToListAsync(cancellationToken);
 
             return new PagedResult<UserListItemResult>(
                 items: items,

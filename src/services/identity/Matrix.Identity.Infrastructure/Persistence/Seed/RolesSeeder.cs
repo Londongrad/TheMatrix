@@ -8,31 +8,31 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
     {
         private readonly IdentityDbContext _db = db;
 
-        public async Task SeedAdminRoleWithAllPermissionsAsync(CancellationToken ct)
+        public async Task SeedAdminRoleWithAllPermissionsAsync(CancellationToken cancellationToken)
         {
             // 1) Ensure Admin role exists
             Role? adminRole = await _db.Roles.FirstOrDefaultAsync(
                 predicate: r => r.Name == SystemRoleNames.Admin,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
             if (adminRole is null)
             {
                 adminRole = Role.Create(
                     name: SystemRoleNames.Admin,
                     isSystem: true);
                 _db.Roles.Add(adminRole);
-                await _db.SaveChangesAsync(ct);
+                await _db.SaveChangesAsync(cancellationToken);
             }
 
             // 2) Sync Admin role permissions = all active permissions
             List<string> activePermissionKeys = await _db.Permissions
                .Where(p => !p.IsDeprecated)
                .Select(p => p.Key)
-               .ToListAsync(ct);
+               .ToListAsync(cancellationToken);
 
             List<string> existingKeys = await _db.RolePermissions
                .Where(rp => rp.RoleId == adminRole.Id)
                .Select(rp => rp.PermissionKey)
-               .ToListAsync(ct);
+               .ToListAsync(cancellationToken);
 
             var toAdd = activePermissionKeys
                .Except(
@@ -56,12 +56,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             {
                 List<RolePermission> toRemove = await _db.RolePermissions
                    .Where(rp => rp.RoleId == adminRole.Id && toRemoveKeys.Contains(rp.PermissionKey))
-                   .ToListAsync(ct);
+                   .ToListAsync(cancellationToken);
 
                 _db.RolePermissions.RemoveRange(toRemove);
             }
 
-            await _db.SaveChangesAsync(ct);
+            await _db.SaveChangesAsync(cancellationToken);
         }
     }
 }

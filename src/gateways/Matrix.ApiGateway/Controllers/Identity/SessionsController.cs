@@ -13,27 +13,27 @@ namespace Matrix.ApiGateway.Controllers.Identity
         private readonly IIdentitySessionsClient _sessionsClient = sessionsClient;
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyCollection<SessionResponse>>> GetSessions(CancellationToken ct)
+        public async Task<ActionResult<IReadOnlyCollection<SessionResponse>>> GetSessions(CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<SessionResponse> sessions = await _sessionsClient.GetSessionsAsync(ct);
+            IReadOnlyCollection<SessionResponse> sessions = await _sessionsClient.GetSessionsAsync(cancellationToken);
             return Ok(sessions);
         }
 
         [HttpDelete("{sessionId:guid}")]
         public async Task<IActionResult> RevokeSession(
             Guid sessionId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             await _sessionsClient.RevokeSessionAsync(
                 sessionId: sessionId,
-                ct: ct);
+                cancellationToken: cancellationToken);
             return NoContent();
         }
 
         [HttpDelete]
-        public async Task<IActionResult> RevokeAllSessions(CancellationToken ct)
+        public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {
-            await _sessionsClient.RevokeAllSessionsAsync(ct);
+            await _sessionsClient.RevokeAllSessionsAsync(cancellationToken);
 
             // Optional: if you want to clear refresh cookie on "revoke all" from Gateway side,
             // do it here as well. Otherwise Identity will invalidate refresh tokens anyway.

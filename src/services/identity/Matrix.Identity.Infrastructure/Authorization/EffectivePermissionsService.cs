@@ -11,7 +11,7 @@ namespace Matrix.Identity.Infrastructure.Authorization
 
         public async Task<AuthorizationContext> GetAuthContextAsync(
             Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             // 1) RoleIds пользователя
             List<Guid> roleIds = await _db.UserRoles
@@ -19,7 +19,7 @@ namespace Matrix.Identity.Infrastructure.Authorization
                .Where(ur => ur.UserId == userId)
                .Select(ur => ur.RoleId)
                .Distinct()
-               .ToListAsync(ct);
+               .ToListAsync(cancellationToken);
 
             // 2) Имена ролей (для claims)
             List<string> roles = roleIds.Count == 0
@@ -29,7 +29,7 @@ namespace Matrix.Identity.Infrastructure.Authorization
                    .Where(r => roleIds.Contains(r.Id))
                    .Select(r => r.Name)
                    .Distinct()
-                   .ToListAsync(ct);
+                   .ToListAsync(cancellationToken);
 
             // 3) Permissions из ролей (только активные permissions)
             List<string> rolePermissionKeys = roleIds.Count == 0
@@ -39,7 +39,7 @@ namespace Matrix.Identity.Infrastructure.Authorization
                          where roleIds.Contains(rp.RoleId) && !p.IsDeprecated
                          select rp.PermissionKey)
                    .Distinct()
-                   .ToListAsync(ct);
+                   .ToListAsync(cancellationToken);
 
             var effective = new HashSet<string>(
                 collection: rolePermissionKeys,
@@ -54,7 +54,7 @@ namespace Matrix.Identity.Infrastructure.Authorization
                                        o.PermissionKey,
                                        o.Effect
                                    })
-               .ToListAsync(ct);
+               .ToListAsync(cancellationToken);
 
             foreach (var o in overrides)
                 if (o.Effect == PermissionEffect.Deny)
@@ -69,7 +69,7 @@ namespace Matrix.Identity.Infrastructure.Authorization
                .AsNoTracking()
                .Where(u => u.Id == userId)
                .Select(u => u.PermissionsVersion)
-               .SingleAsync(ct);
+               .SingleAsync(cancellationToken);
 
             return new AuthorizationContext(
                 Roles: roles,

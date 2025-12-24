@@ -13,7 +13,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GetUsersPage
         {
             return repo.GetUsersPageAsync(
                 pagination: request.Pagination,
-                ct: cancellationToken);
+                cancellationToken: cancellationToken);
         }
     }
 }

@@ -4,6 +4,6 @@ namespace Matrix.Identity.Application.Abstractions.Services.Authorization
     {
         Task<AuthorizationContext> GetAuthContextAsync(
             Guid userId,
-            CancellationToken ct);
+            CancellationToken cancellationToken);
     }
 }

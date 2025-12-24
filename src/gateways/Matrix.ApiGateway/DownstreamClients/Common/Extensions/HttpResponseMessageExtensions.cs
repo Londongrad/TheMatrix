@@ -7,12 +7,12 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
         public static async Task EnsureSuccessOrThrowDownstreamAsync(
             this HttpResponseMessage response,
             string serviceName,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             if (response.IsSuccessStatusCode)
                 return;
 
-            string body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
             string? contentType = response.Content.Headers.ContentType?.ToString();
 
             string? url = response.RequestMessage?.RequestUri?.ToString();

@@ -100,7 +100,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
             // 11) Get user's permissions and roles
             AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
                 userId: user.Id,
-                ct: cancellationToken);
+                cancellationToken: cancellationToken);
 
             // 12) New access-token
             AccessTokenModel accessModel = accessTokenService.Generate(

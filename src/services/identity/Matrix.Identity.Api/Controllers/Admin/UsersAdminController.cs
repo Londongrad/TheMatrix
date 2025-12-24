@@ -19,7 +19,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
         public async Task<ActionResult<PagedResult<UserListItemResponse>>> GetUsersPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 50,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             // Минимальная защита от "дай мне 1_000_000"
             pageSize = Math.Clamp(
@@ -34,7 +34,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
 
             PagedResult<UserListItemResult> result = await _sender.Send(
                 request: query,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             var mapped = new PagedResult<UserListItemResponse>(
                 items: result.Items.Select(u => new UserListItemResponse

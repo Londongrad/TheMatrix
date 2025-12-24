@@ -7,18 +7,18 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
     {
         Task<RegisterResponse> RegisterAsync(
             RegisterRequest request,
-            CancellationToken ct = default);
+            CancellationToken cancellationToken = default);
 
         Task<LoginResponse> LoginAsync(
             LoginRequest request,
-            CancellationToken ct = default);
+            CancellationToken cancellationToken = default);
 
         Task<LoginResponse> RefreshAsync(
             RefreshRequest request,
-            CancellationToken ct = default);
+            CancellationToken cancellationToken = default);
 
         Task LogoutAsync(
             LogoutRequest request,
-            CancellationToken ct = default);
+            CancellationToken cancellationToken = default);
     }
 }

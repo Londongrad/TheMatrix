@@ -16,61 +16,61 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
 
         public async Task<RegisterResponse> RegisterAsync(
             RegisterRequest request,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: RegisterEndpoint,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<RegisterResponse>(
                 serviceName: ServiceName,
-                ct: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: RegisterEndpoint);
         }
 
         public async Task<LoginResponse> LoginAsync(
             LoginRequest request,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: LoginEndpoint,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<LoginResponse>(
                 serviceName: ServiceName,
-                ct: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: LoginEndpoint);
         }
 
         public async Task<LoginResponse> RefreshAsync(
             RefreshRequest request,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: RefreshEndpoint,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<LoginResponse>(
                 serviceName: ServiceName,
-                ct: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: RefreshEndpoint);
         }
 
         public async Task LogoutAsync(
             LogoutRequest request,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: LogoutEndpoint,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: ct);
+                cancellationToken: cancellationToken);
         }
 
         #endregion [ Methods ]

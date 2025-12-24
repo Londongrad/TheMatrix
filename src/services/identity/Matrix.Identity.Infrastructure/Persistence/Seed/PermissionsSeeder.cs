@@ -8,13 +8,13 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
     {
         private readonly IdentityDbContext _db = db;
 
-        public async Task SeedAsync(CancellationToken ct)
+        public async Task SeedAsync(CancellationToken cancellationToken)
         {
             // Load current permissions from DB
             Dictionary<string, Permission> existing = await _db.Permissions
                .ToDictionaryAsync(
                     keySelector: x => x.Key,
-                    cancellationToken: ct);
+                    cancellationToken: cancellationToken);
 
             // Upsert from catalog
             foreach (PermissionDefinition def in PermissionsCatalog.All)
@@ -44,7 +44,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 if (!catalogKeys.Contains(kv.Key))
                     kv.Value.Deprecate();
 
-            await _db.SaveChangesAsync(ct);
+            await _db.SaveChangesAsync(cancellationToken);
         }
     }
 }

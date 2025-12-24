@@ -7,6 +7,6 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
     {
         Task<PagedResult<UserListItemResult>> GetUsersPageAsync(
             Pagination pagination,
-            CancellationToken ct);
+            CancellationToken cancellationToken);
     }
 }

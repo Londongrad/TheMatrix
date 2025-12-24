@@ -14,46 +14,46 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
 
         #region [ Methods ]
 
-        public async Task<UserProfileResponse> GetProfileAsync(CancellationToken ct)
+        public async Task<UserProfileResponse> GetProfileAsync(CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await _httpClient.GetAsync(
                 requestUri: ProfileEndpoint,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<UserProfileResponse>(
                 serviceName: ServiceName,
-                ct: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: ProfileEndpoint);
         }
 
         public async Task<ChangeAvatarResponse> ChangeAvatarAsync(
             IFormFile avatar,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _httpClient.PutMultipartFileAsync(
                 requestUri: AvatarEndpoint,
                 formFieldName: "avatar",
                 file: avatar,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<ChangeAvatarResponse>(
                 serviceName: ServiceName,
-                ct: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: AvatarEndpoint);
         }
 
         public async Task ChangePasswordAsync(
             ChangePasswordRequest request,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
                 requestUri: PasswordEndpoint,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: ct);
+                cancellationToken: cancellationToken);
         }
 
         #endregion [ Methods ]

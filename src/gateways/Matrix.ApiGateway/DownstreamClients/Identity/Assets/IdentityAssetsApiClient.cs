@@ -6,11 +6,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Assets
 
         public Task<HttpResponseMessage> GetAvatarAsync(
             string fileName,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             return _httpClient.GetAsync(
                 requestUri: $"/avatars/{fileName}",
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
         }
     }
 }

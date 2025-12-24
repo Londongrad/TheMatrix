@@ -35,7 +35,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.Person
 
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: cancellationToken);
+                cancellationToken: cancellationToken);
 
             PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
             return dto ?? throw new InvalidOperationException("Population API returned empty body for Kill.");
@@ -52,7 +52,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.Person
 
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: cancellationToken);
+                cancellationToken: cancellationToken);
 
             PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
             return dto ?? throw new InvalidOperationException("Population API returned empty body for Resurrect.");

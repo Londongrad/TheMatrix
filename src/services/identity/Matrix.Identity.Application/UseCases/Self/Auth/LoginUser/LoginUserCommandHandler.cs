@@ -62,7 +62,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             // 1) Get effective permissions and roles
             AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
                 userId: user.Id,
-                ct: cancellationToken);
+                cancellationToken: cancellationToken);
 
             // 2) Access token
             AccessTokenModel accessTokenModel = accessTokenService.Generate(

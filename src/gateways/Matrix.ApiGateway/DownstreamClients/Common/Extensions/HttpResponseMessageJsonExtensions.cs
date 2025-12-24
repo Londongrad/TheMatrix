@@ -8,17 +8,17 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
         public static async Task<T> ReadJsonOrThrowDownstreamAsync<T>(
             this HttpResponseMessage response,
             string serviceName,
-            CancellationToken ct,
+            CancellationToken cancellationToken,
             string? requestUrl = null)
             where T : class
         {
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: serviceName,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             try
             {
-                T? dto = await response.Content.ReadFromJsonAsync<T>(cancellationToken: ct);
+                T? dto = await response.Content.ReadFromJsonAsync<T>(cancellationToken: cancellationToken);
 
                 if (dto is null)
                     throw DownstreamClientErrorFactory.InvalidResponseBody(

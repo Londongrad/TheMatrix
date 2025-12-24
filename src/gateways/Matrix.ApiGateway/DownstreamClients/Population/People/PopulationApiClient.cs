@@ -36,7 +36,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
 
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: cancellationToken);
+                cancellationToken: cancellationToken);
         }
 
         public async Task<PagedResult<PersonDto>> GetCitizensPageAsync(
@@ -54,7 +54,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
 
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                ct: cancellationToken);
+                cancellationToken: cancellationToken);
 
             PagedResult<PersonDto>? result = await response.Content
                .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);

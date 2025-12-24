@@ -4,12 +4,12 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Sessions
 {
     public interface IIdentitySessionsClient
     {
-        Task<IReadOnlyCollection<SessionResponse>> GetSessionsAsync(CancellationToken ct = default);
+        Task<IReadOnlyCollection<SessionResponse>> GetSessionsAsync(CancellationToken cancellationToken = default);
 
         Task RevokeSessionAsync(
             Guid sessionId,
-            CancellationToken ct = default);
+            CancellationToken cancellationToken = default);
 
-        Task RevokeAllSessionsAsync(CancellationToken ct = default);
+        Task RevokeAllSessionsAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -8,18 +8,18 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
     {
         private readonly IdentityDbContext _db = db;
 
-        public async Task EnsureAtLeastOneAdminAsync(CancellationToken ct)
+        public async Task EnsureAtLeastOneAdminAsync(CancellationToken cancellationToken)
         {
             Role? adminRole = await _db.Roles.FirstOrDefaultAsync(
                 predicate: r => r.Name == SystemRoleNames.Admin,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             if (adminRole is null)
                 return; // role seeder should run first
 
             bool anyAdmin = await _db.UserRoles.AnyAsync(
                 predicate: ur => ur.RoleId == adminRole.Id,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             if (anyAdmin)
                 return;
@@ -27,7 +27,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             Guid firstUserId = await _db.Users
                .OrderBy(u => u.CreatedAtUtc)
                .Select(u => u.Id)
-               .FirstOrDefaultAsync(ct);
+               .FirstOrDefaultAsync(cancellationToken);
 
             if (firstUserId == Guid.Empty)
                 return; // no users yet
@@ -37,7 +37,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                     userId: firstUserId,
                     roleId: adminRole.Id));
 
-            await _db.SaveChangesAsync(ct);
+            await _db.SaveChangesAsync(cancellationToken);
         }
     }
 }

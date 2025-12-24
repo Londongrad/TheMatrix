@@ -9,14 +9,14 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
             string requestUri,
             string formFieldName,
             IFormFile file,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             return await client.SendMultipartFileAsync(
                 method: HttpMethod.Put,
                 requestUri: requestUri,
                 formFieldName: formFieldName,
                 file: file,
-                ct: ct);
+                cancellationToken: cancellationToken);
         }
 
         public static async Task<HttpResponseMessage> PostMultipartFileAsync(
@@ -24,14 +24,14 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
             string requestUri,
             string formFieldName,
             IFormFile file,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             return await client.SendMultipartFileAsync(
                 method: HttpMethod.Post,
                 requestUri: requestUri,
                 formFieldName: formFieldName,
                 file: file,
-                ct: ct);
+                cancellationToken: cancellationToken);
         }
 
         public static async Task<HttpResponseMessage> SendMultipartFileAsync(
@@ -40,7 +40,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
             string requestUri,
             string formFieldName,
             IFormFile file,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(client);
 
@@ -68,7 +68,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Extensions
             return await client.SendAsync(
                 request: request,
                 completionOption: HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
         }
     }
 }
