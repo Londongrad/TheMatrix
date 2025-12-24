@@ -8,6 +8,10 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             Guid userId,
             CancellationToken cancellationToken = default);
 
+        Task<User?> GetByIdWithRefreshTokensAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default);
+
         Task<User?> GetByEmailAsync(
             string normalizedEmail,
             CancellationToken cancellationToken = default);
@@ -34,6 +38,14 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
 
         Task<User?> GetByRefreshTokenHashAsync(
             string tokenHash,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> ExistsAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> BumpPermissionsVersionAsync(
+            Guid userId,
             CancellationToken cancellationToken = default);
     }
 }

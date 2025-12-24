@@ -13,6 +13,16 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await Users
+               .FirstOrDefaultAsync(
+                    predicate: u => u.Id == id,
+                    cancellationToken: cancellationToken);
+        }
+
+        public async Task<User?> GetByIdWithRefreshTokensAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            return await Users
                .Include(u => u.RefreshTokens)
                .FirstOrDefaultAsync(
                     predicate: u => u.Id == id,
@@ -87,6 +97,32 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         {
             Users.Remove(user);
             return Task.CompletedTask;
+        }
+
+        public async Task<bool> ExistsAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            return await Users
+               .AsNoTracking()
+               .AnyAsync(
+                    predicate: u => u.Id == userId,
+                    cancellationToken: cancellationToken);
+        }
+
+        public async Task<bool> BumpPermissionsVersionAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            int affected = await Users
+               .Where(u => u.Id == userId)
+               .ExecuteUpdateAsync(
+                    setPropertyCalls: setters => setters.SetProperty(
+                        u => u.PermissionsVersion,
+                        u => u.PermissionsVersion + 1),
+                    cancellationToken: cancellationToken);
+
+            return affected > 0;
         }
     }
 }
