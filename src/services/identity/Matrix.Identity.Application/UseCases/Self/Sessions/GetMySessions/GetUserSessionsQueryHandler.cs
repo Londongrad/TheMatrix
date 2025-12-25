@@ -18,7 +18,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
         {
             Guid userId = currentUser.GetUserIdOrThrow();
 
-            User user = await userRepository.GetByIdAsync(
+            User user = await userRepository.GetByIdWithRefreshTokensAsync(
                             userId: userId,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);

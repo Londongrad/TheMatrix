@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
@@ -17,7 +18,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
         {
             Guid userId = currentUser.GetUserIdOrThrow();
 
-            Domain.Entities.User user = await userRepository.GetByIdAsync(
+            User user = await userRepository.GetByIdWithRefreshTokensAsync(
                                             userId: userId,
                                             cancellationToken: cancellationToken) ??
                                         throw ApplicationErrorsFactory.UserNotFound(userId);

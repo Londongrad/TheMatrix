@@ -19,7 +19,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
         {
             Guid userId = currentUser.GetUserIdOrThrow();
 
-            User user = await userRepository.GetByIdAsync(
+            User user = await userRepository.GetByIdWithRefreshTokensAsync(
                             userId: userId,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);
