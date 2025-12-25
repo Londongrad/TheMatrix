@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Enums;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
@@ -24,7 +25,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);
 
-            user.RevokeAllRefreshTokens();
+            user.RevokeAllRefreshTokens(RefreshTokenRevocationReason.UserRevoked);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }

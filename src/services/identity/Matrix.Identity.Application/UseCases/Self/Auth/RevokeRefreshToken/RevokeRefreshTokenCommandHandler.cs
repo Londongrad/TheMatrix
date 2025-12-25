@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Enums;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
@@ -31,7 +32,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
 
             if (!token.IsRevoked)
             {
-                token.Revoke();
+                token.Revoke(RefreshTokenRevocationReason.UserRevoked);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
         }

@@ -5,6 +5,7 @@ using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Self.Auth.LoginUser;
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
 using DomainRefreshToken = Matrix.Identity.Domain.Entities.RefreshToken;
@@ -29,9 +30,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
 
             // 2) Находим пользователя с этим токеном
             User user = await userRepository.GetByRefreshTokenHashAsync(
-                                            tokenHash: hash,
-                                            cancellationToken: cancellationToken) ??
-                                        throw ApplicationErrorsFactory.InvalidRefreshToken();
+                            tokenHash: hash,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             // 3) Находим КОНКРЕТНЫЙ токен
             DomainRefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash) ??
@@ -49,7 +50,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                     b: request.DeviceId,
                     comparisonType: StringComparison.Ordinal))
             {
-                currentToken.Revoke();
+                currentToken.Revoke(
+                    reason: RefreshTokenRevocationReason.SecurityEvent,
+                    revokedAtUtc: DateTime.UtcNow);
 
                 await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -76,7 +79,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                 geoLocation: geoLocation);
 
             // 9) Ревокаем старый токен
-            currentToken.Revoke();
+            currentToken.Revoke(
+                reason: RefreshTokenRevocationReason.SessionReplaced,
+                revokedAtUtc: DateTime.UtcNow);
 
             // 10) Генерим новый refresh + DeviceInfo ДЛЯ НОВОГО токена
             RefreshTokenDescriptor newDescriptor = refreshTokenProvider.Generate(currentToken.IsPersistent);
