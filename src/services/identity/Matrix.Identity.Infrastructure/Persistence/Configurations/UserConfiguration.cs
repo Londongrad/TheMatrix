@@ -70,7 +70,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                     token.ToTable("UserRefreshTokens");
 
                     token.WithOwner()
-                       .HasForeignKey("UserId");
+                       .HasForeignKey(nameof(RefreshToken.UserId));
 
                     token.HasKey(t => t.Id);
 
@@ -90,6 +90,13 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                     token.Property(t => t.IsRevoked)
                        .IsRequired();
 
+                    token.Property(t => t.RevokedAtUtc)
+                       .IsRequired(false);
+
+                    token.Property(t => t.RevokedReason)
+                       .HasConversion<string?>()
+                       .IsRequired(false);
+
                     token.Property(t => t.IsPersistent)
                        .HasDefaultValue(true)
                        .IsRequired();
@@ -98,6 +105,16 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
 
                     // Часто полезно иметь индекс по TokenHash (для поиска по хэшу)
                     token.HasIndex(t => t.TokenHash);
+                    token.HasIndex(t => new
+                    {
+                        t.UserId,
+                        t.IsRevoked
+                    });
+                    token.HasIndex(t => new
+                    {
+                        t.UserId,
+                        t.ExpiresAtUtc
+                    });
 
                     // DeviceInfo (Value Object внутри refresh-токена)
                     token.OwnsOne(
