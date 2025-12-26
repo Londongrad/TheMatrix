@@ -4,26 +4,41 @@ interface PaginationProps {
   page: number;
   totalPages: number;
   onChange: (page: number) => void;
+  disabled?: boolean;
 }
 
-const Pagination = ({ page, totalPages, onChange }: PaginationProps) => {
+const Pagination = ({
+  page,
+  totalPages,
+  onChange,
+  disabled = false,
+}: PaginationProps) => {
   const canGoPrev = page > 1;
   const canGoNext = page < totalPages;
 
+  const isPrevDisabled = disabled || !canGoPrev;
+  const isNextDisabled = disabled || !canGoNext;
+
+  const safeChange = (nextPage: number) => {
+    if (disabled) return;
+    if (nextPage === page) return;
+    onChange(nextPage);
+  };
+
   return (
-    <div className="pagination">
+    <div className="pagination" aria-disabled={disabled}>
       <button
         className="btn btn-sm"
-        disabled={!canGoPrev}
-        onClick={() => canGoPrev && onChange(1)}
+        disabled={isPrevDisabled}
+        onClick={() => safeChange(1)}
       >
         First
       </button>
 
       <button
         className="btn btn-sm"
-        disabled={!canGoPrev}
-        onClick={() => canGoPrev && onChange(page - 1)}
+        disabled={isPrevDisabled}
+        onClick={() => safeChange(page - 1)}
       >
         Previous
       </button>
@@ -34,16 +49,16 @@ const Pagination = ({ page, totalPages, onChange }: PaginationProps) => {
 
       <button
         className="btn btn-sm"
-        disabled={!canGoNext}
-        onClick={() => canGoNext && onChange(page + 1)}
+        disabled={isNextDisabled}
+        onClick={() => safeChange(page + 1)}
       >
         Next
       </button>
 
       <button
         className="btn btn-sm"
-        disabled={!canGoNext}
-        onClick={() => canGoNext && onChange(totalPages)}
+        disabled={isNextDisabled}
+        onClick={() => safeChange(totalPages)}
       >
         Last
       </button>
