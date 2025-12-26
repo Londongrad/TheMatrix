@@ -5,7 +5,7 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
 {
     public interface IUserAdminReadRepository
     {
-        Task<PagedResult<UserListItemResult>> GetUsersPageAsync(
+        Task<PagedResult<UserListItemResult>> GetPageAsync(
             Pagination pagination,
             CancellationToken cancellationToken);
     }

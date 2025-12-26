@@ -6,17 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 {
-    public sealed class UserAdminReadRepository(IdentityDbContext db)
-        : IUserAdminReadRepository
+    public sealed class UserAdminReadRepository(IdentityDbContext dbContext) : IUserAdminReadRepository
     {
-        private readonly IdentityDbContext _db = db;
-
-        public async Task<PagedResult<UserListItemResult>> GetUsersPageAsync(
+        public async Task<PagedResult<UserListItemResult>> GetPageAsync(
             Pagination pagination,
             CancellationToken cancellationToken)
         {
-            // В реальных системах всегда есть paging + AsNoTracking + projection.
-            IQueryable<User> query = _db.Users
+            IQueryable<User> query = dbContext.Users
                .AsNoTracking()
                .OrderByDescending(x => x.CreatedAtUtc);
 

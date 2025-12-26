@@ -4,14 +4,14 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Admin.Users.GetUsersPage
 {
-    public sealed class GetUsersPageQueryHandler(IUserAdminReadRepository repo)
+    public sealed class GetUsersPageQueryHandler(IUserAdminReadRepository userRepository)
         : IRequestHandler<GetUsersPageQuery, PagedResult<UserListItemResult>>
     {
         public Task<PagedResult<UserListItemResult>> Handle(
             GetUsersPageQuery request,
             CancellationToken cancellationToken)
         {
-            return repo.GetUsersPageAsync(
+            return userRepository.GetPageAsync(
                 pagination: request.Pagination,
                 cancellationToken: cancellationToken);
         }
