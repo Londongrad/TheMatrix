@@ -1,11 +1,12 @@
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
+using Matrix.Identity.Infrastructure.Persistence.Projections;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 {
     public sealed class PermissionReadRepository(IdentityDbContext db)
-        : IPermissionRepository
+        : IPermissionReadRepository
     {
         private readonly IdentityDbContext _db = db;
 
@@ -16,14 +17,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .OrderBy(p => p.Service)
                .ThenBy(p => p.Group)
                .ThenBy(p => p.Key)
-               .Select(p => new PermissionCatalogItemResult
-                {
-                    Key = p.Key,
-                    Service = p.Service,
-                    Group = p.Group,
-                    Description = p.Description,
-                    IsDeprecated = p.IsDeprecated
-                })
+               .Select(PermissionProjections.ToCatalogItem)
                .ToListAsync(cancellationToken);
         }
 
@@ -34,14 +28,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
             return await _db.Permissions
                .AsNoTracking()
                .Where(p => p.Key == permissionKey)
-               .Select(p => new PermissionCatalogItemResult
-                {
-                    Key = p.Key,
-                    Service = p.Service,
-                    Group = p.Group,
-                    Description = p.Description,
-                    IsDeprecated = p.IsDeprecated
-                })
+               .Select(PermissionProjections.ToCatalogItem)
                .FirstOrDefaultAsync(cancellationToken);
         }
     }
