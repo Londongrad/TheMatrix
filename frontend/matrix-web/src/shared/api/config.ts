@@ -1,4 +1,9 @@
-export const API_BASE_URL = "https://localhost:7155";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is not set");
+}
+
 export const API_AUTH_URL = API_BASE_URL + "/api/auth";
 export const API_ACCOUNT_URL = API_BASE_URL + "/api/account";
 export const API_SESSIONS_URL = API_BASE_URL + "/api/me/sessions";
