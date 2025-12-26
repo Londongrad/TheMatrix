@@ -27,7 +27,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
 
             // Домен сам решает, есть такой токен или нет.
             // Если нет – просто ничего не сделает (idempotent).
-            user.RevokeRefreshToken(request.SessionId, RefreshTokenRevocationReason.UserRevoked);
+            user.RevokeRefreshToken(
+                refreshTokenId: request.SessionId,
+                reason: RefreshTokenRevocationReason.UserRevoked);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }

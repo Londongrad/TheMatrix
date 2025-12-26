@@ -13,7 +13,8 @@ namespace Matrix.ApiGateway.Controllers.Identity
         private readonly IIdentitySessionsClient _sessionsClient = sessionsClient;
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyCollection<SessionResponse>>> GetSessions(CancellationToken cancellationToken)
+        public async Task<ActionResult<IReadOnlyCollection<SessionResponse>>> GetSessions(
+            CancellationToken cancellationToken)
         {
             IReadOnlyCollection<SessionResponse> sessions = await _sessionsClient.GetSessionsAsync(cancellationToken);
             return Ok(sessions);

@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile
@@ -20,10 +21,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile
         {
             Guid userId = currentUser.GetUserIdOrThrow();
 
-            Domain.Entities.User user = await userRepository.GetByIdAsync(
-                                            userId: userId,
-                                            cancellationToken: cancellationToken) ??
-                                        throw ApplicationErrorsFactory.UserNotFound(userId);
+            User user = await userRepository.GetByIdAsync(
+                            userId: userId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(userId);
 
             // если была старая аватарка — опционально удалить
             if (!string.IsNullOrEmpty(user.AvatarUrl))

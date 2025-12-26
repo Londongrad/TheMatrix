@@ -24,7 +24,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmatio
             // Important: do not leak whether a user exists or not.
             var email = Email.Create(request.Email);
 
-            Domain.Entities.User? user = await userRepository.GetByEmailAsync(
+            User? user = await userRepository.GetByEmailAsync(
                 normalizedEmail: email.Value,
                 cancellationToken: cancellationToken);
 

@@ -3,6 +3,7 @@ using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
 
@@ -26,7 +27,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                 string.IsNullOrWhiteSpace(request.Password))
                 throw ApplicationErrorsFactory.InvalidCredentials();
 
-            Domain.Entities.User? user;
+            User? user;
 
             if (request.Login.Contains('@'))
             {

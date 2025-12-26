@@ -25,7 +25,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail
             Guid userId = currentUser.GetUserIdOrThrow();
 
             // For confirmation flow it's OK to treat "user not found" as invalid token.
-            Domain.Entities.User? user = await userRepository.GetByIdAsync(
+            User? user = await userRepository.GetByIdAsync(
                 userId: userId,
                 cancellationToken: cancellationToken);
 

@@ -21,7 +21,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Sessions
 
         #region [ Methods ]
 
-        public async Task<IReadOnlyCollection<SessionResponse>> GetSessionsAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyCollection<SessionResponse>> GetSessionsAsync(
+            CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: Base,

@@ -10,7 +10,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
     {
         private readonly IdentityDbContext _db = db;
 
-        public async Task<IReadOnlyCollection<PermissionCatalogItemResult>> GetPermissionsAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<PermissionCatalogItemResult>> GetPermissionsAsync(
+            CancellationToken cancellationToken)
         {
             return await _db.Permissions
                .AsNoTracking()

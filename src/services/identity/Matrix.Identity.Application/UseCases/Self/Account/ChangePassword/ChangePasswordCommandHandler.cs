@@ -22,9 +22,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangePassword
             Guid userId = currentUser.GetUserIdOrThrow();
 
             User user = await userRepository.GetByIdWithRefreshTokensAsync(
-                                            userId: userId,
-                                            cancellationToken: cancellationToken) ??
-                                        throw ApplicationErrorsFactory.UserNotFound(userId);
+                            userId: userId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(userId);
 
             // проверяем текущий пароль
             bool isCurrentValid = passwordHasher.Verify(

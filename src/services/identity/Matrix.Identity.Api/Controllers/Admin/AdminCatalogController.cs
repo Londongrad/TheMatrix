@@ -27,7 +27,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
                 request: query,
                 cancellationToken: cancellationToken);
 
-            List<RoleResponse> response = result
+            var response = result
                .Select(role => new RoleResponse
                 {
                     Id = role.Id,
@@ -51,7 +51,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
                 request: query,
                 cancellationToken: cancellationToken);
 
-            List<PermissionCatalogItemResponse> response = result
+            var response = result
                .Select(permission => new PermissionCatalogItemResponse
                 {
                     Key = permission.Key,

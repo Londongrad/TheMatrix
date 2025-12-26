@@ -19,9 +19,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
             Guid userId = currentUser.GetUserIdOrThrow();
 
             User user = await userRepository.GetByIdWithRefreshTokensAsync(
-                                            userId: userId,
-                                            cancellationToken: cancellationToken) ??
-                                        throw ApplicationErrorsFactory.UserNotFound(userId);
+                            userId: userId,
+                            cancellationToken: cancellationToken) ??
+                        throw ApplicationErrorsFactory.UserNotFound(userId);
 
             return new MyProfileResult
             {
