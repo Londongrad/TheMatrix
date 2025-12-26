@@ -70,6 +70,21 @@ namespace Matrix.BuildingBlocks.Application.Authorization
                 Group: "User Sessions",
                 Description: "Revoke all user sessions (all refresh tokens)."),
             new(
+                Key: PermissionKeys.IdentityRolesList,
+                Service: IdentityService,
+                Group: "Roles",
+                Description: "View roles list (paged)."),
+            new(
+                Key: PermissionKeys.IdentityRolesManage,
+                Service: IdentityService,
+                Group: "Roles",
+                Description: "Create/update/delete roles and manage their permissions."),
+            new(
+                Key: PermissionKeys.IdentityPermissionsCatalogRead,
+                Service: IdentityService,
+                Group: "Permissions",
+                Description: "View permissions catalog."),
+            new(
                 Key: PermissionKeys.IdentityMeProfileRead,
                 Service: IdentityService,
                 Group: "Me",
