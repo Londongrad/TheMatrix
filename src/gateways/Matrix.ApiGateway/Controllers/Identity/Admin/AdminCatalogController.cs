@@ -1,5 +1,4 @@
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog;
-using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.Identity.Contracts.Admin.Permissions.Responses;
 using Matrix.Identity.Contracts.Admin.Roles.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +14,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         private readonly IIdentityAdminCatalogClient _catalogClient = catalogClient;
 
         [HttpGet("roles")]
-        [Authorize(Policy = PermissionKeys.IdentityRolesList)]
         public async Task<ActionResult<IReadOnlyCollection<RoleResponse>>> GetRoles(CancellationToken ct)
         {
             IReadOnlyCollection<RoleResponse> roles = await _catalogClient.GetRolesAsync(ct);
@@ -23,7 +21,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpGet("permissions")]
-        [Authorize(Policy = PermissionKeys.IdentityPermissionsCatalogRead)]
         public async Task<ActionResult<IReadOnlyCollection<PermissionCatalogItemResponse>>> GetPermissions(
             CancellationToken ct)
         {

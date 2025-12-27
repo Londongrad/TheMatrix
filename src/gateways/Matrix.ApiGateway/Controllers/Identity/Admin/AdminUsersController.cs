@@ -1,5 +1,4 @@
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
-using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Admin.Users.Requests;
 using Matrix.Identity.Contracts.Admin.Users.Responses;
@@ -10,13 +9,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
 {
     [ApiController]
     [Route("api/admin/users")]
-    [Authorize(Policy = PermissionKeys.IdentityUsersRead)]
+    [Authorize]
     public sealed class AdminUsersController(IIdentityAdminUsersClient usersClient) : ControllerBase
     {
         private readonly IIdentityAdminUsersClient _usersClient = usersClient;
 
         [HttpGet]
-        [Authorize(Policy = PermissionKeys.IdentityUsersList)]
         public async Task<ActionResult<PagedResult<UserListItemResponse>>> GetUsersPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 50,
@@ -35,7 +33,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpGet("{userId:guid}")]
-        [Authorize(Policy = PermissionKeys.IdentityUsersRead)]
         public async Task<ActionResult<UserDetailsResponse>> GetUserDetails(
             [FromRoute] Guid userId,
             CancellationToken ct)
@@ -50,7 +47,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpPost("{userId:guid}/lock")]
-        [Authorize(Policy = PermissionKeys.IdentityUsersLock)]
         public async Task<IActionResult> LockUser(
             [FromRoute] Guid userId,
             CancellationToken ct)
@@ -63,7 +59,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpPost("{userId:guid}/unlock")]
-        [Authorize(Policy = PermissionKeys.IdentityUsersUnlock)]
         public async Task<IActionResult> UnlockUser(
             [FromRoute] Guid userId,
             CancellationToken ct)
@@ -76,7 +71,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpGet("{userId:guid}/roles")]
-        [Authorize(Policy = PermissionKeys.IdentityUserRolesRead)]
         public async Task<ActionResult<IReadOnlyCollection<UserRoleResponse>>> GetUserRoles(
             [FromRoute] Guid userId,
             CancellationToken ct)
@@ -89,7 +83,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpPut("{userId:guid}/roles")]
-        [Authorize(Policy = PermissionKeys.IdentityUserRolesAssign)]
         public async Task<IActionResult> AssignUserRoles(
             [FromRoute] Guid userId,
             [FromBody] AssignUserRolesRequest request,
@@ -104,7 +97,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpGet("{userId:guid}/permissions")]
-        [Authorize(Policy = PermissionKeys.IdentityUserPermissionsRead)]
         public async Task<ActionResult<IReadOnlyCollection<UserPermissionResponse>>> GetUserPermissions(
             [FromRoute] Guid userId,
             CancellationToken ct)
@@ -118,7 +110,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpPost("{userId:guid}/permissions/grant")]
-        [Authorize(Policy = PermissionKeys.IdentityUserPermissionsGrant)]
         public async Task<IActionResult> GrantUserPermission(
             [FromRoute] Guid userId,
             [FromBody] UserPermissionRequest request,
@@ -133,7 +124,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         }
 
         [HttpPost("{userId:guid}/permissions/deprive")]
-        [Authorize(Policy = PermissionKeys.IdentityUserPermissionsDeprive)]
         public async Task<IActionResult> DepriveUserPermission(
             [FromRoute] Guid userId,
             [FromBody] UserPermissionRequest request,
