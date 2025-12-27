@@ -16,35 +16,28 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.AssignUserRoles
             AssignUserRolesCommand request,
             CancellationToken cancellationToken)
         {
-            var distinctRoleIds = request.RoleIds
-               .Distinct()
-               .ToList();
+            // лучше сразу HashSet (и дубликаты убрали, и Contains быстрый)
+            var desiredRoleIds = request.RoleIds.ToHashSet();
 
-            Task<bool> existsTask = userRepository.ExistsAsync(
+            // 1) user exists
+            bool exists = await userRepository.ExistsAsync(
                 userId: request.UserId,
                 cancellationToken: cancellationToken);
-
-            Task<IReadOnlyCollection<Guid>> existingRoleIdsTask =
-                distinctRoleIds.Count == 0
-                    ? Task.FromResult<IReadOnlyCollection<Guid>>(Array.Empty<Guid>())
-                    : roleReadRepository.GetExistingRoleIdsAsync(
-                        roleIds: distinctRoleIds,
-                        cancellationToken: cancellationToken);
-
-            await Task.WhenAll(
-                existsTask,
-                existingRoleIdsTask);
-
-            bool exists = existsTask.Result; // после WhenAll безопасно
 
             if (!exists)
                 throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
-            if (distinctRoleIds.Count > 0)
+            // 2) validate roles (только если что-то передали)
+            if (desiredRoleIds.Count > 0)
             {
-                IReadOnlyCollection<Guid> existingRoleIds = existingRoleIdsTask.Result;
+                IReadOnlyCollection<Guid> existingRoleIds =
+                    await roleReadRepository.GetExistingRoleIdsAsync(
+                        roleIds: desiredRoleIds,
+                        cancellationToken: cancellationToken);
 
-                var missingRoleIds = distinctRoleIds.Except(existingRoleIds)
+                // missing = desired - existing
+                var missingRoleIds = desiredRoleIds
+                   .Except(existingRoleIds)
                    .ToList();
 
                 if (missingRoleIds.Count > 0)
@@ -61,13 +54,14 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.AssignUserRoles
                 }
             }
 
+            // 3) replace roles (repo сам сравнивает и возвращает changed)
             bool changed = await userRolesRepository.ReplaceUserRolesAsync(
                 userId: request.UserId,
-                roleIds: distinctRoleIds,
+                roleIds: desiredRoleIds,
                 cancellationToken: cancellationToken);
 
             if (!changed)
-                return; // роли уже такие -> не bump'аем и не сохраняем
+                return;
 
             await userRepository.BumpPermissionsVersionAsync(
                 userId: request.UserId,

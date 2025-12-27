@@ -18,31 +18,25 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
             GrantUserPermissionCommand request,
             CancellationToken cancellationToken)
         {
-            Task<bool> existsTask = userRepository.ExistsAsync(
+            // 1) user exists
+            bool exists = await userRepository.ExistsAsync(
                 userId: request.UserId,
                 cancellationToken: cancellationToken);
 
-            Task<PermissionCatalogItemResult?> permTask = permissionReadRepository.GetPermissionAsync(
-                permissionKey: request.PermissionKey,
-                cancellationToken: cancellationToken);
+            if (!exists)
+                throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
-            await Task.WhenAll(
-                existsTask,
-                permTask);
-
-            // Можно выбрать порядок ошибок:
-            // 1) Сначала permission (более “валидаторно”)
-            PermissionCatalogItemResult? permission = permTask.Result;
+            // 2) permission
+            PermissionCatalogItemResult? permission =
+                await permissionReadRepository.GetPermissionAsync(
+                    permissionKey: request.PermissionKey,
+                    cancellationToken: cancellationToken);
 
             if (permission is null)
                 throw ApplicationErrorsFactory.PermissionNotFound(request.PermissionKey);
 
             if (permission.IsDeprecated)
                 throw ApplicationErrorsFactory.PermissionDeprecated(request.PermissionKey);
-
-            // 2) Потом user existence
-            if (!existsTask.Result)
-                throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
             bool changed = await permissionsRepository.UpsertUserPermissionAsync(
                 userId: request.UserId,

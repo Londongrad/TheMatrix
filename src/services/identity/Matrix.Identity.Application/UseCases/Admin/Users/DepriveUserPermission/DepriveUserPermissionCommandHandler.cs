@@ -18,23 +18,19 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission
             DepriveUserPermissionCommand request,
             CancellationToken cancellationToken)
         {
-            Task<bool> existsTask = userRepository.ExistsAsync(
+            // 1) user exists
+            bool exists = await userRepository.ExistsAsync(
                 userId: request.UserId,
                 cancellationToken: cancellationToken);
 
-            Task<PermissionCatalogItemResult?> permTask =
-                permissionReadRepository.GetPermissionAsync(
-                    permissionKey: request.PermissionKey,
-                    cancellationToken: cancellationToken);
-
-            await Task.WhenAll(
-                existsTask,
-                permTask);
-
-            if (!await existsTask)
+            if (!exists)
                 throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
-            PermissionCatalogItemResult? permission = await permTask;
+            // 2) permission validation
+            PermissionCatalogItemResult? permission =
+                await permissionReadRepository.GetPermissionAsync(
+                    permissionKey: request.PermissionKey,
+                    cancellationToken: cancellationToken);
 
             if (permission is null)
                 throw ApplicationErrorsFactory.PermissionNotFound(request.PermissionKey);
@@ -42,6 +38,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission
             if (permission.IsDeprecated)
                 throw ApplicationErrorsFactory.PermissionDeprecated(request.PermissionKey);
 
+            // 3) upsert deny
             bool changed = await permissionsRepository.UpsertUserPermissionAsync(
                 userId: request.UserId,
                 permissionKey: request.PermissionKey,
@@ -49,7 +46,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission
                 cancellationToken: cancellationToken);
 
             if (!changed)
-                return; // уже Deny — не bumpаем версию, не сохраняем лишний раз
+                return;
 
             await userRepository.BumpPermissionsVersionAsync(
                 userId: request.UserId,
