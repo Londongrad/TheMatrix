@@ -1,14 +1,14 @@
 using System.Net;
 using Matrix.ApiGateway.Contracts.Requests;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
-using Matrix.ApiGateway.DownstreamClients.Identity.Auth;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.Identity.Contracts.Self.Auth.Requests;
 using Matrix.Identity.Contracts.Self.Auth.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers.Identity
+namespace Matrix.ApiGateway.Controllers.Identity.Self
 {
     [ApiController]
     [AllowAnonymous]

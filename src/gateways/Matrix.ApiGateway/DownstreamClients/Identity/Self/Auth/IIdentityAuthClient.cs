@@ -1,7 +1,7 @@
 using Matrix.Identity.Contracts.Self.Auth.Requests;
 using Matrix.Identity.Contracts.Self.Auth.Responses;
 
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Auth
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
 {
     public interface IIdentityAuthClient
     {

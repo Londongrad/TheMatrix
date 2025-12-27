@@ -1,7 +1,7 @@
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
 
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Sessions
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
 {
     public sealed class IdentitySessionsApiClient(HttpClient httpClient) : IIdentitySessionsClient
     {

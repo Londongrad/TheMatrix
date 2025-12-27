@@ -1,12 +1,12 @@
-using Matrix.ApiGateway.DownstreamClients.Identity.Account;
-using Matrix.ApiGateway.DownstreamClients.Identity.Assets;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
 using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers.Identity
+namespace Matrix.ApiGateway.Controllers.Identity.Self
 {
     [Authorize]
     [ApiController]

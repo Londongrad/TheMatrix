@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Assets
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets
 {
     public sealed class IdentityAssetsApiClient(HttpClient httpClient) : IIdentityAssetsClient
     {

@@ -1,9 +1,9 @@
-using Matrix.ApiGateway.DownstreamClients.Identity.Sessions;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers.Identity
+namespace Matrix.ApiGateway.Controllers.Identity.Self
 {
     [Authorize]
     [ApiController]

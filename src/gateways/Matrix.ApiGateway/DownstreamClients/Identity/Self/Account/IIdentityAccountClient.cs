@@ -1,7 +1,7 @@
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Account
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
 {
     public interface IIdentityAccountClient
     {
