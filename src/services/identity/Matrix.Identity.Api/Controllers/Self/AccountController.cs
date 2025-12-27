@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
@@ -19,6 +20,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         #region [ Profile ]
 
         [HttpGet("profile")]
+        [Authorize(Policy = PermissionKeys.IdentityMeProfileRead)]
         public async Task<ActionResult<UserProfileResponse>> GetProfile(CancellationToken cancellationToken)
         {
             var query = new GetMyProfileQuery();
@@ -45,6 +47,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         [HttpPut("avatar")]
         [RequestSizeLimit(2 * 1024 * 1024)]
         [Consumes("multipart/form-data")]
+        [Authorize(Policy = PermissionKeys.IdentityMeAvatarChange)]
         public async Task<ActionResult<ChangeAvatarResponse>> ChangeAvatar(
             IFormFile? avatar,
             CancellationToken cancellationToken)
@@ -71,6 +74,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         [HttpPut("password")]
+        [Authorize(Policy = PermissionKeys.IdentityMePasswordChange)]
         public async Task<IActionResult> ChangePassword(
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)

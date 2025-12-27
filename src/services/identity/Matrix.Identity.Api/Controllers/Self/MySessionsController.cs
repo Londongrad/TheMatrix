@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession;
@@ -16,6 +17,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         private readonly ISender _sender = sender;
 
         [HttpGet]
+        [Authorize(Policy = PermissionKeys.IdentityMeSessionsRead)]
         public async Task<ActionResult<List<SessionResponse>>> GetSessions(CancellationToken cancellationToken)
         {
             var query = new GetMySessionsQuery();
@@ -46,6 +48,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         [HttpDelete("{sessionId:guid}")]
+        [Authorize(Policy = PermissionKeys.IdentityMeSessionsRevoke)]
         public async Task<IActionResult> RevokeSession(
             [FromRoute] Guid sessionId,
             CancellationToken cancellationToken)
@@ -61,6 +64,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         [HttpDelete]
+        [Authorize(Policy = PermissionKeys.IdentityMeSessionsRevokeAll)]
         public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {
             var command = new RevokeAllMySessionsCommand();
