@@ -3,6 +3,8 @@ using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog;
+using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
@@ -131,6 +133,8 @@ namespace Matrix.ApiGateway.Configurations
                                      throw new InvalidOperationException(
                                          "DownstreamServices:Identity is not configured.");
 
+            #region [ Self ]
+
             // Identity Auth client (обычно анонимный, Authorization header не нужен, но client-info полезен)
             services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(client =>
                 {
@@ -163,6 +167,26 @@ namespace Matrix.ApiGateway.Configurations
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .AddHttpMessageHandler<ForwardClientInfoHeadersHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
+
+            #endregion [ Self ]
+
+            #region [ Admin ]
+
+            services.AddHttpClient<IIdentityAdminCatalogClient, IdentityAdminCatalogApiClient>(client =>
+                {
+                    client.BaseAddress = new Uri(identityBaseUrl);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            services.AddHttpClient<IIdentityAdminUsersClient, IdentityAdminUsersApiClient>(client =>
+                {
+                    client.BaseAddress = new Uri(identityBaseUrl);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            #endregion [ Admin ]
 
             #endregion [ Identity http clients ]
 
