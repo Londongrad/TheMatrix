@@ -1,3 +1,4 @@
+// CitizensPage.tsx
 import { useEffect, useState } from "react";
 import CitizenCard from "@services/population/components/CitizenCard";
 import CitizenDetailsModal from "@services/population/components/CitizenDetailsModal";
@@ -16,7 +17,6 @@ const CitizensPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Access token
   const { token } = useAuth();
 
   const [selectedCitizenId, setSelectedCitizenId] = useState<string | null>(
@@ -24,15 +24,23 @@ const CitizensPage = () => {
   );
 
   useEffect(() => {
-    // 1. Если токена нет — не делаем запрос
+    // (1) Нет токена — чистим состояние, чтобы не висели старые данные
     if (!token) {
+      setCitizens([]);
+      setTotalCitizens(0);
+      setPageNumber(1);
+      setSelectedCitizenId(null);
+      setError(null);
+      setIsLoading(false);
       return;
     }
 
-    // 2. Фиксируем токен в локальной переменной, чтобы TS понял, что он уже точно string
     const accessToken = token;
 
-    const fetchPage = async () => {
+    // (2) Защита от гонок: игнорируем поздние ответы
+    let isActual = true;
+
+    (async () => {
       try {
         setIsLoading(true);
         setError(null);
@@ -42,17 +50,24 @@ const CitizensPage = () => {
           PAGE_SIZE,
           accessToken
         );
+
+        if (!isActual) return;
         setCitizens(result.items);
         setTotalCitizens(result.totalCount);
       } catch (e) {
+        if (!isActual) return;
         console.error(e);
         setError("Failed to load citizens.");
+        // UX: оставляем прошлые данные на экране (не очищаем citizens)
       } finally {
+        if (!isActual) return;
         setIsLoading(false);
       }
-    };
+    })();
 
-    fetchPage();
+    return () => {
+      isActual = false;
+    };
   }, [pageNumber, token]);
 
   const totalPages = Math.max(1, Math.ceil(totalCitizens / PAGE_SIZE));
@@ -66,17 +81,14 @@ const CitizensPage = () => {
       ? citizens.find((c) => c.id === selectedCitizenId) ?? null
       : null;
 
-  const openEditor = (id: string) => {
-    setSelectedCitizenId(id);
-  };
-
-  const closeEditor = () => {
-    setSelectedCitizenId(null);
-  };
+  const openEditor = (id: string) => setSelectedCitizenId(id);
+  const closeEditor = () => setSelectedCitizenId(null);
 
   const handlePersonUpdated = (updated: PersonDto) => {
     setCitizens((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
   };
+
+  const paginationDisabled = isLoading || !token;
 
   return (
     <div className="citizens-page">
@@ -104,6 +116,7 @@ const CitizensPage = () => {
           page={pageNumber}
           totalPages={totalPages}
           onChange={setPageNumber}
+          disabled={paginationDisabled}
         />
       </div>
 
@@ -123,6 +136,7 @@ const CitizensPage = () => {
             page={pageNumber}
             totalPages={totalPages}
             onChange={setPageNumber}
+            disabled={paginationDisabled}
           />
         </>
       )}
