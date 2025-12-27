@@ -39,7 +39,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             Guid userId,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}";
+            string url = $"{UsersEndpoint}/{userId:D}";
 
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: url,
@@ -55,7 +55,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             Guid userId,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}/lock";
+            string url = $"{UsersEndpoint}/{userId:D}/lock";
 
             using HttpResponseMessage resp = await _httpClient.PostAsync(
                 requestUri: url,
@@ -71,7 +71,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             Guid userId,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}/unlock";
+            string url = $"{UsersEndpoint}/{userId:D}/unlock";
 
             using HttpResponseMessage resp = await _httpClient.PostAsync(
                 requestUri: url,
@@ -87,7 +87,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             Guid userId,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}/roles";
+            string url = $"{UsersEndpoint}/{userId:D}/roles";
 
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: url,
@@ -104,7 +104,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             AssignUserRolesRequest request,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}/roles";
+            string url = $"{UsersEndpoint}/{userId:D}/roles";
 
             using HttpResponseMessage resp = await _httpClient.PutAsJsonAsync(
                 requestUri: url,
@@ -120,7 +120,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             Guid userId,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}/permissions";
+            string url = $"{UsersEndpoint}/{userId:D}/permissions";
 
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: url,
@@ -137,7 +137,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             UserPermissionRequest request,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}/permissions/grant";
+            string url = $"{UsersEndpoint}/{userId:D}/permissions/grant";
 
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: url,
@@ -154,7 +154,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             UserPermissionRequest request,
             CancellationToken ct)
         {
-            string url = $"{UsersEndpoint}/{userId:guid}/permissions/deprive";
+            string url = $"{UsersEndpoint}/{userId:D}/permissions/deprive";
 
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: url,
