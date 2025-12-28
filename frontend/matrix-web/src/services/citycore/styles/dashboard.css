@@ -1,17 +1,17 @@
 .text-input {
-  background: #020617;
-  border-radius: 8px;
-  border: 1px solid #1f2937;
+  background: rgba(8, 12, 14, 0.7);
+  border-radius: 10px;
+  border: 1px solid rgba(87, 255, 170, 0.2);
   padding: 0.4rem 0.6rem;
-  color: #e5e7eb;
+  color: rgba(232, 255, 245, 0.9);
   font-size: 0.9rem;
   min-width: 120px;
 }
 
 .text-input:focus {
   outline: none;
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 1px #1d4ed8;
+  border-color: rgba(87, 255, 170, 0.65);
+  box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.4);
 }
 
 .cards-grid {
@@ -24,32 +24,40 @@
 
 .card-sub {
   font-size: 12px;
-  color: #6b7280;
+  color: rgba(232, 255, 245, 0.6);
 }
 
 .page-title {
   font-size: 22px;
   font-weight: 600;
   margin-bottom: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(232, 255, 245, 0.92);
 }
 
 .card-title {
   font-size: 14px;
-  color: #9ca3af;
+  color: rgba(232, 255, 245, 0.6);
   margin-bottom: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .card-value {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 4px;
+  color: rgba(232, 255, 245, 0.95);
 }
 
 .card {
-  background: #020617;
-  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(87, 255, 170, 0.08), transparent 65%),
+    rgba(8, 12, 14, 0.75);
+  border-radius: 14px;
   padding: 16px;
-  border: 1px solid #1f2937;
+  border: 1px solid rgba(87, 255, 170, 0.18);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
 }
 
 .actions {
@@ -60,6 +68,9 @@
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 12px;
+  color: rgba(232, 255, 245, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .actions-row {

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { initializePopulation } from "@services/population/api/populationApi";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
+import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/styles/dashboard.css";
 
 const DashboardPage = () => {
@@ -78,15 +79,13 @@ const DashboardPage = () => {
       <section className="actions">
         <h2 className="section-title">God actions</h2>
         <div className="actions-row">
-          <button className="btn btn-primary" onClick={handleTriggerStorm}>
+          <Button variant="primary" onClick={handleTriggerStorm}>
             Trigger thunderstorm
-          </button>
-          <button className="btn btn-danger" onClick={handleTriggerBlackout}>
+          </Button>
+          <Button variant="danger" onClick={handleTriggerBlackout}>
             Trigger blackout
-          </button>
-          <button className="btn" disabled>
-            Spawn random event (soon)
-          </button>
+          </Button>
+          <Button disabled>Spawn random event (soon)</Button>
         </div>
       </section>
 
@@ -101,13 +100,13 @@ const DashboardPage = () => {
             value={generateCount}
             onChange={(e) => setGenerateCount(Number(e.target.value))}
           />
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             onClick={handleInitializePopulation}
             disabled={isInitializing}
           >
             {isInitializing ? "Initializing..." : "Generate citizens"}
-          </button>
+          </Button>
         </div>
 
         {initError && <p className="error-text">{initError}</p>}
