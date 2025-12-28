@@ -1,10 +1,13 @@
-// src/app/layouts/Topbar.tsx
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
-import "@app/layouts/main/styles/topbar.css";
+import "./topbar.css";
+type Props = {
+  title: string;
+  subtitle?: string;
+};
 
-const Topbar = () => {
+export default function MatrixTopbar({ title, subtitle }: Props) {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -46,42 +49,46 @@ const Topbar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
   return (
-    <header className="topbar">
-      <div className="topbar-left">
-        <span className="topbar-caption">City control panel</span>
+    <header className="mx-topbar">
+      <div className="mx-topbar__left">
+        <div className="mx-topbar__title">{title}</div>
+        {subtitle ? (
+          <div className="mx-topbar__subtitle">{subtitle}</div>
+        ) : null}
       </div>
 
-      <div className="topbar-right">
-        <div className="topbar-user" ref={menuRef}>
+      <div className="mx-topbar__right">
+        <div className="mx-topbar__user" ref={menuRef}>
           <button
             type="button"
-            className={`user-menu-toggle ${
-              isOpen ? "user-menu-toggle--open" : ""
+            className={`mx-topbar__toggle ${
+              isOpen ? "mx-topbar__toggle--open" : ""
             }`}
             onClick={handleToggle}
           >
-            <div className="user-avatar">
+            <div className="mx-topbar__avatar">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
                   alt={displayName}
-                  className="user-avatar-image"
+                  className="mx-topbar__avatarImage"
                   draggable={false}
                 />
               ) : (
                 initial
               )}
             </div>
-            <div className="user-text">
-              <span className="user-name">{displayName}</span>
+            <div className="mx-topbar__userText">
+              <span className="mx-topbar__userName">{displayName}</span>
             </div>
             <span
-              className={`user-caret ${isOpen ? "open" : ""}`}
+              className={`mx-topbar__caret ${
+                isOpen ? "mx-topbar__caret--open" : ""
+              }`}
               aria-hidden="true"
             >
-              <svg className="user-caret-icon" viewBox="0 0 20 20" fill="none">
+              <svg className="mx-topbar__caretIcon" viewBox="0 0 20 20">
                 <path
                   d="M6 8l4 4 4-4"
                   stroke="currentColor"
@@ -94,17 +101,17 @@ const Topbar = () => {
           </button>
 
           {isOpen && (
-            <div className="user-dropdown">
+            <div className="mx-topbar__dropdown">
               <button
                 type="button"
-                className="user-dropdown-item"
+                className="mx-topbar__dropdownItem"
                 onClick={handleGoToSettings}
               >
                 Settings
               </button>
               <button
                 type="button"
-                className="user-dropdown-item logout"
+                className="mx-topbar__dropdownItem mx-topbar__dropdownItem--danger"
                 onClick={handleLogout}
               >
                 Log out
@@ -115,6 +122,4 @@ const Topbar = () => {
       </div>
     </header>
   );
-};
-
-export default Topbar;
+}
