@@ -1,0 +1,36 @@
+.ui-icon-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(87, 255, 170, 0.2);
+  background: rgba(10, 14, 16, 0.35);
+  color: rgba(232, 255, 245, 0.78);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.14s ease, border-color 0.14s ease,
+    box-shadow 0.14s ease, background 0.14s ease;
+}
+
+.ui-icon-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(87, 255, 170, 0.36);
+  box-shadow: 0 0 16px rgba(87, 255, 170, 0.12);
+  background: rgba(10, 14, 16, 0.5);
+}
+
+.ui-icon-button--sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+}
+
+.ui-icon-button--danger {
+  border-color: rgba(255, 80, 135, 0.35);
+  color: rgba(255, 80, 135, 0.95);
+}
+
+.ui-icon-button--danger:hover {
+  border-color: rgba(255, 80, 135, 0.65);
+  box-shadow: 0 0 16px rgba(255, 80, 135, 0.18);
+}

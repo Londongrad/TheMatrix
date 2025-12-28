@@ -1,4 +1,4 @@
-.mx-admin-card {
+.ui-card {
   border-radius: 18px;
   background: rgba(10, 14, 16, 0.56);
   border: 1px solid rgba(87, 255, 170, 0.14);
@@ -8,7 +8,7 @@
   position: relative;
 }
 
-.mx-admin-card::before {
+.ui-card::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -20,7 +20,7 @@
   );
 }
 
-.mx-admin-card__header {
+.ui-card__header {
   position: relative;
   display: flex;
   align-items: flex-start;
@@ -30,16 +30,18 @@
   border-bottom: 1px solid rgba(87, 255, 170, 0.1);
 }
 
-.mx-admin-card__title {
+.ui-card__title {
   font-weight: 900;
   color: rgba(232, 255, 245, 0.92);
 }
-.mx-admin-card__sub {
+
+.ui-card__sub {
   margin-top: 4px;
   font-size: 12px;
   color: rgba(232, 255, 245, 0.62);
 }
-.mx-admin-card__body {
+
+.ui-card__body {
   position: relative;
   padding: 14px;
 }

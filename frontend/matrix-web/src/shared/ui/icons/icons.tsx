@@ -102,6 +102,7 @@ export function IconOpen() {
     </svg>
   );
 }
+
 export function IconEdit() {
   return (
     <svg
@@ -126,6 +127,7 @@ export function IconEdit() {
     </svg>
   );
 }
+
 export function IconLock() {
   return (
     <svg
@@ -150,6 +152,7 @@ export function IconLock() {
     </svg>
   );
 }
+
 export function IconUnlock() {
   return (
     <svg
@@ -174,6 +177,7 @@ export function IconUnlock() {
     </svg>
   );
 }
+
 export function IconRefresh() {
   return (
     <svg

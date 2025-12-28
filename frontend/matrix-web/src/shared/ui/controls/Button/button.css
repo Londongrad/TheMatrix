@@ -1,0 +1,60 @@
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(87, 255, 170, 0.2);
+  background: rgba(10, 14, 16, 0.35);
+  color: rgba(232, 255, 245, 0.92);
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease,
+    box-shadow 0.14s ease, background 0.14s ease;
+}
+
+.ui-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(87, 255, 170, 0.36);
+  box-shadow: 0 0 22px rgba(87, 255, 170, 0.12);
+  background: rgba(10, 14, 16, 0.5);
+}
+
+.ui-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.ui-button--sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.ui-button--primary {
+  background: rgba(87, 255, 170, 0.12);
+  border-color: rgba(87, 255, 170, 0.45);
+  color: rgba(232, 255, 245, 0.95);
+}
+
+.ui-button--danger {
+  border-color: rgba(255, 80, 135, 0.35);
+  background: rgba(255, 80, 135, 0.1);
+  color: #fecaca;
+}
+
+.ui-button--danger:hover {
+  border-color: rgba(255, 80, 135, 0.65);
+  box-shadow: 0 0 22px rgba(255, 80, 135, 0.18);
+}
+
+.ui-button--success {
+  border-color: rgba(87, 255, 170, 0.45);
+  background: rgba(22, 163, 74, 0.2);
+  color: #bbf7d0;
+}
+
+.ui-button--success:hover {
+  border-color: rgba(87, 255, 170, 0.65);
+  box-shadow: 0 0 22px rgba(87, 255, 170, 0.18);
+}
