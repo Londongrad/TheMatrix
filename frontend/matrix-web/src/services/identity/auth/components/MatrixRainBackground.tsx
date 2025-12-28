@@ -1,3 +1,4 @@
+// src/services/identity/auth/components/MatrixRainBackground.tsx
 import { useEffect, useRef } from "react";
 import "@services/identity/auth/styles/matrix-rain.css";
 

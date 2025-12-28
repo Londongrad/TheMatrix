@@ -1,4 +1,4 @@
-// src/api/auth/authApi.ts
+// src/services/identity/api/auth/authApi.ts
 import { API_AUTH_URL } from "@shared/api/config";
 import { request } from "@shared/api/http";
 import type { RegisterRequest, LoginRequest, LoginResponse } from "./authTypes";

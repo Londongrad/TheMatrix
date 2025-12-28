@@ -1,4 +1,4 @@
-// src/api/auth/AuthContext.tsx
+// src/services/identity/api/auth/AuthContext.tsx
 import {
   createContext,
   useContext,

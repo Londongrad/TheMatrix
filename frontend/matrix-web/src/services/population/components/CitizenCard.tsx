@@ -1,3 +1,4 @@
+// src/services/population/components/CitizenCard.tsx
 import React from "react";
 import type { PersonDto } from "@services/population/api/populationTypes";
 import "@services/population/styles/citizen-card.css";

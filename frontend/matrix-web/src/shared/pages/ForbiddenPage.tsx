@@ -1,3 +1,4 @@
+// src/shared/pages/ForbiddenPage.tsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@services/identity/api/auth/AuthContext";
 

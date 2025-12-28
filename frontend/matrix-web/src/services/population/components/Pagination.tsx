@@ -1,3 +1,4 @@
+// src/services/population/components/Pagination.tsx
 import "@services/population/styles/pagination.css";
 
 interface PaginationProps {

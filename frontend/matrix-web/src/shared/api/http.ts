@@ -1,4 +1,4 @@
-// src/api/http.ts
+// src/shared/api/http.ts
 export class HttpError extends Error {
   status: number;
   payload?: unknown;

@@ -1,3 +1,4 @@
+// src/services/citycore/pages/DashboardPage.tsx
 import { useState } from "react";
 import { initializePopulation } from "@services/population/api/populationApi";
 import { useAuth } from "@services/identity/api/auth/AuthContext";

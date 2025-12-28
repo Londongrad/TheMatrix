@@ -1,3 +1,4 @@
+// src/services/identity/account/pages/user-settings/components/PreferencesCard.tsx
 import React, { useState } from "react";
 
 const PreferencesCard = () => {

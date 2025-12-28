@@ -1,3 +1,4 @@
+// src/services/identity/account/pages/user-settings/components/SessionsCard.tsx
 import type { SessionInfo } from "@services/identity/api/auth/authTypes";
 import { useSessions } from "../hooks/useSessions";
 

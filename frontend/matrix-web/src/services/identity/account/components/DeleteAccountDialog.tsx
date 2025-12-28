@@ -1,3 +1,4 @@
+// src/services/identity/account/components/DeleteAccountDialog.tsx
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import "@shared/styles/confirm-dialog.css";

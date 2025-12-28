@@ -1,3 +1,4 @@
+// src/services/identity/account/pages/user-settings/components/ProfileCard.tsx
 import React, { useRef, useState } from "react";
 import { updateAvatar } from "@services/identity/api/account/accountApi";
 

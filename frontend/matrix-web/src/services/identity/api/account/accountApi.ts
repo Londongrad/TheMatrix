@@ -1,4 +1,4 @@
-// src/api/account/accountApi.ts
+// src/services/identity/api/account/accountApi.ts
 import { API_ACCOUNT_URL } from "@shared/api/config";
 import { apiRequest } from "@shared/api/http";
 import type {

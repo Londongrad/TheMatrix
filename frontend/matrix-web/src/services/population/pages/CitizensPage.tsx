@@ -1,4 +1,4 @@
-// CitizensPage.tsx
+// src/services/population/pages/CitizenPage.tsx
 import { useEffect, useState } from "react";
 import CitizenCard from "@services/population/components/CitizenCard";
 import CitizenDetailsModal from "@services/population/components/CitizenDetailsModal";

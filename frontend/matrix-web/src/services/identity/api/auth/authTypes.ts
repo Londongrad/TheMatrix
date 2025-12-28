@@ -1,4 +1,4 @@
-// src/api/auth/authTypes.ts
+// src/services/identity/api/auth/authTypes.ts
 export interface RegisterRequest {
   email: string;
   username: string;

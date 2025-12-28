@@ -1,3 +1,4 @@
+// src/services/identity/auth/components/LoadingScreen.tsx
 import "@services/identity/auth/styles/loading-screen.css";
 
 export const LoadingScreen = () => {

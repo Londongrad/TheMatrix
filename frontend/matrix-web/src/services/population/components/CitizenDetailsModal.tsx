@@ -1,3 +1,4 @@
+// src/services/population/components/CitizenDetailsModal.tsx
 import { useEffect, useState } from "react";
 import type {
   PersonDto,
@@ -6,7 +7,6 @@ import type {
 import {
   killCitizen,
   resurrectCitizen,
-  updateCitizen,
 } from "@services/population/api/populationApi";
 import { useAuth } from "@services/identity/api/auth/AuthContext";
 import "@services/population/styles/citizen-details-modal.css";
@@ -252,9 +252,6 @@ const CitizenDetailsModal = ({
     try {
       setIsBusy(true);
       setError(null);
-
-      const updated = await updateCitizen(person.id, payload, token);
-      onPersonUpdated?.(updated);
 
       const state = buildFormStateFromPerson(person);
       setForm(state);

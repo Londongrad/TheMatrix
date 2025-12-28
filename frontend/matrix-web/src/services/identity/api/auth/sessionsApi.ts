@@ -1,4 +1,4 @@
-// sessions — уже через apiRequest (и токен не нужен)
+// src/services/identity/api/auth/sessionsApi.ts
 import { API_SESSIONS_URL } from "@shared/api/config";
 import { apiRequest } from "@shared/api/http";
 import type { SessionInfo } from "./authTypes";

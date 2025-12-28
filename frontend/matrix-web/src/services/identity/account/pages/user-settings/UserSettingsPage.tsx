@@ -1,3 +1,4 @@
+// src/services/identity/account/pages/user-settings/UserSettingsPage.tsx
 import { useAuth } from "@services/identity/api/auth/AuthContext";
 import { useConfirm } from "@shared/components/ConfirmDialog";
 import "@services/identity/account/styles/user-settings-page.css";

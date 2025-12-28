@@ -1,4 +1,4 @@
-// src/api/account/accountTypes.ts
+// src/services/identity/api/account/accountTypes.ts
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
