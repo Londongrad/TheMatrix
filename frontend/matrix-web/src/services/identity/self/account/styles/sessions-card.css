@@ -1,0 +1,116 @@
+.settings-card--sessions {
+  border-color: rgba(87, 255, 170, 0.24);
+}
+
+.settings-card--span-2 {
+  grid-column: 1 / -1;
+}
+
+.settings-sessions-summary {
+  margin-top: 0.25rem;
+}
+
+.settings-sessions-body {
+  margin-top: 0.25rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.settings-session-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.settings-session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(87, 255, 170, 0.15);
+  background: rgba(2, 6, 23, 0.55);
+  padding: 0.75rem 0.85rem;
+}
+
+.settings-session-item--current {
+  border-color: rgba(87, 255, 170, 0.65);
+  box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.2),
+    0 12px 34px rgba(8, 47, 73, 0.55);
+}
+
+.settings-session-main {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-session-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.settings-session-device {
+  font-weight: 600;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: rgba(232, 255, 245, 0.55);
+  font-size: 0.78rem;
+}
+
+.settings-session-chip {
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(87, 255, 170, 0.18);
+  background: rgba(8, 12, 14, 0.55);
+}
+
+.settings-session-ua {
+  font-size: 0.78rem;
+  color: rgba(232, 255, 245, 0.55);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-session-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-session-skeleton {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.settings-session-skeleton-line {
+  height: 54px;
+  border-radius: 0.9rem;
+  background: rgba(87, 255, 170, 0.08);
+  border: 1px solid rgba(87, 255, 170, 0.12);
+  animation: settingsPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes settingsPulse {
+  0% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}

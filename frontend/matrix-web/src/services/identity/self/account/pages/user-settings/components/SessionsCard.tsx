@@ -1,6 +1,7 @@
 // src/services/identity/account/pages/user-settings/components/SessionsCard.tsx
-import type { SessionInfo } from "@services/identity/api/self/auth/authTypes";
+import type { SessionInfo } from "@services/identity/api/self/sessions/sessionsTypes";
 import { useSessions } from "../hooks/useSessions";
+import "@services/identity/self/account/styles/sessions-card.css";
 
 type Props = {
   token: string | null;
@@ -37,7 +38,7 @@ const SessionsCard = ({ token, logout, confirm }: Props) => {
   };
 
   return (
-    <section className="settings-card settings-card--span-2">
+    <section className="settings-card settings-card--sessions settings-card--span-2">
       <div className="settings-card-header">
         <div>
           <h2 className="settings-card-title">Sessions</h2>

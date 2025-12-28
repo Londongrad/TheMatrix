@@ -1,5 +1,6 @@
 // src/services/identity/account/pages/user-settings/components/SecurityCard.tsx
 import { usePasswordChange } from "../hooks/usePasswordChange";
+import "@services/identity/self/account/styles/security-card.css";
 
 type Props = { token: string | null };
 
@@ -18,7 +19,7 @@ const SecurityCard = ({ token }: Props) => {
   } = usePasswordChange(token);
 
   return (
-    <section className="settings-card">
+    <section className="settings-card settings-card--security">
       <div className="settings-card-header">
         <div>
           <h2 className="settings-card-title">Security</h2>

@@ -1,6 +1,7 @@
 // src/services/identity/account/pages/user-settings/components/ProfileCard.tsx
 import React, { useRef, useState } from "react";
 import { updateAvatar } from "@services/identity/api/self/account/accountApi";
+import "@services/identity/self/account/styles/profile-card.css";
 
 type Props = {
   token: string | null;
@@ -82,7 +83,7 @@ const ProfileCard = ({
   };
 
   return (
-    <section className="settings-card">
+    <section className="settings-card settings-card--profile">
       <div className="settings-card-header">
         <div>
           <h2 className="settings-card-title">Profile</h2>

@@ -1,5 +1,6 @@
 // src/services/identity/account/pages/user-settings/components/PreferencesCard.tsx
 import React, { useState } from "react";
+import "@services/identity/self/account/styles/preferences-card.css";
 
 const PreferencesCard = () => {
   const [language, setLanguage] = useState<"en" | "ru">("en");
@@ -26,7 +27,7 @@ const PreferencesCard = () => {
   };
 
   return (
-    <section className="settings-card">
+    <section className="settings-card settings-card--preferences">
       <div className="settings-card-header">
         <div>
           <h2 className="settings-card-title">Preferences</h2>

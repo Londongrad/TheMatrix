@@ -1,0 +1,264 @@
+.settings-card {
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid rgba(87, 255, 170, 0.2);
+  background: linear-gradient(135deg, rgba(87, 255, 170, 0.08), transparent 60%),
+    rgba(8, 12, 14, 0.7);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(87, 255, 170, 0.06) inset;
+  backdrop-filter: blur(14px);
+  padding: 1.3rem 1.5rem 1.25rem;
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.settings-card-description {
+  margin-top: 0.2rem;
+  font-size: 0.86rem;
+  color: rgba(232, 255, 245, 0.6);
+}
+
+.settings-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.settings-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.78rem;
+  color: rgba(232, 255, 245, 0.55);
+}
+
+.settings-label {
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-input {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.8);
+  background: rgba(2, 8, 10, 0.85);
+  padding: 0.55rem 0.8rem;
+  color: rgba(232, 255, 245, 0.92);
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out, transform 0.08s ease-out;
+}
+
+.settings-input::placeholder {
+  color: rgba(232, 255, 245, 0.3);
+}
+
+.settings-input:focus {
+  border-color: rgba(87, 255, 170, 0.8);
+  box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.5),
+    0 12px 30px rgba(14, 38, 30, 0.8);
+  background: rgba(8, 14, 16, 0.92);
+  transform: translateY(-1px);
+}
+
+.settings-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      rgba(232, 255, 245, 0.6) 50%
+    ),
+    linear-gradient(135deg, rgba(232, 255, 245, 0.6) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 54%, calc(100% - 9px) 54%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+
+.settings-actions-row {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.settings-actions-row--end {
+  justify-content: flex-end;
+}
+
+.settings-actions-row--sessions {
+  justify-content: flex-start;
+  margin-top: 0.2rem;
+}
+
+.settings-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.05rem;
+  font-weight: 600;
+  font-size: 0.84rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  background-image: linear-gradient(135deg, #57ffaa, #12b886);
+  color: #04120c;
+  box-shadow: 0 12px 32px rgba(8, 47, 34, 0.75),
+    0 0 0 1px rgba(15, 23, 42, 0.95);
+  transition: transform 0.08s ease-out, box-shadow 0.12s ease-out,
+    filter 0.12s ease-out;
+}
+
+.settings-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 16px 45px rgba(8, 47, 34, 0.9), 0 0 0 1px rgba(15, 23, 42, 1);
+}
+
+.settings-button:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 24px rgba(6, 25, 19, 0.85), 0 0 0 1px rgba(15, 23, 42, 1);
+}
+
+.settings-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+  box-shadow: none;
+}
+
+.settings-button--secondary {
+  background-image: none;
+  background: rgba(8, 12, 14, 0.75);
+  border: 1px solid rgba(87, 255, 170, 0.2);
+  color: rgba(232, 255, 245, 0.86);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(87, 255, 170, 0.1);
+}
+
+.settings-button--ghost-danger {
+  background-image: none;
+  background: transparent;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+  box-shadow: none;
+  padding: 0.45rem 0.85rem;
+}
+
+.settings-button--danger {
+  background-image: none;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fee2e2;
+  box-shadow: 0 12px 32px rgba(127, 29, 29, 0.9),
+    0 0 0 1px rgba(15, 23, 42, 0.95);
+}
+
+.settings-button--danger:hover {
+  filter: brightness(1.03);
+  box-shadow: 0 16px 45px rgba(127, 29, 29, 1), 0 0 0 1px rgba(15, 23, 42, 1);
+}
+
+.settings-button--danger-outline {
+  background-image: none;
+  background: rgba(127, 29, 29, 0.16);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+  box-shadow: 0 12px 30px rgba(127, 29, 29, 0.25);
+}
+
+.settings-save-badge {
+  font-size: 0.78rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(87, 255, 170, 0.6);
+  color: rgba(187, 247, 208, 0.95);
+  animation: settingsSavedIn 0.2s ease-out;
+}
+
+.settings-error-text {
+  margin-top: 0.5rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #fca5a5;
+}
+
+.settings-muted {
+  font-size: 0.84rem;
+  color: rgba(232, 255, 245, 0.55);
+  line-height: 1.4;
+}
+
+.settings-hint {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: rgba(232, 255, 245, 0.55);
+}
+
+.settings-alert {
+  border-radius: 0.9rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  border: 1px solid rgba(87, 255, 170, 0.22);
+  background: rgba(8, 12, 14, 0.55);
+  color: rgba(232, 255, 245, 0.9);
+}
+
+.settings-alert--error {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.18);
+  color: #fecaca;
+}
+
+.settings-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.settings-pill {
+  font-size: 0.72rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(87, 255, 170, 0.12);
+  border: 1px solid rgba(87, 255, 170, 0.55);
+  color: rgba(187, 247, 208, 0.95);
+}
+
+@keyframes settingsSavedIn {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-card {
+    padding: 1.1rem;
+  }
+}

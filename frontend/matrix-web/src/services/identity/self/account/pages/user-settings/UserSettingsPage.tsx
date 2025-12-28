@@ -2,6 +2,7 @@
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import { useConfirm } from "@shared/ui/ConfirmDialog/ConfirmDialog";
 import "@services/identity/self/account/styles/user-settings-page.css";
+import "@services/identity/self/account/styles/user-settings-shared.css";
 
 import ProfileCard from "./components/ProfileCard";
 import SecurityCard from "./components/SecurityCard";
