@@ -1,6 +1,6 @@
 // src/services/identity/admin/pages/AdminUserPage.tsx
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@services/identity/api/auth/AuthContext";
+import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import {
   assignUserRoles,
   depriveUserPermission,

@@ -4,7 +4,7 @@ import CitizenCard from "@services/population/components/CitizenCard";
 import CitizenDetailsModal from "@services/population/components/CitizenDetailsModal";
 import type { PersonDto } from "@services/population/api/populationTypes";
 import { getCitizensPage } from "@services/population/api/populationApi";
-import { useAuth } from "@services/identity/api/auth/AuthContext";
+import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import Pagination from "@services/population/components/Pagination";
 import "@services/population/styles/citizen-page.css";
 

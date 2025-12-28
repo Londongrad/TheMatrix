@@ -5,8 +5,8 @@ import CitizensPage from "@services/population/pages/CitizensPage";
 import UserSettingsPage from "@services/identity/account/pages/user-settings/UserSettingsPage";
 import AdminUsersPage from "@services/identity/admin/pages/AdminUsersPage";
 
-import { AuthProvider } from "@services/identity/api/auth/AuthContext";
-import { RequireAuth } from "@services/identity/api/auth/RequireAuth";
+import { AuthProvider } from "@services/identity/api/self/auth/AuthContext";
+import { RequireAuth } from "@services/identity/api/self/auth/RequireAuth";
 import { LoginPage } from "@services/identity/auth/pages/LoginPage";
 import { RegisterPage } from "@services/identity/auth/pages/RegisterPage";
 import { ConfirmProvider } from "@shared/components/ConfirmDialog";

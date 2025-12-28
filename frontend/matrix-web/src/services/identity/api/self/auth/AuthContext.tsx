@@ -10,8 +10,8 @@ import {
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { LoginRequest } from "./authTypes";
-import type { ProfileResponse } from "@services/identity/api/account/accountTypes";
-import { getProfile } from "@services/identity/api/account/accountApi";
+import type { ProfileResponse } from "@services/identity/api/self/account/accountTypes";
+import { getProfile } from "@services/identity/api/self/account/accountApi";
 import { loginUser, registerUser, refreshAuth, logoutAuth } from "./authApi";
 import { configureHttpAuth } from "@shared/api/http";
 

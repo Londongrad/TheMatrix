@@ -1,6 +1,6 @@
 // src/shared/pages/ForbiddenPage.tsx
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@services/identity/api/auth/AuthContext";
+import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 
 type ForbiddenState = {
   from?: string;

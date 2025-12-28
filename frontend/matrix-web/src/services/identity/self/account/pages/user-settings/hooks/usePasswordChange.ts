@@ -1,6 +1,6 @@
 // src/services/identity/account/pages/user-settings/hooks/usePasswordChange.ts
 import { useState } from "react";
-import { changePassword } from "@services/identity/api/account/accountApi";
+import { changePassword } from "@services/identity/api/self/account/accountApi";
 
 export function usePasswordChange(token: string | null) {
   const [securityError, setSecurityError] = useState<string | null>(null);

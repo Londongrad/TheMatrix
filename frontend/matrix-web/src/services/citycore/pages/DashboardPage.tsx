@@ -1,7 +1,7 @@
 // src/services/citycore/pages/DashboardPage.tsx
 import { useState } from "react";
 import { initializePopulation } from "@services/population/api/populationApi";
-import { useAuth } from "@services/identity/api/auth/AuthContext";
+import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import "@services/citycore/styles/dashboard.css";
 
 const DashboardPage = () => {

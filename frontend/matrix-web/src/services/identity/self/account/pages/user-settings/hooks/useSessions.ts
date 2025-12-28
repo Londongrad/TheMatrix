@@ -1,12 +1,12 @@
 // src/services/identity/account/pages/user-settings/hooks/useSessions.ts
 import { useEffect, useMemo, useState } from "react";
-import type { SessionInfo } from "@services/identity/api/auth/authTypes";
+import type { SessionInfo } from "@services/identity/api/self/auth/authTypes";
 import {
   getSessions,
   revokeAllSessions,
   revokeSession,
-} from "@services/identity/api/auth/sessionsApi";
-import { getOrCreateDeviceId } from "@services/identity/api/auth/deviceInfo";
+} from "@services/identity/api/self/sessions/sessionsApi";
+import { getOrCreateDeviceId } from "@services/identity/api/self/auth/deviceInfo";
 
 type ConfirmFn = (options: any) => Promise<boolean>;
 

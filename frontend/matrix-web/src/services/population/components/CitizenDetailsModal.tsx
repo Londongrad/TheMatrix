@@ -8,7 +8,7 @@ import {
   killCitizen,
   resurrectCitizen,
 } from "@services/population/api/populationApi";
-import { useAuth } from "@services/identity/api/auth/AuthContext";
+import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import "@services/population/styles/citizen-details-modal.css";
 
 const MARITAL_STATUS_OPTIONS: string[] = [

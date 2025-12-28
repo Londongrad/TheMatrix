@@ -1,7 +1,7 @@
 // src/services/identity/api/auth/sessionsApi.ts
 import { API_SESSIONS_URL } from "@shared/api/config";
 import { apiRequest } from "@shared/api/http";
-import type { SessionInfo } from "./authTypes";
+import type { SessionInfo } from "./sessionsTypes";
 
 export async function getSessions(): Promise<SessionInfo[]> {
   return await apiRequest<SessionInfo[]>(`${API_SESSIONS_URL}`, {

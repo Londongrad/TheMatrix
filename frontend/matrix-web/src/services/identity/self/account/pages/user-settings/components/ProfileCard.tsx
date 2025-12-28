@@ -1,6 +1,6 @@
 // src/services/identity/account/pages/user-settings/components/ProfileCard.tsx
 import React, { useRef, useState } from "react";
-import { updateAvatar } from "@services/identity/api/account/accountApi";
+import { updateAvatar } from "@services/identity/api/self/account/accountApi";
 
 type Props = {
   token: string | null;

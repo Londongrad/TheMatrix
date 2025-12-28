@@ -1,7 +1,7 @@
 // src/services/identity/auth/pages/RegisterPage.tsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@services/identity/api/auth/AuthContext";
+import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import MatrixRainBackground from "@services/identity/auth/components/MatrixRainBackground";
 import "@services/identity/auth/styles/register-page.css";
 
