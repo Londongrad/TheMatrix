@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import AdminCard from "../../ui/components/AdminCard";
-import AdminButton from "../../ui/components/AdminButton";
+import Card from "@shared/ui/controls/Card/Card";
+import Button from "@shared/ui/controls/Button/Button";
 import { getRolesCatalog } from "@services/identity/api/admin/adminApi";
 import type { RoleResponse } from "@services/identity/api/admin/adminTypes";
 import "./admin-roles-page.css";
@@ -29,17 +29,17 @@ export default function AdminRolesPage() {
 
   return (
     <div className="mx-admin-page">
-      <AdminCard
+      <Card
         title="Roles"
         subtitle="Access groups"
         right={
           <div className="mx-admin-roles__headerRight">
-            <AdminButton onClick={() => void load()} disabled={loading}>
+            <Button onClick={() => void load()} disabled={loading}>
               Refresh
-            </AdminButton>
-            <AdminButton variant="primary" type="button">
+            </Button>
+            <Button variant="primary" type="button">
               + New role
-            </AdminButton>
+            </Button>
           </div>
         }
       >
@@ -69,13 +69,13 @@ export default function AdminRolesPage() {
               </div>
 
               <div className="mx-admin-roles__actions">
-                <AdminButton type="button">Members</AdminButton>
-                <AdminButton type="button">Permissions</AdminButton>
+                <Button type="button">Members</Button>
+                <Button type="button">Permissions</Button>
               </div>
             </div>
           ))}
         </div>
-      </AdminCard>
+      </Card>
     </div>
   );
 }

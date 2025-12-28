@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import AdminCard from "../../ui/components/AdminCard";
-import AdminButton from "../../ui/components/AdminButton";
-import AdminIconButton from "../../ui/components/AdminIconButton";
+import Card from "@shared/ui/controls/Card/Card";
+import Button from "@shared/ui/controls/Button/Button";
+import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import {
   IconEdit,
   IconLock,
   IconUnlock,
   IconOpen,
   IconRefresh,
-} from "../../ui/components/icons";
+} from "@shared/ui/icons/Icons";
 import {
   getUsersPage,
   lockUser,
@@ -65,17 +65,17 @@ export default function AdminUsersPage() {
 
   return (
     <div className="mx-admin-page">
-      <AdminCard
+      <Card
         title="Users"
         subtitle="Directory & status"
         right={
           <div className="mx-admin-users__headerRight">
-            <AdminButton onClick={() => void load()} disabled={loading}>
+            <Button onClick={() => void load()} disabled={loading}>
               <IconRefresh /> Refresh
-            </AdminButton>
-            <AdminButton variant="primary" type="button">
+            </Button>
+            <Button variant="primary" type="button">
               + Add user
-            </AdminButton>
+            </Button>
           </div>
         }
       >
@@ -132,26 +132,26 @@ export default function AdminUsersPage() {
 
               <div role="cell" className="mx-admin-users__right">
                 <div className="mx-admin-users__actions">
-                  <AdminIconButton
+                  <IconButton
                     title="Open"
                     onClick={() => alert(`Open ${u.id} (mock)`)}
                   >
                     <IconOpen />
-                  </AdminIconButton>
-                  <AdminIconButton
+                  </IconButton>
+                  <IconButton
                     title="Edit"
                     onClick={() => alert(`Edit ${u.id} (mock)`)}
                   >
                     <IconEdit />
-                  </AdminIconButton>
-                  <AdminIconButton
+                  </IconButton>
+                  <IconButton
                     variant={u.isLocked ? "default" : "danger"}
                     title={u.isLocked ? "Unlock" : "Lock"}
                     onClick={() => void toggleLock(u)}
                     disabled={loading}
                   >
                     {u.isLocked ? <IconUnlock /> : <IconLock />}
-                  </AdminIconButton>
+                  </IconButton>
                 </div>
               </div>
             </div>
@@ -166,23 +166,23 @@ export default function AdminUsersPage() {
           </div>
 
           <div className="mx-admin-users__pagerBtns">
-            <AdminButton
+            <Button
               disabled={loading || pageNumber <= 1}
               onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
             >
               Prev
-            </AdminButton>
-            <AdminButton
+            </Button>
+            <Button
               disabled={
                 loading || (totalPages !== null && pageNumber >= totalPages)
               }
               onClick={() => setPageNumber((p) => p + 1)}
             >
               Next
-            </AdminButton>
+            </Button>
           </div>
         </div>
-      </AdminCard>
+      </Card>
     </div>
   );
 }

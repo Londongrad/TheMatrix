@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import AdminCard from "../../ui/components/AdminCard";
-import AdminButton from "../../ui/components/AdminButton";
+import Card from "@shared/ui/controls/Card/Card";
+import Button from "@shared/ui/controls/Button/Button";
 import {
   getPermissionsCatalog,
   getRolesCatalog,
@@ -63,17 +63,17 @@ export default function AdminPermissionsPage() {
 
   return (
     <div className="mx-admin-page">
-      <AdminCard
+      <Card
         title="Permissions"
         subtitle="Configure permissions inside roles"
         right={
           <div className="mx-admin-perm__headerRight">
-            <AdminButton onClick={() => void load()} disabled={loading}>
+            <Button onClick={() => void load()} disabled={loading}>
               Refresh
-            </AdminButton>
-            <AdminButton variant="primary" disabled={!activeRole}>
+            </Button>
+            <Button variant="primary" disabled={!activeRole}>
               Save changes
-            </AdminButton>
+            </Button>
           </div>
         }
       >
@@ -147,7 +147,7 @@ export default function AdminPermissionsPage() {
             </div>
           </div>
         </div>
-      </AdminCard>
+      </Card>
     </div>
   );
 }
