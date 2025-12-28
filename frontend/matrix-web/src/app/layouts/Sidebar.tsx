@@ -1,3 +1,4 @@
+// src/app/layouts/Sidebar.tsx
 import { NavLink } from "react-router-dom";
 import "@app/layouts/styles/sidebar.css";
 
@@ -20,6 +21,9 @@ const Sidebar = () => {
         </NavLink>
         <NavLink to="/citizens" className={buildLinkClass}>
           Citizens
+        </NavLink>
+        <NavLink to="/admin/users" className={buildLinkClass}>
+          Admin users
         </NavLink>
         <NavLink to="/settings" className={buildLinkClass}>
           Settings

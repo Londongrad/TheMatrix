@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import DashboardPage from "@services/citycore/pages/DashboardPage";
 import CitizensPage from "@services/population/pages/CitizensPage";
 import UserSettingsPage from "@services/identity/account/pages/user-settings/UserSettingsPage";
+import AdminUsersPage from "@services/identity/admin/pages/AdminUsersPage";
 
 import { AuthProvider } from "@services/identity/api/auth/AuthContext";
 import { RequireAuth } from "@services/identity/api/auth/RequireAuth";
@@ -21,6 +22,7 @@ const App = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forbidden" element={<ForbiddenPage />} />
+
             {/* защищённые страницы — только для залогиненных */}
             <Route
               path="/"
@@ -50,6 +52,17 @@ const App = () => {
                 <RequireAuth>
                   <MainLayout>
                     <CitizensPage />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
+
+            <Route
+              path="/admin/users"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <AdminUsersPage />
                   </MainLayout>
                 </RequireAuth>
               }
