@@ -9,6 +9,8 @@ const MainLayout = () => {
       title="The Matrix"
       items={mainNavItems}
       storageKey="main.sidebar.collapsed"
+      topbarTitle="City control panel"
+      topbarSubtitle="Matrix live operations"
     >
       <Outlet />
     </ShellLayout>

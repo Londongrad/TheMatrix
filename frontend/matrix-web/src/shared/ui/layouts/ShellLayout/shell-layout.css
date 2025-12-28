@@ -31,13 +31,21 @@
 .mx-shell__header {
   padding: 12px 14px;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .mx-shell__content {
-  padding: 14px;
+  padding: 16px 18px 20px;
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+}
+
+.mx-shell__topbar {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* 👇 панель сайдбара (то, что уезжает) */
@@ -137,6 +145,10 @@
 @media (max-width: 980px) {
   .mx-shell {
     grid-template-columns: 1fr;
+  }
+
+  .mx-shell__header {
+    padding: 12px;
   }
 
   .mx-shell__burger {

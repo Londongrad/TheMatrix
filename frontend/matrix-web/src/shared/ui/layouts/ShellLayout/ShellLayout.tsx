@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import MatrixBackdrop from "@shared/ui/backgrounds/BackgroundRain/MatrixRainBackground";
-import MatrixSidebar from "@shared/navigation/Sidebar/Sidebar";
+import Sidebar from "@shared/navigation/Sidebar/Sidebar";
+import Topbar from "@shared/navigation/Topbar/Topbar";
 import type { NavItem } from "@shared/navigation/Sidebar/types";
 import { ChevronRight } from "lucide-react";
 import "./shell-layout.css";
@@ -12,6 +13,8 @@ export default function MatrixShellLayout({
   storageKey = "mx.sidebar.collapsed",
   onBack,
   brandRight,
+  topbarTitle = "Matrix control panel",
+  topbarSubtitle = "Live operations overview",
 }: {
   title: string;
   items: NavItem[];
@@ -19,6 +22,8 @@ export default function MatrixShellLayout({
   storageKey?: string;
   onBack?: () => void;
   brandRight?: React.ReactNode;
+  topbarTitle?: string;
+  topbarSubtitle?: string;
 }) {
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -55,7 +60,7 @@ export default function MatrixShellLayout({
 
       <aside className="mx-shell__sidebar">
         <div className="mx-shell__sidebarPanel">
-          <MatrixSidebar
+          <Sidebar
             title={title}
             items={items}
             onNavigate={() => setMobileOpen(false)}
@@ -89,6 +94,9 @@ export default function MatrixShellLayout({
           >
             ☰
           </button>
+          <div className="mx-shell__topbar">
+            <Topbar title={topbarTitle} subtitle={topbarSubtitle} />
+          </div>
         </header>
 
         <main className="mx-shell__content">{children}</main>

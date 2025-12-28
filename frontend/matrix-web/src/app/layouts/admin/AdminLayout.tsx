@@ -8,6 +8,16 @@ import "./admin-layout.css";
 export default function AdminLayout() {
   const nav = useNavigate();
   const location = useLocation();
+  const { pathname } = location;
+
+  const topbarTitle = pathname.includes("/admin/users")
+    ? "Users"
+    : pathname.includes("/admin/roles")
+    ? "Roles"
+    : pathname.includes("/admin/permissions")
+    ? "Permissions"
+    : "Admin";
+  const topbarSubtitle = `RBAC • Identity • ${pathname}`;
 
   const fromRef = useRef<string>("/");
 
@@ -22,6 +32,8 @@ export default function AdminLayout() {
       items={adminNavItems}
       storageKey="admin.sidebar.collapsed"
       onBack={() => nav(fromRef.current || "/", { replace: true })}
+      topbarTitle={topbarTitle}
+      topbarSubtitle={topbarSubtitle}
     >
       <Outlet />
     </ShellLayout>
