@@ -5,8 +5,8 @@
   inset: 0;
   background: radial-gradient(
     circle at top,
-    rgba(15, 23, 42, 0.9),
-    rgba(2, 6, 23, 0.98)
+    rgba(8, 14, 16, 0.9),
+    rgba(2, 6, 8, 0.98)
   );
   backdrop-filter: blur(10px);
   display: flex;
@@ -25,12 +25,13 @@
 
   /* 1) внутренний фон (padding-box)
      2) внешнее градиентное кольцо (border-box) */
-  background: linear-gradient(#020617, #020617) padding-box,
+  background: linear-gradient(rgba(8, 12, 14, 0.95), rgba(8, 12, 14, 0.95))
+      padding-box,
     radial-gradient(
         140% 200% at 0% 0%,
-        rgba(56, 189, 248, 0.55),
-        rgba(129, 140, 248, 0.25),
-        rgba(15, 23, 42, 0.95)
+        rgba(87, 255, 170, 0.5),
+        rgba(0, 212, 255, 0.2),
+        rgba(8, 12, 14, 0.95)
       )
       border-box;
   border: 1px solid transparent;
@@ -52,23 +53,20 @@
   opacity: 0.35;
   background: radial-gradient(
       circle at 0% 0%,
-      rgba(56, 189, 248, 0.4),
+      rgba(87, 255, 170, 0.4),
       transparent 55%
     ),
-    radial-gradient(
-      circle at 100% 0%,
-      rgba(168, 85, 247, 0.35),
-      transparent 55%
-    );
+    radial-gradient(circle at 100% 0%, rgba(0, 212, 255, 0.25), transparent 55%);
 }
 
 /* Вариант для мёртвых — более холодный, “выцветший” градиент */
 .citizens-page-modal.citizens-page-modal--dead {
-  background: linear-gradient(#020617, #020617) padding-box,
+  background: linear-gradient(rgba(8, 12, 14, 0.95), rgba(8, 12, 14, 0.95))
+      padding-box,
     radial-gradient(
         150% 210% at 0% 0%,
-        rgba(31, 41, 55, 0.85),
-        rgba(15, 23, 42, 0.98)
+        rgba(31, 41, 55, 0.75),
+        rgba(8, 12, 14, 0.98)
       )
       border-box;
   box-shadow: 0 24px 90px rgba(0, 0, 0, 0.95);
@@ -87,7 +85,7 @@
   gap: 1rem;
   margin-bottom: 0.4rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+  border-bottom: 1px solid rgba(87, 255, 170, 0.12);
 }
 
 .citizens-page-modal-header > div:first-child {
@@ -107,11 +105,12 @@
   font-size: 1.3rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  color: rgba(232, 255, 245, 0.95);
 }
 
 .citizens-page-modal-subtitle {
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: rgba(232, 255, 245, 0.6);
   margin-top: 0.12rem;
 }
 
@@ -131,37 +130,9 @@
 }
 
 /* Кнопки в правом углу (✏️ и ✕) */
-.citizens-page-modal-header .icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: radial-gradient(
-    circle at 30% 0%,
-    rgba(59, 130, 246, 0.28),
-    rgba(15, 23, 42, 0.95)
-  );
-  color: #e5e7eb;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.citizens-page-modal-header .ui-icon-button {
   font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 120ms ease-out, border-color 120ms ease-out,
-    transform 120ms ease-out, box-shadow 120ms ease-out, opacity 120ms ease-out;
 }
-
-.citizens-page-modal-header .icon-btn:hover {
-  background: radial-gradient(
-    circle at 30% 0%,
-    rgba(96, 165, 250, 0.4),
-    #020617
-  );
-  border-color: rgba(148, 163, 184, 0.9);
-  transform: translateY(-1px);
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.95);
-}
-
 /* ===== BODY / GRID ============================================ */
 
 .citizens-page-modal-body {
@@ -179,7 +150,7 @@
 }
 
 .citizens-page-modal-body::-webkit-scrollbar-thumb {
-  background: rgba(55, 65, 81, 0.9);
+  background: rgba(87, 255, 170, 0.2);
   border-radius: 999px;
 }
 
@@ -193,7 +164,7 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #9ca3af;
+  color: rgba(232, 255, 245, 0.55);
   margin-bottom: 0.6rem;
 }
 
@@ -203,7 +174,7 @@
 
 .citizens-page-modal-field-label {
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: rgba(232, 255, 245, 0.6);
   margin-bottom: 0.12rem;
 }
 
@@ -227,7 +198,7 @@
 /* range растягиваем, чтобы выглядел как часть формы */
 .citizens-page-modal-happiness-row input[type="range"] {
   flex: 1;
-  accent-color: #3b82f6;
+  accent-color: rgba(87, 255, 170, 0.9);
 }
 
 /* тёмный number-input */
@@ -235,9 +206,9 @@
   width: 64px;
   padding: 0.25rem 0.45rem;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: #020617;
-  color: #e5e7eb;
+  border: 1px solid rgba(87, 255, 170, 0.35);
+  background: rgba(8, 12, 14, 0.7);
+  color: rgba(232, 255, 245, 0.9);
   font-size: 0.9rem;
   text-align: center;
   outline: none;
@@ -247,9 +218,9 @@
 }
 
 .citizens-page-modal-input-number:focus {
-  border-color: rgba(96, 165, 250, 0.9);
-  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.8);
-  background: #020617;
+  border-color: rgba(87, 255, 170, 0.7);
+  box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.4);
+  background: rgba(8, 12, 14, 0.9);
 }
 
 .citizens-page-modal-input-number:disabled {
@@ -265,9 +236,13 @@
   width: 100%;
   padding: 0.38rem 0.55rem;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: radial-gradient(circle at 0% 0%, rgba(15, 23, 42, 0.9), #020617);
-  color: #e5e7eb;
+  border: 1px solid rgba(87, 255, 170, 0.25);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(12, 18, 20, 0.9),
+    rgba(8, 12, 14, 0.95)
+  );
+  color: rgba(232, 255, 245, 0.9);
   outline: none;
   transition: border-color 120ms ease-out, box-shadow 120ms ease-out,
     background 120ms ease-out;
@@ -275,9 +250,9 @@
 
 .citizens-page-modal-input-text:focus,
 .citizens-page-modal-select:focus {
-  border-color: rgba(96, 165, 250, 0.9);
-  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.85);
-  background: #020617;
+  border-color: rgba(87, 255, 170, 0.7);
+  box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.4);
+  background: rgba(8, 12, 14, 0.95);
 }
 
 .citizens-page-modal-input-text:disabled,
@@ -295,7 +270,7 @@
 .citizens-page-modal-error {
   margin-top: 0.3rem;
   font-size: 0.85rem;
-  color: #f97373;
+  color: #fca5a5;
 }
 
 /* ===== FOOTER & BUTTONS ======================================= */
@@ -307,7 +282,7 @@
   gap: 0.75rem;
   margin-top: 0.85rem;
   padding-top: 0.65rem;
-  border-top: 1px solid rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(87, 255, 170, 0.12);
 }
 
 .citizens-page-modal-footer-group {
@@ -316,58 +291,8 @@
   gap: 0.5rem;
 }
 
-/* базовый стиль всех .btn внутри модалки */
-.citizens-page-modal .btn {
+.citizens-page-modal .ui-button--sm {
   border-radius: 999px;
   padding: 0.35rem 0.9rem;
   font-size: 0.85rem;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: radial-gradient(circle at 0% 0%, rgba(15, 23, 42, 0.95), #020617);
-  color: #e5e7eb;
-  transition: background 120ms ease-out, transform 120ms ease-out,
-    box-shadow 120ms ease-out, border-color 120ms ease-out,
-    opacity 120ms ease-out;
-}
-
-.citizens-page-modal .btn.btn-sm {
-  padding: 0.3rem 0.75rem;
-}
-
-/* hover для обычных кнопок */
-.citizens-page-modal .btn:hover:not(:disabled) {
-  background: radial-gradient(circle at 0% 0%, rgba(31, 41, 55, 0.95), #020617);
-  border-color: rgba(148, 163, 184, 0.9);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
-  cursor: pointer;
-}
-
-/* disabled */
-.citizens-page-modal .btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Опасная кнопка (Kill citizen) */
-.citizens-page-modal .btn-danger {
-  background: radial-gradient(circle at 0% 0%, #7f1d1d, #b91c1c);
-  border-color: #ef4444;
-}
-
-.citizens-page-modal .btn-danger:hover:not(:disabled) {
-  background: radial-gradient(circle at 0% 0%, #991b1b, #dc2626);
-  border-color: #f97373;
-}
-
-/* Успешная (Resurrect citizen) */
-.citizens-page-modal .btn-success {
-  background: radial-gradient(circle at 0% 0%, #14532d, #166534);
-  border-color: #22c55e;
-}
-
-.citizens-page-modal .btn-success:hover:not(:disabled) {
-  background: radial-gradient(circle at 0% 0%, #15803d, #16a34a);
-  border-color: #4ade80;
 }

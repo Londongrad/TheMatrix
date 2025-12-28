@@ -1,6 +1,7 @@
 // src/services/population/components/CitizenCard.tsx
 import React from "react";
 import type { PersonDto } from "@services/population/api/populationTypes";
+import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import "@services/population/styles/citizen-card.css";
 
 interface CitizenCardProps {
@@ -41,9 +42,13 @@ const CitizenCard = ({ person, onEdit }: CitizenCardProps) => {
         </div>
 
         {onEdit && (
-          <button className="icon-btn" onClick={handleOpenEditor}>
+          <IconButton
+            size="sm"
+            aria-label="Open citizen details"
+            onClick={handleOpenEditor}
+          >
             ⋯
-          </button>
+          </IconButton>
         )}
       </header>
 

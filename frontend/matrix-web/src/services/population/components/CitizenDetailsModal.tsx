@@ -9,6 +9,8 @@ import {
   resurrectCitizen,
 } from "@services/population/api/populationApi";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
+import Button from "@shared/ui/controls/Button/Button";
+import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import "@services/population/styles/citizen-details-modal.css";
 
 const MARITAL_STATUS_OPTIONS: string[] = [
@@ -327,19 +329,19 @@ const CitizenDetailsModal = ({
           {/* Action buttons section (edit/close modal) */}
           <div>
             {!isDead && (
-              <button
+              <IconButton
                 type="button"
-                className="icon-btn"
                 disabled={isBusy}
                 onClick={handleToggleEditing}
+                aria-label="Edit citizen"
               >
                 ✏️
-              </button>
+              </IconButton>
             )}
 
-            <button className="icon-btn" onClick={onClose}>
+            <IconButton aria-label="Close modal" onClick={onClose}>
               ✕
-            </button>
+            </IconButton>
           </div>
         </header>
 
@@ -422,14 +424,14 @@ const CitizenDetailsModal = ({
                         className="citizens-page-modal-input-number"
                       />
 
-                      <button
+                      <Button
                         type="button"
-                        className="btn btn-sm"
+                        size="sm"
                         disabled={isDead || isBusy || !hasHappinessChanges}
                         onClick={handleResetHappiness}
                       >
                         Reset
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>
@@ -491,35 +493,33 @@ const CitizenDetailsModal = ({
         <footer className="citizens-page-modal-footer">
           <div className="citizens-page-modal-footer-group">
             {!isDead && (
-              <button
-                className="btn btn-danger btn-sm"
+              <Button
+                variant="danger"
+                size="sm"
                 disabled={isBusy}
                 onClick={handleKill}
               >
                 Kill citizen
-              </button>
+              </Button>
             )}
 
             {isDead && (
-              <button
-                className="btn btn-success btn-sm"
+              <Button
+                variant="success"
+                size="sm"
                 disabled={isBusy}
                 onClick={handleResurrect}
               >
                 Resurrect citizen
-              </button>
+              </Button>
             )}
           </div>
 
           <div className="citizens-page-modal-footer-group">
             {isEditing && (
-              <button
-                className="btn btn-sm"
-                disabled={cannotSave}
-                onClick={handleSave}
-              >
+              <Button size="sm" disabled={cannotSave} onClick={handleSave}>
                 Save changes
-              </button>
+              </Button>
             )}
           </div>
         </footer>
