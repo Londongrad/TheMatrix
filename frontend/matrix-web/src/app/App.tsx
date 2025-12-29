@@ -11,6 +11,7 @@ import { AuthProvider } from "@services/identity/api/self/auth/AuthContext";
 import { RequireAuth } from "@services/identity/api/self/auth/RequireAuth";
 import { LoginPage } from "@services/identity/self/auth/pages/LoginPage";
 import { RegisterPage } from "@services/identity/self/auth/pages/RegisterPage";
+import { ForgotPasswordPage } from "@services/identity/self/auth/pages/ForgotPasswordPage";
 import { ConfirmProvider } from "@shared/ui/ConfirmDialog/ConfirmDialog";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 import AdminLayout from "./layouts/admin/AdminLayout";
@@ -24,6 +25,7 @@ const App = () => {
             {/* публичные страницы */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/forbidden" element={<ForbiddenPage />} />
 
             {/* защищённые страницы — с MainLayout */}
