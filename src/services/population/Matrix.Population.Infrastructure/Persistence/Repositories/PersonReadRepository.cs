@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Models;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.ValueObjects;
