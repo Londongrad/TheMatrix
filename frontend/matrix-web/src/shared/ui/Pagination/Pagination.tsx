@@ -1,4 +1,5 @@
 // src/shared/components/Pagination.tsx
+import Button from "@shared/ui/controls/Button/Button";
 import "./pagination.css";
 
 interface PaginationProps {
@@ -28,41 +29,37 @@ const Pagination = ({
 
   return (
     <div className="pagination" aria-disabled={disabled}>
-      <button
-        className="btn btn-sm"
-        disabled={isPrevDisabled}
-        onClick={() => safeChange(1)}
-      >
+      <Button size="sm" disabled={isPrevDisabled} onClick={() => safeChange(1)}>
         First
-      </button>
+      </Button>
 
-      <button
-        className="btn btn-sm"
+      <Button
+        size="sm"
         disabled={isPrevDisabled}
         onClick={() => safeChange(page - 1)}
       >
         Previous
-      </button>
+      </Button>
 
       <span>
         Page {page} of {totalPages}
       </span>
 
-      <button
-        className="btn btn-sm"
+      <Button
+        size="sm"
         disabled={isNextDisabled}
         onClick={() => safeChange(page + 1)}
       >
         Next
-      </button>
+      </Button>
 
-      <button
-        className="btn btn-sm"
+      <Button
+        size="sm"
         disabled={isNextDisabled}
         onClick={() => safeChange(totalPages)}
       >
         Last
-      </button>
+      </Button>
     </div>
   );
 };
