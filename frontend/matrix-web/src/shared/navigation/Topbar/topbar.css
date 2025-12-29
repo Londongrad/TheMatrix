@@ -13,6 +13,8 @@
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(87, 255, 170, 0.06) inset;
   backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 40;
 }
 
 .mx-topbar__left {
