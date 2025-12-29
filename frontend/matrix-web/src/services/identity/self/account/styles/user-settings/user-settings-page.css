@@ -35,6 +35,10 @@
   gap: 1.25rem;
 }
 
+.user-settings-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* Адаптив */
 
 @media (max-width: 1024px) {

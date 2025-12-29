@@ -1,6 +1,6 @@
 // src/services/identity/account/pages/user-settings/components/PreferencesCard.tsx
 import React, { useState } from "react";
-import "@services/identity/self/account/styles/preferences-card.css";
+import "@services/identity/self/account/styles/user-settings/preferences-card.css";
 
 const PreferencesCard = () => {
   const [language, setLanguage] = useState<"en" | "ru">("en");
