@@ -11,6 +11,10 @@
 *.sln.docstates
 appsettings.Development.json
 
+# JetBrains Rider / IntelliJ
+.idea/
+*.iml
+
 # user uploaded avatars
 **/wwwroot/avatars/**
 !**/wwwroot/avatars/.gitkeep
