@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import "./topbar.css";
 type Props = {
@@ -11,6 +11,7 @@ export default function MatrixTopbar({ title, subtitle }: Props) {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const displayName =
@@ -30,7 +31,7 @@ export default function MatrixTopbar({ title, subtitle }: Props) {
 
   const handleGoToSettings = () => {
     setIsOpen(false);
-    navigate("/userSettings");
+    navigate("/userSettings/profile", { state: { from: location.pathname } });
   };
 
   // закрытие по клику вне меню
