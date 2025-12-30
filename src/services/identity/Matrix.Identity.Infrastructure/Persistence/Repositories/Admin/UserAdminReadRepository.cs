@@ -7,8 +7,36 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 {
-    public sealed class UserAdminReadRepository(IdentityDbContext dbContext) : IUserAdminReadRepository
+    public sealed class UserAdminReadRepository(IdentityDbContext dbContext)
+        : IUserAdminReadRepository, IRoleMembersReadRepository
     {
+        public async Task<PagedResult<UserListItemResult>> GetRoleMembersPageAsync(
+            Guid roleId,
+            Pagination pagination,
+            CancellationToken cancellationToken)
+        {
+            IQueryable<User> query = from user in dbContext.Users.AsNoTracking()
+                                     join ur in dbContext.UserRoles.AsNoTracking()
+                                         on user.Id equals ur.UserId
+                                     where ur.RoleId == roleId
+                                     orderby user.CreatedAtUtc descending, user.Id
+                                     select user;
+
+            int totalCount = await query.CountAsync(cancellationToken);
+
+            List<UserListItemResult> items = await query
+               .Skip(pagination.Skip)
+               .Take(pagination.PageSize)
+               .Select(UserProjections.ToListItem)
+               .ToListAsync(cancellationToken);
+
+            return new PagedResult<UserListItemResult>(
+                items: items,
+                totalCount: totalCount,
+                pageNumber: pagination.PageNumber,
+                pageSize: pagination.PageSize);
+        }
+
         public async Task<PagedResult<UserListItemResult>> GetPageAsync(
             Pagination pagination,
             CancellationToken cancellationToken)
