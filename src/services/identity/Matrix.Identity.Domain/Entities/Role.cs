@@ -11,16 +11,19 @@ namespace Matrix.Identity.Domain.Entities
 
         private Role(
             string name,
+            string normalizedName,
             bool isSystem)
         {
             Id = Guid.NewGuid();
             Name = name;
+            NormalizedName = normalizedName;
             IsSystem = isSystem;
             CreatedAtUtc = DateTime.UtcNow;
         }
 
         public Guid Id { get; private set; }
         public string Name { get; private set; } = null!;
+        public string NormalizedName { get; private set; } = null!;
         public bool IsSystem { get; private set; }
         public DateTime CreatedAtUtc { get; private set; }
 
@@ -30,7 +33,11 @@ namespace Matrix.Identity.Domain.Entities
         {
             name = GuardHelper.AgainstNullOrWhiteSpace(
                 value: name,
-                errorFactory: DomainErrorsFactory.EmptyRoleName);
+                errorFactory: DomainErrorsFactory.EmptyRoleName,
+                trim: true);
+
+            string normalizedName = name.Trim()
+               .ToUpperInvariant();
 
             if (name.Length > NameMaxLength)
                 throw DomainErrorsFactory.InvalidRoleNameLength(
@@ -40,6 +47,7 @@ namespace Matrix.Identity.Domain.Entities
 
             return new Role(
                 name: name,
+                normalizedName: normalizedName,
                 isSystem: isSystem);
         }
     }

@@ -13,14 +13,20 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Name)
-               .HasMaxLength(64)
+               .HasMaxLength(Role.NameMaxLength)
                .IsRequired();
 
-            builder.HasIndex(x => x.Name)
-               .IsUnique();
+            builder.Property(x => x.NormalizedName)
+               .HasMaxLength(Role.NameMaxLength)
+               .IsRequired();
+
+            builder.HasIndex(x => x.NormalizedName)
+               .IsUnique()
+               .HasDatabaseName("ux_roles_normalized_name");
 
             builder.Property(x => x.IsSystem)
                .IsRequired();
+
             builder.Property(x => x.CreatedAtUtc)
                .IsRequired();
         }
