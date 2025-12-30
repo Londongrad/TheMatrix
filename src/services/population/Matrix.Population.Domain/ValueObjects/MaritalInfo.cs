@@ -1,4 +1,4 @@
-﻿using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
 
 namespace Matrix.Population.Domain.ValueObjects
@@ -12,8 +12,8 @@ namespace Matrix.Population.Domain.ValueObjects
             PersonId? spouseId)
         {
             MaritalRules.ValidateStatusCombination(
-                status: Status,
-                spouseId: SpouseId);
+                status: status,
+                spouseId: spouseId);
 
             Status = status;
             SpouseId = spouseId;
