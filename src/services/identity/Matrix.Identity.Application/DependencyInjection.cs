@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
@@ -23,6 +23,7 @@ namespace Matrix.Identity.Application
             services.AddScoped<IValidationExceptionFactory, IdentityValidationErrorFactory>();
 
             // Validators
+            services.AddScoped<IRoleIdsValidator, RoleIdsValidator>();
             services.AddScoped<IPermissionKeysValidator, PermissionKeysValidator>();
 
             // Behaviors (используем общие из BuildingBlocks)ors
