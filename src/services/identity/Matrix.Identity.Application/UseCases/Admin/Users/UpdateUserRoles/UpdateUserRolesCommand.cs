@@ -1,9 +1,9 @@
 using Matrix.BuildingBlocks.Application.Authorization;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.Admin.Users.AssignUserRoles
+namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles
 {
-    public sealed record AssignUserRolesCommand(
+    public sealed record UpdateUserRolesCommand(
         Guid UserId,
         IReadOnlyCollection<Guid> RoleIds)
         : IRequest, IRequirePermission
