@@ -53,6 +53,22 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
+        public static MatrixApplicationException RoleNotFound(Guid id)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Role.NotFound",
+                message: $"Role '{id}' was not found.",
+                errorType: ApplicationErrorType.NotFound);
+        }
+
+        public static MatrixApplicationException RoleNameAlreadyInUse(string name)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Role.Name.AlreadyInUse",
+                message: $"Role name '{name}' is already in use.",
+                errorType: ApplicationErrorType.Conflict);
+        }
+
         public static MatrixApplicationException PasswordsDoNotMatch()
         {
             return new MatrixApplicationException(
