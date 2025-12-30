@@ -42,6 +42,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IOneTimeTokenRepository, OneTimeTokenRepository>();
             services.AddScoped<IRoleReadRepository, RoleReadRepository>();
+            services.AddScoped<IRoleWriteRepository, RoleWriteRepository>();
             services.AddScoped<IPermissionReadRepository, PermissionReadRepository>();
             services.AddScoped<IUserRolesRepository, UserRolesRepository>();
             services.AddScoped<IUserPermissionsRepository, UserPermissionsRepository>();
