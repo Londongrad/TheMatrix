@@ -2,7 +2,9 @@
 using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Application.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +21,9 @@ namespace Matrix.Identity.Application
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped<IValidationExceptionFactory, IdentityValidationErrorFactory>();
+
+            // Validators
+            services.AddScoped<IPermissionKeysValidator, PermissionKeysValidator>();
 
             // Behaviors (используем общие из BuildingBlocks)ors
             services.AddTransient(
