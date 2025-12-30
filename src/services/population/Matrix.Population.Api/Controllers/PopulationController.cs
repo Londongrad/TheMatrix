@@ -1,4 +1,3 @@
-using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
 using Matrix.Population.Application.UseCases.Population.InitializePopulation;
@@ -17,7 +16,6 @@ namespace Matrix.Population.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpPost("init")]
-        [Authorize(Policy = PermissionKeys.PopulationPeopleInitialize)]
         public async Task<IActionResult> InitializePopulation(
             [FromQuery] int peopleCount = 10_000,
             [FromQuery] int? randomSeed = null,
@@ -33,7 +31,6 @@ namespace Matrix.Population.Api.Controllers
         }
 
         [HttpGet("citizens")]
-        [Authorize(Policy = PermissionKeys.PopulationPeopleRead)]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 100,
