@@ -9,5 +9,13 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
         Task<IReadOnlyCollection<Guid>> GetExistingRoleIdsAsync(
             IReadOnlyCollection<Guid> roleIds,
             CancellationToken cancellationToken);
+
+        Task<bool> ExistsAsync(
+            Guid roleId,
+            CancellationToken cancellationToken);
+
+        Task<bool> ExistsByNameAsync(
+            string roleName,
+            CancellationToken cancellationToken);
     }
 }

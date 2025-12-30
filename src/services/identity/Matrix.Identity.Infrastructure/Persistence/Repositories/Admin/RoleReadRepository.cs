@@ -37,5 +37,29 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .Select(role => role.Id)
                .ToListAsync(cancellationToken);
         }
+
+        public async Task<bool> ExistsAsync(
+            Guid roleId,
+            CancellationToken cancellationToken)
+        {
+            return await _db.Roles.AsNoTracking()
+               .AnyAsync(
+                    predicate: r => r.Id == roleId,
+                    cancellationToken: cancellationToken);
+        }
+
+        public async Task<bool> ExistsByNameAsync(
+            string roleName,
+            CancellationToken cancellationToken)
+        {
+            string normalizedName = roleName.Trim()
+               .ToUpperInvariant();
+
+            return await _db.Roles
+               .AsNoTracking()
+               .AnyAsync(
+                    predicate: r => r.NormalizedName == normalizedName,
+                    cancellationToken: cancellationToken);
+        }
     }
 }
