@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUsersPage;
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Infrastructure.Persistence.Projections;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
@@ -14,23 +15,15 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
         {
             IQueryable<User> query = dbContext.Users
                .AsNoTracking()
-               .OrderByDescending(x => x.CreatedAtUtc);
+               .OrderByDescending(x => x.CreatedAtUtc)
+               .ThenBy(x => x.Id);
 
             int totalCount = await query.CountAsync(cancellationToken);
 
             List<UserListItemResult> items = await query
                .Skip(pagination.Skip)
                .Take(pagination.PageSize)
-               .Select(u => new UserListItemResult
-                {
-                    Id = u.Id,
-                    AvatarUrl = u.AvatarUrl,
-                    Email = u.Email.Value,
-                    Username = u.Username.Value,
-                    IsEmailConfirmed = u.IsEmailConfirmed,
-                    IsLocked = u.IsLocked,
-                    CreatedAtUtc = u.CreatedAtUtc
-                })
+               .Select(UserProjections.ToListItem)
                .ToListAsync(cancellationToken);
 
             return new PagedResult<UserListItemResult>(
