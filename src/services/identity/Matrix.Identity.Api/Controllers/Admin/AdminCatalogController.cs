@@ -17,7 +17,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         private readonly ISender _sender = sender;
 
         [HttpGet("roles")]
-        [Authorize(Policy = PermissionKeys.IdentityRolesList)]
         public async Task<ActionResult<IReadOnlyCollection<RoleResponse>>> GetRoles(
             CancellationToken cancellationToken = default)
         {
@@ -41,7 +40,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         }
 
         [HttpGet("permissions")]
-        [Authorize(Policy = PermissionKeys.IdentityPermissionsCatalogRead)]
         public async Task<ActionResult<IReadOnlyCollection<PermissionCatalogItemResponse>>> GetPermissions(
             CancellationToken cancellationToken = default)
         {

@@ -31,7 +31,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         #region [ Get users ]
 
         [HttpGet]
-        [Authorize(Policy = PermissionKeys.IdentityUsersList)]
         public async Task<ActionResult<PagedResult<UserListItemResponse>>> GetUsersPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 50,
@@ -71,7 +70,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         #region [ Get user details ]
 
         [HttpGet("{userId:guid}")]
-        [Authorize(Policy = PermissionKeys.IdentityUsersRead)]
         public async Task<ActionResult<UserDetailsResponse>> GetUserDetails(
             [FromRoute] Guid userId,
             CancellationToken cancellationToken = default)
@@ -102,7 +100,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         #region [ Lock/Unlock user ]
 
         [HttpPost("{userId:guid}/lock")]
-        [Authorize(Policy = PermissionKeys.IdentityUsersLock)]
         public async Task<IActionResult> LockUser(
             [FromRoute] Guid userId,
             CancellationToken cancellationToken = default)
@@ -117,7 +114,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         }
 
         [HttpPost("{userId:guid}/unlock")]
-        [Authorize(Policy = PermissionKeys.IdentityUsersUnlock)]
         public async Task<IActionResult> UnlockUser(
             [FromRoute] Guid userId,
             CancellationToken cancellationToken = default)
@@ -136,7 +132,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         #region [ Roles ]
 
         [HttpGet("{userId:guid}/roles")]
-        [Authorize(Policy = PermissionKeys.IdentityUserRolesRead)]
         public async Task<ActionResult<IReadOnlyCollection<UserRoleResponse>>> GetUserRoles(
             [FromRoute] Guid userId,
             CancellationToken cancellationToken = default)
@@ -161,7 +156,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         }
 
         [HttpPut("{userId:guid}/roles")]
-        [Authorize(Policy = PermissionKeys.IdentityUserRolesAssign)]
         public async Task<IActionResult> AssignUserRoles(
             [FromRoute] Guid userId,
             [FromBody] AssignUserRolesRequest request,
@@ -183,7 +177,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         #region [ Permissions ]
 
         [HttpGet("{userId:guid}/permissions")]
-        [Authorize(Policy = PermissionKeys.IdentityUserPermissionsRead)]
         public async Task<ActionResult<IReadOnlyCollection<UserPermissionResponse>>> GetUserPermissions(
             [FromRoute] Guid userId,
             CancellationToken cancellationToken = default)
@@ -206,7 +199,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         }
 
         [HttpPost("{userId:guid}/permissions/grant")]
-        [Authorize(Policy = PermissionKeys.IdentityUserPermissionsGrant)]
         public async Task<IActionResult> GrantUserPermission(
             [FromRoute] Guid userId,
             [FromBody] UserPermissionRequest request,
@@ -224,7 +216,6 @@ namespace Matrix.Identity.Api.Controllers.Admin
         }
 
         [HttpPost("{userId:guid}/permissions/deprive")]
-        [Authorize(Policy = PermissionKeys.IdentityUserPermissionsDeprive)]
         public async Task<IActionResult> DepriveUserPermission(
             [FromRoute] Guid userId,
             [FromBody] UserPermissionRequest request,
