@@ -4,6 +4,7 @@ using Matrix.BuildingBlocks.Api.Exceptions;
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Domain.Exceptions;
+using Matrix.BuildingBlocks.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -61,6 +62,26 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     Code: ex.Code,
                     Message: ex.Message,
                     Errors: ex.Errors,
+                    TraceId: context.TraceIdentifier);
+
+                await context.Response.WriteAsJsonAsync(response);
+            }
+            catch (MatrixInfrastructureException ex)
+            {
+                logger.LogError(
+                    exception: ex,
+                    message: "Handled infrastructure exception with code {Code}",
+                    ex.Code);
+
+                HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
+
+                context.Response.StatusCode = (int)statusCode;
+                context.Response.ContentType = "application/json";
+
+                var response = new ErrorResponse(
+                    Code: ex.Code,
+                    Message: ex.Message,
+                    Errors: ex.Details,
                     TraceId: context.TraceIdentifier);
 
                 await context.Response.WriteAsJsonAsync(response);
@@ -199,7 +220,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 ApplicationErrorType.Forbidden => HttpStatusCode.Forbidden,
                 ApplicationErrorType.Conflict => HttpStatusCode.Conflict,
                 ApplicationErrorType.BusinessRule => HttpStatusCode.BadRequest,
-                _ => HttpStatusCode.BadRequest
+                _ => HttpStatusCode.InternalServerError
             };
         }
     }
