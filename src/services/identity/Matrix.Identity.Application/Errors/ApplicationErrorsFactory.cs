@@ -69,6 +69,22 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Unauthorized);
         }
 
+        public static MatrixApplicationException PermissionNotFound(string key)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Permission.NotFound",
+                message: $"Permission '{key}' was not found.",
+                errorType: ApplicationErrorType.NotFound);
+        }
+
+        public static MatrixApplicationException PermissionDeprecated(string key)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Permission.Deprecated",
+                message: $"Permission '{key}' is deprecated.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
         public static MatrixApplicationException ValidationFailed(IReadOnlyDictionary<string, string[]> errors)
         {
             return new MatrixApplicationException(
