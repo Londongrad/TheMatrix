@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj" />
+  </ItemGroup>
+
 </Project>
