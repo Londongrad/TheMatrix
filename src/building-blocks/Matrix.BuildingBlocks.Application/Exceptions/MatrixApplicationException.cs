@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Enums;
+using Matrix.BuildingBlocks.Application.Enums;
 
 namespace Matrix.BuildingBlocks.Application.Exceptions
 {
@@ -6,8 +6,9 @@ namespace Matrix.BuildingBlocks.Application.Exceptions
         string code,
         string message,
         ApplicationErrorType errorType = ApplicationErrorType.BusinessRule,
-        IReadOnlyDictionary<string, string[]>? errors = null)
-        : Exception(message)
+        IReadOnlyDictionary<string, string[]>? errors = null,
+        Exception? innerException = null)
+        : Exception(message, innerException)
     {
         public ApplicationErrorType ErrorType { get; } = errorType;
 
