@@ -1,6 +1,9 @@
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Admin.Permissions.Responses;
+using Matrix.Identity.Contracts.Admin.Roles.Requests;
 using Matrix.Identity.Contracts.Admin.Roles.Responses;
+using Matrix.Identity.Contracts.Admin.Users.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog
 {
@@ -22,6 +25,72 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: RolesEndpoint);
+        }
+
+        public async Task<RoleResponse> CreateRoleAsync(
+            CreateRoleRequest request,
+            CancellationToken cancellationToken)
+        {
+            using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
+                requestUri: RolesEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            return await resp.ReadJsonOrThrowDownstreamAsync<RoleResponse>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: RolesEndpoint);
+        }
+
+        public async Task<RolePermissionsResponse> GetRolePermissionsAsync(
+            Guid roleId,
+            CancellationToken cancellationToken)
+        {
+            string url = $"{RolesEndpoint}/{roleId:D}/permissions";
+
+            using HttpResponseMessage resp = await _httpClient.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await resp.ReadJsonOrThrowDownstreamAsync<RolePermissionsResponse>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task UpdateRolePermissionsAsync(
+            Guid roleId,
+            UpdateRolePermissionsRequest request,
+            CancellationToken cancellationToken)
+        {
+            string url = $"{RolesEndpoint}/{roleId:D}/permissions";
+
+            using HttpResponseMessage resp = await _httpClient.PutAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<PagedResult<UserListItemResponse>> GetRoleMembersPageAsync(
+            Guid roleId,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            string url = $"{RolesEndpoint}/{roleId:D}/users?pageNumber={pageNumber}&pageSize={pageSize}";
+
+            using HttpResponseMessage resp = await _httpClient.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await resp.ReadJsonOrThrowDownstreamAsync<PagedResult<UserListItemResponse>>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
         }
 
         public async Task<IReadOnlyCollection<PermissionCatalogItemResponse>> GetPermissionsAsync(
