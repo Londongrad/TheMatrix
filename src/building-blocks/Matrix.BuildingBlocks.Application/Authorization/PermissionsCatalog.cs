@@ -80,6 +80,26 @@ namespace Matrix.BuildingBlocks.Application.Authorization
                 Group: "Roles",
                 Description: "Create/update/delete roles and manage their permissions."),
             new(
+                Key: PermissionKeys.IdentityRolesCreate,
+                Service: IdentityService,
+                Group: "Roles",
+                Description: "Create custom roles."),
+            new(
+                Key: PermissionKeys.IdentityRolePermissionsRead,
+                Service: IdentityService,
+                Group: "Role Permissions",
+                Description: "View permissions assigned to a role."),
+            new(
+                Key: PermissionKeys.IdentityRolePermissionsUpdate,
+                Service: IdentityService,
+                Group: "Role Permissions",
+                Description: "Replace permissions assigned to a role."),
+            new(
+                Key: PermissionKeys.IdentityRoleMembersRead,
+                Service: IdentityService,
+                Group: "Role Members",
+                Description: "View users assigned to a role (paged)."),
+            new(
                 Key: PermissionKeys.IdentityPermissionsCatalogRead,
                 Service: IdentityService,
                 Group: "Permissions",

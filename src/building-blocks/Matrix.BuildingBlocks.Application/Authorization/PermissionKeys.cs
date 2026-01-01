@@ -23,6 +23,10 @@ namespace Matrix.BuildingBlocks.Application.Authorization
 
         public const string IdentityRolesList = "identity.roles.list";
         public const string IdentityRolesManage = "identity.roles.manage";
+        public const string IdentityRolesCreate = "identity.roles.create";
+        public const string IdentityRolePermissionsRead = "identity.roles.permissions.read";
+        public const string IdentityRolePermissionsUpdate = "identity.roles.permissions.update";
+        public const string IdentityRoleMembersRead = "identity.roles.members.read";
         public const string IdentityPermissionsCatalogRead = "identity.permissions.catalog.read";
 
         public const string IdentityMeProfileRead = "identity.me.profile.read";
