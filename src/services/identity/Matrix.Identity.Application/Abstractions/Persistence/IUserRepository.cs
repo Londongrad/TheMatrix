@@ -47,5 +47,9 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
         Task<bool> BumpPermissionsVersionAsync(
             Guid userId,
             CancellationToken cancellationToken = default);
+
+        Task<int> BumpPermissionsVersionByRoleAsync(
+            Guid roleId,
+            CancellationToken cancellationToken = default);
     }
 }

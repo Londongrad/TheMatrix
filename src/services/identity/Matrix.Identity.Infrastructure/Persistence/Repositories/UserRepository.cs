@@ -124,5 +124,20 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 
             return affected > 0;
         }
+
+        public async Task<int> BumpPermissionsVersionByRoleAsync(
+            Guid roleId,
+            CancellationToken cancellationToken)
+        {
+            int affected = await Users
+               .Where(u => dbContext.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == roleId))
+               .ExecuteUpdateAsync(
+                    setPropertyCalls: setters => setters.SetProperty(
+                        u => u.PermissionsVersion,
+                        u => u.PermissionsVersion + 1),
+                    cancellationToken: cancellationToken);
+
+            return affected;
+        }
     }
 }
