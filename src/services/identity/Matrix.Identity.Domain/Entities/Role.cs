@@ -5,7 +5,7 @@ namespace Matrix.Identity.Domain.Entities
 {
     public sealed class Role
     {
-        public const int NameMaxLength = 64;
+        public const int NameMaxLength = 20;
 
         private Role() { }
 
@@ -36,19 +36,42 @@ namespace Matrix.Identity.Domain.Entities
                 errorFactory: DomainErrorsFactory.EmptyRoleName,
                 trim: true);
 
-            string normalizedName = name.Trim()
-               .ToUpperInvariant();
+            string normalizedName = NormalizeName(name);
 
-            if (name.Length > NameMaxLength)
-                throw DomainErrorsFactory.InvalidRoleNameLength(
-                    maxLength: NameMaxLength,
-                    actualLength: name.Length,
-                    propertyName: nameof(name));
+            ValidateName(name);
 
             return new Role(
                 name: name,
                 normalizedName: normalizedName,
                 isSystem: isSystem);
+        }
+
+        public void Rename(string name)
+        {
+            name = GuardHelper.AgainstNullOrWhiteSpace(
+                value: name,
+                errorFactory: DomainErrorsFactory.EmptyRoleName,
+                trim: true);
+
+            ValidateName(name);
+
+            Name = name;
+            NormalizedName = NormalizeName(name);
+        }
+
+        private static void ValidateName(string name)
+        {
+            if (name.Length > NameMaxLength)
+                throw DomainErrorsFactory.InvalidRoleNameLength(
+                    maxLength: NameMaxLength,
+                    actualLength: name.Length,
+                    propertyName: nameof(name));
+        }
+
+        private static string NormalizeName(string name)
+        {
+            return name.Trim()
+               .ToUpperInvariant();
         }
     }
 }
