@@ -19,7 +19,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
 {
     [ApiController]
     [Route("api/admin/users")]
-    [Authorize(Policy = PermissionKeys.IdentityUsersRead)]
+    [Authorize(Policy = PermissionKeys.IdentityUsersList)]
     public sealed class AdminUsersController(ISender sender) : ControllerBase
     {
         #region [ Fields ]
