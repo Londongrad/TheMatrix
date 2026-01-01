@@ -12,6 +12,12 @@
   background: rgba(255, 80, 135, 0.06);
 }
 
+.mx-admin-perm__loading {
+  display: flex;
+  justify-content: center;
+  padding: 18px 0;
+}
+
 .mx-admin-perm__layout {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -80,6 +86,10 @@
   padding: 12px;
   border-bottom: 1px solid rgba(87, 255, 170, 0.1);
   background: rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 .mx-admin-perm__matrixTitle {
   font-weight: 900;

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
+import LoadingIndicator from "@shared/ui/LoadingIndicator/LoadingIndicator";
 import {
   getPermissionsCatalog,
+  getRolePermissions,
   getRolesCatalog,
+  updateRolePermissions,
 } from "@services/identity/api/admin/adminApi";
 import type {
   PermissionCatalogItemResponse,
@@ -13,15 +16,18 @@ import "./admin-permissions-page.css";
 
 export default function AdminPermissionsPage() {
   const [loading, setLoading] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [roles, setRoles] = useState<RoleResponse[]>([]);
   const [perms, setPerms] = useState<PermissionCatalogItemResponse[]>([]);
-
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
 
-  // TODO: сюда подтягиваешь текущие пермишены роли:
-  // const [rolePerms, setRolePerms] = useState<Set<string>>(new Set());
+  const [rolePermissions, setRolePermissions] = useState<Set<string>>(
+    new Set()
+  );
+  const [dirty, setDirty] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -45,6 +51,33 @@ export default function AdminPermissionsPage() {
     void load();
   }, []);
 
+  useEffect(() => {
+    if (!activeRoleId) return;
+    let active = true;
+    setRoleLoading(true);
+    setError(null);
+
+    getRolePermissions(activeRoleId)
+      .then((response) => {
+        if (!active) return;
+        setRolePermissions(new Set(response.permissionKeys));
+        setDirty(false);
+      })
+      .catch((e) => {
+        console.error(e);
+        if (!active) return;
+        setError("Failed to load role permissions");
+      })
+      .finally(() => {
+        if (!active) return;
+        setRoleLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeRoleId]);
+
   const activeRole = useMemo(
     () => roles.find((r) => r.id === activeRoleId) ?? null,
     [roles, activeRoleId]
@@ -61,6 +94,31 @@ export default function AdminPermissionsPage() {
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }, [perms]);
 
+  const togglePermission = (key: string) => {
+    setRolePermissions((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+    setDirty(true);
+  };
+
+  const saveChanges = async () => {
+    if (!activeRoleId) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await updateRolePermissions(activeRoleId, Array.from(rolePermissions));
+      setDirty(false);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to update role permissions");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="mx-admin-page">
       <Card
@@ -71,13 +129,23 @@ export default function AdminPermissionsPage() {
             <Button onClick={() => void load()} disabled={loading}>
               Refresh
             </Button>
-            <Button variant="primary" disabled={!activeRole}>
+            <Button
+              variant="primary"
+              disabled={!activeRole || !dirty || saving}
+              onClick={() => void saveChanges()}
+            >
               Save changes
             </Button>
           </div>
         }
       >
         {error ? <div className="mx-admin-perm__error">{error}</div> : null}
+
+        {loading ? (
+          <div className="mx-admin-perm__loading">
+            <LoadingIndicator label="Loading roles and permissions" />
+          </div>
+        ) : null}
 
         <div className="mx-admin-perm__layout">
           <div className="mx-admin-perm__roles">
@@ -108,10 +176,12 @@ export default function AdminPermissionsPage() {
                   {activeRole ? `Role: ${activeRole.name}` : "Select a role"}
                 </div>
                 <div className="mx-admin-perm__matrixSub">
-                  Toggle permissions for the selected role (UI ready, connect
-                  API).
+                  Toggle permissions for the selected role.
                 </div>
               </div>
+              {roleLoading ? (
+                <LoadingIndicator label="Loading role permissions" />
+              ) : null}
             </div>
 
             <div className="mx-admin-perm__groups">
@@ -130,12 +200,9 @@ export default function AdminPermissionsPage() {
                         <div className="mx-admin-perm__toggle">
                           <input
                             type="checkbox"
-                            // TODO: checked={rolePerms.has(p.key)}
-                            defaultChecked={Math.random() > 0.6}
-                            disabled={!activeRole}
-                            onChange={() => {
-                              // TODO: обновляешь локальное состояние, потом Save отправляет на бек
-                            }}
+                            checked={rolePermissions.has(p.key)}
+                            disabled={!activeRole || roleLoading || loading}
+                            onChange={() => togglePermission(p.key)}
                           />
                           <span />
                         </div>
