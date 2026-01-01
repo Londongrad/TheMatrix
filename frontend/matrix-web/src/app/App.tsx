@@ -1,15 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
-import DashboardPage from "@modules/city-core/pages/DashboardPage";
-import CitizensPage from "@modules/population/pages/CitizensPage";
-import UserSettingsPage from "@modules/identity/account/pages/user-settings/UserSettingsPage";
+import DashboardPage from "@services/citycore/pages/DashboardPage";
+import CitizensPage from "@services/population/pages/CitizensPage";
+import UserSettingsPage from "@services/identity/account/pages/user-settings/UserSettingsPage";
 
-import { AuthProvider } from "@api/identity/auth/AuthContext";
-import { RequireAuth } from "@api/identity/auth/RequireAuth";
-import { LoginPage } from "@modules/identity/auth/pages/LoginPage";
-import { RegisterPage } from "@modules/identity/auth/pages/RegisterPage";
-import { ConfirmProvider } from "@modules/shared/components/ConfirmDialog";
-import ForbiddenPage from "@modules/shared/pages/ForbiddenPage";
+import { AuthProvider } from "@services/identity/api/auth/AuthContext";
+import { RequireAuth } from "@services/identity/api/auth/RequireAuth";
+import { LoginPage } from "@services/identity/auth/pages/LoginPage";
+import { RegisterPage } from "@services/identity/auth/pages/RegisterPage";
+import { ConfirmProvider } from "@shared/components/ConfirmDialog";
+import ForbiddenPage from "@shared/pages/ForbiddenPage";
 
 const App = () => {
   return (

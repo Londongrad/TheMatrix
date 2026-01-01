@@ -9,10 +9,9 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      "@api": fileURLToPath(new URL("./src/api", import.meta.url)),
-      "@modules": fileURLToPath(new URL("./src/modules", import.meta.url)),
       "@app": fileURLToPath(new URL("./src/app", import.meta.url)),
-      "@styles": fileURLToPath(new URL("./src/styles", import.meta.url)),
+      "@services": fileURLToPath(new URL("./src/services", import.meta.url)),
+      "@shared": fileURLToPath(new URL("./src/shared", import.meta.url)),
     },
   },
 
