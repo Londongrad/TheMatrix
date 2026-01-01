@@ -26,10 +26,9 @@
     /* Алиасы */
     "baseUrl": "./src",
     "paths": {
-      "@api/*": ["api/*"],
-      "@modules/*": ["modules/*"],
       "@app/*": ["app/*"],
-      "@styles/*": ["styles/*"]
+      "@services/*": ["services/*"],
+      "@shared/*": ["shared/*"]
     }
   },
   "include": ["src"]
