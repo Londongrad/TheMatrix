@@ -35,7 +35,7 @@ namespace Matrix.BuildingBlocks.Application.Authorization
                 Group: "User Roles",
                 Description: "View roles assigned to a user."),
             new(
-                Key: PermissionKeys.IdentityUserRolesAssign,
+                Key: PermissionKeys.IdentityUserRolesUpdate,
                 Service: IdentityService,
                 Group: "User Roles",
                 Description: "Assign/unassign roles for a user."),

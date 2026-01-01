@@ -11,7 +11,7 @@ namespace Matrix.BuildingBlocks.Application.Authorization
         public const string IdentityUsersUnlock = "identity.users.unlock";
 
         public const string IdentityUserRolesRead = "identity.users.roles.read";
-        public const string IdentityUserRolesAssign = "identity.users.roles.assign";
+        public const string IdentityUserRolesUpdate = "identity.users.roles.update";
 
         public const string IdentityUserPermissionsRead = "identity.users.permissions.read";
         public const string IdentityUserPermissionsGrant = "identity.users.permissions.grant";

@@ -8,6 +8,6 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles
         IReadOnlyCollection<Guid> RoleIds)
         : IRequest, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.IdentityUserRolesAssign;
+        public string PermissionKey => PermissionKeys.IdentityUserRolesUpdate;
     }
 }
