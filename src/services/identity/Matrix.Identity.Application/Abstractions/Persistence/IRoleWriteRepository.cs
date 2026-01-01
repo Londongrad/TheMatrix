@@ -7,5 +7,13 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
         Task AddAsync(
             Role role,
             CancellationToken cancellationToken);
+
+        Task<Role?> GetByIdForUpdateAsync(
+            Guid roleId,
+            CancellationToken cancellationToken);
+
+        Task DeleteAsync(
+            Role role,
+            CancellationToken cancellationToken);
     }
 }
