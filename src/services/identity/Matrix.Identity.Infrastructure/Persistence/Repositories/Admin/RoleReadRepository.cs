@@ -1,5 +1,6 @@
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.UseCases.Admin.Roles.GetRolesList;
+using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
@@ -42,7 +43,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
             Guid roleId,
             CancellationToken cancellationToken)
         {
-            return await _db.Roles.AsNoTracking()
+            return await _db.Roles
+               .AsNoTracking()
                .AnyAsync(
                     predicate: r => r.Id == roleId,
                     cancellationToken: cancellationToken);
@@ -59,6 +61,32 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .AsNoTracking()
                .AnyAsync(
                     predicate: r => r.NormalizedName == normalizedName,
+                    cancellationToken: cancellationToken);
+        }
+
+        public async Task<bool> ExistsByNameExceptAsync(
+            string roleName,
+            Guid excludedRoleId,
+            CancellationToken cancellationToken)
+        {
+            string normalizedName = roleName.Trim()
+               .ToUpperInvariant();
+
+            return await _db.Roles
+               .AsNoTracking()
+               .AnyAsync(
+                    predicate: r => r.NormalizedName == normalizedName && r.Id != excludedRoleId,
+                    cancellationToken: cancellationToken);
+        }
+
+        public async Task<Role?> GetByIdAsync(
+            Guid id,
+            CancellationToken cancellationToken)
+        {
+            return await _db.Roles
+               .AsNoTracking()
+               .FirstOrDefaultAsync(
+                    predicate: r => r.Id == id,
                     cancellationToken: cancellationToken);
         }
     }

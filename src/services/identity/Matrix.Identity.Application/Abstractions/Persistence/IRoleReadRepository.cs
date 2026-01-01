@@ -1,4 +1,5 @@
 using Matrix.Identity.Application.UseCases.Admin.Roles.GetRolesList;
+using Matrix.Identity.Domain.Entities;
 
 namespace Matrix.Identity.Application.Abstractions.Persistence
 {
@@ -16,6 +17,15 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
 
         Task<bool> ExistsByNameAsync(
             string roleName,
+            CancellationToken cancellationToken);
+
+        Task<bool> ExistsByNameExceptAsync(
+            string roleName,
+            Guid excludedRoleId,
+            CancellationToken cancellationToken);
+
+        Task<Role?> GetByIdAsync(
+            Guid roleId,
             CancellationToken cancellationToken);
     }
 }
