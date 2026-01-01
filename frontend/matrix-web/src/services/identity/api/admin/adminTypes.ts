@@ -34,6 +34,14 @@ export interface RoleResponse {
   createdAtUtc: string;
 }
 
+export interface CreateRoleRequest {
+  name: string;
+}
+
+export interface RolePermissionsResponse {
+  permissionKeys: string[];
+}
+
 export type PermissionEffect = "Allow" | "Deny";
 export interface UserPermissionResponse {
   permissionKey: string;

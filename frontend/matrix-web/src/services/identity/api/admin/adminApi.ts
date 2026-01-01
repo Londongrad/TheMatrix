@@ -2,8 +2,10 @@
 import { apiRequest } from "@shared/api/http";
 import { API_ADMIN_URL, API_ADMIN_USERS_URL } from "@shared/api/config";
 import type {
+  CreateRoleRequest,
   PermissionCatalogItemResponse,
   RoleResponse,
+  RolePermissionsResponse,
   UserDetailsResponse,
   UserListItemResponse,
   UserPermissionResponse,
@@ -91,6 +93,43 @@ export async function depriveUserPermission(
 
 export async function getRolesCatalog(): Promise<RoleResponse[]> {
   return await apiRequest<RoleResponse[]>(`${API_ADMIN_URL}/roles`);
+}
+
+export async function createRole(
+  payload: CreateRoleRequest
+): Promise<RoleResponse> {
+  return await apiRequest<RoleResponse>(`${API_ADMIN_URL}/roles`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getRolePermissions(
+  roleId: string
+): Promise<RolePermissionsResponse> {
+  return await apiRequest<RolePermissionsResponse>(
+    `${API_ADMIN_URL}/roles/${roleId}/permissions`
+  );
+}
+
+export async function updateRolePermissions(
+  roleId: string,
+  permissionKeys: string[]
+): Promise<void> {
+  await apiRequest<void>(`${API_ADMIN_URL}/roles/${roleId}/permissions`, {
+    method: "PUT",
+    body: JSON.stringify({ permissionKeys }),
+  });
+}
+
+export async function getRoleMembersPage(
+  roleId: string,
+  pageNumber: number,
+  pageSize: number
+): Promise<PagedResult<UserListItemResponse>> {
+  return await apiRequest<PagedResult<UserListItemResponse>>(
+    `${API_ADMIN_URL}/roles/${roleId}/users?pageNumber=${pageNumber}&pageSize=${pageSize}`
+  );
 }
 
 export async function getPermissionsCatalog(): Promise<
