@@ -15,7 +15,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
         public async Task<PagedResult<UserListItemResponse>> GetUsersPageAsync(
             int pageNumber,
             int pageSize,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = QueryHelpers.AddQueryString(
                 uri: UsersEndpoint,
@@ -27,143 +27,143 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
 
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: url,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<PagedResult<UserListItemResponse>>(
                 serviceName: ServiceName,
-                cancellationToken: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: url);
         }
 
         public async Task<UserDetailsResponse> GetUserDetailsAsync(
             Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}";
 
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: url,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<UserDetailsResponse>(
                 serviceName: ServiceName,
-                cancellationToken: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: url);
         }
 
         public async Task LockUserAsync(
             Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}/lock";
 
             using HttpResponseMessage resp = await _httpClient.PostAsync(
                 requestUri: url,
                 content: null,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
         }
 
         public async Task UnlockUserAsync(
             Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}/unlock";
 
             using HttpResponseMessage resp = await _httpClient.PostAsync(
                 requestUri: url,
                 content: null,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyCollection<UserRoleResponse>> GetUserRolesAsync(
             Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}/roles";
 
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: url,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<IReadOnlyCollection<UserRoleResponse>>(
                 serviceName: ServiceName,
-                cancellationToken: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: url);
         }
 
         public async Task AssignUserRolesAsync(
             Guid userId,
             AssignUserRolesRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}/roles";
 
             using HttpResponseMessage resp = await _httpClient.PutAsJsonAsync(
                 requestUri: url,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyCollection<UserPermissionResponse>> GetUserPermissionsAsync(
             Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}/permissions";
 
             using HttpResponseMessage resp = await _httpClient.GetAsync(
                 requestUri: url,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             return await resp.ReadJsonOrThrowDownstreamAsync<IReadOnlyCollection<UserPermissionResponse>>(
                 serviceName: ServiceName,
-                cancellationToken: ct,
+                cancellationToken: cancellationToken,
                 requestUrl: url);
         }
 
         public async Task GrantUserPermissionAsync(
             Guid userId,
             UserPermissionRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}/permissions/grant";
 
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: url,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
         }
 
         public async Task DepriveUserPermissionAsync(
             Guid userId,
             UserPermissionRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             string url = $"{UsersEndpoint}/{userId:D}/permissions/deprive";
 
             using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
                 requestUri: url,
                 value: request,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
 
             await resp.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: ServiceName,
-                cancellationToken: ct);
+                cancellationToken: cancellationToken);
         }
     }
 }

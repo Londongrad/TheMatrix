@@ -28,7 +28,9 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
             [FromBody] CreateRoleRequest request,
             CancellationToken cancellationToken)
         {
-            RoleResponse role = await _catalogClient.CreateRoleAsync(request, cancellationToken);
+            RoleResponse role = await _catalogClient.CreateRoleAsync(
+                request: request,
+                cancellationToken: cancellationToken);
             return Ok(role);
         }
 
@@ -38,7 +40,9 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
             CancellationToken cancellationToken)
         {
             RolePermissionsResponse permissions =
-                await _catalogClient.GetRolePermissionsAsync(roleId, cancellationToken);
+                await _catalogClient.GetRolePermissionsAsync(
+                    roleId: roleId,
+                    cancellationToken: cancellationToken);
             return Ok(permissions);
         }
 
@@ -48,7 +52,10 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
             [FromBody] UpdateRolePermissionsRequest request,
             CancellationToken cancellationToken)
         {
-            await _catalogClient.UpdateRolePermissionsAsync(roleId, request, cancellationToken);
+            await _catalogClient.UpdateRolePermissionsAsync(
+                roleId: roleId,
+                request: request,
+                cancellationToken: cancellationToken);
             return NoContent();
         }
 
@@ -60,7 +67,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
             CancellationToken cancellationToken = default)
         {
             PagedResult<UserListItemResponse> result =
-                await _catalogClient.GetRoleMembersPageAsync(roleId, pageNumber, pageSize, cancellationToken);
+                await _catalogClient.GetRoleMembersPageAsync(
+                    roleId: roleId,
+                    pageNumber: pageNumber,
+                    pageSize: pageSize,
+                    cancellationToken: cancellationToken);
 
             return Ok(result);
         }

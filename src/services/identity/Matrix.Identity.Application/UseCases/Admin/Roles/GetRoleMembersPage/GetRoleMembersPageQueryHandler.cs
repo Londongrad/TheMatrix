@@ -16,8 +16,8 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.GetRoleMembersPage
             CancellationToken cancellationToken)
         {
             bool isExist = await roleReadRepository.ExistsAsync(
-                request.RoleId,
-                cancellationToken);
+                roleId: request.RoleId,
+                cancellationToken: cancellationToken);
 
             if (!isExist)
                 throw ApplicationErrorsFactory.RoleNotFound(request.RoleId);

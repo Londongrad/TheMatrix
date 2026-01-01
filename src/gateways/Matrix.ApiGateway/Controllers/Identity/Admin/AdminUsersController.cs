@@ -18,12 +18,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         public async Task<ActionResult<PagedResult<UserListItemResponse>>> GetUsersPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 50,
-            CancellationToken ct = default)
+            CancellationToken cancellationToken = default)
         {
             PagedResult<UserListItemResponse> page = await _usersClient.GetUsersPageAsync(
                 pageNumber: pageNumber,
                 pageSize: pageSize,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             // Нормализуем AvatarUrl как в AccountController
             foreach (UserListItemResponse item in page.Items)
@@ -35,11 +35,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         [HttpGet("{userId:guid}")]
         public async Task<ActionResult<UserDetailsResponse>> GetUserDetails(
             [FromRoute] Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             UserDetailsResponse dto = await _usersClient.GetUserDetailsAsync(
                 userId: userId,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             dto.AvatarUrl = ToPublicAvatarUrl(dto.AvatarUrl);
 
@@ -49,11 +49,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         [HttpPost("{userId:guid}/lock")]
         public async Task<IActionResult> LockUser(
             [FromRoute] Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             await _usersClient.LockUserAsync(
                 userId: userId,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             return NoContent();
         }
@@ -61,11 +61,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         [HttpPost("{userId:guid}/unlock")]
         public async Task<IActionResult> UnlockUser(
             [FromRoute] Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             await _usersClient.UnlockUserAsync(
                 userId: userId,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             return NoContent();
         }
@@ -73,11 +73,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         [HttpGet("{userId:guid}/roles")]
         public async Task<ActionResult<IReadOnlyCollection<UserRoleResponse>>> GetUserRoles(
             [FromRoute] Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             IReadOnlyCollection<UserRoleResponse> roles = await _usersClient.GetUserRolesAsync(
                 userId: userId,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             return Ok(roles);
         }
@@ -86,12 +86,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         public async Task<IActionResult> AssignUserRoles(
             [FromRoute] Guid userId,
             [FromBody] AssignUserRolesRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             await _usersClient.AssignUserRolesAsync(
                 userId: userId,
                 request: request,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             return NoContent();
         }
@@ -99,12 +99,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         [HttpGet("{userId:guid}/permissions")]
         public async Task<ActionResult<IReadOnlyCollection<UserPermissionResponse>>> GetUserPermissions(
             [FromRoute] Guid userId,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             IReadOnlyCollection<UserPermissionResponse> perms =
                 await _usersClient.GetUserPermissionsAsync(
                     userId: userId,
-                    ct: ct);
+                    cancellationToken: cancellationToken);
 
             return Ok(perms);
         }
@@ -113,12 +113,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         public async Task<IActionResult> GrantUserPermission(
             [FromRoute] Guid userId,
             [FromBody] UserPermissionRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             await _usersClient.GrantUserPermissionAsync(
                 userId: userId,
                 request: request,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             return NoContent();
         }
@@ -127,12 +127,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         public async Task<IActionResult> DepriveUserPermission(
             [FromRoute] Guid userId,
             [FromBody] UserPermissionRequest request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             await _usersClient.DepriveUserPermissionAsync(
                 userId: userId,
                 request: request,
-                ct: ct);
+                cancellationToken: cancellationToken);
 
             return NoContent();
         }

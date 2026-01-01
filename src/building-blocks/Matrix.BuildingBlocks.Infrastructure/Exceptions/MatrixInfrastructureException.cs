@@ -8,9 +8,14 @@ namespace Matrix.BuildingBlocks.Infrastructure.Exceptions
         ApplicationErrorType errorType = ApplicationErrorType.Unknown,
         IReadOnlyDictionary<string, string[]>? details = null,
         Exception? innerException = null)
-        : Exception(message, innerException)
+        : Exception(
+            message: message,
+            innerException: innerException)
     {
-        public string Code { get; } = string.IsNullOrWhiteSpace(code) ? "Infrastructure.Error" : code;
+        public string Code { get; } = string.IsNullOrWhiteSpace(code)
+            ? "Infrastructure.Error"
+            : code;
+
         public ApplicationErrorType ErrorType { get; } = errorType;
         public IReadOnlyDictionary<string, string[]>? Details { get; } = details;
     }

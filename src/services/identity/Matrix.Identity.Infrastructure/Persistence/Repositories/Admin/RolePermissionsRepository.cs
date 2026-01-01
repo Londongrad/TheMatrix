@@ -35,7 +35,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 
             HashSet<string> existingKeys = existing.Count == 0
                 ? new HashSet<string>()
-                : existing.Select(x => x.PermissionKey).ToHashSet();
+                : existing.Select(x => x.PermissionKey)
+                   .ToHashSet();
 
             var toRemove = existing
                .Where(rp => !desired.Contains(rp.PermissionKey))
@@ -56,7 +57,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                 _db.RolePermissions.RemoveRange(toRemove);
 
             if (toAdd.Count > 0)
-                await _db.RolePermissions.AddRangeAsync(toAdd, cancellationToken);
+                await _db.RolePermissions.AddRangeAsync(
+                    entities: toAdd,
+                    cancellationToken: cancellationToken);
 
             return true;
         }

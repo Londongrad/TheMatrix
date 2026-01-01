@@ -12,7 +12,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         public Task<int> RevokeAllByUserIdAsync(
             Guid userId,
             RefreshTokenRevocationReason reason,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             DateTime now = DateTime.UtcNow;
 
@@ -30,14 +30,14 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                        .SetProperty(
                             x => x.RevokedReason,
                             _ => reason),
-                    cancellationToken: ct);
+                    cancellationToken: cancellationToken);
         }
 
         public Task<int> RevokeByIdAsync(
             Guid userId,
             Guid refreshTokenId,
             RefreshTokenRevocationReason reason,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             DateTime now = DateTime.UtcNow;
 
@@ -56,25 +56,25 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                        .SetProperty(
                             x => x.RevokedReason,
                             _ => reason),
-                    cancellationToken: ct);
+                    cancellationToken: cancellationToken);
         }
 
         public Task<int> DeleteExpiredAsync(
             DateTime utcNow,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             return _db.Set<RefreshToken>()
                .Where(t => t.ExpiresAtUtc <= utcNow)
-               .ExecuteDeleteAsync(ct);
+               .ExecuteDeleteAsync(cancellationToken);
         }
 
         public Task<int> DeleteRevokedAndExpiredAsync(
             DateTime utcNow,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
             return _db.Set<RefreshToken>()
                .Where(t => t.IsRevoked && t.ExpiresAtUtc <= utcNow)
-               .ExecuteDeleteAsync(ct);
+               .ExecuteDeleteAsync(cancellationToken);
         }
     }
 }

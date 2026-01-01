@@ -7,20 +7,20 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
         Task<int> RevokeAllByUserIdAsync(
             Guid userId,
             RefreshTokenRevocationReason reason,
-            CancellationToken ct);
+            CancellationToken cancellationToken);
 
         Task<int> RevokeByIdAsync(
             Guid userId,
             Guid refreshTokenId,
             RefreshTokenRevocationReason reason,
-            CancellationToken ct);
+            CancellationToken cancellationToken);
 
         Task<int> DeleteExpiredAsync(
             DateTime utcNow,
-            CancellationToken ct);
+            CancellationToken cancellationToken);
 
         Task<int> DeleteRevokedAndExpiredAsync(
             DateTime utcNow,
-            CancellationToken ct);
+            CancellationToken cancellationToken);
     }
 }

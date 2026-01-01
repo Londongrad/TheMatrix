@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization;
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Identity.Application.UseCases.Admin.Users.AssignUserRoles;
 using Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserPermissions;
@@ -9,6 +8,7 @@ using Matrix.Identity.Application.UseCases.Admin.Users.GetUsersPage;
 using Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission;
 using Matrix.Identity.Application.UseCases.Admin.Users.LockUser;
 using Matrix.Identity.Application.UseCases.Admin.Users.UnlockUser;
+using Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles;
 using Matrix.Identity.Contracts.Admin.Users.Requests;
 using Matrix.Identity.Contracts.Admin.Users.Responses;
 using MediatR;
@@ -161,7 +161,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
             [FromBody] AssignUserRolesRequest request,
             CancellationToken cancellationToken = default)
         {
-            var command = new AssignUserRolesCommand(
+            var command = new UpdateUserRolesCommand(
                 UserId: userId,
                 RoleIds: request.RoleIds);
 

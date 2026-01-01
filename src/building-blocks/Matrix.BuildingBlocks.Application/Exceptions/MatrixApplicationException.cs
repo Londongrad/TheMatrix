@@ -8,7 +8,9 @@ namespace Matrix.BuildingBlocks.Application.Exceptions
         ApplicationErrorType errorType = ApplicationErrorType.BusinessRule,
         IReadOnlyDictionary<string, string[]>? errors = null,
         Exception? innerException = null)
-        : Exception(message, innerException)
+        : Exception(
+            message: message,
+            innerException: innerException)
     {
         public ApplicationErrorType ErrorType { get; } = errorType;
 

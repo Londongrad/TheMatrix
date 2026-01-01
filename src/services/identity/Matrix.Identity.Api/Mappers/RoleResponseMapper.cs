@@ -6,20 +6,26 @@ namespace Matrix.Identity.Api.Mappers
 {
     public static class RoleResponseMapper
     {
-        public static RoleResponse ToResponse(this RoleListItemResult r) => new()
+        public static RoleResponse ToResponse(this RoleListItemResult r)
         {
-            Id = r.Id,
-            Name = r.Name,
-            IsSystem = r.IsSystem,
-            CreatedAtUtc = r.CreatedAtUtc
-        };
+            return new RoleResponse
+            {
+                Id = r.Id,
+                Name = r.Name,
+                IsSystem = r.IsSystem,
+                CreatedAtUtc = r.CreatedAtUtc
+            };
+        }
 
-        public static RoleResponse ToResponse(this RoleCreatedResult r) => new()
+        public static RoleResponse ToResponse(this RoleCreatedResult r)
         {
-            Id = r.Id,
-            Name = r.Name,
-            IsSystem = r.IsSystem,
-            CreatedAtUtc = r.CreatedAtUtc
-        };
+            return new RoleResponse
+            {
+                Id = r.Id,
+                Name = r.Name,
+                IsSystem = r.IsSystem,
+                CreatedAtUtc = r.CreatedAtUtc
+            };
+        }
     }
 }
