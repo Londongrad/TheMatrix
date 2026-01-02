@@ -3,7 +3,8 @@ using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
-using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog;
+using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
+using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
@@ -172,8 +173,15 @@ namespace Matrix.ApiGateway.Configurations
 
             #region [ Admin ]
 
-            services.AddHttpClient<IIdentityAdminCatalogClient, IdentityAdminCatalogApiClient>(client =>
+            services.AddHttpClient<IIdentityAdminRolesClient, IdentityAdminRolesApiClient>(client =>
                 {
+                    client.BaseAddress = new Uri(identityBaseUrl);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            services.AddHttpClient<IIdentityAdminPermissionsClient, IdentityAdminPermissionsApiClient>(client =>
+            {
                     client.BaseAddress = new Uri(identityBaseUrl);
                 })
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
