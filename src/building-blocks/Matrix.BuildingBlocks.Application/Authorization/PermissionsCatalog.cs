@@ -5,134 +5,147 @@ namespace Matrix.BuildingBlocks.Application.Authorization
         private const string PopulationService = "Population";
         private const string IdentityService = "Identity";
 
+        private const string AdminGroup = "Admin";
+        private const string MeGroup = "Me";
+        private const string PermissionsGroup = "Permissions";
+        private const string RolesGroup = "Roles";
+
+        private const string PeopleGroup = "People";
+        private const string PersonGroup = "Person";
+
         public static readonly IReadOnlyList<PermissionDefinition> All =
         [
             #region [ Identity permissions ]
 
             new(
-                Key: PermissionKeys.IdentityUsersList,
+                Key: PermissionKeys.IdentityAdminAccess,
                 Service: IdentityService,
-                Group: "Users",
-                Description: "View user list (paged)."),
+                Group: AdminGroup,
+                Description: "Access admin management endpoints."),
             new(
                 Key: PermissionKeys.IdentityUsersRead,
                 Service: IdentityService,
-                Group: "Users",
-                Description: "View user details."),
+                Group: AdminGroup,
+                Description: "View user list and details."),
             new(
                 Key: PermissionKeys.IdentityUsersLock,
                 Service: IdentityService,
-                Group: "Users",
+                Group: AdminGroup,
                 Description: "Lock a user (disable login)."),
             new(
                 Key: PermissionKeys.IdentityUsersUnlock,
                 Service: IdentityService,
-                Group: "Users",
+                Group: AdminGroup,
                 Description: "Unlock a user (enable login)."),
             new(
                 Key: PermissionKeys.IdentityUserRolesRead,
                 Service: IdentityService,
-                Group: "User Roles",
+                Group: AdminGroup,
                 Description: "View roles assigned to a user."),
             new(
                 Key: PermissionKeys.IdentityUserRolesUpdate,
                 Service: IdentityService,
-                Group: "User Roles",
+                Group: AdminGroup,
                 Description: "Assign/unassign roles for a user."),
             new(
                 Key: PermissionKeys.IdentityUserPermissionsRead,
                 Service: IdentityService,
-                Group: "User Permissions",
+                Group: AdminGroup,
                 Description: "View direct permissions assigned to a user."),
             new(
                 Key: PermissionKeys.IdentityUserPermissionsGrant,
                 Service: IdentityService,
-                Group: "User Permissions",
+                Group: AdminGroup,
                 Description: "Grant direct permissions for a user."),
             new(
                 Key: PermissionKeys.IdentityUserPermissionsDeprive,
                 Service: IdentityService,
-                Group: "User Permissions",
+                Group: AdminGroup,
                 Description: "Deprive a user of a direct permission."),
             new(
                 Key: PermissionKeys.IdentityUserSessionsRead,
                 Service: IdentityService,
-                Group: "User Sessions",
+                Group: AdminGroup,
                 Description: "View user sessions (refresh tokens)."),
             new(
                 Key: PermissionKeys.IdentityUserSessionsRevoke,
                 Service: IdentityService,
-                Group: "User Sessions",
+                Group: AdminGroup,
                 Description: "Revoke user sessions (refresh tokens)."),
             new(
                 Key: PermissionKeys.IdentityUserSessionsRevokeAll,
                 Service: IdentityService,
-                Group: "User Sessions",
+                Group: AdminGroup,
                 Description: "Revoke all user sessions (all refresh tokens)."),
             new(
                 Key: PermissionKeys.IdentityRolesList,
                 Service: IdentityService,
-                Group: "Roles",
+                Group: RolesGroup,
                 Description: "View roles list (paged)."),
-            new(
-                Key: PermissionKeys.IdentityRolesManage,
-                Service: IdentityService,
-                Group: "Roles",
-                Description: "Create/update/delete roles and manage their permissions."),
             new(
                 Key: PermissionKeys.IdentityRolesCreate,
                 Service: IdentityService,
-                Group: "Roles",
+                Group: RolesGroup,
                 Description: "Create custom roles."),
+            new(
+                Key: PermissionKeys.IdentityRolesRename,
+                Service: IdentityService,
+                Group: RolesGroup,
+                Description: "Rename custom roles."),
+            new(
+                Key: PermissionKeys.IdentityRolesDelete,
+                Service: IdentityService,
+                Group: "Roles",
+                Description: "Delete custom roles."),
             new(
                 Key: PermissionKeys.IdentityRolePermissionsRead,
                 Service: IdentityService,
-                Group: "Role Permissions",
+                Group: RolesGroup,
                 Description: "View permissions assigned to a role."),
             new(
                 Key: PermissionKeys.IdentityRolePermissionsUpdate,
                 Service: IdentityService,
-                Group: "Role Permissions",
+                Group: RolesGroup,
                 Description: "Replace permissions assigned to a role."),
             new(
                 Key: PermissionKeys.IdentityRoleMembersRead,
                 Service: IdentityService,
-                Group: "Role Members",
+                Group: RolesGroup,
                 Description: "View users assigned to a role (paged)."),
             new(
                 Key: PermissionKeys.IdentityPermissionsCatalogRead,
                 Service: IdentityService,
-                Group: "Permissions",
+                Group: PermissionsGroup,
                 Description: "View permissions catalog."),
             new(
                 Key: PermissionKeys.IdentityMeProfileRead,
                 Service: IdentityService,
-                Group: "Me",
+                Group: MeGroup,
                 Description: "View own profile."),
             new(
                 Key: PermissionKeys.IdentityMePasswordChange,
                 Service: IdentityService,
-                Group: "Me",
+                Group: MeGroup,
                 Description: "Change own password."),
             new(
                 Key: PermissionKeys.IdentityMeAvatarChange,
                 Service: IdentityService,
-                Group: "Me",
+                Group: MeGroup,
                 Description: "Change own avatar."),
             new(
                 Key: PermissionKeys.IdentityMeSessionsRead,
                 Service: IdentityService,
-                Group: "Me Sessions",
+                Group: MeGroup,
                 Description: "View own sessions (refresh tokens)."),
             new(
                 Key: PermissionKeys.IdentityMeSessionsRevoke,
                 Service: IdentityService,
-                Group: "Me Sessions",
+                Group: MeGroup,
                 Description: "Revoke one of own sessions (refresh token)."),
             new(
                 Key: PermissionKeys.IdentityMeSessionsRevokeAll,
                 Service: IdentityService,
-                Group: "Me Sessions",
+                Group: MeGroup,
                 Description: "Revoke all own sessions (all refresh tokens)."),
 
             #endregion [ Identity permissions ]
@@ -142,22 +155,22 @@ namespace Matrix.BuildingBlocks.Application.Authorization
             new(
                 Key: PermissionKeys.PopulationPeopleRead,
                 Service: PopulationService,
-                Group: "People",
+                Group: PeopleGroup,
                 Description: "Read citizens page."),
             new(
                 Key: PermissionKeys.PopulationPeopleInitialize,
                 Service: PopulationService,
-                Group: "People",
+                Group: PeopleGroup,
                 Description: "Initialize population."),
             new(
                 Key: PermissionKeys.PopulationPersonKill,
                 Service: PopulationService,
-                Group: "Person",
+                Group: PersonGroup,
                 Description: "Kill a person."),
             new(
                 Key: PermissionKeys.PopulationPersonResurrect,
                 Service: PopulationService,
-                Group: "Person",
+                Group: PersonGroup,
                 Description: "Resurrect a person."),
 
             #endregion [ Population permissions ]

@@ -4,7 +4,7 @@ namespace Matrix.BuildingBlocks.Application.Authorization
     {
         #region [ Identity permission keys ]
 
-        public const string IdentityUsersList = "identity.users.list";
+        public const string IdentityAdminAccess = "identity.admin.access";
         public const string IdentityUsersRead = "identity.users.read";
 
         public const string IdentityUsersLock = "identity.users.lock";
@@ -22,8 +22,9 @@ namespace Matrix.BuildingBlocks.Application.Authorization
         public const string IdentityUserSessionsRevokeAll = "identity.users.sessions.revoke.all";
 
         public const string IdentityRolesList = "identity.roles.list";
-        public const string IdentityRolesManage = "identity.roles.manage";
         public const string IdentityRolesCreate = "identity.roles.create";
+        public const string IdentityRolesRename = "identity.roles.rename";
+        public const string IdentityRolesDelete = "identity.roles.delete";
         public const string IdentityRolePermissionsRead = "identity.roles.permissions.read";
         public const string IdentityRolePermissionsUpdate = "identity.roles.permissions.update";
         public const string IdentityRoleMembersRead = "identity.roles.members.read";
