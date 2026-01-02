@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Authorization;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile
@@ -5,5 +6,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile
     public sealed record ChangeAvatarFromFileCommand(
         Stream FileStream,
         string FileName,
-        string ContentType) : IRequest<string>;
+        string ContentType) : IRequest<string>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.IdentityMeAvatarChange;
+    }
 }
