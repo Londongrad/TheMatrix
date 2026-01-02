@@ -1,18 +1,15 @@
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Identity.Contracts.Admin.Permissions.Responses;
 using Matrix.Identity.Contracts.Admin.Roles.Requests;
 using Matrix.Identity.Contracts.Admin.Roles.Responses;
 using Matrix.Identity.Contracts.Admin.Users.Responses;
 
-namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles
 {
-    public sealed class IdentityAdminCatalogApiClient(HttpClient httpClient) : IIdentityAdminCatalogClient
+    public sealed class IdentityAdminRolesApiClient(HttpClient httpClient) : IIdentityAdminRolesClient
     {
         private const string ServiceName = "Identity";
-        private const string AdminBase = "/api/admin";
-        private const string RolesEndpoint = AdminBase + "/roles";
-        private const string PermissionsEndpoint = AdminBase + "/permissions";
+        private const string RolesEndpoint = "/api/admin/roles";
         private readonly HttpClient _httpClient = httpClient;
 
         public async Task<IReadOnlyCollection<RoleResponse>> GetRolesAsync(CancellationToken cancellationToken)
@@ -40,6 +37,39 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: RolesEndpoint);
+        }
+
+        public async Task<RoleResponse> RenameRoleAsync(
+            Guid roleId,
+            RenameRoleRequest request,
+            CancellationToken cancellationToken)
+        {
+            string url = $"{RolesEndpoint}/{roleId:D}";
+
+            using HttpResponseMessage resp = await _httpClient.PutAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            return await resp.ReadJsonOrThrowDownstreamAsync<RoleResponse>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task DeleteRoleAsync(
+            Guid roleId,
+            CancellationToken cancellationToken)
+        {
+            string url = $"{RolesEndpoint}/{roleId:D}";
+
+            using HttpResponseMessage resp = await _httpClient.DeleteAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<RolePermissionsResponse> GetRolePermissionsAsync(
@@ -91,19 +121,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Catalog
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: url);
-        }
-
-        public async Task<IReadOnlyCollection<PermissionCatalogItemResponse>> GetPermissionsAsync(
-            CancellationToken cancellationToken)
-        {
-            using HttpResponseMessage resp = await _httpClient.GetAsync(
-                requestUri: PermissionsEndpoint,
-                cancellationToken: cancellationToken);
-
-            return await resp.ReadJsonOrThrowDownstreamAsync<IReadOnlyCollection<PermissionCatalogItemResponse>>(
-                serviceName: ServiceName,
-                cancellationToken: cancellationToken,
-                requestUrl: PermissionsEndpoint);
         }
     }
 }
