@@ -10,6 +10,16 @@ import type {
   RoleResponse,
 } from "@services/identity/api/admin/adminTypes";
 
+export type PermissionGroup = {
+  title: string;
+  items: PermissionCatalogItemResponse[];
+};
+
+export type PermissionSection = {
+  title: string;
+  groups: PermissionGroup[];
+};
+
 export function useAdminPermissions() {
   const [loading, setLoading] = useState(false);
   const [roleLoading, setRoleLoading] = useState(false);
@@ -79,15 +89,34 @@ export function useAdminPermissions() {
     [roles, activeRoleId]
   );
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, PermissionCatalogItemResponse[]>();
+  const grouped = useMemo<PermissionSection[]>(() => {
+    const sectionMap = new Map<
+      string,
+      Map<string, PermissionCatalogItemResponse[]>
+    >();
     for (const permission of perms) {
-      const key = `${permission.service} / ${permission.group}`;
-      const entries = map.get(key) ?? [];
+      const [category, ...rest] = permission.group.split(" / ");
+      const subgroup = rest.join(" / ");
+      const sectionTitle = `${permission.service} / ${category}`;
+      const subgroupTitle = subgroup || "General";
+
+      const subMap = sectionMap.get(sectionTitle) ?? new Map();
+      const entries = subMap.get(subgroupTitle) ?? [];
       entries.push(permission);
-      map.set(key, entries);
+      subMap.set(subgroupTitle, entries);
+      sectionMap.set(sectionTitle, subMap);
     }
-    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    return Array.from(sectionMap.entries())
+      .map(([title, groups]) => ({
+        title,
+        groups: Array.from(groups.entries())
+          .map(([groupTitle, items]) => ({
+            title: groupTitle,
+            items,
+          }))
+          .sort((a, b) => a.title.localeCompare(b.title)),
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title));
   }, [perms]);
 
   const togglePermission = (key: string) => {
