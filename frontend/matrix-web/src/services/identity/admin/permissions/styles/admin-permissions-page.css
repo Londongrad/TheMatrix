@@ -107,22 +107,99 @@
   gap: 12px;
 }
 
-.mx-admin-perm__group {
+.mx-admin-perm__section {
   border: 1px solid rgba(87, 255, 170, 0.12);
   border-radius: 14px;
   background: rgba(10, 14, 16, 0.24);
-  padding: 12px;
+  overflow: hidden;
 }
 
-.mx-admin-perm__groupTitle {
+.mx-admin-perm__sectionTitle {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px;
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(232, 255, 245, 0.7);
-  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.mx-admin-perm__sectionTitle::marker,
+.mx-admin-perm__sectionTitle::-webkit-details-marker {
+  display: none;
+}
+
+.mx-admin-perm__sectionTitle::after {
+  content: "▾";
+  font-size: 12px;
+  color: rgba(232, 255, 245, 0.62);
+  transition: transform 0.14s ease;
+}
+
+.mx-admin-perm__section[open] > .mx-admin-perm__sectionTitle::after {
+  transform: rotate(180deg);
+}
+
+.mx-admin-perm__sectionBody {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mx-admin-perm__group {
+  border: 1px solid rgba(87, 255, 170, 0.12);
+  border-radius: 14px;
+  background: rgba(10, 14, 16, 0.24);
+  padding: 0;
+  overflow: hidden;
+}
+
+.mx-admin-perm__groupTitle {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 255, 245, 0.7);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.mx-admin-perm__groupTitle::marker,
+.mx-admin-perm__groupTitle::-webkit-details-marker {
+  display: none;
+}
+
+.mx-admin-perm__groupTitle::after {
+  content: "▾";
+  font-size: 12px;
+  color: rgba(232, 255, 245, 0.62);
+  transition: transform 0.14s ease;
+}
+
+.mx-admin-perm__group[open] > .mx-admin-perm__groupTitle::after {
+  transform: rotate(180deg);
+}
+
+.mx-admin-perm__groupBody {
+  border: 1px solid rgba(87, 255, 170, 0.12);
+  border-radius: 14px;
+  background: rgba;
 }
 
 .mx-admin-perm__rows {
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;

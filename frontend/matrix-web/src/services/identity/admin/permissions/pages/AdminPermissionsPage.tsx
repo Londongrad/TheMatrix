@@ -4,7 +4,7 @@ import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndi
 import { useAdminPermissions } from "../hooks/useAdminPermissions";
 import PermissionsMatrix from "../components/PermissionsMatrix";
 import RoleList from "../components/RoleList";
-import "../admin-permissions-page.css";
+import "../styles/admin-permissions-page.css";
 
 export default function AdminPermissionsPage() {
   const {

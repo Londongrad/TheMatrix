@@ -11,7 +11,7 @@ import CreateRoleModal from "../components/CreateRoleModal";
 import RenameRoleModal from "../components/RenameRoleModal";
 import RoleMembersModal from "../components/RoleMembersModal";
 import RolePermissionsModal from "../components/RolePermissionsModal";
-import "../admin-roles-page.css";
+import "../styles/admin-roles-page.css";
 
 export default function AdminRolesPage() {
   const [createOpen, setCreateOpen] = useState(false);

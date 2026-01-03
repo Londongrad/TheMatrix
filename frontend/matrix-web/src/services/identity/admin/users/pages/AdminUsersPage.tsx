@@ -7,7 +7,7 @@ import { IconRefresh } from "@shared/ui/icons/icons";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import UserCard from "../components/UserCard";
 import UserAccessModal from "../components/UserAccessModal";
-import "../admin-users-page.css";
+import "../styles/admin-users-page.css";
 
 export default function AdminUsersPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);

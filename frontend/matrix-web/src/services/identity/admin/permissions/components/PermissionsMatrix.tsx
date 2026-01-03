@@ -1,10 +1,6 @@
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
-import type {
-  PermissionCatalogItemResponse,
-  RoleResponse,
-} from "@services/identity/api/admin/adminTypes";
-
-type PermissionGroup = [string, PermissionCatalogItemResponse[]];
+import type { RoleResponse } from "@services/identity/api/admin/adminTypes";
+import type { PermissionSection } from "../hooks/useAdminPermissions";
 
 export default function PermissionsMatrix({
   grouped,
@@ -14,7 +10,7 @@ export default function PermissionsMatrix({
   loading,
   onToggle,
 }: {
-  grouped: PermissionGroup[];
+  grouped: PermissionSection[];
   activeRole: RoleResponse | null;
   rolePermissions: Set<string>;
   roleLoading: boolean;
@@ -38,31 +34,87 @@ export default function PermissionsMatrix({
       </div>
 
       <div className="mx-admin-perm__groups">
-        {grouped.map(([groupKey, items]) => (
-          <div key={groupKey} className="mx-admin-perm__group">
-            <div className="mx-admin-perm__groupTitle">{groupKey}</div>
+        {grouped.map((section) => (
+          <details key={section.title} className="mx-admin-perm__section" open>
+            <summary className="mx-admin-perm__sectionTitle">
+              {section.title}
+            </summary>
+            <div className="mx-admin-perm__sectionBody">
+              {section.groups.map((group) => {
+                const showGroupTitle =
+                  section.groups.length > 1 || group.title !== "General";
 
-            <div className="mx-admin-perm__rows">
-              {items.map((permission) => (
-                <label key={permission.key} className="mx-admin-perm__row">
-                  <div className="mx-admin-perm__permKey">{permission.key}</div>
-                  <div className="mx-admin-perm__permDesc">
-                    {permission.description}
-                  </div>
+                if (!showGroupTitle) {
+                  return (
+                    <div key={group.title} className="mx-admin-perm__groupBody">
+                      <div className="mx-admin-perm__rows">
+                        {group.items.map((permission) => (
+                          <label
+                            key={permission.key}
+                            className="mx-admin-perm__row"
+                          >
+                            <div className="mx-admin-perm__permKey">
+                              {permission.key}
+                            </div>
+                            <div className="mx-admin-perm__permDesc">
+                              {permission.description}
+                            </div>
 
-                  <div className="mx-admin-perm__toggle">
-                    <input
-                      type="checkbox"
-                      checked={rolePermissions.has(permission.key)}
-                      disabled={!activeRole || roleLoading || loading}
-                      onChange={() => onToggle(permission.key)}
-                    />
-                    <span />
-                  </div>
-                </label>
-              ))}
+                            <div className="mx-admin-perm__toggle">
+                              <input
+                                type="checkbox"
+                                checked={rolePermissions.has(permission.key)}
+                                disabled={!activeRole || roleLoading || loading}
+                                onChange={() => onToggle(permission.key)}
+                              />
+                              <span />
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <details
+                    key={group.title}
+                    className="mx-admin-perm__group"
+                    open
+                  >
+                    <summary className="mx-admin-perm__groupTitle">
+                      {group.title}
+                    </summary>
+                    <div className="mx-admin-perm__rows">
+                      {group.items.map((permission) => (
+                        <label
+                          key={permission.key}
+                          className="mx-admin-perm__row"
+                        >
+                          <div className="mx-admin-perm__permKey">
+                            {permission.key}
+                          </div>
+                          <div className="mx-admin-perm__permDesc">
+                            {permission.description}
+                          </div>
+
+                          <div className="mx-admin-perm__toggle">
+                            <input
+                              type="checkbox"
+                              checked={rolePermissions.has(permission.key)}
+                              disabled={!activeRole || roleLoading || loading}
+                              onChange={() => onToggle(permission.key)}
+                            />
+                            <span />
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                );
+              })}
             </div>
-          </div>
+          </details>
         ))}
       </div>
     </div>
