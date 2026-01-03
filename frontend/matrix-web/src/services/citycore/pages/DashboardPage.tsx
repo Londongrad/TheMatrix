@@ -1,6 +1,6 @@
 // src/services/citycore/pages/DashboardPage.tsx
 import { useState } from "react";
-import { initializePopulation } from "@services/population/api/populationApi";
+import { initializePopulation } from "@services/population/people/api/peopleApi";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/styles/dashboard.css";

@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import CitizensPage from "@services/population/pages/CitizensPage";
+import CitizensPage from "@services/population/people/pages/CitizensPage";
 import DashboardPage from "@services/citycore/pages/DashboardPage";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 
-import AdminUsersPage from "@services/identity/admin/pages/users/AdminUsersPage";
-import AdminRolesPage from "@services/identity/admin/pages/roles/AdminRolesPage";
-import AdminPermissionsPage from "@services/identity/admin/pages/permissions/AdminPermissionsPage";
+import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage";
+import AdminRolesPage from "@services/identity/admin/roles/pages/AdminRolesPage";
+import AdminPermissionsPage from "@services/identity/admin/permissions/pages/AdminPermissionsPage";
 
 import UserSettingsPage from "@services/identity/self/account/pages/user-settings/pages/UserSettingsPage";
 import UserSettingsSecurityPage from "@services/identity/self/account/pages/user-settings/pages/UserSettingsSecurityPage";
@@ -19,7 +19,7 @@ import { RequireAuth } from "@services/identity/api/self/auth/RequireAuth";
 import { LoginPage } from "@services/identity/self/auth/pages/LoginPage";
 import { RegisterPage } from "@services/identity/self/auth/pages/RegisterPage";
 import { ForgotPasswordPage } from "@services/identity/self/auth/pages/ForgotPasswordPage";
-import { ConfirmProvider } from "@shared/ui/ConfirmDialog/ConfirmDialog";
+import { ConfirmProvider } from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 
 import MainLayout from "./layouts/main/MainLayout";
 import AdminLayout from "./layouts/admin/AdminLayout";
