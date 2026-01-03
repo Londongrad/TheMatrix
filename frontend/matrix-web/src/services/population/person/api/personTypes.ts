@@ -1,4 +1,4 @@
-// src/services/population/api/populationTypes.ts
+// src/services/population/person/api/personTypes.ts
 export interface PersonDto {
   id: string;
   fullName: string;

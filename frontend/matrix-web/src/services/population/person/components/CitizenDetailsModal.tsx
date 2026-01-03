@@ -1,17 +1,17 @@
-// src/services/population/components/CitizenDetailsModal.tsx
+// src/services/population/person/components/CitizenDetailsModal.tsx
 import { useEffect, useState } from "react";
 import type {
   PersonDto,
   UpdateCitizenRequest,
-} from "@services/population/api/populationTypes";
+} from "@services/population/person/api/personTypes";
 import {
   killCitizen,
   resurrectCitizen,
-} from "@services/population/api/populationApi";
+} from "@services/population/person/api/personApi";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import Button from "@shared/ui/controls/Button/Button";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
-import "@services/population/styles/citizen-details-modal.css";
+import "@services/population/person/styles/citizen-details-modal.css";
 
 const MARITAL_STATUS_OPTIONS: string[] = [
   "Unknown",

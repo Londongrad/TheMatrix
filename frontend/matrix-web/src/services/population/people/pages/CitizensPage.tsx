@@ -1,14 +1,14 @@
 // src/services/population/pages/CitizensPage.tsx
 import { useState } from "react";
-import CitizenCard from "@services/population/components/CitizenCard";
-import CitizenDetailsModal from "@services/population/components/CitizenDetailsModal";
-import type { PersonDto } from "@services/population/api/populationTypes";
-import { getCitizensPage } from "@services/population/api/populationApi";
+import CitizenCard from "@services/population/person/components/CitizenCard";
+import CitizenDetailsModal from "@services/population/person/components/CitizenDetailsModal";
+import type { PersonDto } from "@services/population/person/api/personTypes";
+import { getCitizensPage } from "@services/population/people/api/peopleApi";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
-import Pagination from "@shared/ui/Pagination/Pagination";
+import Pagination from "@shared/ui/components/Pagination/Pagination";
 import { usePagedQuery } from "@shared/lib/paging/usePagedQuery";
 import { getPageRange } from "@shared/lib/paging/pageRange";
-import "@services/population/styles/citizen-page.css";
+import "@services/population/people/styles/citizen-page.css";
 
 const PAGE_SIZE = 100;
 

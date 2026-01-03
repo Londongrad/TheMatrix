@@ -1,6 +1,5 @@
-// src/services/population/api/populationApi.ts
-import type { PersonDto } from "./populationTypes";
-import { API_POPULATION_URL, API_PERSON_URL } from "@shared/api/config";
+import type { PersonDto } from "@services/population/person/api/personTypes";
+import { API_POPULATION_URL } from "@shared/api/config";
 import { apiRequest } from "@shared/api/http";
 import { type PagedResult } from "@shared/lib/paging/pagingTypes";
 
@@ -41,30 +40,4 @@ export async function getCitizensPage(
       },
     }
   );
-}
-
-// Убить гражданина
-export async function killCitizen(
-  id: string,
-  token: string
-): Promise<PersonDto> {
-  return await apiRequest<PersonDto>(`${API_PERSON_URL}/${id}/kill`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-// Воскрешение гражданина
-export async function resurrectCitizen(
-  id: string,
-  token: string
-): Promise<PersonDto> {
-  return await apiRequest<PersonDto>(`${API_PERSON_URL}/${id}/resurrect`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
 }

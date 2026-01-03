@@ -1,8 +1,8 @@
-// src/services/population/components/CitizenCard.tsx
+// src/services/population/person/components/CitizenCard.tsx
 import React from "react";
-import type { PersonDto } from "@services/population/api/populationTypes";
+import type { PersonDto } from "@services/population/person/api/personTypes";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
-import "@services/population/styles/citizen-card.css";
+import "@services/population/person/styles/citizen-card.css";
 
 interface CitizenCardProps {
   person: PersonDto;
