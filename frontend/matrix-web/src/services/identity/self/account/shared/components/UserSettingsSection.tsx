@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import "@services/identity/self/account/styles/user-settings/user-settings-page.css";
-import "@services/identity/self/account/styles/user-settings/user-settings-shared.css";
+import "@services/identity/self/account/shared/styles/user-settings-page.css";
+import "@services/identity/self/account/shared/styles/user-settings-shared.css";
 
 type Props = {
   title: string;

@@ -1,6 +1,6 @@
-// src/services/identity/account/pages/user-settings/components/SecurityCard.tsx
+// src/services/identity/self/account/security/components/SecurityCard.tsx
 import { usePasswordChange } from "../hooks/usePasswordChange";
-import "@services/identity/self/account/styles/user-settings/security-card.css";
+import "@services/identity/self/account/security/styles/security-card.css";
 
 type Props = { token: string | null };
 

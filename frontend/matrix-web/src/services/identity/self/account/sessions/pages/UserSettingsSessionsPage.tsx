@@ -1,7 +1,8 @@
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import { useConfirm } from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
-import UserSettingsSection from "../components/UserSettingsSection";
-import SessionsCard from "@services/identity/self/sessions/components/SessionsCard";
+import UserSettingsSection from "../../shared/components/UserSettingsSection";
+import UserSettingsSessionsCard from "../components/UserSettingsSessionsCard";
+import "../styles/user-settings-sessions.css";
 
 const UserSettingsSessionsPage = () => {
   const { token, logout } = useAuth();
@@ -12,7 +13,11 @@ const UserSettingsSessionsPage = () => {
       title="Sessions"
       subtitle="Track and revoke active devices connected to your Matrix identity."
     >
-      <SessionsCard token={token} logout={logout} confirm={confirm} />
+      <UserSettingsSessionsCard
+        token={token}
+        logout={logout}
+        confirm={confirm}
+      />
     </UserSettingsSection>
   );
 };

@@ -1,7 +1,7 @@
-// src/services/identity/account/pages/user-settings/components/DangerZoneCard.tsx
+// src/services/identity/self/account/danger/components/DangerZoneCard.tsx
 import { useState } from "react";
-import DeleteAccountDialog from "@services/identity/self/account/components/DeleteAccountDialog";
-import "@services/identity/self/account/styles/user-settings/danger-zone.css";
+import DeleteAccountDialog from "@services/identity/self/account/danger/components/DeleteAccountDialog";
+import "@services/identity/self/account/danger/styles/danger-zone.css";
 
 type Props = {
   token: string | null;

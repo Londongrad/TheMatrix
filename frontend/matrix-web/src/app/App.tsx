@@ -8,11 +8,11 @@ import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage"
 import AdminRolesPage from "@services/identity/admin/roles/pages/AdminRolesPage";
 import AdminPermissionsPage from "@services/identity/admin/permissions/pages/AdminPermissionsPage";
 
-import UserSettingsPage from "@services/identity/self/account/pages/user-settings/pages/UserSettingsPage";
-import UserSettingsSecurityPage from "@services/identity/self/account/pages/user-settings/pages/UserSettingsSecurityPage";
-import UserSettingsSessionsPage from "@services/identity/self/account/pages/user-settings/pages/UserSettingsSessionsPage";
-import UserSettingsPreferencesPage from "@services/identity/self/account/pages/user-settings/pages/UserSettingsPreferencesPage";
-import UserSettingsDangerPage from "@services/identity/self/account/pages/user-settings/pages/UserSettingsDangerPage";
+import UserSettingsProfilePage from "@services/identity/self/account/profile/pages/UserSettingsProfilePage";
+import UserSettingsSecurityPage from "@services/identity/self/account/security/pages/UserSettingsSecurityPage";
+import UserSettingsSessionsPage from "@services/identity/self/account/sessions/pages/UserSettingsSessionsPage";
+import UserSettingsPreferencesPage from "@services/identity/self/account/preferences/pages/UserSettingsPreferencesPage";
+import UserSettingsDangerPage from "@services/identity/self/account/danger/pages/UserSettingsDangerPage";
 
 import { AuthProvider } from "@services/identity/api/self/auth/AuthContext";
 import { RequireAuth } from "@services/identity/api/self/auth/RequireAuth";
@@ -59,7 +59,7 @@ const App = () => {
               }
             >
               <Route index element={<Navigate to="profile" replace />} />
-              <Route path="profile" element={<UserSettingsPage />} />
+              <Route path="profile" element={<UserSettingsProfilePage />} />
               <Route path="security" element={<UserSettingsSecurityPage />} />
               <Route path="sessions" element={<UserSettingsSessionsPage />} />
               <Route

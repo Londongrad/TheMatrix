@@ -1,11 +1,11 @@
-// src/services/identity/account/pages/user-settings/UserSettingsPage.tsx
+// src/services/identity/self/account/profile/pages/UserSettingsProfilePage.tsx
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 
-import UserSettingsSection from "../components/UserSettingsSection";
+import UserSettingsSection from "../../shared/components/UserSettingsSection";
 
-import ProfileCard from "../components/ProfileCard";
+import ProfileCard from "../../../profile/components/ProfileCard";
 
-const UserSettingsPage = () => {
+const UserSettingsProfilePage = () => {
   const { user, token, patchUser } = useAuth();
 
   return (
@@ -24,4 +24,4 @@ const UserSettingsPage = () => {
   );
 };
 
-export default UserSettingsPage;
+export default UserSettingsProfilePage;

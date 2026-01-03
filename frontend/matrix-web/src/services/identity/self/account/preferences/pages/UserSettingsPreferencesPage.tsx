@@ -1,4 +1,4 @@
-import UserSettingsSection from "../components/UserSettingsSection";
+import UserSettingsSection from "../../shared/components/UserSettingsSection";
 import PreferencesCard from "../components/PreferencesCard";
 
 const UserSettingsPreferencesPage = () => {

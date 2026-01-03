@@ -1,5 +1,5 @@
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
-import UserSettingsSection from "../components/UserSettingsSection";
+import UserSettingsSection from "../../shared/components/UserSettingsSection";
 import DangerZoneCard from "../components/DangerZoneCard";
 
 const UserSettingsDangerPage = () => {
