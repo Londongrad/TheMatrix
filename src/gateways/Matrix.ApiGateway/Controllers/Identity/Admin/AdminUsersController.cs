@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.Common.Urls;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Admin.Users.Requests;
@@ -27,7 +28,7 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
 
             // Нормализуем AvatarUrl как в AccountController
             foreach (UserListItemResponse item in page.Items)
-                item.AvatarUrl = ToPublicAvatarUrl(item.AvatarUrl);
+                item.AvatarUrl = Request.ToPublicUrl(item.AvatarUrl);
 
             return Ok(page);
         }
@@ -41,7 +42,7 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
                 userId: userId,
                 cancellationToken: cancellationToken);
 
-            dto.AvatarUrl = ToPublicAvatarUrl(dto.AvatarUrl);
+            dto.AvatarUrl = Request.ToPublicUrl(dto.AvatarUrl);
 
             return Ok(dto);
         }
@@ -135,23 +136,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
                 cancellationToken: cancellationToken);
 
             return NoContent();
-        }
-
-        private string? ToPublicAvatarUrl(string? avatarUrl)
-        {
-            if (string.IsNullOrWhiteSpace(avatarUrl))
-                return null;
-
-            if (Uri.TryCreate(
-                    uriString: avatarUrl,
-                    uriKind: UriKind.Absolute,
-                    result: out _))
-                return avatarUrl;
-
-            if (!avatarUrl.StartsWith('/'))
-                avatarUrl = "/" + avatarUrl;
-
-            return $"{Request.Scheme}://{Request.Host}{avatarUrl}";
         }
     }
 }

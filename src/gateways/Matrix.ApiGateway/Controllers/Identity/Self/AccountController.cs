@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.Common.Urls;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
 using Matrix.BuildingBlocks.Api.Errors;
@@ -24,7 +25,7 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             UserProfileResponse profile =
                 await _identityAccountClient.GetProfileAsync(cancellationToken);
 
-            profile.AvatarUrl = ToPublicAvatarUrl(profile.AvatarUrl);
+            profile.AvatarUrl = Request.ToPublicUrl(profile.AvatarUrl);
 
             return Ok(profile);
         }
@@ -50,7 +51,7 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
                     avatar: avatar,
                     cancellationToken: cancellationToken);
 
-            dto.AvatarUrl = ToPublicAvatarUrl(dto.AvatarUrl);
+            dto.AvatarUrl = Request.ToPublicUrl(dto.AvatarUrl);
 
             return Ok(dto);
         }
@@ -92,23 +93,6 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return File(
                 fileContents: bytes,
                 contentType: contentType);
-        }
-
-        private string? ToPublicAvatarUrl(string? avatarUrl)
-        {
-            if (string.IsNullOrWhiteSpace(avatarUrl))
-                return null;
-
-            if (Uri.TryCreate(
-                    uriString: avatarUrl,
-                    uriKind: UriKind.Absolute,
-                    result: out _))
-                return avatarUrl;
-
-            if (!avatarUrl.StartsWith('/'))
-                avatarUrl = "/" + avatarUrl;
-
-            return $"{Request.Scheme}://{Request.Host}{avatarUrl}";
         }
     }
 }
