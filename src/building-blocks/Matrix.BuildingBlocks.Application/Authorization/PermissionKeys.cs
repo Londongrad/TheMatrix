@@ -5,30 +5,30 @@ namespace Matrix.BuildingBlocks.Application.Authorization
         #region [ Identity permission keys ]
 
         public const string IdentityAdminAccess = "identity.admin.access";
-        public const string IdentityUsersRead = "identity.users.read";
+        public const string IdentityUsersRead = "identity.admin.users.read";
 
-        public const string IdentityUsersLock = "identity.users.lock";
-        public const string IdentityUsersUnlock = "identity.users.unlock";
+        public const string IdentityUsersLock = "identity.admin.users.lock";
+        public const string IdentityUsersUnlock = "identity.admin.users.unlock";
 
-        public const string IdentityUserRolesRead = "identity.users.roles.read";
-        public const string IdentityUserRolesUpdate = "identity.users.roles.update";
+        public const string IdentityUserRolesRead = "identity.admin.users.roles.read";
+        public const string IdentityUserRolesUpdate = "identity.admin.users.roles.update";
 
-        public const string IdentityUserPermissionsRead = "identity.users.permissions.read";
-        public const string IdentityUserPermissionsGrant = "identity.users.permissions.grant";
-        public const string IdentityUserPermissionsDeprive = "identity.users.permissions.deprive";
+        public const string IdentityUserPermissionsRead = "identity.admin.users.permissions.read";
+        public const string IdentityUserPermissionsGrant = "identity.admin.users.permissions.grant";
+        public const string IdentityUserPermissionsDeprive = "identity.admin.users.permissions.deprive";
 
-        public const string IdentityUserSessionsRead = "identity.users.sessions.read";
-        public const string IdentityUserSessionsRevoke = "identity.users.sessions.revoke";
-        public const string IdentityUserSessionsRevokeAll = "identity.users.sessions.revoke.all";
+        public const string IdentityUserSessionsRead = "identity.admin.users.sessions.read";
+        public const string IdentityUserSessionsRevoke = "identity.admin.users.sessions.revoke";
+        public const string IdentityUserSessionsRevokeAll = "identity.admin.users.sessions.revoke.all";
 
-        public const string IdentityRolesList = "identity.roles.list";
-        public const string IdentityRolesCreate = "identity.roles.create";
-        public const string IdentityRolesRename = "identity.roles.rename";
-        public const string IdentityRolesDelete = "identity.roles.delete";
-        public const string IdentityRolePermissionsRead = "identity.roles.permissions.read";
-        public const string IdentityRolePermissionsUpdate = "identity.roles.permissions.update";
-        public const string IdentityRoleMembersRead = "identity.roles.members.read";
-        public const string IdentityPermissionsCatalogRead = "identity.permissions.catalog.read";
+        public const string IdentityRolesList = "identity.admin.roles.list";
+        public const string IdentityRolesCreate = "identity.admin.roles.create";
+        public const string IdentityRolesRename = "identity.admin.roles.rename";
+        public const string IdentityRolesDelete = "identity.admin.roles.delete";
+        public const string IdentityRolePermissionsRead = "identity.admin.roles.permissions.read";
+        public const string IdentityRolePermissionsUpdate = "identity.admin.roles.permissions.update";
+        public const string IdentityRoleMembersRead = "identity.admin.roles.members.read";
+        public const string IdentityPermissionsCatalogRead = "identity.admin.permissions.catalog.read";
 
         public const string IdentityMeProfileRead = "identity.me.profile.read";
         public const string IdentityMePasswordChange = "identity.me.password.change";
