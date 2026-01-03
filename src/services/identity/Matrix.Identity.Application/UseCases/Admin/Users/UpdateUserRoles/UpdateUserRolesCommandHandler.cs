@@ -28,18 +28,22 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles
                 roleIds: desiredRoleIds,
                 cancellationToken: cancellationToken);
 
-            bool changed = await userRolesRepository.ReplaceUserRolesAsync(
-                userId: request.UserId,
-                roleIds: desiredRoleIds,
-                cancellationToken: cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async token =>
+                {
+                    bool changed = await userRolesRepository.ReplaceUserRolesAsync(
+                        userId: request.UserId,
+                        roleIds: desiredRoleIds,
+                        cancellationToken: token);
 
-            if (!changed)
-                return;
+                    if (!changed)
+                        return;
 
-            await userRepository.BumpPermissionsVersionAsync(
-                userId: request.UserId,
+                    await userRepository.BumpPermissionsVersionAsync(
+                        userId: request.UserId,
+                        cancellationToken: token);
+                },
                 cancellationToken: cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

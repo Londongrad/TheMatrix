@@ -38,21 +38,24 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission
             if (permission.IsDeprecated)
                 throw ApplicationErrorsFactory.PermissionDeprecated(request.PermissionKey);
 
-            // 3) upsert deny
-            bool changed = await permissionsRepository.UpsertUserPermissionAsync(
-                userId: request.UserId,
-                permissionKey: request.PermissionKey,
-                effect: PermissionEffect.Deny,
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async token =>
+                {
+                    // 3) upsert deny
+                    bool changed = await permissionsRepository.UpsertUserPermissionAsync(
+                        userId: request.UserId,
+                        permissionKey: request.PermissionKey,
+                        effect: PermissionEffect.Deny,
+                        cancellationToken: token);
+
+                    if (!changed)
+                        return;
+
+                    await userRepository.BumpPermissionsVersionAsync(
+                        userId: request.UserId,
+                        cancellationToken: token);
+                },
                 cancellationToken: cancellationToken);
-
-            if (!changed)
-                return;
-
-            await userRepository.BumpPermissionsVersionAsync(
-                userId: request.UserId,
-                cancellationToken: cancellationToken);
-
-            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

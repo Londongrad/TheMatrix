@@ -23,15 +23,18 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole
             if (role is null)
                 throw ApplicationErrorsFactory.RoleNotFound(request.RoleId);
 
-            await userRepository.BumpPermissionsVersionByRoleAsync(
-                roleId: role.Id,
-                cancellationToken: cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async token =>
+                {
+                    await userRepository.BumpPermissionsVersionByRoleAsync(
+                        roleId: role.Id,
+                        cancellationToken: token);
 
-            await roleWriteRepository.DeleteAsync(
-                role: role,
+                    await roleWriteRepository.DeleteAsync(
+                        role: role,
+                        cancellationToken: token);
+                },
                 cancellationToken: cancellationToken);
-
-            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

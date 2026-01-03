@@ -38,20 +38,23 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
             if (permission.IsDeprecated)
                 throw ApplicationErrorsFactory.PermissionDeprecated(request.PermissionKey);
 
-            bool changed = await permissionsRepository.UpsertUserPermissionAsync(
-                userId: request.UserId,
-                permissionKey: request.PermissionKey,
-                effect: PermissionEffect.Allow,
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async token =>
+                {
+                    bool changed = await permissionsRepository.UpsertUserPermissionAsync(
+                        userId: request.UserId,
+                        permissionKey: request.PermissionKey,
+                        effect: PermissionEffect.Allow,
+                        cancellationToken: token);
+
+                    if (!changed)
+                        return; // уже Allow -> ничего не меняем, версию не bumpаем
+
+                    await userRepository.BumpPermissionsVersionAsync(
+                        userId: request.UserId,
+                        cancellationToken: token);
+                },
                 cancellationToken: cancellationToken);
-
-            if (!changed)
-                return; // уже Allow -> ничего не меняем, версию не bumpаем
-
-            await userRepository.BumpPermissionsVersionAsync(
-                userId: request.UserId,
-                cancellationToken: cancellationToken);
-
-            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }
