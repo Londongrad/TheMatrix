@@ -5,6 +5,7 @@ import type {
   CreateRoleRequest,
   PermissionCatalogItemResponse,
   RoleResponse,
+  RenameRoleRequest,
   RolePermissionsResponse,
   UserDetailsResponse,
   UserListItemResponse,
@@ -101,6 +102,22 @@ export async function createRole(
   return await apiRequest<RoleResponse>(`${API_ADMIN_URL}/roles`, {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function renameRole(
+  roleId: string,
+  payload: RenameRoleRequest
+): Promise<RoleResponse> {
+  return await apiRequest<RoleResponse>(`${API_ADMIN_URL}/roles/${roleId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteRole(roleId: string): Promise<void> {
+  await apiRequest<void>(`${API_ADMIN_URL}/roles/${roleId}`, {
+    method: "DELETE",
   });
 }
 

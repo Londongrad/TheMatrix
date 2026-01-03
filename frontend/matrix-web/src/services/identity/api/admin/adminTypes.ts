@@ -38,6 +38,10 @@ export interface CreateRoleRequest {
   name: string;
 }
 
+export interface RenameRoleRequest {
+  name: string;
+}
+
 export interface RolePermissionsResponse {
   permissionKeys: string[];
 }

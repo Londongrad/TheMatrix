@@ -5,16 +5,20 @@ import Pagination from "@shared/ui/Pagination/Pagination";
 import LoadingIndicator from "@shared/ui/LoadingIndicator/LoadingIndicator";
 import Modal from "@shared/ui/Modal/Modal";
 import { usePagedQuery } from "@shared/lib/paging/usePagedQuery";
+import { useConfirm } from "@shared/ui/ConfirmDialog/ConfirmDialog";
 import {
   createRole,
+  deleteRole,
   getPermissionsCatalog,
   getRoleMembersPage,
   getRolePermissions,
   getRolesCatalog,
+  renameRole,
 } from "@services/identity/api/admin/adminApi";
 import type {
   PermissionCatalogItemResponse,
   RolePermissionsResponse,
+  RenameRoleRequest,
   RoleResponse,
   UserListItemResponse,
 } from "@services/identity/api/admin/adminTypes";
@@ -25,10 +29,14 @@ export default function AdminRolesPage() {
   const [error, setError] = useState<string | null>(null);
   const [roles, setRoles] = useState<RoleResponse[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
+  const [renameRoleTarget, setRenameRoleTarget] = useState<RoleResponse | null>(
+    null
+  );
   const [membersRole, setMembersRole] = useState<RoleResponse | null>(null);
   const [permissionsRole, setPermissionsRole] = useState<RoleResponse | null>(
     null
   );
+  const confirm = useConfirm();
 
   const load = async () => {
     setLoading(true);
@@ -46,6 +54,29 @@ export default function AdminRolesPage() {
   useEffect(() => {
     void load();
   }, []);
+
+  const handleDelete = async (role: RoleResponse) => {
+    const accepted = await confirm({
+      title: `Delete role "${role.name}"?`,
+      description: "All users assigned to this role will lose it.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      tone: "danger",
+    });
+
+    if (!accepted) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteRole(role.id);
+      await load();
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to delete role");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="mx-admin-page">
@@ -102,6 +133,21 @@ export default function AdminRolesPage() {
                 <Button type="button" onClick={() => setPermissionsRole(r)}>
                   Permissions
                 </Button>
+                <Button
+                  type="button"
+                  onClick={() => setRenameRoleTarget(r)}
+                  disabled={r.isSystem}
+                >
+                  Rename
+                </Button>
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() => void handleDelete(r)}
+                  disabled={r.isSystem}
+                >
+                  Delete
+                </Button>
               </div>
             </div>
           ))}
@@ -111,6 +157,14 @@ export default function AdminRolesPage() {
         <CreateRoleModal
           onClose={() => setCreateOpen(false)}
           onCreated={load}
+        />
+      ) : null}
+
+      {renameRoleTarget ? (
+        <RenameRoleModal
+          role={renameRoleTarget}
+          onClose={() => setRenameRoleTarget(null)}
+          onUpdated={load}
         />
       ) : null}
 
@@ -128,6 +182,66 @@ export default function AdminRolesPage() {
         />
       ) : null}
     </div>
+  );
+}
+
+function RenameRoleModal({
+  role,
+  onClose,
+  onUpdated,
+}: {
+  role: RoleResponse;
+  onClose: () => void;
+  onUpdated: () => void;
+}) {
+  const [name, setName] = useState(role.name);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    if (!name.trim()) {
+      setError("Role name is required");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const payload: RenameRoleRequest = { name: name.trim() };
+      await renameRole(role.id, payload);
+      await onUpdated();
+      onClose();
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message ?? "Failed to rename role");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      title={`Rename role · ${role.name}`}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={submit} disabled={saving}>
+            Save
+          </Button>
+        </>
+      }
+    >
+      {error ? <div className="mx-admin-roles__error">{error}</div> : null}
+      <label className="mx-admin-roles__field">
+        <span>Role name</span>
+        <input
+          className="mx-admin-roles__input"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+      </label>
+    </Modal>
   );
 }
 
