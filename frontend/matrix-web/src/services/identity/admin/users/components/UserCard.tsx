@@ -19,11 +19,23 @@ export default function UserCard({
   onToggleLock: (user: UserListItemResponse) => void;
   isLoading: boolean;
 }) {
+  const avatarLabel = user.username?.[0]?.toUpperCase() ?? "U";
+  const avatarUrl = user.avatarUrl ?? "";
+
   return (
     <div className="mx-admin-users__card" role="listitem">
       <div className="mx-admin-users__cardTop">
         <div className="mx-admin-users__avatar">
-          {user.username?.[0]?.toUpperCase() ?? "U"}
+          {avatarUrl ? (
+            <img
+              className="mx-admin-users__avatarImage"
+              src={avatarUrl}
+              alt={`${user.username} avatar`}
+              loading="lazy"
+            />
+          ) : (
+            avatarLabel
+          )}
         </div>
         <div className="mx-admin-users__meta">
           <div className="mx-admin-users__username">{user.username}</div>

@@ -53,11 +53,21 @@
   align-items: center;
   justify-content: center;
 }
+
+.mx-admin-users__avatarImage {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+}
+
 .mx-admin-users__meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 .mx-admin-users__username {
   font-weight: 600;
   color: #f4f6ff;
