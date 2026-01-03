@@ -1,7 +1,7 @@
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
-import { useConfirm } from "@shared/ui/ConfirmDialog/ConfirmDialog";
+import { useConfirm } from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import UserSettingsSection from "../components/UserSettingsSection";
-import SessionsCard from "../components/SessionsCard";
+import SessionsCard from "@services/identity/self/sessions/components/SessionsCard";
 
 const UserSettingsSessionsPage = () => {
   const { token, logout } = useAuth();

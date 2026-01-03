@@ -1,7 +1,7 @@
-// src/services/identity/account/pages/user-settings/components/SessionsCard.tsx
+// src/services/identity/self/sessions/components/SessionsCard.tsx
 import type { SessionInfo } from "@services/identity/api/self/sessions/sessionsTypes";
 import { useSessions } from "../hooks/useSessions";
-import "@services/identity/self/account/styles/user-settings/sessions-card.css";
+import "@services/identity/self/sessions/styles/sessions-card.css";
 
 type Props = {
   token: string | null;
