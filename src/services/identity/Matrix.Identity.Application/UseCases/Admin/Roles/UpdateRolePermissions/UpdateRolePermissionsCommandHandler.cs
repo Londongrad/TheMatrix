@@ -9,7 +9,6 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions
     public sealed class UpdateRolePermissionsCommandHandler(
         IRoleReadRepository roleReadRepository,
         IRolePermissionsRepository rolePermissionsRepository,
-        IPermissionReadRepository permissionReadRepository,
         IPermissionKeysValidator permissionKeysValidator,
         IUnitOfWork unitOfWork)
         : IRequestHandler<UpdateRolePermissionsCommand>
