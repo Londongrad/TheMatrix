@@ -44,6 +44,20 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             Guid userId,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        ///     Returns the permissions version for a user (if exists).
+        /// </summary>
+        Task<int?> GetPermissionsVersionAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        ///     Returns user IDs that currently have the specified role.
+        /// </summary>
+        Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(
+            Guid roleId,
+            CancellationToken cancellationToken = default);
+
         Task<bool> BumpPermissionsVersionAsync(
             Guid userId,
             CancellationToken cancellationToken = default);

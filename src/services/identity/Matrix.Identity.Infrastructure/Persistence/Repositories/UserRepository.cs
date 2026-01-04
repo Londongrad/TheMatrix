@@ -110,6 +110,29 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                     cancellationToken: cancellationToken);
         }
 
+        public async Task<int?> GetPermissionsVersionAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            return await Users
+               .AsNoTracking()
+               .Where(u => u.Id == userId)
+               .Select(u => (int?)u.PermissionsVersion)
+               .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(
+            Guid roleId,
+            CancellationToken cancellationToken)
+        {
+            // TODO: Potential performance issue for roles with a large number of users
+            return await dbContext.UserRoles
+               .AsNoTracking()
+               .Where(ur => ur.RoleId == roleId)
+               .Select(ur => ur.UserId)
+               .ToListAsync(cancellationToken);
+        }
+
         public async Task<bool> BumpPermissionsVersionAsync(
             Guid userId,
             CancellationToken cancellationToken)
