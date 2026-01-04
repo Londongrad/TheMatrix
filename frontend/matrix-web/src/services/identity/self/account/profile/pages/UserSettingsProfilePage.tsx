@@ -3,7 +3,7 @@ import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 
 import UserSettingsSection from "../../shared/components/UserSettingsSection";
 
-import ProfileCard from "../../../profile/components/ProfileCard";
+import ProfileCard from "../components/ProfileCard";
 
 const UserSettingsProfilePage = () => {
   const { user, token, patchUser } = useAuth();
