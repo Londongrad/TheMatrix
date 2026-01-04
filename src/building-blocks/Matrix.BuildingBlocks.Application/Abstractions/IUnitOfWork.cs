@@ -7,9 +7,9 @@ namespace Matrix.BuildingBlocks.Application.Abstractions
         Task SaveChangesAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Executes the provided action inside a database transaction.
-        /// If there is an active transaction, the action is executed within it (no nested transaction is created).
-        /// By default, SaveChanges is called once and then the transaction is committed.
+        ///     Executes the provided action inside a database transaction.
+        ///     If there is an active transaction, the action is executed within it (no nested transaction is created).
+        ///     By default, SaveChanges is called once and then the transaction is committed.
         /// </summary>
         Task ExecuteInTransactionAsync(
             Func<CancellationToken, Task> action,
@@ -18,7 +18,7 @@ namespace Matrix.BuildingBlocks.Application.Abstractions
             bool saveChanges = true);
 
         /// <summary>
-        /// Executes the provided action inside a database transaction and returns a result.
+        ///     Executes the provided action inside a database transaction and returns a result.
         /// </summary>
         Task<T> ExecuteInTransactionAsync<T>(
             Func<CancellationToken, Task<T>> action,

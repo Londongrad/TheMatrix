@@ -181,7 +181,7 @@ namespace Matrix.ApiGateway.Configurations
                .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IIdentityAdminPermissionsClient, IdentityAdminPermissionsApiClient>(client =>
-            {
+                {
                     client.BaseAddress = new Uri(identityBaseUrl);
                 })
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()

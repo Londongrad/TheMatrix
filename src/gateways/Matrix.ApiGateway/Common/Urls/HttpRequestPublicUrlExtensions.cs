@@ -4,12 +4,17 @@ namespace Matrix.ApiGateway.Common.Urls
 {
     public static class HttpRequestPublicUrlExtensions
     {
-        public static string? ToPublicUrl(this HttpRequest request, string? urlOrPath)
+        public static string? ToPublicUrl(
+            this HttpRequest request,
+            string? urlOrPath)
         {
             if (string.IsNullOrWhiteSpace(urlOrPath))
                 return null;
 
-            if (Uri.TryCreate(urlOrPath, UriKind.Absolute, out _))
+            if (Uri.TryCreate(
+                    uriString: urlOrPath,
+                    uriKind: UriKind.Absolute,
+                    result: out _))
                 return urlOrPath;
 
             if (!urlOrPath.StartsWith('/'))
