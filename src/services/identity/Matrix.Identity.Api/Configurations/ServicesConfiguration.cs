@@ -55,6 +55,13 @@ namespace Matrix.Identity.Api.Configurations
             JwtOptions jwtOptions = jwtSection.Get<JwtOptions>() ??
                                     throw new InvalidOperationException("Jwt configuration is missing.");
 
+            services.AddOptions<IdentityInternalOptions>()
+               .BindConfiguration("IdentityInternal")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.ApiKey),
+                    failureMessage: "IdentityInternal:ApiKey is required.")
+               .ValidateOnStart();
+
             services
                .AddAuthentication(options =>
                 {
