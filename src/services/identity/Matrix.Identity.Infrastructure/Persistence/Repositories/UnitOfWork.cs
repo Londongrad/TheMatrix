@@ -1,12 +1,18 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Exceptions;
+using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 {
-    public sealed class UnitOfWork(IdentityDbContext dbContext) : IUnitOfWork
+    public sealed class UnitOfWork(
+        IdentityDbContext dbContext,
+        ISecurityStateChangeProcessor securityStateChangeProcessor) : IUnitOfWork
     {
+        private const string UnitOfWorkErrorCode = "Infrastructure.UnitOfWorkFailed";
+
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {
             return dbContext.SaveChangesAsync(cancellationToken);
@@ -15,8 +21,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         public Task ExecuteInTransactionAsync(
             Func<CancellationToken, Task> action,
             CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
-            bool saveChanges = true)
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
             return ExecuteInTransactionAsync<object?>(
                 action: async ct =>
@@ -25,53 +30,57 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                     return null;
                 },
                 cancellationToken: cancellationToken,
-                isolationLevel: isolationLevel,
-                saveChanges: saveChanges);
+                isolationLevel: isolationLevel);
         }
 
         public async Task<T> ExecuteInTransactionAsync<T>(
             Func<CancellationToken, Task<T>> action,
             CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
-            bool saveChanges = true)
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            // Ensures correct behavior with transient failures (SQL Server retries, etc.)
             IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
 
-            return await strategy.ExecuteAsync(async () =>
+            try
             {
-                // If an outer transaction already exists, do not create a nested transaction.
-                if (dbContext.Database.CurrentTransaction is not null)
+                return await strategy.ExecuteAsync(async () =>
                 {
-                    T result = await action(cancellationToken);
+                    // Nested transaction: do not create/commit/rollback here.
+                    if (dbContext.Database.CurrentTransaction is not null)
+                    {
+                        T result = await action(cancellationToken);
 
-                    if (saveChanges)
                         await dbContext.SaveChangesAsync(cancellationToken);
 
-                    return result;
-                }
+                        return result;
+                    }
 
-                await using IDbContextTransaction tx =
-                    await dbContext.Database.BeginTransactionAsync(
-                        isolationLevel: isolationLevel,
-                        cancellationToken: cancellationToken);
+                    await using IDbContextTransaction tx =
+                        await dbContext.Database.BeginTransactionAsync(
+                            isolationLevel: isolationLevel,
+                            cancellationToken: cancellationToken);
 
-                try
-                {
-                    T result = await action(cancellationToken);
+                    T result2 = await action(cancellationToken);
 
-                    if (saveChanges)
-                        await dbContext.SaveChangesAsync(cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await securityStateChangeProcessor.ProcessAsync(cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
 
                     await tx.CommitAsync(cancellationToken);
-                    return result;
-                }
-                catch
-                {
-                    await tx.RollbackAsync(cancellationToken);
-                    throw;
-                }
-            });
+                    return result2;
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation is not an infrastructure failure.
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new MatrixInfrastructureException(
+                    code: UnitOfWorkErrorCode,
+                    message: "Unit of work execution failed.",
+                    innerException: ex);
+            }
         }
     }
 }

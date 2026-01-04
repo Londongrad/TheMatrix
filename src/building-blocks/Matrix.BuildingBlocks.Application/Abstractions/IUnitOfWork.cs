@@ -14,8 +14,7 @@ namespace Matrix.BuildingBlocks.Application.Abstractions
         Task ExecuteInTransactionAsync(
             Func<CancellationToken, Task> action,
             CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
-            bool saveChanges = true);
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
 
         /// <summary>
         ///     Executes the provided action inside a database transaction and returns a result.
@@ -23,7 +22,6 @@ namespace Matrix.BuildingBlocks.Application.Abstractions
         Task<T> ExecuteInTransactionAsync<T>(
             Func<CancellationToken, Task<T>> action,
             CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
-            bool saveChanges = true);
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
     }
 }
