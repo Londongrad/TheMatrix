@@ -1,5 +1,8 @@
 using System.Text;
 using Matrix.ApiGateway.Authorization.Jwt;
+using Matrix.ApiGateway.Authorization.PermissionsVersion;
+using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
+using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
@@ -15,6 +18,7 @@ using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.ApiGateway.Configurations
@@ -30,7 +34,8 @@ namespace Matrix.ApiGateway.Configurations
                .AddPresentationLayer()
                .AddCorsLayer()
                .AddDownstreamClients(configuration)
-               .AddSecurityLayer(configuration);
+               .AddSecurityLayer(configuration)
+               .AddPermissionsVersionServices(configuration);
         }
 
         private static IServiceCollection AddPresentationLayer(this IServiceCollection services)
@@ -231,9 +236,67 @@ namespace Matrix.ApiGateway.Configurations
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = PermissionsVersionJwtEvents.HandleTokenValidated,
+                        OnChallenge = PermissionsVersionJwtEvents.HandleChallenge
+                    };
                 });
 
             services.AddAuthorization();
+
+            return services;
+        }
+
+        private static IServiceCollection AddPermissionsVersionServices(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            services.AddOptions<IdentityInternalOptions>()
+               .Bind(configuration.GetSection(IdentityInternalOptions.SectionName))
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.BaseUrl),
+                    failureMessage: "IdentityInternal:BaseUrl is required.")
+               .Validate(
+                    validation: o => Uri.TryCreate(
+                        uriString: o.BaseUrl,
+                        uriKind: UriKind.Absolute,
+                        result: out _),
+                    failureMessage: "IdentityInternal:BaseUrl must be an absolute URI.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.ApiKey),
+                    failureMessage: "IdentityInternal:ApiKey is required.")
+               .ValidateOnStart();
+
+            services.AddOptions<PermissionsVersionOptions>()
+               .Bind(configuration.GetSection(PermissionsVersionOptions.SectionName))
+               .Validate(
+                    validation: o => o.CacheTtlSeconds > 0,
+                    failureMessage: "PermissionsVersion:CacheTtlSeconds must be greater than 0.")
+               .ValidateOnStart();
+
+            services.AddDistributedMemoryCache();
+
+            services.AddHttpClient<IIdentityPermissionsVersionClient, IdentityPermissionsVersionClient>((
+                sp,
+                client) =>
+            {
+                IdentityInternalOptions options = sp.GetRequiredService<IOptions<IdentityInternalOptions>>()
+                   .Value;
+
+                client.BaseAddress = new Uri(
+                    uriString: options.BaseUrl,
+                    uriKind: UriKind.Absolute);
+                client.Timeout = TimeSpan.FromSeconds(3);
+
+                client.DefaultRequestHeaders.Remove("X-Internal-Key");
+                client.DefaultRequestHeaders.Add(
+                    name: "X-Internal-Key",
+                    value: options.ApiKey);
+            });
+
+            services.AddScoped<IPermissionsVersionStore, CachedPermissionsVersionStore>();
 
             return services;
         }
