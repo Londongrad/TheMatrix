@@ -3,6 +3,7 @@ import {
   assignUserRoles,
   depriveUserPermission,
   getPermissionsCatalog,
+  getRolePermissions,
   getRolesCatalog,
   getUserDetails,
   getUserPermissions,
@@ -32,6 +33,9 @@ export function useUserAccess(userId: string) {
   const [userPermissions, setUserPermissions] = useState<
     UserPermissionResponse[]
   >([]);
+  const [rolePermissionKeys, setRolePermissionKeys] = useState<Set<string>>(
+    new Set()
+  );
 
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
@@ -40,14 +44,16 @@ export function useUserAccess(userId: string) {
     setLoading(true);
     setError(null);
 
-    Promise.all([
-      getUserDetails(userId),
-      getRolesCatalog(),
-      getUserRoles(userId),
-      getPermissionsCatalog(),
-      getUserPermissions(userId),
-    ])
-      .then(([user, roles, assignedRoles, perms, overrides]) => {
+    const load = async () => {
+      try {
+        const [user, roles, assignedRoles, perms, overrides] =
+          await Promise.all([
+            getUserDetails(userId),
+            getRolesCatalog(),
+            getUserRoles(userId),
+            getPermissionsCatalog(),
+            getUserPermissions(userId),
+          ]);
         if (!active) return;
         setDetails(user);
         setRolesCatalog(roles);
@@ -55,16 +61,27 @@ export function useUserAccess(userId: string) {
         setSelectedRoleIds(assignedRoles.map((r) => r.id));
         setPermissionsCatalog(perms.filter((p) => !p.isDeprecated));
         setUserPermissions(overrides);
-      })
-      .catch((error) => {
+
+        const rolePermissions = await Promise.all(
+          assignedRoles.map((role) => getRolePermissions(role.id))
+        );
+        if (!active) return;
+        setRolePermissionKeys(
+          new Set(
+            rolePermissions.flatMap((permission) => permission.permissionKeys)
+          )
+        );
+      } catch (error) {
         console.error(error);
         if (!active) return;
         setError("Failed to load user access data");
-      })
-      .finally(() => {
+      } finally {
         if (!active) return;
         setLoading(false);
-      });
+      }
+    };
+
+    void load();
 
     return () => {
       active = false;
@@ -87,6 +104,15 @@ export function useUserAccess(userId: string) {
       const updated = await getUserRoles(userId);
       setUserRoles(updated);
       setSelectedRoleIds(updated.map((r) => r.id));
+
+      const rolePermissions = await Promise.all(
+        updated.map((role) => getRolePermissions(role.id))
+      );
+      setRolePermissionKeys(
+        new Set(
+          rolePermissions.flatMap((permission) => permission.permissionKeys)
+        )
+      );
     } catch (error) {
       console.error(error);
       setError("Failed to update roles");
@@ -107,6 +133,15 @@ export function useUserAccess(userId: string) {
       } else {
         await depriveUserPermission(userId, permissionKey);
       }
+
+      setUserPermissions((prev) => {
+        const updated = prev.filter(
+          (permission) => permission.permissionKey !== permissionKey
+        );
+        updated.push({ permissionKey, effect });
+        return updated;
+      });
+
       const updated = await getUserPermissions(userId);
       setUserPermissions(updated);
     } catch (error) {
@@ -127,6 +162,7 @@ export function useUserAccess(userId: string) {
     userRoles,
     permissionsCatalog,
     permissionMap,
+    rolePermissionKeys,
     selectedRoleIds,
     setSelectedRoleIds,
     saveRoles,

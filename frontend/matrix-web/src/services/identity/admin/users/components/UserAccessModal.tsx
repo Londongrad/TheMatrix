@@ -25,6 +25,7 @@ export default function UserAccessModal({
     userRoles,
     permissionsCatalog,
     permissionMap,
+    rolePermissionKeys,
     selectedRoleIds,
     setSelectedRoleIds,
     saveRoles,
@@ -116,6 +117,23 @@ export default function UserAccessModal({
             <div className="mx-admin-users__permissions">
               {permissionsCatalog.map((permission) => {
                 const override = permissionMap.get(permission.key);
+                const hasRolePermission = rolePermissionKeys.has(
+                  permission.key
+                );
+                const effectiveEffect =
+                  override?.effect ?? (hasRolePermission ? "Allow" : "None");
+                const badgeKind =
+                  effectiveEffect === "Allow"
+                    ? "ok"
+                    : effectiveEffect === "Deny"
+                    ? "bad"
+                    : "warn";
+                const allowDisabled =
+                  savingPermission === permission.key ||
+                  effectiveEffect === "Allow";
+                const denyDisabled =
+                  savingPermission === permission.key ||
+                  effectiveEffect === "Deny";
                 return (
                   <div
                     key={permission.key}
@@ -130,14 +148,15 @@ export default function UserAccessModal({
                       </div>
                     </div>
                     <div className="mx-admin-users__permActions">
-                      <UserBadge
-                        kind={override?.effect === "Allow" ? "ok" : "warn"}
-                      >
-                        {override?.effect ?? "None"}
-                      </UserBadge>
+                      <UserBadge kind={badgeKind}>{effectiveEffect}</UserBadge>
+                      {override ? (
+                        <UserBadge kind="info">Manual</UserBadge>
+                      ) : hasRolePermission ? (
+                        <UserBadge kind="info">Role</UserBadge>
+                      ) : null}
                       <Button
                         size="sm"
-                        disabled={savingPermission === permission.key}
+                        disabled={allowDisabled}
                         onClick={() =>
                           void updatePermission(permission.key, "Allow")
                         }
@@ -147,7 +166,7 @@ export default function UserAccessModal({
                       <Button
                         size="sm"
                         variant="danger"
-                        disabled={savingPermission === permission.key}
+                        disabled={denyDisabled}
                         onClick={() =>
                           void updatePermission(permission.key, "Deny")
                         }

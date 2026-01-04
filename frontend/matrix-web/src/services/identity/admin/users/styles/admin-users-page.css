@@ -133,6 +133,10 @@
   background: rgba(231, 76, 60, 0.18);
   color: #ff9c9c;
 }
+.mx-admin-users__badge.info {
+  background: rgba(88, 130, 255, 0.18);
+  color: #9fb5ff;
+}
 
 .mx-admin-users__modal {
   display: flex;
