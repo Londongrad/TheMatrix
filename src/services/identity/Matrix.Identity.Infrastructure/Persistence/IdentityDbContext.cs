@@ -1,4 +1,5 @@
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence
@@ -17,6 +18,8 @@ namespace Matrix.Identity.Infrastructure.Persistence
 
         public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
         public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
+
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
