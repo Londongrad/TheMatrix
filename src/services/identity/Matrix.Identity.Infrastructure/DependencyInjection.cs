@@ -8,6 +8,7 @@ using Matrix.Identity.Infrastructure.Authorization;
 using Matrix.Identity.Infrastructure.Integration.Email;
 using Matrix.Identity.Infrastructure.Integration.GeoLocation;
 using Matrix.Identity.Infrastructure.Integration.Links;
+using Matrix.Identity.Infrastructure.Outbox;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
 using Matrix.Identity.Infrastructure.Persistence.Repositories.Admin;
@@ -61,6 +62,8 @@ namespace Matrix.Identity.Infrastructure
 
             // Security state change processing + outbox publisher
             services.AddScoped<ISecurityStateChangeProcessor, SecurityStateChangeProcessor>();
+            services.AddHostedService<OutboxPublisherBackgroundService>();
+
             services.AddScoped<IClock, SystemClock>();
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IFrontendLinkBuilder, FrontendLinkBuilder>();
