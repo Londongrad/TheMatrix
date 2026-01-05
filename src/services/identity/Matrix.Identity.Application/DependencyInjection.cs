@@ -31,10 +31,11 @@ namespace Matrix.Identity.Application
             services.AddScoped<IRoleIdsValidator, RoleIdsValidator>();
             services.AddScoped<IPermissionKeysValidator, PermissionKeysValidator>();
 
-            // Behaviors (используем общие из BuildingBlocks)ors
+            // Behaviors (используем общие из BuildingBlocks)
             services.AddTransient(
                 serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(LoggingBehavior<,>));
+
             services.AddTransient(
                 serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(ValidationBehavior<,>));

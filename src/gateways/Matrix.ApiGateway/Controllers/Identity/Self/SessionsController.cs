@@ -37,7 +37,7 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             await _sessionsClient.RevokeAllSessionsAsync(cancellationToken);
 
             // Optional: if you want to clear refresh cookie on "revoke all" from Gateway side,
-            // do it here as well. Otherwise Identity will invalidate refresh tokens anyway.
+            // do it here as well. Otherwise, Identity will invalidate refresh tokens anyway.
             Response.Cookies.Delete("matrix_refresh_token");
 
             return NoContent();

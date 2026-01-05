@@ -32,8 +32,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 return version;
 
             int currentVersion = await client.GetPermissionsVersionAsync(
-                userId,
-                cancellationToken);
+                userId: userId,
+                cancellationToken: cancellationToken);
 
             var cacheOptions = new DistributedCacheEntryOptions
             {

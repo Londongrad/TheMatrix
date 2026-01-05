@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text.Json;
 using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -62,18 +61,22 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 message = PermissionsVersionValidationDefaults.TokenStaleMessage
             };
 
-            await context.Response.WriteAsJsonAsync(payload, cancellationToken: context.HttpContext.RequestAborted);
+            await context.Response.WriteAsJsonAsync(
+                value: payload,
+                cancellationToken: context.HttpContext.RequestAborted);
         }
 
         private static void MarkTokenStale(TokenValidatedContext context)
         {
-            var userId = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                         ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? userId = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
+                             context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
 
             context.HttpContext.RequestServices
                .GetRequiredService<ILoggerFactory>()
                .CreateLogger("PV")
-               .LogInformation("TOKEN STALE for userId={UserId}", userId);
+               .LogInformation(
+                    message: "TOKEN STALE for userId={UserId}",
+                    userId);
 
             context.HttpContext.Items[PermissionsVersionValidationDefaults.StaleTokenItemKey] = true;
             context.Fail("token_stale");

@@ -9,6 +9,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Outbox
     {
         private static readonly JsonSerializerOptions DefaultJsonOptions = new(JsonSerializerDefaults.Web);
 
+        private OutboxMessage() { }
+
         public Guid Id { get; private set; }
         public DateTime OccurredOnUtc { get; private set; }
         public string Type { get; private set; } = string.Empty;
@@ -16,8 +18,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Outbox
 
         public DateTime? ProcessedOnUtc { get; private set; }
         public string? Error { get; private set; }
-
-        private OutboxMessage() { }
 
         public static OutboxMessage Create(
             string type,

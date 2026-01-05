@@ -44,6 +44,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                .ToList();
 
             bool changed = toRemove.Count > 0 || toAdd.Count > 0;
+
             if (!changed)
                 return false;
 
