@@ -5,7 +5,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
 {
     public sealed record GrantUserPermissionCommand(
         Guid UserId,
-        string PermissionKey)
+        string TargetPermissionKey)
         : IRequest, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.IdentityUserPermissionsGrant;

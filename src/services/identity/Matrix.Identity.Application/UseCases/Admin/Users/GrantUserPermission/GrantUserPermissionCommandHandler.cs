@@ -31,21 +31,21 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
             // 2) permission
             PermissionCatalogItemResult? permission =
                 await permissionReadRepository.GetPermissionAsync(
-                    permissionKey: request.PermissionKey,
+                    permissionKey: request.TargetPermissionKey,
                     cancellationToken: cancellationToken);
 
             if (permission is null)
-                throw ApplicationErrorsFactory.PermissionNotFound(request.PermissionKey);
+                throw ApplicationErrorsFactory.PermissionNotFound(request.TargetPermissionKey);
 
             if (permission.IsDeprecated)
-                throw ApplicationErrorsFactory.PermissionDeprecated(request.PermissionKey);
+                throw ApplicationErrorsFactory.PermissionDeprecated(request.TargetPermissionKey);
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async token =>
                 {
                     bool changed = await permissionsRepository.UpsertUserPermissionAsync(
                         userId: request.UserId,
-                        permissionKey: request.PermissionKey,
+                        permissionKey: request.TargetPermissionKey,
                         effect: PermissionEffect.Allow,
                         cancellationToken: token);
 

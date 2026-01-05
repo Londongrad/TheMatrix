@@ -206,7 +206,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
         {
             var command = new GrantUserPermissionCommand(
                 UserId: userId,
-                PermissionKey: request.PermissionKey);
+                TargetPermissionKey: request.PermissionKey);
 
             await _sender.Send(
                 request: command,
@@ -223,7 +223,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
         {
             var command = new DepriveUserPermissionCommand(
                 UserId: userId,
-                PermissionKey: request.PermissionKey);
+                TargetPermissionKey: request.PermissionKey);
 
             await _sender.Send(
                 request: command,

@@ -31,14 +31,14 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission
             // 2) permission validation
             PermissionCatalogItemResult? permission =
                 await permissionReadRepository.GetPermissionAsync(
-                    permissionKey: request.PermissionKey,
+                    permissionKey: request.TargetPermissionKey,
                     cancellationToken: cancellationToken);
 
             if (permission is null)
-                throw ApplicationErrorsFactory.PermissionNotFound(request.PermissionKey);
+                throw ApplicationErrorsFactory.PermissionNotFound(request.TargetPermissionKey);
 
             if (permission.IsDeprecated)
-                throw ApplicationErrorsFactory.PermissionDeprecated(request.PermissionKey);
+                throw ApplicationErrorsFactory.PermissionDeprecated(request.TargetPermissionKey);
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async token =>
@@ -46,7 +46,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission
                     // 3) upsert deny
                     bool changed = await permissionsRepository.UpsertUserPermissionAsync(
                         userId: request.UserId,
-                        permissionKey: request.PermissionKey,
+                        permissionKey: request.TargetPermissionKey,
                         effect: PermissionEffect.Deny,
                         cancellationToken: token);
 

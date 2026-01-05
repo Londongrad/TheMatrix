@@ -5,7 +5,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission
 {
     public sealed record DepriveUserPermissionCommand(
         Guid UserId,
-        string PermissionKey)
+        string TargetPermissionKey)
         : IRequest, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.IdentityUserPermissionsDeprive;
