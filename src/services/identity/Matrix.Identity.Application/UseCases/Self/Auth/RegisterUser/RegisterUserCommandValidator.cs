@@ -1,4 +1,5 @@
 using FluentValidation;
+using Matrix.Identity.Domain.Rules;
 using Matrix.Identity.Domain.ValueObjects;
 
 namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
@@ -6,9 +7,6 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
     public sealed class RegisterUserCommandValidator
         : AbstractValidator<RegisterUserCommand>
     {
-        private const int MinPasswordLength = 6;
-        private const int MaxPasswordLength = 20;
-
         public RegisterUserCommandValidator()
         {
             RuleFor(x => x.Email)
@@ -28,10 +26,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
             RuleFor(x => x.Password)
                .NotEmpty()
                .WithMessage("New password is required.")
-               .MinimumLength(MinPasswordLength)
-               .WithMessage($"New password must be at least {MinPasswordLength} characters long.")
-               .MaximumLength(MaxPasswordLength)
-               .WithMessage($"New password must be at most {MaxPasswordLength} characters long.")
+               .MinimumLength(PasswordRules.MinLength)
+               .WithMessage($"New password must be at least {PasswordRules.MinLength} characters long.")
+               .MaximumLength(PasswordRules.MaxLength)
+               .WithMessage($"New password must be at most {PasswordRules.MaxLength} characters long.")
                .Matches("[a-z]")
                .WithMessage("New password must contain at least one lowercase letter.")
                .Matches("[A-Z]")

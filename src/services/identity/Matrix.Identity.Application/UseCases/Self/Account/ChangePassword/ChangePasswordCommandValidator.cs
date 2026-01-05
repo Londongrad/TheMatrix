@@ -1,4 +1,5 @@
 using FluentValidation;
+using Matrix.Identity.Domain.Rules;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.ChangePassword
 {
@@ -14,8 +15,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangePassword
             RuleFor(x => x.NewPassword)
                .NotEmpty()
                .WithMessage("New password is required.")
-               .MinimumLength(6)
-               .WithMessage("New password must be at least 6 characters long.")
+               .MinimumLength(PasswordRules.MinLength)
+               .WithMessage($"New password must be at least {PasswordRules.MinLength} characters long.")
+               .MaximumLength(PasswordRules.MaxLength)
+               .WithMessage($"New password must be at most {PasswordRules.MaxLength} characters long.")
                .Matches("[a-z]")
                .WithMessage("New password must contain at least one lowercase letter.")
                .Matches("[A-Z]")
