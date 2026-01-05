@@ -1,6 +1,7 @@
 using System.Globalization;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
+using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 

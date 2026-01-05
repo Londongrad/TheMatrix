@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion
 {
     public interface IIdentityPermissionsVersionClient
     {

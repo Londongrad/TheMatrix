@@ -1,12 +1,15 @@
-using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
+using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.Identity.Contracts.Internal.Responses;
 using Microsoft.Extensions.Options;
 
-namespace Matrix.ApiGateway.Authorization.PermissionsVersion
+namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion
 {
     public sealed class IdentityPermissionsVersionClient : IIdentityPermissionsVersionClient
     {
+        private const string ServiceName = "Identity";
         private const string ApiKeyHeaderName = "X-Internal-Key";
+        private const string PermissionsVersionEndpoint = "api/internal/users/{0}/permissions-version";
         private readonly HttpClient _httpClient;
 
         public IdentityPermissionsVersionClient(
@@ -26,10 +29,14 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await _httpClient.GetAsync(
-                requestUri: $"api/internal/users/{userId}/permissions-version",
+                requestUri: string.Format(
+                    format: PermissionsVersionEndpoint,
+                    arg0: userId),
                 cancellationToken: cancellationToken);
 
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
 
             PermissionsVersionResponse? payload = await response.Content
                .ReadFromJsonAsync<PermissionsVersionResponse>(cancellationToken: cancellationToken);
@@ -39,7 +46,5 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
             return payload.Version;
         }
-
-        private sealed record PermissionsVersionResponse(int Version);
     }
 }

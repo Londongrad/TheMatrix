@@ -9,6 +9,7 @@ using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
+using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
