@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
 using MediatR;
@@ -10,6 +11,8 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions
         IRoleReadRepository roleReadRepository,
         IRolePermissionsRepository rolePermissionsRepository,
         IPermissionKeysValidator permissionKeysValidator,
+        IUserRepository userRepository,
+        ISecurityStateChangeCollector securityStateChangeCollector,
         IUnitOfWork unitOfWork)
         : IRequestHandler<UpdateRolePermissionsCommand>
     {
@@ -31,13 +34,25 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions
                 permissionKeys: desiredKeys,
                 cancellationToken: cancellationToken);
 
-            bool changed = await rolePermissionsRepository.ReplaceRolePermissionsAsync(
-                roleId: request.RoleId,
-                permissionKeys: desiredKeys,
-                cancellationToken: cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async token =>
+                {
+                    bool changed = await rolePermissionsRepository.ReplaceRolePermissionsAsync(
+                        roleId: request.RoleId,
+                        permissionKeys: desiredKeys,
+                        cancellationToken: token);
 
-            if (changed)
-                await unitOfWork.SaveChangesAsync(cancellationToken);
+                    if (!changed)
+                        return;
+
+                    IReadOnlyCollection<Guid> affectedUsers = await userRepository.GetUserIdsByRoleAsync(
+                        roleId: request.RoleId,
+                        cancellationToken: token);
+
+                    foreach (Guid userId in affectedUsers)
+                        securityStateChangeCollector.MarkUserChanged(userId);
+                },
+                cancellationToken: cancellationToken);
         }
     }
 }
