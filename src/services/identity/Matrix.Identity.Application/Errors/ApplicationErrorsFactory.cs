@@ -109,5 +109,13 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Validation,
                 errors: errors);
         }
+
+        public static MatrixApplicationException EmptyId(string name = "Id")
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Id.Empty",
+                message: $"{name} must not be empty.",
+                errorType: ApplicationErrorType.Validation);
+        }
     }
 }
