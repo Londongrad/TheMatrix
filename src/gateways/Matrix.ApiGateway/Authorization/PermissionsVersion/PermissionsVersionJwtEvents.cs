@@ -68,16 +68,6 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
         private static void MarkTokenStale(TokenValidatedContext context)
         {
-            string? userId = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-                             context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            context.HttpContext.RequestServices
-               .GetRequiredService<ILoggerFactory>()
-               .CreateLogger("PV")
-               .LogInformation(
-                    message: "TOKEN STALE for userId={UserId}",
-                    userId);
-
             context.HttpContext.Items[PermissionsVersionValidationDefaults.StaleTokenItemKey] = true;
             context.Fail("token_stale");
         }
