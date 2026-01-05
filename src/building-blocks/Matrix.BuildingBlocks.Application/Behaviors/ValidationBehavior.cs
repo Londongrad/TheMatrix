@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Results;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using MediatR;
 
@@ -20,8 +21,12 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
 
             var context = new ValidationContext<TRequest>(request);
 
-            var failures = validators
-               .Select(v => v.Validate(context))
+            ValidationResult[] results = await Task.WhenAll(
+                validators.Select(v => v.ValidateAsync(
+                    context: context,
+                    cancellation: cancellationToken)));
+
+            var failures = results
                .SelectMany(r => r.Errors)
                .Where(f => f is not null)
                .ToList();
