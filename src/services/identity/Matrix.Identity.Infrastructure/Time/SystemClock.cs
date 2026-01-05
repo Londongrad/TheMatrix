@@ -4,6 +4,6 @@ namespace Matrix.Identity.Infrastructure.Time
 {
     public class SystemClock : IClock
     {
-        public DateTime UtcNow { get; }
+        public DateTime UtcNow { get; } = DateTime.UtcNow;
     }
 }
