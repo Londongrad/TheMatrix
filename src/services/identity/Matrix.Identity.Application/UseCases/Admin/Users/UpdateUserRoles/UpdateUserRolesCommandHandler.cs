@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
 using MediatR;
@@ -10,7 +11,8 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles
         IUserRepository userRepository,
         IUserRolesRepository userRolesRepository,
         IRoleIdsValidator roleIdsValidator,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ISecurityStateChangeCollector securityStateChangeCollector)
         : IRequestHandler<UpdateUserRolesCommand>
     {
         public async Task Handle(
@@ -39,9 +41,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles
                     if (!changed)
                         return;
 
-                    await userRepository.BumpPermissionsVersionAsync(
-                        userId: request.UserId,
-                        cancellationToken: token);
+                    securityStateChangeCollector.MarkUserChanged(request.UserId);
                 },
                 cancellationToken: cancellationToken);
         }

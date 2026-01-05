@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
 using Matrix.Identity.Domain.Enums;
@@ -11,6 +12,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
         IUserRepository userRepository,
         IUserPermissionsRepository permissionsRepository,
         IPermissionReadRepository permissionReadRepository,
+        ISecurityStateChangeCollector securityStateChangeCollector,
         IUnitOfWork unitOfWork)
         : IRequestHandler<GrantUserPermissionCommand>
     {
@@ -50,9 +52,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
                     if (!changed)
                         return; // уже Allow -> ничего не меняем, версию не bumpаем
 
-                    await userRepository.BumpPermissionsVersionAsync(
-                        userId: request.UserId,
-                        cancellationToken: token);
+                    securityStateChangeCollector.MarkUserChanged(request.UserId);
                 },
                 cancellationToken: cancellationToken);
         }

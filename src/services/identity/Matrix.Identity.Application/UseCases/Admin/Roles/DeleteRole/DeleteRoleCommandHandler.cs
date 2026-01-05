@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
@@ -9,6 +10,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole
     public sealed class DeleteRoleCommandHandler(
         IRoleWriteRepository roleWriteRepository,
         IUserRepository userRepository,
+        ISecurityStateChangeCollector securityStateChangeCollector,
         IUnitOfWork unitOfWork)
         : IRequestHandler<DeleteRoleCommand>
     {
@@ -26,9 +28,12 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async token =>
                 {
-                    await userRepository.BumpPermissionsVersionByRoleAsync(
+                    IReadOnlyCollection<Guid> affectedUsers = await userRepository.GetUserIdsByRoleAsync(
                         roleId: role.Id,
                         cancellationToken: token);
+
+                    foreach (Guid userId in affectedUsers)
+                        securityStateChangeCollector.MarkUserChanged(userId);
 
                     await roleWriteRepository.DeleteAsync(
                         role: role,
