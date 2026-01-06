@@ -1,9 +1,4 @@
 // src/services/identity/api/admin/adminTypes.ts
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-}
-
 export interface UserListItemResponse {
   id: string;
   avatarUrl?: string | null;

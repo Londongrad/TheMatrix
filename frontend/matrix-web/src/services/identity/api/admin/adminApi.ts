@@ -2,7 +2,6 @@
 import { apiRequest } from "@shared/api/http";
 import { API_ADMIN_URL, API_ADMIN_USERS_URL } from "@shared/api/config";
 import type {
-  PagedResult,
   PermissionCatalogItemResponse,
   RoleResponse,
   UserDetailsResponse,
@@ -10,6 +9,7 @@ import type {
   UserPermissionResponse,
   UserRoleResponse,
 } from "./adminTypes";
+import type { PagedResult } from "@shared/lib/paging/pagingTypes";
 
 export async function getUsersPage(
   pageNumber: number,
