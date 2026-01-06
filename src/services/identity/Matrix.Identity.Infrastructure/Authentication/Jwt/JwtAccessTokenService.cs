@@ -2,7 +2,8 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Matrix.BuildingBlocks.Application.Authorization;
+using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.UseCases.Self.Auth;
 using Matrix.Identity.Domain.Entities;
@@ -45,7 +46,7 @@ namespace Matrix.Identity.Infrastructure.Authentication.Jwt
                     value: Guid.NewGuid()
                        .ToString()),
                 new(
-                    type: "pv",
+                    type: JwtClaimNames.PermissionsVersion,
                     value: permissionsVersion.ToString(CultureInfo.InvariantCulture))
             };
 

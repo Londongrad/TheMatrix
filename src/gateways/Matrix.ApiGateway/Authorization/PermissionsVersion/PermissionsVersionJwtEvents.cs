@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
+using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Matrix.ApiGateway.Authorization.PermissionsVersion

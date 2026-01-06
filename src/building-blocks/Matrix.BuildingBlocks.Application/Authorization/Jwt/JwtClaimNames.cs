@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.Authorization.Jwt
+namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
 {
     public static class JwtClaimNames
     {
