@@ -1,80 +1,39 @@
-// src/services/population/pages/CitizenPage.tsx
-import { useEffect, useState } from "react";
+// src/services/population/pages/CitizensPage.tsx
+import { useState } from "react";
 import CitizenCard from "@services/population/components/CitizenCard";
 import CitizenDetailsModal from "@services/population/components/CitizenDetailsModal";
 import type { PersonDto } from "@services/population/api/populationTypes";
 import { getCitizensPage } from "@services/population/api/populationApi";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
-import Pagination from "@services/population/components/Pagination";
+import Pagination from "@shared/ui/Pagination/Pagination";
+import { usePagedQuery } from "@shared/lib/paging/usePagedQuery";
+import { getPageRange } from "@shared/lib/paging/pageRange";
 import "@services/population/styles/citizen-page.css";
 
 const PAGE_SIZE = 100;
 
 const CitizensPage = () => {
-  const [citizens, setCitizens] = useState<PersonDto[]>([]);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [totalCitizens, setTotalCitizens] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const { token } = useAuth();
+
+  const { data, pageNumber, setPageNumber, isLoading, error } =
+    usePagedQuery<PersonDto>(
+      (page, size) => getCitizensPage(page, size, token!),
+      PAGE_SIZE,
+      [token],
+      { enabled: !!token, errorMessage: "Failed to load citizens." }
+    );
+
+  const citizens = data?.items ?? [];
+  const total = data?.totalCount ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+  const pageSize = data?.pageSize ?? PAGE_SIZE;
+
+  const currentPage = data?.pageNumber ?? pageNumber;
+  const range = getPageRange(currentPage, pageSize, total);
 
   const [selectedCitizenId, setSelectedCitizenId] = useState<string | null>(
     null
   );
-
-  useEffect(() => {
-    // (1) Нет токена — чистим состояние, чтобы не висели старые данные
-    if (!token) {
-      setCitizens([]);
-      setTotalCitizens(0);
-      setPageNumber(1);
-      setSelectedCitizenId(null);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    const accessToken = token;
-
-    // (2) Защита от гонок: игнорируем поздние ответы
-    let isActual = true;
-
-    (async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const result = await getCitizensPage(
-          pageNumber,
-          PAGE_SIZE,
-          accessToken
-        );
-
-        if (!isActual) return;
-        setCitizens(result.items);
-        setTotalCitizens(result.totalCount);
-      } catch (e) {
-        if (!isActual) return;
-        console.error(e);
-        setError("Failed to load citizens.");
-        // UX: оставляем прошлые данные на экране (не очищаем citizens)
-      } finally {
-        if (!isActual) return;
-        setIsLoading(false);
-      }
-    })();
-
-    return () => {
-      isActual = false;
-    };
-  }, [pageNumber, token]);
-
-  const totalPages = Math.max(1, Math.ceil(totalCitizens / PAGE_SIZE));
-
-  const startIndex = totalCitizens === 0 ? 0 : (pageNumber - 1) * PAGE_SIZE + 1;
-  const endIndex =
-    totalCitizens === 0 ? 0 : Math.min(pageNumber * PAGE_SIZE, totalCitizens);
 
   const selectedCitizen =
     selectedCitizenId != null
@@ -84,10 +43,6 @@ const CitizensPage = () => {
   const openEditor = (id: string) => setSelectedCitizenId(id);
   const closeEditor = () => setSelectedCitizenId(null);
 
-  const handlePersonUpdated = (updated: PersonDto) => {
-    setCitizens((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-  };
-
   const paginationDisabled = isLoading || !token;
 
   return (
@@ -96,25 +51,19 @@ const CitizensPage = () => {
 
       <div className="citizens-page-toolbar">
         <div className="citizens-page-toolbar-left">
-          {isLoading && (
-            <div className="citizens-loading-inline">
-              <span className="citizens-loading-spinner" />
-              <span className="card-sub">Loading citizens…</span>
-            </div>
-          )}
-
+          {isLoading && <span className="card-sub">Loading citizens...</span>}
           {error && <p className="error-text">{error}</p>}
 
-          {!isLoading && !error && totalCitizens > 0 && (
+          {!isLoading && !error && total > 0 && (
             <span className="card-sub">
-              Showing {startIndex}–{endIndex} of {totalCitizens} citizens
+              Showing {range.start}-{range.end} of {total} citizens
             </span>
           )}
         </div>
 
         <Pagination
           page={pageNumber}
-          totalPages={totalPages}
+          totalPages={Math.max(1, totalPages)}
           onChange={setPageNumber}
           disabled={paginationDisabled}
         />
@@ -134,14 +83,14 @@ const CitizensPage = () => {
 
           <Pagination
             page={pageNumber}
-            totalPages={totalPages}
+            totalPages={Math.max(1, totalPages)}
             onChange={setPageNumber}
             disabled={paginationDisabled}
           />
         </>
       )}
 
-      {!isLoading && !error && citizens.length === 0 && (
+      {!isLoading && !error && total === 0 && (
         <p className="card-sub">No citizens yet.</p>
       )}
 
@@ -149,7 +98,7 @@ const CitizensPage = () => {
         person={selectedCitizen}
         isOpen={selectedCitizen != null}
         onClose={closeEditor}
-        onPersonUpdated={handlePersonUpdated}
+        onPersonUpdated={() => {}}
       />
     </div>
   );
