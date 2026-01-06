@@ -2,11 +2,7 @@
 import type { PersonDto } from "./populationTypes";
 import { API_POPULATION_URL, API_PERSON_URL } from "@shared/api/config";
 import { apiRequest } from "@shared/api/http";
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-}
+import { type PagedResult } from "@shared/lib/paging/pagingTypes";
 
 // Инициализация населения
 export async function initializePopulation(
