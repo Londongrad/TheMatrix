@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.Authorization;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.Authorization;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.BuildingBlocks.Api.Authorization

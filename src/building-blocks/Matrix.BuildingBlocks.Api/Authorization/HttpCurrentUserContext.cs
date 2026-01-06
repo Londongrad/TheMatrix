@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Application.Authorization;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.JsonWebTokens;
 

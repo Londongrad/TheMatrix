@@ -1,4 +1,4 @@
-namespace Matrix.BuildingBlocks.Application.Authorization
+namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
 {
     public sealed record PermissionDefinition(
         string Key,

@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Application.Authorization;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails;
