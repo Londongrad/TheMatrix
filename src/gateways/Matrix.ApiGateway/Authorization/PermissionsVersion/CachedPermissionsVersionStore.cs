@@ -20,32 +20,50 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             CancellationToken cancellationToken)
         {
             string cacheKey = PermissionsVersionCacheKeys.ForUser(userId);
-            string? cached = await distributedCache.GetStringAsync(
-                key: cacheKey,
-                token: cancellationToken);
 
-            if (!string.IsNullOrWhiteSpace(cached) &&
-                int.TryParse(
-                    s: cached,
-                    style: NumberStyles.Integer,
-                    provider: CultureInfo.InvariantCulture,
-                    result: out int version))
-                return version;
+            // 1) Try read from Redis
+            try
+            {
+                string? cached = await distributedCache.GetStringAsync(
+                    key: cacheKey,
+                    token: cancellationToken);
 
+                if (!string.IsNullOrWhiteSpace(cached) &&
+                    int.TryParse(
+                        s: cached,
+                        style: NumberStyles.Integer,
+                        provider: CultureInfo.InvariantCulture,
+                        result: out int version))
+                    return version;
+            }
+            catch
+            {
+                // Redis недоступен — просто идём дальше (fallback на Identity)
+            }
+
+            // 2) Fallback to Identity
             int currentVersion = await client.GetPermissionsVersionAsync(
                 userId: userId,
                 cancellationToken: cancellationToken);
 
-            var cacheOptions = new DistributedCacheEntryOptions
+            // 3) Try write to Redis (best effort)
+            try
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_options.CacheTtlSeconds)
-            };
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_options.CacheTtlSeconds)
+                };
 
-            await distributedCache.SetStringAsync(
-                key: cacheKey,
-                value: currentVersion.ToString(CultureInfo.InvariantCulture),
-                options: cacheOptions,
-                token: cancellationToken);
+                await distributedCache.SetStringAsync(
+                    key: cacheKey,
+                    value: currentVersion.ToString(CultureInfo.InvariantCulture),
+                    options: cacheOptions,
+                    token: cancellationToken);
+            }
+            catch
+            {
+                // Best effort: если Redis лег — не мешаем запросу
+            }
 
             return currentVersion;
         }
