@@ -1,5 +1,5 @@
-// src/services/population/components/Pagination.tsx
-import "@services/population/styles/pagination.css";
+// src/shared/components/Pagination.tsx
+import "./pagination.css";
 
 interface PaginationProps {
   page: number;
