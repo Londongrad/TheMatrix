@@ -28,7 +28,8 @@
     "paths": {
       "@app/*": ["app/*"],
       "@services/*": ["services/*"],
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["shared/*"],
+      "@pages/*": ["pages/*"]
     }
   },
   "include": ["src"]
