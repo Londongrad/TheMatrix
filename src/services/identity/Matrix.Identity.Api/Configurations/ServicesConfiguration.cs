@@ -28,7 +28,6 @@ namespace Matrix.Identity.Api.Configurations
             services.AddControllers();
 
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
 
             return services;
         }
