@@ -19,6 +19,13 @@ namespace Matrix.Identity.Infrastructure.Persistence.Outbox
         public DateTime? ProcessedOnUtc { get; private set; }
         public string? Error { get; private set; }
 
+        // Multi-instance / retry
+        public Guid? LockToken { get; private set; }
+        public DateTime? LockedUntilUtc { get; private set; }
+        public int AttemptCount { get; private set; }
+        public DateTime? NextAttemptOnUtc { get; private set; }
+        public DateTime? LastAttemptOnUtc { get; private set; }
+
         public static OutboxMessage Create(
             string type,
             DateTime occurredOnUtc,
@@ -32,16 +39,30 @@ namespace Matrix.Identity.Infrastructure.Persistence.Outbox
                 Type = type,
                 PayloadJson = JsonSerializer.Serialize(
                     value: payload,
-                    options: jsonOptions ?? DefaultJsonOptions)
+                    options: jsonOptions ?? DefaultJsonOptions),
+                AttemptCount = 0
             };
         }
 
-        public void MarkProcessed(
-            DateTime processedOnUtc,
-            string? error = null)
+        public void MarkProcessed(DateTime processedOnUtc)
         {
             ProcessedOnUtc = processedOnUtc;
+            Error = null;
+
+            LockToken = null;
+            LockedUntilUtc = null;
+            NextAttemptOnUtc = null;
+        }
+
+        public void MarkFailed(
+            string error,
+            DateTime nextAttemptOnUtc)
+        {
             Error = error;
+            NextAttemptOnUtc = nextAttemptOnUtc;
+
+            LockToken = null;
+            LockedUntilUtc = null;
         }
     }
 }
