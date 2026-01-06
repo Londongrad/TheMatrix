@@ -44,9 +44,6 @@ namespace Matrix.ApiGateway.Controllers.Population
         ///     Проксирует вызов в Population API: GET /api/population/citizens?pageNumber=&pageSize=
         /// </remarks>
         [HttpGet("citizens")]
-        [ProducesResponseType(
-            type: typeof(PagedResult<PersonDto>),
-            statusCode: StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetCitizensPage(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 100,
