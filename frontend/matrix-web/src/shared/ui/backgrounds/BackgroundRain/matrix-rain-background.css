@@ -1,0 +1,166 @@
+.matrix-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  isolation: isolate;
+
+  /* базовый тёмный фон */
+  background: #05080b;
+}
+
+/* ---------- Сетка (как в ForbiddenPage) ---------- */
+.matrix-backdrop__grid {
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  opacity: 0.33;
+  transform: perspective(900px) rotateX(55deg) translateY(10%);
+  transform-origin: center;
+
+  background-image: repeating-linear-gradient(
+      90deg,
+      rgba(87, 255, 170, 0.12) 0,
+      rgba(87, 255, 170, 0.12) 1px,
+      transparent 1px,
+      transparent 48px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(87, 255, 170, 0.1) 0,
+      rgba(87, 255, 170, 0.1) 1px,
+      transparent 1px,
+      transparent 48px
+    );
+
+  filter: blur(0.3px);
+}
+
+/* ---------- Виньетка: центр светлее, края темнее ---------- */
+.matrix-backdrop__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  background: radial-gradient(
+      900px 450px at 50% 35%,
+      rgba(87, 255, 170, 0.18),
+      transparent 62%
+    ),
+    radial-gradient(
+      1200px 700px at 50% 90%,
+      rgba(0, 0, 0, 0.85),
+      transparent 62%
+    ),
+    radial-gradient(
+      900px 900px at 50% 50%,
+      rgba(0, 0, 0, 0.25),
+      rgba(0, 0, 0, 0.75)
+    ),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.78));
+}
+
+/* ---------- Scanline ---------- */
+.matrix-backdrop__scanline {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.35;
+
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(87, 255, 170, 0.08) 45%,
+    rgba(87, 255, 170, 0.22) 50%,
+    rgba(87, 255, 170, 0.08) 55%,
+    transparent 100%
+  );
+
+  transform: translateY(-130%);
+  animation: matrixScan 7.5s linear infinite;
+}
+
+@keyframes matrixScan {
+  0% {
+    transform: translateY(-130%);
+  }
+  100% {
+    transform: translateY(130%);
+  }
+}
+
+/* ---------- Rain ---------- */
+.matrix-backdrop__rain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+
+  opacity: var(--rain-opacity, 0.45);
+
+  /* можно выключить, если на твоей машине/мониторе выглядит хуже */
+  mix-blend-mode: screen;
+}
+
+.matrix-backdrop__rainColumn {
+  position: absolute;
+
+  /* ключевой фикс “попов”:
+     стартуем/заканчиваем за пределами экрана в vh, чтобы ресет был невидим */
+  top: -120vh;
+  left: var(--left);
+
+  white-space: pre;
+  line-height: 1.05;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  letter-spacing: 0.02em;
+
+  /* “голова ярче, хвост темнее” через градиент текста */
+  background: linear-gradient(
+    180deg,
+    rgba(87, 255, 170, 0) 0%,
+    rgba(87, 255, 170, 0.45) 22%,
+    rgba(87, 255, 170, 0.98) 55%,
+    rgba(87, 255, 170, 0.18) 86%,
+    rgba(87, 255, 170, 0) 100%
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  filter: drop-shadow(0 0 10px rgba(87, 255, 170, 0.14));
+  will-change: transform;
+
+  animation: matrixRain var(--duration) linear infinite;
+  animation-delay: var(--delay);
+}
+
+/* едем 240vh: из -120vh в +120vh */
+@keyframes matrixRain {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(var(--drift, 0px), 240vh, 0);
+  }
+}
+
+/* если при “отдалении” плохо видно — это как раз лечится жирнее/ярче:
+   можно поднять opacity до 0.55 и оставить font-weight: 600 */
+@media (prefers-reduced-motion: reduce) {
+  .matrix-backdrop__scanline,
+  .matrix-backdrop__rainColumn {
+    animation: none !important;
+  }
+
+  .matrix-backdrop__rain {
+    display: none;
+  }
+}
