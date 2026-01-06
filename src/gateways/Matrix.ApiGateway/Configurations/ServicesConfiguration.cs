@@ -277,7 +277,11 @@ namespace Matrix.ApiGateway.Configurations
                     failureMessage: "PermissionsVersion:CacheTtlSeconds must be greater than 0.")
                .ValidateOnStart();
 
-            services.AddDistributedMemoryCache();
+            services.AddStackExchangeRedisCache(o =>
+            {
+                o.Configuration = configuration["Redis:ConnectionString"];
+                o.InstanceName = configuration["Redis:InstanceName"];
+            });
 
             services.AddHttpClient<IIdentityPermissionsVersionClient, IdentityPermissionsVersionClient>((
                 sp,
