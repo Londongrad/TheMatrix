@@ -130,14 +130,14 @@ namespace Matrix.BuildingBlocks.Application.Authorization
                 Group: "People",
                 Description: "Initialize population."),
             new(
-                Key: PermissionKeys.PopulationPeopleKill,
+                Key: PermissionKeys.PopulationPersonKill,
                 Service: PopulationService,
-                Group: "People",
+                Group: "Person",
                 Description: "Kill a person."),
             new(
-                Key: PermissionKeys.PopulationPeopleResurrect,
+                Key: PermissionKeys.PopulationPersonResurrect,
                 Service: PopulationService,
-                Group: "People",
+                Group: "Person",
                 Description: "Resurrect a person."),
 
             #endregion [ Population permissions ]

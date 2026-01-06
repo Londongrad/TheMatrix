@@ -39,8 +39,9 @@ namespace Matrix.BuildingBlocks.Application.Authorization
 
         public const string PopulationPeopleInitialize = "population.people.initialize";
         public const string PopulationPeopleRead = "population.people.read";
-        public const string PopulationPeopleKill = "population.people.kill";
-        public const string PopulationPeopleResurrect = "population.people.resurrect";
+
+        public const string PopulationPersonResurrect = "population.person.resurrect";
+        public const string PopulationPersonKill = "population.person.kill";
 
         #endregion [ Population permission keys ]
     }

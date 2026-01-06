@@ -6,6 +6,6 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
 {
     public record KillPersonCommand(Guid Id) : IRequest<PersonDto>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.PopulationPeopleKill;
+        public string PermissionKey => PermissionKeys.PopulationPersonKill;
     }
 }

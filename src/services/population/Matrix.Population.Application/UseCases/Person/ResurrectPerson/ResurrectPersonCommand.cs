@@ -6,6 +6,6 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
 {
     public sealed record ResurrectPersonCommand(Guid Id) : IRequest<PersonDto>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.PopulationPeopleResurrect;
+        public string PermissionKey => PermissionKeys.PopulationPersonResurrect;
     }
 }

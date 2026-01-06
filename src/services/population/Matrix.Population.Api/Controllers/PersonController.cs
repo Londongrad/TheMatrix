@@ -16,7 +16,7 @@ namespace Matrix.Population.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpPost("resurrect")]
-        [Authorize(Policy = PermissionKeys.PopulationPeopleResurrect)]
+        [Authorize(Policy = PermissionKeys.PopulationPersonResurrect)]
         public async Task<IActionResult> ResurrectPerson(
             [FromRoute] Guid personId,
             CancellationToken cancellationToken = default)
@@ -29,7 +29,7 @@ namespace Matrix.Population.Api.Controllers
         }
 
         [HttpPost("kill")]
-        [Authorize(Policy = PermissionKeys.PopulationPeopleKill)]
+        [Authorize(Policy = PermissionKeys.PopulationPersonKill)]
         public async Task<IActionResult> KillPerson(
             [FromRoute] Guid personId,
             CancellationToken cancellationToken = default)
