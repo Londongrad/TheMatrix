@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
-import "@app/layouts/styles/topbar.css";
+import "@app/layouts/main/styles/topbar.css";
 
 const Topbar = () => {
   const { user, logout } = useAuth();
