@@ -1,0 +1,187 @@
+.mx-admin-perm__headerRight {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mx-admin-perm__error {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 80, 135, 0.22);
+  background: rgba(255, 80, 135, 0.06);
+}
+
+.mx-admin-perm__layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 12px;
+}
+
+.mx-admin-perm__roles {
+  border: 1px solid rgba(87, 255, 170, 0.12);
+  border-radius: 14px;
+  background: rgba(10, 14, 16, 0.3);
+  padding: 12px;
+}
+
+.mx-admin-perm__sideTitle {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 255, 245, 0.62);
+  margin-bottom: 10px;
+}
+
+.mx-admin-perm__roleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mx-admin-perm__roleBtn {
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid rgba(87, 255, 170, 0.12);
+  background: rgba(10, 14, 16, 0.24);
+  padding: 10px 12px;
+  color: rgba(232, 255, 245, 0.92);
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.mx-admin-perm__roleBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(87, 255, 170, 0.28);
+  box-shadow: 0 0 18px rgba(87, 255, 170, 0.08);
+}
+.mx-admin-perm__roleBtn.is-active {
+  background: rgba(87, 255, 170, 0.08);
+  border-color: rgba(87, 255, 170, 0.32);
+}
+
+.mx-admin-perm__roleName {
+  font-weight: 900;
+}
+.mx-admin-perm__roleMeta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(232, 255, 245, 0.62);
+}
+
+.mx-admin-perm__matrix {
+  border: 1px solid rgba(87, 255, 170, 0.12);
+  border-radius: 14px;
+  background: rgba(10, 14, 16, 0.3);
+  overflow: hidden;
+}
+
+.mx-admin-perm__matrixHead {
+  padding: 12px;
+  border-bottom: 1px solid rgba(87, 255, 170, 0.1);
+  background: rgba(0, 0, 0, 0.18);
+}
+.mx-admin-perm__matrixTitle {
+  font-weight: 900;
+}
+.mx-admin-perm__matrixSub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(232, 255, 245, 0.62);
+}
+
+.mx-admin-perm__groups {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mx-admin-perm__group {
+  border: 1px solid rgba(87, 255, 170, 0.12);
+  border-radius: 14px;
+  background: rgba(10, 14, 16, 0.24);
+  padding: 12px;
+}
+
+.mx-admin-perm__groupTitle {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 255, 245, 0.7);
+  margin-bottom: 10px;
+}
+
+.mx-admin-perm__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mx-admin-perm__row {
+  display: grid;
+  grid-template-columns: 1.6fr 2.2fr 70px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(87, 255, 170, 0.1);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.mx-admin-perm__permKey {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  color: rgba(232, 255, 245, 0.88);
+  font-size: 13px;
+}
+
+.mx-admin-perm__permDesc {
+  color: rgba(232, 255, 245, 0.62);
+  font-size: 13px;
+}
+
+.mx-admin-perm__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.mx-admin-perm__toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.mx-admin-perm__toggle span {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(87, 255, 170, 0.18);
+  background: rgba(0, 0, 0, 0.22);
+  position: relative;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.mx-admin-perm__toggle span::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(232, 255, 245, 0.82);
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  transition: transform 0.14s ease, background 0.14s ease;
+}
+.mx-admin-perm__toggle input:checked + span {
+  background: rgba(87, 255, 170, 0.14);
+  border-color: rgba(87, 255, 170, 0.32);
+}
+.mx-admin-perm__toggle input:checked + span::after {
+  transform: translateX(18px);
+  background: rgba(87, 255, 170, 0.92);
+}
+
+@media (max-width: 1060px) {
+  .mx-admin-perm__layout {
+    grid-template-columns: 1fr;
+  }
+}
