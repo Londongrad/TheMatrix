@@ -8,7 +8,7 @@ import React, {
   type ReactNode,
 } from "react";
 import ReactDOM from "react-dom";
-import "@shared/styles/confirm-dialog.css";
+import "./confirm-dialog.css";
 
 type ConfirmTone = "default" | "danger";
 
