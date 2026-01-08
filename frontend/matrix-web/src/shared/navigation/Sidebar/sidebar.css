@@ -1,0 +1,188 @@
+.mx-sb {
+  height: 100%;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  background: rgba(5, 8, 11, 0.55);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(87, 255, 170, 0.12);
+}
+
+.mx-sb__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(87, 255, 170, 0.14);
+  border-radius: 14px;
+  background: rgba(10, 14, 16, 0.42);
+}
+
+.mx-sb__mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(87, 255, 170, 0.2);
+  background: radial-gradient(
+    140px 80px at 30% 30%,
+    rgba(87, 255, 170, 0.22),
+    rgba(10, 14, 16, 0.1)
+  );
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.mx-sb__markBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(87, 255, 170, 0.22);
+  background: radial-gradient(
+      120px 80px at 30% 30%,
+      rgba(87, 255, 170, 0.16),
+      rgba(10, 14, 16, 0.45)
+    ),
+    linear-gradient(180deg, rgba(10, 14, 16, 0.7), rgba(10, 14, 16, 0.35));
+  color: rgba(232, 255, 245, 0.92);
+  cursor: pointer;
+
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4), 0 0 22px rgba(87, 255, 170, 0.12);
+
+  transition: transform 0.14s ease, border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.mx-sb__markBtn:hover {
+  border-color: rgba(87, 255, 170, 0.4);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4), 0 0 34px rgba(87, 255, 170, 0.2);
+  transform: translateY(-1px);
+}
+
+.mx-sb__markBtn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.mx-sb__markBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.mx-sb__brandRight {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.mx-sb__title {
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: rgba(232, 255, 245, 0.92);
+}
+.mx-sb__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(232, 255, 245, 0.62);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mx-sb__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+
+  padding-right: 6px;
+}
+
+.mx-sb__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  color: rgba(232, 255, 245, 0.92);
+  text-decoration: none;
+  transition: transform 0.14s ease, background 0.14s ease,
+    border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.mx-sb__item:hover {
+  background: rgba(10, 14, 16, 0.4);
+  border-color: rgba(87, 255, 170, 0.12);
+  transform: translateY(-1px);
+}
+
+.mx-sb__item.is-active {
+  background: rgba(87, 255, 170, 0.08);
+  border-color: rgba(87, 255, 170, 0.32);
+  box-shadow: 0 0 28px rgba(87, 255, 170, 0.1);
+}
+
+.mx-sb__icon {
+  color: rgba(232, 255, 245, 0.78);
+}
+
+.mx-sb__iconBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(87, 255, 170, 0.22);
+  background: radial-gradient(
+      120px 80px at 30% 30%,
+      rgba(87, 255, 170, 0.16),
+      rgba(10, 14, 16, 0.45)
+    ),
+    linear-gradient(180deg, rgba(10, 14, 16, 0.7), rgba(10, 14, 16, 0.35));
+  color: rgba(232, 255, 245, 0.92);
+  cursor: pointer;
+
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45), 0 0 22px rgba(87, 255, 170, 0.12);
+
+  transition: transform 0.14s ease, border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.mx-sb__iconBtn:hover {
+  border-color: rgba(87, 255, 170, 0.4);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45), 0 0 34px rgba(87, 255, 170, 0.2);
+  transform: translateY(-1px);
+}
+
+.mx-sb__iconBtn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.mx-sb__label {
+  font-size: 14px;
+}
+
+.mx-sb__glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  pointer-events: none;
+  background: radial-gradient(
+    200px 60px at 30% 50%,
+    rgba(87, 255, 170, 0.12),
+    transparent 65%
+  );
+  opacity: 0;
+}
+.mx-sb__item.is-active .mx-sb__glow {
+  opacity: 1;
+}
