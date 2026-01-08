@@ -1,0 +1,35 @@
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+
+  background: radial-gradient(
+      900px 480px at 50% 35%,
+      rgba(87, 255, 170, 0.14),
+      transparent 62%
+    ),
+    radial-gradient(
+      1200px 900px at 50% 50%,
+      rgba(0, 0, 0, 0.18),
+      rgba(0, 0, 0, 0.92)
+    ),
+    #05080b;
+
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* слой поверх дождя */
+.auth-shell__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
