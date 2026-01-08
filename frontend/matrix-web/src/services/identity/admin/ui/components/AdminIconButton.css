@@ -1,0 +1,26 @@
+.mx-ib {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(87, 255, 170, 0.14);
+  background: rgba(10, 14, 16, 0.3);
+  color: rgba(232, 255, 245, 0.78);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.14s ease, border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.mx-ib:hover {
+  transform: translateY(-1px);
+  border-color: rgba(87, 255, 170, 0.28);
+  box-shadow: 0 0 16px rgba(87, 255, 170, 0.08);
+}
+.mx-ib--danger {
+  border-color: rgba(255, 80, 135, 0.26);
+  color: rgba(255, 80, 135, 0.95);
+}
+.mx-ib--danger:hover {
+  border-color: rgba(255, 80, 135, 0.55);
+  box-shadow: 0 0 16px rgba(255, 80, 135, 0.1);
+}

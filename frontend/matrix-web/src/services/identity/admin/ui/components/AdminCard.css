@@ -1,0 +1,45 @@
+.mx-admin-card {
+  border-radius: 18px;
+  background: rgba(10, 14, 16, 0.56);
+  border: 1px solid rgba(87, 255, 170, 0.14);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  position: relative;
+}
+
+.mx-admin-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    300px 140px at 20% 0%,
+    rgba(87, 255, 170, 0.1),
+    transparent 65%
+  );
+}
+
+.mx-admin-card__header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(87, 255, 170, 0.1);
+}
+
+.mx-admin-card__title {
+  font-weight: 900;
+  color: rgba(232, 255, 245, 0.92);
+}
+.mx-admin-card__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(232, 255, 245, 0.62);
+}
+.mx-admin-card__body {
+  position: relative;
+  padding: 14px;
+}
