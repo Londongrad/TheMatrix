@@ -1,7 +1,7 @@
 // src/services/identity/account/pages/user-settings/UserSettingsPage.tsx
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
-import { useConfirm } from "@shared/components/ConfirmDialog";
-import "@services/identity/account/styles/user-settings-page.css";
+import { useConfirm } from "@shared/ui/ConfirmDialog/ConfirmDialog";
+import "@services/identity/self/account/styles/user-settings-page.css";
 
 import ProfileCard from "./components/ProfileCard";
 import SecurityCard from "./components/SecurityCard";

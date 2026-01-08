@@ -1,6 +1,6 @@
 // src/services/identity/account/pages/user-settings/components/DangerZoneCard.tsx
 import { useState } from "react";
-import DeleteAccountDialog from "@services/identity/account/components/DeleteAccountDialog";
+import DeleteAccountDialog from "@services/identity/self/account/components/DeleteAccountDialog";
 
 type Props = {
   token: string | null;
