@@ -65,21 +65,21 @@ namespace Matrix.Identity.Infrastructure.Outbox.Postgres
 
             var result = new List<LeasedOutboxMessage>(batchSize);
 
-            await using DbDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                Guid id = reader.GetGuid(0);
-                string type = reader.GetString(1);
-                string payloadJson = reader.GetString(2);
-                int attemptCount = reader.GetInt32(3);
+            await using (DbDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken))
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    Guid id = reader.GetGuid(0);
+                    string type = reader.GetString(1);
+                    string payloadJson = reader.GetString(2);
+                    int attemptCount = reader.GetInt32(3);
 
-                result.Add(
-                    new LeasedOutboxMessage(
-                        Id: id,
-                        Type: type,
-                        PayloadJson: payloadJson,
-                        AttemptCount: attemptCount));
-            }
+                    result.Add(
+                        new LeasedOutboxMessage(
+                            Id: id,
+                            Type: type,
+                            PayloadJson: payloadJson,
+                            AttemptCount: attemptCount));
+                }
 
             await tx.CommitAsync(cancellationToken);
             return result;
