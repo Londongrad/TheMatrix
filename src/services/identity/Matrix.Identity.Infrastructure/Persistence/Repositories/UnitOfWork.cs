@@ -24,9 +24,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
             return ExecuteInTransactionAsync<object?>(
-                action: async ct =>
+                action: async token =>
                 {
-                    await action(ct);
+                    await action(token);
                     return null;
                 },
                 cancellationToken: cancellationToken,

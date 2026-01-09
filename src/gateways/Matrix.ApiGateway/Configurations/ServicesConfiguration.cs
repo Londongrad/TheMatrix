@@ -1,8 +1,10 @@
 using System.Text;
+using MassTransit;
 using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
+using Matrix.ApiGateway.Consumers;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
