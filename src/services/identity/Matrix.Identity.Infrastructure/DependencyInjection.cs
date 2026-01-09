@@ -1,3 +1,4 @@
+using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
@@ -80,6 +81,26 @@ namespace Matrix.Identity.Infrastructure
 
             // External services
             services.AddGeoLocation(configuration);
+
+            // MassTransit (RabbitMQ) integration
+            services.AddMassTransit(x =>
+            {
+                x.SetKebabCaseEndpointNameFormatter();
+
+                x.UsingRabbitMq((
+                    context,
+                    cfg) =>
+                {
+                    cfg.Host(
+                        host: "localhost",
+                        virtualHost: "/",
+                        configure: h =>
+                        {
+                            h.Username("admin");
+                            h.Password("admin");
+                        });
+                });
+            });
 
             return services;
         }
