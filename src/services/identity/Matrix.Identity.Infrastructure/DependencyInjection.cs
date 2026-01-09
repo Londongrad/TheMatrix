@@ -57,6 +57,9 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IUserAdminReadRepository, UserAdminReadRepository>();
             services.AddScoped<IRoleMembersReadRepository, UserAdminReadRepository>();
 
+            // Outbox pattern
+            services.AddHostedService<OutboxPublisherBackgroundService>();
+            services.Configure<OutboxOptions>(configuration.GetSection("Outbox"));
             services.AddScoped<IOutboxRepository, PostgresOutboxRepository>();
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -64,9 +67,8 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
             services.AddScoped<IOneTimeTokenService, OneTimeTokenService>();
 
-            // Security state change processing + outbox publisher
+            // Security state change processing
             services.AddScoped<ISecurityStateChangeProcessor, SecurityStateChangeProcessor>();
-            services.AddHostedService<OutboxPublisherBackgroundService>();
 
             services.AddScoped<IClock, SystemClock>();
             services.AddScoped<IEmailSender, EmailSender>();
