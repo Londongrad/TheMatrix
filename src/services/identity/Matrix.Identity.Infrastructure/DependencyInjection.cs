@@ -12,6 +12,7 @@ using Matrix.Identity.Infrastructure.Integration.Links;
 using Matrix.Identity.Infrastructure.Outbox;
 using Matrix.Identity.Infrastructure.Outbox.Abstractions;
 using Matrix.Identity.Infrastructure.Outbox.Postgres;
+using Matrix.Identity.Infrastructure.Outbox.RabbitMq;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
 using Matrix.Identity.Infrastructure.Persistence.Repositories.Admin;
@@ -61,6 +62,8 @@ namespace Matrix.Identity.Infrastructure
             services.AddHostedService<OutboxPublisherBackgroundService>();
             services.Configure<OutboxOptions>(configuration.GetSection("Outbox"));
             services.AddScoped<IOutboxRepository, PostgresOutboxRepository>();
+            services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
