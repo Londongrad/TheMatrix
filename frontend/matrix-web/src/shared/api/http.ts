@@ -54,32 +54,21 @@ export function configureHttpAuth(options: {
   forbiddenFn = options.onForbidden ?? null;
 }
 
-function normalizeHeaders(init?: HeadersInit): Record<string, string> {
-  const headers = new Headers(init);
-  const obj: Record<string, string> = {};
-  headers.forEach((value, key) => {
-    obj[key] = value;
-  });
-  return obj;
-}
-
 function addAuthHeaderIfMissing(
   options: RequestInit,
-  token: string
+  token: string,
 ): RequestInit {
-  const hasAuth = new Headers(options.headers).has("Authorization");
-  if (hasAuth) return options;
-
-  const headersObj = normalizeHeaders(options.headers);
-  headersObj["Authorization"] = `Bearer ${token}`;
-
-  return { ...options, headers: headersObj };
+  const headers = new Headers(options.headers);
+  if (!headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  return { ...options, headers };
 }
 
 function setAuthHeader(options: RequestInit, token: string): RequestInit {
-  const headersObj = normalizeHeaders(options.headers);
-  headersObj["Authorization"] = `Bearer ${token}`;
-  return { ...options, headers: headersObj };
+  const headers = new Headers(options.headers);
+  headers.set("Authorization", `Bearer ${token}`); // overwrite независимо от регистра
+  return { ...options, headers };
 }
 
 async function refreshOnce(): Promise<string | null> {
@@ -97,22 +86,16 @@ async function refreshOnce(): Promise<string | null> {
 // Базовый helper над fetch
 export async function request<T>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
-  let response: Response;
-
-  // 👇 добавляем определение, FormData это или нет
   const isFormData = options.body instanceof FormData;
 
-  // если FormData → НЕ ставим Content-Type
-  const baseHeaders: HeadersInit = options.headers ?? {};
-  const headers: HeadersInit = isFormData
-    ? baseHeaders
-    : {
-        "Content-Type": "application/json",
-        ...baseHeaders,
-      };
+  const headers = new Headers(options.headers);
+  if (!isFormData && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
 
+  let response: Response;
   try {
     response = await fetch(url, {
       credentials: "include",
@@ -120,10 +103,9 @@ export async function request<T>(
       headers,
     });
   } catch {
-    // Сетевая ошибка / сервер упал
     throw new HttpError(
       0,
-      "Не удалось подключиться к серверу. Попробуйте позже."
+      "Не удалось подключиться к серверу. Попробуйте позже.",
     );
   }
 
@@ -204,7 +186,7 @@ export async function apiRequest<T>(
   opts: {
     enableAuthRefresh?: boolean;
     attachAccessToken?: boolean;
-  } = {}
+  } = {},
 ): Promise<T> {
   const { enableAuthRefresh = true, attachAccessToken = true } = opts;
 
@@ -233,7 +215,7 @@ export async function apiRequest<T>(
           }
 
           // 2) Повторяем запрос уже с новым access token (перезаписываем Authorization)
-          const retryOptions = setAuthHeader(options, newToken);
+          const retryOptions = setAuthHeader(firstOptions, newToken);
           return await request<T>(url, retryOptions);
         } catch {
           logoutFn?.();
