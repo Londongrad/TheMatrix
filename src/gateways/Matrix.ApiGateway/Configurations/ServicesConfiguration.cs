@@ -301,6 +301,23 @@ namespace Matrix.ApiGateway.Configurations
                     value: options.ApiKey);
             });
 
+            services.AddMassTransit(x =>
+            {
+                x.SetKebabCaseEndpointNameFormatter();
+                x.AddConsumer<UserSecurityStateChangedConsumer>();
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host("localhost", "/", h =>
+                    {
+                        h.Username("admin");
+                        h.Password("admin");
+                    });
+
+                    cfg.ConfigureEndpoints(context);
+                });
+            });
+
             services.AddScoped<IPermissionsVersionStore, CachedPermissionsVersionStore>();
 
             return services;
