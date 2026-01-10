@@ -1,9 +1,7 @@
-namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
+﻿namespace Matrix.Identity.Application.Authorization.Permissions
 {
     public static class PermissionKeys
     {
-        #region [ Identity permission keys ]
-
         public const string IdentityAdminAccess = "identity.admin.access";
         public const string IdentityUsersRead = "identity.admin.users.read";
 
@@ -37,17 +35,5 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
         public const string IdentityMeSessionsRead = "identity.me.sessions.read";
         public const string IdentityMeSessionsRevoke = "identity.me.sessions.revoke";
         public const string IdentityMeSessionsRevokeAll = "identity.me.sessions.revoke.all";
-
-        #endregion [ Identity permission keys ]
-
-        #region [ Population permission keys ]
-
-        public const string PopulationPeopleInitialize = "population.people.initialize";
-        public const string PopulationPeopleRead = "population.people.read";
-
-        public const string PopulationPersonResurrect = "population.person.resurrect";
-        public const string PopulationPersonKill = "population.person.kill";
-
-        #endregion [ Population permission keys ]
     }
 }

@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.Authorization.Permissions;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 

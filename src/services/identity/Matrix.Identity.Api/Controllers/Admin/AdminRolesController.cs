@@ -1,6 +1,6 @@
-using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Api.Mappers;
+using Matrix.Identity.Application.Authorization.Permissions;
 using Matrix.Identity.Application.UseCases.Admin.Roles.CreateRole;
 using Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole;
 using Matrix.Identity.Application.UseCases.Admin.Roles.GetRoleMembersPage;

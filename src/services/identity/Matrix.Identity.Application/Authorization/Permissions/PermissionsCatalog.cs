@@ -1,8 +1,9 @@
-namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
+﻿using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+
+namespace Matrix.Identity.Application.Authorization.Permissions
 {
     public static class PermissionsCatalog
     {
-        private const string PopulationService = "Population";
         private const string IdentityService = "Identity";
 
         private const string AdminAccessGroup = "Admin / Access";
@@ -11,13 +12,8 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
         private const string AdminPermissionsGroup = "Admin / Permissions";
         private const string MeGroup = "Me";
 
-        private const string PeopleGroup = "People";
-        private const string PersonGroup = "Person";
-
         public static readonly IReadOnlyList<PermissionDefinition> All =
         [
-            #region [ Identity permissions ]
-
             new(
                 Key: PermissionKeys.IdentityAdminAccess,
                 Service: IdentityService,
@@ -147,44 +143,7 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Permissions
                 Key: PermissionKeys.IdentityMeSessionsRevokeAll,
                 Service: IdentityService,
                 Group: MeGroup,
-                Description: "Revoke all own sessions (all refresh tokens)."),
-
-            #endregion [ Identity permissions ]
-
-            #region [ Population permissions ]
-
-            new(
-                Key: PermissionKeys.PopulationPeopleRead,
-                Service: PopulationService,
-                Group: PeopleGroup,
-                Description: "Read citizens page."),
-            new(
-                Key: PermissionKeys.PopulationPeopleInitialize,
-                Service: PopulationService,
-                Group: PeopleGroup,
-                Description: "Initialize population."),
-            new(
-                Key: PermissionKeys.PopulationPersonKill,
-                Service: PopulationService,
-                Group: PersonGroup,
-                Description: "Kill a person."),
-            new(
-                Key: PermissionKeys.PopulationPersonResurrect,
-                Service: PopulationService,
-                Group: PersonGroup,
-                Description: "Resurrect a person."),
-
-            #endregion [ Population permissions ]
+                Description: "Revoke all own sessions (all refresh tokens).")
         ];
-
-        public static IReadOnlyCollection<string> AllKeys =>
-            All.Select(x => x.Key)
-               .ToArray();
-
-        public static PermissionDefinition GetOrThrow(string key)
-        {
-            PermissionDefinition? item = All.FirstOrDefault(x => x.Key == key);
-            return item ?? throw new InvalidOperationException($"Permission not found in catalog: {key}");
-        }
     }
 }
