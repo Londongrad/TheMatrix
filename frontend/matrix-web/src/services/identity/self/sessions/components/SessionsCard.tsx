@@ -1,6 +1,8 @@
 // src/services/identity/self/sessions/components/SessionsCard.tsx
 import type { SessionInfo } from "@services/identity/api/self/sessions/sessionsTypes";
 import { useSessions } from "../hooks/useSessions";
+import { RequirePermission } from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import "@services/identity/self/sessions/styles/sessions-card.css";
 
 type Props = {
@@ -49,14 +51,19 @@ const SessionsCard = ({ token, logout, confirm }: Props) => {
 
         <div className="settings-header-actions">
           {isSessionsOpen && (
-            <button
-              type="button"
-              className="settings-button settings-button--secondary"
-              onClick={() => void loadSessions()}
-              disabled={!token || isLoadingSessions || isRevokingAll}
+            <RequirePermission
+              perm={PermissionKeys.IdentityMeSessionsRead}
+              mode="disable"
             >
-              {isLoadingSessions ? "Loading..." : "Refresh"}
-            </button>
+              <button
+                type="button"
+                className="settings-button settings-button--secondary"
+                onClick={() => void loadSessions()}
+                disabled={!token || isLoadingSessions || isRevokingAll}
+              >
+                {isLoadingSessions ? "Loading..." : "Refresh"}
+              </button>
+            </RequirePermission>
           )}
 
           <button
@@ -153,16 +160,21 @@ const SessionsCard = ({ token, logout, confirm }: Props) => {
                     </div>
 
                     <div className="settings-session-actions">
-                      <button
-                        type="button"
-                        className="settings-button settings-button--ghost-danger"
-                        onClick={() => void revokeOne(s)}
-                        disabled={revokingSessionId === s.id || isRevokingAll}
+                      <RequirePermission
+                        perm={PermissionKeys.IdentityMeSessionsRevoke}
+                        mode="disable"
                       >
-                        {revokingSessionId === s.id
-                          ? "Revoking..."
-                          : "Отозвать"}
-                      </button>
+                        <button
+                          type="button"
+                          className="settings-button settings-button--ghost-danger"
+                          onClick={() => void revokeOne(s)}
+                          disabled={revokingSessionId === s.id || isRevokingAll}
+                        >
+                          {revokingSessionId === s.id
+                            ? "Revoking..."
+                            : "Отозвать"}
+                        </button>
+                      </RequirePermission>
                     </div>
                   </div>
                 );
@@ -171,14 +183,21 @@ const SessionsCard = ({ token, logout, confirm }: Props) => {
           )}
 
           <div className="settings-actions-row settings-actions-row--sessions">
-            <button
-              type="button"
-              className="settings-button settings-button--danger-outline"
-              onClick={() => void revokeAll()}
-              disabled={!token || isRevokingAll || isLoadingSessions}
+            <RequirePermission
+              perm={PermissionKeys.IdentityMeSessionsRevokeAll}
+              mode="disable"
             >
-              {isRevokingAll ? "Revoking..." : "Отозвать все (включая текущую)"}
-            </button>
+              <button
+                type="button"
+                className="settings-button settings-button--danger-outline"
+                onClick={() => void revokeAll()}
+                disabled={!token || isRevokingAll || isLoadingSessions}
+              >
+                {isRevokingAll
+                  ? "Revoking..."
+                  : "Отозвать все (включая текущую)"}
+              </button>
+            </RequirePermission>
           </div>
         </div>
       )}

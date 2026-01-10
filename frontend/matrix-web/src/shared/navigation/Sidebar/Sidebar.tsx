@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import type { NavItem } from "./types";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
+import { IconLock } from "@shared/ui/icons/icons";
 import "./sidebar.css";
 
 export default function MatrixSidebar({
@@ -63,23 +64,38 @@ export default function MatrixSidebar({
       </div>
 
       <nav className="mx-sb__nav">
-        {items.map((x) => (
-          <NavLink
-            key={x.to}
-            to={x.to}
-            end={x.end}
-            state={x.getState ? x.getState(location.pathname) : undefined}
-            className={({ isActive }) =>
-              `mx-sb__item${isActive ? " is-active" : ""}`
-            }
-            onClick={onNavigate}
-            title={x.label}
-          >
-            {x.icon ? <span className="mx-sb__icon">{x.icon}</span> : null}
-            <span className="mx-sb__label">{x.label}</span>
-            <span className="mx-sb__glow" aria-hidden="true" />
-          </NavLink>
-        ))}
+        {items.map((x) =>
+          x.disabled ? (
+            <div
+              key={x.to}
+              className="mx-sb__item is-disabled"
+              title={x.disabledReason ?? "Недостаточно прав"}
+            >
+              {x.icon ? <span className="mx-sb__icon">{x.icon}</span> : null}
+              <span className="mx-sb__label">{x.label}</span>
+              <span className="mx-sb__lock" aria-hidden="true">
+                <IconLock />
+              </span>
+              <span className="mx-sb__glow" aria-hidden="true" />
+            </div>
+          ) : (
+            <NavLink
+              key={x.to}
+              to={x.to}
+              end={x.end}
+              state={x.getState ? x.getState(location.pathname) : undefined}
+              className={({ isActive }) =>
+                `mx-sb__item${isActive ? " is-active" : ""}`
+              }
+              onClick={onNavigate}
+              title={x.label}
+            >
+              {x.icon ? <span className="mx-sb__icon">{x.icon}</span> : null}
+              <span className="mx-sb__label">{x.label}</span>
+              <span className="mx-sb__glow" aria-hidden="true" />
+            </NavLink>
+          ),
+        )}
       </nav>
     </div>
   );

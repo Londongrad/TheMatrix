@@ -1,5 +1,7 @@
 import Button from "@shared/ui/controls/Button/Button";
 import type { RoleResponse } from "@services/identity/api/admin/adminTypes";
+import { RequirePermission } from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 
 export default function RoleCard({
   role,
@@ -34,27 +36,47 @@ export default function RoleCard({
       </div>
 
       <div className="mx-admin-roles__actions">
-        <Button type="button" onClick={() => onMembers(role)}>
-          Members
-        </Button>
-        <Button type="button" onClick={() => onPermissions(role)}>
-          Permissions
-        </Button>
-        <Button
-          type="button"
-          onClick={() => onRename(role)}
-          disabled={role.isSystem}
+        <RequirePermission
+          perm={PermissionKeys.IdentityRoleMembersRead}
+          mode="disable"
         >
-          Rename
-        </Button>
-        <Button
-          type="button"
-          variant="danger"
-          onClick={() => onDelete(role)}
-          disabled={role.isSystem}
+          <Button type="button" onClick={() => onMembers(role)}>
+            Members
+          </Button>
+        </RequirePermission>
+        <RequirePermission
+          perm={PermissionKeys.IdentityRolePermissionsRead}
+          mode="disable"
         >
-          Delete
-        </Button>
+          <Button type="button" onClick={() => onPermissions(role)}>
+            Permissions
+          </Button>
+        </RequirePermission>
+        <RequirePermission
+          perm={PermissionKeys.IdentityRolesRename}
+          mode="disable"
+        >
+          <Button
+            type="button"
+            onClick={() => onRename(role)}
+            disabled={role.isSystem}
+          >
+            Rename
+          </Button>
+        </RequirePermission>
+        <RequirePermission
+          perm={PermissionKeys.IdentityRolesDelete}
+          mode="disable"
+        >
+          <Button
+            type="button"
+            variant="danger"
+            onClick={() => onDelete(role)}
+            disabled={role.isSystem}
+          >
+            Delete
+          </Button>
+        </RequirePermission>
       </div>
     </div>
   );

@@ -20,6 +20,8 @@ import { LoginPage } from "@services/identity/self/auth/pages/LoginPage";
 import { RegisterPage } from "@services/identity/self/auth/pages/RegisterPage";
 import { ForgotPasswordPage } from "@services/identity/self/auth/pages/ForgotPasswordPage";
 import { ConfirmProvider } from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
+import { RequireRoutePermission } from "@app/router/guards/RequireRoutePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 
 import MainLayout from "./layouts/main/MainLayout";
 import AdminLayout from "./layouts/admin/AdminLayout";
@@ -46,7 +48,16 @@ const App = () => {
               }
             >
               <Route path="/" element={<DashboardPage />} />
-              <Route path="/citizens" element={<CitizensPage />} />
+              <Route
+                path="/citizens"
+                element={
+                  <RequireRoutePermission
+                    permissions={[PermissionKeys.PopulationPeopleRead]}
+                  >
+                    <CitizensPage />
+                  </RequireRoutePermission>
+                }
+              />
             </Route>
 
             {/* защищённые user settings страницы - с UserSettingsLayout */}
@@ -74,14 +85,47 @@ const App = () => {
               path="/admin"
               element={
                 <RequireAuth>
-                  <AdminLayout />
+                  <RequireRoutePermission
+                    permissions={[PermissionKeys.IdentityAdminAccess]}
+                  >
+                    <AdminLayout />
+                  </RequireRoutePermission>
                 </RequireAuth>
               }
             >
               <Route index element={<Navigate to="users" replace />} />
-              <Route path="users" element={<AdminUsersPage />} />
-              <Route path="roles" element={<AdminRolesPage />} />
-              <Route path="permissions" element={<AdminPermissionsPage />} />
+              <Route
+                path="users"
+                element={
+                  <RequireRoutePermission
+                    permissions={[PermissionKeys.IdentityUsersRead]}
+                  >
+                    <AdminUsersPage />
+                  </RequireRoutePermission>
+                }
+              />
+              <Route
+                path="roles"
+                element={
+                  <RequireRoutePermission
+                    permissions={[PermissionKeys.IdentityRolesList]}
+                  >
+                    <AdminRolesPage />
+                  </RequireRoutePermission>
+                }
+              />
+              <Route
+                path="permissions"
+                element={
+                  <RequireRoutePermission
+                    permissions={[
+                      PermissionKeys.IdentityPermissionsCatalogRead,
+                    ]}
+                  >
+                    <AdminPermissionsPage />
+                  </RequireRoutePermission>
+                }
+              />
             </Route>
           </Routes>
         </ConfirmProvider>

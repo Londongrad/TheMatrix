@@ -1,6 +1,8 @@
 // src/services/identity/self/account/profile/components/ProfileCard.tsx
 import React, { useRef, useState } from "react";
 import { updateAvatar } from "@services/identity/api/self/account/accountApi";
+import { RequirePermission } from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import "@services/identity/self/account/profile/styles/profile-card.css";
 
 type Props = {
@@ -74,7 +76,7 @@ const ProfileCard = ({
     } catch (err: any) {
       console.error(err);
       setAvatarError(
-        err?.message || "Failed to upload avatar. Please try again."
+        err?.message || "Failed to upload avatar. Please try again.",
       );
     } finally {
       setIsUploadingAvatar(false);
@@ -95,22 +97,27 @@ const ProfileCard = ({
       </div>
 
       <div className="settings-avatar-row">
-        <button
-          type="button"
-          className="settings-avatar"
-          onClick={handleAvatarClick}
-          disabled={isUploadingAvatar}
+        <RequirePermission
+          perm={PermissionKeys.IdentityMeAvatarChange}
+          mode="disable"
         >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName || email || "Avatar"}
-              className="settings-avatar-image"
-            />
-          ) : (
-            <span className="settings-avatar-initial">{initial}</span>
-          )}
-        </button>
+          <button
+            type="button"
+            className="settings-avatar"
+            onClick={handleAvatarClick}
+            disabled={isUploadingAvatar}
+          >
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName || email || "Avatar"}
+                className="settings-avatar-image"
+              />
+            ) : (
+              <span className="settings-avatar-initial">{initial}</span>
+            )}
+          </button>
+        </RequirePermission>
 
         <input
           type="file"

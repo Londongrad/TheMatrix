@@ -1,5 +1,7 @@
 // src/services/identity/self/account/security/components/SecurityCard.tsx
 import { usePasswordChange } from "../hooks/usePasswordChange";
+import { RequirePermission } from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import "@services/identity/self/account/security/styles/security-card.css";
 
 type Props = { token: string | null };
@@ -84,13 +86,18 @@ const SecurityCard = ({ token }: Props) => {
 
         <div className="settings-actions-row">
           {securitySaved && <span className="settings-save-badge">Saved</span>}
-          <button
-            type="submit"
-            className="settings-button"
-            disabled={isSavingSecurity}
+          <RequirePermission
+            perm={PermissionKeys.IdentityMePasswordChange}
+            mode="disable"
           >
-            {isSavingSecurity ? "Updating..." : "Update password"}
-          </button>
+            <button
+              type="submit"
+              className="settings-button"
+              disabled={isSavingSecurity}
+            >
+              {isSavingSecurity ? "Updating..." : "Update password"}
+            </button>
+          </RequirePermission>
         </div>
       </form>
     </section>

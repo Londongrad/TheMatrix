@@ -7,6 +7,8 @@ import { IconRefresh } from "@shared/ui/icons/icons";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import UserCard from "../components/UserCard";
 import UserAccessModal from "../components/UserAccessModal";
+import { RequirePermission } from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import "../styles/admin-users-page.css";
 
 export default function AdminUsersPage() {
@@ -30,12 +32,22 @@ export default function AdminUsersPage() {
         subtitle="Directory & access"
         right={
           <div className="mx-admin-users__headerRight">
-            <Button onClick={refresh} disabled={isLoading}>
-              <IconRefresh /> Refresh
-            </Button>
-            <Button variant="primary" type="button" disabled>
-              + Add user
-            </Button>
+            <RequirePermission
+              perm={PermissionKeys.IdentityUsersRead}
+              mode="disable"
+            >
+              <Button onClick={refresh} disabled={isLoading}>
+                <IconRefresh /> Refresh
+              </Button>
+            </RequirePermission>
+            <RequirePermission
+              perm={PermissionKeys.IdentityUsersRead}
+              mode="disable"
+            >
+              <Button variant="primary" type="button" disabled>
+                + Add user
+              </Button>
+            </RequirePermission>
           </div>
         }
       >

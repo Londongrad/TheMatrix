@@ -5,6 +5,8 @@ import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndi
 import { useConfirm } from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import { deleteRole } from "@services/identity/api/admin/adminApi";
 import type { RoleResponse } from "@services/identity/api/admin/adminTypes";
+import { RequirePermission } from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import { useAdminRoles } from "../hooks/useAdminRoles";
 import RoleCard from "../components/RoleCard";
 import CreateRoleModal from "../components/CreateRoleModal";
@@ -16,11 +18,11 @@ import "../styles/admin-roles-page.css";
 export default function AdminRolesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [renameRoleTarget, setRenameRoleTarget] = useState<RoleResponse | null>(
-    null
+    null,
   );
   const [membersRole, setMembersRole] = useState<RoleResponse | null>(null);
   const [permissionsRole, setPermissionsRole] = useState<RoleResponse | null>(
-    null
+    null,
   );
   const confirm = useConfirm();
 
@@ -56,16 +58,26 @@ export default function AdminRolesPage() {
         subtitle="Access groups"
         right={
           <div className="mx-admin-roles__headerRight">
-            <Button onClick={() => void load()} disabled={loading}>
-              Refresh
-            </Button>
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => setCreateOpen(true)}
+            <RequirePermission
+              perm={PermissionKeys.IdentityRolesList}
+              mode="disable"
             >
-              + New role
-            </Button>
+              <Button onClick={() => void load()} disabled={loading}>
+                Refresh
+              </Button>
+            </RequirePermission>
+            <RequirePermission
+              perm={PermissionKeys.IdentityRolesCreate}
+              mode="disable"
+            >
+              <Button
+                variant="primary"
+                type="button"
+                onClick={() => setCreateOpen(true)}
+              >
+                + New role
+              </Button>
+            </RequirePermission>
           </div>
         }
       >

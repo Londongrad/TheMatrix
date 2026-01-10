@@ -7,14 +7,14 @@ import type {
   ProfileResponse,
 } from "./accountTypes";
 
-export async function getProfile(): Promise<ProfileResponse> {
+export async function fetchProfile(): Promise<ProfileResponse> {
   return await apiRequest<ProfileResponse>(`${API_ACCOUNT_URL}/profile`, {
     method: "GET",
   });
 }
 
 export async function changePassword(
-  payload: ChangePasswordRequest
+  payload: ChangePasswordRequest,
 ): Promise<void> {
   await apiRequest<void>(`${API_ACCOUNT_URL}/password`, {
     method: "PUT",

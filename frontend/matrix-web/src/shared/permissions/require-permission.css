@@ -1,0 +1,35 @@
+.mx-permission {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mx-permission.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  filter: grayscale(0.25);
+}
+
+.mx-permission.is-disabled::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 8px;
+  background: rgba(10, 10, 10, 0.35);
+  pointer-events: none;
+}
+
+.mx-permission__content {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.mx-permission__lock {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.65);
+  position: relative;
+  z-index: 1;
+}

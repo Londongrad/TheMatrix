@@ -2,6 +2,11 @@ import Button from "@shared/ui/controls/Button/Button";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import { IconLock, IconOpen, IconUnlock } from "@shared/ui/icons/icons";
 import type { UserListItemResponse } from "@services/identity/api/admin/adminTypes";
+import {
+  RequirePermission,
+  RequirePermissions,
+} from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import UserBadge from "./UserBadge";
 
 function formatUtc(utc: string) {
@@ -21,6 +26,9 @@ export default function UserCard({
 }) {
   const avatarLabel = user.username?.[0]?.toUpperCase() ?? "U";
   const avatarUrl = user.avatarUrl ?? "";
+  const togglePermission = user.isLocked
+    ? PermissionKeys.IdentityUsersUnlock
+    : PermissionKeys.IdentityUsersLock;
 
   return (
     <div className="mx-admin-users__card" role="listitem">
@@ -62,17 +70,28 @@ export default function UserCard({
       </div>
 
       <div className="mx-admin-users__actions">
-        <Button size="sm" onClick={() => onOpenAccess(user.id)}>
-          <IconOpen /> Open access
-        </Button>
-        <IconButton
-          variant={user.isLocked ? "default" : "danger"}
-          title={user.isLocked ? "Unlock" : "Lock"}
-          onClick={() => void onToggleLock(user)}
-          disabled={isLoading}
+        <RequirePermissions
+          perms={[
+            PermissionKeys.IdentityUserRolesRead,
+            PermissionKeys.IdentityUserPermissionsRead,
+          ]}
+          mode="disable"
+          match="any"
         >
-          {user.isLocked ? <IconUnlock /> : <IconLock />}
-        </IconButton>
+          <Button size="sm" onClick={() => onOpenAccess(user.id)}>
+            <IconOpen /> Open access
+          </Button>
+        </RequirePermissions>
+        <RequirePermission perm={togglePermission} mode="disable">
+          <IconButton
+            variant={user.isLocked ? "default" : "danger"}
+            title={user.isLocked ? "Unlock" : "Lock"}
+            onClick={() => void onToggleLock(user)}
+            disabled={isLoading}
+          >
+            {user.isLocked ? <IconUnlock /> : <IconLock />}
+          </IconButton>
+        </RequirePermission>
       </div>
     </div>
   );

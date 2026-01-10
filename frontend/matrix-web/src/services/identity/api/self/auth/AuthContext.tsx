@@ -11,7 +11,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import type { LoginRequest } from "./authTypes";
 import type { ProfileResponse } from "@services/identity/api/self/account/accountTypes";
-import { getProfile } from "@services/identity/api/self/account/accountApi";
+import { fetchProfile } from "@services/identity/api/self/account/accountApi";
 import { loginUser, registerUser, refreshAuth, logoutAuth } from "./authApi";
 import { configureHttpAuth } from "@shared/api/http";
 
@@ -38,6 +38,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<ProfileResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const tokenRef = useRef<string | null>(null);
+  const tokenPermissionsVersionRef = useRef<number | null>(null);
+  const profileRefreshInFlight = useRef(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const hasTriedRefresh = useRef(false);
@@ -45,18 +47,86 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const readTokenPermissionsVersion = (value: string | null): number | null => {
+    if (!value) return null;
+
+    const parts = value.split(".");
+    if (parts.length < 2) return null;
+
+    const payload = parts[1];
+    try {
+      const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+      const padding = normalized.length % 4;
+      const padded =
+        padding === 0 ? normalized : normalized + "=".repeat(4 - padding);
+      const decoded = globalThis.atob ? globalThis.atob(padded) : null;
+      if (!decoded) return null;
+
+      const data = JSON.parse(decoded) as { pv?: number | string };
+      if (typeof data.pv === "number") return data.pv;
+      if (typeof data.pv === "string") {
+        const parsed = Number(data.pv);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  };
+
   const setAccessToken = useCallback((value: string | null) => {
     tokenRef.current = value;
     setToken(value);
+    tokenPermissionsVersionRef.current = readTokenPermissionsVersion(value);
+  }, []);
+
+  const reloadMe = useCallback(async (): Promise<ProfileResponse | null> => {
+    const current = tokenRef.current;
+    if (!current) return null;
+
+    try {
+      const me = await fetchProfile();
+      setUser(me);
+      return me;
+    } catch {
+      return null;
+    }
   }, []);
 
   // 🔁 Обновление access-токена по refresh-куке (ТОЛЬКО токен)
+  const reloadProfileOnce = useCallback(async () => {
+    if (profileRefreshInFlight.current) return;
+    profileRefreshInFlight.current = true;
+    try {
+      await reloadMe();
+    } finally {
+      profileRefreshInFlight.current = false;
+    }
+  }, [reloadMe]);
+
+  const syncProfileWithToken = useCallback(
+    async (accessToken: string | null) => {
+      if (!accessToken || !user) return;
+
+      const tokenVersion = readTokenPermissionsVersion(accessToken);
+      tokenPermissionsVersionRef.current = tokenVersion;
+
+      if (tokenVersion === null) return;
+      if (user.permissionsVersion === tokenVersion) return;
+
+      await reloadProfileOnce();
+    },
+    [reloadProfileOnce, user],
+  );
+
   const refreshSession = useCallback(async (): Promise<string | null> => {
     try {
       const result = await refreshAuth(); // /api/auth/refresh
       const newAccess = result.accessToken;
 
       setAccessToken(newAccess); // tokenRef + state
+      void syncProfileWithToken(newAccess);
 
       return newAccess;
     } catch {
@@ -64,20 +134,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       setUser(null);
       return null;
     }
-  }, [setAccessToken]);
-
-  const reloadMe = useCallback(async (): Promise<ProfileResponse | null> => {
-    const current = tokenRef.current;
-    if (!current) return null;
-
-    try {
-      const me = await getProfile();
-      setUser(me);
-      return me;
-    } catch {
-      return null;
-    }
-  }, []);
+  }, [setAccessToken, syncProfileWithToken]);
 
   const patchUser = useCallback((patch: Partial<ProfileResponse>) => {
     setUser((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -89,7 +146,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     setAccessToken(access);
 
-    const me = await getProfile();
+    const me = await fetchProfile();
     setUser(me);
   };
 
@@ -148,6 +205,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       },
       getAccessToken: () => tokenRef.current,
       onForbidden: ({ url }) => {
+        void reloadProfileOnce();
         // чтобы не зациклиться, если уже на forbidden
         if (location.pathname !== "/forbidden") {
           navigate("/forbidden", {
@@ -157,7 +215,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }
       },
     });
-  }, [refreshSession, setAccessToken, navigate, location.pathname]);
+  }, [
+    refreshSession,
+    setAccessToken,
+    navigate,
+    location.pathname,
+    reloadProfileOnce,
+  ]);
 
   const value: AuthContextValue = {
     user,

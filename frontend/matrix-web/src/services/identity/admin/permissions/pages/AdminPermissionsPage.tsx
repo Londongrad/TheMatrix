@@ -1,9 +1,12 @@
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
+import { RequirePermission } from "@shared/permissions/RequirePermission";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import { useAdminPermissions } from "../hooks/useAdminPermissions";
 import PermissionsMatrix from "../components/PermissionsMatrix";
 import RoleList from "../components/RoleList";
+
 import "../styles/admin-permissions-page.css";
 
 export default function AdminPermissionsPage() {
@@ -31,16 +34,26 @@ export default function AdminPermissionsPage() {
         subtitle="Configure permissions inside roles"
         right={
           <div className="mx-admin-perm__headerRight">
-            <Button onClick={() => void load()} disabled={loading}>
-              Refresh
-            </Button>
-            <Button
-              variant="primary"
-              disabled={!activeRole || !dirty || saving}
-              onClick={() => void saveChanges()}
+            <RequirePermission
+              perm={PermissionKeys.IdentityPermissionsCatalogRead}
+              mode="disable"
             >
-              Save changes
-            </Button>
+              <Button onClick={() => void load()} disabled={loading}>
+                Refresh
+              </Button>
+            </RequirePermission>
+            <RequirePermission
+              perm={PermissionKeys.IdentityRolePermissionsUpdate}
+              mode="disable"
+            >
+              <Button
+                variant="primary"
+                disabled={!activeRole || !dirty || saving}
+                onClick={() => void saveChanges()}
+              >
+                Save changes
+              </Button>
+            </RequirePermission>
           </div>
         }
       >

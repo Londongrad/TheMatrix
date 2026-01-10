@@ -1,5 +1,7 @@
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import type { RoleResponse } from "@services/identity/api/admin/adminTypes";
+import { usePermissions } from "@shared/permissions/usePermissions";
+import { PermissionKeys } from "@shared/permissions/permissionKeys";
 import type { PermissionSection } from "../hooks/useAdminPermissions";
 
 export default function PermissionsMatrix({
@@ -17,6 +19,9 @@ export default function PermissionsMatrix({
   loading: boolean;
   onToggle: (key: string) => void;
 }) {
+  const { can } = usePermissions();
+  const canUpdate = can(PermissionKeys.IdentityRolePermissionsUpdate);
+
   return (
     <div className="mx-admin-perm__matrix">
       <div className="mx-admin-perm__matrixHead">
@@ -64,8 +69,16 @@ export default function PermissionsMatrix({
                               <input
                                 type="checkbox"
                                 checked={rolePermissions.has(permission.key)}
-                                disabled={!activeRole || roleLoading || loading}
+                                disabled={
+                                  !activeRole ||
+                                  roleLoading ||
+                                  loading ||
+                                  !canUpdate
+                                }
                                 onChange={() => onToggle(permission.key)}
+                                title={
+                                  canUpdate ? undefined : "Недостаточно прав"
+                                }
                               />
                               <span />
                             </div>
@@ -102,8 +115,16 @@ export default function PermissionsMatrix({
                             <input
                               type="checkbox"
                               checked={rolePermissions.has(permission.key)}
-                              disabled={!activeRole || roleLoading || loading}
+                              disabled={
+                                !activeRole ||
+                                roleLoading ||
+                                loading ||
+                                !canUpdate
+                              }
                               onChange={() => onToggle(permission.key)}
+                              title={
+                                canUpdate ? undefined : "Недостаточно прав"
+                              }
                             />
                             <span />
                           </div>
