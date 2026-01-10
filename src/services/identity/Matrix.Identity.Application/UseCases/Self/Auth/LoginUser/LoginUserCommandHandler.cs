@@ -67,9 +67,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
 
             // 2) Access token
             AccessTokenModel accessTokenModel = accessTokenService.Generate(
-                user: user,
-                roles: ctx.Roles,
-                permissions: ctx.Permissions,
+                userId: user.Id,
                 permissionsVersion: ctx.PermissionsVersion);
 
             // 3) Refresh token descriptor (сырое значение + hash + время жизни)

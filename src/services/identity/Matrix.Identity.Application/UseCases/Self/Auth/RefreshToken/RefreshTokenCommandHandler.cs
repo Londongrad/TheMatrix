@@ -109,9 +109,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
 
             // 12) New access-token
             AccessTokenModel accessModel = accessTokenService.Generate(
-                user: user,
-                roles: ctx.Roles,
-                permissions: ctx.Permissions,
+                userId: user.Id,
                 permissionsVersion: ctx.PermissionsVersion);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
