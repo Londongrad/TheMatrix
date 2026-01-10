@@ -4,7 +4,5 @@ namespace Matrix.BuildingBlocks.Application.Abstractions
     {
         bool IsAuthenticated { get; }
         Guid? UserId { get; }
-
-        IReadOnlySet<string> Permissions { get; }
     }
 }
