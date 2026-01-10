@@ -4,6 +4,7 @@ using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
+using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Common;
@@ -279,6 +280,19 @@ namespace Matrix.ApiGateway.Configurations
                     failureMessage: "PermissionsVersion:CacheTtlSeconds must be greater than 0.")
                .ValidateOnStart();
 
+            services.AddOptions<RabbitMqOptions>()
+               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
+                    failureMessage: "RabbitMq:Host is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
+                    failureMessage: "RabbitMq:Username is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
+                    failureMessage: "RabbitMq:Password is required.")
+               .ValidateOnStart();
+
             services.AddStackExchangeRedisCache(o =>
             {
                 o.Configuration = configuration["Redis:ConnectionString"];
@@ -308,13 +322,22 @@ namespace Matrix.ApiGateway.Configurations
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddConsumer<UserSecurityStateChangedConsumer>();
 
-                x.UsingRabbitMq((context, cfg) =>
+                x.UsingRabbitMq((
+                    context,
+                    cfg) =>
                 {
-                    cfg.Host("localhost", "/", h =>
-                    {
-                        h.Username("admin");
-                        h.Password("admin");
-                    });
+                    RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>()
+                       .Value;
+
+                    cfg.Host(
+                        host: rmq.Host,
+                        port: rmq.Port,
+                        virtualHost: rmq.VirtualHost,
+                        configure: h =>
+                        {
+                            h.Username(rmq.Username);
+                            h.Password(rmq.Password);
+                        });
 
                     cfg.ConfigureEndpoints(context);
                 });
