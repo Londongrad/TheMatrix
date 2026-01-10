@@ -11,6 +11,11 @@
 *.sln.docstates
 appsettings.Development.json
 
+# Vite dev certs
+frontend/matrix-web/certs/
+frontend/matrix-web/certs/*.pem
+*.pem
+
 # JetBrains Rider / IntelliJ
 .idea/
 *.iml
