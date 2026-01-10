@@ -32,7 +32,9 @@ namespace Matrix.Identity.Api.Controllers.Self
                 UserId = result.UserId,
                 Email = result.Email,
                 Username = result.Username,
-                AvatarUrl = result.AvatarUrl
+                AvatarUrl = result.AvatarUrl,
+                EffectivePermissions = result.EffectivePermissions.ToArray(),
+                PermissionsVersion = result.PermissionsVersion
             };
 
             return Ok(response);
