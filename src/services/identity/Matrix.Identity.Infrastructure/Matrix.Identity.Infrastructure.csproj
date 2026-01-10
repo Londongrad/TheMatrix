@@ -7,24 +7,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="9.0.0" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.9" />
+    <PackageReference Include="MassTransit" Version="9.0.0"/>
+    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.0"/>
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.9"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.12" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.15.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.12"/>
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.12"/>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.15.0"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4"/>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Infrastructure\Matrix.BuildingBlocks.Infrastructure.csproj" />
-    <ProjectReference Include="..\Matrix.Identity.Application\Matrix.Identity.Application.csproj" />
-    <ProjectReference Include="..\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Infrastructure\Matrix.BuildingBlocks.Infrastructure.csproj"/>
+    <ProjectReference Include="..\Matrix.Identity.Application\Matrix.Identity.Application.csproj"/>
+    <ProjectReference Include="..\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
   </ItemGroup>
 
 </Project>

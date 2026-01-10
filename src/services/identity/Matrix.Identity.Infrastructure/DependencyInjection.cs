@@ -147,9 +147,9 @@ namespace Matrix.Identity.Infrastructure
                     failureMessage: "GeoLocation:EndpointTemplate is required when GeoLocation is enabled.")
                .Validate(
                     validation: o => !o.Enabled ||
-                    o.EndpointTemplate.Contains(
-                        value: "{ip}",
-                        comparisonType: StringComparison.Ordinal),
+                                     o.EndpointTemplate.Contains(
+                                         value: "{ip}",
+                                         comparisonType: StringComparison.Ordinal),
                     failureMessage:
                     "GeoLocation:EndpointTemplate must contain '{ip}' placeholder when GeoLocation is enabled.")
                .ValidateOnStart();

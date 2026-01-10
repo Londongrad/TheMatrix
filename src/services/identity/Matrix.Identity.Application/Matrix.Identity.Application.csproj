@@ -7,19 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj" />
-    <ProjectReference Include="..\Matrix.Identity.Domain\Matrix.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
+    <ProjectReference Include="..\Matrix.Identity.Domain\Matrix.Identity.Domain.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-    <PackageReference Include="MediatR" Version="14.0.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1"/>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1"/>
+    <PackageReference Include="MediatR" Version="14.0.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Abstractions\Persistence\Admin\Roles\" />
-    <Folder Include="Abstractions\Persistence\Admin\Users\" />
+    <Folder Include="Abstractions\Persistence\Admin\Roles\"/>
+    <Folder Include="Abstractions\Persistence\Admin\Users\"/>
   </ItemGroup>
 
 </Project>

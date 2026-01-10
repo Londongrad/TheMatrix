@@ -6,8 +6,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
         public string Email { get; init; } = null!;
         public string Username { get; init; } = null!;
         public string? AvatarUrl { get; init; }
+
         public IReadOnlyCollection<string> EffectivePermissions { get; init; } =
             Array.Empty<string>();
+
         public int PermissionsVersion { get; init; }
     }
 }

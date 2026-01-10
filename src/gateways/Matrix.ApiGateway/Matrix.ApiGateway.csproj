@@ -7,16 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="9.0.0" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.12" />
+    <PackageReference Include="MassTransit" Version="9.0.0"/>
+    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.0"/>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.12"/>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.12"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj" />
-    <ProjectReference Include="..\..\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj" />
-    <ProjectReference Include="..\..\services\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj"/>
+    <ProjectReference Include="..\..\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
+    <ProjectReference Include="..\..\services\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj"/>
   </ItemGroup>
 
 </Project>
