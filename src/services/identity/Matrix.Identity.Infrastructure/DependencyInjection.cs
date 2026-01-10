@@ -137,10 +137,31 @@ namespace Matrix.Identity.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            services.Configure<GeoLocationOptions>(configuration.GetSection(GeoLocationOptions.SectionName));
+            services.AddOptions<GeoLocationOptions>()
+               .Bind(configuration.GetSection(GeoLocationOptions.SectionName))
+               .Validate(
+                    validation: o => o.TimeoutSeconds > 0,
+                    failureMessage: "GeoLocation:TimeoutSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => !o.Enabled || !string.IsNullOrWhiteSpace(o.EndpointTemplate),
+                    failureMessage: "GeoLocation:EndpointTemplate is required when GeoLocation is enabled.")
+               .Validate(
+                    validation: o => !o.Enabled ||
+                    o.EndpointTemplate.Contains(
+                        value: "{ip}",
+                        comparisonType: StringComparison.Ordinal),
+                    failureMessage:
+                    "GeoLocation:EndpointTemplate must contain '{ip}' placeholder when GeoLocation is enabled.")
+               .ValidateOnStart();
 
-            // HttpClient factory + IGeoLocationService
-            services.AddHttpClient<IGeoLocationService, GeoLocationService>();
+            services.AddHttpClient<IGeoLocationService, GeoLocationService>((
+                sp,
+                client) =>
+            {
+                GeoLocationOptions options = sp.GetRequiredService<IOptions<GeoLocationOptions>>()
+                   .Value;
+                client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+            });
 
             return services;
         }

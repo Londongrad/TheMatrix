@@ -11,17 +11,17 @@ namespace Matrix.Identity.Infrastructure.Integration.GeoLocation
         ///     Endpoint template, must contain "{ip}" placeholder.
         ///     Example: "https://ipapi.co/{ip}/json/".
         /// </summary>
-        public string EndpointTemplate { get; init; } = null!;
+        public string EndpointTemplate { get; init; } = "https://ipapi.co/{ip}/json/";
 
         /// <summary>
-        ///     Whether geo location lookup is enabled.
+        ///     Whether geolocation lookup is enabled.
         ///     If disabled, the service will always return null.
         /// </summary>
-        public bool Enabled { get; init; }
+        public bool Enabled { get; init; } = false;
 
         /// <summary>
         ///     Request timeout in seconds.
         /// </summary>
-        public int TimeoutSeconds { get; init; }
+        public int TimeoutSeconds { get; init; } = 10;
     }
 }

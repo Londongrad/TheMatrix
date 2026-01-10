@@ -10,23 +10,15 @@ namespace Matrix.Identity.Infrastructure.Integration.GeoLocation
     /// <summary>
     ///     HTTP-based implementation of IGeoLocationService using external GeoIP provider.
     /// </summary>
-    public sealed class GeoLocationService : IGeoLocationService
+    public sealed class GeoLocationService(
+        HttpClient httpClient,
+        IOptions<GeoLocationOptions> options,
+        ILogger<GeoLocationService> logger)
+        : IGeoLocationService
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<GeoLocationService> _logger;
-        private readonly GeoLocationOptions _options;
-
-        public GeoLocationService(
-            HttpClient httpClient,
-            IOptions<GeoLocationOptions> options,
-            ILogger<GeoLocationService> logger)
-        {
-            _httpClient = httpClient;
-            _options = options.Value;
-            _logger = logger;
-
-            _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
-        }
+        private readonly HttpClient _httpClient = httpClient;
+        private readonly ILogger<GeoLocationService> _logger = logger;
+        private readonly GeoLocationOptions _options = options.Value;
 
         public async Task<DomainGeoLocation?> ResolveAsync(
             string ipAddress,
