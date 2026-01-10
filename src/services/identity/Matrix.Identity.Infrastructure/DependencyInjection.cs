@@ -25,6 +25,7 @@ using Matrix.Identity.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Matrix.Identity.Infrastructure
 {
@@ -61,6 +62,19 @@ namespace Matrix.Identity.Infrastructure
             // Outbox pattern
             services.AddHostedService<OutboxPublisherBackgroundService>();
             services.Configure<OutboxOptions>(configuration.GetSection("Outbox"));
+            // Validate options on start
+            services.AddOptions<RabbitMqOptions>()
+               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
+                    failureMessage: "RabbitMq:Host is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
+                    failureMessage: "RabbitMq:Username is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
+                    failureMessage: "RabbitMq:Password is required.")
+               .ValidateOnStart();
             services.AddScoped<IOutboxRepository, PostgresOutboxRepository>();
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
@@ -99,14 +113,20 @@ namespace Matrix.Identity.Infrastructure
                     context,
                     cfg) =>
                 {
+                    RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>()
+                       .Value;
+
                     cfg.Host(
-                        host: "localhost",
-                        virtualHost: "/",
+                        host: rmq.Host,
+                        port: rmq.Port,
+                        virtualHost: rmq.VirtualHost,
                         configure: h =>
                         {
-                            h.Username("admin");
-                            h.Password("admin");
+                            h.Username(rmq.Username);
+                            h.Password(rmq.Password);
                         });
+
+                    cfg.ConfigureEndpoints(context);
                 });
             });
 
