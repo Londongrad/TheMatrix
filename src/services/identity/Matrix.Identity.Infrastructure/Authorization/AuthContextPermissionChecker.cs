@@ -3,7 +3,7 @@ using Matrix.Identity.Application.Abstractions.Services.Authorization;
 
 namespace Matrix.Identity.Infrastructure.Authorization
 {
-    public sealed class RedisPermissionChecker(IEffectivePermissionsService authContext) : IPermissionChecker
+    public sealed class AuthContextPermissionChecker(IEffectivePermissionsService authContext) : IPermissionChecker
     {
         private HashSet<string>? _cachedPermissions;
         private Guid? _cachedUserId;

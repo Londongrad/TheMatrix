@@ -80,7 +80,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
             // Permission checker
-            services.AddScoped<IPermissionChecker, RedisPermissionChecker>();
+            services.AddScoped<IPermissionChecker, AuthContextPermissionChecker>();
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
