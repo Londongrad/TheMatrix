@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
@@ -77,6 +78,9 @@ namespace Matrix.Identity.Infrastructure
                .ValidateOnStart();
             services.AddScoped<IOutboxRepository, PostgresOutboxRepository>();
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+
+            // Permission checker
+            services.AddScoped<IPermissionChecker, RedisPermissionChecker>();
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
