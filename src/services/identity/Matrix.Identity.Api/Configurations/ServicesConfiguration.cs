@@ -87,8 +87,6 @@ namespace Matrix.Identity.Api.Configurations
 
             services.AddAuthorization();
 
-            services.AddMatrixPermissionsPolicies();
-
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
 

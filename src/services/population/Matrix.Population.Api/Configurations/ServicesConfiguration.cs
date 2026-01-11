@@ -39,8 +39,6 @@ namespace Matrix.Population.Api.Configurations
                     };
                 });
 
-            services.AddMatrixPermissionsPolicies();
-
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
 
