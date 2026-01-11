@@ -10,7 +10,8 @@ namespace Matrix.ApiGateway.Consumers
 {
     public sealed class UserSecurityStateChangedConsumer(
         IDistributedCache cache,
-        IOptions<PermissionsVersionOptions> options)
+        IOptions<PermissionsVersionOptions> options,
+        ILogger<UserSecurityStateChangedConsumer> logger)
         : IConsumer<UserSecurityStateChangedV1>
     {
         public Task Consume(ConsumeContext<UserSecurityStateChangedV1> context)
@@ -18,13 +19,16 @@ namespace Matrix.ApiGateway.Consumers
             UserSecurityStateChangedV1 msg = context.Message;
 
             string key = PermissionsVersionCacheKeys.ForUser(msg.UserId);
+            TimeSpan ttl = PermissionsVersionCachePolicy.GetTtlOrDefault(
+                ttlSeconds: options.Value.CacheTtlSeconds,
+                logger: logger);
 
             return cache.SetStringAsync(
                 key: key,
                 value: msg.PermissionsVersion.ToString(CultureInfo.InvariantCulture),
                 options: new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(options.Value.CacheTtlSeconds)
+                    AbsoluteExpirationRelativeToNow = ttl
                 },
                 token: context.CancellationToken);
         }
