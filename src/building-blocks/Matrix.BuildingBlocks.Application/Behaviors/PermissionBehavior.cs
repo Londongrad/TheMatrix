@@ -6,7 +6,9 @@ using MediatR;
 
 namespace Matrix.BuildingBlocks.Application.Behaviors
 {
-    public sealed class PermissionBehavior<TRequest, TResponse>(ICurrentUserContext currentUser)
+    public sealed class PermissionBehavior<TRequest, TResponse>(
+        ICurrentUserContext currentUser,
+        IPermissionChecker permissionChecker)
         : IPipelineBehavior<TRequest, TResponse>
         where TRequest : notnull
     {
@@ -18,7 +20,7 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
             if (request is not IRequirePermission secured)
                 return await next();
 
-            if (!currentUser.IsAuthenticated)
+            if (!currentUser.IsAuthenticated || currentUser.UserId is null)
                 throw new MatrixApplicationException(
                     code: "Common.Unauthorized",
                     message: "Authentication is required.",
@@ -27,7 +29,12 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
 
             string required = secured.PermissionKey;
 
-            if (!currentUser.Permissions.Contains(required))
+            bool allowed = await permissionChecker.HasAsync(
+                userId: currentUser.UserId.Value,
+                permission: required,
+                cancellationToken: cancellationToken);
+
+            if (!allowed)
                 throw new MatrixApplicationException(
                     code: "Common.Forbidden",
                     message: $"Permission '{required}' is required.",
