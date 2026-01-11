@@ -1,9 +1,9 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
+using Matrix.ApiGateway.Infrastructure.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 
@@ -16,8 +16,9 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
         ILogger<CachedPermissionsVersionStore> logger)
         : IPermissionsVersionStore
     {
-        // Чтобы при деградации Redis не получить лог-шторм.
-        private static readonly ConcurrentDictionary<string, long> LastLogAt = new();
+        // Порог медленной операции (ранний сигнал деградации Redis без явных exception).
+        private const int SlowMs = 300;
+
         private readonly PermissionsVersionOptions _options = options.Value;
 
         public async Task<int> GetCurrentAsync(
@@ -25,9 +26,6 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             CancellationToken cancellationToken)
         {
             string cacheKey = PermissionsVersionCacheKeys.ForUser(userId);
-
-            // Порог медленной операции (ранний сигнал деградации Redis без явных exception).
-            const int slowMs = 300;
 
             // 1) Try read from Redis
             try
@@ -40,9 +38,9 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
                 sw.Stop();
 
-                if (sw.ElapsedMilliseconds > slowMs &&
-                    ShouldLog(
-                        key: "pv.redis.read.slow",
+                if (sw.ElapsedMilliseconds > SlowMs &&
+                    LogRateLimiter.ShouldLog(
+                        key: LogKeys.RedisReadSlow,
                         period: TimeSpan.FromSeconds(30)))
                     logger.LogWarning(
                         message: "Redis read is slow. CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs}",
@@ -68,8 +66,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
                 if (!string.IsNullOrWhiteSpace(cached))
                 {
-                    if (ShouldLog(
-                            key: "pv.redis.read.invalid",
+                    if (LogRateLimiter.ShouldLog(
+                            key: LogKeys.RedisReadInvalid,
                             period: TimeSpan.FromMinutes(5)))
                         // RawValue логируем ограниченно, чтобы не засорять; если хочешь — можно ещё и ограничить длину.
                         logger.LogWarning(
@@ -93,8 +91,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             catch (Exception ex)
             {
                 // Redis недоступен — просто идём дальше (fallback на Identity), но фиксируем деградацию.
-                if (ShouldLog(
-                        key: "pv.redis.read.fail",
+                if (LogRateLimiter.ShouldLog(
+                        key: LogKeys.RedisReadFail,
                         period: TimeSpan.FromSeconds(15)))
                     logger.LogWarning(
                         exception: ex,
@@ -123,7 +121,9 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
                 var cacheOptions = new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = GetTtlOrDefault()
+                    AbsoluteExpirationRelativeToNow = PermissionsVersionCachePolicy.GetTtlOrDefault(
+                        ttlSeconds: options.Value.CacheTtlSeconds,
+                        logger: logger)
                 };
 
                 await distributedCache.SetStringAsync(
@@ -134,9 +134,9 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
                 sw.Stop();
 
-                if (sw.ElapsedMilliseconds > slowMs &&
-                    ShouldLog(
-                        key: "pv.redis.write.slow",
+                if (sw.ElapsedMilliseconds > SlowMs &&
+                    LogRateLimiter.ShouldLog(
+                        key: LogKeys.RedisWriteSlow,
                         period: TimeSpan.FromSeconds(30)))
                     logger.LogWarning(
                         message:
@@ -153,8 +153,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             catch (Exception ex)
             {
                 // Best effort: если Redis лег — не мешаем запросу, но логируем (rate limited).
-                if (ShouldLog(
-                        key: "pv.redis.write.fail",
+                if (LogRateLimiter.ShouldLog(
+                        key: LogKeys.RedisWriteFail,
                         period: TimeSpan.FromSeconds(15)))
                     logger.LogWarning(
                         exception: ex,
@@ -169,38 +169,14 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             return currentVersion;
         }
 
-        private static bool ShouldLog(
-            string key,
-            TimeSpan period)
+        private static class LogKeys
         {
-            long now = Stopwatch.GetTimestamp();
-            long periodTicks = (long)(period.TotalSeconds * Stopwatch.Frequency);
-
-            long last = LastLogAt.GetOrAdd(
-                key: key,
-                value: 0);
-            if (now - last < periodTicks)
-                return false;
-
-            LastLogAt[key] = now;
-            return true;
-        }
-
-        private TimeSpan GetTtlOrDefault()
-        {
-            // Защита от кривого конфига, чтобы не ставить TTL=0/отрицательный.
-            if (_options.CacheTtlSeconds > 0)
-                return TimeSpan.FromSeconds(_options.CacheTtlSeconds);
-
-            if (ShouldLog(
-                    key: "pv.cache.ttl.invalid",
-                    period: TimeSpan.FromMinutes(30)))
-                logger.LogWarning(
-                    message:
-                    "PermissionsVersion cache TTL is invalid (CacheTtlSeconds={CacheTtlSeconds}). Falling back to 300 seconds.",
-                    _options.CacheTtlSeconds);
-
-            return TimeSpan.FromSeconds(300);
+            internal const string RedisReadSlow = "pv.redis.read.slow";
+            internal const string RedisReadInvalid = "pv.redis.read.invalid";
+            internal const string RedisReadFail = "pv.redis.read.fail";
+            internal const string RedisWriteSlow = "pv.redis.write.slow";
+            internal const string RedisWriteFail = "pv.redis.write.fail";
+            internal const string CacheTtlInvalid = "pv.cache.ttl.invalid";
         }
     }
 }
