@@ -1,4 +1,3 @@
-using Matrix.Identity.Application.Authorization.Permissions;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
 using Matrix.Identity.Contracts.Admin.Permissions.Responses;
 using MediatR;
@@ -8,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Matrix.Identity.Api.Controllers.Admin
 {
     [ApiController]
-    [Authorize(Policy = PermissionKeys.IdentityAdminAccess)]
+    [Authorize]
     [Route("api/admin/permissions")]
     public class AdminPermissionsController(ISender sender) : ControllerBase
     {

@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Identity.Application.Authorization.Permissions;
 using Matrix.Identity.Application.UseCases.Admin.Users.DepriveUserPermission;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserPermissions;
@@ -19,7 +18,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
 {
     [ApiController]
     [Route("api/admin/users")]
-    [Authorize(Policy = PermissionKeys.IdentityAdminAccess)]
+    [Authorize]
     public sealed class AdminUsersController(ISender sender) : ControllerBase
     {
         #region [ Fields ]

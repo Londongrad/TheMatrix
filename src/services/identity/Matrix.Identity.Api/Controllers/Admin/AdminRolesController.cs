@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Api.Mappers;
-using Matrix.Identity.Application.Authorization.Permissions;
 using Matrix.Identity.Application.UseCases.Admin.Roles.CreateRole;
 using Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole;
 using Matrix.Identity.Application.UseCases.Admin.Roles.GetRoleMembersPage;
@@ -19,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Matrix.Identity.Api.Controllers.Admin
 {
     [ApiController]
-    [Authorize(Policy = PermissionKeys.IdentityAdminAccess)]
+    [Authorize]
     [Route("api/admin/roles")]
     public class AdminRolesController(ISender sender) : ControllerBase
     {
