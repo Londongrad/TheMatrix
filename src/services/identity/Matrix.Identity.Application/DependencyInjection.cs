@@ -35,10 +35,12 @@ namespace Matrix.Identity.Application
             services.AddTransient(
                 serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(LoggingBehavior<,>));
-
             services.AddTransient(
                 serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(ValidationBehavior<,>));
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(PermissionBehavior<,>));
         }
     }
 }
