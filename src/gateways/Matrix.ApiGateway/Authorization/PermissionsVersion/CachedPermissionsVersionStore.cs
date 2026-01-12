@@ -168,15 +168,5 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
             return currentVersion;
         }
-
-        private static class LogKeys
-        {
-            internal const string RedisReadSlow = "pv.redis.read.slow";
-            internal const string RedisReadInvalid = "pv.redis.read.invalid";
-            internal const string RedisReadFail = "pv.redis.read.fail";
-            internal const string RedisWriteSlow = "pv.redis.write.slow";
-            internal const string RedisWriteFail = "pv.redis.write.fail";
-            internal const string CacheTtlInvalid = "pv.cache.ttl.invalid";
-        }
     }
 }
