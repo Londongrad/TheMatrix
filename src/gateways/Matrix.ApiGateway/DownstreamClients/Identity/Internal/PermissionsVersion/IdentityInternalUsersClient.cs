@@ -8,8 +8,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersi
     public sealed class IdentityInternalUsersClient : IIdentityInternalUsersClient
     {
         private const string ServiceName = "Identity";
-        private const string ApiKeyHeaderName = "X-Internal-Key";
+
         private const string PermissionsVersionEndpoint = "api/internal/users/{0}/permissions-version";
+        private const string AuthContextEndpoint = "api/internal/users/{0}/auth-context";
+
         private readonly HttpClient _httpClient;
 
         public IdentityInternalUsersClient(
@@ -17,11 +19,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersi
             IOptions<IdentityInternalOptions> options)
         {
             _httpClient = httpClient;
-
-            if (!httpClient.DefaultRequestHeaders.Contains(ApiKeyHeaderName))
-                httpClient.DefaultRequestHeaders.Add(
-                    name: ApiKeyHeaderName,
-                    value: options.Value.ApiKey);
         }
 
         public async Task<int> GetPermissionsVersionAsync(
@@ -45,6 +42,29 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersi
                 throw new InvalidOperationException("Identity internal response is missing payload.");
 
             return payload.Version;
+        }
+
+        public async Task<UserAuthContextResponse> GetAuthContextAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            using HttpResponseMessage response = await _httpClient.GetAsync(
+                requestUri: string.Format(
+                    format: AuthContextEndpoint,
+                    arg0: userId),
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+
+            UserAuthContextResponse? payload = await response.Content
+               .ReadFromJsonAsync<UserAuthContextResponse>(cancellationToken: cancellationToken);
+
+            if (payload is null)
+                throw new InvalidOperationException("Identity internal response is missing payload.");
+
+            return payload;
         }
     }
 }
