@@ -11,7 +11,7 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 {
     public sealed class CachedPermissionsVersionStore(
         IDistributedCache distributedCache,
-        IIdentityPermissionsVersionClient client,
+        IIdentityInternalUsersClient client,
         IOptions<PermissionsVersionOptions> options,
         ILogger<CachedPermissionsVersionStore> logger)
         : IPermissionsVersionStore

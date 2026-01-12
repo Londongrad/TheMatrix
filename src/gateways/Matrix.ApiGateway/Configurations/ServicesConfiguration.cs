@@ -299,7 +299,7 @@ namespace Matrix.ApiGateway.Configurations
                 o.InstanceName = configuration["Redis:InstanceName"];
             });
 
-            services.AddHttpClient<IIdentityPermissionsVersionClient, IdentityPermissionsVersionClient>((
+            services.AddHttpClient<IIdentityInternalUsersClient, IdentityInternalUsersClient>((
                 sp,
                 client) =>
             {

@@ -5,14 +5,14 @@ using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion
 {
-    public sealed class IdentityPermissionsVersionClient : IIdentityPermissionsVersionClient
+    public sealed class IdentityInternalUsersClient : IIdentityInternalUsersClient
     {
         private const string ServiceName = "Identity";
         private const string ApiKeyHeaderName = "X-Internal-Key";
         private const string PermissionsVersionEndpoint = "api/internal/users/{0}/permissions-version";
         private readonly HttpClient _httpClient;
 
-        public IdentityPermissionsVersionClient(
+        public IdentityInternalUsersClient(
             HttpClient httpClient,
             IOptions<IdentityInternalOptions> options)
         {
