@@ -11,6 +11,7 @@ using Matrix.ApiGateway.Consumers;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.HttpHandlers;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
@@ -101,19 +102,27 @@ namespace Matrix.ApiGateway.Configurations
 
             IConfigurationSection downstream = configuration.GetSection("DownstreamServices");
 
+            #region [ CityCore ]
+
             services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>(client =>
                 {
                     client.BaseAddress = new Uri(downstream["CityCore"]!);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
+
+            #endregion [ CityCore ]
+
+            #region [ Economy ]
 
             services.AddHttpClient<IEconomyApiClient, EconomyApiClient>(client =>
                 {
                     client.BaseAddress = new Uri(downstream["Economy"]!);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
+
+            #endregion [ Economy ]
 
             #region [ Population http clients ]
 
@@ -125,14 +134,14 @@ namespace Matrix.ApiGateway.Configurations
                 {
                     client.BaseAddress = new Uri(populationBaseUrl);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(client =>
                 {
                     client.BaseAddress = new Uri(populationBaseUrl);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             #endregion [ Population http clients ]
