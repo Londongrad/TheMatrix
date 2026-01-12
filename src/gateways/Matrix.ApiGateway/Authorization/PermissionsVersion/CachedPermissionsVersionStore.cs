@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.Globalization;
+using Matrix.ApiGateway.Authorization.Caching;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
+using Matrix.ApiGateway.Infrastructure.Caching;
 using Matrix.ApiGateway.Infrastructure.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
@@ -16,16 +18,13 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
         ILogger<CachedPermissionsVersionStore> logger)
         : IPermissionsVersionStore
     {
-        // Порог медленной операции (ранний сигнал деградации Redis без явных exception).
-        private const int SlowMs = 300;
-
         private readonly PermissionsVersionOptions _options = options.Value;
 
         public async Task<int> GetCurrentAsync(
             Guid userId,
             CancellationToken cancellationToken)
         {
-            string cacheKey = PermissionsVersionCacheKeys.ForUser(userId);
+            string cacheKey = AuthorizationCacheKeys.PermissionsVersion(userId);
 
             // 1) Try read from Redis
             try
@@ -38,10 +37,10 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
                 sw.Stop();
 
-                if (sw.ElapsedMilliseconds > SlowMs &&
+                if (sw.ElapsedMilliseconds > CacheLoggingDefaults.SlowOperationMs &&
                     LogRateLimiter.ShouldLog(
-                        key: LogKeys.RedisReadSlow,
-                        period: TimeSpan.FromSeconds(30)))
+                        key: RedisCacheLogKeys.PvRedisReadSlow,
+                        period: CacheLoggingDefaults.SlowPeriod))
                     logger.LogWarning(
                         message: "Redis read is slow. CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs}",
                         cacheKey,
@@ -67,8 +66,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 if (!string.IsNullOrWhiteSpace(cached))
                 {
                     if (LogRateLimiter.ShouldLog(
-                            key: LogKeys.RedisReadInvalid,
-                            period: TimeSpan.FromMinutes(5)))
+                            key: RedisCacheLogKeys.PvRedisReadInvalid,
+                            period: CacheLoggingDefaults.InvalidPeriod))
                         // RawValue логируем ограниченно, чтобы не засорять; если хочешь — можно ещё и ограничить длину.
                         logger.LogWarning(
                             message:
@@ -92,8 +91,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             {
                 // Redis недоступен — просто идём дальше (fallback на Identity), но фиксируем деградацию.
                 if (LogRateLimiter.ShouldLog(
-                        key: LogKeys.RedisReadFail,
-                        period: TimeSpan.FromSeconds(15)))
+                        key: RedisCacheLogKeys.PvRedisReadFail,
+                        period: CacheLoggingDefaults.FailPeriod))
                     logger.LogWarning(
                         exception: ex,
                         message:
@@ -121,8 +120,11 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
                 var cacheOptions = new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = PermissionsVersionCachePolicy.GetTtlOrDefault(
+                    AbsoluteExpirationRelativeToNow = CacheTtlPolicy.GetTtlOrDefault(
                         ttlSeconds: options.Value.CacheTtlSeconds,
+                        defaultTtlSeconds: 1800,
+                        logKey: "ac.cache.ttl.invalid",
+                        cacheName: "AuthContext",
                         logger: logger)
                 };
 
@@ -134,10 +136,10 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
                 sw.Stop();
 
-                if (sw.ElapsedMilliseconds > SlowMs &&
+                if (sw.ElapsedMilliseconds > CacheLoggingDefaults.SlowOperationMs &&
                     LogRateLimiter.ShouldLog(
-                        key: LogKeys.RedisWriteSlow,
-                        period: TimeSpan.FromSeconds(30)))
+                        key: RedisCacheLogKeys.PvRedisWriteSlow,
+                        period: CacheLoggingDefaults.SlowPeriod))
                     logger.LogWarning(
                         message:
                         "Redis write is slow. CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs} TtlSeconds={TtlSeconds}",
@@ -154,8 +156,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             {
                 // Best effort: если Redis лег — не мешаем запросу, но логируем (rate limited).
                 if (LogRateLimiter.ShouldLog(
-                        key: LogKeys.RedisWriteFail,
-                        period: TimeSpan.FromSeconds(15)))
+                        key: RedisCacheLogKeys.PvRedisWriteFail,
+                        period: CacheLoggingDefaults.FailPeriod))
                     logger.LogWarning(
                         exception: ex,
                         message:
