@@ -18,13 +18,12 @@ namespace Matrix.ApiGateway.Infrastructure.Caching
                 LogRateLimiter.ShouldLog(
                     key: logKey,
                     period: TimeSpan.FromMinutes(30)))
-            {
                 logger.LogWarning(
+                    message:
                     "{CacheName} cache TTL is invalid (CacheTtlSeconds={CacheTtlSeconds}). Falling back to {DefaultTtlSeconds} seconds.",
                     cacheName,
                     ttlSeconds,
                     defaultTtlSeconds);
-            }
 
             return TimeSpan.FromSeconds(defaultTtlSeconds);
         }

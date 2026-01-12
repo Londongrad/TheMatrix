@@ -1,6 +1,5 @@
 using System.Globalization;
 using MassTransit;
-using Matrix.ApiGateway.Authorization;
 using Matrix.ApiGateway.Authorization.Caching;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Infrastructure.Caching;

@@ -109,7 +109,7 @@ namespace Matrix.ApiGateway.Authorization.AuthContext
                 userId: userId,
                 cancellationToken: cancellationToken);
 
-            // 3) Try write to Redis (best effort)
+            // 3) Try to write to Redis (the best effort)
             try
             {
                 var sw = Stopwatch.StartNew();

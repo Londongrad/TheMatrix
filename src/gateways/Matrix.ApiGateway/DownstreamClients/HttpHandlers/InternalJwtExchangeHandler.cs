@@ -52,7 +52,8 @@ namespace Matrix.ApiGateway.DownstreamClients.HttpHandlers
                 ct: cancellationToken);
 
             // 4) достаем jti
-            string? jti = _http.HttpContext?.User.FindFirst("jti")?.Value;
+            string? jti = _http.HttpContext?.User.FindFirst("jti")
+              ?.Value;
 
             // 5) выпускаем internal JWT (короткий TTL) с perm-claims
             string internalJwt = _internalJwtIssuer.Issue(
