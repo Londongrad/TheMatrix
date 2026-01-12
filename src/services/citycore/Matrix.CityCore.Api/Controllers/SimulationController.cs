@@ -1,18 +1,17 @@
 using Matrix.CityCore.Application.UseCases.GetCurrentSimulationTime;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.CityCore.Api.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/citycore/[controller]")]
     public class SimulationController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
 
-        /// <summary>
-        /// Текущее игровое время и скорость симуляции.
-        /// </summary>
         [HttpGet("time")]
         public async Task<IActionResult> GetCurrentTime(CancellationToken cancellationToken)
         {
@@ -26,9 +25,6 @@ namespace Matrix.CityCore.Api.Controllers
             });
         }
 
-        /// <summary>
-        /// Простой health-check.
-        /// </summary>
         [HttpGet("health")]
         public IActionResult Health() => Ok(new { status = "ok" });
     }
