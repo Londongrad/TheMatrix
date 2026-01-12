@@ -1,5 +1,7 @@
 using System.Text;
 using MassTransit;
+using Matrix.ApiGateway.Authorization.InternalJwt;
+using Matrix.ApiGateway.Authorization.InternalJwt.Abstractions;
 using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
@@ -316,6 +318,24 @@ namespace Matrix.ApiGateway.Configurations
                     name: "X-Internal-Key",
                     value: options.ApiKey);
             });
+
+            services.AddOptions<InternalJwtOptions>()
+               .Bind(configuration.GetSection(InternalJwtOptions.SectionName))
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Issuer),
+                    failureMessage: "InternalJwt:Issuer is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Audience),
+                    failureMessage: "InternalJwt:Audience is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.SigningKey),
+                    failureMessage: "InternalJwt:SigningKey is required.")
+               .Validate(
+                    validation: o => o.LifetimeSeconds > 0,
+                    failureMessage: "InternalJwt:LifetimeSeconds must be > 0.")
+               .ValidateOnStart();
+
+            services.AddSingleton<IInternalJwtIssuer, InternalJwtIssuer>();
 
             services.AddMassTransit(x =>
             {
