@@ -5,6 +5,9 @@ using Matrix.ApiGateway.Authorization.InternalJwt.Abstractions;
 using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
+using Matrix.ApiGateway.Authorization.AuthContext;
+using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
+using Matrix.ApiGateway.Authorization.AuthContext.Options;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
@@ -99,6 +102,7 @@ namespace Matrix.ApiGateway.Configurations
             services.AddHttpContextAccessor();
             services.AddTransient<ForwardClientInfoHeadersHandler>();
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
+            services.AddTransient<InternalJwtExchangeHandler>();
 
             IConfigurationSection downstream = configuration.GetSection("DownstreamServices");
 
@@ -284,6 +288,13 @@ namespace Matrix.ApiGateway.Configurations
                     failureMessage: "IdentityInternal:ApiKey is required.")
                .ValidateOnStart();
 
+            services.AddOptions<AuthContextOptions>()
+               .Bind(configuration.GetSection("AuthContext"))
+               .Validate(
+                    validation: o => o.CacheTtlSeconds > 0,
+                    failureMessage: "AuthContext:CacheTtlSeconds must be greater than 0.")
+               .ValidateOnStart();
+
             services.AddOptions<PermissionsVersionOptions>()
                .Bind(configuration.GetSection(PermissionsVersionOptions.SectionName))
                .Validate(
@@ -373,6 +384,7 @@ namespace Matrix.ApiGateway.Configurations
             });
 
             services.AddScoped<IPermissionsVersionStore, CachedPermissionsVersionStore>();
+            services.AddScoped<IAuthContextStore, CachedAuthContextStore>();
 
             return services;
         }
