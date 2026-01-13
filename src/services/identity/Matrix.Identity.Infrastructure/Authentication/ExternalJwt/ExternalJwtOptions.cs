@@ -1,6 +1,6 @@
-namespace Matrix.Identity.Infrastructure.Authentication.Jwt
+namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
 {
-    public sealed class JwtOptions
+    public sealed class ExternalJwtOptions
     {
         public required string Issuer { get; init; }
 
