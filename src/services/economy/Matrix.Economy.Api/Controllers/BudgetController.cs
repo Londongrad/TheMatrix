@@ -1,10 +1,12 @@
 using Matrix.Economy.Application.UseCases.GetBudgetSummary;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Economy.Api.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/economy/[controller]")]
     public class BudgetController(ISender sender) : ControllerBase
     {
@@ -15,7 +17,6 @@ namespace Matrix.Economy.Api.Controllers
         {
             var result = await _sender.Send(new GetBudgetSummaryQuery(), cancellationToken);
 
-            // наружу отдаЄм простые decimal Ц Money раскрываем
             return Ok(new
             {
                 balance = result.Balance.Amount,
