@@ -1,6 +1,6 @@
-namespace Matrix.ApiGateway.Authorization.Jwt
+namespace Matrix.ApiGateway.Authorization.ExternalJwt
 {
-    public sealed class JwtOptions
+    public sealed class ExternalJwtOptions
     {
         public string Issuer { get; init; } = null!;
         public string Audience { get; init; } = null!;
