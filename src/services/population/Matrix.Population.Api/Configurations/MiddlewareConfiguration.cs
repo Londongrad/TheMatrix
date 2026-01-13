@@ -7,8 +7,8 @@ namespace Matrix.Population.Api.Configurations
         public static void ConfigureApplicationMiddleware(this WebApplication app)
         {
             app.UseMiddleware<ExceptionHandlingMiddleware>();
-            app.ConfigureControllers();
             app.UseSecurityPipeline();
+            app.ConfigureControllers();
         }
 
         private static void UseSecurityPipeline(this WebApplication app)

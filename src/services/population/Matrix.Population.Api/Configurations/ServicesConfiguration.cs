@@ -21,7 +21,7 @@ namespace Matrix.Population.Api.Configurations
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                .AddJwtBearer(options =>
                 {
-                    IConfigurationSection jwt = configuration.GetSection("Jwt");
+                    IConfigurationSection jwt = configuration.GetSection("InternalJwt");
                     string issuer = jwt["Issuer"]!;
                     string audience = jwt["Audience"]!;
                     string signingKey = jwt["SigningKey"]!;
@@ -39,6 +39,7 @@ namespace Matrix.Population.Api.Configurations
                     };
                 });
 
+            services.AddAuthorization();
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
 
