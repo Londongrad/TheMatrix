@@ -24,8 +24,8 @@ namespace Matrix.ApiGateway.Consumers
             TimeSpan ttl = CacheTtlPolicy.GetTtlOrDefault(
                 ttlSeconds: options.Value.CacheTtlSeconds,
                 defaultTtlSeconds: 1800,
-                logKey: "ac.cache.ttl.invalid",
-                cacheName: "AuthContext",
+                logKey: RedisCacheLogKeys.PvCacheTtlInvalid,
+                cacheName: "PermissionsVersion",
                 logger: logger);
 
             return cache.SetStringAsync(

@@ -121,10 +121,10 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 var cacheOptions = new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = CacheTtlPolicy.GetTtlOrDefault(
-                        ttlSeconds: options.Value.CacheTtlSeconds,
+                        ttlSeconds: _options.CacheTtlSeconds,
                         defaultTtlSeconds: 1800,
-                        logKey: "ac.cache.ttl.invalid",
-                        cacheName: "AuthContext",
+                        logKey: RedisCacheLogKeys.PvCacheTtlInvalid,
+                        cacheName: "PermissionsVersion",
                         logger: logger)
                 };
 

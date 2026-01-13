@@ -115,7 +115,12 @@ namespace Matrix.ApiGateway.Authorization.AuthContext
                 var sw = Stopwatch.StartNew();
                 var cacheOptions = new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_options.CacheTtlSeconds)
+                    AbsoluteExpirationRelativeToNow = CacheTtlPolicy.GetTtlOrDefault(
+                        ttlSeconds: _options.CacheTtlSeconds,
+                        defaultTtlSeconds: 1800,
+                        logKey: RedisCacheLogKeys.AcCacheTtlInvalid,
+                        cacheName: "AuthContext",
+                        logger: logger)
                 };
 
                 string json = JsonSerializer.Serialize(ctx);
