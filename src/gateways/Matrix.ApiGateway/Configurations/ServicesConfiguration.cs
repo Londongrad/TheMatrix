@@ -2,12 +2,12 @@ using System.Text;
 using MassTransit;
 using Matrix.ApiGateway.Authorization.InternalJwt;
 using Matrix.ApiGateway.Authorization.InternalJwt.Abstractions;
-using Matrix.ApiGateway.Authorization.Jwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.AuthContext;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.AuthContext.Options;
+using Matrix.ApiGateway.Authorization.ExternalJwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
@@ -229,8 +229,8 @@ namespace Matrix.ApiGateway.Configurations
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            IConfigurationSection jwtSection = configuration.GetSection("Jwt");
-            JwtOptions jwtOptions = jwtSection.Get<JwtOptions>() ??
+            IConfigurationSection jwtSection = configuration.GetSection("ExternalJwt");
+            ExternalJwtOptions externalJwtOptions = jwtSection.Get<ExternalJwtOptions>() ??
                                     throw new InvalidOperationException("Jwt configuration is missing.");
 
             services
@@ -247,19 +247,19 @@ namespace Matrix.ApiGateway.Configurations
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = jwtOptions.Issuer,
+                        ValidIssuer = externalJwtOptions.Issuer,
                         ValidateAudience = true,
-                        ValidAudience = jwtOptions.Audience,
+                        ValidAudience = externalJwtOptions.Audience,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(externalJwtOptions.SigningKey)),
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
 
                     options.Events = new JwtBearerEvents
                     {
-                        OnTokenValidated = PermissionsVersionJwtEvents.HandleTokenValidated,
-                        OnChallenge = PermissionsVersionJwtEvents.HandleChallenge
+                        OnTokenValidated = ExternalJwtPermissionsVersionEvents.HandleTokenValidated,
+                        OnChallenge = ExternalJwtPermissionsVersionEvents.HandleChallenge
                     };
                 });
 

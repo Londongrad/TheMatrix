@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 {
-    public static class PermissionsVersionJwtEvents
+    public static class ExternalJwtPermissionsVersionEvents
     {
         private const string LoggerCategory = "Matrix.ApiGateway.Authorization.PermissionsVersion.JwtEvents";
 
