@@ -1,14 +1,14 @@
 using System.Security.Cryptography;
 using System.Text;
 using Matrix.Identity.Application.Abstractions.Services;
-using Matrix.Identity.Infrastructure.Authentication.Jwt;
+using Matrix.Identity.Infrastructure.Authentication.ExternalJwt;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.Identity.Infrastructure.Security.Tokens
 {
-    public sealed class RefreshTokenProvider(IOptions<JwtOptions> options) : IRefreshTokenProvider
+    public sealed class RefreshTokenProvider(IOptions<ExternalJwtOptions> options) : IRefreshTokenProvider
     {
-        private readonly JwtOptions _options = options.Value;
+        private readonly ExternalJwtOptions _options = options.Value;
 
         public RefreshTokenDescriptor Generate(bool isPersistent)
         {

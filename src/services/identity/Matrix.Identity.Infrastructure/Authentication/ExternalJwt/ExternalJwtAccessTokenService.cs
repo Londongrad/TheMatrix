@@ -8,11 +8,11 @@ using Matrix.Identity.Application.UseCases.Self.Auth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Matrix.Identity.Infrastructure.Authentication.Jwt
+namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
 {
-    public sealed class JwtAccessTokenService(IOptions<JwtOptions> options) : IAccessTokenService
+    public sealed class ExternalJwtAccessTokenService(IOptions<ExternalJwtOptions> options) : IAccessTokenService
     {
-        private readonly JwtOptions _options = options.Value;
+        private readonly ExternalJwtOptions _options = options.Value;
 
         public AccessTokenModel Generate(
             Guid userId,

@@ -6,7 +6,7 @@ using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
-using Matrix.Identity.Infrastructure.Authentication.Jwt;
+using Matrix.Identity.Infrastructure.Authentication.ExternalJwt;
 using Matrix.Identity.Infrastructure.Authorization;
 using Matrix.Identity.Infrastructure.Integration.Email;
 using Matrix.Identity.Infrastructure.Integration.GeoLocation;
@@ -45,7 +45,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddDbContext<IdentityDbContext>(options => { options.UseNpgsql(connectionString); });
 
             // Jwt options
-            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.Configure<ExternalJwtOptions>(configuration.GetSection("Jwt"));
 
             // Repositories
             services.AddScoped<IUserRepository, UserRepository>();
@@ -86,7 +86,7 @@ namespace Matrix.Identity.Infrastructure
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
-            services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
+            services.AddScoped<IAccessTokenService, ExternalJwtAccessTokenService>();
             services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
             services.AddScoped<IOneTimeTokenService, OneTimeTokenService>();
 

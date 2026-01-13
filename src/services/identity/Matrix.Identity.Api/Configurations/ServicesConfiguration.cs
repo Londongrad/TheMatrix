@@ -3,7 +3,7 @@ using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
-using Matrix.Identity.Infrastructure.Authentication.Jwt;
+using Matrix.Identity.Infrastructure.Authentication.ExternalJwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,7 +19,7 @@ namespace Matrix.Identity.Api.Configurations
             services
                .AddPresentationLayer() // Controllers + Swagger
                .AddApplicationLayer() // MediatR, Application
-               .AddInfrastructureLayer(configuration) // DbContext, репы, JwtAccessTokenService, PasswordHasher
+               .AddInfrastructureLayer(configuration) // DbContext, репы, ExternalJwtAccessTokenService, PasswordHasher
                .AddSecurityLayer(configuration); // Authentication + Authorization
         }
 
@@ -51,7 +51,7 @@ namespace Matrix.Identity.Api.Configurations
             IConfiguration configuration)
         {
             IConfigurationSection jwtSection = configuration.GetSection("Jwt");
-            JwtOptions jwtOptions = jwtSection.Get<JwtOptions>() ??
+            ExternalJwtOptions externalJwtOptions = jwtSection.Get<ExternalJwtOptions>() ??
                                     throw new InvalidOperationException("Jwt configuration is missing.");
 
             services.AddOptions<IdentityInternalOptions>()
@@ -75,11 +75,11 @@ namespace Matrix.Identity.Api.Configurations
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = jwtOptions.Issuer,
+                        ValidIssuer = externalJwtOptions.Issuer,
                         ValidateAudience = true,
-                        ValidAudience = jwtOptions.Audience,
+                        ValidAudience = externalJwtOptions.Audience,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(externalJwtOptions.SigningKey)),
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
