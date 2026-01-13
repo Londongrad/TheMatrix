@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
@@ -80,7 +81,8 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
             // Permission checker
-            services.AddScoped<IPermissionChecker, AuthContextPermissionChecker>();
+            services.AddPermissionCheckingFromClaims(); // Включаем общий claims-checker
+            services.AddScoped<IPermissionChecker, DbFallbackPermissionChecker>(); // Identity специфичный чекер
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
