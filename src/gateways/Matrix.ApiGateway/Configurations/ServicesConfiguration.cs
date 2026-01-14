@@ -7,7 +7,6 @@ using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.AuthContext;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.AuthContext.Options;
-using Matrix.ApiGateway.Authorization.ExternalJwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
@@ -25,7 +24,9 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
+using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Api.Errors;
+using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -104,14 +105,25 @@ namespace Matrix.ApiGateway.Configurations
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
             services.AddTransient<InternalJwtExchangeHandler>();
 
-            IConfigurationSection downstream = configuration.GetSection("DownstreamServices");
+            services.AddOptions<DownstreamServicesOptions>()
+               .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName))
+               .Validate(
+                    validation: o => IsAbsoluteUri(o.CityCore),
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:CityCore must be an absolute URI.")
+               .Validate(
+                    validation: o => IsAbsoluteUri(o.Economy),
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:Economy must be an absolute URI.")
+               .Validate(
+                    validation: o => IsAbsoluteUri(o.Population),
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:Population must be an absolute URI.")
+               .Validate(
+                    validation: o => IsAbsoluteUri(o.Identity),
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:Identity must be an absolute URI.")
+               .ValidateOnStart();
 
             #region [ CityCore ]
 
-            services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(downstream["CityCore"]!);
-                })
+            services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>(ConfigureCityCoreBaseAddress)
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -119,10 +131,7 @@ namespace Matrix.ApiGateway.Configurations
 
             #region [ Economy ]
 
-            services.AddHttpClient<IEconomyApiClient, EconomyApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(downstream["Economy"]!);
-                })
+            services.AddHttpClient<IEconomyApiClient, EconomyApiClient>(ConfigureEconomyBaseAddress)
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -130,21 +139,11 @@ namespace Matrix.ApiGateway.Configurations
 
             #region [ Population http clients ]
 
-            string populationBaseUrl = downstream["Population"] ??
-                                       throw new InvalidOperationException(
-                                           "DownstreamServices:Population is not configured.");
-
-            services.AddHttpClient<IPersonApiClient, PersonApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(populationBaseUrl);
-                })
+            services.AddHttpClient<IPersonApiClient, PersonApiClient>(ConfigurePopulationBaseAddress)
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(populationBaseUrl);
-                })
+            services.AddHttpClient<IPopulationApiClient, PopulationApiClient>(ConfigurePopulationBaseAddress)
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -152,43 +151,25 @@ namespace Matrix.ApiGateway.Configurations
 
             #region [ Identity http clients ]
 
-            // Identity downstream client
-            // Общий baseUrl для Identity
-            string identityBaseUrl = downstream["Identity"] ??
-                                     throw new InvalidOperationException(
-                                         "DownstreamServices:Identity is not configured.");
-
             #region [ Self ]
 
             // Identity Auth client (обычно анонимный, Authorization header не нужен, но client-info полезен)
-            services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(identityBaseUrl);
-                })
+            services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>(ConfigureIdentityBaseAddress)
                .AddHttpMessageHandler<ForwardClientInfoHeadersHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             // Identity Account client
-            services.AddHttpClient<IIdentityAccountClient, IdentityAccountApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(identityBaseUrl);
-                })
+            services.AddHttpClient<IIdentityAccountClient, IdentityAccountApiClient>(ConfigureIdentityBaseAddress)
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             // Static files (e.g. avatars)
-            services.AddHttpClient<IIdentityAssetsClient, IdentityAssetsApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(identityBaseUrl);
-                })
+            services.AddHttpClient<IIdentityAssetsClient, IdentityAssetsApiClient>(ConfigureIdentityBaseAddress)
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             // Sessions (требует [Authorize], значит нужен forward Authorization)
-            services.AddHttpClient<IIdentitySessionsClient, IdentitySessionsApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(identityBaseUrl);
-                })
+            services.AddHttpClient<IIdentitySessionsClient, IdentitySessionsApiClient>(ConfigureIdentityBaseAddress)
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .AddHttpMessageHandler<ForwardClientInfoHeadersHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
@@ -197,24 +178,15 @@ namespace Matrix.ApiGateway.Configurations
 
             #region [ Admin ]
 
-            services.AddHttpClient<IIdentityAdminRolesClient, IdentityAdminRolesApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(identityBaseUrl);
-                })
+            services.AddHttpClient<IIdentityAdminRolesClient, IdentityAdminRolesApiClient>(ConfigureIdentityBaseAddress)
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentityAdminPermissionsClient, IdentityAdminPermissionsApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(identityBaseUrl);
-                })
+            services.AddHttpClient<IIdentityAdminRolesClient, IdentityAdminRolesApiClient>(ConfigureIdentityBaseAddress)
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentityAdminUsersClient, IdentityAdminUsersApiClient>(client =>
-                {
-                    client.BaseAddress = new Uri(identityBaseUrl);
-                })
+            services.AddHttpClient<IIdentityAdminUsersClient, IdentityAdminUsersApiClient>(ConfigureIdentityBaseAddress)
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -229,33 +201,18 @@ namespace Matrix.ApiGateway.Configurations
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            IConfigurationSection jwtSection = configuration.GetSection("ExternalJwt");
-            ExternalJwtOptions externalJwtOptions = jwtSection.Get<ExternalJwtOptions>() ??
-                                    throw new InvalidOperationException("Jwt configuration is missing.");
-
-            services
-               .AddAuthentication(options =>
+            services.AddJwtBearerAuthentication<ExternalJwtOptions>(
+                    configuration,
+                    ExternalJwtOptions.SectionName,
+                    requireHttpsMetadata: false,
+                    saveToken: true,
+                    configureAuthentication: options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-               .AddJwtBearer(options =>
+                },
+                    configureJwtBearer: options =>
                 {
-                    options.RequireHttpsMetadata = false; // dev only
-                    options.SaveToken = true;
-
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = externalJwtOptions.Issuer,
-                        ValidateAudience = true,
-                        ValidAudience = externalJwtOptions.Audience,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(externalJwtOptions.SigningKey)),
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromSeconds(30)
-                    };
-
                     options.Events = new JwtBearerEvents
                     {
                         OnTokenValidated = ExternalJwtPermissionsVersionEvents.HandleTokenValidated,
@@ -387,6 +344,35 @@ namespace Matrix.ApiGateway.Configurations
             services.AddScoped<IAuthContextStore, CachedAuthContextStore>();
 
             return services;
+        }
+
+        private static void ConfigureCityCoreBaseAddress(IServiceProvider sp, HttpClient client)
+        {
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
+            client.BaseAddress = new Uri(options.CityCore, UriKind.Absolute);
+        }
+
+        private static void ConfigureEconomyBaseAddress(IServiceProvider sp, HttpClient client)
+        {
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
+            client.BaseAddress = new Uri(options.Economy, UriKind.Absolute);
+        }
+
+        private static void ConfigurePopulationBaseAddress(IServiceProvider sp, HttpClient client)
+        {
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
+            client.BaseAddress = new Uri(options.Population, UriKind.Absolute);
+        }
+
+        private static void ConfigureIdentityBaseAddress(IServiceProvider sp, HttpClient client)
+        {
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
+            client.BaseAddress = new Uri(options.Identity, UriKind.Absolute);
+        }
+
+        private static bool IsAbsoluteUri(string value)
+        {
+            return Uri.TryCreate(value, UriKind.Absolute, out _);
         }
 
         private static void ConfigureTimeout(
