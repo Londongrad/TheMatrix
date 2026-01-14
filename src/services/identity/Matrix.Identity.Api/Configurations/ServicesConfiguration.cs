@@ -50,40 +50,23 @@ namespace Matrix.Identity.Api.Configurations
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            IConfigurationSection jwtSection = configuration.GetSection("Jwt");
-            ExternalJwtOptions externalJwtOptions = jwtSection.Get<ExternalJwtOptions>() ??
-                                    throw new InvalidOperationException("Jwt configuration is missing.");
+            services.AddJwtBearerAuthentication<ExternalJwtOptions>(
+                configuration,
+                ExternalJwtOptions.SectionName,
+                requireHttpsMetadata: false,
+                saveToken: true,
+                configureAuthentication: options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                });
 
             services.AddOptions<IdentityInternalOptions>()
-               .BindConfiguration("IdentityInternal")
+               .BindConfiguration(IdentityInternalOptions.SectionName)
                .Validate(
                     validation: o => !string.IsNullOrWhiteSpace(o.ApiKey),
                     failureMessage: "IdentityInternal:ApiKey is required.")
                .ValidateOnStart();
-
-            services
-               .AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-               .AddJwtBearer(options =>
-                {
-                    options.RequireHttpsMetadata = false; // dev only
-                    options.SaveToken = true;
-
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = externalJwtOptions.Issuer,
-                        ValidateAudience = true,
-                        ValidAudience = externalJwtOptions.Audience,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(externalJwtOptions.SigningKey)),
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromSeconds(30)
-                    };
-                });
 
             services.AddAuthorization();
 

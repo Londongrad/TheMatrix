@@ -45,7 +45,27 @@ namespace Matrix.Identity.Infrastructure
             services.AddDbContext<IdentityDbContext>(options => { options.UseNpgsql(connectionString); });
 
             // Jwt options
-            services.Configure<ExternalJwtOptions>(configuration.GetSection("Jwt"));
+            services.AddOptions<ExternalJwtOptions>()
+               .Bind(configuration.GetSection(ExternalJwtOptions.SectionName))
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Issuer),
+                    failureMessage: $"{ExternalJwtOptions.SectionName}:Issuer is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Audience),
+                    failureMessage: $"{ExternalJwtOptions.SectionName}:Audience is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.SigningKey),
+                    failureMessage: $"{ExternalJwtOptions.SectionName}:SigningKey is required.")
+               .Validate(
+                    validation: o => o.AccessTokenLifetimeMinutes > 0,
+                    failureMessage: $"{ExternalJwtOptions.SectionName}:AccessTokenLifetimeMinutes must be greater than 0.")
+               .Validate(
+                    validation: o => o.RefreshTokenLifetimeDays > 0,
+                    failureMessage: $"{ExternalJwtOptions.SectionName}:RefreshTokenLifetimeDays must be greater than 0.")
+               .Validate(
+                    validation: o => o.ShortRefreshTokenLifetimeHours > 0,
+                    failureMessage: $"{ExternalJwtOptions.SectionName}:ShortRefreshTokenLifetimeHours must be greater than 0.")
+               .ValidateOnStart();
 
             // Repositories
             services.AddScoped<IUserRepository, UserRepository>();
