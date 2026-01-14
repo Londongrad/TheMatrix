@@ -1,5 +1,8 @@
+using System.Text;
 using Matrix.Economy.Application;
 using Matrix.Economy.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.Economy.Api.Configurations
 {
