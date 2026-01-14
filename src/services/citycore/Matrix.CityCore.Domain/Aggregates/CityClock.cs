@@ -18,7 +18,7 @@ namespace Matrix.CityCore.Domain.Aggregates
         public CityClock(CityClockId id, SimulationTime startTime, int simMinutesPerTick)
         {
             if (simMinutesPerTick <= 0)
-                throw new DomainValidationException("SimMinutesPerTick must be positive.", nameof(SimMinutesPerTick));
+                throw new DomainException("SimMinutesPerTick must be positive.", nameof(SimMinutesPerTick));
 
             Id = id;
             Time = startTime;
@@ -42,7 +42,7 @@ namespace Matrix.CityCore.Domain.Aggregates
         public void ChangeSpeed(int simMinutesPerTick)
         {
             if (simMinutesPerTick <= 0)
-                throw new DomainValidationException("SimMinutesPerTick must be positive.", nameof(SimMinutesPerTick));
+                throw new DomainException("SimMinutesPerTick must be positive.", nameof(SimMinutesPerTick));
 
             SimMinutesPerTick = simMinutesPerTick;
         }
