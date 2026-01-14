@@ -1,11 +1,8 @@
-using System.Text;
 using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.Population.Application;
 using Matrix.Population.Infrastructure;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.Population.Api.Configurations
 {
@@ -20,8 +17,8 @@ namespace Matrix.Population.Api.Configurations
 
             // JWT auth
             services.AddJwtBearerAuthentication<InternalJwtOptions>(
-                configuration,
-                InternalJwtOptions.SectionName);
+                configuration: configuration,
+                sectionName: InternalJwtOptions.SectionName);
 
             services.AddAuthorization();
             services.AddHttpContextAccessor();

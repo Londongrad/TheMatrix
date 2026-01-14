@@ -1,11 +1,9 @@
-using System.Text;
 using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
 using Matrix.Identity.Infrastructure.Authentication.ExternalJwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.Identity.Api.Configurations
 {
@@ -51,8 +49,8 @@ namespace Matrix.Identity.Api.Configurations
             IConfiguration configuration)
         {
             services.AddJwtBearerAuthentication<ExternalJwtOptions>(
-                configuration,
-                ExternalJwtOptions.SectionName,
+                configuration: configuration,
+                sectionName: ExternalJwtOptions.SectionName,
                 requireHttpsMetadata: false,
                 saveToken: true,
                 configureAuthentication: options =>

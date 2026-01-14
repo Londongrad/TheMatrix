@@ -15,17 +15,27 @@ namespace Matrix.CityCore.Api.Controllers
         [HttpGet("time")]
         public async Task<IActionResult> GetCurrentTime(CancellationToken cancellationToken)
         {
-            var dto = await _sender.Send(new GetCurrentSimulationTimeQuery(), cancellationToken);
+            SimulationTimeDto dto = await _sender.Send(
+                request: new GetCurrentSimulationTimeQuery(),
+                cancellationToken: cancellationToken);
 
-            return Ok(new
-            {
-                currentTimeUtc = dto.CurrentTime,
-                simMinutesPerTick = dto.SimMinutesPerTick,
-                isPaused = dto.IsPaused
-            });
+            return Ok(
+                new
+                {
+                    currentTimeUtc = dto.CurrentTime,
+                    simMinutesPerTick = dto.SimMinutesPerTick,
+                    isPaused = dto.IsPaused
+                });
         }
 
         [HttpGet("health")]
-        public IActionResult Health() => Ok(new { status = "ok" });
+        public IActionResult Health()
+        {
+            return Ok(
+                new
+                {
+                    status = "ok"
+                });
+        }
     }
 }

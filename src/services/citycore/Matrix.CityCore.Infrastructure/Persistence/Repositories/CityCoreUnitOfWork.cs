@@ -7,6 +7,8 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
         private readonly CityCoreDbContext _dbContext = dbContext;
 
         public Task SaveChangesAsync(CancellationToken cancellationToken = default)
-            => _dbContext.SaveChangesAsync(cancellationToken);
+        {
+            return _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

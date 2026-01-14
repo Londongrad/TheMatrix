@@ -13,7 +13,9 @@ namespace Matrix.CityCore.Infrastructure.Messaging
             SimulationMonthEndedIntegrationEvent integrationEvent,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("SimulationMonthEnded published {@Event}", integrationEvent);
+            _logger.LogInformation(
+                message: "SimulationMonthEnded published {@Event}",
+                integrationEvent);
             return Task.CompletedTask;
         }
     }

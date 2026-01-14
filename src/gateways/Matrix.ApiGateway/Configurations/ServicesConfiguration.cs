@@ -1,12 +1,11 @@
-using System.Text;
 using MassTransit;
+using Matrix.ApiGateway.Authorization.AuthContext;
+using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
+using Matrix.ApiGateway.Authorization.AuthContext.Options;
 using Matrix.ApiGateway.Authorization.InternalJwt;
 using Matrix.ApiGateway.Authorization.InternalJwt.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
-using Matrix.ApiGateway.Authorization.AuthContext;
-using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
-using Matrix.ApiGateway.Authorization.AuthContext.Options;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
@@ -14,7 +13,6 @@ using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.HttpHandlers;
-using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
@@ -30,7 +28,6 @@ using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.ApiGateway.Configurations
 {
@@ -202,16 +199,16 @@ namespace Matrix.ApiGateway.Configurations
             IConfiguration configuration)
         {
             services.AddJwtBearerAuthentication<ExternalJwtOptions>(
-                    configuration,
-                    ExternalJwtOptions.SectionName,
-                    requireHttpsMetadata: false,
-                    saveToken: true,
-                    configureAuthentication: options =>
+                configuration: configuration,
+                sectionName: ExternalJwtOptions.SectionName,
+                requireHttpsMetadata: false,
+                saveToken: true,
+                configureAuthentication: options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 },
-                    configureJwtBearer: options =>
+                configureJwtBearer: options =>
                 {
                     options.Events = new JwtBearerEvents
                     {
@@ -346,33 +343,56 @@ namespace Matrix.ApiGateway.Configurations
             return services;
         }
 
-        private static void ConfigureCityCoreBaseAddress(IServiceProvider sp, HttpClient client)
+        private static void ConfigureCityCoreBaseAddress(
+            IServiceProvider sp,
+            HttpClient client)
         {
-            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
-            client.BaseAddress = new Uri(options.CityCore, UriKind.Absolute);
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+               .Value;
+            client.BaseAddress = new Uri(
+                uriString: options.CityCore,
+                uriKind: UriKind.Absolute);
         }
 
-        private static void ConfigureEconomyBaseAddress(IServiceProvider sp, HttpClient client)
+        private static void ConfigureEconomyBaseAddress(
+            IServiceProvider sp,
+            HttpClient client)
         {
-            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
-            client.BaseAddress = new Uri(options.Economy, UriKind.Absolute);
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+               .Value;
+            client.BaseAddress = new Uri(
+                uriString: options.Economy,
+                uriKind: UriKind.Absolute);
         }
 
-        private static void ConfigurePopulationBaseAddress(IServiceProvider sp, HttpClient client)
+        private static void ConfigurePopulationBaseAddress(
+            IServiceProvider sp,
+            HttpClient client)
         {
-            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
-            client.BaseAddress = new Uri(options.Population, UriKind.Absolute);
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+               .Value;
+            client.BaseAddress = new Uri(
+                uriString: options.Population,
+                uriKind: UriKind.Absolute);
         }
 
-        private static void ConfigureIdentityBaseAddress(IServiceProvider sp, HttpClient client)
+        private static void ConfigureIdentityBaseAddress(
+            IServiceProvider sp,
+            HttpClient client)
         {
-            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>().Value;
-            client.BaseAddress = new Uri(options.Identity, UriKind.Absolute);
+            DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+               .Value;
+            client.BaseAddress = new Uri(
+                uriString: options.Identity,
+                uriKind: UriKind.Absolute);
         }
 
         private static bool IsAbsoluteUri(string value)
         {
-            return Uri.TryCreate(value, UriKind.Absolute, out _);
+            return Uri.TryCreate(
+                uriString: value,
+                uriKind: UriKind.Absolute,
+                result: out _);
         }
 
         private static void ConfigureTimeout(

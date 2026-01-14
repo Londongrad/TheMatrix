@@ -12,27 +12,26 @@ namespace Matrix.CityCore.Infrastructure
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("CityCoreDb")
-                ?? throw new InvalidOperationException("Connection string 'CityCoreDb' is not configured.");
+            string connectionString = configuration.GetConnectionString("CityCoreDb") ??
+                                      throw new InvalidOperationException(
+                                          "Connection string 'CityCoreDb' is not configured.");
 
-            services.AddDbContext<CityCoreDbContext>(options =>
-            {
-                options.UseNpgsql(connectionString);
-            });
+            services.AddDbContext<CityCoreDbContext>(options => { options.UseNpgsql(connectionString); });
 
             services.AddScoped<ICityClockRepository, CityClockRepository>();
             services.AddScoped<ICityCoreUnitOfWork, CityCoreUnitOfWork>();
             services.AddScoped<ICityIntegrationEventPublisher, LoggingCityIntegrationEventPublisher>();
 
             // Настройки симуляции – пока хардкод, потом можно из конфигурации
-            services.AddSingleton(new SimulationLoopSettings
-            {
-                RealTimeTickMilliseconds = 1000,
-                SimMinutesPerTick = 5
-            });
+            services.AddSingleton(
+                new SimulationLoopSettings
+                {
+                    RealTimeTickMilliseconds = 1000,
+                    SimMinutesPerTick = 5
+                });
 
             services.AddHostedService<SimulationBackgroundService>();
 

@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.CityCore.Infrastructure.Persistence
 {
-    public class CityCoreDbContext(DbContextOptions<CityCoreDbContext> options) : DbContext(options)
+    public class CityCoreDbContext(DbContextOptions<CityCoreDbContext> options)
+        : DbContext(options)
     {
         public DbSet<CityClock> CityClocks => Set<CityClock>();
 

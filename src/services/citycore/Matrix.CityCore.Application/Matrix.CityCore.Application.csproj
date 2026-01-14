@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="13.1.0" />
+    <PackageReference Include="MediatR" Version="13.1.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Matrix.CityCore.Domain\Matrix.CityCore.Domain.csproj" />
+    <ProjectReference Include="..\Matrix.CityCore.Domain\Matrix.CityCore.Domain.csproj"/>
   </ItemGroup>
 
 </Project>

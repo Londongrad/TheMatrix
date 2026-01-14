@@ -35,20 +35,18 @@ namespace Matrix.BuildingBlocks.Api.Authorization
                .ValidateOnStart();
 
             if (configureAuthentication is null)
-            {
                 services
                    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                    .AddJwtBearer();
-            }
             else
-            {
                 services
                    .AddAuthentication(configureAuthentication)
                    .AddJwtBearer();
-            }
 
             services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-               .Configure<IOptions<TJwtOptions>>((jwtBearerOptions, jwtOptions) =>
+               .Configure<IOptions<TJwtOptions>>((
+                    jwtBearerOptions,
+                    jwtOptions) =>
                 {
                     TJwtOptions jwt = jwtOptions.Value;
 

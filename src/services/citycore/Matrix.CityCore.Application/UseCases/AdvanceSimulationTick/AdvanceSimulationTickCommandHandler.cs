@@ -13,14 +13,14 @@ namespace Matrix.CityCore.Application.UseCases.AdvanceSimulationTick
         : IRequestHandler<AdvanceSimulationTickCommand, Unit>
     {
         private readonly ICityClockRepository _clockRepository = clockRepository;
-        private readonly ICityCoreUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICityIntegrationEventPublisher _eventPublisher = eventPublisher;
+        private readonly ICityCoreUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<Unit> Handle(
             AdvanceSimulationTickCommand request,
             CancellationToken cancellationToken)
         {
-            var clock = await _clockRepository.GetAsync(cancellationToken);
+            CityClock? clock = await _clockRepository.GetAsync(cancellationToken);
 
             if (clock is null)
             {
@@ -28,13 +28,12 @@ namespace Matrix.CityCore.Application.UseCases.AdvanceSimulationTick
                 _clockRepository.Add(clock);
             }
 
-            var domainEvents = clock.AdvanceOneTick();
+            IReadOnlyCollection<ICityDomainEvent> domainEvents = clock.AdvanceOneTick();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             // Пока публикуем только "месяц закончился"
-            foreach (var @event in domainEvents)
-            {
+            foreach (ICityDomainEvent @event in domainEvents)
                 if (@event is SimulationMonthEnded monthEnded)
                 {
                     var integrationEvent = new SimulationMonthEndedIntegrationEvent(
@@ -43,9 +42,10 @@ namespace Matrix.CityCore.Application.UseCases.AdvanceSimulationTick
                         Year: monthEnded.Year,
                         Month: monthEnded.Month);
 
-                    await _eventPublisher.PublishSimulationMonthEndedAsync(integrationEvent, cancellationToken);
+                    await _eventPublisher.PublishSimulationMonthEndedAsync(
+                        integrationEvent: integrationEvent,
+                        cancellationToken: cancellationToken);
                 }
-            }
 
             return Unit.Value;
         }

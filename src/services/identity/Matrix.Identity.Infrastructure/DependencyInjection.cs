@@ -58,13 +58,16 @@ namespace Matrix.Identity.Infrastructure
                     failureMessage: $"{ExternalJwtOptions.SectionName}:SigningKey is required.")
                .Validate(
                     validation: o => o.AccessTokenLifetimeMinutes > 0,
-                    failureMessage: $"{ExternalJwtOptions.SectionName}:AccessTokenLifetimeMinutes must be greater than 0.")
+                    failureMessage:
+                    $"{ExternalJwtOptions.SectionName}:AccessTokenLifetimeMinutes must be greater than 0.")
                .Validate(
                     validation: o => o.RefreshTokenLifetimeDays > 0,
-                    failureMessage: $"{ExternalJwtOptions.SectionName}:RefreshTokenLifetimeDays must be greater than 0.")
+                    failureMessage:
+                    $"{ExternalJwtOptions.SectionName}:RefreshTokenLifetimeDays must be greater than 0.")
                .Validate(
                     validation: o => o.ShortRefreshTokenLifetimeHours > 0,
-                    failureMessage: $"{ExternalJwtOptions.SectionName}:ShortRefreshTokenLifetimeHours must be greater than 0.")
+                    failureMessage:
+                    $"{ExternalJwtOptions.SectionName}:ShortRefreshTokenLifetimeHours must be greater than 0.")
                .ValidateOnStart();
 
             // Repositories

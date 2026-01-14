@@ -13,7 +13,7 @@ namespace Matrix.CityCore.Application.UseCases.GetCurrentSimulationTime
             GetCurrentSimulationTimeQuery request,
             CancellationToken cancellationToken)
         {
-            var clock = await _clockRepository.GetAsync(cancellationToken);
+            CityClock? clock = await _clockRepository.GetAsync(cancellationToken);
 
             // если часов ещё нет – вернем дефолтное состояние
             clock ??= CityClock.CreateDefault();

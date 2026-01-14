@@ -6,19 +6,17 @@ namespace Matrix.CityCore.Domain.Aggregates
 {
     public sealed class CityClock
     {
-        public CityClockId Id { get; private set; }
-        public SimulationTime Time { get; private set; } = null!;
-        public int SimMinutesPerTick { get; private set; }
-        public bool IsPaused { get; private set; }
+        private CityClock() { }
 
-        private CityClock()
-        {
-        }
-
-        public CityClock(CityClockId id, SimulationTime startTime, int simMinutesPerTick)
+        public CityClock(
+            CityClockId id,
+            SimulationTime startTime,
+            int simMinutesPerTick)
         {
             if (simMinutesPerTick <= 0)
-                throw new DomainException("SimMinutesPerTick must be positive.", nameof(SimMinutesPerTick));
+                throw new DomainException(
+                    message: "SimMinutesPerTick must be positive.",
+                    propertyName: nameof(SimMinutesPerTick));
 
             Id = id;
             Time = startTime;
@@ -26,29 +24,50 @@ namespace Matrix.CityCore.Domain.Aggregates
             IsPaused = false;
         }
 
+        public CityClockId Id { get; private set; }
+        public SimulationTime Time { get; private set; } = null!;
+        public int SimMinutesPerTick { get; private set; }
+        public bool IsPaused { get; private set; }
+
         public static CityClock CreateDefault()
         {
             // Например, стартуем с 1 января 2050 00:00, 5 минут за тик
             return new CityClock(
-                CityClockId.New(),
-                new SimulationTime(new DateTime(2050, 1, 1, 0, 0, 0, DateTimeKind.Utc)),
+                id: CityClockId.New(),
+                startTime: new SimulationTime(
+                    new DateTime(
+                        year: 2050,
+                        month: 1,
+                        day: 1,
+                        hour: 0,
+                        minute: 0,
+                        second: 0,
+                        kind: DateTimeKind.Utc)),
                 simMinutesPerTick: 5);
         }
 
-        public void Pause() => IsPaused = true;
+        public void Pause()
+        {
+            IsPaused = true;
+        }
 
-        public void Resume() => IsPaused = false;
+        public void Resume()
+        {
+            IsPaused = false;
+        }
 
         public void ChangeSpeed(int simMinutesPerTick)
         {
             if (simMinutesPerTick <= 0)
-                throw new DomainException("SimMinutesPerTick must be positive.", nameof(SimMinutesPerTick));
+                throw new DomainException(
+                    message: "SimMinutesPerTick must be positive.",
+                    propertyName: nameof(SimMinutesPerTick));
 
             SimMinutesPerTick = simMinutesPerTick;
         }
 
         /// <summary>
-        /// Продвигает время на один тик и возвращает доменные события.
+        ///     Продвигает время на один тик и возвращает доменные события.
         /// </summary>
         public IReadOnlyCollection<ICityDomainEvent> AdvanceOneTick()
         {
@@ -57,9 +76,9 @@ namespace Matrix.CityCore.Domain.Aggregates
 
             var events = new List<ICityDomainEvent>();
 
-            var oldTime = Time.Current;
+            DateTime oldTime = Time.Current;
             Time = Time.AddMinutes(SimMinutesPerTick);
-            var newTime = Time.Current;
+            DateTime newTime = Time.Current;
 
             // Всегда публикуем факт продвижения времени
             events.Add(new SimulationTimeAdvanced(newTime));
@@ -74,9 +93,12 @@ namespace Matrix.CityCore.Domain.Aggregates
             // Смена месяца
             if (oldTime.Month != newTime.Month || oldTime.Year != newTime.Year)
             {
-                var endedMonth = oldTime.Month;
-                var endedYear = oldTime.Year;
-                events.Add(new SimulationMonthEnded(endedYear, endedMonth));
+                int endedMonth = oldTime.Month;
+                int endedYear = oldTime.Year;
+                events.Add(
+                    new SimulationMonthEnded(
+                        Year: endedYear,
+                        Month: endedMonth));
             }
 
             return events;

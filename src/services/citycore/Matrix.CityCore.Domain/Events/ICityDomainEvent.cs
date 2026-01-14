@@ -1,6 +1,4 @@
 ﻿namespace Matrix.CityCore.Domain.Events
 {
-    public interface ICityDomainEvent
-    {
-    }
+    public interface ICityDomainEvent { }
 }

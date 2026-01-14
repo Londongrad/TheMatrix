@@ -5,8 +5,13 @@
         public DateTime Current { get; } = current;
 
         public SimulationTime AddMinutes(int minutes)
-            => new(Current.AddMinutes(minutes));
+        {
+            return new SimulationTime(Current.AddMinutes(minutes));
+        }
 
-        public override string ToString() => Current.ToString("O");
+        public override string ToString()
+        {
+            return Current.ToString("O");
+        }
     }
 }
