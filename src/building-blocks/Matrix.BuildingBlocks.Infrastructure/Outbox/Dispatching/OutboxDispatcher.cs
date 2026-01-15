@@ -1,50 +1,24 @@
-using Matrix.Identity.Application.Abstractions.Services;
-using Matrix.Identity.Infrastructure.Outbox.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Matrix.Identity.Infrastructure.Outbox
+namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
 {
-    public sealed class OutboxPublisherBackgroundService(
-        IServiceScopeFactory scopeFactory,
+    public sealed class OutboxDispatcher(
+        IOutboxRepository repo,
+        IOutboxMessagePublisher publisher,
+        TimeProvider timeProvider,
         IOptions<OutboxOptions> options,
-        ILogger<OutboxPublisherBackgroundService> logger)
-        : BackgroundService
+        ILogger<OutboxDispatcher> logger)
+        : IOutboxDispatcher
     {
         private readonly OutboxOptions _options = options.Value;
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        public async Task DispatchOnceAsync(CancellationToken cancellationToken)
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(_options.PollIntervalSeconds));
-
-            while (await timer.WaitForNextTickAsync(stoppingToken))
-                try
-                {
-                    await PublishOnceAsync(stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(
-                        exception: ex,
-                        message: "Outbox publishing loop failed.");
-                }
-        }
-
-        private async Task PublishOnceAsync(CancellationToken cancellationToken)
-        {
-            using IServiceScope scope = scopeFactory.CreateScope();
-
-            IClock clock = scope.ServiceProvider.GetRequiredService<IClock>();
-            IOutboxRepository repo = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
-            IOutboxMessagePublisher publisher = scope.ServiceProvider.GetRequiredService<IOutboxMessagePublisher>();
-
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = timeProvider.GetUtcNow()
+               .UtcDateTime;
             var lockToken = Guid.NewGuid();
             DateTime lockedUntilUtc = nowUtc.AddSeconds(_options.LeaseTtlSeconds);
 

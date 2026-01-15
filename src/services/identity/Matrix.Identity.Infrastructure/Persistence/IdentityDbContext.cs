@@ -1,5 +1,6 @@
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.Identity.Domain.Entities;
-using Matrix.Identity.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence
@@ -24,7 +25,7 @@ namespace Matrix.Identity.Infrastructure.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
+            modelBuilder.AddOutboxMessageModel();
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
         }
     }

@@ -1,13 +1,13 @@
 using System.Data;
 using System.Data.Common;
-using Matrix.Identity.Infrastructure.Outbox.Abstractions;
-using Matrix.Identity.Infrastructure.Persistence;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Matrix.Identity.Infrastructure.Outbox.Postgres
+namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
 {
-    public sealed class PostgresOutboxRepository(IdentityDbContext dbContext) : IOutboxRepository
+    public sealed class PostgresOutboxRepository<TDbContext>(TDbContext dbContext) : IOutboxRepository
+        where TDbContext : DbContext
     {
         public async Task<IReadOnlyList<LeasedOutboxMessage>> LeaseBatchAsync(
             DateTime nowUtc,

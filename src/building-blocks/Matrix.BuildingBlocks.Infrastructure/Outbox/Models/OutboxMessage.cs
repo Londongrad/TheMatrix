@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Matrix.Identity.Infrastructure.Persistence.Outbox
+namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Models
 {
     /// <summary>
     ///     Represents a message stored in the outbox for reliable publishing.

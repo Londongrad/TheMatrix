@@ -1,12 +1,12 @@
-using Matrix.Identity.Infrastructure.Persistence.Outbox;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Matrix.Identity.Infrastructure.Persistence.Configurations
+namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence
 {
-    internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
+    public static class OutboxMessageConfigurationExtensions
     {
-        public void Configure(EntityTypeBuilder<OutboxMessage> builder)
+        public static void ConfigureOutboxMessage(this EntityTypeBuilder<OutboxMessage> builder)
         {
             builder.ToTable("OutboxMessages");
 

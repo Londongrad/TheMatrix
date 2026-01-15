@@ -1,6 +1,6 @@
 using System.Text.Json;
 using MassTransit;
-using Matrix.Identity.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 
 namespace Matrix.Identity.Infrastructure.Outbox.RabbitMq
 {

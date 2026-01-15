@@ -2,6 +2,8 @@ using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
@@ -11,9 +13,6 @@ using Matrix.Identity.Infrastructure.Authorization;
 using Matrix.Identity.Infrastructure.Integration.Email;
 using Matrix.Identity.Infrastructure.Integration.GeoLocation;
 using Matrix.Identity.Infrastructure.Integration.Links;
-using Matrix.Identity.Infrastructure.Outbox;
-using Matrix.Identity.Infrastructure.Outbox.Abstractions;
-using Matrix.Identity.Infrastructure.Outbox.Postgres;
 using Matrix.Identity.Infrastructure.Outbox.RabbitMq;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
@@ -85,8 +84,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IRoleMembersReadRepository, UserAdminReadRepository>();
 
             // Outbox pattern
-            services.AddHostedService<OutboxPublisherBackgroundService>();
-            services.Configure<OutboxOptions>(configuration.GetSection("Outbox"));
+            services.AddOutbox<IdentityDbContext>(configuration);
             // Validate options on start
             services.AddOptions<RabbitMqOptions>()
                .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
@@ -100,7 +98,6 @@ namespace Matrix.Identity.Infrastructure
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
-            services.AddScoped<IOutboxRepository, PostgresOutboxRepository>();
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
             // Permission checker

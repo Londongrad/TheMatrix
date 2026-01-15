@@ -1,9 +1,9 @@
 using System.Text.Json;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Contracts.Internal.Events;
 using Matrix.Identity.Infrastructure.Persistence;
-using Matrix.Identity.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
