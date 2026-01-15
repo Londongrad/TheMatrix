@@ -1,0 +1,15 @@
+﻿using Matrix.CityCore.Domain.Time;
+
+namespace Matrix.CityCore.Application.Abstractions.Persistence
+{
+    public interface ISimulationClockRepository
+    {
+        Task<SimulationClock?> GetByCityIdAsync(
+            CityId cityId,
+            CancellationToken cancellationToken);
+
+        Task AddAsync(
+            SimulationClock clock,
+            CancellationToken cancellationToken);
+    }
+}
