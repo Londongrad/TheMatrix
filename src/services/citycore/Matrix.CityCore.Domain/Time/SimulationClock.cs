@@ -1,6 +1,6 @@
-﻿using Matrix.BuildingBlocks.Domain.Exceptions;
+﻿using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Domain.Common;
-using Matrix.CityCore.Domain.Enums;
+using Matrix.CityCore.Domain.Errors;
 using Matrix.CityCore.Domain.Events;
 
 namespace Matrix.CityCore.Domain.Time
@@ -24,6 +24,9 @@ namespace Matrix.CityCore.Domain.Time
             Speed = speed;
             State = state;
         }
+
+        private SimulationClock()
+            : base(new CityId(Guid.Empty)) { }
 
         public SimTime CurrentTime { get; private set; }
         public TickId TickId { get; private set; }
@@ -62,8 +65,10 @@ namespace Matrix.CityCore.Domain.Time
         /// </summary>
         public void Advance(TimeSpan realDelta)
         {
-            if (realDelta <= TimeSpan.Zero)
-                throw new DomainException("realDelta must be positive.");
+            GuardHelper.Ensure(
+                condition: realDelta > TimeSpan.Zero,
+                value: realDelta,
+                errorFactory: DomainErrorsFactory.SimSpeedRealDeltaMustBePositive);
 
             if (IsPaused)
                 return;
