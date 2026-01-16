@@ -1,4 +1,17 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
+using Matrix.CityCore.Application;
+using Matrix.CityCore.Application.Abstractions.Outbox;
+using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Infrastructure.HostedServices;
+using Matrix.CityCore.Infrastructure.Options;
+using Matrix.CityCore.Infrastructure.Outbox;
+using Matrix.CityCore.Infrastructure.Persistence;
+using Matrix.CityCore.Infrastructure.Public;
+using Matrix.CityCore.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.CityCore.Infrastructure
@@ -12,6 +25,23 @@ namespace Matrix.CityCore.Infrastructure
             string connectionString = configuration.GetConnectionString("CityCoreDb") ??
                                       throw new InvalidOperationException(
                                           "Connection string 'CityCoreDb' is not configured.");
+
+            services.AddDbContext<CityCoreDbContext>(options => { options.UseNpgsql(connectionString); });
+
+            services.AddOptions<SimulationTickOptions>()
+               .Bind(configuration.GetSection(SimulationTickOptions.SectionName));
+
+            services.AddCityCoreApplication();
+
+            services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<ICityCoreOutboxWriter, CityCoreOutboxWriter>();
+
+            services.AddOutbox<CityCoreDbContext>(configuration);
+            services.AddScoped<IOutboxMessagePublisher, LoggingOutboxMessagePublisher>();
+            services.AddScoped<ICityCoreClockAppService, CityCoreClockAppService>();
+
+            services.AddHostedService<SimulationTickHostedService>();
 
             return services;
         }
