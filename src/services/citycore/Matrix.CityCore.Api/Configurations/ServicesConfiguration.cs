@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.CityCore.Application;
 using Matrix.CityCore.Infrastructure;
 
 namespace Matrix.CityCore.Api.Configurations
@@ -19,6 +20,7 @@ namespace Matrix.CityCore.Api.Configurations
 
             services.AddAuthorization();
 
+            services.AddCityCoreApplication();
             services.AddInfrastructure(configuration);
         }
     }
