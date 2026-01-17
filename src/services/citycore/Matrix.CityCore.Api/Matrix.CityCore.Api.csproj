@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj"/>
-    <ProjectReference Include="..\Matrix.CityCore.Contracts\Matrix.CityCore.Contracts.csproj" />
+    <ProjectReference Include="..\Matrix.CityCore.Contracts\Matrix.CityCore.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.CityCore.Infrastructure\Matrix.CityCore.Infrastructure.csproj"/>
   </ItemGroup>
 

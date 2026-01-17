@@ -1,5 +1,4 @@
-﻿using Matrix.CityCore.Domain.Enums;
-using Matrix.CityCore.Domain.Time;
+﻿using Matrix.CityCore.Domain.Time;
 
 namespace Matrix.CityCore.Domain.Events
 {

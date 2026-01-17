@@ -1,4 +1,4 @@
-﻿namespace Matrix.CityCore.Domain.Enums
+﻿namespace Matrix.CityCore.Domain.Time
 {
     public enum ClockState
     {
