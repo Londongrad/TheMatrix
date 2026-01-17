@@ -31,8 +31,6 @@ namespace Matrix.CityCore.Infrastructure
             services.AddOptions<SimulationTickOptions>()
                .Bind(configuration.GetSection(SimulationTickOptions.SectionName));
 
-            services.AddCityCoreApplication();
-
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ICityCoreOutboxWriter, CityCoreOutboxWriter>();

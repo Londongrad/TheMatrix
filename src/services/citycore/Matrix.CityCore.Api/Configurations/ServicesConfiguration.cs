@@ -20,7 +20,7 @@ namespace Matrix.CityCore.Api.Configurations
 
             services.AddAuthorization();
 
-            services.AddCityCoreApplication();
+            services.AddApplication();
             services.AddInfrastructure(configuration);
         }
     }
