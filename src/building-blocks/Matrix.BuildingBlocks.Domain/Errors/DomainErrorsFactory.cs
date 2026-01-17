@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Domain.Exceptions;
 
 namespace Matrix.BuildingBlocks.Domain.Errors
 {
-    public static class DomainErrors
+    public static class DomainErrorsFactory
     {
         public static DomainException NullOrEmpty(string propertyName)
         {

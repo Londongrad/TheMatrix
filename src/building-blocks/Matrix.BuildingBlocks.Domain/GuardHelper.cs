@@ -33,7 +33,7 @@ namespace Matrix.BuildingBlocks.Domain
             string propertyName)
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw DomainErrors.NullOrEmpty(propertyName);
+                throw DomainErrorsFactory.NullOrEmpty(propertyName);
 
             return value;
         }
@@ -57,7 +57,7 @@ namespace Matrix.BuildingBlocks.Domain
             string propertyName)
         {
             if (id == Guid.Empty)
-                throw DomainErrors.EmptyGuid(propertyName);
+                throw DomainErrorsFactory.EmptyGuid(propertyName);
 
             return id;
         }
@@ -79,7 +79,7 @@ namespace Matrix.BuildingBlocks.Domain
             where T : class
         {
             if (value is null)
-                throw DomainErrors.Null(propertyName);
+                throw DomainErrorsFactory.Null(propertyName);
 
             return value;
         }
@@ -106,7 +106,7 @@ namespace Matrix.BuildingBlocks.Domain
             where TEnum : struct, Enum
         {
             if (!Enum.IsDefined(value))
-                throw DomainErrors.InvalidEnum(
+                throw DomainErrorsFactory.InvalidEnum(
                     value: value,
                     propertyName: propertyName);
 
@@ -148,7 +148,7 @@ namespace Matrix.BuildingBlocks.Domain
                     value: value,
                     ignoreCase: true,
                     result: out TEnum newEnum))
-                throw DomainErrors.InvalidStringToEnum<TEnum>(
+                throw DomainErrorsFactory.InvalidStringToEnum<TEnum>(
                     value: value,
                     propertyName: propertyName);
 
@@ -165,7 +165,7 @@ namespace Matrix.BuildingBlocks.Domain
             where T : struct, IComparable<T>
         {
             if (value.CompareTo(default(T)) <= 0)
-                throw DomainErrors.NonPositiveNumber(propertyName);
+                throw DomainErrorsFactory.NonPositiveNumber(propertyName);
 
             return value;
         }
@@ -176,7 +176,7 @@ namespace Matrix.BuildingBlocks.Domain
             where T : struct, IComparable<T>
         {
             if (value.CompareTo(default(T)) < 0)
-                throw DomainErrors.NegativeNumber(propertyName);
+                throw DomainErrorsFactory.NegativeNumber(propertyName);
 
             return value;
         }
@@ -189,7 +189,7 @@ namespace Matrix.BuildingBlocks.Domain
             where T : struct, IComparable<T>
         {
             if (value.CompareTo(min) < 0 || value.CompareTo(max) > 0)
-                throw DomainErrors.OutOfRange(
+                throw DomainErrorsFactory.OutOfRange(
                     min: min,
                     max: max,
                     propertyName: propertyName);
@@ -227,7 +227,7 @@ namespace Matrix.BuildingBlocks.Domain
                 return;
 
             if (value.Value == default(DateOnly))
-                throw DomainErrors.DefaultDateOnly(argumentName);
+                throw DomainErrorsFactory.DefaultDateOnly(argumentName);
 
             if (value.Value <
                 DateOnly.FromDateTime(
@@ -235,7 +235,7 @@ namespace Matrix.BuildingBlocks.Domain
                         year: 0001,
                         month: 1,
                         day: 1)))
-                throw DomainErrors.DateTooFarInPast(argumentName);
+                throw DomainErrorsFactory.DateTooFarInPast(argumentName);
         }
 
         public static void AgainstInvalidDateRange(
@@ -254,7 +254,7 @@ namespace Matrix.BuildingBlocks.Domain
                 argumentName: nameof(to));
 
             if (from > to.Value)
-                throw DomainErrors.InvalidDateRange(
+                throw DomainErrorsFactory.InvalidDateRange(
                     from: from,
                     to: to.Value,
                     fromName: nameof(from),
