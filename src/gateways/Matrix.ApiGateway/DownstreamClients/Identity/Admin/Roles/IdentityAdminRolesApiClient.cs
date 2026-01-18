@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Admin.Roles.Requests;
@@ -8,7 +9,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles
 {
     public sealed class IdentityAdminRolesApiClient(HttpClient httpClient) : IIdentityAdminRolesClient
     {
-        private const string ServiceName = "Identity";
+        private const string ServiceName = DownstreamServiceNames.Identity;
         private const string RolesEndpoint = "/api/admin/roles";
         private readonly HttpClient _httpClient = httpClient;
 

@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
 
@@ -13,8 +14,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
 
         #region [ Constants ]
 
-        private const string ServiceName = "Identity";
-
+        private const string ServiceName = DownstreamServiceNames.Identity;
         private const string Base = "/api/me/sessions";
 
         #endregion [ Constants ]

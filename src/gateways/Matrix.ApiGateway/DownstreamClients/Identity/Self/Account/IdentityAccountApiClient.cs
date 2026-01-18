@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
@@ -60,8 +61,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
 
         #region [ Constants ]
 
-        private const string ServiceName = "Identity";
-
+        private const string ServiceName = DownstreamServiceNames.Identity;
         private const string AccountBaseEndpoint = "/api/account";
 
         private const string ProfileEndpoint = AccountBaseEndpoint + "/profile";

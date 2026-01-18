@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Population.Contracts.Models;
 
@@ -13,7 +14,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.Person
 
         #region [ Constants ]
 
-        private const string ServiceName = "Population";
+        private const string ServiceName = DownstreamServiceNames.Population;
 
         private const string Base = "/api/person";
 

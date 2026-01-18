@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Admin.Permissions.Responses;
 
@@ -5,7 +6,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions
 {
     public sealed class IdentityAdminPermissionsApiClient(HttpClient httpClient) : IIdentityAdminPermissionsClient
     {
-        private const string ServiceName = "Identity";
+        private const string ServiceName = DownstreamServiceNames.Identity;
         private const string PermissionsEndpoint = "/api/admin/permissions";
         private readonly HttpClient _httpClient = httpClient;
 

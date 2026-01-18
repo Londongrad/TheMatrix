@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Internal.Responses;
 using Microsoft.Extensions.Options;
@@ -7,8 +8,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersi
 {
     public sealed class IdentityInternalUsersClient : IIdentityInternalUsersClient
     {
-        private const string ServiceName = "Identity";
-
+        private const string ServiceName = DownstreamServiceNames.Identity;
         private const string PermissionsVersionEndpoint = "api/internal/users/{0}/permissions-version";
         private const string AuthContextEndpoint = "api/internal/users/{0}/auth-context";
 

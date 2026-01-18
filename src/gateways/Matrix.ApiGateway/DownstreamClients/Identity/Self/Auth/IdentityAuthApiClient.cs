@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Self.Auth.Requests;
 using Matrix.Identity.Contracts.Self.Auth.Responses;
@@ -77,7 +78,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
 
         #region [ Constants ]
 
-        private const string ServiceName = "Identity";
+        private const string ServiceName = DownstreamServiceNames.Identity;
 
         private const string AuthBaseUrl = "/api/auth";
 
@@ -86,8 +87,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
 
         private const string LogoutEndpoint = AuthBaseUrl + "/logout";
         private const string RefreshEndpoint = AuthBaseUrl + "/refresh";
-
-        private const string SessionsSegment = "/sessions";
 
         #endregion [ Constants ]
     }
