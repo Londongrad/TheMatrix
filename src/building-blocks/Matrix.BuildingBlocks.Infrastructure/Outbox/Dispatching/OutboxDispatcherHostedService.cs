@@ -1,5 +1,6 @@
 ﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
 {
     public sealed class OutboxDispatcherHostedService(
-        IOutboxDispatcher dispatcher,
+        IServiceScopeFactory scopeFactory,
         IOptions<OutboxOptions> options,
         ILogger<OutboxDispatcherHostedService> logger)
         : BackgroundService
@@ -22,23 +23,44 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
                 return;
             }
 
+            if (_options.PollIntervalSeconds <= 0)
+            {
+                logger.LogError(
+                    message: "Outbox dispatcher poll interval must be > 0. Current value: {PollIntervalSeconds}",
+                    _options.PollIntervalSeconds);
+
+                return;
+            }
+
             using var timer = new PeriodicTimer(TimeSpan.FromSeconds(_options.PollIntervalSeconds));
 
-            while (await timer.WaitForNextTickAsync(stoppingToken))
-                try
-                {
-                    await dispatcher.DispatchOnceAsync(stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(
-                        exception: ex,
-                        message: "Outbox publishing loop failed.");
-                }
+            try
+            {
+                while (await timer.WaitForNextTickAsync(stoppingToken))
+                    try
+                    {
+                        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+
+                        IOutboxDispatcher dispatcher =
+                            scope.ServiceProvider.GetRequiredService<IOutboxDispatcher>();
+
+                        await dispatcher.DispatchOnceAsync(stoppingToken);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(
+                            exception: ex,
+                            message: "Outbox publishing loop failed.");
+                    }
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // graceful shutdown
+            }
         }
     }
 }
