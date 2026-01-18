@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.Configurations.DependencyInjection;
 using Matrix.BuildingBlocks.Api.Middleware;
 
 namespace Matrix.ApiGateway.Configurations
@@ -10,7 +11,7 @@ namespace Matrix.ApiGateway.Configurations
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-            app.UseCors("Frontend");
+            app.UseCors(GatewayCorsDefaults.PolicyName);
 
             app.UseAuthentication();
             app.UseAuthorization();
