@@ -1,6 +1,7 @@
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.CityCore.Contracts.Requests;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore
 {
@@ -74,7 +75,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
 
         public async Task SetClockSpeedAsync(
             Guid cityId,
-            CityCoreSetClockSpeedRequestDto request,
+            SetSpeedRequest request,
             CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
@@ -89,7 +90,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
 
         public async Task JumpClockAsync(
             Guid cityId,
-            CityCoreJumpClockRequestDto request,
+            JumpClockRequest request,
             CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _client.PostAsJsonAsync(

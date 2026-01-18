@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
+using Matrix.CityCore.Contracts.Requests;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore
 {
@@ -22,12 +23,12 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
 
         Task SetClockSpeedAsync(
             Guid cityId,
-            CityCoreSetClockSpeedRequestDto request,
+            SetSpeedRequest request,
             CancellationToken cancellationToken = default);
 
         Task JumpClockAsync(
             Guid cityId,
-            CityCoreJumpClockRequestDto request,
+            JumpClockRequest request,
             CancellationToken cancellationToken = default);
     }
 }

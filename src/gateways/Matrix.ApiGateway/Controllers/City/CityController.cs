@@ -3,6 +3,7 @@ using Matrix.ApiGateway.Contracts.City.Responses;
 using Matrix.ApiGateway.Controllers.City.Mappers;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
+using Matrix.CityCore.Contracts.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -71,10 +72,7 @@ namespace Matrix.ApiGateway.Controllers.City
         {
             await _cityCoreClient.SetClockSpeedAsync(
                 cityId: cityId,
-                request: new CityCoreSetClockSpeedRequestDto
-                {
-                    Multiplier = request.Multiplier
-                },
+                request: new SetSpeedRequest(request.Multiplier),
                 cancellationToken: cancellationToken);
 
             return NoContent();
@@ -88,10 +86,7 @@ namespace Matrix.ApiGateway.Controllers.City
         {
             await _cityCoreClient.JumpClockAsync(
                 cityId: cityId,
-                request: new CityCoreJumpClockRequestDto
-                {
-                    NewSimTimeUtc = request.NewSimTimeUtc
-                },
+                request: new JumpClockRequest(request.NewSimTimeUtc),
                 cancellationToken: cancellationToken);
 
             return NoContent();
