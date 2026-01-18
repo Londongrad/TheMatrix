@@ -1,4 +1,4 @@
-namespace Matrix.ApiGateway.Contracts.Requests
+namespace Matrix.ApiGateway.Contracts.Identity.Requests
 {
     public sealed class RefreshRequestDto
     {

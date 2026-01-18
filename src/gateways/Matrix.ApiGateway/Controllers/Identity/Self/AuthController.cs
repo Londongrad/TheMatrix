@@ -1,5 +1,5 @@
 using System.Net;
-using Matrix.ApiGateway.Contracts.Requests;
+using Matrix.ApiGateway.Contracts.Identity.Requests;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.BuildingBlocks.Api.Errors;
