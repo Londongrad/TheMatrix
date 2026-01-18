@@ -1,56 +1,105 @@
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
+using Matrix.ApiGateway.DownstreamClients.Common;
+using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore
 {
-    internal sealed class CityCoreApiClient(
-        HttpClient client,
-        ILogger<CityCoreApiClient> logger)
-        : ICityCoreApiClient
+    internal sealed class CityCoreApiClient(HttpClient client) : ICityCoreApiClient
     {
-        private const string TimeEndpoint = "/api/citycore/Simulation/time";
-        private const string HealthEndpoint = "/api/citycore/Simulation/health";
+        private const string CitiesEndpoint = "/api/cities";
+
+        private const string BootstrapEndpoint = "/bootstrap";
+        private const string ClockEndpoint = "/clock";
+        private const string ClockPauseEndpoint = "/clock/pause";
+        private const string ClockResumeEndpoint = "/clock/resume";
+        private const string ClockSpeedEndpoint = "/clock/speed";
+        private const string ClockJumpEndpoint = "/clock/jump";
         private readonly HttpClient _client = client;
-        private readonly ILogger<CityCoreApiClient> _logger = logger;
 
-        public async Task<CitySimulationTimeDto?> GetCurrentTimeAsync(CancellationToken cancellationToken = default)
+        public async Task BootstrapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
         {
-            using HttpResponseMessage response =
-                await _client.GetAsync(
-                    requestUri: TimeEndpoint,
-                    cancellationToken: cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning(
-                    message: "Failed to get city simulation time. Status code: {StatusCode}",
-                    response.StatusCode);
-
-                response.EnsureSuccessStatusCode();
-            }
-
-            CitySimulationTimeDto? dto = await response.Content.ReadFromJsonAsync<CitySimulationTimeDto>(
+            using HttpResponseMessage response = await _client.PostAsync(
+                requestUri: $"{CitiesEndpoint}/{cityId}{BootstrapEndpoint}",
+                content: null,
                 cancellationToken: cancellationToken);
 
-            return dto;
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
         }
 
-        public async Task<bool> HealthAsync(CancellationToken cancellationToken = default)
+        public async Task<CityCoreClockResponseDto> GetClockAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
         {
-            using HttpResponseMessage response =
-                await _client.GetAsync(
-                    requestUri: HealthEndpoint,
-                    cancellationToken: cancellationToken);
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: $"{CitiesEndpoint}/{cityId}{ClockEndpoint}",
+                cancellationToken: cancellationToken);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning(
-                    message: "CityCore health check failed with status code {StatusCode}",
-                    response.StatusCode);
+            return await response.ReadJsonOrThrowDownstreamAsync<CityCoreClockResponseDto>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: $"{CitiesEndpoint}/{cityId}{ClockEndpoint}");
+        }
 
-                return false;
-            }
+        public async Task PauseClockAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.PostAsync(
+                requestUri: $"{CitiesEndpoint}/{cityId}{ClockPauseEndpoint}",
+                content: null,
+                cancellationToken: cancellationToken);
 
-            return true;
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task ResumeClockAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.PostAsync(
+                requestUri: $"{CitiesEndpoint}/{cityId}{ClockResumeEndpoint}",
+                content: null,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task SetClockSpeedAsync(
+            Guid cityId,
+            CityCoreSetClockSpeedRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: $"{CitiesEndpoint}/{cityId}{ClockSpeedEndpoint}",
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task JumpClockAsync(
+            Guid cityId,
+            CityCoreJumpClockRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: $"{CitiesEndpoint}/{cityId}{ClockJumpEndpoint}",
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
         }
     }
 }
