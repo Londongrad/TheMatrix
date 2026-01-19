@@ -20,6 +20,7 @@ const CitySimulationPage = () => {
 
     const cityId = useMemo(() => cityIdInput.trim(), [cityIdInput]);
     const isCityIdValid = cityId.length > 0 && isGuid(cityId);
+    const canRunActions = Boolean(token) && isCityIdValid;
 
     const clockQuery = useCityClockQuery(cityId, token, {
         enabled: isCityIdValid,
@@ -70,6 +71,10 @@ const CitySimulationPage = () => {
                 <p className="error-text">City ID must be a valid GUID.</p>
             )}
 
+            {cityId.length === 0 && (
+                <p className="card-sub">Enter a City ID to enable simulation actions.</p>
+            )}
+
             {mutations.actionError && <p className="error-text">{mutations.actionError}</p>}
 
             <div className="citycore-grid">
@@ -83,6 +88,7 @@ const CitySimulationPage = () => {
                 <SimulationControls
                     state={clockQuery.data?.state ?? null}
                     hasClock={hasClock}
+                    canRunActions={canRunActions}
                     isBootstrapping={mutations.isBootstrapping}
                     isPausing={mutations.isPausing}
                     isResuming={mutations.isResuming}

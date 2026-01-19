@@ -43,7 +43,15 @@ export function useCityClockMutations(
         setBusy: (value: boolean) => void,
         errorMessage: string,
     ) => {
-        if (!token || !cityId) return;
+        if (!token) {
+            setActionError("Your session has expired. Please sign in again.");
+            return;
+        }
+
+        if (!cityId) {
+            setActionError("Provide a valid City ID before running simulation actions.");
+            return;
+        }
 
         try {
             setBusy(true);
