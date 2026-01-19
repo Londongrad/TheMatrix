@@ -5,11 +5,16 @@ namespace Matrix.CityCore.Domain.Time
     /// <summary>
     ///     Strongly-typed identifier for a city.
     /// </summary>
-    public readonly record struct CityId(Guid Value)
+    public readonly record struct CityId
     {
-        public Guid Value { get; } = GuardHelper.AgainstEmptyGuid(
-            id: Value,
-            propertyName: nameof(CityId));
+        public Guid Value { get; }
+
+        public CityId(Guid value)
+        {
+            Value = GuardHelper.AgainstEmptyGuid(
+                id: value,
+                propertyName: nameof(Value));
+        }
 
         public static CityId New()
         {
