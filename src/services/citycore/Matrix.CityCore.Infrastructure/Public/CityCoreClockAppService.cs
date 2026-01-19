@@ -10,14 +10,12 @@ namespace Matrix.CityCore.Infrastructure.Public
 {
     public sealed class CityCoreClockAppService(IMediator mediator) : ICityCoreClockAppService
     {
-        public Task BootstrapAsync(
-            Guid cityId,
+        public async Task<Guid> BootstrapAsync(
             DateTimeOffset startSimTimeUtc,
             CancellationToken cancellationToken)
         {
-            return mediator.Send(
+            return await mediator.Send(
                 request: new BootstrapCityCommand(
-                    CityId: cityId,
                     StartSimTimeUtc: startSimTimeUtc),
                 cancellationToken: cancellationToken);
         }

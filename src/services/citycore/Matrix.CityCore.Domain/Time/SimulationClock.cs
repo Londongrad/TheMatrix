@@ -36,11 +36,12 @@ namespace Matrix.CityCore.Domain.Time
         public bool IsPaused => State == ClockState.Paused;
 
         public static SimulationClock Create(
-            CityId cityId,
             SimTime startTime,
             SimSpeed speed,
             ClockState initialState = ClockState.Running)
         {
+            var cityId = CityId.New();
+
             var clock = new SimulationClock(
                 cityId: cityId,
                 currentTime: startTime,

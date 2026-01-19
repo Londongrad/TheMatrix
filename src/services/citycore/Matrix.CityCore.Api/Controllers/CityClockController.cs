@@ -5,23 +5,21 @@ using Microsoft.AspNetCore.Mvc;
 namespace Matrix.CityCore.Api.Controllers
 {
     [ApiController]
-    [Route("api/cities/{cityId:guid}")]
+    [Route("api/cities")]
     public sealed class CityClockController(ICityCoreClockAppService service) : ControllerBase
     {
         [HttpPost("bootstrap")]
         public async Task<IResult> Bootstrap(
-            [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            await service.BootstrapAsync(
-                cityId: cityId,
+            Guid cityId = await service.BootstrapAsync(
                 startSimTimeUtc: DateTimeOffset.UtcNow,
                 cancellationToken: cancellationToken);
 
-            return Results.Ok();
+            return Results.Ok(new { cityId });
         }
 
-        [HttpGet("clock")]
+        [HttpGet("{cityId:guid}/clock")]
         public async Task<IResult> GetClock(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -35,7 +33,7 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.Ok(clock);
         }
 
-        [HttpPost("clock/pause")]
+        [HttpPost("{cityId:guid}/clock/pause")]
         public async Task<IResult> Pause(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -49,7 +47,7 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.NotFound();
         }
 
-        [HttpPost("clock/resume")]
+        [HttpPost("{cityId:guid}/clock/resume")]
         public async Task<IResult> Resume(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -63,7 +61,7 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.NotFound();
         }
 
-        [HttpPost("clock/speed")]
+        [HttpPost("{cityId:guid}/clock/speed")]
         public async Task<IResult> SetSpeed(
             [FromRoute] Guid cityId,
             [FromBody] SetSpeedRequest request,
@@ -79,7 +77,7 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.NotFound();
         }
 
-        [HttpPost("clock/jump")]
+        [HttpPost("{cityId:guid}/clock/jump")]
         public async Task<IResult> Jump(
             [FromRoute] Guid cityId,
             [FromBody] JumpClockRequest request,

@@ -2,8 +2,7 @@
 {
     public interface ICityCoreClockAppService
     {
-        Task BootstrapAsync(
-            Guid cityId,
+        Task<Guid> BootstrapAsync(
             DateTimeOffset startSimTimeUtc,
             CancellationToken cancellationToken);
 
