@@ -1,0 +1,84 @@
+﻿@import "@services/citycore/styles/dashboard.css";
+
+.citycore-page {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.citycore-page__header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.citycore-toolbar {
+    display: flex;
+    align-items: end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.citycore-toolbar__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.citycore-city-id-input {
+    min-width: 360px;
+}
+
+.citycore-toolbar__switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(87, 255, 170, 0.2);
+    background: rgba(8, 12, 14, 0.7);
+    color: rgba(232, 255, 245, 0.9);
+}
+
+.citycore-grid {
+    margin-top: 4px;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.citycore-kv-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.citycore-kv-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(87, 255, 170, 0.12);
+    padding-bottom: 8px;
+}
+
+.citycore-kv-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.citycore-kv-row__label {
+    color: rgba(232, 255, 245, 0.65);
+    font-size: 13px;
+}
+
+.citycore-kv-row__value {
+    color: rgba(232, 255, 245, 0.95);
+    text-align: right;
+}
+
+.citycore-form-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
