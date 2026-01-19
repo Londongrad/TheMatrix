@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.Contracts.City.Responses;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
@@ -16,20 +17,6 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
         private const string ClockSpeedEndpoint = "/clock/speed";
         private const string ClockJumpEndpoint = "/clock/jump";
         private readonly HttpClient _client = client;
-
-        public async Task BootstrapAsync(
-            Guid cityId,
-            CancellationToken cancellationToken = default)
-        {
-            using HttpResponseMessage response = await _client.PostAsync(
-                requestUri: $"{CitiesEndpoint}/{cityId}{BootstrapEndpoint}",
-                content: null,
-                cancellationToken: cancellationToken);
-
-            await response.EnsureSuccessOrThrowDownstreamAsync(
-                serviceName: DownstreamServiceNames.CityCore,
-                cancellationToken: cancellationToken);
-        }
 
         public async Task<CityCoreClockResponseDto> GetClockAsync(
             Guid cityId,
@@ -101,6 +88,19 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: DownstreamServiceNames.CityCore,
                 cancellationToken: cancellationToken);
+        }
+
+        public async Task<BootstrapCityResponseDto> BootstrapAsync(CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.PostAsync(
+                requestUri: $"{CitiesEndpoint}{BootstrapEndpoint}",
+                content: null,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<BootstrapCityResponseDto>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: $"{CitiesEndpoint}{BootstrapEndpoint}");
         }
     }
 }

@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.Contracts.City.Responses;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Matrix.CityCore.Contracts.Requests;
 
@@ -5,9 +6,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
 {
     public interface ICityCoreApiClient
     {
-        Task BootstrapAsync(
-            Guid cityId,
-            CancellationToken cancellationToken = default);
+        Task<BootstrapCityResponseDto> BootstrapAsync(CancellationToken cancellationToken = default);
 
         Task<CityCoreClockResponseDto> GetClockAsync(
             Guid cityId,

@@ -11,24 +11,25 @@ namespace Matrix.ApiGateway.Controllers.City
 {
     [Authorize]
     [ApiController]
-    [Route("api/city/{cityId:guid}")]
+    [Route("api/city")]
     public sealed class CityController(ICityCoreApiClient cityCoreClient) : ControllerBase
     {
         private readonly ICityCoreApiClient _cityCoreClient = cityCoreClient;
 
         [HttpPost("bootstrap")]
-        public async Task<IActionResult> Bootstrap(
-            [FromRoute] Guid cityId,
-            CancellationToken cancellationToken)
+        public async Task<ActionResult<BootstrapCityResponseDto>> Bootstrap(CancellationToken cancellationToken)
         {
-            await _cityCoreClient.BootstrapAsync(
-                cityId: cityId,
+            BootstrapCityResponseDto response = await _cityCoreClient.BootstrapAsync(
                 cancellationToken: cancellationToken);
 
-            return NoContent();
+            return Ok(
+                new BootstrapCityResponseDto
+                {
+                    CityId = response.CityId
+                });
         }
 
-        [HttpGet("clock")]
+        [HttpGet("{cityId:guid}/clock")]
         public async Task<ActionResult<CityClockResponseDto>> GetClock(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -40,7 +41,7 @@ namespace Matrix.ApiGateway.Controllers.City
             return Ok(clock.ToBffResponse());
         }
 
-        [HttpPost("clock/pause")]
+        [HttpPost("{cityId:guid}/clock/pause")]
         public async Task<IActionResult> PauseClock(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -52,7 +53,7 @@ namespace Matrix.ApiGateway.Controllers.City
             return NoContent();
         }
 
-        [HttpPost("clock/resume")]
+        [HttpPost("{cityId:guid}/clock/resume")]
         public async Task<IActionResult> ResumeClock(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
@@ -64,7 +65,7 @@ namespace Matrix.ApiGateway.Controllers.City
             return NoContent();
         }
 
-        [HttpPost("clock/speed")]
+        [HttpPost("{cityId:guid}/clock/speed")]
         public async Task<IActionResult> SetClockSpeed(
             [FromRoute] Guid cityId,
             [FromBody] SetCityClockSpeedRequestDto request,
@@ -78,7 +79,7 @@ namespace Matrix.ApiGateway.Controllers.City
             return NoContent();
         }
 
-        [HttpPost("clock/jump")]
+        [HttpPost("{cityId:guid}/clock/jump")]
         public async Task<IActionResult> JumpClock(
             [FromRoute] Guid cityId,
             [FromBody] JumpCityClockRequestDto request,
