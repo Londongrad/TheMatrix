@@ -18,6 +18,23 @@ export function isGuid(value: string): boolean {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
+export function isEmptyGuid(value: string): boolean {
+    return value.trim().toLowerCase() === "00000000-0000-0000-0000-000000000000";
+}
+
+export function generateGuid(): string {
+    if (typeof globalThis.crypto?.randomUUID === "function") {
+        return globalThis.crypto.randomUUID();
+    }
+
+    // Fallback for environments without crypto.randomUUID
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+        const random = Math.floor(Math.random() * 16);
+        const value = char === "x" ? random : (random & 0x3) | 0x8;
+        return value.toString(16);
+    });
+}
+
 export function toIsoUtcFromDatetimeLocal(value: string): string | null {
     if (!value) return null;
 
