@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import CitizensPage from "@services/population/people/pages/CitizensPage";
 import DashboardPage from "@services/citycore/pages/DashboardPage";
+import CitySimulationPage from "@services/citycore/pages/CitySimulationPage";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 
 import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage";
@@ -48,6 +49,7 @@ const App = () => {
               }
             >
               <Route path="/" element={<DashboardPage />} />
+                <Route path="/citycore" element={<CitySimulationPage />} />
               <Route
                 path="/citizens"
                 element={
