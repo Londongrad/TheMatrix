@@ -1,6 +1,7 @@
 ﻿import { API_CITY_URL } from "@shared/api/config";
 import { apiRequest } from "@shared/api/http";
 import type {
+    BootstrapCityResponseDto,
     CityClockResponseDto,
     JumpCityClockRequestDto,
     SetCityClockSpeedRequestDto,
@@ -10,8 +11,8 @@ function withAuth(token: string): HeadersInit {
     return { Authorization: `Bearer ${token}` };
 }
 
-export async function bootstrapCity(cityId: string, token: string): Promise<void> {
-    await apiRequest<void>(`${API_CITY_URL}/${cityId}/bootstrap`, {
+export async function bootstrapCity(token: string): Promise<BootstrapCityResponseDto> {
+    return await apiRequest<BootstrapCityResponseDto>(`${API_CITY_URL}/bootstrap`, {
         method: "POST",
         headers: withAuth(token),
     });

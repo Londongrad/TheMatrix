@@ -9,6 +9,7 @@ import {
 
 interface MutateOptions {
     onSuccess?: () => Promise<void> | void;
+    onBootstrapSuccess?: (cityId: string) => void;
 }
 
 interface UseCityClockMutationsResult {
@@ -42,14 +43,15 @@ export function useCityClockMutations(
         action: () => Promise<void>,
         setBusy: (value: boolean) => void,
         errorMessage: string,
+        requiresCityId = true,
     ) => {
         if (!token) {
             setActionError("Your session has expired. Please sign in again.");
             return;
         }
 
-        if (!cityId) {
-            setActionError("Provide a valid City ID before running simulation actions.");
+        if (requiresCityId && !cityId) {
+            setActionError("Bootstrap a city before running simulation actions.");
             return;
         }
 
@@ -75,9 +77,13 @@ export function useCityClockMutations(
         actionError,
         bootstrap: async () => {
             await runAction(
-                () => bootstrapCity(cityId, token!),
+                async () => {
+                    const response = await bootstrapCity(token!);
+                    options.onBootstrapSuccess?.(response.cityId);
+                },
                 setIsBootstrapping,
                 "Failed to bootstrap city clock.",
+                false,
             );
         },
         pauseClock: async () => {

@@ -1,5 +1,9 @@
 ﻿export type ClockState = "Running" | "Paused" | string;
 
+export interface BootstrapCityResponseDto {
+    cityId: string;
+}
+
 export interface CityClockResponseDto {
     cityId: string;
     simTimeUtc: string;

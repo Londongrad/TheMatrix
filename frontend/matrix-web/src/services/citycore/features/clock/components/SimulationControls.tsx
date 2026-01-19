@@ -5,7 +5,8 @@ import type { ClockState } from "@services/citycore/api/cityCoreTypes";
 interface SimulationControlsProps {
     state: ClockState | null;
     hasClock: boolean;
-    canRunActions: boolean;
+    canBootstrap: boolean;
+    canControlClock: boolean;
     isBootstrapping: boolean;
     isPausing: boolean;
     isResuming: boolean;
@@ -17,7 +18,8 @@ interface SimulationControlsProps {
 const SimulationControls = ({
                                 state,
                                 hasClock,
-                                canRunActions,
+                                canBootstrap,
+                                canControlClock,
                                 isBootstrapping,
                                 isPausing,
                                 isResuming,
@@ -34,14 +36,14 @@ const SimulationControls = ({
                 <Button
                     variant="primary"
                     onClick={() => void onBootstrap()}
-                    disabled={!canRunActions || isBootstrapping || hasClock}
+                    disabled={!canBootstrap || isBootstrapping}
                 >
                     {isBootstrapping ? "Bootstrapping..." : "Bootstrap"}
                 </Button>
 
                 <Button
                     onClick={() => void onPause()}
-                    disabled={!hasClock || isPaused || isPausing}
+                    disabled={!hasClock || !canControlClock || isPaused || isPausing}
                 >
                     {isPausing ? "Pausing..." : "Pause"}
                 </Button>
@@ -49,7 +51,7 @@ const SimulationControls = ({
                 <Button
                     variant="success"
                     onClick={() => void onResume()}
-                    disabled={!hasClock || isRunning || isResuming}
+                    disabled={!hasClock || !canControlClock || isRunning || isResuming}
                 >
                     {isResuming ? "Resuming..." : "Resume"}
                 </Button>

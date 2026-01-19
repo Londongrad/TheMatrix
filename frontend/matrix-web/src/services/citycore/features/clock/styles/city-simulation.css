@@ -56,6 +56,20 @@
     box-shadow: 0 0 16px rgba(87, 255, 170, 0.15);
 }
 
+.citycore-city-id-badge {
+    min-width: 360px;
+    min-height: 42px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(87, 255, 170, 0.2);
+    background: rgba(8, 12, 14, 0.7);
+    color: rgba(232, 255, 245, 0.9);
+    display: flex;
+    align-items: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 13px;
+}
+
 .citycore-toolbar__switch {
     display: inline-flex;
     align-items: center;
