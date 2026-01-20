@@ -1,4 +1,4 @@
-﻿namespace Matrix.CityCore.Domain.Events
+﻿namespace Matrix.CityCore.Domain.Events.Common
 {
     /// <summary>
     ///     Base implementation for domain events.
