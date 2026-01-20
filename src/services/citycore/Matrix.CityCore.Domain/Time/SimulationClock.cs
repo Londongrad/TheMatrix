@@ -26,7 +26,7 @@ namespace Matrix.CityCore.Domain.Time
         }
 
         private SimulationClock()
-            : base(new CityId(Guid.Empty)) { }
+            : base(default(CityId)) { }
 
         public SimTime CurrentTime { get; private set; }
         public TickId TickId { get; private set; }
