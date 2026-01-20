@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Domain.Events;
+﻿using Matrix.CityCore.Domain.Events.Common;
 
 namespace Matrix.CityCore.Domain.Common
 {

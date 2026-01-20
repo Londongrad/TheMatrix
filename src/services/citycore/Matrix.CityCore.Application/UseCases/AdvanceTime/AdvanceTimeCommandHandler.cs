@@ -1,7 +1,9 @@
 ﻿using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Events;
+using Matrix.CityCore.Domain.Events.Simulation;
 using Matrix.CityCore.Domain.Time;
 using MediatR;
 

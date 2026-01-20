@@ -1,4 +1,5 @@
-﻿using Matrix.CityCore.Domain.Time;
+﻿using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Time;
 
 namespace Matrix.CityCore.Application.Abstractions.Persistence
 {

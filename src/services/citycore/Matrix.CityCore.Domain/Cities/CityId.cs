@@ -1,6 +1,6 @@
 ﻿using Matrix.BuildingBlocks.Domain;
 
-namespace Matrix.CityCore.Domain.Time
+namespace Matrix.CityCore.Domain.Cities
 {
     /// <summary>
     ///     Strongly-typed identifier for a city.
