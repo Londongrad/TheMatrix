@@ -1,9 +1,10 @@
 ﻿using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Time;
 using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.BootstrapCity
+namespace Matrix.CityCore.Application.UseCases.Simulation.BootstrapCity
 {
     public sealed class BootstrapCityCommandHandler(
         ISimulationClockRepository repository,
@@ -14,6 +15,7 @@ namespace Matrix.CityCore.Application.UseCases.BootstrapCity
             CancellationToken cancellationToken)
         {
             var clock = SimulationClock.Create(
+                CityId.New(),
                 startTime: SimTime.FromUtc(request.StartSimTimeUtc),
                 speed: SimSpeed.RealTime());
 

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.PauseClock
+namespace Matrix.CityCore.Application.UseCases.Simulation.PauseClock
 {
     public sealed record PauseClockCommand(Guid CityId) : IRequest<bool>;
 }

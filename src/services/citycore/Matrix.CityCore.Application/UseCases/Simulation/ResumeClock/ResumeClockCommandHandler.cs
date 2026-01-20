@@ -4,7 +4,7 @@ using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Time;
 using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.ResumeClock
+namespace Matrix.CityCore.Application.UseCases.Simulation.ResumeClock
 {
     public sealed class ResumeClockCommandHandler(
         ISimulationClockRepository repository,

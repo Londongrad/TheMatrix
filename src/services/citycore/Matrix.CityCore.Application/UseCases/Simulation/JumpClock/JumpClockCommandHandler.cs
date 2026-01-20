@@ -4,24 +4,23 @@ using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Time;
 using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.PauseClock
+namespace Matrix.CityCore.Application.UseCases.Simulation.JumpClock
 {
-    public sealed class PauseClockCommandHandler(
+    public sealed class JumpClockCommandHandler(
         ISimulationClockRepository repository,
-        IUnitOfWork unitOfWork) : IRequestHandler<PauseClockCommand, bool>
+        IUnitOfWork unitOfWork) : IRequestHandler<JumpClockCommand, bool>
     {
         public async Task<bool> Handle(
-            PauseClockCommand request,
+            JumpClockCommand request,
             CancellationToken cancellationToken)
         {
             SimulationClock? clock = await repository.GetByCityIdAsync(
                 cityId: new CityId(request.CityId),
                 cancellationToken: cancellationToken);
-
             if (clock is null)
                 return false;
 
-            clock.Pause();
+            clock.JumpTo(SimTime.FromUtc(request.NewSimTimeUtc));
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
         }

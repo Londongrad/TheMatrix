@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Matrix.CityCore.Application.UseCases.AdvanceTime;
+using Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime;
 using Matrix.CityCore.Infrastructure.Options;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

@@ -2,12 +2,11 @@
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Events;
 using Matrix.CityCore.Domain.Events.Simulation;
 using Matrix.CityCore.Domain.Time;
 using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.AdvanceTime
+namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime
 {
     public sealed class AdvanceTimeCommandHandler(
         ISimulationClockRepository repository,

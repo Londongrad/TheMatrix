@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.AdvanceTime
+namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime
 {
     public sealed record AdvanceTimeCommand(
         Guid CityId,

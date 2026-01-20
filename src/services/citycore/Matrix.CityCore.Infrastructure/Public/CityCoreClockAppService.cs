@@ -1,9 +1,9 @@
-﻿using Matrix.CityCore.Application.UseCases.BootstrapCity;
-using Matrix.CityCore.Application.UseCases.GetClock;
-using Matrix.CityCore.Application.UseCases.JumpClock;
-using Matrix.CityCore.Application.UseCases.PauseClock;
-using Matrix.CityCore.Application.UseCases.ResumeClock;
-using Matrix.CityCore.Application.UseCases.SetClockSpeed;
+﻿using Matrix.CityCore.Application.UseCases.Simulation.BootstrapCity;
+using Matrix.CityCore.Application.UseCases.Simulation.GetClock;
+using Matrix.CityCore.Application.UseCases.Simulation.JumpClock;
+using Matrix.CityCore.Application.UseCases.Simulation.PauseClock;
+using Matrix.CityCore.Application.UseCases.Simulation.ResumeClock;
+using Matrix.CityCore.Application.UseCases.Simulation.SetClockSpeed;
 using MediatR;
 
 namespace Matrix.CityCore.Infrastructure.Public

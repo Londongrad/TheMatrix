@@ -3,7 +3,7 @@ using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Time;
 using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.GetClock
+namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
 {
     public sealed class GetClockQueryHandler(ISimulationClockRepository repository)
         : IRequestHandler<GetClockQuery, ClockDto?>

@@ -1,6 +1,6 @@
 ﻿using Matrix.CityCore.Domain.Time;
 
-namespace Matrix.CityCore.Application.UseCases.GetClock
+namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
 {
     public sealed record ClockDto(
         Guid CityId,

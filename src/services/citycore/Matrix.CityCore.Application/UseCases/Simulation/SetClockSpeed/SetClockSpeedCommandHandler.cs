@@ -4,7 +4,7 @@ using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Time;
 using MediatR;
 
-namespace Matrix.CityCore.Application.UseCases.SetClockSpeed
+namespace Matrix.CityCore.Application.UseCases.Simulation.SetClockSpeed
 {
     public sealed class SetClockSpeedCommandHandler(
         ISimulationClockRepository repository,
