@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj"/>
-    <ProjectReference Include="..\..\services\citycore\Matrix.CityCore.Contracts\Matrix.CityCore.Contracts.csproj" />
+    <ProjectReference Include="..\..\services\citycore\Matrix.CityCore.Contracts\Matrix.CityCore.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj"/>
   </ItemGroup>

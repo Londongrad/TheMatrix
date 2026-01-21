@@ -7,14 +7,14 @@ namespace Matrix.CityCore.Domain.Cities
     /// </summary>
     public readonly record struct CityId
     {
-        public Guid Value { get; }
-
         public CityId(Guid value)
         {
             Value = GuardHelper.AgainstEmptyGuid(
                 id: value,
                 propertyName: nameof(Value));
         }
+
+        public Guid Value { get; }
 
         public static CityId New()
         {

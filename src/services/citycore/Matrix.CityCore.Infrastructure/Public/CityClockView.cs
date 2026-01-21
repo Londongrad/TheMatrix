@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Domain.Time;
+﻿using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Infrastructure.Public
 {

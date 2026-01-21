@@ -1,7 +1,6 @@
 ﻿using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
-using Matrix.CityCore.Application;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Infrastructure.HostedServices;

@@ -9,14 +9,17 @@ namespace Matrix.CityCore.Api.Controllers
     public sealed class CityClockController(ICityCoreClockAppService service) : ControllerBase
     {
         [HttpPost("bootstrap")]
-        public async Task<IResult> Bootstrap(
-            CancellationToken cancellationToken)
+        public async Task<IResult> Bootstrap(CancellationToken cancellationToken)
         {
             Guid cityId = await service.BootstrapAsync(
                 startSimTimeUtc: DateTimeOffset.UtcNow,
                 cancellationToken: cancellationToken);
 
-            return Results.Ok(new { cityId });
+            return Results.Ok(
+                new
+                {
+                    cityId
+                });
         }
 
         [HttpGet("{cityId:guid}/clock")]

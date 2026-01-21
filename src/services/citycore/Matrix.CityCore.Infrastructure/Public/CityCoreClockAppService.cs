@@ -15,8 +15,7 @@ namespace Matrix.CityCore.Infrastructure.Public
             CancellationToken cancellationToken)
         {
             return await mediator.Send(
-                request: new BootstrapCityCommand(
-                    StartSimTimeUtc: startSimTimeUtc),
+                request: new BootstrapCityCommand(StartSimTimeUtc: startSimTimeUtc),
                 cancellationToken: cancellationToken);
         }
 

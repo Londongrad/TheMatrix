@@ -1,7 +1,7 @@
 ﻿using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Time;
+using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.JumpClock

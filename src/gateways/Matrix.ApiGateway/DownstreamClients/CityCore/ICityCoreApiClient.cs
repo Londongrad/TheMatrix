@@ -1,4 +1,3 @@
-using Matrix.ApiGateway.Contracts.City.Responses;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Matrix.CityCore.Contracts.Requests;
 

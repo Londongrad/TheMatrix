@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Time;
+using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
 {
