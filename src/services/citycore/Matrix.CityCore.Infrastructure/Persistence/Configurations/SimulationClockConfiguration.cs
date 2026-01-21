@@ -46,6 +46,12 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
 
             builder.Ignore(x => x.DomainEvents);
 
+            builder
+               .HasOne<City>()
+               .WithOne()
+               .HasForeignKey<SimulationClock>(x => x.Id)
+               .OnDelete(DeleteBehavior.Cascade);
+
             builder.Property<uint>("xmin")
                .HasColumnName("xmin")
                .ValueGeneratedOnAddOrUpdate()
