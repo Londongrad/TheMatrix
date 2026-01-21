@@ -12,5 +12,9 @@ namespace Matrix.CityCore.Application.Abstractions.Persistence
         Task AddAsync(
             SimulationClock clock,
             CancellationToken cancellationToken);
+
+        Task DeleteByCityIdAsync(
+            CityId cityId,
+            CancellationToken cancellationToken);
     }
 }

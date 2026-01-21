@@ -25,5 +25,12 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
                     cancellationToken: cancellationToken)
                .AsTask();
         }
+
+        public Task DeleteByCityIdAsync(
+            CityId cityId,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
