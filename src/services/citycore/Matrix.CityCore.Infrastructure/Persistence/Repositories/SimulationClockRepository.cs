@@ -11,7 +11,7 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
             CityId cityId,
             CancellationToken cancellationToken)
         {
-            return dbContext.SimulationClocks.FirstOrDefaultAsync(
+            return dbContext.SimulationClocks.SingleOrDefaultAsync(
                 predicate: x => x.Id == cityId,
                 cancellationToken: cancellationToken);
         }
@@ -26,11 +26,18 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
                .AsTask();
         }
 
-        public Task DeleteByCityIdAsync(
+        public async Task DeleteByCityIdAsync(
             CityId cityId,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
+                predicate: x => x.Id == cityId,
+                cancellationToken: cancellationToken);
+
+            if (clock is null)
+                return;
+
+            dbContext.SimulationClocks.Remove(clock);
         }
     }
 }
