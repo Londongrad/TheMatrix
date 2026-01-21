@@ -2,10 +2,9 @@
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Common;
 using Matrix.CityCore.Domain.Errors;
-using Matrix.CityCore.Domain.Events;
 using Matrix.CityCore.Domain.Events.Simulation;
 
-namespace Matrix.CityCore.Domain.Time
+namespace Matrix.CityCore.Domain.Simulation
 {
     /// <summary>
     ///     Aggregate root that owns simulation time for a city.
@@ -43,7 +42,9 @@ namespace Matrix.CityCore.Domain.Time
             SimSpeed speed,
             ClockState initialState = ClockState.Running)
         {
-            GuardHelper.AgainstEmptyGuid(cityId.Value, nameof(cityId));
+            GuardHelper.AgainstEmptyGuid(
+                id: cityId.Value,
+                propertyName: nameof(cityId));
 
             var clock = new SimulationClock(
                 cityId: cityId,

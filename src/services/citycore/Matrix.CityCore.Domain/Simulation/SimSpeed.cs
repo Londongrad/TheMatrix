@@ -1,7 +1,7 @@
 ﻿using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Domain.Errors;
 
-namespace Matrix.CityCore.Domain.Time
+namespace Matrix.CityCore.Domain.Simulation
 {
     /// <summary>
     ///     Simulation speed multiplier.

@@ -1,6 +1,6 @@
 ﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
-using Matrix.CityCore.Domain.Time;
+using Matrix.CityCore.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.CityCore.Infrastructure.Persistence

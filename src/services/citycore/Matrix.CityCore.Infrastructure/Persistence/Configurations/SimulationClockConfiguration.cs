@@ -1,5 +1,5 @@
 ﻿using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Time;
+using Matrix.CityCore.Domain.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

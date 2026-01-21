@@ -1,4 +1,4 @@
-﻿namespace Matrix.CityCore.Domain.Time
+﻿namespace Matrix.CityCore.Domain.Simulation
 {
     /// <summary>
     ///     Monotonic tick identifier used for idempotency in downstream consumers.

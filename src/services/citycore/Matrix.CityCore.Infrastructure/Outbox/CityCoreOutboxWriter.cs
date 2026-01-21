@@ -1,7 +1,7 @@
 ﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Time;
+using Matrix.CityCore.Domain.Simulation;
 using Matrix.CityCore.Infrastructure.Outbox.IntegrationEvents;
 using Matrix.CityCore.Infrastructure.Persistence;
 
