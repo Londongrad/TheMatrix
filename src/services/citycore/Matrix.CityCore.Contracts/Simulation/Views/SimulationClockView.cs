@@ -1,6 +1,6 @@
-﻿namespace Matrix.CityCore.Contracts.Views
+﻿namespace Matrix.CityCore.Contracts.Simulation.Views
 {
-    public sealed record CityClockView(
+    public sealed record SimulationClockView(
         Guid CityId,
         DateTimeOffset SimTimeUtc,
         long TickId,
