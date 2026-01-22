@@ -8,7 +8,6 @@ using Matrix.CityCore.Infrastructure.Options;
 using Matrix.CityCore.Infrastructure.Outbox;
 using Matrix.CityCore.Infrastructure.Persistence;
 using Matrix.CityCore.Infrastructure.Persistence.Repositories;
-using Matrix.CityCore.Infrastructure.Public;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +35,6 @@ namespace Matrix.CityCore.Infrastructure
 
             services.AddOutbox<CityCoreDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, LoggingOutboxMessagePublisher>();
-            services.AddScoped<ICityCoreClockAppService, CityCoreClockAppService>();
 
             services.AddHostedService<SimulationTickHostedService>();
 
