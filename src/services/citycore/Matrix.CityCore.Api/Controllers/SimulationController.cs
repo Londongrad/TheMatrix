@@ -1,48 +1,51 @@
-﻿using Matrix.CityCore.Contracts.Requests;
-using Matrix.CityCore.Infrastructure.Public;
+﻿using Matrix.CityCore.Application.UseCases.Simulation.GetClock;
+using Matrix.CityCore.Application.UseCases.Simulation.JumpClock;
+using Matrix.CityCore.Application.UseCases.Simulation.PauseClock;
+using Matrix.CityCore.Application.UseCases.Simulation.ResumeClock;
+using Matrix.CityCore.Application.UseCases.Simulation.SetClockSpeed;
+using Matrix.CityCore.Contracts.Requests;
+using Matrix.CityCore.Contracts.Views;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.CityCore.Api.Controllers
 {
     [ApiController]
-    [Route("api/cities")]
-    public sealed class SimulationController(ICityCoreClockAppService service) : ControllerBase
+    [Authorize]
+    [Route("api/cities/{cityId:guid}/simulation")]
+    public sealed class SimulationController(IMediator mediator) : ControllerBase
     {
-        [HttpPost("bootstrap")]
-        public async Task<IResult> Bootstrap(CancellationToken cancellationToken)
-        {
-            Guid cityId = await service.BootstrapAsync(
-                startSimTimeUtc: DateTimeOffset.UtcNow,
-                cancellationToken: cancellationToken);
-
-            return Results.Ok(
-                new
-                {
-                    cityId
-                });
-        }
-
-        [HttpGet("{cityId:guid}/clock")]
+        [HttpGet]
         public async Task<IResult> GetClock(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            CityClockView? clock = await service.GetClockAsync(
-                cityId: cityId,
+            ClockDto? clock = await mediator.Send(
+                request: new GetClockQuery(cityId),
                 cancellationToken: cancellationToken);
 
-            return clock is null
-                ? Results.NotFound()
-                : Results.Ok(clock);
+            if (clock is null)
+                return Results.NotFound();
+
+            // Маппинг оставляем такой же, как был в фасаде
+            var view = new CityClockView(
+                CityId: clock.CityId,
+                SimTimeUtc: clock.SimTimeUtc,
+                TickId: clock.TickId,
+                Speed: clock.Speed,
+                State: clock.State.ToString());
+
+            return Results.Ok(view);
         }
 
-        [HttpPost("{cityId:guid}/clock/pause")]
+        [HttpPost("pause")]
         public async Task<IResult> Pause(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            bool updated = await service.PauseAsync(
-                cityId: cityId,
+            bool updated = await mediator.Send(
+                request: new PauseClockCommand(cityId),
                 cancellationToken: cancellationToken);
 
             return updated
@@ -50,13 +53,13 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.NotFound();
         }
 
-        [HttpPost("{cityId:guid}/clock/resume")]
+        [HttpPost("resume")]
         public async Task<IResult> Resume(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            bool updated = await service.ResumeAsync(
-                cityId: cityId,
+            bool updated = await mediator.Send(
+                request: new ResumeClockCommand(cityId),
                 cancellationToken: cancellationToken);
 
             return updated
@@ -64,15 +67,16 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.NotFound();
         }
 
-        [HttpPost("{cityId:guid}/clock/speed")]
+        [HttpPost("speed")]
         public async Task<IResult> SetSpeed(
             [FromRoute] Guid cityId,
             [FromBody] SetSpeedRequest request,
             CancellationToken cancellationToken)
         {
-            bool updated = await service.SetSpeedAsync(
-                cityId: cityId,
-                multiplier: request.Multiplier,
+            bool updated = await mediator.Send(
+                request: new SetClockSpeedCommand(
+                    CityId: cityId,
+                    Multiplier: request.Multiplier),
                 cancellationToken: cancellationToken);
 
             return updated
@@ -80,15 +84,16 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.NotFound();
         }
 
-        [HttpPost("{cityId:guid}/clock/jump")]
+        [HttpPost("jump")]
         public async Task<IResult> Jump(
             [FromRoute] Guid cityId,
             [FromBody] JumpClockRequest request,
             CancellationToken cancellationToken)
         {
-            bool updated = await service.JumpAsync(
-                cityId: cityId,
-                newSimTimeUtc: request.NewSimTimeUtc,
+            bool updated = await mediator.Send(
+                request: new JumpClockCommand(
+                    CityId: cityId,
+                    NewSimTimeUtc: request.NewSimTimeUtc),
                 cancellationToken: cancellationToken);
 
             return updated
