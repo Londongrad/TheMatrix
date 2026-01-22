@@ -6,7 +6,7 @@ namespace Matrix.CityCore.Api.Controllers
 {
     [ApiController]
     [Route("api/cities")]
-    public sealed class CityClockController(ICityCoreClockAppService service) : ControllerBase
+    public sealed class SimulationController(ICityCoreClockAppService service) : ControllerBase
     {
         [HttpPost("bootstrap")]
         public async Task<IResult> Bootstrap(CancellationToken cancellationToken)
