@@ -1,5 +1,5 @@
 ﻿using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.DownstreamClients.CityCore;
+using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.HttpHandlers;

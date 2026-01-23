@@ -1,15 +1,14 @@
-using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.CityCore.Contracts.Simulation.Requests;
+using Matrix.CityCore.Contracts.Simulation.Views;
 
-namespace Matrix.ApiGateway.DownstreamClients.CityCore
+namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
 {
     internal sealed class CityCoreApiClient(HttpClient client) : ICityCoreApiClient
     {
         private const string CitiesEndpoint = "/api/cities";
 
-        private const string BootstrapEndpoint = "/bootstrap";
         private const string ClockEndpoint = "/clock";
         private const string ClockPauseEndpoint = "/clock/pause";
         private const string ClockResumeEndpoint = "/clock/resume";
@@ -17,7 +16,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
         private const string ClockJumpEndpoint = "/clock/jump";
         private readonly HttpClient _client = client;
 
-        public async Task<CityCoreClockResponseDto> GetClockAsync(
+        public async Task<SimulationClockView?> GetClockAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
@@ -25,7 +24,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
                 requestUri: $"{CitiesEndpoint}/{cityId}{ClockEndpoint}",
                 cancellationToken: cancellationToken);
 
-            return await response.ReadJsonOrThrowDownstreamAsync<CityCoreClockResponseDto>(
+            return await response.ReadJsonOrThrowDownstreamAsync<SimulationClockView>(
                 serviceName: DownstreamServiceNames.CityCore,
                 cancellationToken: cancellationToken,
                 requestUrl: $"{CitiesEndpoint}/{cityId}{ClockEndpoint}");
@@ -87,19 +86,6 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore
             await response.EnsureSuccessOrThrowDownstreamAsync(
                 serviceName: DownstreamServiceNames.CityCore,
                 cancellationToken: cancellationToken);
-        }
-
-        public async Task<BootstrapCityResponseDto> BootstrapAsync(CancellationToken cancellationToken = default)
-        {
-            using HttpResponseMessage response = await _client.PostAsync(
-                requestUri: $"{CitiesEndpoint}{BootstrapEndpoint}",
-                content: null,
-                cancellationToken: cancellationToken);
-
-            return await response.ReadJsonOrThrowDownstreamAsync<BootstrapCityResponseDto>(
-                serviceName: DownstreamServiceNames.CityCore,
-                cancellationToken: cancellationToken,
-                requestUrl: $"{CitiesEndpoint}{BootstrapEndpoint}");
         }
     }
 }

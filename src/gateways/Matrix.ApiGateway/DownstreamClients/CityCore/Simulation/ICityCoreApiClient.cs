@@ -1,13 +1,11 @@
-using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Matrix.CityCore.Contracts.Simulation.Requests;
+using Matrix.CityCore.Contracts.Simulation.Views;
 
-namespace Matrix.ApiGateway.DownstreamClients.CityCore
+namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
 {
     public interface ICityCoreApiClient
     {
-        Task<BootstrapCityResponseDto> BootstrapAsync(CancellationToken cancellationToken = default);
-
-        Task<CityCoreClockResponseDto> GetClockAsync(
+        Task<SimulationClockView?> GetClockAsync(
             Guid cityId,
             CancellationToken cancellationToken = default);
 
