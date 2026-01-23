@@ -8,9 +8,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.DeleteCity
     public sealed class DeleteCityCommandHandler(
         ICityRepository cityRepository,
         ISimulationClockRepository clockRepository,
-        IUnitOfWork unitOfWork) : IRequestHandler<DeleteCityCommand, bool>
+        IUnitOfWork unitOfWork) : IRequestHandler<DeleteCityCommand, DeleteCityResult>
     {
-        public async Task<bool> Handle(
+        public async Task<DeleteCityResult> Handle(
             DeleteCityCommand request,
             CancellationToken cancellationToken)
         {
@@ -19,10 +19,10 @@ namespace Matrix.CityCore.Application.UseCases.Cities.DeleteCity
                 cancellationToken: cancellationToken);
 
             if (city is null)
-                return false;
+                return DeleteCityResult.NotFound;
 
             if (!city.IsArchived)
-                return false;
+                return DeleteCityResult.NotAllowed;
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -37,7 +37,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.DeleteCity
                 },
                 cancellationToken: cancellationToken);
 
-            return true;
+            return DeleteCityResult.Deleted;
         }
     }
 }
