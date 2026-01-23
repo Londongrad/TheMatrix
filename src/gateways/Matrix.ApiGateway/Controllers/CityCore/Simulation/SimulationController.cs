@@ -10,16 +10,16 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
     [Authorize]
     [ApiController]
     [Route("api/cities/{cityId:guid}/simulation")]
-    public sealed class SimulationController(ICityCoreApiClient cityCoreClient) : ControllerBase
+    public sealed class SimulationController(ISimulationApiClient simulationClient) : ControllerBase
     {
-        private readonly ICityCoreApiClient _cityCoreClient = cityCoreClient;
+        private readonly ISimulationApiClient _simulationClient = simulationClient;
 
         [HttpGet]
         public async Task<ActionResult<SimulationClockView?>> GetClock(
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            SimulationClockView clock = await _cityCoreClient.GetClockAsync(
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
 
@@ -31,7 +31,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            await _cityCoreClient.PauseClockAsync(
+            await _simulationClient.PauseClockAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
 
@@ -43,7 +43,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            await _cityCoreClient.ResumeClockAsync(
+            await _simulationClient.ResumeClockAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
 
@@ -56,7 +56,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
             [FromBody] SetCityClockSpeedRequestDto request,
             CancellationToken cancellationToken)
         {
-            await _cityCoreClient.SetClockSpeedAsync(
+            await _simulationClient.SetClockSpeedAsync(
                 cityId: cityId,
                 request: new SetSpeedRequest(request.Multiplier),
                 cancellationToken: cancellationToken);
@@ -70,7 +70,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
             [FromBody] JumpCityClockRequestDto request,
             CancellationToken cancellationToken)
         {
-            await _cityCoreClient.JumpClockAsync(
+            await _simulationClient.JumpClockAsync(
                 cityId: cityId,
                 request: new JumpClockRequest(request.NewSimTimeUtc),
                 cancellationToken: cancellationToken);

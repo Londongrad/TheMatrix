@@ -5,7 +5,7 @@ using Matrix.CityCore.Contracts.Simulation.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
 {
-    internal sealed class CityCoreApiClient(HttpClient client) : ICityCoreApiClient
+    internal sealed class SimulationApiClient(HttpClient client) : ISimulationApiClient
     {
         private const string CitiesEndpoint = "/api/cities";
 

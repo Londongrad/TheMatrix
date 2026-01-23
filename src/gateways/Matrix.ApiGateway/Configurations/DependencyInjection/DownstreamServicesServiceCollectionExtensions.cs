@@ -53,7 +53,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddCityCoreClients(this IServiceCollection services)
         {
-            services.AddHttpClient<ICityCoreApiClient, CityCoreApiClient>((
+            services.AddHttpClient<ISimulationApiClient, SimulationApiClient>((
                         sp,
                         client) =>
                     ConfigureServiceBaseAddress(

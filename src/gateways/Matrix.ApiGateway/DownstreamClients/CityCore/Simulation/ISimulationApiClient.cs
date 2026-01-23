@@ -3,7 +3,7 @@ using Matrix.CityCore.Contracts.Simulation.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
 {
-    public interface ICityCoreApiClient
+    public interface ISimulationApiClient
     {
         Task<SimulationClockView?> GetClockAsync(
             Guid cityId,
