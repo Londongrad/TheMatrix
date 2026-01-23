@@ -28,7 +28,6 @@ namespace Matrix.CityCore.Api.Controllers
             if (clock is null)
                 return Results.NotFound();
 
-            // Маппинг оставляем такой же, как был в фасаде
             var view = new SimulationClockView(
                 CityId: clock.CityId,
                 SimTimeUtc: clock.SimTimeUtc,

@@ -7,27 +7,29 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
 {
     internal sealed class SimulationApiClient(HttpClient client) : ISimulationApiClient
     {
+        private const string SimulationSegment = "/simulation";
         private const string CitiesEndpoint = "/api/cities";
 
-        private const string ClockEndpoint = "/clock";
-        private const string ClockPauseEndpoint = "/clock/pause";
-        private const string ClockResumeEndpoint = "/clock/resume";
-        private const string ClockSpeedEndpoint = "/clock/speed";
-        private const string ClockJumpEndpoint = "/clock/jump";
+        private const string ClockPauseEndpoint = "/pause";
+        private const string ClockResumeEndpoint = "/resume";
+        private const string ClockSpeedEndpoint = "/speed";
+        private const string ClockJumpEndpoint = "/jump";
         private readonly HttpClient _client = client;
 
-        public async Task<SimulationClockView?> GetClockAsync(
+        public async Task<SimulationClockView> GetClockAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
+            string requestUri = $"{CitiesEndpoint}/{cityId}{SimulationSegment}";
+
             using HttpResponseMessage response = await _client.GetAsync(
-                requestUri: $"{CitiesEndpoint}/{cityId}{ClockEndpoint}",
+                requestUri: requestUri,
                 cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<SimulationClockView>(
                 serviceName: DownstreamServiceNames.CityCore,
                 cancellationToken: cancellationToken,
-                requestUrl: $"{CitiesEndpoint}/{cityId}{ClockEndpoint}");
+                requestUrl: requestUri);
         }
 
         public async Task PauseClockAsync(
@@ -35,7 +37,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
             CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _client.PostAsync(
-                requestUri: $"{CitiesEndpoint}/{cityId}{ClockPauseEndpoint}",
+                requestUri: $"{CitiesEndpoint}/{cityId}{SimulationSegment}{ClockPauseEndpoint}",
                 content: null,
                 cancellationToken: cancellationToken);
 
@@ -49,7 +51,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
             CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _client.PostAsync(
-                requestUri: $"{CitiesEndpoint}/{cityId}{ClockResumeEndpoint}",
+                requestUri: $"{CitiesEndpoint}/{cityId}{SimulationSegment}{ClockResumeEndpoint}",
                 content: null,
                 cancellationToken: cancellationToken);
 
@@ -64,7 +66,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
             CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
-                requestUri: $"{CitiesEndpoint}/{cityId}{ClockSpeedEndpoint}",
+                requestUri: $"{CitiesEndpoint}/{cityId}{SimulationSegment}{ClockSpeedEndpoint}",
                 value: request,
                 cancellationToken: cancellationToken);
 
@@ -79,7 +81,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
             CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
-                requestUri: $"{CitiesEndpoint}/{cityId}{ClockJumpEndpoint}",
+                requestUri: $"{CitiesEndpoint}/{cityId}{SimulationSegment}{ClockJumpEndpoint}",
                 value: request,
                 cancellationToken: cancellationToken);
 

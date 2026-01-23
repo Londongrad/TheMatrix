@@ -5,7 +5,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
 {
     public interface ISimulationApiClient
     {
-        Task<SimulationClockView?> GetClockAsync(
+        Task<SimulationClockView> GetClockAsync(
             Guid cityId,
             CancellationToken cancellationToken = default);
 
