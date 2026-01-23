@@ -3,8 +3,8 @@ using Matrix.CityCore.Application.UseCases.Simulation.JumpClock;
 using Matrix.CityCore.Application.UseCases.Simulation.PauseClock;
 using Matrix.CityCore.Application.UseCases.Simulation.ResumeClock;
 using Matrix.CityCore.Application.UseCases.Simulation.SetClockSpeed;
-using Matrix.CityCore.Contracts.Requests;
-using Matrix.CityCore.Contracts.Views;
+using Matrix.CityCore.Contracts.Simulation.Requests;
+using Matrix.CityCore.Contracts.Simulation.Views;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +29,7 @@ namespace Matrix.CityCore.Api.Controllers
                 return Results.NotFound();
 
             // Маппинг оставляем такой же, как был в фасаде
-            var view = new CityClockView(
+            var view = new SimulationClockView(
                 CityId: clock.CityId,
                 SimTimeUtc: clock.SimTimeUtc,
                 TickId: clock.TickId,

@@ -2,11 +2,16 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
-    "types": ["vite/client"],
+    "types": [
+      "vite/client"
+    ],
     "skipLibCheck": true,
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -14,7 +19,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -22,15 +26,24 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-
     /* Алиасы */
     "baseUrl": "./src",
     "paths": {
-      "@app/*": ["app/*"],
-      "@services/*": ["services/*"],
-      "@shared/*": ["shared/*"],
-      "@pages/*": ["pages/*"]
+      "@app/*": [
+        "app/*"
+      ],
+      "@services/*": [
+        "services/*"
+      ],
+      "@shared/*": [
+        "shared/*"
+      ],
+      "@pages/*": [
+        "pages/*"
+      ]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

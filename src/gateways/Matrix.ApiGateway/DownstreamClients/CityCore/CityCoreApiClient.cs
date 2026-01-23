@@ -1,7 +1,7 @@
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
-using Matrix.CityCore.Contracts.Requests;
+using Matrix.CityCore.Contracts.Simulation.Requests;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore
 {

@@ -3,7 +3,7 @@ using Matrix.ApiGateway.Contracts.City.Responses;
 using Matrix.ApiGateway.Controllers.City.Mappers;
 using Matrix.ApiGateway.DownstreamClients.CityCore;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Models;
-using Matrix.CityCore.Contracts.Requests;
+using Matrix.CityCore.Contracts.Simulation.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
