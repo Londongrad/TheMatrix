@@ -1,4 +1,5 @@
 ﻿using Matrix.ApiGateway.Configurations.Options;
+using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
@@ -54,6 +55,16 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         private static IServiceCollection AddCityCoreClients(this IServiceCollection services)
         {
             services.AddHttpClient<ISimulationApiClient, SimulationApiClient>((
+                        sp,
+                        client) =>
+                    ConfigureServiceBaseAddress(
+                        sp: sp,
+                        client: client,
+                        serviceName: DownstreamServiceNames.CityCore))
+               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            services.AddHttpClient<ICitiesApiClient, CitiesApiClient>((
                         sp,
                         client) =>
                     ConfigureServiceBaseAddress(
