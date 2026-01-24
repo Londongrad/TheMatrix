@@ -3,7 +3,7 @@ import { PermissionKeys } from "@shared/permissions/permissionKeys";
 
 export const mainNavItems: NavItem[] = [
   { to: "/", label: "Dashboard", end: true },
-  { to: "/citycore", label: "City Simulation" },
+  { to: "/cities", label: "Cities" },
   {
     to: "/citizens",
     label: "Citizens",
