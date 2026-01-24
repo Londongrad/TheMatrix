@@ -1,6 +1,6 @@
 // src/services/identity/self/sessions/hooks/useSessions.ts
 import { useEffect, useMemo, useState } from "react";
-import type { SessionInfo } from "@services/identity/api/self/auth/authTypes";
+import type { SessionInfo } from "@services/identity/api/self/sessions/sessionsTypes.ts";
 import {
   getSessions,
   revokeAllSessions,
