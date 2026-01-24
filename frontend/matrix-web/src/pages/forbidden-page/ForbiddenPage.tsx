@@ -1,6 +1,5 @@
 // src/pages/forbidden-page/ForbiddenPage.tsx
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
 import { useAuth } from "@services/identity/api/self/auth/AuthContext";
 import MatrixBackdrop from "@shared/ui/backgrounds/BackgroundRain/MatrixRainBackground";
 import "./forbidden-page.css";
@@ -11,67 +10,12 @@ type ForbiddenState = {
   reason?: string;
 };
 
-type RainColumn = {
-  id: number;
-  leftPct: number;
-  delaySec: number;
-  durationSec: number;
-  text: string;
-};
-
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function pick<T>(arr: T[]) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function makeColumnText(length: number) {
-  const glyphs = [
-    ..."01",
-    ..."1010011010",
-    ..."アイウエオカキクケコサシスセソ",
-    ..."ﾊﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ",
-    ..."∆⌁⌂⌐⌑⌒⍟⎔⎓⎖⎗",
-  ].flat();
-
-  // Столбик “символ на строку” (white-space: pre)
-  let s = "";
-  for (let i = 0; i < length; i++) {
-    s += pick(glyphs) + (i === length - 1 ? "" : "\n");
-  }
-  return s;
-}
-
 export default function ForbiddenPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
 
   const state = (location.state ?? {}) as ForbiddenState;
-
-  const rain = useMemo<RainColumn[]>(() => {
-    const columns = 34;
-    const res: RainColumn[] = [];
-
-    for (let i = 0; i < columns; i++) {
-      const leftPct = (i / columns) * 100 + Math.random() * 2; // небольшой “дрейф”
-      const delaySec = -Math.random() * 12; // чтобы анимация стартовала “в процессе”
-      const durationSec = randomInt(6, 14) + Math.random();
-      const textLen = randomInt(18, 38);
-
-      res.push({
-        id: i,
-        leftPct,
-        delaySec,
-        durationSec,
-        text: makeColumnText(textLen),
-      });
-    }
-
-    return res;
-  }, []);
 
   const handleLogout = async () => {
     try {
