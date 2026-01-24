@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import CitizensPage from "@services/population/people/pages/CitizensPage";
 import DashboardPage from "@services/citycore/pages/DashboardPage";
 import CitySimulationPage from "@services/citycore/pages/CitySimulationPage";
+import DashboardPage from "@services/citycore/dashboard/pages/DashboardPage";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 
 import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage";
