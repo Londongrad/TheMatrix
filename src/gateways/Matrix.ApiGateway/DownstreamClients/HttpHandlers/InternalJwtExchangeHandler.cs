@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.InternalJwt.Abstractions;
@@ -29,9 +30,9 @@ namespace Matrix.ApiGateway.DownstreamClients.HttpHandlers
                     request: request,
                     cancellationToken: cancellationToken);
 
-            // 1) userId из внешнего access JWT
-            string? sub = user.FindFirst("sub")
-              ?.Value;
+            string? sub =
+                user.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
+                user.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (!Guid.TryParse(
                     input: sub,
@@ -40,26 +41,21 @@ namespace Matrix.ApiGateway.DownstreamClients.HttpHandlers
                     request: request,
                     cancellationToken: cancellationToken);
 
-            // 2) получаем актуальный permissionsVersion (у тебя уже есть Redis+fallback Identity)
             int currentPv = await _pvStore.GetCurrentAsync(
                 userId: userId,
                 cancellationToken: cancellationToken);
 
-            // 3) получаем effective permissions (кэшируется в Redis внутри CachedAuthContextStore)
             UserAuthContextResponse ctx = await _authContextStore.GetAsync(
                 userId: userId,
                 permissionsVersion: currentPv,
                 ct: cancellationToken);
 
-            // 4) достаем jti
-            string? jti = _http.HttpContext?.User.FindFirst("jti")
-              ?.Value;
+            string? jti = _http.HttpContext?.User.FindFirst("jti")?.Value;
 
-            // 5) выпускаем internal JWT (короткий TTL) с perm-claims
             string internalJwt = _internalJwtIssuer.Issue(
                 userId: userId,
                 jti: jti,
-                permissionsVersion: ctx.PermissionsVersion, // обычно совпадает с currentPv
+                permissionsVersion: ctx.PermissionsVersion,
                 permissions: ctx.EffectivePermissions);
 
             request.Headers.Authorization =
