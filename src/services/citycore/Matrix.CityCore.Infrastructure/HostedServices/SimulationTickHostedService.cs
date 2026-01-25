@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime;
+using Matrix.CityCore.Application.UseCases.Simulation.AdvanceRunningSimulations;
 using Matrix.CityCore.Infrastructure.Options;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,11 +35,18 @@ namespace Matrix.CityCore.Infrastructure.HostedServices
                 {
                     using IServiceScope scope = scopeFactory.CreateScope();
                     IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-                    await mediator.Send(
-                        request: new AdvanceCitySimulationCommand(
-                            CityId: tickOptions.DefaultCityId,
-                            RealDelta: realDelta),
+
+                    AdvanceRunningSimulationsResult result = await mediator.Send(
+                        request: new AdvanceRunningSimulationsCommand(realDelta),
                         cancellationToken: cancellationToken);
+
+                    logger.LogDebug(
+                        message:
+                        "CityCore tick processed {ProcessedCount} cities. Advanced: {AdvancedCount}, skipped: {SkippedCount}, failed: {FailedCount}.",
+                        result.ProcessedCount,
+                        result.AdvancedCount,
+                        result.SkippedCount,
+                        result.FailedCount);
                 }
                 catch (Exception ex)
                 {
