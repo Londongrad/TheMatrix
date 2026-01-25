@@ -1,208 +1,208 @@
 // src/services/identity/self/sessions/components/SessionsCard.tsx
-import type { SessionInfo } from "@services/identity/api/self/sessions/sessionsTypes";
-import { useSessions } from "../hooks/useSessions";
-import { RequirePermission } from "@shared/permissions/RequirePermission";
-import { PermissionKeys } from "@shared/permissions/permissionKeys";
+import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes";
+import {useSessions} from "../hooks/useSessions";
+import {RequirePermission} from "@shared/permissions/RequirePermission";
+import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import "@services/identity/self/sessions/styles/sessions-card.css";
 
 type Props = {
-  token: string | null;
-  logout?: () => Promise<void>;
-  confirm: (options: any) => Promise<boolean>;
+    token: string | null;
+    logout?: () => Promise<void>;
+    confirm: (options: any) => Promise<boolean>;
 };
 
-const SessionsCard = ({ token, logout, confirm }: Props) => {
-  const {
-    isSessionsOpen,
-    setIsSessionsOpen,
-    sessions,
-    sortedSessions,
-    sessionsError,
-    isLoadingSessions,
-    revokingSessionId,
-    isRevokingAll,
-    loadSessions,
-    revokeOne,
-    revokeAll,
-    isCurrentSession,
-  } = useSessions({ token, logout, confirm });
+const SessionsCard = ({token, logout, confirm}: Props) => {
+    const {
+        isSessionsOpen,
+        setIsSessionsOpen,
+        sessions,
+        sortedSessions,
+        sessionsError,
+        isLoadingSessions,
+        revokingSessionId,
+        isRevokingAll,
+        loadSessions,
+        revokeOne,
+        revokeAll,
+        isCurrentSession,
+    } = useSessions({token, logout, confirm});
 
-  const buildLocation = (s: SessionInfo) => {
-    if (s.location) return s.location;
-    const parts = [s.city, s.region, s.country].filter(Boolean) as string[];
-    return parts.length ? parts.join(", ") : "";
-  };
+    const buildLocation = (s: SessionInfo) => {
+        if (s.location) return s.location;
+        const parts = [s.city, s.region, s.country].filter(Boolean) as string[];
+        return parts.length ? parts.join(", ") : "";
+    };
 
-  const fmtUtc = (value?: string | null) => {
-    if (!value) return "";
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
-  };
+    const fmtUtc = (value?: string | null) => {
+        if (!value) return "";
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+    };
 
-  return (
-    <section className="settings-card settings-card--sessions settings-card--span-2">
-      <div className="settings-card-header">
-        <div>
-          <h2 className="settings-card-title">Sessions</h2>
-          <p className="settings-card-description">
-            Manage active sessions across devices.
-          </p>
-        </div>
+    return (
+        <section className="settings-card settings-card--sessions settings-card--span-2">
+            <div className="settings-card-header">
+                <div>
+                    <h2 className="settings-card-title">Sessions</h2>
+                    <p className="settings-card-description">
+                        Manage active sessions across devices.
+                    </p>
+                </div>
 
-        <div className="settings-header-actions">
-          {isSessionsOpen && (
-            <RequirePermission
-              perm={PermissionKeys.IdentityMeSessionsRead}
-              mode="disable"
-            >
-              <button
-                type="button"
-                className="settings-button settings-button--secondary"
-                onClick={() => void loadSessions()}
-                disabled={!token || isLoadingSessions || isRevokingAll}
-              >
-                {isLoadingSessions ? "Loading..." : "Refresh"}
-              </button>
-            </RequirePermission>
-          )}
+                <div className="settings-header-actions">
+                    {isSessionsOpen && (
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeSessionsRead}
+                            mode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button settings-button--secondary"
+                                onClick={() => void loadSessions()}
+                                disabled={!token || isLoadingSessions || isRevokingAll}
+                            >
+                                {isLoadingSessions ? "Loading..." : "Refresh"}
+                            </button>
+                        </RequirePermission>
+                    )}
 
-          <button
-            type="button"
-            className="settings-button settings-button--secondary"
-            onClick={() => setIsSessionsOpen((v) => !v)}
-            disabled={!token}
-          >
-            {isSessionsOpen ? "Hide sessions" : "Show sessions"}
-          </button>
-        </div>
-      </div>
-
-      {!isSessionsOpen ? (
-        <div className="settings-sessions-summary">
-          {!token ? (
-            <p className="settings-muted">
-              Log in to view and manage sessions.
-            </p>
-          ) : sessionsError ? (
-            <div className="settings-alert settings-alert--error">
-              {sessionsError}
+                    <button
+                        type="button"
+                        className="settings-button settings-button--secondary"
+                        onClick={() => setIsSessionsOpen((v) => !v)}
+                        disabled={!token}
+                    >
+                        {isSessionsOpen ? "Hide sessions" : "Show sessions"}
+                    </button>
+                </div>
             </div>
-          ) : (
-            <p className="settings-muted">
-              Sessions are hidden. Click <b>Show sessions</b> to load and
-              manage.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="settings-sessions-body">
-          {sessionsError && (
-            <div className="settings-alert settings-alert--error">
-              {sessionsError}
-            </div>
-          )}
 
-          {!token ? (
-            <p className="settings-muted">
-              Log in to view and manage sessions.
-            </p>
-          ) : isLoadingSessions ? (
-            <div className="settings-session-skeleton">
-              <div className="settings-session-skeleton-line" />
-              <div className="settings-session-skeleton-line" />
-              <div className="settings-session-skeleton-line" />
-            </div>
-          ) : sessions.length === 0 ? (
-            <p className="settings-muted">No sessions found.</p>
-          ) : (
-            <div className="settings-session-list">
-              {sortedSessions.map((s) => {
-                const location = buildLocation(s);
+            {!isSessionsOpen ? (
+                <div className="settings-sessions-summary">
+                    {!token ? (
+                        <p className="settings-muted">
+                            Log in to view and manage sessions.
+                        </p>
+                    ) : sessionsError ? (
+                        <div className="settings-alert settings-alert--error">
+                            {sessionsError}
+                        </div>
+                    ) : (
+                        <p className="settings-muted">
+                            Sessions are hidden. Click <b>Show sessions</b> to load and
+                            manage.
+                        </p>
+                    )}
+                </div>
+            ) : (
+                <div className="settings-sessions-body">
+                    {sessionsError && (
+                        <div className="settings-alert settings-alert--error">
+                            {sessionsError}
+                        </div>
+                    )}
 
-                return (
-                  <div
-                    key={s.id}
-                    className={`settings-session-item ${
-                      isCurrentSession(s)
-                        ? "settings-session-item--current"
-                        : ""
-                    }`}
-                  >
-                    <div className="settings-session-main">
-                      <div className="settings-session-title">
+                    {!token ? (
+                        <p className="settings-muted">
+                            Log in to view and manage sessions.
+                        </p>
+                    ) : isLoadingSessions ? (
+                        <div className="settings-session-skeleton">
+                            <div className="settings-session-skeleton-line"/>
+                            <div className="settings-session-skeleton-line"/>
+                            <div className="settings-session-skeleton-line"/>
+                        </div>
+                    ) : sessions.length === 0 ? (
+                        <p className="settings-muted">No sessions found.</p>
+                    ) : (
+                        <div className="settings-session-list">
+                            {sortedSessions.map((s) => {
+                                const location = buildLocation(s);
+
+                                return (
+                                    <div
+                                        key={s.id}
+                                        className={`settings-session-item ${
+                                            isCurrentSession(s)
+                                                ? "settings-session-item--current"
+                                                : ""
+                                        }`}
+                                    >
+                                        <div className="settings-session-main">
+                                            <div className="settings-session-title">
                         <span className="settings-session-device">
                           {s.deviceName}
                         </span>
-                        {isCurrentSession(s) && (
-                          <span className="settings-pill">Current</span>
-                        )}
-                      </div>
+                                                {isCurrentSession(s) && (
+                                                    <span className="settings-pill">Current</span>
+                                                )}
+                                            </div>
 
-                      <div className="settings-session-meta">
-                        {s.ipAddress && (
-                          <span className="settings-session-chip">
+                                            <div className="settings-session-meta">
+                                                {s.ipAddress && (
+                                                    <span className="settings-session-chip">
                             IP: {s.ipAddress}
                           </span>
-                        )}
-                        {location && (
-                          <span className="settings-session-chip">
+                                                )}
+                                                {location && (
+                                                    <span className="settings-session-chip">
                             {location}
                           </span>
-                        )}
-                        <span className="settings-session-chip">
+                                                )}
+                                                <span className="settings-session-chip">
                           {s.lastUsedAtUtc
-                            ? `Last used: ${fmtUtc(s.lastUsedAtUtc)}`
-                            : `Created: ${fmtUtc(s.createdAtUtc)}`}
+                              ? `Last used: ${fmtUtc(s.lastUsedAtUtc)}`
+                              : `Created: ${fmtUtc(s.createdAtUtc)}`}
                         </span>
-                      </div>
+                                            </div>
 
-                      <div className="settings-session-ua">{s.userAgent}</div>
-                    </div>
+                                            <div className="settings-session-ua">{s.userAgent}</div>
+                                        </div>
 
-                    <div className="settings-session-actions">
-                      <RequirePermission
-                        perm={PermissionKeys.IdentityMeSessionsRevoke}
-                        mode="disable"
-                      >
-                        <button
-                          type="button"
-                          className="settings-button settings-button--ghost-danger"
-                          onClick={() => void revokeOne(s)}
-                          disabled={revokingSessionId === s.id || isRevokingAll}
+                                        <div className="settings-session-actions">
+                                            <RequirePermission
+                                                perm={PermissionKeys.IdentityMeSessionsRevoke}
+                                                mode="disable"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    className="settings-button settings-button--ghost-danger"
+                                                    onClick={() => void revokeOne(s)}
+                                                    disabled={revokingSessionId === s.id || isRevokingAll}
+                                                >
+                                                    {revokingSessionId === s.id
+                                                        ? "Revoking..."
+                                                        : "Отозвать"}
+                                                </button>
+                                            </RequirePermission>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    <div className="settings-actions-row settings-actions-row--sessions">
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeSessionsRevokeAll}
+                            mode="disable"
                         >
-                          {revokingSessionId === s.id
-                            ? "Revoking..."
-                            : "Отозвать"}
-                        </button>
-                      </RequirePermission>
+                            <button
+                                type="button"
+                                className="settings-button settings-button--danger-outline"
+                                onClick={() => void revokeAll()}
+                                disabled={!token || isRevokingAll || isLoadingSessions}
+                            >
+                                {isRevokingAll
+                                    ? "Revoking..."
+                                    : "Отозвать все (включая текущую)"}
+                            </button>
+                        </RequirePermission>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="settings-actions-row settings-actions-row--sessions">
-            <RequirePermission
-              perm={PermissionKeys.IdentityMeSessionsRevokeAll}
-              mode="disable"
-            >
-              <button
-                type="button"
-                className="settings-button settings-button--danger-outline"
-                onClick={() => void revokeAll()}
-                disabled={!token || isRevokingAll || isLoadingSessions}
-              >
-                {isRevokingAll
-                  ? "Revoking..."
-                  : "Отозвать все (включая текущую)"}
-              </button>
-            </RequirePermission>
-          </div>
-        </div>
-      )}
-    </section>
-  );
+                </div>
+            )}
+        </section>
+    );
 };
 
 export default SessionsCard;

@@ -4,5 +4,5 @@ import App from "./app/App";
 import "@shared/styles/index.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <App />
+    <App/>
 );

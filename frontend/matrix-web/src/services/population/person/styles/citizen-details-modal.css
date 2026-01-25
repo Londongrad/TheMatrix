@@ -1,231 +1,228 @@
 /* ===== BACKDROP & CONTAINER =================================== */
 
 .citizens-page-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    circle at top,
-    rgba(8, 14, 16, 0.9),
-    rgba(2, 6, 8, 0.98)
-  );
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+            circle at top,
+            rgba(8, 14, 16, 0.9),
+            rgba(2, 6, 8, 0.98)
+    );
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
 }
 
 /* Градиентный бордер + тёмный внутренний фон */
 .citizens-page-modal {
-  position: relative;
-  width: min(960px, 96vw);
-  max-height: 90vh;
-  padding: 1.75rem 1.9rem 1.4rem;
-  border-radius: 18px;
+    position: relative;
+    width: min(960px, 96vw);
+    max-height: 90vh;
+    padding: 1.75rem 1.9rem 1.4rem;
+    border-radius: 18px;
 
-  /* 1) внутренний фон (padding-box)
-     2) внешнее градиентное кольцо (border-box) */
-  background: linear-gradient(rgba(8, 12, 14, 0.95), rgba(8, 12, 14, 0.95))
-      padding-box,
+    /* 1) внутренний фон (padding-box)
+       2) внешнее градиентное кольцо (border-box) */
+    background: linear-gradient(rgba(8, 12, 14, 0.95), rgba(8, 12, 14, 0.95)) padding-box,
     radial-gradient(
-        140% 200% at 0% 0%,
-        rgba(87, 255, 170, 0.5),
-        rgba(0, 212, 255, 0.2),
-        rgba(8, 12, 14, 0.95)
-      )
-      border-box;
-  border: 1px solid transparent;
+            140% 200% at 0% 0%,
+            rgba(87, 255, 170, 0.5),
+            rgba(0, 212, 255, 0.2),
+            rgba(8, 12, 14, 0.95)
+    ) border-box;
+    border: 1px solid transparent;
 
-  box-shadow: 0 28px 120px rgba(0, 0, 0, 0.9);
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
+    box-shadow: 0 28px 120px rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
 }
 
 /* Лёгкое свечение по верхнему краю, как у карточек */
 .citizens-page-modal::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  opacity: 0.35;
-  background: radial-gradient(
-      circle at 0% 0%,
-      rgba(87, 255, 170, 0.4),
-      transparent 55%
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0.35;
+    background: radial-gradient(
+            circle at 0% 0%,
+            rgba(87, 255, 170, 0.4),
+            transparent 55%
     ),
     radial-gradient(circle at 100% 0%, rgba(0, 212, 255, 0.25), transparent 55%);
 }
 
 /* Вариант для мёртвых — более холодный, “выцветший” градиент */
 .citizens-page-modal.citizens-page-modal--dead {
-  background: linear-gradient(rgba(8, 12, 14, 0.95), rgba(8, 12, 14, 0.95))
-      padding-box,
+    background: linear-gradient(rgba(8, 12, 14, 0.95), rgba(8, 12, 14, 0.95)) padding-box,
     radial-gradient(
-        150% 210% at 0% 0%,
-        rgba(31, 41, 55, 0.75),
-        rgba(8, 12, 14, 0.98)
-      )
-      border-box;
-  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.95);
+            150% 210% at 0% 0%,
+            rgba(31, 41, 55, 0.75),
+            rgba(8, 12, 14, 0.98)
+    ) border-box;
+    box-shadow: 0 24px 90px rgba(0, 0, 0, 0.95);
 }
 
 .citizens-page-modal.citizens-page-modal--dead::before {
-  opacity: 0.15;
+    opacity: 0.15;
 }
 
 /* ===== HEADER ================================================= */
 
 .citizens-page-modal-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.4rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(87, 255, 170, 0.12);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(87, 255, 170, 0.12);
 }
 
 .citizens-page-modal-header > div:first-child {
-  flex: 1;
-  min-width: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 /* строка с именем */
 .citizens-page-modal-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%; /* строка с именем занимает всю ширину левого блока */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%; /* строка с именем занимает всю ширину левого блока */
 }
 
 .citizens-page-modal-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: rgba(232, 255, 245, 0.95);
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: rgba(232, 255, 245, 0.95);
 }
 
 .citizens-page-modal-subtitle {
-  font-size: 0.85rem;
-  color: rgba(232, 255, 245, 0.6);
-  margin-top: 0.12rem;
+    font-size: 0.85rem;
+    color: rgba(232, 255, 245, 0.6);
+    margin-top: 0.12rem;
 }
 
 /* чтобы строки статуса не слипались друг с другом */
 .citizens-page-modal-subtitle + .citizens-page-modal-subtitle {
-  margin-top: 0.16rem;
+    margin-top: 0.16rem;
 }
 
 /* инпут для имени */
 .citizens-page-modal-title-edit-input {
-  width: 100%; /* растягиваем по всей ширине строки */
-  max-width: none; /* убираем ограничение 360px */
+    width: 100%; /* растягиваем по всей ширине строки */
+    max-width: none; /* убираем ограничение 360px */
 
-  font-size: 1.3rem; /* как у заголовка h2 */
-  font-weight: 600;
-  line-height: 1.2;
+    font-size: 1.3rem; /* как у заголовка h2 */
+    font-weight: 600;
+    line-height: 1.2;
 }
 
 /* Кнопки в правом углу (✏️ и ✕) */
 .citizens-page-modal-header .ui-icon-button {
-  font-size: 0.9rem;
+    font-size: 0.9rem;
 }
+
 /* ===== BODY / GRID ============================================ */
 
 .citizens-page-modal-body {
-  overflow-y: auto;
-  padding-right: 0.25rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
 }
 
 /* аккуратный скролл в теле модалки */
 .citizens-page-modal-body::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 
 .citizens-page-modal-body::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 .citizens-page-modal-body::-webkit-scrollbar-thumb {
-  background: rgba(87, 255, 170, 0.2);
-  border-radius: 999px;
+    background: rgba(87, 255, 170, 0.2);
+    border-radius: 999px;
 }
 
 .citizens-page-modal-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap: 1.35rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 1.35rem;
 }
 
 .citizens-page-modal-section-title {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgba(232, 255, 245, 0.55);
-  margin-bottom: 0.6rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(232, 255, 245, 0.55);
+    margin-bottom: 0.6rem;
 }
 
 .citizens-page-modal-field {
-  margin-bottom: 0.55rem;
+    margin-bottom: 0.55rem;
 }
 
 .citizens-page-modal-field-label {
-  font-size: 0.8rem;
-  color: rgba(232, 255, 245, 0.6);
-  margin-bottom: 0.12rem;
+    font-size: 0.8rem;
+    color: rgba(232, 255, 245, 0.6);
+    margin-bottom: 0.12rem;
 }
 
 /* строка label + маленький элемент справа (если нужен) */
 .citizens-page-modal-field-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
 }
 
 /* ===== EDIT BLOCK (Happiness) ================================= */
 
 .citizens-page-modal-happiness-row {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin-top: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: 0.35rem;
 }
 
 /* range растягиваем, чтобы выглядел как часть формы */
 .citizens-page-modal-happiness-row input[type="range"] {
-  flex: 1;
-  accent-color: rgba(87, 255, 170, 0.9);
+    flex: 1;
+    accent-color: rgba(87, 255, 170, 0.9);
 }
 
 /* тёмный number-input */
 .citizens-page-modal-input-number {
-  width: 64px;
-  padding: 0.25rem 0.45rem;
-  border-radius: 8px;
-  border: 1px solid rgba(87, 255, 170, 0.35);
-  background: rgba(8, 12, 14, 0.7);
-  color: rgba(232, 255, 245, 0.9);
-  font-size: 0.9rem;
-  text-align: center;
-  outline: none;
-  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-  transition: border-color 120ms ease-out, box-shadow 120ms ease-out,
+    width: 64px;
+    padding: 0.25rem 0.45rem;
+    border-radius: 8px;
+    border: 1px solid rgba(87, 255, 170, 0.35);
+    background: rgba(8, 12, 14, 0.7);
+    color: rgba(232, 255, 245, 0.9);
+    font-size: 0.9rem;
+    text-align: center;
+    outline: none;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    transition: border-color 120ms ease-out, box-shadow 120ms ease-out,
     background 120ms ease-out;
 }
 
 .citizens-page-modal-input-number:focus {
-  border-color: rgba(87, 255, 170, 0.7);
-  box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.4);
-  background: rgba(8, 12, 14, 0.9);
+    border-color: rgba(87, 255, 170, 0.7);
+    box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.4);
+    background: rgba(8, 12, 14, 0.9);
 }
 
 .citizens-page-modal-input-number:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* ===== INPUTS & SELECTS ======================================= */
@@ -233,66 +230,66 @@
 /* общий тёмный текстовый инпут (personal/employment + имя) */
 .citizens-page-modal-input-text,
 .citizens-page-modal-select {
-  width: 100%;
-  padding: 0.38rem 0.55rem;
-  border-radius: 8px;
-  border: 1px solid rgba(87, 255, 170, 0.25);
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(12, 18, 20, 0.9),
-    rgba(8, 12, 14, 0.95)
-  );
-  color: rgba(232, 255, 245, 0.9);
-  outline: none;
-  transition: border-color 120ms ease-out, box-shadow 120ms ease-out,
+    width: 100%;
+    padding: 0.38rem 0.55rem;
+    border-radius: 8px;
+    border: 1px solid rgba(87, 255, 170, 0.25);
+    background: radial-gradient(
+            circle at 0% 0%,
+            rgba(12, 18, 20, 0.9),
+            rgba(8, 12, 14, 0.95)
+    );
+    color: rgba(232, 255, 245, 0.9);
+    outline: none;
+    transition: border-color 120ms ease-out, box-shadow 120ms ease-out,
     background 120ms ease-out;
 }
 
 .citizens-page-modal-input-text:focus,
 .citizens-page-modal-select:focus {
-  border-color: rgba(87, 255, 170, 0.7);
-  box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.4);
-  background: rgba(8, 12, 14, 0.95);
+    border-color: rgba(87, 255, 170, 0.7);
+    box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.4);
+    background: rgba(8, 12, 14, 0.95);
 }
 
 .citizens-page-modal-input-text:disabled,
 .citizens-page-modal-select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* тёмный select для enum-ов (marital, employment, education) */
 .citizens-page-modal-select {
-  appearance: none;
+    appearance: none;
 }
 
 /* Ошибки валидации полей */
 .citizens-page-modal-error {
-  margin-top: 0.3rem;
-  font-size: 0.85rem;
-  color: #fca5a5;
+    margin-top: 0.3rem;
+    font-size: 0.85rem;
+    color: #fca5a5;
 }
 
 /* ===== FOOTER & BUTTONS ======================================= */
 
 .citizens-page-modal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.85rem;
-  padding-top: 0.65rem;
-  border-top: 1px solid rgba(87, 255, 170, 0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(87, 255, 170, 0.12);
 }
 
 .citizens-page-modal-footer-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .citizens-page-modal .ui-button--sm {
-  border-radius: 999px;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.85rem;
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.85rem;
 }

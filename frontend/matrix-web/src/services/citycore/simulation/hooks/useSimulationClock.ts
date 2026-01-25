@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getSimulationClock } from "@services/citycore/simulation/api/simulationApi";
-import type { SimulationView } from "@services/citycore/simulation/contracts/simulationContracts";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {getSimulationClock} from "@services/citycore/simulation/api/simulationApi";
+import type {SimulationView} from "@services/citycore/simulation/contracts/simulationContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0

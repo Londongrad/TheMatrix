@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getCity } from "@services/citycore/cities/api/citiesApi";
-import type { CityView } from "@services/citycore/cities/contracts/citiesContracts";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {getCity} from "@services/citycore/cities/api/citiesApi";
+import type {CityView} from "@services/citycore/cities/contracts/citiesContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {type FormEvent, useEffect, useMemo, useRef, useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
 import Card from "@shared/ui/controls/Card/Card";
 import ClockDisplay from "@services/citycore/simulation/components/ClockDisplay";
-import { useSimulationClock } from "@services/citycore/simulation/hooks/useSimulationClock";
-import { useSimulationMutations } from "@services/citycore/simulation/hooks/useSimulationMutations";
-import { localDateTimeToUtcIso } from "@services/citycore/cities/utils/dateTime";
+import {useSimulationClock} from "@services/citycore/simulation/hooks/useSimulationClock";
+import {useSimulationMutations} from "@services/citycore/simulation/hooks/useSimulationMutations";
+import {localDateTimeToUtcIso} from "@services/citycore/cities/utils/dateTime";
 import "@services/citycore/simulation/styles/simulation-panel.css";
 
 const DRIFT_SNAP_THRESHOLD_MS = 3000;
@@ -15,7 +15,7 @@ interface SimulationPanelProps {
     cityId: string;
 }
 
-const SimulationPanel = ({ cityId }: SimulationPanelProps) => {
+const SimulationPanel = ({cityId}: SimulationPanelProps) => {
     const simulationQuery = useSimulationClock(cityId, 5000);
     const simulationMutations = useSimulationMutations();
 

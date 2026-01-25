@@ -1,14 +1,6 @@
-import { useState } from "react";
-import {
-    archiveCity,
-    createCity,
-    deleteCity,
-    renameCity,
-} from "@services/citycore/cities/api/citiesApi";
-import type {
-    CityCreatedView,
-    CreateCityRequest,
-} from "@services/citycore/cities/contracts/citiesContracts";
+import {useState} from "react";
+import {archiveCity, createCity, deleteCity, renameCity,} from "@services/citycore/cities/api/citiesApi";
+import type {CityCreatedView, CreateCityRequest,} from "@services/citycore/cities/contracts/citiesContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0
@@ -46,7 +38,7 @@ export function useCityMutations() {
 
         rename: async (cityId: string, name: string): Promise<boolean> => {
             const result = await run(
-                () => renameCity(cityId, { name }),
+                () => renameCity(cityId, {name}),
                 "Failed to rename city.",
             );
 

@@ -1,7 +1,7 @@
-import { useMemo, useState, type FormEvent } from "react";
+import {type FormEvent, useMemo, useState} from "react";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
-import type { CityView } from "@services/citycore/cities/contracts/citiesContracts";
+import type {CityView} from "@services/citycore/cities/contracts/citiesContracts";
 
 type Props = {
     city: CityView | null;
@@ -16,7 +16,7 @@ type Props = {
 
 function formatDateTime(value: string | null | undefined): string {
     if (!value) {
-        return "—";
+        return "â€”";
     }
 
     const parsed = new Date(value);

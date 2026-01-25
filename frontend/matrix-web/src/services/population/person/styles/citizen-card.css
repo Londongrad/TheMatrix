@@ -1,118 +1,118 @@
 .card {
-  background: rgba(8, 12, 14, 0.75);
-  border-radius: 14px;
-  padding: 16px;
-  border: 1px solid rgba(87, 255, 170, 0.16);
+    background: rgba(8, 12, 14, 0.75);
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid rgba(87, 255, 170, 0.16);
 }
 
 /* общий стиль текста подзаголовков/статусов */
 .card-sub {
-  font-size: 12px;
-  color: rgba(232, 255, 245, 0.6);
+    font-size: 12px;
+    color: rgba(232, 255, 245, 0.6);
 }
 
 .citizen-card {
-  position: relative;
-  padding: 1rem 1.1rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(87, 255, 170, 0.1), transparent 65%),
+    position: relative;
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(87, 255, 170, 0.1), transparent 65%),
     rgba(8, 12, 14, 0.8);
-  border: 1px solid rgba(87, 255, 170, 0.22);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.65), 0 0 20px rgba(87, 255, 170, 0.08);
-  transition: transform 120ms ease-out, box-shadow 120ms ease-out,
+    border: 1px solid rgba(87, 255, 170, 0.22);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.65), 0 0 20px rgba(87, 255, 170, 0.08);
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out,
     border-color 120ms ease-out, background 200ms ease-out;
-  animation: citizen-card-in 200ms ease-out;
+    animation: citizen-card-in 200ms ease-out;
 }
 
 .citizen-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(87, 255, 170, 0.65);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 30px rgba(87, 255, 170, 0.18);
+    transform: translateY(-3px);
+    border-color: rgba(87, 255, 170, 0.65);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 30px rgba(87, 255, 170, 0.18);
 }
 
 @keyframes citizen-card-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .citizen-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
 .citizen-card-body p {
-  margin: 0.2rem 0;
-  color: rgba(232, 255, 245, 0.9);
-  font-size: 0.9rem;
+    margin: 0.2rem 0;
+    color: rgba(232, 255, 245, 0.9);
+    font-size: 0.9rem;
 }
 
 /* ФИО */
 .citizen-card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.2; /* высота одной строки */
-  margin: 0; /* чтобы не добавлял свой margin */
-  min-height: calc(1em * 2); /* две строки по line-height */
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2; /* высота одной строки */
+    margin: 0; /* чтобы не добавлял свой margin */
+    min-height: calc(1em * 2); /* две строки по line-height */
 }
 
 /* визуальный модификатор для умершего жителя */
 .citizen-card--deceased {
-  background: radial-gradient(
-    circle at top left,
-    rgba(24, 28, 33, 0.9),
-    #020617
-  );
-  border-color: rgba(248, 113, 113, 0.75);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85);
-  opacity: 0.9;
-  filter: grayscale(0.7);
+    background: radial-gradient(
+            circle at top left,
+            rgba(24, 28, 33, 0.9),
+            #020617
+    );
+    border-color: rgba(248, 113, 113, 0.75);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85);
+    opacity: 0.9;
+    filter: grayscale(0.7);
 }
 
 .citizen-card-sub {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
 }
 
 /* Статус человека */
 .citizen-card-sub-status {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-  width: 100%;
-  box-sizing: border-box;
+    width: 100%;
+    box-sizing: border-box;
 
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
 
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  border-width: 1px;
-  border-style: solid;
-  margin-top: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    border-width: 1px;
+    border-style: solid;
+    margin-top: 0.4rem;
 }
 
 /* Статус живого человека */
 .citizen-card-sub-status--alive {
-  border-color: rgba(74, 222, 128, 0.9);
-  color: #bbf7d0;
-  background: rgba(22, 101, 52, 0.35);
+    border-color: rgba(74, 222, 128, 0.9);
+    color: #bbf7d0;
+    background: rgba(22, 101, 52, 0.35);
 }
 
 /* Статус мертвого человека */
 .citizen-card-sub-status--deceased {
-  border-color: rgba(248, 113, 113, 0.9);
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.35);
+    border-color: rgba(248, 113, 113, 0.9);
+    color: #fecaca;
+    background: rgba(127, 29, 29, 0.35);
 }

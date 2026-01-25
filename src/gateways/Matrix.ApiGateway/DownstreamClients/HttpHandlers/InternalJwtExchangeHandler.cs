@@ -50,7 +50,8 @@ namespace Matrix.ApiGateway.DownstreamClients.HttpHandlers
                 permissionsVersion: currentPv,
                 ct: cancellationToken);
 
-            string? jti = _http.HttpContext?.User.FindFirst("jti")?.Value;
+            string? jti = _http.HttpContext?.User.FindFirst("jti")
+              ?.Value;
 
             string internalJwt = _internalJwtIssuer.Issue(
                 userId: userId,

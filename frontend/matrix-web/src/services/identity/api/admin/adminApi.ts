@@ -1,158 +1,158 @@
 // src/services/identity/api/admin/adminApi.ts
-import { apiRequest } from "@shared/api/http";
-import { API_ADMIN_URL, API_ADMIN_USERS_URL } from "@shared/api/config";
+import {apiRequest} from "@shared/api/http";
+import {API_ADMIN_URL, API_ADMIN_USERS_URL} from "@shared/api/config";
 import type {
-  CreateRoleRequest,
-  PermissionCatalogItemResponse,
-  RoleResponse,
-  RenameRoleRequest,
-  RolePermissionsResponse,
-  UserDetailsResponse,
-  UserListItemResponse,
-  UserPermissionResponse,
-  UserRoleResponse,
+    CreateRoleRequest,
+    PermissionCatalogItemResponse,
+    RenameRoleRequest,
+    RolePermissionsResponse,
+    RoleResponse,
+    UserDetailsResponse,
+    UserListItemResponse,
+    UserPermissionResponse,
+    UserRoleResponse,
 } from "./adminTypes";
-import type { PagedResult } from "@shared/lib/paging/pagingTypes";
+import type {PagedResult} from "@shared/lib/paging/pagingTypes";
 
 export async function getUsersPage(
-  pageNumber: number,
-  pageSize: number
+    pageNumber: number,
+    pageSize: number
 ): Promise<PagedResult<UserListItemResponse>> {
-  return await apiRequest<PagedResult<UserListItemResponse>>(
-    `${API_ADMIN_USERS_URL}?pageNumber=${pageNumber}&pageSize=${pageSize}`
-  );
+    return await apiRequest<PagedResult<UserListItemResponse>>(
+        `${API_ADMIN_USERS_URL}?pageNumber=${pageNumber}&pageSize=${pageSize}`
+    );
 }
 
 export async function getUserDetails(
-  userId: string
+    userId: string
 ): Promise<UserDetailsResponse> {
-  return await apiRequest<UserDetailsResponse>(
-    `${API_ADMIN_USERS_URL}/${userId}`
-  );
+    return await apiRequest<UserDetailsResponse>(
+        `${API_ADMIN_USERS_URL}/${userId}`
+    );
 }
 
 export async function lockUser(userId: string): Promise<void> {
-  await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/lock`, {
-    method: "POST",
-  });
+    await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/lock`, {
+        method: "POST",
+    });
 }
 
 export async function unlockUser(userId: string): Promise<void> {
-  await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/unlock`, {
-    method: "POST",
-  });
+    await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/unlock`, {
+        method: "POST",
+    });
 }
 
 export async function getUserRoles(
-  userId: string
+    userId: string
 ): Promise<UserRoleResponse[]> {
-  return await apiRequest<UserRoleResponse[]>(
-    `${API_ADMIN_USERS_URL}/${userId}/roles`
-  );
+    return await apiRequest<UserRoleResponse[]>(
+        `${API_ADMIN_USERS_URL}/${userId}/roles`
+    );
 }
 
 export async function assignUserRoles(
-  userId: string,
-  roleIds: string[]
+    userId: string,
+    roleIds: string[]
 ): Promise<void> {
-  await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/roles`, {
-    method: "PUT",
-    body: JSON.stringify({ roleIds }),
-  });
+    await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/roles`, {
+        method: "PUT",
+        body: JSON.stringify({roleIds}),
+    });
 }
 
 export async function getUserPermissions(
-  userId: string
+    userId: string
 ): Promise<UserPermissionResponse[]> {
-  return await apiRequest<UserPermissionResponse[]>(
-    `${API_ADMIN_USERS_URL}/${userId}/permissions`
-  );
+    return await apiRequest<UserPermissionResponse[]>(
+        `${API_ADMIN_USERS_URL}/${userId}/permissions`
+    );
 }
 
 export async function grantUserPermission(
-  userId: string,
-  permissionKey: string
+    userId: string,
+    permissionKey: string
 ): Promise<void> {
-  await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/permissions/grant`, {
-    method: "POST",
-    body: JSON.stringify({ permissionKey }),
-  });
+    await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/permissions/grant`, {
+        method: "POST",
+        body: JSON.stringify({permissionKey}),
+    });
 }
 
 export async function depriveUserPermission(
-  userId: string,
-  permissionKey: string
+    userId: string,
+    permissionKey: string
 ): Promise<void> {
-  await apiRequest<void>(
-    `${API_ADMIN_USERS_URL}/${userId}/permissions/deprive`,
-    {
-      method: "POST",
-      body: JSON.stringify({ permissionKey }),
-    }
-  );
+    await apiRequest<void>(
+        `${API_ADMIN_USERS_URL}/${userId}/permissions/deprive`,
+        {
+            method: "POST",
+            body: JSON.stringify({permissionKey}),
+        }
+    );
 }
 
 export async function getRolesCatalog(): Promise<RoleResponse[]> {
-  return await apiRequest<RoleResponse[]>(`${API_ADMIN_URL}/roles`);
+    return await apiRequest<RoleResponse[]>(`${API_ADMIN_URL}/roles`);
 }
 
 export async function createRole(
-  payload: CreateRoleRequest
+    payload: CreateRoleRequest
 ): Promise<RoleResponse> {
-  return await apiRequest<RoleResponse>(`${API_ADMIN_URL}/roles`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+    return await apiRequest<RoleResponse>(`${API_ADMIN_URL}/roles`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
 }
 
 export async function renameRole(
-  roleId: string,
-  payload: RenameRoleRequest
+    roleId: string,
+    payload: RenameRoleRequest
 ): Promise<RoleResponse> {
-  return await apiRequest<RoleResponse>(`${API_ADMIN_URL}/roles/${roleId}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
+    return await apiRequest<RoleResponse>(`${API_ADMIN_URL}/roles/${roleId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
 }
 
 export async function deleteRole(roleId: string): Promise<void> {
-  await apiRequest<void>(`${API_ADMIN_URL}/roles/${roleId}`, {
-    method: "DELETE",
-  });
+    await apiRequest<void>(`${API_ADMIN_URL}/roles/${roleId}`, {
+        method: "DELETE",
+    });
 }
 
 export async function getRolePermissions(
-  roleId: string
+    roleId: string
 ): Promise<RolePermissionsResponse> {
-  return await apiRequest<RolePermissionsResponse>(
-    `${API_ADMIN_URL}/roles/${roleId}/permissions`
-  );
+    return await apiRequest<RolePermissionsResponse>(
+        `${API_ADMIN_URL}/roles/${roleId}/permissions`
+    );
 }
 
 export async function updateRolePermissions(
-  roleId: string,
-  permissionKeys: string[]
+    roleId: string,
+    permissionKeys: string[]
 ): Promise<void> {
-  await apiRequest<void>(`${API_ADMIN_URL}/roles/${roleId}/permissions`, {
-    method: "PUT",
-    body: JSON.stringify({ permissionKeys }),
-  });
+    await apiRequest<void>(`${API_ADMIN_URL}/roles/${roleId}/permissions`, {
+        method: "PUT",
+        body: JSON.stringify({permissionKeys}),
+    });
 }
 
 export async function getRoleMembersPage(
-  roleId: string,
-  pageNumber: number,
-  pageSize: number
+    roleId: string,
+    pageNumber: number,
+    pageSize: number
 ): Promise<PagedResult<UserListItemResponse>> {
-  return await apiRequest<PagedResult<UserListItemResponse>>(
-    `${API_ADMIN_URL}/roles/${roleId}/users?pageNumber=${pageNumber}&pageSize=${pageSize}`
-  );
+    return await apiRequest<PagedResult<UserListItemResponse>>(
+        `${API_ADMIN_URL}/roles/${roleId}/users?pageNumber=${pageNumber}&pageSize=${pageSize}`
+    );
 }
 
 export async function getPermissionsCatalog(): Promise<
-  PermissionCatalogItemResponse[]
+    PermissionCatalogItemResponse[]
 > {
-  return await apiRequest<PermissionCatalogItemResponse[]>(
-    `${API_ADMIN_URL}/permissions`
-  );
+    return await apiRequest<PermissionCatalogItemResponse[]>(
+        `${API_ADMIN_URL}/permissions`
+    );
 }

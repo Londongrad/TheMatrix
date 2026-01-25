@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getCities } from "@services/citycore/cities/api/citiesApi";
-import type { CityListItemView } from "@services/citycore/cities/contracts/citiesContracts";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {getCities} from "@services/citycore/cities/api/citiesApi";
+import type {CityListItemView} from "@services/citycore/cities/contracts/citiesContracts";
 
 const citiesCache = new Map<string, CityListItemView[]>();
 

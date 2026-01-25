@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {useMemo, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import CityList from "@services/citycore/cities/components/CityList";
-import { CitiesToolbar } from "@services/citycore/cities/components/CitiesToolbar";
-import { CreateCityForm } from "@services/citycore/cities/components/CreateCityForm";
-import { useCitiesQuery } from "@services/citycore/cities/hooks/useCitiesQuery";
-import { useCityMutations } from "@services/citycore/cities/hooks/useCityMutations";
+import {CitiesToolbar} from "@services/citycore/cities/components/CitiesToolbar";
+import {CreateCityForm} from "@services/citycore/cities/components/CreateCityForm";
+import {useCitiesQuery} from "@services/citycore/cities/hooks/useCitiesQuery";
+import {useCityMutations} from "@services/citycore/cities/hooks/useCityMutations";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/cities/styles/cities.css";
 
@@ -105,7 +105,7 @@ export default function CitiesPage() {
                         )}
 
                         {!citiesQuery.error && !citiesQuery.isLoading && (
-                            <CityList cities={filteredCities} onOpen={handleOpen} />
+                            <CityList cities={filteredCities} onOpen={handleOpen}/>
                         )}
                     </div>
                 </div>

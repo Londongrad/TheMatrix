@@ -1,9 +1,9 @@
-import { apiRequest } from "@shared/api/http";
-import { API_CITY_URL } from "@shared/api/config";
+import {apiRequest} from "@shared/api/http";
+import {API_CITY_URL} from "@shared/api/config";
 import type {
-    SimulationView,
     JumpClockRequest,
     SetSpeedRequest,
+    SimulationView,
 } from "@services/citycore/simulation/contracts/simulationContracts";
 
 function simulationBase(cityId: string) {
@@ -11,15 +11,15 @@ function simulationBase(cityId: string) {
 }
 
 export function getSimulationClock(cityId: string, signal?: AbortSignal) {
-    return apiRequest<SimulationView>(simulationBase(cityId), { method: "GET", signal });
+    return apiRequest<SimulationView>(simulationBase(cityId), {method: "GET", signal});
 }
 
 export function pauseSimulation(cityId: string) {
-    return apiRequest<void>(`${simulationBase(cityId)}/pause`, { method: "POST" });
+    return apiRequest<void>(`${simulationBase(cityId)}/pause`, {method: "POST"});
 }
 
 export function resumeSimulation(cityId: string) {
-    return apiRequest<void>(`${simulationBase(cityId)}/resume`, { method: "POST" });
+    return apiRequest<void>(`${simulationBase(cityId)}/resume`, {method: "POST"});
 }
 
 export function setSimulationSpeed(cityId: string, request: SetSpeedRequest) {

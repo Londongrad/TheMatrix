@@ -1,8 +1,8 @@
-import { useNavigate, useParams } from "react-router-dom";
-import { CityDetailsHeader } from "@services/citycore/cities/components/CityDetailsHeader";
-import { CityOverviewCard } from "@services/citycore/cities/components/CityOverviewCard";
-import { useCityDetails } from "@services/citycore/cities/hooks/useCityDetails";
-import { useCityMutations } from "@services/citycore/cities/hooks/useCityMutations";
+import {useNavigate, useParams} from "react-router-dom";
+import {CityDetailsHeader} from "@services/citycore/cities/components/CityDetailsHeader";
+import {CityOverviewCard} from "@services/citycore/cities/components/CityOverviewCard";
+import {useCityDetails} from "@services/citycore/cities/hooks/useCityDetails";
+import {useCityMutations} from "@services/citycore/cities/hooks/useCityMutations";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/cities/styles/city-details.css";
@@ -84,7 +84,7 @@ const CityDetailsPage = () => {
                 onDelete={handleDelete}
             />
 
-            {cityQuery.data ? <SimulationPanel cityId={cityQuery.data.cityId} /> : null}
+            {cityQuery.data ? <SimulationPanel cityId={cityQuery.data.cityId}/> : null}
         </div>
     );
 };

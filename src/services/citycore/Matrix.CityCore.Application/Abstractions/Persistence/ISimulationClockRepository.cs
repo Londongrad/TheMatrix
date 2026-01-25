@@ -17,7 +17,6 @@ namespace Matrix.CityCore.Application.Abstractions.Persistence
             CityId cityId,
             CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<CityId>> ListActiveRunningCityIdsAsync(
-            CancellationToken cancellationToken);
+        Task<IReadOnlyList<CityId>> ListActiveRunningCityIdsAsync(CancellationToken cancellationToken);
     }
 }

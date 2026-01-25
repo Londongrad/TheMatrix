@@ -1,4 +1,4 @@
-import { apiRequest } from "@shared/api/http";
+import {apiRequest} from "@shared/api/http";
 import type {
     CityCreatedView,
     CityListItemView,
@@ -6,12 +6,12 @@ import type {
     CreateCityRequest,
     RenameCityRequest,
 } from "@services/citycore/cities/contracts/citiesContracts";
-import { API_CITY_URL } from "@shared/api/config";
+import {API_CITY_URL} from "@shared/api/config";
 
 export function getCities(includeArchived: boolean, signal?: AbortSignal) {
     return apiRequest<CityListItemView[]>(
         `${API_CITY_URL}?includeArchived=${includeArchived}`,
-        { method: "GET", signal },
+        {method: "GET", signal},
     );
 }
 

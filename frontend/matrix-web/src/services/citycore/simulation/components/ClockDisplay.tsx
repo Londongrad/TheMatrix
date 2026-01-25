@@ -49,7 +49,7 @@ function getStateClassName(state?: string): string {
     return "sim-clock-display__state";
 }
 
-const ClockDisplay = ({ value, tickId, speed, state }: ClockDisplayProps) => {
+const ClockDisplay = ({value, tickId, speed, state}: ClockDisplayProps) => {
     return (
         <div className="sim-clock-display">
             <div className="sim-clock-display__screen">

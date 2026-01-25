@@ -1,5 +1,5 @@
 //src/services/citycore/simulation/hooks/useSimulationMutations.ts
-import { useState } from "react";
+import {useState} from "react";
 import {
     jumpSimulationClock,
     pauseSimulation,
@@ -41,12 +41,12 @@ export function useSimulationMutations() {
             run(() => resumeSimulation(cityId), "Failed to resume simulation."),
         setSpeed: (cityId: string, multiplier: number) =>
             run(
-                () => setSimulationSpeed(cityId, { multiplier }),
+                () => setSimulationSpeed(cityId, {multiplier}),
                 "Failed to set simulation speed.",
             ),
         jump: (cityId: string, newSimTimeUtc: string) =>
             run(
-                () => jumpSimulationClock(cityId, { newSimTimeUtc }),
+                () => jumpSimulationClock(cityId, {newSimTimeUtc}),
                 "Failed to jump simulation clock.",
             ),
     };

@@ -1,10 +1,7 @@
-import { useMemo, useState } from "react";
+import {useMemo, useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
-import type { CreateCityRequest, CityCreatedView } from "@services/citycore/cities/contracts/citiesContracts";
-import {
-    getNowLocalDateTimeInputValue,
-    localDateTimeToUtcIso,
-} from "@services/citycore/cities/utils/dateTime";
+import type {CityCreatedView, CreateCityRequest} from "@services/citycore/cities/contracts/citiesContracts";
+import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso,} from "@services/citycore/cities/utils/dateTime";
 
 type ValidationErrors = {
     name?: string;
@@ -75,7 +72,7 @@ export function CreateCityForm({
                 return current;
             }
 
-            const next = { ...current };
+            const next = {...current};
             delete next[field];
             return next;
         });
@@ -210,7 +207,7 @@ export function CreateCityForm({
                 </Button>
             </div>
 
-            {hasValidationErrors && <div className="cities-form-spacer" />}
+            {hasValidationErrors && <div className="cities-form-spacer"/>}
         </form>
     );
 }

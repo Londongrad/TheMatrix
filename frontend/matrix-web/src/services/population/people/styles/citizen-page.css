@@ -1,71 +1,71 @@
 .citizens-page {
-  color: rgba(232, 255, 245, 0.9);
+    color: rgba(232, 255, 245, 0.9);
 }
 
 .page-title {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 0;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(232, 255, 245, 0.92);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(232, 255, 245, 0.92);
 }
 
 .citizens-page-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-  margin-bottom: 0;
-  min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    margin-bottom: 0;
+    min-height: 32px;
 }
 
 .citizens-page-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .cards-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  margin-bottom: 24px;
-  margin-top: 10px;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: 24px;
+    margin-top: 10px;
 }
 
 .citizens-page-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 1.25rem;
-  margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.25rem;
+    margin-top: 10px;
 }
 
 .citizens-loading-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .citizens-loading-spinner {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  border: 2px solid rgba(87, 255, 170, 0.25); /* контур */
-  border-top-color: rgba(87, 255, 170, 0.9); /* матричный акцент */
-  border-right-color: rgba(0, 212, 255, 0.6);
-  animation: citizens-loading-spin 0.6s linear infinite;
-  box-shadow: 0 0 8px rgba(87, 255, 170, 0.35);
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 2px solid rgba(87, 255, 170, 0.25); /* контур */
+    border-top-color: rgba(87, 255, 170, 0.9); /* матричный акцент */
+    border-right-color: rgba(0, 212, 255, 0.6);
+    animation: citizens-loading-spin 0.6s linear infinite;
+    box-shadow: 0 0 8px rgba(87, 255, 170, 0.35);
 }
 
 .citizens-page-toolbar-left .card-sub {
-  margin: 0;
-  line-height: 1.2;
-  box-shadow: 0 0 8px rgba(87, 255, 170, 0.35);
+    margin: 0;
+    line-height: 1.2;
+    box-shadow: 0 0 8px rgba(87, 255, 170, 0.35);
 }
 
 @keyframes citizens-loading-spin {
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }

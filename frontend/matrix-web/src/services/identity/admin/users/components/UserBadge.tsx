@@ -1,11 +1,11 @@
-import type { ReactNode } from "react";
+import type {ReactNode} from "react";
 
 export default function UserBadge({
-  kind,
-  children,
-}: {
-  kind: "ok" | "warn" | "bad" | "info";
-  children: ReactNode;
+                                      kind,
+                                      children,
+                                  }: {
+    kind: "ok" | "warn" | "bad" | "info";
+    children: ReactNode;
 }) {
-  return <span className={`mx-admin-users__badge ${kind}`}>{children}</span>;
+    return <span className={`mx-admin-users__badge ${kind}`}>{children}</span>;
 }
