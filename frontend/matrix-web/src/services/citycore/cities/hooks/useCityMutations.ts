@@ -62,9 +62,9 @@ export function useCityMutations() {
             return result !== null;
         },
 
-        delete: async (cityId: string, force: boolean): Promise<boolean> => {
+        delete: async (cityId: string): Promise<boolean> => {
             const result = await run(
-                () => deleteCity(cityId, force),
+                () => deleteCity(cityId),
                 "Failed to delete city.",
             );
 

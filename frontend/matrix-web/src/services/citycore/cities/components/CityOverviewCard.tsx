@@ -1,4 +1,4 @@
-﻿import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import type { CityView } from "@services/citycore/cities/contracts/citiesContracts";
@@ -11,12 +11,12 @@ type Props = {
     onClearMutationError?: () => void;
     onRename: (name: string) => Promise<void>;
     onArchive: () => Promise<void>;
-    onDelete: (force: boolean) => Promise<void>;
+    onDelete: () => Promise<void>;
 };
 
 function formatDateTime(value: string | null | undefined): string {
     if (!value) {
-        return "—";
+        return "�";
     }
 
     const parsed = new Date(value);
@@ -40,7 +40,6 @@ export function CityOverviewCard({
                                  }: Props) {
     const [renameInput, setRenameInput] = useState("");
     const [renameError, setRenameError] = useState<string | null>(null);
-    const [forceDelete, setForceDelete] = useState(false);
 
     const isArchived = Boolean(city?.archivedAtUtc);
 
@@ -86,11 +85,11 @@ export function CityOverviewCard({
     }
 
     async function handleDelete() {
-        if (!city) {
+        if (!city || !isArchived) {
             return;
         }
 
-        await onDelete(forceDelete);
+        await onDelete();
     }
 
     return (
@@ -158,23 +157,10 @@ export function CityOverviewCard({
                     Archive
                 </Button>
 
-                <label className="citycore-toggle">
-                    <input
-                        type="checkbox"
-                        checked={forceDelete}
-                        onChange={(event) => {
-                            setForceDelete(event.target.checked);
-                            onClearMutationError?.();
-                        }}
-                        disabled={isSubmitting || !city}
-                    />
-                    <span>Force delete</span>
-                </label>
-
                 <Button
                     variant="danger"
                     onClick={() => void handleDelete()}
-                    disabled={isSubmitting || !city || (!isArchived && !forceDelete)}
+                    disabled={isSubmitting || !city || !isArchived}
                 >
                     Delete city
                 </Button>
@@ -182,7 +168,7 @@ export function CityOverviewCard({
 
             {!isArchived && (
                 <div className="city-details-hint">
-                    Regular delete is available only after archive. Use force delete only for test/dev cleanup.
+                    Delete is available only after archive.
                 </div>
             )}
         </Card>

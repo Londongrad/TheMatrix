@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Cities;
 using MediatR;

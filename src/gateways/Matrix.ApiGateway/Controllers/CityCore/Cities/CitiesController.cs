@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
+using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
 using Microsoft.AspNetCore.Authorization;

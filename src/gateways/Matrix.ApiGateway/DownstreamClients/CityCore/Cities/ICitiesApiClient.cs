@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Contracts.Cities.Requests;
+using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities

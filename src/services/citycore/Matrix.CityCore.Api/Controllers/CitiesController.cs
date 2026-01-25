@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Application.UseCases.Cities.ArchiveCity;
+using Matrix.CityCore.Application.UseCases.Cities.ArchiveCity;
 using Matrix.CityCore.Application.UseCases.Cities.Common;
 using Matrix.CityCore.Application.UseCases.Cities.CreateCity;
 using Matrix.CityCore.Application.UseCases.Cities.DeleteCity;
@@ -114,7 +114,7 @@ namespace Matrix.CityCore.Api.Controllers
                     new
                     {
                         code = "CityCore.City.DeleteNotAllowed",
-                        message = "City must be archived before deletion. Use force=true for test data removal."
+                        message = "City must be archived before deletion."
                     }),
                 _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
             };

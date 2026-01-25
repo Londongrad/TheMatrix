@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Cities.DeleteCity
 {
