@@ -16,6 +16,22 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
                 cancellationToken: cancellationToken);
         }
 
+        public async Task<IReadOnlyList<CityId>> ListActiveRunningCityIdsAsync(CancellationToken cancellationToken)
+        {
+            return await dbContext.SimulationClocks
+               .AsNoTracking()
+               .Where(clock => clock.State == ClockState.Running)
+               .Join(
+                    inner: dbContext.Cities.AsNoTracking()
+                       .Where(city => city.Status == CityStatus.Active),
+                    outerKeySelector: clock => clock.Id,
+                    innerKeySelector: city => city.Id,
+                    resultSelector: (
+                        clock,
+                        city) => clock.Id)
+               .ToListAsync(cancellationToken);
+        }
+
         public Task AddAsync(
             SimulationClock clock,
             CancellationToken cancellationToken)
