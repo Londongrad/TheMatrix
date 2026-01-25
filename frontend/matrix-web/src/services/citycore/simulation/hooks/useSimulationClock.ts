@@ -2,6 +2,11 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getSimulationClock} from "@services/citycore/simulation/api/simulationApi";
 import type {SimulationView} from "@services/citycore/simulation/contracts/simulationContracts";
 
+export interface SimulationClockSyncMeta {
+    requestedAtMs: number;
+    receivedAtMs: number;
+}
+
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0
         ? error.message
@@ -14,12 +19,14 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
     const [data, setData] = useState<SimulationView | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [syncMeta, setSyncMeta] = useState<SimulationClockSyncMeta | null>(null);
 
     const load = useCallback(async () => {
         if (!cityId) {
             setData(null);
             setError(null);
             setIsLoading(false);
+            setSyncMeta(null);
             return;
         }
 
@@ -27,13 +34,24 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
 
         const abortController = new AbortController();
         abortRef.current = abortController;
+        const requestedAtMs = performance.now();
 
         try {
             setIsLoading(true);
             setError(null);
 
             const response = await getSimulationClock(cityId, abortController.signal);
+
+            if (abortController.signal.aborted) {
+                return;
+            }
+
+            const receivedAtMs = performance.now();
             setData(response);
+            setSyncMeta({
+                requestedAtMs,
+                receivedAtMs,
+            });
         } catch (error: unknown) {
             if (abortController.signal.aborted) {
                 return;
@@ -74,8 +92,9 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
             data,
             isLoading,
             error,
+            syncMeta,
             refetch: load,
         }),
-        [data, error, isLoading, load],
+        [data, error, isLoading, load, syncMeta],
     );
 }

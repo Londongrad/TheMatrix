@@ -7,12 +7,33 @@ import {useSimulationMutations} from "@services/citycore/simulation/hooks/useSim
 import {localDateTimeToUtcIso} from "@services/citycore/cities/utils/dateTime";
 import "@services/citycore/simulation/styles/simulation-panel.css";
 
-const DRIFT_SNAP_THRESHOLD_MS = 3000;
-const DRIFT_BLEND_FACTOR = 0.2;
 const TICK_INTERVAL_MS = 250;
 
 interface SimulationPanelProps {
     cityId: string;
+}
+
+interface LocalClockBase {
+    simMs: number;
+    syncedAtMs: number;
+    speed: number;
+    isRunning: boolean;
+}
+
+function getMonotonicNow(): number {
+    return performance.now();
+}
+
+function getClockSpeed(speed: number | undefined): number {
+    return typeof speed === "number" && Number.isFinite(speed) ? speed : 1;
+}
+
+function readClockValue(base: LocalClockBase, nowMs: number): number {
+    if (!base.isRunning) {
+        return base.simMs;
+    }
+
+    return base.simMs + Math.max(0, nowMs - base.syncedAtMs) * base.speed;
 }
 
 const SimulationPanel = ({cityId}: SimulationPanelProps) => {
@@ -25,7 +46,7 @@ const SimulationPanel = ({cityId}: SimulationPanelProps) => {
     const [customSpeedError, setCustomSpeedError] = useState<string | null>(null);
     const [jumpError, setJumpError] = useState<string | null>(null);
 
-    const lastFrameRef = useRef<number | null>(null);
+    const localClockBaseRef = useRef<LocalClockBase | null>(null);
 
     const clock = simulationQuery.data;
     const isRunning = clock?.state.toLowerCase() === "running";
@@ -33,7 +54,7 @@ const SimulationPanel = ({cityId}: SimulationPanelProps) => {
     useEffect(() => {
         if (!clock) {
             setLocalSimMs(null);
-            lastFrameRef.current = null;
+            localClockBaseRef.current = null;
             return;
         }
 
@@ -43,49 +64,48 @@ const SimulationPanel = ({cityId}: SimulationPanelProps) => {
             return;
         }
 
-        setLocalSimMs((current) => {
-            if (current === null) {
-                return serverMs;
-            }
+        const receivedAtMs = simulationQuery.syncMeta?.receivedAtMs ?? getMonotonicNow();
+        const requestedAtMs = simulationQuery.syncMeta?.requestedAtMs ?? receivedAtMs;
+        const roundTripMs = Math.max(0, receivedAtMs - requestedAtMs);
+        const speed = getClockSpeed(clock.speed);
+        const nextBase: LocalClockBase = {
+            simMs: serverMs + (isRunning ? roundTripMs * 0.5 * speed : 0),
+            syncedAtMs: receivedAtMs,
+            speed,
+            isRunning,
+        };
 
-            const drift = serverMs - current;
-
-            if (Math.abs(drift) > DRIFT_SNAP_THRESHOLD_MS) {
-                return serverMs;
-            }
-
-            return current + drift * DRIFT_BLEND_FACTOR;
-        });
-    }, [clock]);
+        localClockBaseRef.current = nextBase;
+        setLocalSimMs(readClockValue(nextBase, receivedAtMs));
+    }, [clock, isRunning, simulationQuery.syncMeta]);
 
     useEffect(() => {
-        if (!clock || !isRunning || localSimMs === null) {
-            lastFrameRef.current = null;
-            return;
-        }
+        const tick = () => {
+            const base = localClockBaseRef.current;
 
-        const timerId = window.setInterval(() => {
-            const now = Date.now();
+            if (!base) {
+                setLocalSimMs((current) => (current === null ? current : null));
+                return;
+            }
 
+            const nextValue = readClockValue(base, getMonotonicNow());
             setLocalSimMs((current) => {
-                if (current === null) {
+                if (current !== null && Math.abs(current - nextValue) < 10) {
                     return current;
                 }
 
-                const previousFrame = lastFrameRef.current ?? now;
-                const elapsedMs = now - previousFrame;
-                const speed = Number.isFinite(clock.speed) ? clock.speed : 1;
-
-                return current + elapsedMs * speed;
+                return nextValue;
             });
+        };
 
-            lastFrameRef.current = now;
-        }, TICK_INTERVAL_MS);
+        tick();
+
+        const timerId = window.setInterval(tick, TICK_INTERVAL_MS);
 
         return () => {
             window.clearInterval(timerId);
         };
-    }, [clock, isRunning, localSimMs]);
+    }, []);
 
     const localDate = useMemo(() => {
         return localSimMs === null ? null : new Date(localSimMs);
