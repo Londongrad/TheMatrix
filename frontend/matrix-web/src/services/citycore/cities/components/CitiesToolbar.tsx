@@ -1,4 +1,6 @@
-﻿type Props = {
+import Button from "@shared/ui/controls/Button/Button";
+
+type Props = {
     search: string;
     includeArchived: boolean;
     isRefreshing: boolean;
@@ -37,14 +39,14 @@ export function CitiesToolbar({
                     <span>Include archived</span>
                 </label>
 
-                <button
+                <Button
                     type="button"
-                    className="matrix-button"
+                    variant="primary"
                     onClick={onRefresh}
                     disabled={isRefreshing}
                 >
                     {isRefreshing ? "Refreshing..." : "Refresh"}
-                </button>
+                </Button>
             </div>
         </div>
     );

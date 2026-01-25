@@ -5,6 +5,7 @@ import { CitiesToolbar } from "@services/citycore/cities/components/CitiesToolba
 import { CreateCityForm } from "@services/citycore/cities/components/CreateCityForm";
 import { useCitiesQuery } from "@services/citycore/cities/hooks/useCitiesQuery";
 import { useCityMutations } from "@services/citycore/cities/hooks/useCityMutations";
+import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/cities/styles/cities.css";
 
 function normalize(value: string): string {
@@ -87,15 +88,15 @@ export default function CitiesPage() {
                                     <div>{citiesQuery.error}</div>
                                 </div>
 
-                                <button
+                                <Button
                                     type="button"
-                                    className="matrix-button"
+                                    variant="primary"
                                     onClick={() => {
                                         void citiesQuery.refetch();
                                     }}
                                 >
                                     Retry
-                                </button>
+                                </Button>
                             </div>
                         )}
 

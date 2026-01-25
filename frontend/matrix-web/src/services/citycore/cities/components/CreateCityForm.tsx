@@ -1,4 +1,5 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import Button from "@shared/ui/controls/Button/Button";
 import type { CreateCityRequest, CityCreatedView } from "@services/citycore/cities/contracts/citiesContracts";
 import {
     getNowLocalDateTimeInputValue,
@@ -200,13 +201,13 @@ export function CreateCityForm({
             )}
 
             <div className="cities-form-actions">
-                <button
-                    className="matrix-button matrix-button--primary"
+                <Button
                     type="submit"
+                    variant="primary"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? "Creating..." : "Create city"}
-                </button>
+                </Button>
             </div>
 
             {hasValidationErrors && <div className="cities-form-spacer" />}

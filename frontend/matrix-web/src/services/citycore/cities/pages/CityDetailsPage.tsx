@@ -4,6 +4,7 @@ import { CityOverviewCard } from "@services/citycore/cities/components/CityOverv
 import { useCityDetails } from "@services/citycore/cities/hooks/useCityDetails";
 import { useCityMutations } from "@services/citycore/cities/hooks/useCityMutations";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
+import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/cities/styles/city-details.css";
 
 const CityDetailsPage = () => {
@@ -38,12 +39,12 @@ const CityDetailsPage = () => {
         }
     }
 
-    async function handleDelete(force: boolean) {
+    async function handleDelete() {
         if (!cityId) {
             return;
         }
 
-        const isOk = await cityMutations.delete(cityId, force);
+        const isOk = await cityMutations.delete(cityId);
 
         if (isOk) {
             navigate("/cities");
@@ -60,15 +61,15 @@ const CityDetailsPage = () => {
             {cityQuery.error ? (
                 <div className="citycore-error-banner" role="alert">
                     <span>{cityQuery.error}</span>
-                    <button
+                    <Button
                         type="button"
-                        className="matrix-button"
+                        variant="primary"
                         onClick={() => {
                             void cityQuery.refetch();
                         }}
                     >
                         Retry
-                    </button>
+                    </Button>
                 </div>
             ) : null}
 
