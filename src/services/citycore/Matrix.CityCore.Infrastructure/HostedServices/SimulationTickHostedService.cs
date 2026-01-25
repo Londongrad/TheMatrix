@@ -36,7 +36,7 @@ namespace Matrix.CityCore.Infrastructure.HostedServices
                     using IServiceScope scope = scopeFactory.CreateScope();
                     IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                     await mediator.Send(
-                        request: new AdvanceTimeCommand(
+                        request: new AdvanceCitySimulationCommand(
                             CityId: tickOptions.DefaultCityId,
                             RealDelta: realDelta),
                         cancellationToken: cancellationToken);

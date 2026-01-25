@@ -8,13 +8,13 @@ using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime
 {
-    public sealed class AdvanceTimeCommandHandler(
+    public sealed class AdvanceCitySimulationCommandHandler(
         ISimulationClockRepository repository,
         ICityCoreOutboxWriter outboxWriter,
-        IUnitOfWork unitOfWork) : IRequestHandler<AdvanceTimeCommand, bool>
+        IUnitOfWork unitOfWork) : IRequestHandler<AdvanceCitySimulationCommand, bool>
     {
         public async Task<bool> Handle(
-            AdvanceTimeCommand request,
+            AdvanceCitySimulationCommand request,
             CancellationToken cancellationToken)
         {
             SimulationClock? clock = await repository.GetByCityIdAsync(
