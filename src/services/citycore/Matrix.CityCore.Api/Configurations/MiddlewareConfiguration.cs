@@ -1,9 +1,12 @@
+using Matrix.BuildingBlocks.Api.Middleware;
+
 namespace Matrix.CityCore.Api.Configurations
 {
     public static class MiddlewareConfiguration
     {
         public static void ConfigureApplicationMiddleware(this WebApplication app)
         {
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseSecurityPipeline();
             app.ConfigureControllers();
         }
