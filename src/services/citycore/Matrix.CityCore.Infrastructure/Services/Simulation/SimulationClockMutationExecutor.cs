@@ -18,7 +18,8 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
         public async Task<bool> ExecuteAsync(
             CityId cityId,
             Action<SimulationClock> mutate,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool allowArchivedCity = false)
         {
             DbUpdateConcurrencyException? lastException = null;
 
@@ -28,6 +29,23 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
 
                 try
                 {
+                    City? city = await dbContext.Cities
+                        .AsNoTracking()
+                        .SingleOrDefaultAsync(
+                            predicate: x => x.Id == cityId,
+                            cancellationToken: cancellationToken);
+
+                    if (city is null)
+                        return false;
+
+                    if (city.IsArchived && !allowArchivedCity)
+                    {
+                        throw new MatrixApplicationException(
+                            code: "CityCore.Simulation.ArchivedCity",
+                            message: "Archived cities are read-only. Simulation controls are unavailable.",
+                            errorType: ApplicationErrorType.Conflict);
+                    }
+
                     SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
                         predicate: x => x.Id == cityId,
                         cancellationToken: cancellationToken);

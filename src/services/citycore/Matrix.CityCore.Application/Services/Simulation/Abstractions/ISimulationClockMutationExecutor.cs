@@ -8,6 +8,7 @@ namespace Matrix.CityCore.Application.Services.Simulation.Abstractions
         Task<bool> ExecuteAsync(
             CityId cityId,
             Action<SimulationClock> mutate,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            bool allowArchivedCity = false);
     }
 }
