@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
+    <ProjectReference Include="..\..\..\shared\Matrix.PermissionCatalog.Abstractions\Matrix.PermissionCatalog.Abstractions.csproj"/>
+    <ProjectReference Include="..\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.Identity.Domain\Matrix.Identity.Domain.csproj"/>
   </ItemGroup>
 
