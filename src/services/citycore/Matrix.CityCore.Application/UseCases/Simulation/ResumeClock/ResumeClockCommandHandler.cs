@@ -1,29 +1,20 @@
-﻿using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.ResumeClock
 {
-    public sealed class ResumeClockCommandHandler(
-        ISimulationClockRepository repository,
-        IUnitOfWork unitOfWork) : IRequestHandler<ResumeClockCommand, bool>
+    public sealed class ResumeClockCommandHandler(ISimulationClockMutationExecutor mutationExecutor)
+        : IRequestHandler<ResumeClockCommand, bool>
     {
-        public async Task<bool> Handle(
+        public Task<bool> Handle(
             ResumeClockCommand request,
             CancellationToken cancellationToken)
         {
-            SimulationClock? clock = await repository.GetByCityIdAsync(
+            return mutationExecutor.ExecuteAsync(
                 cityId: new CityId(request.CityId),
+                mutate: clock => clock.Resume(),
                 cancellationToken: cancellationToken);
-
-            if (clock is null)
-                return false;
-
-            clock.Resume();
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            return true;
         }
     }
 }

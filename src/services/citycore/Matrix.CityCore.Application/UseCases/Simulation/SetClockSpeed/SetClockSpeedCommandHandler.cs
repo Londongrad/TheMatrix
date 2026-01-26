@@ -1,29 +1,21 @@
-﻿using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.SetClockSpeed
 {
-    public sealed class SetClockSpeedCommandHandler(
-        ISimulationClockRepository repository,
-        IUnitOfWork unitOfWork) : IRequestHandler<SetClockSpeedCommand, bool>
+    public sealed class SetClockSpeedCommandHandler(ISimulationClockMutationExecutor mutationExecutor)
+        : IRequestHandler<SetClockSpeedCommand, bool>
     {
-        public async Task<bool> Handle(
+        public Task<bool> Handle(
             SetClockSpeedCommand request,
             CancellationToken cancellationToken)
         {
-            SimulationClock? clock = await repository.GetByCityIdAsync(
+            return mutationExecutor.ExecuteAsync(
                 cityId: new CityId(request.CityId),
+                mutate: clock => clock.SetSpeed(SimSpeed.From(request.Multiplier)),
                 cancellationToken: cancellationToken);
-
-            if (clock is null)
-                return false;
-
-            clock.SetSpeed(SimSpeed.From(request.Multiplier));
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            return true;
         }
     }
 }
