@@ -109,8 +109,11 @@
 }
 
 .mx-topbar__userName {
+    display: block;
+    padding-bottom: 1px;
     font-size: 0.9rem;
     font-weight: 600;
+    line-height: 1.2;
     color: rgba(232, 255, 245, 0.95);
     overflow: hidden;
     text-overflow: ellipsis;
