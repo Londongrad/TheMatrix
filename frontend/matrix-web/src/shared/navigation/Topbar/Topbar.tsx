@@ -1,5 +1,6 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
+import {resolveMainLayoutReturnPath} from "@shared/navigation/utils/layoutExit";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import "./topbar.css";
 
@@ -20,6 +21,10 @@ export default function MatrixTopbar({title, subtitle}: Props) {
 
     const initial = displayName.charAt(0).toUpperCase();
 
+    const settingsReturnPath = useMemo(() => {
+        return resolveMainLayoutReturnPath(location.pathname, location.state);
+    }, [location.pathname, location.state]);
+
     const handleToggle = () => {
         setIsOpen((prev) => !prev);
     };
@@ -32,15 +37,13 @@ export default function MatrixTopbar({title, subtitle}: Props) {
 
     const handleGoToSettings = () => {
         setIsOpen(false);
-        navigate("/userSettings/profile", {state: {from: location.pathname}});
+        navigate("/userSettings/profile", {state: {from: settingsReturnPath}});
     };
 
-    // закрытие по клику вне меню
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (!menuRef.current) return;
 
-            // если кликнули не внутри блока с юзер-меню — закрываем
             if (!menuRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
@@ -51,6 +54,7 @@ export default function MatrixTopbar({title, subtitle}: Props) {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
     return (
         <header className="mx-topbar">
             <div className="mx-topbar__left">

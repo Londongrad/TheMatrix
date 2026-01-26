@@ -3,6 +3,7 @@ import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import {useEffect, useMemo, useRef} from "react";
 import ShellLayout from "@shared/ui/layouts/ShellLayout/ShellLayout";
 import {userSettingsNavItems} from "@shared/navigation/Items/UserSettingsItems";
+import {extractMainLayoutReturnPath} from "@shared/navigation/utils/layoutExit";
 import "./user-settings-layout.css";
 
 const titleMap: Record<string, string> = {
@@ -21,8 +22,11 @@ export default function UserSettingsLayout() {
     const fromRef = useRef<string>("/");
 
     useEffect(() => {
-        const from = (location.state as { from?: string } | null)?.from;
-        if (from) fromRef.current = from;
+        const from = extractMainLayoutReturnPath(location.state);
+
+        if (from) {
+            fromRef.current = from;
+        }
     }, [location.state]);
 
     const topbarTitle = useMemo(() => {
@@ -37,7 +41,7 @@ export default function UserSettingsLayout() {
             title="User settings"
             items={userSettingsNavItems}
             storageKey="user-settings.sidebar.collapsed"
-            onBack={() => nav(fromRef.current || "/", {replace: true})}
+            onBack={() => nav(fromRef.current, {replace: true})}
             topbarTitle={topbarTitle}
             topbarSubtitle={topbarSubtitle}
         >
