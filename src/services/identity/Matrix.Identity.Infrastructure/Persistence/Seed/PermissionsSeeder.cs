@@ -1,6 +1,6 @@
-using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.Identity.Application.Authorization.Permissions;
-using Matrix.Identity.Domain.Entities;
+﻿using Matrix.Identity.Domain.Entities;
+using Matrix.PermissionCatalog;
+using Matrix.PermissionCatalog.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Seed
@@ -11,6 +11,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
 
         public async Task SeedAsync(CancellationToken cancellationToken)
         {
+            var catalog = ApplicationPermissionsCatalog.All.ToList();
+
             // Load current permissions from DB
             Dictionary<string, Permission> existing = await _db.Permissions
                .ToDictionaryAsync(
@@ -18,7 +20,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                     cancellationToken: cancellationToken);
 
             // Upsert from catalog
-            foreach (PermissionDefinition def in PermissionsCatalog.All)
+            foreach (PermissionDefinition def in catalog)
                 if (existing.TryGetValue(
                         key: def.Key,
                         value: out Permission? permission))
@@ -38,7 +40,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                             description: def.Description));
 
             // Deprecate permissions missing from catalog (do not delete!)
-            var catalogKeys = PermissionsCatalog.All.Select(x => x.Key)
+            var catalogKeys = catalog
+               .Select(x => x.Key)
                .ToHashSet(StringComparer.Ordinal);
 
             foreach (KeyValuePair<string, Permission> kv in existing)

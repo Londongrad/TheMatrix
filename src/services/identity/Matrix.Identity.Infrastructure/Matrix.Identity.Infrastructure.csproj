@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Infrastructure\Matrix.BuildingBlocks.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\..\shared\Matrix.PermissionCatalog\Matrix.PermissionCatalog.csproj"/>
     <ProjectReference Include="..\Matrix.Identity.Application\Matrix.Identity.Application.csproj"/>
     <ProjectReference Include="..\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
   </ItemGroup>
