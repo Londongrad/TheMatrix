@@ -1,22 +1,48 @@
-﻿import {Link} from "react-router-dom";
+import {Link} from "react-router-dom";
+import {
+    formatCityShortId,
+    formatCityStatusLabel,
+    getCityStatusTone,
+} from "@services/citycore/cities/utils/presentation";
 
 type Props = {
     title: string;
     cityId: string;
+    status?: string;
+    archivedAtUtc?: string | null;
 };
 
-export function CityDetailsHeader({title, cityId}: Props) {
+export function CityDetailsHeader({title, cityId, status, archivedAtUtc}: Props) {
+    const statusTone = getCityStatusTone(status, archivedAtUtc);
+    const statusLabel = formatCityStatusLabel(status, archivedAtUtc);
+
     return (
-        <div className="city-details-headline">
-            <div>
+        <header className="city-hero">
+            <div className="city-hero__content">
                 <div className="cities-page__eyebrow">CityCore</div>
-                <h1 className="page-title">{title}</h1>
-                <div className="city-details-subtitle">{cityId}</div>
+
+                <div className="city-hero__title-row">
+                    <h1 className="city-hero__title">{title}</h1>
+                    <span className={`cities-status-pill cities-status-pill--${statusTone}`}>
+                        {statusLabel}
+                    </span>
+                </div>
+
+                <div className="city-hero__meta-row">
+                    <span className="city-hero__id-chip" title={cityId}>
+                        ID {formatCityShortId(cityId, 10, 6)}
+                    </span>
+                    <span className="city-hero__caption">
+                        {statusTone === "archived"
+                            ? "Archived cities remain visible but all simulation mutations are locked."
+                            : "Active city workspace with lifecycle controls and simulation management."}
+                    </span>
+                </div>
             </div>
 
             <Link className="city-link" to="/cities">
-                ← Back to cities
+                Back to cities
             </Link>
-        </div>
+        </header>
     );
 }

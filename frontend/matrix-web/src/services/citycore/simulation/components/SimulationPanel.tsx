@@ -11,6 +11,8 @@ const TICK_INTERVAL_MS = 250;
 
 interface SimulationPanelProps {
     cityId: string;
+    isReadOnly?: boolean;
+    readOnlyMessage?: string;
 }
 
 interface LocalClockBase {
@@ -36,8 +38,12 @@ function readClockValue(base: LocalClockBase, nowMs: number): number {
     return base.simMs + Math.max(0, nowMs - base.syncedAtMs) * base.speed;
 }
 
-const SimulationPanel = ({cityId}: SimulationPanelProps) => {
-    const simulationQuery = useSimulationClock(cityId, 5000);
+const SimulationPanel = ({
+    cityId,
+    isReadOnly = false,
+    readOnlyMessage,
+}: SimulationPanelProps) => {
+    const simulationQuery = useSimulationClock(cityId, isReadOnly ? 0 : 5000);
     const simulationMutations = useSimulationMutations();
 
     const [localSimMs, setLocalSimMs] = useState<number | null>(null);
@@ -49,7 +55,9 @@ const SimulationPanel = ({cityId}: SimulationPanelProps) => {
     const localClockBaseRef = useRef<LocalClockBase | null>(null);
 
     const clock = simulationQuery.data;
-    const isRunning = clock?.state.toLowerCase() === "running";
+    const isRunning = !isReadOnly && clock?.state.toLowerCase() === "running";
+    const displayState = isReadOnly ? "Paused" : clock?.state;
+    const modeLabel = isReadOnly ? "Archived snapshot" : isRunning ? "Live sync" : "Paused snapshot";
 
     useEffect(() => {
         if (!clock) {
@@ -78,6 +86,27 @@ const SimulationPanel = ({cityId}: SimulationPanelProps) => {
         localClockBaseRef.current = nextBase;
         setLocalSimMs(readClockValue(nextBase, receivedAtMs));
     }, [clock, isRunning, simulationQuery.syncMeta]);
+
+    useEffect(() => {
+        if (!isReadOnly) {
+            return;
+        }
+
+        setLocalSimMs((current) => {
+            if (current === null) {
+                return current;
+            }
+
+            const nowMs = getMonotonicNow();
+            localClockBaseRef.current = {
+                simMs: current,
+                syncedAtMs: nowMs,
+                speed: getClockSpeed(clock?.speed),
+                isRunning: false,
+            };
+            return current;
+        });
+    }, [clock?.speed, isReadOnly]);
 
     useEffect(() => {
         const tick = () => {
@@ -154,137 +183,166 @@ const SimulationPanel = ({cityId}: SimulationPanelProps) => {
     };
 
     return (
-        <Card title="Simulation" subtitle="Clock state and controls">
+        <Card
+            title="Simulation"
+            subtitle={isReadOnly ? "Clock snapshot for an archived city" : "Clock state and controls"}
+            right={<span className={`sim-panel__mode-badge ${isReadOnly ? "sim-panel__mode-badge--archived" : ""}`}>{modeLabel}</span>}
+            className={isReadOnly ? "sim-panel-card sim-panel-card--readonly" : "sim-panel-card"}
+        >
             <div className="sim-panel">
-                {simulationQuery.error && (
+                {simulationQuery.error ? (
                     <div className="citycore-error-banner" role="alert">
                         <span>{simulationQuery.error}</span>
                         <Button size="sm" onClick={() => void simulationQuery.refetch()}>
                             Retry
                         </Button>
                     </div>
-                )}
+                ) : null}
 
-                {simulationMutations.error && (
+                {simulationMutations.error ? (
                     <div className="citycore-error-banner" role="alert">
                         <span>{simulationMutations.error}</span>
                         <Button size="sm" onClick={() => simulationMutations.clearError()}>
                             Dismiss
                         </Button>
                     </div>
-                )}
+                ) : null}
+
+                {isReadOnly ? (
+                    <div className="sim-panel__notice" role="status">
+                        <div className="sim-panel__notice-title">Archived city</div>
+                        <div className="sim-panel__notice-text">
+                            {readOnlyMessage ?? "Simulation mutations are disabled for archived cities."}
+                        </div>
+                    </div>
+                ) : null}
+
+                <div className="sim-panel__snapshot-grid">
+                    <div className="sim-panel__snapshot-item">
+                        <span className="sim-panel__snapshot-label">Mode</span>
+                        <strong className="sim-panel__snapshot-value">{modeLabel}</strong>
+                    </div>
+                    <div className="sim-panel__snapshot-item">
+                        <span className="sim-panel__snapshot-label">Refresh cadence</span>
+                        <strong className="sim-panel__snapshot-value">{isReadOnly ? "Manual" : "Every 5 seconds"}</strong>
+                    </div>
+                </div>
 
                 <ClockDisplay
                     value={localDate}
                     tickId={clock?.tickId}
                     speed={clock?.speed}
-                    state={clock?.state}
+                    state={displayState}
                 />
 
-                <div className="sim-panel__section">
-                    <h3 className="sim-panel__section-title">Transport</h3>
+                {!isReadOnly ? (
+                    <>
+                        <div className="sim-panel__section">
+                            <h3 className="sim-panel__section-title">Transport</h3>
 
-                    <div className="sim-controls-row">
-                        <Button
-                            onClick={() => void runCommand(() => simulationMutations.pause(cityId))}
-                            disabled={!clock || simulationMutations.isSubmitting || !isRunning}
-                        >
-                            Pause
-                        </Button>
+                            <div className="sim-controls-row">
+                                <Button
+                                    onClick={() => void runCommand(() => simulationMutations.pause(cityId))}
+                                    disabled={!clock || simulationMutations.isSubmitting || !isRunning}
+                                >
+                                    Pause
+                                </Button>
 
-                        <Button
-                            variant="success"
-                            onClick={() => void runCommand(() => simulationMutations.resume(cityId))}
-                            disabled={!clock || simulationMutations.isSubmitting || isRunning}
-                        >
-                            Resume
-                        </Button>
-                    </div>
-                </div>
-
-                <div className="sim-panel__section">
-                    <h3 className="sim-panel__section-title">Speed presets</h3>
-
-                    <div className="sim-controls-row">
-                        {[0.5, 1, 2, 5, 10].map((value) => (
-                            <Button
-                                key={value}
-                                size="sm"
-                                onClick={() => void runCommand(() => simulationMutations.setSpeed(cityId, value))}
-                                disabled={!clock || simulationMutations.isSubmitting}
-                            >
-                                {value}x
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="sim-panel__section">
-                    <h3 className="sim-panel__section-title">Custom speed</h3>
-
-                    <form className="sim-inline-form" onSubmit={onSetCustomSpeed}>
-                        <input
-                            className="text-input"
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={customSpeed}
-                            onChange={(event) => {
-                                setCustomSpeed(event.target.value);
-                                setCustomSpeedError(null);
-                                simulationMutations.clearError();
-                            }}
-                        />
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            disabled={simulationMutations.isSubmitting || !clock}
-                        >
-                            Set custom speed
-                        </Button>
-                    </form>
-
-                    {customSpeedError && (
-                        <div className="city-inline-error" role="alert">
-                            {customSpeedError}
+                                <Button
+                                    variant="success"
+                                    onClick={() => void runCommand(() => simulationMutations.resume(cityId))}
+                                    disabled={!clock || simulationMutations.isSubmitting || isRunning}
+                                >
+                                    Resume
+                                </Button>
+                            </div>
                         </div>
-                    )}
-                </div>
 
-                <div className="sim-panel__section">
-                    <h3 className="sim-panel__section-title">Jump time</h3>
+                        <div className="sim-panel__section">
+                            <h3 className="sim-panel__section-title">Speed presets</h3>
 
-                    <form className="sim-inline-form" onSubmit={onJump}>
-                        <input
-                            className="text-input"
-                            type="datetime-local"
-                            step="1"
-                            value={jumpInput}
-                            onChange={(event) => {
-                                setJumpInput(event.target.value);
-                                setJumpError(null);
-                                simulationMutations.clearError();
-                            }}
-                        />
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            disabled={simulationMutations.isSubmitting || !clock}
-                        >
-                            Jump time
-                        </Button>
-                    </form>
-
-                    {jumpError && (
-                        <div className="city-inline-error" role="alert">
-                            {jumpError}
+                            <div className="sim-controls-row">
+                                {[0.5, 1, 2, 5, 10].map((value) => (
+                                    <Button
+                                        key={value}
+                                        size="sm"
+                                        onClick={() => void runCommand(() => simulationMutations.setSpeed(cityId, value))}
+                                        disabled={!clock || simulationMutations.isSubmitting}
+                                    >
+                                        {value}x
+                                    </Button>
+                                ))}
+                            </div>
                         </div>
-                    )}
 
-                    <div className="city-details-hint">
-                        Jump time uses local browser date/time input and converts it to UTC before sending to backend.
-                    </div>
-                </div>
+                        <div className="sim-panel__section">
+                            <h3 className="sim-panel__section-title">Custom speed</h3>
+
+                            <form className="sim-inline-form" onSubmit={onSetCustomSpeed}>
+                                <input
+                                    className="text-input"
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    value={customSpeed}
+                                    onChange={(event) => {
+                                        setCustomSpeed(event.target.value);
+                                        setCustomSpeedError(null);
+                                        simulationMutations.clearError();
+                                    }}
+                                />
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    disabled={simulationMutations.isSubmitting || !clock}
+                                >
+                                    Set custom speed
+                                </Button>
+                            </form>
+
+                            {customSpeedError ? (
+                                <div className="city-inline-error" role="alert">
+                                    {customSpeedError}
+                                </div>
+                            ) : null}
+                        </div>
+
+                        <div className="sim-panel__section">
+                            <h3 className="sim-panel__section-title">Jump time</h3>
+
+                            <form className="sim-inline-form" onSubmit={onJump}>
+                                <input
+                                    className="text-input"
+                                    type="datetime-local"
+                                    step="1"
+                                    value={jumpInput}
+                                    onChange={(event) => {
+                                        setJumpInput(event.target.value);
+                                        setJumpError(null);
+                                        simulationMutations.clearError();
+                                    }}
+                                />
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    disabled={simulationMutations.isSubmitting || !clock}
+                                >
+                                    Jump time
+                                </Button>
+                            </form>
+
+                            {jumpError ? (
+                                <div className="city-inline-error" role="alert">
+                                    {jumpError}
+                                </div>
+                            ) : null}
+
+                            <div className="city-details-hint">
+                                Jump time uses local browser date/time input and converts it to UTC before sending to backend.
+                            </div>
+                        </div>
+                    </>
+                ) : null}
             </div>
         </Card>
     );

@@ -1,3 +1,20 @@
+:root {
+    --app-bg: #0f172a;
+    --app-text: #e5e7eb;
+    --scrollbar-size: 12px;
+    --scrollbar-track: rgba(3, 18, 11, 0.92);
+    --scrollbar-track-edge: rgba(16, 77, 49, 0.22);
+    --scrollbar-thumb: rgba(59, 232, 161, 0.56);
+    --scrollbar-thumb-hover: rgba(97, 250, 188, 0.78);
+    --scrollbar-thumb-active: rgba(121, 255, 202, 0.92);
+    --scrollbar-thumb-border: rgba(4, 31, 18, 0.92);
+}
+
+html {
+    color-scheme: dark;
+    scrollbar-gutter: stable;
+}
+
 #root {
     margin: 0;
     padding: 0;
@@ -9,13 +26,45 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.24)),
+        linear-gradient(180deg, var(--scrollbar-track-edge), transparent 30%, transparent 70%, var(--scrollbar-track-edge)),
+        var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+    border: 2px solid var(--scrollbar-thumb-border);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(112, 255, 205, 0.92), rgba(42, 183, 123, 0.72));
+    box-shadow: 0 0 0 1px rgba(95, 247, 182, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.24);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(138, 255, 214, 0.98), rgba(57, 214, 147, 0.82));
+}
+
+*::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, var(--scrollbar-thumb-active), rgba(74, 230, 163, 0.88));
+}
+
+*::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
 }
 
 body {
-    background: #0f172a;
-    color: #e5e7eb;
+    background: var(--app-bg);
+    color: var(--app-text);
 }
 
 .app-root {
@@ -34,7 +83,7 @@ body {
 }
 
 .error-text {
-    color: red; /* тёмно-красный текст */
+    color: #ef4444;
     font-size: 0.95rem;
     line-height: 1.4;
 }

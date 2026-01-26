@@ -5,6 +5,7 @@ import {CitiesToolbar} from "@services/citycore/cities/components/CitiesToolbar"
 import {CreateCityForm} from "@services/citycore/cities/components/CreateCityForm";
 import {useCitiesQuery} from "@services/citycore/cities/hooks/useCitiesQuery";
 import {useCityMutations} from "@services/citycore/cities/hooks/useCityMutations";
+import {isArchivedCity} from "@services/citycore/cities/utils/presentation";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/cities/styles/cities.css";
 
@@ -33,13 +34,34 @@ export default function CitiesPage() {
             const cityId = city.cityId.toLowerCase();
             const status = city.status.toLowerCase();
 
-            return (
-                name.includes(query) ||
-                cityId.includes(query) ||
-                status.includes(query)
-            );
+            return name.includes(query) || cityId.includes(query) || status.includes(query);
         });
     }, [citiesQuery.data, search]);
+
+    const orderedCities = useMemo(() => {
+        return [...filteredCities].sort((left, right) => {
+            const leftArchived = isArchivedCity(left.status);
+            const rightArchived = isArchivedCity(right.status);
+
+            if (leftArchived !== rightArchived) {
+                return leftArchived ? 1 : -1;
+            }
+
+            return left.name.localeCompare(right.name, undefined, {sensitivity: "base"});
+        });
+    }, [filteredCities]);
+
+    const stats = useMemo(() => {
+        const allCities = citiesQuery.data;
+        const archivedCount = allCities.filter((city) => isArchivedCity(city.status)).length;
+        const activeCount = allCities.length - archivedCount;
+
+        return {
+            visible: orderedCities.length,
+            active: activeCount,
+            archived: archivedCount,
+        };
+    }, [citiesQuery.data, orderedCities.length]);
 
     async function handleCreated(response: { cityId: string }) {
         navigate(`/cities/${response.cityId}`);
@@ -56,16 +78,41 @@ export default function CitiesPage() {
                     <div className="cities-page__eyebrow">CityCore</div>
                     <h1 className="cities-page__title">Cities</h1>
                     <p className="cities-page__subtitle">
-                        Manage cities and open each city simulation.
+                        Operate the city registry, separate live simulations from archived records, and launch new timelines without layout drift.
                     </p>
                 </div>
             </header>
 
+            <div className="cities-metrics" aria-label="City registry summary">
+                <article className="cities-metric-card">
+                    <span className="cities-metric-card__label">Visible now</span>
+                    <strong className="cities-metric-card__value">{stats.visible}</strong>
+                    <span className="cities-metric-card__hint">Matches current search and archive filter.</span>
+                </article>
+
+                <article className="cities-metric-card cities-metric-card--active">
+                    <span className="cities-metric-card__label">Active</span>
+                    <strong className="cities-metric-card__value">{stats.active}</strong>
+                    <span className="cities-metric-card__hint">Cities with editable simulation controls.</span>
+                </article>
+
+                <article className="cities-metric-card cities-metric-card--archived">
+                    <span className="cities-metric-card__label">Archived</span>
+                    <strong className="cities-metric-card__value">{stats.archived}</strong>
+                    <span className="cities-metric-card__hint">Inactive records retained for review or cleanup.</span>
+                </article>
+            </div>
+
             <div className="cities-page__layout">
                 <div className="cities-page__main">
-                    <div className="cities-card">
+                    <div className="cities-card cities-card--registry">
                         <div className="cities-card__header">
-                            <h2 className="cities-card__title">City registry</h2>
+                            <div>
+                                <h2 className="cities-card__title">City registry</h2>
+                                <p className="cities-card__subtitle">
+                                    Active cities stay at the top. Archived cities remain accessible but visually separated.
+                                </p>
+                            </div>
                         </div>
 
                         <CitiesToolbar
@@ -79,12 +126,10 @@ export default function CitiesPage() {
                             }}
                         />
 
-                        {citiesQuery.error && (
+                        {citiesQuery.error ? (
                             <div className="cities-error-banner" role="alert">
                                 <div className="cities-error-banner__content">
-                                    <div className="cities-error-banner__title">
-                                        Failed to load cities
-                                    </div>
+                                    <div className="cities-error-banner__title">Failed to load cities</div>
                                     <div>{citiesQuery.error}</div>
                                 </div>
 
@@ -98,22 +143,32 @@ export default function CitiesPage() {
                                     Retry
                                 </Button>
                             </div>
-                        )}
+                        ) : null}
 
-                        {!citiesQuery.error && citiesQuery.isLoading && citiesQuery.data.length === 0 && (
-                            <div className="cities-empty-state">Loading cities...</div>
-                        )}
+                        {!citiesQuery.error && citiesQuery.isLoading && citiesQuery.data.length === 0 ? (
+                            <div className="cities-empty-state">
+                                <div className="cities-empty-state__title">Loading city registry</div>
+                                <div className="cities-empty-state__text">
+                                    Fetching current city records and simulation availability.
+                                </div>
+                            </div>
+                        ) : null}
 
-                        {!citiesQuery.error && !citiesQuery.isLoading && (
-                            <CityList cities={filteredCities} onOpen={handleOpen}/>
-                        )}
+                        {!citiesQuery.error && !citiesQuery.isLoading ? (
+                            <CityList cities={orderedCities} onOpen={handleOpen}/>
+                        ) : null}
                     </div>
                 </div>
 
                 <aside className="cities-page__sidebar">
-                    <div className="cities-card">
+                    <div className="cities-card cities-card--sticky">
                         <div className="cities-card__header">
-                            <h2 className="cities-card__title">Create city</h2>
+                            <div>
+                                <h2 className="cities-card__title">Create city</h2>
+                                <p className="cities-card__subtitle">
+                                    Define the city identity and choose the simulation baseline before launch.
+                                </p>
+                            </div>
                         </div>
 
                         <CreateCityForm

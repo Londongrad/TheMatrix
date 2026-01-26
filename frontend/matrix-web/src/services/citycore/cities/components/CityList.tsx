@@ -1,4 +1,3 @@
-//src/services/citycore/cities/components/CityList.tsx
 import CityCard from "@services/citycore/cities/components/CityCard";
 import type {CityListItemView} from "@services/citycore/cities/contracts/citiesContracts";
 
@@ -9,7 +8,14 @@ interface CityListProps {
 
 const CityList = ({cities, onOpen}: CityListProps) => {
     if (cities.length === 0) {
-        return <p className="card-sub">No cities found for current filters.</p>;
+        return (
+            <div className="cities-empty-state" role="status">
+                <div className="cities-empty-state__title">No cities match the current filters</div>
+                <div className="cities-empty-state__text">
+                    Try clearing the search query or include archived cities to widen the registry.
+                </div>
+            </div>
+        );
     }
 
     return (

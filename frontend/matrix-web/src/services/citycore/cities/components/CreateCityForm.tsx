@@ -1,7 +1,10 @@
 import {useMemo, useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
 import type {CityCreatedView, CreateCityRequest} from "@services/citycore/cities/contracts/citiesContracts";
-import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso,} from "@services/citycore/cities/utils/dateTime";
+import {
+    getNowLocalDateTimeInputValue,
+    localDateTimeToUtcIso,
+} from "@services/citycore/cities/utils/dateTime";
 
 type ValidationErrors = {
     name?: string;
@@ -48,12 +51,12 @@ function validate(
 }
 
 export function CreateCityForm({
-                                   isSubmitting,
-                                   submitError,
-                                   onSubmit,
-                                   onCreated,
-                                   onClearSubmitError,
-                               }: Props) {
+    isSubmitting,
+    submitError,
+    onSubmit,
+    onCreated,
+    onClearSubmitError,
+}: Props) {
     const [name, setName] = useState("");
     const [startSimTimeLocal, setStartSimTimeLocal] = useState(
         getNowLocalDateTimeInputValue(),
@@ -78,8 +81,8 @@ export function CreateCityForm({
         });
     }
 
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
 
         const errors = validate(name, startSimTimeLocal, speedMultiplier);
         setValidationErrors(errors);
@@ -117,8 +120,12 @@ export function CreateCityForm({
 
     return (
         <form className="cities-create-form" onSubmit={handleSubmit} noValidate>
-            <div className="cities-form-grid">
-                <div className="cities-field">
+            <div className="cities-create-form__intro">
+                Provision a new city, seed its simulation clock, and hand off the scenario to operators.
+            </div>
+
+            <div className="cities-create-form__grid">
+                <div className="cities-field cities-field--wide">
                     <label className="cities-label" htmlFor="city-name">
                         City name
                     </label>
@@ -129,15 +136,15 @@ export function CreateCityForm({
                         value={name}
                         maxLength={128}
                         placeholder="New Amsterdam"
-                        onChange={(e) => {
-                            setName(e.target.value);
+                        onChange={(event) => {
+                            setName(event.target.value);
                             clearFieldError("name");
                             onClearSubmitError?.();
                         }}
                     />
-                    {validationErrors.name && (
+                    {validationErrors.name ? (
                         <div className="cities-field-error">{validationErrors.name}</div>
-                    )}
+                    ) : null}
                 </div>
 
                 <div className="cities-field">
@@ -149,17 +156,17 @@ export function CreateCityForm({
                         className="cities-input"
                         type="datetime-local"
                         value={startSimTimeLocal}
-                        onChange={(e) => {
-                            setStartSimTimeLocal(e.target.value);
+                        onChange={(event) => {
+                            setStartSimTimeLocal(event.target.value);
                             clearFieldError("startSimTimeLocal");
                             onClearSubmitError?.();
                         }}
                     />
-                    {validationErrors.startSimTimeLocal && (
+                    {validationErrors.startSimTimeLocal ? (
                         <div className="cities-field-error">
                             {validationErrors.startSimTimeLocal}
                         </div>
-                    )}
+                    ) : null}
                 </div>
 
                 <div className="cities-field">
@@ -173,29 +180,29 @@ export function CreateCityForm({
                         min="0.1"
                         step="0.1"
                         value={speedMultiplier}
-                        onChange={(e) => {
-                            setSpeedMultiplier(e.target.value);
+                        onChange={(event) => {
+                            setSpeedMultiplier(event.target.value);
                             clearFieldError("speedMultiplier");
                             onClearSubmitError?.();
                         }}
                     />
-                    {validationErrors.speedMultiplier && (
+                    {validationErrors.speedMultiplier ? (
                         <div className="cities-field-error">
                             {validationErrors.speedMultiplier}
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </div>
 
             <div className="cities-form-hint">
-                The value shown above is local browser time. It will be converted to UTC before sending to backend.
+                Start time uses the local browser timezone and is converted to UTC before the request is sent.
             </div>
 
-            {submitError && (
+            {submitError ? (
                 <div className="cities-error-banner" role="alert">
                     {submitError}
                 </div>
-            )}
+            ) : null}
 
             <div className="cities-form-actions">
                 <Button
@@ -203,11 +210,11 @@ export function CreateCityForm({
                     variant="primary"
                     disabled={isSubmitting}
                 >
-                    {isSubmitting ? "Creating..." : "Create city"}
+                    {isSubmitting ? "Creating city..." : "Create city"}
                 </Button>
             </div>
 
-            {hasValidationErrors && <div className="cities-form-spacer"/>}
+            {hasValidationErrors ? <div className="cities-form-spacer"/> : null}
         </form>
     );
 }

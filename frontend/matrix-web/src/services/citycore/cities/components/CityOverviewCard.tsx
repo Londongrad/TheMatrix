@@ -2,6 +2,11 @@ import {type FormEvent, useMemo, useState} from "react";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import type {CityView} from "@services/citycore/cities/contracts/citiesContracts";
+import {
+    formatCityStatusLabel,
+    getCityStatusTone,
+    isArchivedCity,
+} from "@services/citycore/cities/utils/presentation";
 
 type Props = {
     city: CityView | null;
@@ -16,7 +21,7 @@ type Props = {
 
 function formatDateTime(value: string | null | undefined): string {
     if (!value) {
-        return "—";
+        return "--";
     }
 
     const parsed = new Date(value);
@@ -29,19 +34,21 @@ function formatDateTime(value: string | null | undefined): string {
 }
 
 export function CityOverviewCard({
-                                     city,
-                                     isLoading,
-                                     isSubmitting,
-                                     mutationError,
-                                     onClearMutationError,
-                                     onRename,
-                                     onArchive,
-                                     onDelete,
-                                 }: Props) {
+    city,
+    isLoading,
+    isSubmitting,
+    mutationError,
+    onClearMutationError,
+    onRename,
+    onArchive,
+    onDelete,
+}: Props) {
     const [renameInput, setRenameInput] = useState("");
     const [renameError, setRenameError] = useState<string | null>(null);
 
-    const isArchived = Boolean(city?.archivedAtUtc);
+    const isArchived = isArchivedCity(city?.status, city?.archivedAtUtc);
+    const statusTone = getCityStatusTone(city?.status, city?.archivedAtUtc);
+    const statusLabel = formatCityStatusLabel(city?.status, city?.archivedAtUtc);
 
     const effectiveNamePlaceholder = useMemo(() => {
         return city?.name ?? "New city name";
@@ -52,7 +59,7 @@ export function CityOverviewCard({
 
         const normalized = renameInput.trim();
 
-        if (!city) {
+        if (!city || isArchived) {
             return;
         }
 
@@ -93,45 +100,74 @@ export function CityOverviewCard({
     }
 
     return (
-        <Card title={city?.name ?? "City"} subtitle={city?.cityId ?? "City details"}>
-            {isLoading ? <p className="card-sub">Loading city...</p> : null}
+        <Card
+            title="Lifecycle"
+            subtitle="Identity, archival state, and management actions"
+            right={<span className={`cities-status-pill cities-status-pill--${statusTone}`}>{statusLabel}</span>}
+        >
+            {isLoading && !city ? <p className="card-sub">Loading city...</p> : null}
 
             {city ? (
-                <div className="city-details-grid">
-                    <div>
-                        <p className="card-sub">Status</p>
-                        <p>{city.status}</p>
+                <div className="city-overview-grid">
+                    <div className="city-overview-stat">
+                        <span className="city-overview-stat__label">City name</span>
+                        <strong className="city-overview-stat__value">{city.name}</strong>
                     </div>
 
-                    <div>
-                        <p className="card-sub">Created</p>
-                        <p>{formatDateTime(city.createdAtUtc)}</p>
+                    <div className="city-overview-stat">
+                        <span className="city-overview-stat__label">City ID</span>
+                        <strong className="city-overview-stat__value city-overview-stat__value--mono" title={city.cityId}>
+                            {city.cityId}
+                        </strong>
                     </div>
 
-                    <div>
-                        <p className="card-sub">Archived at</p>
-                        <p>{formatDateTime(city.archivedAtUtc)}</p>
+                    <div className="city-overview-stat">
+                        <span className="city-overview-stat__label">Created</span>
+                        <strong className="city-overview-stat__value">{formatDateTime(city.createdAtUtc)}</strong>
+                    </div>
+
+                    <div className="city-overview-stat">
+                        <span className="city-overview-stat__label">Archived at</span>
+                        <strong className="city-overview-stat__value">{formatDateTime(city.archivedAtUtc)}</strong>
                     </div>
                 </div>
             ) : null}
 
-            <form className="sim-inline-form" onSubmit={handleRename}>
-                <input
-                    className="text-input"
-                    value={renameInput}
-                    onChange={(event) => {
-                        setRenameInput(event.target.value);
-                        setRenameError(null);
-                        onClearMutationError?.();
-                    }}
-                    placeholder={effectiveNamePlaceholder}
-                    maxLength={128}
-                    disabled={!city || isSubmitting}
-                />
+            <div className={`city-state-banner city-state-banner--${statusTone}`}>
+                <div className="city-state-banner__title">
+                    {isArchived ? "Archived city" : "Active city"}
+                </div>
+                <div className="city-state-banner__text">
+                    {isArchived
+                        ? "Simulation controls are disabled. The city remains visible for audit and can still be deleted as a cleanup action."
+                        : "Archiving will freeze simulation activity and lock further control mutations for this city."}
+                </div>
+            </div>
+
+            <form className="city-rename-form" onSubmit={handleRename}>
+                <div className="cities-field city-rename-form__field">
+                    <label className="cities-label" htmlFor="city-rename-input">
+                        Rename city
+                    </label>
+                    <input
+                        id="city-rename-input"
+                        className="text-input"
+                        value={renameInput}
+                        onChange={(event) => {
+                            setRenameInput(event.target.value);
+                            setRenameError(null);
+                            onClearMutationError?.();
+                        }}
+                        placeholder={effectiveNamePlaceholder}
+                        maxLength={128}
+                        disabled={!city || isSubmitting || isArchived}
+                    />
+                </div>
+
                 <Button
                     type="submit"
                     variant="primary"
-                    disabled={isSubmitting || !city}
+                    disabled={isSubmitting || !city || isArchived}
                 >
                     Rename
                 </Button>
@@ -149,12 +185,12 @@ export function CityOverviewCard({
                 </div>
             ) : null}
 
-            <div className="sim-controls-row">
+            <div className="city-actions-row">
                 <Button
                     onClick={() => void handleArchive()}
                     disabled={isSubmitting || !city || isArchived}
                 >
-                    Archive
+                    Archive city
                 </Button>
 
                 <Button
@@ -165,12 +201,6 @@ export function CityOverviewCard({
                     Delete city
                 </Button>
             </div>
-
-            {!isArchived && (
-                <div className="city-details-hint">
-                    Delete is available only after archive.
-                </div>
-            )}
         </Card>
     );
 }

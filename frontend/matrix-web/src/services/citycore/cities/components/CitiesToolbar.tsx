@@ -10,33 +10,44 @@ type Props = {
 };
 
 export function CitiesToolbar({
-                                  search,
-                                  includeArchived,
-                                  isRefreshing,
-                                  onSearchChange,
-                                  onIncludeArchivedChange,
-                                  onRefresh,
-                              }: Props) {
+    search,
+    includeArchived,
+    isRefreshing,
+    onSearchChange,
+    onIncludeArchivedChange,
+    onRefresh,
+}: Props) {
     return (
         <div className="cities-toolbar">
             <div className="cities-toolbar__left">
-                <input
-                    className="cities-input cities-toolbar__search"
-                    type="text"
-                    value={search}
-                    placeholder="Search by name, id or status..."
-                    onChange={(e) => onSearchChange(e.target.value)}
-                />
+                <label className="cities-toolbar__search-wrap" htmlFor="citycore-city-search">
+                    <span className="cities-toolbar__label">Search registry</span>
+                    <input
+                        id="citycore-city-search"
+                        className="cities-input cities-toolbar__search"
+                        type="text"
+                        value={search}
+                        placeholder="Search by city name, id, or lifecycle..."
+                        onChange={(event) => onSearchChange(event.target.value)}
+                    />
+                </label>
             </div>
 
             <div className="cities-toolbar__right">
-                <label className="cities-toolbar__checkbox">
+                <label className="cities-filter-toggle">
                     <input
+                        className="cities-filter-toggle__input"
                         type="checkbox"
                         checked={includeArchived}
-                        onChange={(e) => onIncludeArchivedChange(e.target.checked)}
+                        onChange={(event) => onIncludeArchivedChange(event.target.checked)}
                     />
-                    <span>Include archived</span>
+                    <span className="cities-filter-toggle__indicator" aria-hidden="true"/>
+                    <span className="cities-filter-toggle__copy">
+                        <span className="cities-filter-toggle__title">Show archived cities</span>
+                        <span className="cities-filter-toggle__text">
+                            Include inactive records in the registry view.
+                        </span>
+                    </span>
                 </label>
 
                 <Button
@@ -45,7 +56,7 @@ export function CitiesToolbar({
                     onClick={onRefresh}
                     disabled={isRefreshing}
                 >
-                    {isRefreshing ? "Refreshing..." : "Refresh"}
+                    {isRefreshing ? "Refreshing..." : "Refresh registry"}
                 </Button>
             </div>
         </div>

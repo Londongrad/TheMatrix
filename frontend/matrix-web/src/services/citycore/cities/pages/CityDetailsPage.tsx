@@ -3,8 +3,10 @@ import {CityDetailsHeader} from "@services/citycore/cities/components/CityDetail
 import {CityOverviewCard} from "@services/citycore/cities/components/CityOverviewCard";
 import {useCityDetails} from "@services/citycore/cities/hooks/useCityDetails";
 import {useCityMutations} from "@services/citycore/cities/hooks/useCityMutations";
+import {isArchivedCity} from "@services/citycore/cities/utils/presentation";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
 import Button from "@shared/ui/controls/Button/Button";
+import "@services/citycore/cities/styles/cities.css";
 import "@services/citycore/cities/styles/city-details.css";
 
 const CityDetailsPage = () => {
@@ -14,6 +16,7 @@ const CityDetailsPage = () => {
 
     const cityQuery = useCityDetails(cityId);
     const cityMutations = useCityMutations();
+    const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
 
     async function handleRename(name: string) {
         if (!cityId) {
@@ -52,10 +55,12 @@ const CityDetailsPage = () => {
     }
 
     return (
-        <div className="cities-page">
+        <div className="cities-page city-details-page">
             <CityDetailsHeader
                 title={cityQuery.data?.name ?? "City details"}
                 cityId={cityQuery.data?.cityId ?? cityId}
+                status={cityQuery.data?.status}
+                archivedAtUtc={cityQuery.data?.archivedAtUtc}
             />
 
             {cityQuery.error ? (
@@ -84,7 +89,13 @@ const CityDetailsPage = () => {
                 onDelete={handleDelete}
             />
 
-            {cityQuery.data ? <SimulationPanel cityId={cityQuery.data.cityId}/> : null}
+            {cityQuery.data ? (
+                <SimulationPanel
+                    cityId={cityQuery.data.cityId}
+                    isReadOnly={isArchived}
+                    readOnlyMessage="This city is archived. Simulation time is shown as a snapshot and control mutations are disabled."
+                />
+            ) : null}
         </div>
     );
 };
