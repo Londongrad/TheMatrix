@@ -19,7 +19,7 @@ namespace Matrix.Identity.Application.Services
                     cancellationToken: cancellationToken);
 
             HashSet<Guid> existingSet = existing.Count == 0
-                ? []
+                ? new HashSet<Guid>()
                 : existing.ToHashSet();
 
             var missing = roleIds.Where(id => !existingSet.Contains(id))
@@ -29,7 +29,10 @@ namespace Matrix.Identity.Application.Services
                 throw ApplicationErrorsFactory.ValidationFailed(
                     new Dictionary<string, string[]>
                     {
-                        ["roleIds"] = [$"Roles not found: {string.Join(separator: ", ", values: missing)}"]
+                        ["roleIds"] = new[]
+                        {
+                            $"Roles not found: {string.Join(separator: ", ", values: missing)}"
+                        }
                     });
         }
     }

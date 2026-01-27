@@ -8,7 +8,7 @@ namespace Matrix.Identity.Domain.Entities
     {
         #region [ Fields ]
 
-        private readonly List<RefreshToken> _refreshTokens = [];
+        private readonly List<RefreshToken> _refreshTokens = new();
 
         #endregion [ Fields ]
 
