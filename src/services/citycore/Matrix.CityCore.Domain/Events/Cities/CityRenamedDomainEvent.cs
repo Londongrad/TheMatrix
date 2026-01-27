@@ -1,5 +1,5 @@
-﻿using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Events.Common;
+using Matrix.CityCore.Domain.Cities;
+using Matrix.BuildingBlocks.Domain.Events;
 
 namespace Matrix.CityCore.Domain.Events.Cities
 {

@@ -1,5 +1,5 @@
-﻿using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Common;
+using Matrix.BuildingBlocks.Domain;
+using Matrix.BuildingBlocks.Domain.Common;
 using Matrix.CityCore.Domain.Errors;
 using Matrix.CityCore.Domain.Events.Cities;
 
