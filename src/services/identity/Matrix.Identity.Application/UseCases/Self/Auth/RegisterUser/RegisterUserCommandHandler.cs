@@ -1,7 +1,9 @@
+using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
@@ -10,6 +12,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
 {
     public sealed class RegisterUserHandler(
         IUserRepository userRepository,
+        IUserRolesRepository userRolesRepository,
+        IRoleReadRepository roleReadRepository,
         IPasswordHasher passwordHasher,
         IUnitOfWork unitOfWork)
         : IRequestHandler<RegisterUserCommand, RegisterUserResult>
@@ -18,45 +22,65 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
             RegisterUserCommand request,
             CancellationToken cancellationToken)
         {
-            // создаём value objects (здесь и Trim, и ToLower, и regex-проверка)
+            // Create value objects first so normalization and validation run once.
             var email = Email.Create(request.Email);
             var username = Username.Create(request.Username);
 
-            bool emailTaken = await userRepository
-               .IsEmailTakenAsync(
-                    normalizedEmail: email.Value,
-                    cancellationToken: cancellationToken);
+            return await unitOfWork.ExecuteInTransactionAsync(
+                action: async token =>
+                {
+                    bool emailTaken = await userRepository
+                       .IsEmailTakenAsync(
+                            normalizedEmail: email.Value,
+                            cancellationToken: token);
 
-            if (emailTaken)
-                throw ApplicationErrorsFactory.EmailAlreadyInUse(email.Value);
+                    if (emailTaken)
+                        throw ApplicationErrorsFactory.EmailAlreadyInUse(email.Value);
 
-            bool usernameTaken = await userRepository
-               .IsUsernameTakenAsync(
-                    normalizedUsername: username.Value,
-                    cancellationToken: cancellationToken);
+                    bool usernameTaken = await userRepository
+                       .IsUsernameTakenAsync(
+                            normalizedUsername: username.Value,
+                            cancellationToken: token);
 
-            if (usernameTaken)
-                throw ApplicationErrorsFactory.UsernameAlreadyInUse(username.Value);
+                    if (usernameTaken)
+                        throw ApplicationErrorsFactory.UsernameAlreadyInUse(username.Value);
 
-            string passwordHash = passwordHasher.Hash(request.Password);
+                    bool hasUsers = await userRepository.AnyAsync(token);
+                    string assignedRoleName = hasUsers
+                        ? SystemRoleNames.User
+                        : SystemRoleNames.SuperAdmin;
 
-            var user = User.CreateNew(
-                email: email,
-                username: username,
-                passwordHash: passwordHash);
+                    Role assignedRole = await roleReadRepository.GetByNameAsync(
+                                            roleName: assignedRoleName,
+                                            cancellationToken: token) ??
+                                        throw ApplicationErrorsFactory.RequiredSystemRoleMissing(
+                                            assignedRoleName);
 
-            await userRepository.AddAsync(
-                user: user,
-                cancellationToken: cancellationToken);
+                    string passwordHash = passwordHasher.Hash(request.Password);
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+                    var user = User.CreateNew(
+                        email: email,
+                        username: username,
+                        passwordHash: passwordHash);
 
-            return new RegisterUserResult
-            {
-                UserId = user.Id,
-                Username = user.Username.Value,
-                Email = user.Email.Value
-            };
+                    await userRepository.AddAsync(
+                        user: user,
+                        cancellationToken: token);
+
+                    await userRolesRepository.ReplaceUserRolesAsync(
+                        userId: user.Id,
+                        roleIds: new[] { assignedRole.Id },
+                        cancellationToken: token);
+
+                    return new RegisterUserResult
+                    {
+                        UserId = user.Id,
+                        Username = user.Username.Value,
+                        Email = user.Email.Value
+                    };
+                },
+                cancellationToken: cancellationToken,
+                isolationLevel: IsolationLevel.Serializable);
         }
     }
 }

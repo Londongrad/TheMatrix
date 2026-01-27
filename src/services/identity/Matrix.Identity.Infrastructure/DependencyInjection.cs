@@ -101,8 +101,8 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
             // Permission checker
-            services.AddPermissionCheckingFromClaims(); // Включаем общий claims-checker
-            services.AddScoped<IPermissionChecker, DbFallbackPermissionChecker>(); // Identity специфичный чекер
+            services.AddPermissionCheckingFromClaims();
+            services.AddScoped<IPermissionChecker, DbFallbackPermissionChecker>();
 
             // Security services
             services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -125,7 +125,7 @@ namespace Matrix.Identity.Infrastructure
             // Seeding
             services.AddScoped<PermissionsSeeder>();
             services.AddScoped<RolesSeeder>();
-            services.AddScoped<BootstrapAdminSeeder>();
+            services.AddScoped<BootstrapSuperAdminSeeder>();
 
             // External services
             services.AddGeoLocation(configuration);

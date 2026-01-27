@@ -28,6 +28,8 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             User user,
             CancellationToken cancellationToken = default);
 
+        Task<bool> AnyAsync(CancellationToken cancellationToken = default);
+
         Task<bool> IsEmailTakenAsync(
             string normalizedEmail,
             CancellationToken cancellationToken = default);

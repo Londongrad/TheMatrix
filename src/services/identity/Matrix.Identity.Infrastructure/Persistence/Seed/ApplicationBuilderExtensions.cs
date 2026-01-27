@@ -15,11 +15,11 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             await permissionsSeeder.SeedAsync(cancellationToken);
 
             RolesSeeder rolesSeeder = scope.ServiceProvider.GetRequiredService<RolesSeeder>();
-            await rolesSeeder.SeedAdminRoleWithAllPermissionsAsync(cancellationToken);
+            await rolesSeeder.SeedSystemRolesAsync(cancellationToken);
 
-            BootstrapAdminSeeder bootstrapAdminSeeder =
-                scope.ServiceProvider.GetRequiredService<BootstrapAdminSeeder>();
-            await bootstrapAdminSeeder.EnsureAtLeastOneAdminAsync(cancellationToken);
+            BootstrapSuperAdminSeeder bootstrapSuperAdminSeeder =
+                scope.ServiceProvider.GetRequiredService<BootstrapSuperAdminSeeder>();
+            await bootstrapSuperAdminSeeder.EnsureAtLeastOneSuperAdminAsync(cancellationToken);
         }
     }
 }

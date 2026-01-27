@@ -89,5 +89,19 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                     predicate: r => r.Id == id,
                     cancellationToken: cancellationToken);
         }
+
+        public async Task<Role?> GetByNameAsync(
+            string roleName,
+            CancellationToken cancellationToken)
+        {
+            string normalizedName = roleName.Trim()
+               .ToUpperInvariant();
+
+            return await _db.Roles
+               .AsNoTracking()
+               .FirstOrDefaultAsync(
+                    predicate: r => r.NormalizedName == normalizedName,
+                    cancellationToken: cancellationToken);
+        }
     }
 }

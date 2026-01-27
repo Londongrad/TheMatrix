@@ -46,6 +46,11 @@ namespace Matrix.Identity.Domain.Entities
                 isSystem: isSystem);
         }
 
+        public void MarkAsSystem()
+        {
+            IsSystem = true;
+        }
+
         public void Rename(string name)
         {
             name = GuardHelper.AgainstNullOrWhiteSpace(

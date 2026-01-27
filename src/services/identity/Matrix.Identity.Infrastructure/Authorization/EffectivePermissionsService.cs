@@ -1,4 +1,5 @@
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
+using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -13,68 +14,89 @@ namespace Matrix.Identity.Infrastructure.Authorization
             Guid userId,
             CancellationToken cancellationToken)
         {
-            // 1) RoleIds пользователя
             List<Guid> roleIds = await _db.UserRoles
                .AsNoTracking()
-               .Where(ur => ur.UserId == userId)
-               .Select(ur => ur.RoleId)
+               .Where(userRole => userRole.UserId == userId)
+               .Select(userRole => userRole.RoleId)
                .Distinct()
                .ToListAsync(cancellationToken);
 
-            // 2) Имена ролей (для claims)
             List<string> roles = roleIds.Count == 0
-                ? []
+                ? new List<string>()
                 : await _db.Roles
                    .AsNoTracking()
-                   .Where(r => roleIds.Contains(r.Id))
-                   .Select(r => r.Name)
+                   .Where(role => roleIds.Contains(role.Id))
+                   .Select(role => role.Name)
                    .Distinct()
                    .ToListAsync(cancellationToken);
 
-            // 3) Permissions из ролей (только активные permissions)
-            List<string> rolePermissionKeys = roleIds.Count == 0
-                ? []
-                : await (from rp in _db.RolePermissions.AsNoTracking()
-                         join p in _db.Permissions.AsNoTracking() on rp.PermissionKey equals p.Key
-                         where roleIds.Contains(rp.RoleId) && !p.IsDeprecated
-                         select rp.PermissionKey)
+            bool isSuperAdmin = roles.Any(
+                role => string.Equals(
+                    role,
+                    SystemRoleNames.SuperAdmin,
+                    StringComparison.Ordinal));
+
+            List<string> rolePermissionKeys;
+            if (isSuperAdmin)
+            {
+                rolePermissionKeys = await _db.Permissions
+                   .AsNoTracking()
+                   .Where(permission => !permission.IsDeprecated)
+                   .Select(permission => permission.Key)
                    .Distinct()
                    .ToListAsync(cancellationToken);
+            }
+            else if (roleIds.Count == 0)
+            {
+                rolePermissionKeys = new List<string>();
+            }
+            else
+            {
+                rolePermissionKeys = await (from rolePermission in _db.RolePermissions.AsNoTracking()
+                                            join permission in _db.Permissions.AsNoTracking()
+                                                on rolePermission.PermissionKey equals permission.Key
+                                            where roleIds.Contains(rolePermission.RoleId) && !permission.IsDeprecated
+                                            select rolePermission.PermissionKey)
+                   .Distinct()
+                   .ToListAsync(cancellationToken);
+            }
 
             var effective = new HashSet<string>(
                 collection: rolePermissionKeys,
                 comparer: StringComparer.Ordinal);
 
-            // 4) User overrides (Allow/Deny) тоже только по активным permissions
-            var overrides = await (from o in _db.UserPermissionOverrides.AsNoTracking()
-                                   join p in _db.Permissions.AsNoTracking() on o.PermissionKey equals p.Key
-                                   where o.UserId == userId && !p.IsDeprecated
-                                   select new
-                                   {
-                                       o.PermissionKey,
-                                       o.Effect
-                                   })
-               .ToListAsync(cancellationToken);
+            if (!isSuperAdmin)
+            {
+                var overrides = await (from userOverride in _db.UserPermissionOverrides.AsNoTracking()
+                                       join permission in _db.Permissions.AsNoTracking()
+                                           on userOverride.PermissionKey equals permission.Key
+                                       where userOverride.UserId == userId && !permission.IsDeprecated
+                                       select new
+                                       {
+                                           userOverride.PermissionKey,
+                                           userOverride.Effect
+                                       })
+                   .ToListAsync(cancellationToken);
 
-            foreach (var o in overrides)
-                if (o.Effect == PermissionEffect.Deny)
-                    effective.Remove(o.PermissionKey);
+                foreach (var userOverride in overrides)
+                    if (userOverride.Effect == PermissionEffect.Deny)
+                        effective.Remove(userOverride.PermissionKey);
 
-            foreach (var o in overrides)
-                if (o.Effect == PermissionEffect.Allow)
-                    effective.Add(o.PermissionKey);
+                foreach (var userOverride in overrides)
+                    if (userOverride.Effect == PermissionEffect.Allow)
+                        effective.Add(userOverride.PermissionKey);
+            }
 
-            // 5) PermissionsVersion
-            int pv = await _db.Users
+            int permissionsVersion = await _db.Users
                .AsNoTracking()
-               .Where(u => u.Id == userId)
-               .Select(u => u.PermissionsVersion)
+               .Where(user => user.Id == userId)
+               .Select(user => user.PermissionsVersion)
                .SingleAsync(cancellationToken);
 
             return new AuthorizationContext(
                 Roles: roles,
                 Permissions: effective.ToList(),
-                PermissionsVersion: pv);
+                PermissionsVersion: permissionsVersion);
         }
     }
 }

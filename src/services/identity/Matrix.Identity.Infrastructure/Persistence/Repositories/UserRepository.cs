@@ -99,6 +99,13 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             return Task.CompletedTask;
         }
 
+        public async Task<bool> AnyAsync(CancellationToken cancellationToken = default)
+        {
+            return await Users
+               .AsNoTracking()
+               .AnyAsync(cancellationToken);
+        }
+
         public async Task<bool> ExistsAsync(
             Guid userId,
             CancellationToken cancellationToken)
