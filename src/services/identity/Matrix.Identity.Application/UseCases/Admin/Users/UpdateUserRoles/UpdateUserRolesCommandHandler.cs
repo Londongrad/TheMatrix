@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
@@ -11,6 +12,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles
         IUserRepository userRepository,
         IUserRolesRepository userRolesRepository,
         IRoleIdsValidator roleIdsValidator,
+        IAdminUserGuard adminUserGuard,
         IUnitOfWork unitOfWork,
         ISecurityStateChangeCollector securityStateChangeCollector)
         : IRequestHandler<UpdateUserRolesCommand>
@@ -26,8 +28,16 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles
                     cancellationToken: cancellationToken))
                 throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
+            await adminUserGuard.EnsureUserCanBeManagedAsync(
+                targetUserId: request.UserId,
+                cancellationToken: cancellationToken);
+
             await roleIdsValidator.ValidateExistAsync(
                 roleIds: desiredRoleIds,
+                cancellationToken: cancellationToken);
+
+            await adminUserGuard.EnsureRoleAssignmentIsAllowedAsync(
+                desiredRoleIds: desiredRoleIds,
                 cancellationToken: cancellationToken);
 
             await unitOfWork.ExecuteInTransactionAsync(

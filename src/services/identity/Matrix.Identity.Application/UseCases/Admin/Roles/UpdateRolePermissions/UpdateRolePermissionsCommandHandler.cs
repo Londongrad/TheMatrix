@@ -3,6 +3,7 @@ using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions
@@ -20,10 +21,15 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions
             UpdateRolePermissionsCommand request,
             CancellationToken cancellationToken)
         {
-            if (!await roleReadRepository.ExistsAsync(
-                    roleId: request.RoleId,
-                    cancellationToken: cancellationToken))
+            Role? role = await roleReadRepository.GetByIdAsync(
+                roleId: request.RoleId,
+                cancellationToken: cancellationToken);
+
+            if (role is null)
                 throw ApplicationErrorsFactory.RoleNotFound(request.RoleId);
+
+            if (role.IsSystem)
+                throw ApplicationErrorsFactory.SystemRoleIsReadOnly(role.Name);
 
             var desiredKeys = request.RolePermissionKeys
                .Where(k => !string.IsNullOrWhiteSpace(k))

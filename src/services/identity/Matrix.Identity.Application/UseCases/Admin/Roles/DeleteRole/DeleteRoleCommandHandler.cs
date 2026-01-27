@@ -25,6 +25,9 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole
             if (role is null)
                 throw ApplicationErrorsFactory.RoleNotFound(request.RoleId);
 
+            if (role.IsSystem)
+                throw ApplicationErrorsFactory.SystemRoleIsReadOnly(role.Name);
+
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async token =>
                 {

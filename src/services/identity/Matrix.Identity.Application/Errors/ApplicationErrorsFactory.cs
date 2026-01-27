@@ -69,6 +69,46 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Conflict);
         }
 
+        public static MatrixApplicationException SystemRoleIsReadOnly(string roleName)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Role.System.ReadOnly",
+                message: $"System role '{roleName}' cannot be renamed, deleted, or edited.",
+                errorType: ApplicationErrorType.Forbidden);
+        }
+
+        public static MatrixApplicationException CannotPerformAdminActionOnSelf()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Admin.SelfActionForbidden",
+                message: "You cannot perform this admin action on yourself.",
+                errorType: ApplicationErrorType.Forbidden);
+        }
+
+        public static MatrixApplicationException SuperAdminUserIsProtected()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Admin.SuperAdmin.Protected",
+                message: "SuperAdmin user access is protected and cannot be changed through admin actions.",
+                errorType: ApplicationErrorType.Forbidden);
+        }
+
+        public static MatrixApplicationException SuperAdminRoleAssignmentForbidden()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Admin.SuperAdmin.RoleAssignmentForbidden",
+                message: "SuperAdmin role cannot be assigned or removed through generic admin role editing.",
+                errorType: ApplicationErrorType.Forbidden);
+        }
+
+        public static MatrixApplicationException RequiredSystemRoleMissing(string roleName)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Role.System.Missing",
+                message: $"Required system role '{roleName}' is not configured.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
         public static MatrixApplicationException PasswordsDoNotMatch()
         {
             return new MatrixApplicationException(

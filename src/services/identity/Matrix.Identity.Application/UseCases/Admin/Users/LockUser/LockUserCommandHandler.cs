@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
@@ -10,6 +11,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
 {
     public sealed class LockUserCommandHandler(
         IUserRepository userRepository,
+        IAdminUserGuard adminUserGuard,
         ISecurityStateChangeCollector securityStateChangeCollector,
         IUnitOfWork unitOfWork)
         : IRequestHandler<LockUserCommand>
@@ -25,6 +27,10 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
                                     userId: request.UserId,
                                     cancellationToken: token) ??
                                 throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+
+                    await adminUserGuard.EnsureUserCanBeManagedAsync(
+                        targetUserId: user.Id,
+                        cancellationToken: token);
 
                     bool wasLocked = user.IsLocked;
 

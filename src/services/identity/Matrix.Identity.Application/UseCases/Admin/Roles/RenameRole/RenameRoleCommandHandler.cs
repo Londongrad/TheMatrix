@@ -23,6 +23,9 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.RenameRole
             if (role is null)
                 throw ApplicationErrorsFactory.RoleNotFound(request.RoleId);
 
+            if (role.IsSystem)
+                throw ApplicationErrorsFactory.SystemRoleIsReadOnly(role.Name);
+
             bool exists = await roleReadRepository.ExistsByNameExceptAsync(
                 roleName: request.Name,
                 excludedRoleId: role.Id,

@@ -2,6 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
@@ -26,6 +27,9 @@ namespace Matrix.Identity.Application
 
             // Security state change collector
             services.AddScoped<ISecurityStateChangeCollector, SecurityStateChangeCollector>();
+
+            // Admin guards
+            services.AddScoped<IAdminUserGuard, AdminUserGuard>();
 
             // Validators
             services.AddScoped<IRoleIdsValidator, RoleIdsValidator>();

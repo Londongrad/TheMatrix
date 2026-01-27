@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
@@ -12,6 +13,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
         IUserRepository userRepository,
         IUserPermissionsRepository permissionsRepository,
         IPermissionReadRepository permissionReadRepository,
+        IAdminUserGuard adminUserGuard,
         ISecurityStateChangeCollector securityStateChangeCollector,
         IUnitOfWork unitOfWork)
         : IRequestHandler<GrantUserPermissionCommand>
@@ -20,7 +22,6 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
             GrantUserPermissionCommand request,
             CancellationToken cancellationToken)
         {
-            // 1) user exists
             bool exists = await userRepository.ExistsAsync(
                 userId: request.UserId,
                 cancellationToken: cancellationToken);
@@ -28,7 +29,10 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
             if (!exists)
                 throw ApplicationErrorsFactory.UserNotFound(request.UserId);
 
-            // 2) permission
+            await adminUserGuard.EnsureUserCanBeManagedAsync(
+                targetUserId: request.UserId,
+                cancellationToken: cancellationToken);
+
             PermissionCatalogItemResult? permission =
                 await permissionReadRepository.GetPermissionAsync(
                     permissionKey: request.TargetPermissionKey,
@@ -50,7 +54,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission
                         cancellationToken: token);
 
                     if (!changed)
-                        return; // уже Allow -> ничего не меняем, версию не bumpаем
+                        return;
 
                     securityStateChangeCollector.MarkUserChanged(request.UserId);
                 },
