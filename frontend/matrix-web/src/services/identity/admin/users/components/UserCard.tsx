@@ -4,6 +4,7 @@ import {IconLock, IconOpen, IconUnlock} from "@shared/ui/icons/icons";
 import type {UserListItemResponse} from "@services/identity/api/admin/adminTypes";
 import {RequirePermission, RequirePermissions,} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import UserBadge from "./UserBadge";
 
 function formatUtc(utc: string) {
@@ -21,11 +22,19 @@ export default function UserCard({
     onToggleLock: (user: UserListItemResponse) => void;
     isLoading: boolean;
 }) {
+    const {user: currentUser} = useAuth();
+
     const avatarLabel = user.username?.[0]?.toUpperCase() ?? "U";
     const avatarUrl = user.avatarUrl ?? "";
     const togglePermission = user.isLocked
         ? PermissionKeys.IdentityUsersUnlock
         : PermissionKeys.IdentityUsersLock;
+    const isCurrentUser = currentUser?.userId === user.id;
+    const toggleTitle = isCurrentUser
+        ? "You cannot lock your own account"
+        : user.isLocked
+            ? "Unlock"
+            : "Lock";
 
     return (
         <div className="mx-admin-users__card" role="listitem">
@@ -82,9 +91,9 @@ export default function UserCard({
                 <RequirePermission perm={togglePermission} mode="disable">
                     <IconButton
                         variant={user.isLocked ? "default" : "danger"}
-                        title={user.isLocked ? "Unlock" : "Lock"}
+                        title={toggleTitle}
                         onClick={() => void onToggleLock(user)}
-                        disabled={isLoading}
+                        disabled={isLoading || isCurrentUser}
                     >
                         {user.isLocked ? <IconUnlock/> : <IconLock/>}
                     </IconButton>

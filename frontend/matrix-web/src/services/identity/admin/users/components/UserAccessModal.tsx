@@ -4,6 +4,8 @@ import Modal from "@shared/ui/components/Modal/Modal";
 import UserBadge from "./UserBadge";
 import {useUserAccess} from "../hooks/useUserAccess";
 
+const SUPER_ADMIN_ROLE_NAME = "SuperAdmin";
+
 function formatUtc(utc: string) {
     return utc?.replace("T", " ").replace("Z", "");
 }
@@ -30,6 +32,8 @@ export default function UserAccessModal({
         setSelectedRoleIds,
         saveRoles,
         updatePermission,
+        isAccessReadOnly,
+        readOnlyReason,
     } = useUserAccess(userId);
 
     return (
@@ -50,6 +54,9 @@ export default function UserAccessModal({
             ) : null}
 
             {error ? <div className="mx-admin-users__error">{error}</div> : null}
+            {readOnlyReason ? (
+                <div className="mx-admin-users__muted">{readOnlyReason}</div>
+            ) : null}
 
             {details ? (
                 <div className="mx-admin-users__modal">
@@ -78,30 +85,46 @@ export default function UserAccessModal({
                     <div className="mx-admin-users__section">
                         <div className="mx-admin-users__sectionTitle">Roles</div>
                         <div className="mx-admin-users__roles">
-                            {rolesCatalog.map((role) => (
-                                <label key={role.id} className="mx-admin-users__roleItem">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedRoleIds.includes(role.id)}
-                                        onChange={(event) => {
-                                            if (event.target.checked) {
-                                                setSelectedRoleIds((prev) => [...prev, role.id]);
-                                            } else {
-                                                setSelectedRoleIds((prev) =>
-                                                    prev.filter((id) => id !== role.id)
-                                                );
+                            {rolesCatalog.map((role) => {
+                                const isSuperAdminRole = role.name === SUPER_ADMIN_ROLE_NAME;
+
+                                return (
+                                    <label key={role.id} className="mx-admin-users__roleItem">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedRoleIds.includes(role.id)}
+                                            disabled={
+                                                savingRoles ||
+                                                isAccessReadOnly ||
+                                                isSuperAdminRole
                                             }
-                                        }}
-                                    />
-                                    <span>{role.name}</span>
-                                    {role.isSystem ? (
-                                        <span className="mx-admin-users__chip">System</span>
-                                    ) : null}
-                                </label>
-                            ))}
+                                            onChange={(event) => {
+                                                if (event.target.checked) {
+                                                    setSelectedRoleIds((prev) =>
+                                                        prev.includes(role.id)
+                                                            ? prev
+                                                            : [...prev, role.id]
+                                                    );
+                                                } else {
+                                                    setSelectedRoleIds((prev) =>
+                                                        prev.filter((id) => id !== role.id)
+                                                    );
+                                                }
+                                            }}
+                                        />
+                                        <span>{role.name}</span>
+                                        {role.isSystem ? (
+                                            <span className="mx-admin-users__chip">System</span>
+                                        ) : null}
+                                    </label>
+                                );
+                            })}
                         </div>
                         <div className="mx-admin-users__rolesActions">
-                            <Button onClick={() => void saveRoles()} disabled={savingRoles}>
+                            <Button
+                                onClick={() => void saveRoles()}
+                                disabled={savingRoles || isAccessReadOnly}
+                            >
                                 Save roles
                             </Button>
                             <div className="mx-admin-users__muted">
@@ -129,9 +152,11 @@ export default function UserAccessModal({
                                             ? "bad"
                                             : "warn";
                                 const allowDisabled =
+                                    isAccessReadOnly ||
                                     savingPermission === permission.key ||
                                     effectiveEffect === "Allow";
                                 const denyDisabled =
+                                    isAccessReadOnly ||
                                     savingPermission === permission.key ||
                                     effectiveEffect === "Deny";
                                 return (

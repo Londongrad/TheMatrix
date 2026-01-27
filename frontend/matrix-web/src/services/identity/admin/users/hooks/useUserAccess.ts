@@ -17,8 +17,13 @@ import type {
     UserPermissionResponse,
     UserRoleResponse,
 } from "@services/identity/api/admin/adminTypes";
+import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+
+const SUPER_ADMIN_ROLE_NAME = "SuperAdmin";
 
 export function useUserAccess(userId: string) {
+    const {user: currentUser} = useAuth();
+
     const [loading, setLoading] = useState(true);
     const [savingRoles, setSavingRoles] = useState(false);
     const [savingPermission, setSavingPermission] = useState<string | null>(null);
@@ -58,8 +63,8 @@ export function useUserAccess(userId: string) {
                 setDetails(user);
                 setRolesCatalog(roles);
                 setUserRoles(assignedRoles);
-                setSelectedRoleIds(assignedRoles.map((r) => r.id));
-                setPermissionsCatalog(perms.filter((p) => !p.isDeprecated));
+                setSelectedRoleIds(assignedRoles.map((role) => role.id));
+                setPermissionsCatalog(perms.filter((permission) => !permission.isDeprecated));
                 setUserPermissions(overrides);
 
                 const rolePermissions = await Promise.all(
@@ -96,14 +101,31 @@ export function useUserAccess(userId: string) {
         return map;
     }, [userPermissions]);
 
+    const isCurrentUser = details?.id === currentUser?.userId;
+    const isProtectedUser = useMemo(
+        () =>
+            userRoles.some(
+                (role) => role.name === SUPER_ADMIN_ROLE_NAME
+            ),
+        [userRoles]
+    );
+    const isAccessReadOnly = isCurrentUser || isProtectedUser;
+    const readOnlyReason = isCurrentUser
+        ? "You cannot manage your own access from the admin panel."
+        : isProtectedUser
+            ? "SuperAdmin access is protected and can only be viewed here."
+            : null;
+
     const saveRoles = async () => {
+        if (isAccessReadOnly) return;
+
         setSavingRoles(true);
         setError(null);
         try {
             await assignUserRoles(userId, selectedRoleIds);
             const updated = await getUserRoles(userId);
             setUserRoles(updated);
-            setSelectedRoleIds(updated.map((r) => r.id));
+            setSelectedRoleIds(updated.map((role) => role.id));
 
             const rolePermissions = await Promise.all(
                 updated.map((role) => getRolePermissions(role.id))
@@ -125,6 +147,8 @@ export function useUserAccess(userId: string) {
         permissionKey: string,
         effect: "Allow" | "Deny"
     ) => {
+        if (isAccessReadOnly) return;
+
         setSavingPermission(permissionKey);
         setError(null);
         try {
@@ -167,5 +191,9 @@ export function useUserAccess(userId: string) {
         setSelectedRoleIds,
         saveRoles,
         updatePermission,
+        isCurrentUser,
+        isProtectedUser,
+        isAccessReadOnly,
+        readOnlyReason,
     };
 }
