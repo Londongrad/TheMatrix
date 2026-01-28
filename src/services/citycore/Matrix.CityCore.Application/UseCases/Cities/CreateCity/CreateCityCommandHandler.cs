@@ -1,6 +1,8 @@
-﻿using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Cities.Enums;
 using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
@@ -15,8 +17,22 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
             CreateCityCommand request,
             CancellationToken cancellationToken)
         {
+            ClimateZone climateZone = GuardHelper.AgainstInvalidStringToEnum<ClimateZone>(
+                value: request.ClimateZone,
+                propertyName: nameof(request.ClimateZone));
+
+            Hemisphere hemisphere = GuardHelper.AgainstInvalidStringToEnum<Hemisphere>(
+                value: request.Hemisphere,
+                propertyName: nameof(request.Hemisphere));
+
+            CityEnvironment environment = CityEnvironment.Create(
+                climateZone: climateZone,
+                hemisphere: hemisphere,
+                utcOffset: CityUtcOffset.FromMinutes(request.UtcOffsetMinutes));
+
             var city = City.Create(
                 name: new CityName(request.Name),
+                environment: environment,
                 createdAtUtc: DateTimeOffset.UtcNow);
 
             SimSpeed speed = request.SpeedMultiplier == 1.0m

@@ -5,6 +5,7 @@ using Matrix.CityCore.Application.UseCases.Cities.DeleteCity;
 using Matrix.CityCore.Application.UseCases.Cities.GetCity;
 using Matrix.CityCore.Application.UseCases.Cities.ListCities;
 using Matrix.CityCore.Application.UseCases.Cities.RenameCity;
+using Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
 using MediatR;
@@ -26,6 +27,9 @@ namespace Matrix.CityCore.Api.Controllers
             Guid cityId = await mediator.Send(
                 request: new CreateCityCommand(
                     Name: request.Name,
+                    ClimateZone: request.ClimateZone,
+                    Hemisphere: request.Hemisphere,
+                    UtcOffsetMinutes: request.UtcOffsetMinutes,
                     StartSimTimeUtc: request.StartSimTimeUtc,
                     SpeedMultiplier: request.SpeedMultiplier),
                 cancellationToken: cancellationToken);
@@ -83,6 +87,25 @@ namespace Matrix.CityCore.Api.Controllers
                 : Results.NotFound();
         }
 
+        [HttpPut("{cityId:guid}/environment")]
+        public async Task<IResult> UpdateEnvironment(
+            [FromRoute] Guid cityId,
+            [FromBody] UpdateCityEnvironmentRequest request,
+            CancellationToken cancellationToken)
+        {
+            bool updated = await mediator.Send(
+                request: new UpdateCityEnvironmentCommand(
+                    CityId: cityId,
+                    ClimateZone: request.ClimateZone,
+                    Hemisphere: request.Hemisphere,
+                    UtcOffsetMinutes: request.UtcOffsetMinutes),
+                cancellationToken: cancellationToken);
+
+            return updated
+                ? Results.NoContent()
+                : Results.NotFound();
+        }
+
         [HttpPost("{cityId:guid}/archive")]
         public async Task<IResult> Archive(
             [FromRoute] Guid cityId,
@@ -126,6 +149,9 @@ namespace Matrix.CityCore.Api.Controllers
                 CityId: dto.CityId,
                 Name: dto.Name,
                 Status: dto.Status,
+                ClimateZone: dto.ClimateZone,
+                Hemisphere: dto.Hemisphere,
+                UtcOffsetMinutes: dto.UtcOffsetMinutes,
                 CreatedAtUtc: dto.CreatedAtUtc,
                 ArchivedAtUtc: dto.ArchivedAtUtc);
         }

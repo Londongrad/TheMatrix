@@ -1,17 +1,15 @@
 using FluentValidation;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Cities.Enums;
-using Matrix.CityCore.Domain.Simulation;
 
-namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
+namespace Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment
 {
-    public sealed class CreateCityCommandValidator : AbstractValidator<CreateCityCommand>
+    public sealed class UpdateCityEnvironmentCommandValidator : AbstractValidator<UpdateCityEnvironmentCommand>
     {
-        public CreateCityCommandValidator()
+        public UpdateCityEnvironmentCommandValidator()
         {
-            RuleFor(x => x.Name)
-               .NotEmpty()
-               .MaximumLength(CityName.MaxLength);
+            RuleFor(x => x.CityId)
+               .NotEmpty();
 
             RuleFor(x => x.ClimateZone)
                .NotEmpty()
@@ -29,15 +27,6 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                     to: CityUtcOffset.MaxMinutes)
                .Must(BeAlignedToOffsetStep)
                .WithMessage($"UtcOffsetMinutes must align to {CityUtcOffset.StepMinutes}-minute increments.");
-
-            RuleFor(x => x.StartSimTimeUtc)
-               .Must(x => x.Offset == TimeSpan.Zero)
-               .WithMessage("StartSimTimeUtc must be UTC (Offset=00:00).");
-
-            RuleFor(x => x.SpeedMultiplier)
-               .InclusiveBetween(
-                    from: SimSpeed.Min,
-                    to: SimSpeed.Max);
         }
 
         private static bool BeValidClimateZone(string value)

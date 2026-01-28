@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Cities;
 
 namespace Matrix.CityCore.Application.UseCases.Cities.Common
 {
@@ -6,6 +6,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
         Guid CityId,
         string Name,
         string Status,
+        string ClimateZone,
+        string Hemisphere,
+        int UtcOffsetMinutes,
         DateTimeOffset CreatedAtUtc,
         DateTimeOffset? ArchivedAtUtc,
         bool IsArchived)
@@ -16,6 +19,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
                 CityId: city.Id.Value,
                 Name: city.Name.Value,
                 Status: city.Status.ToString(),
+                ClimateZone: city.Environment.ClimateZone.ToString(),
+                Hemisphere: city.Environment.Hemisphere.ToString(),
+                UtcOffsetMinutes: city.Environment.UtcOffset.TotalMinutes,
                 CreatedAtUtc: city.CreatedAtUtc,
                 ArchivedAtUtc: city.ArchivedAtUtc,
                 IsArchived: city.IsArchived);
