@@ -6,8 +6,10 @@ using Matrix.CityCore.Application.UseCases.Cities.GetCity;
 using Matrix.CityCore.Application.UseCases.Cities.ListCities;
 using Matrix.CityCore.Application.UseCases.Cities.RenameCity;
 using Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment;
+using Matrix.CityCore.Application.UseCases.Weather.GetWeather;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
+using Matrix.CityCore.Contracts.Weather.Views;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -68,6 +70,21 @@ namespace Matrix.CityCore.Api.Controllers
                 return Results.NotFound();
 
             return Results.Ok(MapToView(city));
+        }
+
+        [HttpGet("{cityId:guid}/weather")]
+        public async Task<IResult> GetWeather(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityWeatherDto? weather = await mediator.Send(
+                request: new GetWeatherQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            if (weather is null)
+                return Results.NotFound();
+
+            return Results.Ok(MapToWeatherView(weather));
         }
 
         [HttpPut("{cityId:guid}/name")]
@@ -162,6 +179,36 @@ namespace Matrix.CityCore.Api.Controllers
                 CityId: dto.CityId,
                 Name: dto.Name,
                 Status: dto.Status);
+        }
+
+        private static CityWeatherView MapToWeatherView(CityWeatherDto dto)
+        {
+            return new CityWeatherView(
+                CityId: dto.CityId,
+                ClimateZone: dto.ClimateZone,
+                CurrentType: dto.CurrentType,
+                Severity: dto.Severity,
+                PrecipitationKind: dto.PrecipitationKind,
+                TemperatureC: dto.TemperatureC,
+                HumidityPercent: dto.HumidityPercent,
+                WindSpeedKph: dto.WindSpeedKph,
+                CloudCoveragePercent: dto.CloudCoveragePercent,
+                PressureHpa: dto.PressureHpa,
+                StartedAtUtc: dto.StartedAtUtc,
+                ExpectedUntilUtc: dto.ExpectedUntilUtc,
+                LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                LastTransitionAtUtc: dto.LastTransitionAtUtc,
+                ActiveOverride: dto.ActiveOverride is null
+                    ? null
+                    : new CityWeatherOverrideView(
+                        OverrideId: dto.ActiveOverride.OverrideId,
+                        Source: dto.ActiveOverride.Source,
+                        Reason: dto.ActiveOverride.Reason,
+                        ForcedType: dto.ActiveOverride.ForcedType,
+                        ForcedSeverity: dto.ActiveOverride.ForcedSeverity,
+                        ForcedPrecipitationKind: dto.ActiveOverride.ForcedPrecipitationKind,
+                        StartsAtUtc: dto.ActiveOverride.StartsAtUtc,
+                        EndsAtUtc: dto.ActiveOverride.EndsAtUtc));
         }
     }
 }
