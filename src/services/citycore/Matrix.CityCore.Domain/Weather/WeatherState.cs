@@ -99,6 +99,22 @@ namespace Matrix.CityCore.Domain.Weather
                    time.CompareTo(ExpectedUntil) < 0;
         }
 
+        public bool HasSameConditionsAs(WeatherState other)
+        {
+            GuardHelper.AgainstNull(
+                value: other,
+                propertyName: nameof(other));
+
+            return Type == other.Type &&
+                   Severity == other.Severity &&
+                   PrecipitationKind == other.PrecipitationKind &&
+                   Temperature == other.Temperature &&
+                   Humidity == other.Humidity &&
+                   WindSpeed == other.WindSpeed &&
+                   CloudCoverage == other.CloudCoverage &&
+                   Pressure == other.Pressure;
+        }
+
         private static void EnsurePrecipitationMatchesType(
             WeatherType type,
             PrecipitationKind precipitationKind)

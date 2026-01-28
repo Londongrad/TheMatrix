@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Cities;
 using Matrix.BuildingBlocks.Domain.Common;
+using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Errors;
 using Matrix.CityCore.Domain.Events.Weather;
 using Matrix.CityCore.Domain.Simulation;
@@ -272,6 +272,12 @@ namespace Matrix.CityCore.Domain.Weather
 
             if (nextState == CurrentState)
                 return;
+
+            if (nextState.HasSameConditionsAs(CurrentState))
+            {
+                CurrentState = nextState;
+                return;
+            }
 
             CurrentState = nextState;
             LastTransitionAt = evaluatedAt;
