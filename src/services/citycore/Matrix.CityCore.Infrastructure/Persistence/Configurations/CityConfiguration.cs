@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Cities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -23,6 +23,31 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => new CityName(x))
                .HasMaxLength(CityName.MaxLength)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.Environment,
+                buildAction: environment =>
+                {
+                    environment.Property(x => x.ClimateZone)
+                       .HasConversion<int>()
+                       .HasColumnName("ClimateZone")
+                       .IsRequired();
+
+                    environment.Property(x => x.Hemisphere)
+                       .HasConversion<int>()
+                       .HasColumnName("Hemisphere")
+                       .IsRequired();
+
+                    environment.Property(x => x.UtcOffset)
+                       .HasConversion(
+                            convertToProviderExpression: x => x.TotalMinutes,
+                            convertFromProviderExpression: x => CityUtcOffset.FromMinutes(x))
+                       .HasColumnName("UtcOffsetMinutes")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.Environment)
                .IsRequired();
 
             builder.Property(x => x.Status)
