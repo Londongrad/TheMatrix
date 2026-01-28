@@ -15,7 +15,7 @@ namespace Matrix.CityCore.Application.Services.Weather
         ICityWeatherBootstrapFactory bootstrapFactory,
         IWeatherStatePlanner planner) : IWeatherAdvanceExecutor
     {
-        public async Task AdvanceAsync(
+        public async Task<CityWeather?> AdvanceAsync(
             CityId cityId,
             SimTime evaluatedAt,
             CancellationToken cancellationToken)
@@ -25,7 +25,7 @@ namespace Matrix.CityCore.Application.Services.Weather
                 cancellationToken: cancellationToken);
 
             if (city is null)
-                return;
+                return null;
 
             CityWeather? cityWeather = await weatherRepository.GetByCityIdAsync(
                 cityId: cityId,
@@ -41,8 +41,7 @@ namespace Matrix.CityCore.Application.Services.Weather
                     cityWeather: initialWeather,
                     cancellationToken: cancellationToken);
 
-                initialWeather.ClearDomainEvents();
-                return;
+                return initialWeather;
             }
 
             WeatherState nextNaturalState = planner.PlanNaturalState(
@@ -54,7 +53,7 @@ namespace Matrix.CityCore.Application.Services.Weather
                 evaluatedAt: evaluatedAt,
                 nextState: nextNaturalState);
 
-            cityWeather.ClearDomainEvents();
+            return cityWeather;
         }
     }
 }

@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
+using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Services.Weather.Abstractions;
 using Matrix.CityCore.Domain.Cities;
@@ -15,6 +16,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
         ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
+        ICityCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, Guid>
     {
         public async Task<Guid> Handle(
@@ -66,6 +68,11 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                     await clockRepository.AddAsync(
                         clock: clock,
                         cancellationToken: ct);
+                    await outboxWriter.AddWeatherEventsAsync(
+                        domainEvents: cityWeather.DomainEvents,
+                        cancellationToken: ct);
+
+                    cityWeather.ClearDomainEvents();
                     await unitOfWork.SaveChangesAsync(ct);
                 },
                 cancellationToken: cancellationToken);

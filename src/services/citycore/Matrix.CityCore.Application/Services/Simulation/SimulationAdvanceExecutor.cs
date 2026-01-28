@@ -6,6 +6,7 @@ using Matrix.CityCore.Application.Services.Weather.Abstractions;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Events.Simulation;
 using Matrix.CityCore.Domain.Simulation;
+using Matrix.CityCore.Domain.Weather;
 
 namespace Matrix.CityCore.Application.Services.Simulation
 {
@@ -44,7 +45,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
                     {
                         advanced = true;
 
-                        await weatherAdvanceExecutor.AdvanceAsync(
+                        CityWeather? cityWeather = await weatherAdvanceExecutor.AdvanceAsync(
                             cityId: cityId,
                             evaluatedAt: advancedEvent.To,
                             cancellationToken: ct);
@@ -56,6 +57,14 @@ namespace Matrix.CityCore.Application.Services.Simulation
                             tickId: advancedEvent.TickId,
                             speed: advancedEvent.Speed,
                             cancellationToken: ct);
+
+                        if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
+                        {
+                            await outboxWriter.AddWeatherEventsAsync(
+                                domainEvents: cityWeather.DomainEvents,
+                                cancellationToken: ct);
+                            cityWeather.ClearDomainEvents();
+                        }
                     }
 
                     clock.ClearDomainEvents();

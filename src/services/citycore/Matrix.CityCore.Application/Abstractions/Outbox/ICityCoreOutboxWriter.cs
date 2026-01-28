@@ -1,4 +1,5 @@
-﻿using Matrix.CityCore.Domain.Cities;
+using Matrix.BuildingBlocks.Domain.Events;
+using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Abstractions.Outbox
@@ -11,6 +12,10 @@ namespace Matrix.CityCore.Application.Abstractions.Outbox
             SimTime to,
             TickId tickId,
             SimSpeed speed,
+            CancellationToken cancellationToken);
+
+        Task AddWeatherEventsAsync(
+            IReadOnlyCollection<IDomainEvent> domainEvents,
             CancellationToken cancellationToken);
     }
 }
