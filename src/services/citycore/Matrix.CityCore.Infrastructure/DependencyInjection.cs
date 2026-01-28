@@ -33,6 +33,7 @@ namespace Matrix.CityCore.Infrastructure
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
             services.AddScoped<ICityRepository, CityRepository>();
+            services.AddScoped<ICityWeatherRepository, CityWeatherRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ICityCoreOutboxWriter, CityCoreOutboxWriter>();
             services.AddScoped<ISimulationClockMutationExecutor, SimulationClockMutationExecutor>();

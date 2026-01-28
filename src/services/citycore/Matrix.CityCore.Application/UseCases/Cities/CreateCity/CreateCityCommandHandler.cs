@@ -1,16 +1,20 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Application.Services.Weather.Abstractions;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Cities.Enums;
 using Matrix.CityCore.Domain.Simulation;
+using Matrix.CityCore.Domain.Weather;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
 {
     public sealed class CreateCityCommandHandler(
         ICityRepository cityRepository,
+        ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
+        ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, Guid>
     {
         public async Task<Guid> Handle(
@@ -30,10 +34,16 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 hemisphere: hemisphere,
                 utcOffset: CityUtcOffset.FromMinutes(request.UtcOffsetMinutes));
 
+            SimTime startSimTime = SimTime.FromUtc(request.StartSimTimeUtc);
+
             var city = City.Create(
                 name: new CityName(request.Name),
                 environment: environment,
                 createdAtUtc: DateTimeOffset.UtcNow);
+
+            CityWeather cityWeather = cityWeatherBootstrapFactory.CreateInitial(
+                city: city,
+                initialTime: startSimTime);
 
             SimSpeed speed = request.SpeedMultiplier == 1.0m
                 ? SimSpeed.RealTime()
@@ -41,7 +51,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
 
             var clock = SimulationClock.Create(
                 cityId: city.Id,
-                startTime: SimTime.FromUtc(request.StartSimTimeUtc),
+                startTime: startSimTime,
                 speed: speed);
 
             await unitOfWork.ExecuteInTransactionAsync(
@@ -49,6 +59,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 {
                     await cityRepository.AddAsync(
                         city: city,
+                        cancellationToken: ct);
+                    await cityWeatherRepository.AddAsync(
+                        cityWeather: cityWeather,
                         cancellationToken: ct);
                     await clockRepository.AddAsync(
                         clock: clock,
