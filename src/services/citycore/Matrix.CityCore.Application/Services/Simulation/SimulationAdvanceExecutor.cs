@@ -1,7 +1,8 @@
-﻿using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
+using Matrix.CityCore.Application.Services.Weather.Abstractions;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Events.Simulation;
 using Matrix.CityCore.Domain.Simulation;
@@ -10,6 +11,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
 {
     public sealed class SimulationAdvanceExecutor(
         ISimulationClockRepository repository,
+        IWeatherAdvanceExecutor weatherAdvanceExecutor,
         ICityCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
     {
@@ -41,6 +43,11 @@ namespace Matrix.CityCore.Application.Services.Simulation
                     if (advancedEvent is not null)
                     {
                         advanced = true;
+
+                        await weatherAdvanceExecutor.AdvanceAsync(
+                            cityId: cityId,
+                            evaluatedAt: advancedEvent.To,
+                            cancellationToken: ct);
 
                         await outboxWriter.AddCityTimeAdvancedAsync(
                             cityId: advancedEvent.CityId,
