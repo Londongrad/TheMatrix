@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
+using Matrix.CityCore.Domain.Cities.Enums;
 using Matrix.CityCore.Domain.Errors;
 using Matrix.CityCore.Domain.Weather.Enums;
 using Matrix.CityCore.Domain.Weather.Profiles;

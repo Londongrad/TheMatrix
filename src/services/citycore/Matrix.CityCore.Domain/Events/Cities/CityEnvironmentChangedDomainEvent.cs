@@ -3,10 +3,9 @@ using Matrix.CityCore.Domain.Cities;
 
 namespace Matrix.CityCore.Domain.Events.Cities
 {
-    public sealed record CityCreatedDomainEvent(
+    public sealed record CityEnvironmentChangedDomainEvent(
         CityId CityId,
-        CityName Name,
-        CityEnvironment Environment,
-        DateTimeOffset CreatedAtUtc)
+        CityEnvironment From,
+        CityEnvironment To)
         : DomainEventBase;
 }

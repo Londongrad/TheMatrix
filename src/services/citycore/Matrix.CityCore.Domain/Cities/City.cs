@@ -14,6 +14,7 @@ namespace Matrix.CityCore.Domain.Cities
         private City(
             CityId id,
             CityName name,
+            CityEnvironment environment,
             CityStatus status,
             DateTimeOffset createdAtUtc,
             DateTimeOffset? archivedAtUtc)
@@ -22,15 +23,21 @@ namespace Matrix.CityCore.Domain.Cities
             EnsureUtc(createdAtUtc);
 
             Name = name;
+            Environment = environment;
             Status = status;
             CreatedAtUtc = createdAtUtc;
             ArchivedAtUtc = archivedAtUtc;
         }
 
         private City()
-            : base(default(CityId)) { }
+            : base(default(CityId))
+        {
+            Name = default;
+            Environment = null!;
+        }
 
         public CityName Name { get; private set; }
+        public CityEnvironment Environment { get; private set; }
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
         public DateTimeOffset? ArchivedAtUtc { get; private set; }
@@ -39,13 +46,20 @@ namespace Matrix.CityCore.Domain.Cities
 
         public static City Create(
             CityName name,
+            CityEnvironment environment,
             DateTimeOffset createdAtUtc)
         {
             EnsureUtc(createdAtUtc);
 
+            if (environment is null)
+                throw DomainErrorsFactory.InvalidCityEnvironment(
+                    reason: "City environment is required.",
+                    propertyName: nameof(environment));
+
             var city = new City(
                 id: CityId.New(),
                 name: name,
+                environment: environment,
                 status: CityStatus.Active,
                 createdAtUtc: createdAtUtc,
                 archivedAtUtc: null);
@@ -54,6 +68,7 @@ namespace Matrix.CityCore.Domain.Cities
                 new CityCreatedDomainEvent(
                     CityId: city.Id,
                     Name: city.Name,
+                    Environment: city.Environment,
                     CreatedAtUtc: city.CreatedAtUtc));
 
             return city;
@@ -77,6 +92,31 @@ namespace Matrix.CityCore.Domain.Cities
                     CityId: Id,
                     From: from,
                     To: newName));
+        }
+
+        public void ChangeEnvironment(CityEnvironment newEnvironment)
+        {
+            GuardHelper.Ensure(
+                condition: !IsArchived,
+                value: Status,
+                errorFactory: DomainErrorsFactory.CityIsArchived);
+
+            if (newEnvironment is null)
+                throw DomainErrorsFactory.InvalidCityEnvironment(
+                    reason: "City environment is required.",
+                    propertyName: nameof(newEnvironment));
+
+            if (newEnvironment == Environment)
+                return;
+
+            CityEnvironment previousEnvironment = Environment;
+            Environment = newEnvironment;
+
+            AddDomainEvent(
+                new CityEnvironmentChangedDomainEvent(
+                    CityId: Id,
+                    From: previousEnvironment,
+                    To: newEnvironment));
         }
 
         public void Archive(DateTimeOffset archivedAtUtc)

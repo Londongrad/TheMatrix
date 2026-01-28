@@ -84,6 +84,39 @@ namespace Matrix.CityCore.Domain.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException InvalidCityEnvironment(
+            string reason,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.Environment.Invalid",
+                message: $"City environment is invalid. {reason}",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityUtcOffsetOutOfRange(
+            int valueMinutes,
+            int minMinutes,
+            int maxMinutes,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.UtcOffset.OutOfRange",
+                message: $"City UTC offset must be in range [{minMinutes}; {maxMinutes}] minutes.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityUtcOffsetMustAlignToStep(
+            int valueMinutes,
+            int stepMinutes,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.UtcOffset.InvalidStep",
+                message: $"City UTC offset must align to {stepMinutes}-minute increments.",
+                propertyName: propertyName);
+        }
+
         #endregion [ Cities ]
 
         #region [ Weather ]
