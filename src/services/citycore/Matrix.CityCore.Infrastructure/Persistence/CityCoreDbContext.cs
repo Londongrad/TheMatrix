@@ -2,6 +2,7 @@
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Simulation;
+using Matrix.CityCore.Domain.Weather;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.CityCore.Infrastructure.Persistence
@@ -12,6 +13,7 @@ namespace Matrix.CityCore.Infrastructure.Persistence
         public DbSet<SimulationClock> SimulationClocks => Set<SimulationClock>();
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
         public DbSet<City> Cities => Set<City>();
+        public DbSet<CityWeather> CityWeathers => Set<CityWeather>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

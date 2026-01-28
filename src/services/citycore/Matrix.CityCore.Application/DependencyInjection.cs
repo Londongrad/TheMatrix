@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
+using Matrix.CityCore.Application.Services.Weather;
+using Matrix.CityCore.Application.Services.Weather.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.CityCore.Application
@@ -14,6 +16,7 @@ namespace Matrix.CityCore.Application
 
             // Services
             services.AddScoped<ISimulationAdvanceExecutor, SimulationAdvanceExecutor>();
+            services.AddSingleton<ICityWeatherBootstrapFactory, CityWeatherBootstrapFactory>();
 
             return services;
         }
