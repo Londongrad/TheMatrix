@@ -6,9 +6,12 @@ using Matrix.CityCore.Application.UseCases.Cities.GetCity;
 using Matrix.CityCore.Application.UseCases.Cities.ListCities;
 using Matrix.CityCore.Application.UseCases.Cities.RenameCity;
 using Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment;
+using Matrix.CityCore.Application.UseCases.Topology.GetCityDistricts;
+using Matrix.CityCore.Application.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.CityCore.Application.UseCases.Weather.GetWeather;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
+using Matrix.CityCore.Contracts.Topology.Views;
 using Matrix.CityCore.Contracts.Weather.Views;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -70,6 +73,41 @@ namespace Matrix.CityCore.Api.Controllers
                 return Results.NotFound();
 
             return Results.Ok(MapToView(city));
+        }
+
+        [HttpGet("{cityId:guid}/districts")]
+        public async Task<IResult> GetDistricts(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<DistrictDto> districts = await mediator.Send(
+                request: new GetCityDistrictsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            DistrictView[] views = districts
+               .Select(MapToDistrictView)
+               .ToArray();
+
+            return Results.Ok(views);
+        }
+
+        [HttpGet("{cityId:guid}/residential-buildings")]
+        public async Task<IResult> GetResidentialBuildings(
+            [FromRoute] Guid cityId,
+            [FromQuery] Guid? districtId,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<ResidentialBuildingDto> buildings = await mediator.Send(
+                request: new GetCityResidentialBuildingsQuery(
+                    CityId: cityId,
+                    DistrictId: districtId),
+                cancellationToken: cancellationToken);
+
+            ResidentialBuildingView[] views = buildings
+               .Select(MapToResidentialBuildingView)
+               .ToArray();
+
+            return Results.Ok(views);
         }
 
         [HttpGet("{cityId:guid}/weather")]
@@ -179,6 +217,27 @@ namespace Matrix.CityCore.Api.Controllers
                 CityId: dto.CityId,
                 Name: dto.Name,
                 Status: dto.Status);
+        }
+
+        private static DistrictView MapToDistrictView(DistrictDto dto)
+        {
+            return new DistrictView(
+                DistrictId: dto.DistrictId,
+                CityId: dto.CityId,
+                Name: dto.Name,
+                CreatedAtUtc: dto.CreatedAtUtc);
+        }
+
+        private static ResidentialBuildingView MapToResidentialBuildingView(ResidentialBuildingDto dto)
+        {
+            return new ResidentialBuildingView(
+                ResidentialBuildingId: dto.ResidentialBuildingId,
+                CityId: dto.CityId,
+                DistrictId: dto.DistrictId,
+                Name: dto.Name,
+                Type: dto.Type,
+                ResidentCapacity: dto.ResidentCapacity,
+                CreatedAtUtc: dto.CreatedAtUtc);
         }
 
         private static CityWeatherView MapToWeatherView(CityWeatherDto dto)
