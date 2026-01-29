@@ -7,6 +7,8 @@ namespace Matrix.CityCore.Domain.Events.Cities
         CityId CityId,
         CityName Name,
         CityEnvironment Environment,
+        CityGenerationSeed GenerationSeed,
+        CityGenerationProfile GenerationProfile,
         DateTimeOffset CreatedAtUtc)
         : DomainEventBase;
 }

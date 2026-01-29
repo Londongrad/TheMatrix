@@ -15,6 +15,8 @@ namespace Matrix.CityCore.Domain.Cities
             CityId id,
             CityName name,
             CityEnvironment environment,
+            CityGenerationSeed generationSeed,
+            CityGenerationProfile generationProfile,
             CityStatus status,
             DateTimeOffset createdAtUtc,
             DateTimeOffset? archivedAtUtc)
@@ -24,6 +26,8 @@ namespace Matrix.CityCore.Domain.Cities
 
             Name = name;
             Environment = environment;
+            GenerationSeed = generationSeed;
+            GenerationProfile = generationProfile;
             Status = status;
             CreatedAtUtc = createdAtUtc;
             ArchivedAtUtc = archivedAtUtc;
@@ -34,10 +38,14 @@ namespace Matrix.CityCore.Domain.Cities
         {
             Name = default;
             Environment = null!;
+            GenerationSeed = default;
+            GenerationProfile = null!;
         }
 
         public CityName Name { get; private set; }
         public CityEnvironment Environment { get; private set; }
+        public CityGenerationSeed GenerationSeed { get; private set; }
+        public CityGenerationProfile GenerationProfile { get; private set; }
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
         public DateTimeOffset? ArchivedAtUtc { get; private set; }
@@ -47,6 +55,8 @@ namespace Matrix.CityCore.Domain.Cities
         public static City Create(
             CityName name,
             CityEnvironment environment,
+            CityGenerationSeed generationSeed,
+            CityGenerationProfile generationProfile,
             DateTimeOffset createdAtUtc)
         {
             EnsureUtc(createdAtUtc);
@@ -56,10 +66,21 @@ namespace Matrix.CityCore.Domain.Cities
                     reason: "City environment is required.",
                     propertyName: nameof(environment));
 
+            if (generationSeed == default)
+                throw DomainErrorsFactory.CityGenerationSeedNullOrEmpty(
+                    propertyName: nameof(generationSeed));
+
+            if (generationProfile is null)
+                throw DomainErrorsFactory.InvalidCityGenerationProfile(
+                    reason: "City generation profile is required.",
+                    propertyName: nameof(generationProfile));
+
             var city = new City(
                 id: CityId.New(),
                 name: name,
                 environment: environment,
+                generationSeed: generationSeed,
+                generationProfile: generationProfile,
                 status: CityStatus.Active,
                 createdAtUtc: createdAtUtc,
                 archivedAtUtc: null);
@@ -69,6 +90,8 @@ namespace Matrix.CityCore.Domain.Cities
                     CityId: city.Id,
                     Name: city.Name,
                     Environment: city.Environment,
+                    GenerationSeed: city.GenerationSeed,
+                    GenerationProfile: city.GenerationProfile,
                     CreatedAtUtc: city.CreatedAtUtc));
 
             return city;

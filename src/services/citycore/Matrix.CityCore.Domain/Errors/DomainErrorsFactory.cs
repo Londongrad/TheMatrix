@@ -117,6 +117,35 @@ namespace Matrix.CityCore.Domain.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException CityGenerationSeedNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.GenerationSeed.NullOrEmpty",
+                message: "City generation seed cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityGenerationSeedTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.GenerationSeed.TooLong",
+                message: $"City generation seed cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException InvalidCityGenerationProfile(
+            string reason,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.GenerationProfile.Invalid",
+                message: $"City generation profile is invalid. {reason}",
+                propertyName: propertyName);
+        }
+
         #endregion [ Cities ]
 
         #region [ Topology ]
