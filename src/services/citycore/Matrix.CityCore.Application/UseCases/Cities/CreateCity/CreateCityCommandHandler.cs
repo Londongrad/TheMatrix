@@ -2,6 +2,8 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Application.Services.Topology;
+using Matrix.CityCore.Application.Services.Topology.Abstractions;
 using Matrix.CityCore.Application.Services.Weather.Abstractions;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Cities.Enums;
@@ -13,8 +15,11 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
 {
     public sealed class CreateCityCommandHandler(
         ICityRepository cityRepository,
+        IDistrictRepository districtRepository,
+        IResidentialBuildingRepository residentialBuildingRepository,
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
+        ICityTopologyBootstrapFactory cityTopologyBootstrapFactory,
         ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
         ICityCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, Guid>
@@ -43,6 +48,8 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 environment: environment,
                 createdAtUtc: DateTimeOffset.UtcNow);
 
+            CityTopologySeed topology = cityTopologyBootstrapFactory.CreateInitial(city);
+
             CityWeather cityWeather = cityWeatherBootstrapFactory.CreateInitial(
                 city: city,
                 initialTime: startSimTime);
@@ -61,6 +68,12 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 {
                     await cityRepository.AddAsync(
                         city: city,
+                        cancellationToken: ct);
+                    await districtRepository.AddRangeAsync(
+                        districts: topology.Districts,
+                        cancellationToken: ct);
+                    await residentialBuildingRepository.AddRangeAsync(
+                        buildings: topology.ResidentialBuildings,
                         cancellationToken: ct);
                     await cityWeatherRepository.AddAsync(
                         cityWeather: cityWeather,
