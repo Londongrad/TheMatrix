@@ -119,6 +119,70 @@ namespace Matrix.CityCore.Domain.Errors
 
         #endregion [ Cities ]
 
+        #region [ Topology ]
+
+        public static DomainException TopologyTimestampMustBeUtc(
+            DateTimeOffset value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.Topology.Timestamp.NotUtc",
+                message: "Topology timestamps must be in UTC (Offset=00:00).",
+                propertyName: propertyName);
+        }
+
+        public static DomainException DistrictNameNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.Topology.District.Name.NullOrEmpty",
+                message: "District name cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException DistrictNameTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.Topology.District.Name.TooLong",
+                message: $"District name cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException ResidentialBuildingNameNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.Topology.ResidentialBuilding.Name.NullOrEmpty",
+                message: "Residential building name cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException ResidentialBuildingNameTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.Topology.ResidentialBuilding.Name.TooLong",
+                message: $"Residential building name cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException ResidentCapacityOutOfRange(
+            int value,
+            int min,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.Topology.ResidentialBuilding.Capacity.OutOfRange",
+                message: $"Resident capacity must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Topology ]
+
         #region [ Weather ]
 
         public static DomainException TemperatureCOutOfRange(
