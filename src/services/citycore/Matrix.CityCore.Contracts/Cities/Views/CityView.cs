@@ -7,6 +7,10 @@ namespace Matrix.CityCore.Contracts.Cities.Views
         string ClimateZone,
         string Hemisphere,
         int UtcOffsetMinutes,
+        string GenerationSeed,
+        string SizeTier,
+        string UrbanDensity,
+        string DevelopmentLevel,
         DateTimeOffset CreatedAtUtc,
         DateTimeOffset? ArchivedAtUtc);
 }

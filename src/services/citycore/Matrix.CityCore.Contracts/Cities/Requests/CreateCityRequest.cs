@@ -5,6 +5,10 @@ namespace Matrix.CityCore.Contracts.Cities.Requests
         string ClimateZone,
         string Hemisphere,
         int UtcOffsetMinutes,
+        string? GenerationSeed,
+        string? SizeTier,
+        string? UrbanDensity,
+        string? DevelopmentLevel,
         DateTimeOffset StartSimTimeUtc,
         decimal SpeedMultiplier = 1.0m);
 }

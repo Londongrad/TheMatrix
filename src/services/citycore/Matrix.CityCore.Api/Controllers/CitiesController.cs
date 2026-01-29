@@ -35,6 +35,10 @@ namespace Matrix.CityCore.Api.Controllers
                     ClimateZone: request.ClimateZone,
                     Hemisphere: request.Hemisphere,
                     UtcOffsetMinutes: request.UtcOffsetMinutes,
+                    GenerationSeed: request.GenerationSeed,
+                    SizeTier: request.SizeTier,
+                    UrbanDensity: request.UrbanDensity,
+                    DevelopmentLevel: request.DevelopmentLevel,
                     StartSimTimeUtc: request.StartSimTimeUtc,
                     SpeedMultiplier: request.SpeedMultiplier),
                 cancellationToken: cancellationToken);
@@ -207,6 +211,10 @@ namespace Matrix.CityCore.Api.Controllers
                 ClimateZone: dto.ClimateZone,
                 Hemisphere: dto.Hemisphere,
                 UtcOffsetMinutes: dto.UtcOffsetMinutes,
+                GenerationSeed: dto.GenerationSeed,
+                SizeTier: dto.SizeTier,
+                UrbanDensity: dto.UrbanDensity,
+                DevelopmentLevel: dto.DevelopmentLevel,
                 CreatedAtUtc: dto.CreatedAtUtc,
                 ArchivedAtUtc: dto.ArchivedAtUtc);
         }
