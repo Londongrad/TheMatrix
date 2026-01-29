@@ -30,6 +30,25 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                .Must(BeAlignedToOffsetStep)
                .WithMessage($"UtcOffsetMinutes must align to {CityUtcOffset.StepMinutes}-minute increments.");
 
+            RuleFor(x => x.GenerationSeed)
+               .MaximumLength(CityGenerationSeed.MaxLength)
+               .When(x => !string.IsNullOrWhiteSpace(x.GenerationSeed));
+
+            RuleFor(x => x.SizeTier)
+               .Must(BeValidSizeTier)
+               .When(x => !string.IsNullOrWhiteSpace(x.SizeTier))
+               .WithMessage("SizeTier is invalid.");
+
+            RuleFor(x => x.UrbanDensity)
+               .Must(BeValidUrbanDensity)
+               .When(x => !string.IsNullOrWhiteSpace(x.UrbanDensity))
+               .WithMessage("UrbanDensity is invalid.");
+
+            RuleFor(x => x.DevelopmentLevel)
+               .Must(BeValidDevelopmentLevel)
+               .When(x => !string.IsNullOrWhiteSpace(x.DevelopmentLevel))
+               .WithMessage("DevelopmentLevel is invalid.");
+
             RuleFor(x => x.StartSimTimeUtc)
                .Must(x => x.Offset == TimeSpan.Zero)
                .WithMessage("StartSimTimeUtc must be UTC (Offset=00:00).");
@@ -56,6 +75,33 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                        ignoreCase: true,
                        result: out Hemisphere hemisphere) &&
                    Enum.IsDefined(hemisphere);
+        }
+
+        private static bool BeValidSizeTier(string value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out CitySizeTier sizeTier) &&
+                   Enum.IsDefined(sizeTier);
+        }
+
+        private static bool BeValidUrbanDensity(string value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out UrbanDensity urbanDensity) &&
+                   Enum.IsDefined(urbanDensity);
+        }
+
+        private static bool BeValidDevelopmentLevel(string value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out CityDevelopmentLevel developmentLevel) &&
+                   Enum.IsDefined(developmentLevel);
         }
 
         private static bool BeAlignedToOffsetStep(int value)

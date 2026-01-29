@@ -1,5 +1,8 @@
+using System.Security.Cryptography;
+using System.Text;
 using Matrix.CityCore.Application.Services.Topology.Abstractions;
 using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Cities.Enums;
 using Matrix.CityCore.Domain.Topology;
 using Matrix.CityCore.Domain.Topology.Enums;
 
@@ -10,111 +13,402 @@ namespace Matrix.CityCore.Application.Services.Topology
     /// </summary>
     public sealed class CityTopologyBootstrapFactory : ICityTopologyBootstrapFactory
     {
+        private static readonly string[] DistrictNamePool =
+        {
+            "North District",
+            "South District",
+            "East District",
+            "West District",
+            "Old Town District",
+            "Riverside District",
+            "Garden District",
+            "Market District",
+            "Hillside District",
+            "Station District",
+            "University District",
+            "Mill District",
+            "Foundry District",
+            "Lakeside District",
+            "Harbor District",
+            "Orchard District",
+            "Heights District",
+            "Westgate District"
+        };
+
         public CityTopologySeed CreateInitial(City city)
         {
             ArgumentNullException.ThrowIfNull(city);
 
+            var random = new DeterministicRandom(BuildSeed(city));
             DateTimeOffset createdAtUtc = city.CreatedAtUtc;
 
-            District centralDistrict = District.Create(
-                cityId: city.Id,
-                name: new DistrictName("Central District"),
-                createdAtUtc: createdAtUtc);
+            List<District> districts = CreateDistricts(
+                city: city,
+                createdAtUtc: createdAtUtc,
+                random: random);
 
-            District northDistrict = District.Create(
-                cityId: city.Id,
-                name: new DistrictName("North District"),
-                createdAtUtc: createdAtUtc);
-
-            District southDistrict = District.Create(
-                cityId: city.Id,
-                name: new DistrictName("South District"),
-                createdAtUtc: createdAtUtc);
-
-            var districts = new List<District>
-            {
-                centralDistrict,
-                northDistrict,
-                southDistrict
-            };
-
-            var buildings = new List<ResidentialBuilding>
-            {
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: centralDistrict.Id,
-                    name: new ResidentialBuildingName("Central Tower A"),
-                    type: ResidentialBuildingType.Tower,
-                    residentCapacity: ResidentCapacity.From(240),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: centralDistrict.Id,
-                    name: new ResidentialBuildingName("Central Tower B"),
-                    type: ResidentialBuildingType.Tower,
-                    residentCapacity: ResidentCapacity.From(240),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: centralDistrict.Id,
-                    name: new ResidentialBuildingName("Central Block 1"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(160),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: centralDistrict.Id,
-                    name: new ResidentialBuildingName("Central Block 2"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(160),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: northDistrict.Id,
-                    name: new ResidentialBuildingName("North Block 1"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(120),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: northDistrict.Id,
-                    name: new ResidentialBuildingName("North Block 2"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(120),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: northDistrict.Id,
-                    name: new ResidentialBuildingName("North Block 3"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(120),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: southDistrict.Id,
-                    name: new ResidentialBuildingName("South Block 1"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(120),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: southDistrict.Id,
-                    name: new ResidentialBuildingName("South Block 2"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(120),
-                    createdAtUtc: createdAtUtc),
-                ResidentialBuilding.Create(
-                    cityId: city.Id,
-                    districtId: southDistrict.Id,
-                    name: new ResidentialBuildingName("South Block 3"),
-                    type: ResidentialBuildingType.ApartmentBlock,
-                    residentCapacity: ResidentCapacity.From(120),
-                    createdAtUtc: createdAtUtc)
-            };
+            List<ResidentialBuilding> buildings = CreateResidentialBuildings(
+                city: city,
+                districts: districts,
+                createdAtUtc: createdAtUtc,
+                random: random);
 
             return new CityTopologySeed(
                 Districts: districts,
                 ResidentialBuildings: buildings);
+        }
+
+        private static List<District> CreateDistricts(
+            City city,
+            DateTimeOffset createdAtUtc,
+            DeterministicRandom random)
+        {
+            int districtCount = GetDistrictCount(
+                profile: city.GenerationProfile,
+                random: random);
+
+            var availableNames = new List<string>(DistrictNamePool);
+            Shuffle(availableNames, random);
+
+            var districts = new List<District>
+            {
+                District.Create(
+                    cityId: city.Id,
+                    name: new DistrictName("Central District"),
+                    createdAtUtc: createdAtUtc)
+            };
+
+            for (int i = 1; i < districtCount; i++)
+            {
+                string districtName = i - 1 < availableNames.Count
+                    ? availableNames[i - 1]
+                    : $"Sector {i}";
+
+                districts.Add(
+                    District.Create(
+                        cityId: city.Id,
+                        name: new DistrictName(districtName),
+                        createdAtUtc: createdAtUtc));
+            }
+
+            return districts;
+        }
+
+        private static List<ResidentialBuilding> CreateResidentialBuildings(
+            City city,
+            IReadOnlyList<District> districts,
+            DateTimeOffset createdAtUtc,
+            DeterministicRandom random)
+        {
+            var buildings = new List<ResidentialBuilding>();
+
+            for (int districtIndex = 0; districtIndex < districts.Count; districtIndex++)
+            {
+                District district = districts[districtIndex];
+                bool isCentral = districtIndex == 0;
+                int buildingCount = GetBuildingCount(
+                    profile: city.GenerationProfile,
+                    isCentral: isCentral,
+                    random: random);
+
+                string districtLabel = district.Name.Value.Replace(" District", string.Empty, StringComparison.Ordinal);
+                var typeCounters = new Dictionary<ResidentialBuildingType, int>();
+
+                for (int buildingIndex = 0; buildingIndex < buildingCount; buildingIndex++)
+                {
+                    ResidentialBuildingType type = GetBuildingType(
+                        profile: city.GenerationProfile,
+                        isCentral: isCentral,
+                        random: random);
+
+                    int sequence = typeCounters.TryGetValue(type, out int current)
+                        ? current + 1
+                        : 1;
+                    typeCounters[type] = sequence;
+
+                    int residentCapacity = GetResidentCapacity(
+                        type: type,
+                        profile: city.GenerationProfile,
+                        isCentral: isCentral,
+                        random: random);
+
+                    buildings.Add(
+                        ResidentialBuilding.Create(
+                            cityId: city.Id,
+                            districtId: district.Id,
+                            name: new ResidentialBuildingName(CreateBuildingName(
+                                districtLabel: districtLabel,
+                                type: type,
+                                sequence: sequence)),
+                            type: type,
+                            residentCapacity: ResidentCapacity.From(residentCapacity),
+                            createdAtUtc: createdAtUtc));
+                }
+            }
+
+            return buildings;
+        }
+
+        private static int GetDistrictCount(
+            CityGenerationProfile profile,
+            DeterministicRandom random)
+        {
+            int baseCount = profile.SizeTier switch
+            {
+                CitySizeTier.Small => 3,
+                CitySizeTier.Medium => 5,
+                CitySizeTier.Large => 7,
+                _ => 5
+            };
+
+            int densityBonus = profile.UrbanDensity switch
+            {
+                UrbanDensity.Sparse => 0,
+                UrbanDensity.Balanced => 1,
+                UrbanDensity.Dense => 2,
+                _ => 1
+            };
+
+            int developmentBonus = profile.DevelopmentLevel == CityDevelopmentLevel.Advanced
+                ? 1
+                : 0;
+
+            int randomBonus = random.NextInt(0, densityBonus + 1);
+
+            return Math.Min(10, baseCount + developmentBonus + randomBonus);
+        }
+
+        private static int GetBuildingCount(
+            CityGenerationProfile profile,
+            bool isCentral,
+            DeterministicRandom random)
+        {
+            int baseCount = profile.UrbanDensity switch
+            {
+                UrbanDensity.Sparse => 2,
+                UrbanDensity.Balanced => 3,
+                UrbanDensity.Dense => 4,
+                _ => 3
+            };
+
+            int sizeBonus = profile.SizeTier switch
+            {
+                CitySizeTier.Small => 0,
+                CitySizeTier.Medium => 1,
+                CitySizeTier.Large => 2,
+                _ => 1
+            };
+
+            int centralBonus = isCentral ? 2 : 0;
+            int developmentBonus = profile.DevelopmentLevel == CityDevelopmentLevel.Advanced ? 1 : 0;
+            int randomBonus = random.NextInt(0, 2);
+
+            return Math.Min(9, baseCount + sizeBonus + centralBonus + developmentBonus + randomBonus);
+        }
+
+        private static ResidentialBuildingType GetBuildingType(
+            CityGenerationProfile profile,
+            bool isCentral,
+            DeterministicRandom random)
+        {
+            int houseWeight;
+            int apartmentWeight;
+            int towerWeight;
+            int dormitoryWeight;
+
+            switch (profile.UrbanDensity)
+            {
+                case UrbanDensity.Sparse:
+                    houseWeight = 60;
+                    apartmentWeight = 30;
+                    towerWeight = 5;
+                    dormitoryWeight = 5;
+                    break;
+                case UrbanDensity.Dense:
+                    houseWeight = 10;
+                    apartmentWeight = 45;
+                    towerWeight = 35;
+                    dormitoryWeight = 10;
+                    break;
+                default:
+                    houseWeight = 25;
+                    apartmentWeight = 50;
+                    towerWeight = 20;
+                    dormitoryWeight = 5;
+                    break;
+            }
+
+            if (isCentral)
+            {
+                houseWeight = Math.Max(2, houseWeight - 15);
+                apartmentWeight += 5;
+                towerWeight += 10;
+            }
+
+            if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling)
+            {
+                apartmentWeight += 10;
+                towerWeight = Math.Max(2, towerWeight - 10);
+            }
+            else if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
+            {
+                towerWeight += 10;
+                houseWeight = Math.Max(2, houseWeight - 5);
+            }
+
+            if (profile.SizeTier == CitySizeTier.Small && !isCentral)
+                towerWeight = Math.Max(1, towerWeight - 10);
+
+            int roll = random.NextInt(1, houseWeight + apartmentWeight + towerWeight + dormitoryWeight + 1);
+
+            if (roll <= houseWeight)
+                return ResidentialBuildingType.House;
+
+            roll -= houseWeight;
+            if (roll <= apartmentWeight)
+                return ResidentialBuildingType.ApartmentBlock;
+
+            roll -= apartmentWeight;
+            if (roll <= towerWeight)
+                return ResidentialBuildingType.Tower;
+
+            return ResidentialBuildingType.Dormitory;
+        }
+
+        private static int GetResidentCapacity(
+            ResidentialBuildingType type,
+            CityGenerationProfile profile,
+            bool isCentral,
+            DeterministicRandom random)
+        {
+            int minCapacity;
+            int maxCapacity;
+
+            switch (type)
+            {
+                case ResidentialBuildingType.House:
+                    minCapacity = 4;
+                    maxCapacity = 10;
+                    break;
+                case ResidentialBuildingType.Tower:
+                    minCapacity = 180;
+                    maxCapacity = 360;
+                    break;
+                case ResidentialBuildingType.Dormitory:
+                    minCapacity = 120;
+                    maxCapacity = 260;
+                    break;
+                default:
+                    minCapacity = 70;
+                    maxCapacity = 180;
+                    break;
+            }
+
+            decimal densityFactor = profile.UrbanDensity switch
+            {
+                UrbanDensity.Sparse => 0.85m,
+                UrbanDensity.Balanced => 1.0m,
+                UrbanDensity.Dense => 1.2m,
+                _ => 1.0m
+            };
+
+            decimal developmentFactor = profile.DevelopmentLevel switch
+            {
+                CityDevelopmentLevel.Struggling => 0.9m,
+                CityDevelopmentLevel.Balanced => 1.0m,
+                CityDevelopmentLevel.Advanced => 1.15m,
+                _ => 1.0m
+            };
+
+            decimal centralFactor = isCentral ? 1.1m : 1.0m;
+            int rawCapacity = random.NextInt(minCapacity, maxCapacity + 1);
+            decimal adjustedCapacity = rawCapacity * densityFactor * developmentFactor * centralFactor;
+
+            return Math.Max(
+                ResidentCapacity.Min,
+                (int)Math.Round(adjustedCapacity, MidpointRounding.AwayFromZero));
+        }
+
+        private static string CreateBuildingName(
+            string districtLabel,
+            ResidentialBuildingType type,
+            int sequence)
+        {
+            string typeLabel = type switch
+            {
+                ResidentialBuildingType.House => "House",
+                ResidentialBuildingType.ApartmentBlock => "Block",
+                ResidentialBuildingType.Tower => "Tower",
+                ResidentialBuildingType.Dormitory => "Residence",
+                _ => "Building"
+            };
+
+            return $"{districtLabel} {typeLabel} {sequence}";
+        }
+
+        private static ulong BuildSeed(City city)
+        {
+            string compositeSeed = string.Concat(
+                city.GenerationSeed.Value,
+                "|",
+                city.GenerationProfile.SizeTier,
+                "|",
+                city.GenerationProfile.UrbanDensity,
+                "|",
+                city.GenerationProfile.DevelopmentLevel,
+                "|",
+                city.Environment.ClimateZone,
+                "|",
+                city.Environment.Hemisphere,
+                "|",
+                city.Environment.UtcOffset.TotalMinutes);
+
+            byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(compositeSeed));
+            return BitConverter.ToUInt64(bytes, 0);
+        }
+
+        private static void Shuffle<T>(
+            IList<T> items,
+            DeterministicRandom random)
+        {
+            for (int i = items.Count - 1; i > 0; i--)
+            {
+                int swapIndex = random.NextInt(0, i + 1);
+                T current = items[i];
+                items[i] = items[swapIndex];
+                items[swapIndex] = current;
+            }
+        }
+
+        private sealed class DeterministicRandom
+        {
+            private ulong _state;
+
+            public DeterministicRandom(ulong seed)
+            {
+                _state = seed == 0
+                    ? 0x9E3779B97F4A7C15UL
+                    : seed;
+            }
+
+            public int NextInt(int minInclusive, int maxExclusive)
+            {
+                if (maxExclusive <= minInclusive)
+                    return minInclusive;
+
+                ulong range = (ulong)(maxExclusive - minInclusive);
+                ulong sample = NextUInt64() % range;
+                return minInclusive + (int)sample;
+            }
+
+            private ulong NextUInt64()
+            {
+                _state += 0x9E3779B97F4A7C15UL;
+                ulong z = _state;
+                z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL;
+                z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL;
+                return z ^ (z >> 31);
+            }
         }
     }
 }

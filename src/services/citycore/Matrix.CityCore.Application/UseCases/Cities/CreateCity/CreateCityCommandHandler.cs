@@ -36,16 +36,49 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 value: request.Hemisphere,
                 propertyName: nameof(request.Hemisphere));
 
+            CitySizeTier sizeTier = ParseOrDefault(
+                value: request.SizeTier,
+                defaultValue: CitySizeTier.Medium,
+                propertyName: nameof(request.SizeTier));
+
+            UrbanDensity urbanDensity = ParseOrDefault(
+                value: request.UrbanDensity,
+                defaultValue: UrbanDensity.Balanced,
+                propertyName: nameof(request.UrbanDensity));
+
+            CityDevelopmentLevel developmentLevel = ParseOrDefault(
+                value: request.DevelopmentLevel,
+                defaultValue: CityDevelopmentLevel.Balanced,
+                propertyName: nameof(request.DevelopmentLevel));
+
             CityEnvironment environment = CityEnvironment.Create(
                 climateZone: climateZone,
                 hemisphere: hemisphere,
                 utcOffset: CityUtcOffset.FromMinutes(request.UtcOffsetMinutes));
+
+            CityGenerationProfile generationProfile = CityGenerationProfile.Create(
+                sizeTier: sizeTier,
+                urbanDensity: urbanDensity,
+                developmentLevel: developmentLevel);
+
+            string effectiveSeed = string.IsNullOrWhiteSpace(request.GenerationSeed)
+                ? BuildDefaultGenerationSeed(
+                    name: request.Name,
+                    climateZone: climateZone,
+                    hemisphere: hemisphere,
+                    utcOffsetMinutes: request.UtcOffsetMinutes,
+                    generationProfile: generationProfile)
+                : request.GenerationSeed;
+
+            CityGenerationSeed generationSeed = new CityGenerationSeed(effectiveSeed);
 
             SimTime startSimTime = SimTime.FromUtc(request.StartSimTimeUtc);
 
             var city = City.Create(
                 name: new CityName(request.Name),
                 environment: environment,
+                generationSeed: generationSeed,
+                generationProfile: generationProfile,
                 createdAtUtc: DateTimeOffset.UtcNow);
 
             CityTopologySeed topology = cityTopologyBootstrapFactory.CreateInitial(city);
@@ -91,6 +124,42 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 cancellationToken: cancellationToken);
 
             return city.Id.Value;
+        }
+
+        private static TEnum ParseOrDefault<TEnum>(
+            string? value,
+            TEnum defaultValue,
+            string propertyName)
+            where TEnum : struct, Enum
+        {
+            return string.IsNullOrWhiteSpace(value)
+                ? defaultValue
+                : GuardHelper.AgainstInvalidStringToEnum<TEnum>(
+                    value: value,
+                    propertyName: propertyName);
+        }
+
+        private static string BuildDefaultGenerationSeed(
+            string name,
+            ClimateZone climateZone,
+            Hemisphere hemisphere,
+            int utcOffsetMinutes,
+            CityGenerationProfile generationProfile)
+        {
+            return string.Concat(
+                name.Trim(),
+                "|",
+                climateZone,
+                "|",
+                hemisphere,
+                "|",
+                utcOffsetMinutes,
+                "|",
+                generationProfile.SizeTier,
+                "|",
+                generationProfile.UrbanDensity,
+                "|",
+                generationProfile.DevelopmentLevel);
         }
     }
 }
