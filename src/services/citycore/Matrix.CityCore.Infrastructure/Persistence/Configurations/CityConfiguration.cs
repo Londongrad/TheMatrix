@@ -50,6 +50,36 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
             builder.Navigation(x => x.Environment)
                .IsRequired();
 
+            builder.Property(x => x.GenerationSeed)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => new CityGenerationSeed(x))
+               .HasMaxLength(CityGenerationSeed.MaxLength)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.GenerationProfile,
+                buildAction: profile =>
+                {
+                    profile.Property(x => x.SizeTier)
+                       .HasConversion<int>()
+                       .HasColumnName("GenerationSizeTier")
+                       .IsRequired();
+
+                    profile.Property(x => x.UrbanDensity)
+                       .HasConversion<int>()
+                       .HasColumnName("GenerationUrbanDensity")
+                       .IsRequired();
+
+                    profile.Property(x => x.DevelopmentLevel)
+                       .HasConversion<int>()
+                       .HasColumnName("GenerationDevelopmentLevel")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.GenerationProfile)
+               .IsRequired();
+
             builder.Property(x => x.Status)
                .HasConversion<int>()
                .IsRequired();
