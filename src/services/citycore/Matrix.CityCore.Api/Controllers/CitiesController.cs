@@ -3,6 +3,8 @@ using Matrix.CityCore.Application.UseCases.Cities.Common;
 using Matrix.CityCore.Application.UseCases.Cities.CreateCity;
 using Matrix.CityCore.Application.UseCases.Cities.DeleteCity;
 using Matrix.CityCore.Application.UseCases.Cities.GetCity;
+using Matrix.CityCore.Application.UseCases.Cities.GetGenerationCatalog;
+using Matrix.CityCore.Application.UseCases.Cities.GetSuggestedCityNames;
 using Matrix.CityCore.Application.UseCases.Cities.ListCities;
 using Matrix.CityCore.Application.UseCases.Cities.RenameCity;
 using Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment;
@@ -11,6 +13,7 @@ using Matrix.CityCore.Application.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.CityCore.Application.UseCases.Weather.GetWeather;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
+using Matrix.CityCore.Contracts.Generation.Views;
 using Matrix.CityCore.Contracts.Topology.Views;
 using Matrix.CityCore.Contracts.Weather.Views;
 using MediatR;
@@ -46,6 +49,38 @@ namespace Matrix.CityCore.Api.Controllers
             return Results.Created(
                 uri: $"/api/cities/{cityId}",
                 value: new CityCreatedView(CityId: cityId));
+        }
+
+        [HttpGet("generation/catalog")]
+        public async Task<IResult> GetGenerationCatalog(CancellationToken cancellationToken)
+        {
+            CityGenerationCatalogDto catalog = await mediator.Send(
+                request: new GetGenerationCatalogQuery(),
+                cancellationToken: cancellationToken);
+
+            return Results.Ok(
+                new CityGenerationCatalogView(
+                    CityNamePresets: catalog.CityNamePresets.ToArray(),
+                    DistrictNamePresets: catalog.DistrictNamePresets.ToArray(),
+                    StreetNamePresets: catalog.StreetNamePresets.ToArray()));
+        }
+
+        [HttpGet("generation/city-name-suggestions")]
+        public async Task<IResult> GetSuggestedCityNames(
+            [FromQuery] string? seed,
+            [FromQuery] int count = 12,
+            CancellationToken cancellationToken = default)
+        {
+            SuggestedCityNamesDto suggestions = await mediator.Send(
+                request: new GetSuggestedCityNamesQuery(
+                    Seed: seed,
+                    Count: count),
+                cancellationToken: cancellationToken);
+
+            return Results.Ok(
+                new SuggestedCityNamesView(
+                    Seed: suggestions.Seed,
+                    Names: suggestions.Names.ToArray()));
         }
 
         [HttpGet]
