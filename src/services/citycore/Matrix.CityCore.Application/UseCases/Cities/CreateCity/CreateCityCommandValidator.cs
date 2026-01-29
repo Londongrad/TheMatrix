@@ -77,7 +77,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                    Enum.IsDefined(hemisphere);
         }
 
-        private static bool BeValidSizeTier(string value)
+        private static bool BeValidSizeTier(string? value)
         {
             return Enum.TryParse(
                        value: value,
@@ -86,7 +86,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                    Enum.IsDefined(sizeTier);
         }
 
-        private static bool BeValidUrbanDensity(string value)
+        private static bool BeValidUrbanDensity(string? value)
         {
             return Enum.TryParse(
                        value: value,
@@ -95,7 +95,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                    Enum.IsDefined(urbanDensity);
         }
 
-        private static bool BeValidDevelopmentLevel(string value)
+        private static bool BeValidDevelopmentLevel(string? value)
         {
             return Enum.TryParse(
                        value: value,

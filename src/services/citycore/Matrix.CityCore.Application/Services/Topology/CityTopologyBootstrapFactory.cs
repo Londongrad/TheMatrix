@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Matrix.CityCore.Application.Services.Generation.Abstractions;
 using Matrix.CityCore.Application.Services.Topology.Abstractions;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Cities.Enums;
@@ -11,30 +12,9 @@ namespace Matrix.CityCore.Application.Services.Topology
     /// <summary>
     ///     Creates a deterministic starter topology for a newly created city.
     /// </summary>
-    public sealed class CityTopologyBootstrapFactory : ICityTopologyBootstrapFactory
+    public sealed class CityTopologyBootstrapFactory(ICityGenerationContentCatalog generationContentCatalog)
+        : ICityTopologyBootstrapFactory
     {
-        private static readonly string[] DistrictNamePool =
-        {
-            "North District",
-            "South District",
-            "East District",
-            "West District",
-            "Old Town District",
-            "Riverside District",
-            "Garden District",
-            "Market District",
-            "Hillside District",
-            "Station District",
-            "University District",
-            "Mill District",
-            "Foundry District",
-            "Lakeside District",
-            "Harbor District",
-            "Orchard District",
-            "Heights District",
-            "Westgate District"
-        };
-
         public CityTopologySeed CreateInitial(City city)
         {
             ArgumentNullException.ThrowIfNull(city);
@@ -58,7 +38,7 @@ namespace Matrix.CityCore.Application.Services.Topology
                 ResidentialBuildings: buildings);
         }
 
-        private static List<District> CreateDistricts(
+        private List<District> CreateDistricts(
             City city,
             DateTimeOffset createdAtUtc,
             DeterministicRandom random)
@@ -67,7 +47,9 @@ namespace Matrix.CityCore.Application.Services.Topology
                 profile: city.GenerationProfile,
                 random: random);
 
-            var availableNames = new List<string>(DistrictNamePool);
+            var availableNames = generationContentCatalog.DistrictNamePresets
+               .Where(x => !string.Equals(x, "Central District", StringComparison.OrdinalIgnoreCase))
+               .ToList();
             Shuffle(availableNames, random);
 
             var districts = new List<District>
