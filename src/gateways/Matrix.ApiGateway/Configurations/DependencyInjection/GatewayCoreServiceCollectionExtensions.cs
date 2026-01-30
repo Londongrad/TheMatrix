@@ -1,4 +1,5 @@
-﻿using Matrix.BuildingBlocks.Api.Errors;
+﻿using Matrix.ApiGateway.Services.CityCore.Cities;
+using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
@@ -8,6 +9,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         public static IServiceCollection AddGatewayCore(this IServiceCollection services)
         {
             services
+               .AddScoped<ICityProvisioningService, CityProvisioningService>()
                .AddGatewayControllers()
                .AddGatewayCors();
 

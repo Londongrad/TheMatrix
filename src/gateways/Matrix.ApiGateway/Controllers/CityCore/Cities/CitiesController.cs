@@ -1,4 +1,6 @@
+﻿using Matrix.ApiGateway.Contracts.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
+using Matrix.ApiGateway.Services.CityCore.Cities;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
 using Microsoft.AspNetCore.Authorization;
@@ -9,16 +11,19 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
     [Authorize]
     [ApiController]
     [Route("api/cities")]
-    public sealed class CitiesController(ICitiesApiClient citiesClient) : ControllerBase
+    public sealed class CitiesController(
+        ICitiesApiClient citiesClient,
+        ICityProvisioningService cityProvisioningService) : ControllerBase
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
+        private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
 
         [HttpPost]
-        public async Task<ActionResult<CityCreatedView>> Create(
-            [FromBody] CreateCityRequest request,
+        public async Task<ActionResult<CityProvisioningView>> Create(
+            [FromBody] CreateCityRequestDto request,
             CancellationToken cancellationToken)
         {
-            CityCreatedView created = await _citiesClient.CreateCityAsync(
+            CityProvisioningView created = await _cityProvisioningService.CreateCityAsync(
                 request: request,
                 cancellationToken: cancellationToken);
 

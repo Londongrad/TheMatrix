@@ -1,7 +1,8 @@
-using Matrix.ApiGateway.DownstreamClients.Common;
+﻿using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
+using Matrix.CityCore.Contracts.Topology.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
 {
@@ -54,6 +55,25 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
                 cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<CityView>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task<IReadOnlyList<ResidentialBuildingView>> GetResidentialBuildingsAsync(
+            Guid cityId,
+            Guid? districtId = null,
+            CancellationToken cancellationToken = default)
+        {
+            string url = districtId.HasValue
+                ? $"{CitiesEndpoint}/{cityId}/residential-buildings?districtId={districtId.Value}"
+                : $"{CitiesEndpoint}/{cityId}/residential-buildings";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<IReadOnlyList<ResidentialBuildingView>>(
                 serviceName: DownstreamServiceNames.CityCore,
                 cancellationToken: cancellationToken,
                 requestUrl: url);

@@ -1,4 +1,4 @@
-using Matrix.ApiGateway.DownstreamClients.Common;
+﻿using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
@@ -16,28 +16,21 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
 
         #region [ Methods ]
 
-        public async Task InitializePopulationAsync(
-            int peopleCount,
-            int? randomSeed = null,
+        public async Task<CityPopulationBootstrapSummaryDto> InitializeCityPopulationAsync(
+            InitializeCityPopulationRequest request,
             CancellationToken cancellationToken = default)
         {
-            // Собираем querystring руками, чтобы без зависимостей
-            string query = $"?peopleCount={peopleCount}";
+            const string url = InitializeEndpoint;
 
-            if (randomSeed.HasValue)
-                query += $"&randomSeed={randomSeed.Value}";
-
-            string url = InitializeEndpoint + query;
-
-            using HttpResponseMessage response =
-                await _client.PostAsync(
-                    requestUri: url,
-                    content: null,
-                    cancellationToken: cancellationToken);
-
-            await response.EnsureSuccessOrThrowDownstreamAsync(
-                serviceName: ServiceName,
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
                 cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityPopulationBootstrapSummaryDto>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
         }
 
         public async Task<PagedResult<PersonDto>> GetCitizensPageAsync(
@@ -60,7 +53,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             PagedResult<PersonDto>? result = await response.Content
                .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);
 
-            // Если вдруг API вернёт пустое тело — это уже баг, не бизнес-кейс
             return result ?? throw new InvalidOperationException("Empty response from Population API.");
         }
 
