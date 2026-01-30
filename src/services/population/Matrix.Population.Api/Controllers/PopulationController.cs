@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
 using Matrix.Population.Application.UseCases.Population.InitializeCityPopulation;
-using Matrix.Population.Application.UseCases.Population.InitializePopulation;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -25,11 +24,11 @@ namespace Matrix.Population.Api.Controllers
 
             IReadOnlyCollection<ResidentialBuildingSeedItem> residentialBuildings =
                 (request.ResidentialBuildings ?? Array.Empty<ResidentialBuildingSeedDto>())
-                .Select(x => new ResidentialBuildingSeedItem(
+               .Select(x => new ResidentialBuildingSeedItem(
                     ResidentialBuildingId: x.ResidentialBuildingId,
                     DistrictId: x.DistrictId,
                     ResidentCapacity: x.ResidentCapacity))
-                .ToArray();
+               .ToArray();
 
             CityPopulationBootstrapSummaryDto result = await _sender.Send(
                 request: new InitializeCityPopulationCommand(

@@ -22,7 +22,8 @@ namespace Matrix.Population.Infrastructure.Persistence
                 return;
             }
 
-            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using IDbContextTransaction transaction =
+                await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             await action(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -36,7 +37,8 @@ namespace Matrix.Population.Infrastructure.Persistence
             if (dbContext.Database.CurrentTransaction is not null)
                 return await action(cancellationToken);
 
-            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using IDbContextTransaction transaction =
+                await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             T result = await action(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

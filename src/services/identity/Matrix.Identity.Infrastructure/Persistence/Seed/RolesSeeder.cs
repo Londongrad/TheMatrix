@@ -19,7 +19,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                .Select(p => p.Key)
                .ToListAsync(cancellationToken);
 
-            HashSet<string> activePermissionKeySet = activePermissionKeys.ToHashSet(StringComparer.Ordinal);
+            var activePermissionKeySet = activePermissionKeys.ToHashSet(StringComparer.Ordinal);
 
             bool superAdminChanged = await SyncRolePermissionsAsync(
                 roleId: rolesByName[SystemRoleNames.SuperAdmin].Id,
@@ -31,7 +31,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 desiredPermissionKeys: activePermissionKeys,
                 cancellationToken: cancellationToken);
 
-            List<string> defaultUserPermissionKeys = GetDefaultUserPermissionKeys()
+            var defaultUserPermissionKeys = GetDefaultUserPermissionKeys()
                .Where(activePermissionKeySet.Contains)
                .ToList();
 
@@ -58,7 +58,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
 
         private async Task<Dictionary<string, Role>> EnsureSystemRolesAsync(CancellationToken cancellationToken)
         {
-            List<string> systemRoleNames = new List<string>
+            var systemRoleNames = new List<string>
             {
                 SystemRoleNames.SuperAdmin,
                 SystemRoleNames.Admin,
@@ -69,7 +69,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                .Where(role => systemRoleNames.Contains(role.Name))
                .ToListAsync(cancellationToken);
 
-            Dictionary<string, Role> rolesByName = existingRoles.ToDictionary(
+            var rolesByName = existingRoles.ToDictionary(
                 keySelector: role => role.Name,
                 comparer: StringComparer.Ordinal);
 
@@ -77,14 +77,18 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
 
             foreach (string roleName in systemRoleNames)
             {
-                if (!rolesByName.TryGetValue(roleName, out Role? role))
+                if (!rolesByName.TryGetValue(
+                        key: roleName,
+                        value: out Role? role))
                 {
                     role = Role.Create(
                         name: roleName,
                         isSystem: true);
 
                     _db.Roles.Add(role);
-                    rolesByName.Add(roleName, role);
+                    rolesByName.Add(
+                        key: roleName,
+                        value: role);
                     rolesChanged = true;
                     continue;
                 }
@@ -112,7 +116,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                .Select(rp => rp.PermissionKey)
                .ToListAsync(cancellationToken);
 
-            List<RolePermission> toAdd = desiredPermissionKeys
+            var toAdd = desiredPermissionKeys
                .Except(
                     second: existingKeys,
                     comparer: StringComparer.Ordinal)
@@ -121,7 +125,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                     permissionKey: permissionKey))
                .ToList();
 
-            List<string> toRemoveKeys = existingKeys
+            var toRemoveKeys = existingKeys
                .Except(
                     second: desiredPermissionKeys,
                     comparer: StringComparer.Ordinal)

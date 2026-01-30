@@ -47,7 +47,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                        .HasConversion(
                             convertToProviderExpression: x => x.Value,
                             convertFromProviderExpression: x => WeatherVolatility.From(x))
-                       .HasPrecision(4, 3)
+                       .HasPrecision(
+                            precision: 4,
+                            scale: 3)
                        .HasColumnName("Volatility")
                        .IsRequired();
 
@@ -93,7 +95,8 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                 buildAction: weatherOverride =>
                 {
                     weatherOverride.ToTable("CityWeatherOverrides");
-                    weatherOverride.WithOwner().HasForeignKey("CityId");
+                    weatherOverride.WithOwner()
+                       .HasForeignKey("CityId");
                     weatherOverride.Property<CityId>("CityId")
                        .HasConversion(
                             convertToProviderExpression: x => x.Value,
@@ -179,7 +182,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => TemperatureC.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}TemperatureC")
                .IsRequired();
 
@@ -187,7 +192,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => HumidityPercent.From(x))
-               .HasPrecision(5, 2)
+               .HasPrecision(
+                    precision: 5,
+                    scale: 2)
                .HasColumnName($"{prefix}HumidityPercent")
                .IsRequired();
 
@@ -195,7 +202,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => WindSpeedKph.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}WindSpeedKph")
                .IsRequired();
 
@@ -203,7 +212,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => CloudCoveragePercent.From(x))
-               .HasPrecision(5, 2)
+               .HasPrecision(
+                    precision: 5,
+                    scale: 2)
                .HasColumnName($"{prefix}CloudCoveragePercent")
                .IsRequired();
 
@@ -211,7 +222,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => PressureHpa.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}PressureHpa")
                .IsRequired();
 
@@ -239,7 +252,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => TemperatureC.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}SpringAverage")
                .IsRequired();
 
@@ -247,7 +262,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => TemperatureC.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}SummerAverage")
                .IsRequired();
 
@@ -255,7 +272,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => TemperatureC.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}AutumnAverage")
                .IsRequired();
 
@@ -263,7 +282,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => TemperatureC.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}WinterAverage")
                .IsRequired();
 
@@ -271,7 +292,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => TemperatureC.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}DailySwing")
                .IsRequired();
         }
@@ -285,7 +308,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => HumidityPercent.From(x))
-               .HasPrecision(5, 2)
+               .HasPrecision(
+                    precision: 5,
+                    scale: 2)
                .HasColumnName($"{prefix}SpringHumidity")
                .IsRequired();
 
@@ -293,7 +318,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => HumidityPercent.From(x))
-               .HasPrecision(5, 2)
+               .HasPrecision(
+                    precision: 5,
+                    scale: 2)
                .HasColumnName($"{prefix}SummerHumidity")
                .IsRequired();
 
@@ -301,7 +328,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => HumidityPercent.From(x))
-               .HasPrecision(5, 2)
+               .HasPrecision(
+                    precision: 5,
+                    scale: 2)
                .HasColumnName($"{prefix}AutumnHumidity")
                .IsRequired();
 
@@ -309,7 +338,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => HumidityPercent.From(x))
-               .HasPrecision(5, 2)
+               .HasPrecision(
+                    precision: 5,
+                    scale: 2)
                .HasColumnName($"{prefix}WinterHumidity")
                .IsRequired();
 
@@ -343,7 +374,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => WindSpeedKph.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}SpringAverage")
                .IsRequired();
 
@@ -351,7 +384,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => WindSpeedKph.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}SummerAverage")
                .IsRequired();
 
@@ -359,7 +394,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => WindSpeedKph.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}AutumnAverage")
                .IsRequired();
 
@@ -367,7 +404,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => WindSpeedKph.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}WinterAverage")
                .IsRequired();
 
@@ -375,7 +414,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => WindSpeedKph.From(x))
-               .HasPrecision(6, 2)
+               .HasPrecision(
+                    precision: 6,
+                    scale: 2)
                .HasColumnName($"{prefix}GustHeadroom")
                .IsRequired();
         }

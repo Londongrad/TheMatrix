@@ -1,10 +1,7 @@
 import {useMemo, useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
 import type {CityCreatedView, CreateCityRequest} from "@services/citycore/cities/contracts/citiesContracts";
-import {
-    getNowLocalDateTimeInputValue,
-    localDateTimeToUtcIso,
-} from "@services/citycore/cities/utils/dateTime";
+import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso,} from "@services/citycore/cities/utils/dateTime";
 
 type ValidationErrors = {
     name?: string;
@@ -51,12 +48,12 @@ function validate(
 }
 
 export function CreateCityForm({
-    isSubmitting,
-    submitError,
-    onSubmit,
-    onCreated,
-    onClearSubmitError,
-}: Props) {
+                                   isSubmitting,
+                                   submitError,
+                                   onSubmit,
+                                   onCreated,
+                                   onClearSubmitError,
+                               }: Props) {
     const [name, setName] = useState("");
     const [startSimTimeLocal, setStartSimTimeLocal] = useState(
         getNowLocalDateTimeInputValue(),

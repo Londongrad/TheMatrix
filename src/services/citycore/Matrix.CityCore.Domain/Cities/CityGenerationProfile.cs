@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Domain.Cities.Enums;
-using Matrix.CityCore.Domain.Errors;
 
 namespace Matrix.CityCore.Domain.Cities
 {

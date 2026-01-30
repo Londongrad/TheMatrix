@@ -30,7 +30,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment
                 value: request.Hemisphere,
                 propertyName: nameof(request.Hemisphere));
 
-            CityEnvironment environment = CityEnvironment.Create(
+            var environment = CityEnvironment.Create(
                 climateZone: climateZone,
                 hemisphere: hemisphere,
                 utcOffset: CityUtcOffset.FromMinutes(request.UtcOffsetMinutes));

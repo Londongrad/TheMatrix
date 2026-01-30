@@ -10,13 +10,13 @@ type Props = {
 };
 
 export function CitiesToolbar({
-    search,
-    includeArchived,
-    isRefreshing,
-    onSearchChange,
-    onIncludeArchivedChange,
-    onRefresh,
-}: Props) {
+                                  search,
+                                  includeArchived,
+                                  isRefreshing,
+                                  onSearchChange,
+                                  onIncludeArchivedChange,
+                                  onRefresh,
+                              }: Props) {
     return (
         <div className="cities-toolbar">
             <div className="cities-toolbar__left">

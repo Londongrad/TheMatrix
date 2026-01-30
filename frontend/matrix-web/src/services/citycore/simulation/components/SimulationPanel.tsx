@@ -39,10 +39,10 @@ function readClockValue(base: LocalClockBase, nowMs: number): number {
 }
 
 const SimulationPanel = ({
-    cityId,
-    isReadOnly = false,
-    readOnlyMessage,
-}: SimulationPanelProps) => {
+                             cityId,
+                             isReadOnly = false,
+                             readOnlyMessage,
+                         }: SimulationPanelProps) => {
     const simulationQuery = useSimulationClock(cityId, isReadOnly ? 0 : 5000);
     const simulationMutations = useSimulationMutations();
 
@@ -186,7 +186,8 @@ const SimulationPanel = ({
         <Card
             title="Simulation"
             subtitle={isReadOnly ? "Clock snapshot for an archived city" : "Clock state and controls"}
-            right={<span className={`sim-panel__mode-badge ${isReadOnly ? "sim-panel__mode-badge--archived" : ""}`}>{modeLabel}</span>}
+            right={<span
+                className={`sim-panel__mode-badge ${isReadOnly ? "sim-panel__mode-badge--archived" : ""}`}>{modeLabel}</span>}
             className={isReadOnly ? "sim-panel-card sim-panel-card--readonly" : "sim-panel-card"}
         >
             <div className="sim-panel">
@@ -224,7 +225,8 @@ const SimulationPanel = ({
                     </div>
                     <div className="sim-panel__snapshot-item">
                         <span className="sim-panel__snapshot-label">Refresh cadence</span>
-                        <strong className="sim-panel__snapshot-value">{isReadOnly ? "Manual" : "Every 5 seconds"}</strong>
+                        <strong
+                            className="sim-panel__snapshot-value">{isReadOnly ? "Manual" : "Every 5 seconds"}</strong>
                     </div>
                 </div>
 
@@ -338,7 +340,8 @@ const SimulationPanel = ({
                             ) : null}
 
                             <div className="city-details-hint">
-                                Jump time uses local browser date/time input and converts it to UTC before sending to backend.
+                                Jump time uses local browser date/time input and converts it to UTC before sending to
+                                backend.
                             </div>
                         </div>
                     </>

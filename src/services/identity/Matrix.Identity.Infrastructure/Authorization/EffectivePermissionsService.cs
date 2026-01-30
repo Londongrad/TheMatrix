@@ -30,36 +30,31 @@ namespace Matrix.Identity.Infrastructure.Authorization
                    .Distinct()
                    .ToListAsync(cancellationToken);
 
-            bool isSuperAdmin = roles.Any(
-                role => string.Equals(
-                    role,
-                    SystemRoleNames.SuperAdmin,
-                    StringComparison.Ordinal));
+            bool isSuperAdmin = roles.Any(role => string.Equals(
+                a: role,
+                b: SystemRoleNames.SuperAdmin,
+                comparisonType: StringComparison.Ordinal));
 
             List<string> rolePermissionKeys;
             if (isSuperAdmin)
-            {
                 rolePermissionKeys = await _db.Permissions
                    .AsNoTracking()
                    .Where(permission => !permission.IsDeprecated)
                    .Select(permission => permission.Key)
                    .Distinct()
                    .ToListAsync(cancellationToken);
-            }
-            else if (roleIds.Count == 0)
-            {
-                rolePermissionKeys = new List<string>();
-            }
             else
-            {
-                rolePermissionKeys = await (from rolePermission in _db.RolePermissions.AsNoTracking()
-                                            join permission in _db.Permissions.AsNoTracking()
-                                                on rolePermission.PermissionKey equals permission.Key
-                                            where roleIds.Contains(rolePermission.RoleId) && !permission.IsDeprecated
-                                            select rolePermission.PermissionKey)
-                   .Distinct()
-                   .ToListAsync(cancellationToken);
-            }
+                if (roleIds.Count == 0)
+                    rolePermissionKeys = new List<string>();
+                else
+                    rolePermissionKeys = await (from rolePermission in _db.RolePermissions.AsNoTracking()
+                                                join permission in _db.Permissions.AsNoTracking()
+                                                    on rolePermission.PermissionKey equals permission.Key
+                                                where roleIds.Contains(rolePermission.RoleId) &&
+                                                      !permission.IsDeprecated
+                                                select rolePermission.PermissionKey)
+                       .Distinct()
+                       .ToListAsync(cancellationToken);
 
             var effective = new HashSet<string>(
                 collection: rolePermissionKeys,

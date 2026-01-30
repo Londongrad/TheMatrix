@@ -1,4 +1,4 @@
-using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
+﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Simulation;

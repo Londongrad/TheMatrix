@@ -51,12 +51,12 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 defaultValue: CityDevelopmentLevel.Balanced,
                 propertyName: nameof(request.DevelopmentLevel));
 
-            CityEnvironment environment = CityEnvironment.Create(
+            var environment = CityEnvironment.Create(
                 climateZone: climateZone,
                 hemisphere: hemisphere,
                 utcOffset: CityUtcOffset.FromMinutes(request.UtcOffsetMinutes));
 
-            CityGenerationProfile generationProfile = CityGenerationProfile.Create(
+            var generationProfile = CityGenerationProfile.Create(
                 sizeTier: sizeTier,
                 urbanDensity: urbanDensity,
                 developmentLevel: developmentLevel);
@@ -70,9 +70,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                     generationProfile: generationProfile)
                 : request.GenerationSeed;
 
-            CityGenerationSeed generationSeed = new CityGenerationSeed(effectiveSeed);
+            var generationSeed = new CityGenerationSeed(effectiveSeed);
 
-            SimTime startSimTime = SimTime.FromUtc(request.StartSimTimeUtc);
+            var startSimTime = SimTime.FromUtc(request.StartSimTimeUtc);
 
             var city = City.Create(
                 name: new CityName(request.Name),

@@ -30,8 +30,8 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                 try
                 {
                     City? city = await dbContext.Cities
-                        .AsNoTracking()
-                        .SingleOrDefaultAsync(
+                       .AsNoTracking()
+                       .SingleOrDefaultAsync(
                             predicate: x => x.Id == cityId,
                             cancellationToken: cancellationToken);
 
@@ -39,12 +39,10 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                         return false;
 
                     if (city.IsArchived && !allowArchivedCity)
-                    {
                         throw new MatrixApplicationException(
                             code: "CityCore.Simulation.ArchivedCity",
                             message: "Archived cities are read-only. Simulation controls are unavailable.",
                             errorType: ApplicationErrorType.Conflict);
-                    }
 
                     SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
                         predicate: x => x.Id == cityId,
@@ -63,8 +61,14 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
 
                     logger.LogWarning(
                         exception: ex,
-                        message: "Concurrent update detected for simulation clock {CityId}. Retrying attempt {Attempt} of {MaxAttempts}.",
-                        args: [cityId.Value, attempt + 1, MaxAttempts]);
+                        message:
+                        "Concurrent update detected for simulation clock {CityId}. Retrying attempt {Attempt} of {MaxAttempts}.",
+                        args:
+                        [
+                            cityId.Value,
+                            attempt + 1,
+                            MaxAttempts
+                        ]);
 
                     dbContext.ChangeTracker.Clear();
                 }
@@ -78,8 +82,13 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
 
             logger.LogWarning(
                 exception: lastException,
-                message: "Simulation clock {CityId} could not be updated after {MaxAttempts} attempts because it kept changing concurrently.",
-                args: [cityId.Value, MaxAttempts]);
+                message:
+                "Simulation clock {CityId} could not be updated after {MaxAttempts} attempts because it kept changing concurrently.",
+                args:
+                [
+                    cityId.Value,
+                    MaxAttempts
+                ]);
 
             throw new MatrixApplicationException(
                 code: "CityCore.SimulationClockConflict",

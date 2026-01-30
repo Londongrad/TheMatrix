@@ -65,11 +65,9 @@ namespace Matrix.Population.Domain.Services
             int? randomSeed = null)
         {
             if (peopleCount <= 0)
-            {
                 return new PopulationBootstrapResult(
                     Households: Array.Empty<Household>(),
                     Persons: Array.Empty<Person>());
-            }
 
             Random random = CreateRandom(randomSeed);
             var households = new List<Household>(peopleCount);
@@ -77,17 +75,18 @@ namespace Matrix.Population.Domain.Services
 
             for (int i = 0; i < peopleCount; i++)
             {
-                HouseholdId householdId = HouseholdId.New();
-                Household household = Household.CreateHomeless(
+                var householdId = HouseholdId.New();
+                var household = Household.CreateHomeless(
                     id: householdId,
                     size: HouseholdSize.From(1),
                     createdAtUtc: createdAtUtc);
 
                 households.Add(household);
-                persons.Add(CreateRandomPerson(
-                    random: random,
-                    householdId: householdId,
-                    currentDate: currentDate));
+                persons.Add(
+                    CreateRandomPerson(
+                        random: random,
+                        householdId: householdId,
+                        currentDate: currentDate));
             }
 
             return new PopulationBootstrapResult(
@@ -104,21 +103,19 @@ namespace Matrix.Population.Domain.Services
             int? randomSeed = null)
         {
             if (peopleCount <= 0)
-            {
                 return new PopulationBootstrapResult(
                     Households: Array.Empty<Household>(),
                     Persons: Array.Empty<Person>());
-            }
 
             Random random = CreateRandom(randomSeed);
             var households = new List<Household>();
             var persons = new List<Person>(peopleCount);
-            List<BuildingCapacityState> capacityStates = residentialBuildings
-                .Select(x => new BuildingCapacityState(
+            var capacityStates = residentialBuildings
+               .Select(x => new BuildingCapacityState(
                     buildingId: x.ResidentialBuildingId,
                     districtId: x.DistrictId,
                     remainingCapacity: x.ResidentCapacity))
-                .ToList();
+               .ToList();
 
             int remainingPeople = peopleCount;
             while (remainingPeople > 0)
@@ -126,8 +123,8 @@ namespace Matrix.Population.Domain.Services
                 int householdSizeValue = NextHouseholdSize(
                     random: random,
                     remainingPeople: remainingPeople);
-                HouseholdSize householdSize = HouseholdSize.From(householdSizeValue);
-                HouseholdId householdId = HouseholdId.New();
+                var householdSize = HouseholdSize.From(householdSizeValue);
+                var householdId = HouseholdId.New();
                 Household household = TryAllocateHousehold(
                     cityId: cityId,
                     householdId: householdId,
@@ -139,12 +136,11 @@ namespace Matrix.Population.Domain.Services
                 households.Add(household);
 
                 for (int memberIndex = 0; memberIndex < householdSizeValue; memberIndex++)
-                {
-                    persons.Add(CreateRandomPerson(
-                        random: random,
-                        householdId: household.Id,
-                        currentDate: currentDate));
-                }
+                    persons.Add(
+                        CreateRandomPerson(
+                            random: random,
+                            householdId: household.Id,
+                            currentDate: currentDate));
 
                 remainingPeople -= householdSizeValue;
             }
@@ -162,18 +158,16 @@ namespace Matrix.Population.Domain.Services
             List<BuildingCapacityState> capacityStates,
             Random random)
         {
-            List<BuildingCapacityState> candidates = capacityStates
-                .Where(x => x.RemainingCapacity >= householdSize.Value)
-                .ToList();
+            var candidates = capacityStates
+               .Where(x => x.RemainingCapacity >= householdSize.Value)
+               .ToList();
 
             if (candidates.Count == 0)
-            {
                 return Household.CreateHomeless(
                     id: householdId,
                     size: householdSize,
                     createdAtUtc: createdAtUtc,
                     cityId: cityId);
-            }
 
             BuildingCapacityState selected = candidates[random.Next(candidates.Count)];
             selected.RemainingCapacity -= householdSize.Value;
@@ -191,9 +185,23 @@ namespace Matrix.Population.Domain.Services
             Random random,
             int remainingPeople)
         {
-            int[] weightedSizes = { 1, 1, 2, 2, 2, 3, 3, 4, 4, 5 };
+            int[] weightedSizes =
+            {
+                1,
+                1,
+                2,
+                2,
+                2,
+                3,
+                3,
+                4,
+                4,
+                5
+            };
             int selected = weightedSizes[random.Next(weightedSizes.Length)];
-            return Math.Min(selected, remainingPeople);
+            return Math.Min(
+                val1: selected,
+                val2: remainingPeople);
         }
 
         private static Random CreateRandom(int? randomSeed)
@@ -208,23 +216,40 @@ namespace Matrix.Population.Domain.Services
             HouseholdId householdId,
             DateOnly currentDate)
         {
-            PersonId personId = PersonId.New();
+            var personId = PersonId.New();
             Sex sex = CreateRandomSex(random);
-            PersonName name = CreateRandomName(random, sex);
+            PersonName name = CreateRandomName(
+                random: random,
+                sex: sex);
             int ageYears = CreateRandomAgeYears(random);
             DateOnly birthDate = currentDate.AddYears(-ageYears);
-            Age age = Age.FromYears(ageYears);
+            var age = Age.FromYears(ageYears);
             AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
-            HealthLevel health = CreateRandomHealth(random, ageYears);
-            BodyWeight weight = CreateRandomWeight(random, sex, ageYears);
-            Personality personality = Personality.CreateRandom(random);
-            EmploymentStatus employmentStatus = CreateRandomEmploymentStatus(random, ageGroup);
+            HealthLevel health = CreateRandomHealth(
+                random: random,
+                ageYears: ageYears);
+            BodyWeight weight = CreateRandomWeight(
+                random: random,
+                sex: sex,
+                ageYears: ageYears);
+            var personality = Personality.CreateRandom(random);
+            EmploymentStatus employmentStatus = CreateRandomEmploymentStatus(
+                random: random,
+                ageGroup: ageGroup);
             Job? job = employmentStatus == EmploymentStatus.Employed
                 ? CreateRandomJob(random)
                 : null;
-            HappinessLevel happiness = CreateInitialHappiness(random, ageGroup, employmentStatus);
-            EducationLevel educationLevel = CreateRandomEducationLevel(random, ageYears);
-            MaritalStatus maritalStatus = CreateRandomMaritalStatus(random, ageGroup, ageYears);
+            HappinessLevel happiness = CreateInitialHappiness(
+                random: random,
+                ageGroup: ageGroup,
+                employmentStatus: employmentStatus);
+            EducationLevel educationLevel = CreateRandomEducationLevel(
+                random: random,
+                ageYears: ageYears);
+            MaritalStatus maritalStatus = CreateRandomMaritalStatus(
+                random: random,
+                ageGroup: ageGroup,
+                ageYears: ageYears);
 
             return Person.CreatePerson(
                 id: personId,
@@ -258,7 +283,9 @@ namespace Matrix.Population.Domain.Services
                 double roll = random.NextDouble();
 
                 if (ageYears < 25)
-                    return roll < 0.8 ? MaritalStatus.Single : MaritalStatus.Married;
+                    return roll < 0.8
+                        ? MaritalStatus.Single
+                        : MaritalStatus.Married;
 
                 if (ageYears < 40)
                 {
@@ -286,7 +313,10 @@ namespace Matrix.Population.Domain.Services
 
         private static Sex CreateRandomSex(Random random)
         {
-            return random.Next(0, 2) == 0
+            return random.Next(
+                       minValue: 0,
+                       maxValue: 2) ==
+                   0
                 ? Sex.Male
                 : Sex.Female;
         }
@@ -313,13 +343,39 @@ namespace Matrix.Population.Domain.Services
         {
             decimal kilograms = ageYears switch
             {
-                < 1 => random.Next(3, 11),
-                < 3 => random.Next(8, 16),
-                < 7 => random.Next(12, 26),
-                < 13 => random.Next(20, 46),
-                < 18 => sex == Sex.Male ? random.Next(40, 86) : random.Next(38, 76),
-                < 66 => sex == Sex.Male ? random.Next(60, 111) : random.Next(45, 96),
-                _ => sex == Sex.Male ? random.Next(55, 96) : random.Next(45, 86)
+                < 1 => random.Next(
+                    minValue: 3,
+                    maxValue: 11),
+                < 3 => random.Next(
+                    minValue: 8,
+                    maxValue: 16),
+                < 7 => random.Next(
+                    minValue: 12,
+                    maxValue: 26),
+                < 13 => random.Next(
+                    minValue: 20,
+                    maxValue: 46),
+                < 18 => sex == Sex.Male
+                    ? random.Next(
+                        minValue: 40,
+                        maxValue: 86)
+                    : random.Next(
+                        minValue: 38,
+                        maxValue: 76),
+                < 66 => sex == Sex.Male
+                    ? random.Next(
+                        minValue: 60,
+                        maxValue: 111)
+                    : random.Next(
+                        minValue: 45,
+                        maxValue: 96),
+                _ => sex == Sex.Male
+                    ? random.Next(
+                        minValue: 55,
+                        maxValue: 96)
+                    : random.Next(
+                        minValue: 45,
+                        maxValue: 86)
             };
 
             return BodyWeight.FromKilograms(kilograms);
@@ -331,21 +387,41 @@ namespace Matrix.Population.Domain.Services
         {
             int value = ageYears switch
             {
-                < 7 => random.Next(70, 101),
-                < 18 => random.Next(60, 101),
-                < 40 => random.Next(50, 96),
-                < 66 => random.Next(45, 91),
-                < 80 => random.Next(35, 86),
-                _ => random.Next(30, 81)
+                < 7 => random.Next(
+                    minValue: 70,
+                    maxValue: 101),
+                < 18 => random.Next(
+                    minValue: 60,
+                    maxValue: 101),
+                < 40 => random.Next(
+                    minValue: 50,
+                    maxValue: 96),
+                < 66 => random.Next(
+                    minValue: 45,
+                    maxValue: 91),
+                < 80 => random.Next(
+                    minValue: 35,
+                    maxValue: 86),
+                _ => random.Next(
+                    minValue: 30,
+                    maxValue: 81)
             };
 
             if (ageYears > 40)
             {
-                int extraPenalty = Math.Min(20, (ageYears - 40) / 2);
-                value -= random.Next(0, 6) + extraPenalty;
+                int extraPenalty = Math.Min(
+                    val1: 20,
+                    val2: (ageYears - 40) / 2);
+                value -= random.Next(
+                             minValue: 0,
+                             maxValue: 6) +
+                         extraPenalty;
             }
 
-            value = Math.Clamp(value, 0, 100);
+            value = Math.Clamp(
+                value: value,
+                min: 0,
+                max: 100);
             return HealthLevel.From(value);
         }
 
@@ -354,12 +430,18 @@ namespace Matrix.Population.Domain.Services
             double roll = random.NextDouble();
 
             if (roll < 0.2)
-                return random.Next(0, 18);
+                return random.Next(
+                    minValue: 0,
+                    maxValue: 18);
 
             if (roll < 0.8)
-                return random.Next(18, 66);
+                return random.Next(
+                    minValue: 18,
+                    maxValue: 66);
 
-            return random.Next(66, 121);
+            return random.Next(
+                minValue: 66,
+                maxValue: 121);
         }
 
         private static HappinessLevel CreateInitialHappiness(
@@ -367,21 +449,29 @@ namespace Matrix.Population.Domain.Services
             AgeGroup ageGroup,
             EmploymentStatus employmentStatus)
         {
-            int value = random.Next(40, 81);
+            int value = random.Next(
+                minValue: 40,
+                maxValue: 81);
 
             if (employmentStatus == EmploymentStatus.Employed && ageGroup == AgeGroup.Adult)
-            {
-                value += random.Next(0, 11);
-            }
+                value += random.Next(
+                    minValue: 0,
+                    maxValue: 11);
             else
-            {
                 if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
-                    value -= random.Next(5, 16);
-                else if (employmentStatus == EmploymentStatus.Retired)
-                    value += random.Next(0, 6);
-            }
+                    value -= random.Next(
+                        minValue: 5,
+                        maxValue: 16);
+                else
+                    if (employmentStatus == EmploymentStatus.Retired)
+                        value += random.Next(
+                            minValue: 0,
+                            maxValue: 6);
 
-            value = Math.Clamp(value, 0, 100);
+            value = Math.Clamp(
+                value: value,
+                min: 0,
+                max: 100);
             return HappinessLevel.From(value);
         }
 
@@ -414,7 +504,7 @@ namespace Matrix.Population.Domain.Services
         private static Job CreateRandomJob(Random random)
         {
             string title = JobTitles[random.Next(JobTitles.Length)];
-            WorkplaceId workplaceId = WorkplaceId.New();
+            var workplaceId = WorkplaceId.New();
 
             return new Job(
                 workplaceId: workplaceId,
@@ -428,12 +518,31 @@ namespace Matrix.Population.Domain.Services
             return ageYears switch
             {
                 <= 2 => EducationLevel.None,
-                <= 6 => Pick(random, (EducationLevel.Preschool, 0.80), (EducationLevel.None, 0.20)),
-                <= 10 => Pick(random, (EducationLevel.Primary, 0.97), (EducationLevel.LowerSecondary, 0.03)),
-                <= 14 => Pick(random, (EducationLevel.LowerSecondary, 0.85), (EducationLevel.Primary, 0.15)),
-                <= 17 => Pick(random, (EducationLevel.UpperSecondary, 0.72), (EducationLevel.LowerSecondary, 0.18), (EducationLevel.Vocational, 0.10)),
-                <= 21 => Pick(random, (EducationLevel.UpperSecondary, 0.25), (EducationLevel.Vocational, 0.33), (EducationLevel.Higher, 0.40), (EducationLevel.LowerSecondary, 0.02)),
-                <= 65 => Pick(random,
+                <= 6 => Pick(
+                    random: random,
+                    (EducationLevel.Preschool, 0.80),
+                    (EducationLevel.None, 0.20)),
+                <= 10 => Pick(
+                    random: random,
+                    (EducationLevel.Primary, 0.97),
+                    (EducationLevel.LowerSecondary, 0.03)),
+                <= 14 => Pick(
+                    random: random,
+                    (EducationLevel.LowerSecondary, 0.85),
+                    (EducationLevel.Primary, 0.15)),
+                <= 17 => Pick(
+                    random: random,
+                    (EducationLevel.UpperSecondary, 0.72),
+                    (EducationLevel.LowerSecondary, 0.18),
+                    (EducationLevel.Vocational, 0.10)),
+                <= 21 => Pick(
+                    random: random,
+                    (EducationLevel.UpperSecondary, 0.25),
+                    (EducationLevel.Vocational, 0.33),
+                    (EducationLevel.Higher, 0.40),
+                    (EducationLevel.LowerSecondary, 0.02)),
+                <= 65 => Pick(
+                    random: random,
                     (EducationLevel.None, 0.01),
                     (EducationLevel.Primary, 0.08),
                     (EducationLevel.LowerSecondary, 0.22),
@@ -441,7 +550,8 @@ namespace Matrix.Population.Domain.Services
                     (EducationLevel.Vocational, 0.22),
                     (EducationLevel.Higher, 0.15),
                     (EducationLevel.Postgraduate, 0.02)),
-                _ => Pick(random,
+                _ => Pick(
+                    random: random,
                     (EducationLevel.None, 0.02),
                     (EducationLevel.Primary, 0.18),
                     (EducationLevel.LowerSecondary, 0.34),

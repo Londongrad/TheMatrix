@@ -18,7 +18,9 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
                 SimTimeUtc: clock.CurrentTime.ValueUtc,
                 TickId: clock.TickId.Value,
                 Speed: clock.Speed.Multiplier,
-                State: forcePaused ? ClockState.Paused : clock.State);
+                State: forcePaused
+                    ? ClockState.Paused
+                    : clock.State);
         }
     }
 }

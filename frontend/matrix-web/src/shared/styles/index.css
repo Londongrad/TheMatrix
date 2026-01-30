@@ -37,10 +37,9 @@ html {
 }
 
 *::-webkit-scrollbar-track {
-    background:
-        linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.24)),
-        linear-gradient(180deg, var(--scrollbar-track-edge), transparent 30%, transparent 70%, var(--scrollbar-track-edge)),
-        var(--scrollbar-track);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.24)),
+    linear-gradient(180deg, var(--scrollbar-track-edge), transparent 30%, transparent 70%, var(--scrollbar-track-edge)),
+    var(--scrollbar-track);
 }
 
 *::-webkit-scrollbar-thumb {

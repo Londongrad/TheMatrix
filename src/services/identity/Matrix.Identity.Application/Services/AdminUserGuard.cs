@@ -3,7 +3,9 @@ using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Application.UseCases.Admin.Users.GetUserRoles;
 using Matrix.Identity.Domain.Authorization;
+using Matrix.Identity.Domain.Entities;
 
 namespace Matrix.Identity.Application.Services
 {
@@ -22,16 +24,15 @@ namespace Matrix.Identity.Application.Services
             if (targetUserId == currentUserId)
                 throw ApplicationErrorsFactory.CannotPerformAdminActionOnSelf();
 
-            IReadOnlyCollection<UseCases.Admin.Users.GetUserRoles.UserRoleResult> targetRoles =
+            IReadOnlyCollection<UserRoleResult> targetRoles =
                 await userRolesRepository.GetUserRolesAsync(
                     userId: targetUserId,
                     cancellationToken: cancellationToken);
 
-            bool isSuperAdminTarget = targetRoles.Any(
-                role => string.Equals(
-                    role.Name,
-                    SystemRoleNames.SuperAdmin,
-                    StringComparison.Ordinal));
+            bool isSuperAdminTarget = targetRoles.Any(role => string.Equals(
+                a: role.Name,
+                b: SystemRoleNames.SuperAdmin,
+                comparisonType: StringComparison.Ordinal));
 
             if (isSuperAdminTarget)
                 throw ApplicationErrorsFactory.SuperAdminUserIsProtected();
@@ -44,7 +45,7 @@ namespace Matrix.Identity.Application.Services
             if (desiredRoleIds.Count == 0)
                 return;
 
-            Domain.Entities.Role? superAdminRole = await roleReadRepository.GetByNameAsync(
+            Role? superAdminRole = await roleReadRepository.GetByNameAsync(
                 roleName: SystemRoleNames.SuperAdmin,
                 cancellationToken: cancellationToken);
 

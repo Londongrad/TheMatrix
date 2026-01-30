@@ -217,7 +217,10 @@ namespace Matrix.CityCore.Application.Services.Weather
                         supportsSnowstorms: true,
                         supportsFog: true,
                         supportsHeatwaves: false)),
-                _ => throw new ArgumentOutOfRangeException(nameof(climateZone), climateZone, null)
+                _ => throw new ArgumentOutOfRangeException(
+                    paramName: nameof(climateZone),
+                    actualValue: climateZone,
+                    message: null)
             };
         }
     }

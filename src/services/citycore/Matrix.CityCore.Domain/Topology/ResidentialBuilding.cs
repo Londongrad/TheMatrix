@@ -34,7 +34,7 @@ namespace Matrix.CityCore.Domain.Topology
         private ResidentialBuilding()
             : base(default(ResidentialBuildingId))
         {
-            Name = default;
+            Name = default(ResidentialBuildingName);
         }
 
         public CityId CityId { get; private set; }

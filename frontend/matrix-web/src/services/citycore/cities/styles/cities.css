@@ -46,9 +46,8 @@
     padding: 18px 20px;
     border-radius: 22px;
     border: 1px solid rgba(88, 255, 169, 0.16);
-    background:
-        linear-gradient(180deg, rgba(13, 30, 20, 0.86), rgba(4, 12, 8, 0.86)),
-        rgba(8, 18, 11, 0.8);
+    background: linear-gradient(180deg, rgba(13, 30, 20, 0.86), rgba(4, 12, 8, 0.86)),
+    rgba(8, 18, 11, 0.8);
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
 }
 
@@ -100,9 +99,8 @@
     padding: 24px;
     border-radius: 28px;
     border: 1px solid rgba(88, 255, 169, 0.14);
-    background:
-        linear-gradient(180deg, rgba(10, 25, 15, 0.84), rgba(5, 11, 8, 0.84)),
-        rgba(8, 18, 11, 0.72);
+    background: linear-gradient(180deg, rgba(10, 25, 15, 0.84), rgba(5, 11, 8, 0.84)),
+    rgba(8, 18, 11, 0.72);
     box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
     overflow: hidden;
 }

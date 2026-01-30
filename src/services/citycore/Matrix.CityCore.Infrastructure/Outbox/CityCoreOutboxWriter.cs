@@ -103,8 +103,10 @@ namespace Matrix.CityCore.Infrastructure.Outbox
                         occurredOnUtc: occurredOnUtc,
                         payload: new ClimateProfileChangedIntegrationEvent(
                             CityId: profileChanged.CityId.Value,
-                            PreviousProfile: WeatherClimateProfileIntegrationData.FromDomain(profileChanged.PreviousProfile),
-                            CurrentProfile: WeatherClimateProfileIntegrationData.FromDomain(profileChanged.CurrentProfile),
+                            PreviousProfile: WeatherClimateProfileIntegrationData.FromDomain(
+                                profileChanged.PreviousProfile),
+                            CurrentProfile: WeatherClimateProfileIntegrationData.FromDomain(
+                                profileChanged.CurrentProfile),
                             AtSimTimeUtc: profileChanged.AtSimTime.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     _ => throw new InvalidOperationException(

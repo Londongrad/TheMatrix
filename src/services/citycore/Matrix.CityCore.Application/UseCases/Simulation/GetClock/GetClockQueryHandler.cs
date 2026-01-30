@@ -27,7 +27,9 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
 
             return clock is null
                 ? null
-                : ClockDto.FromDomain(clock, forcePaused: city.IsArchived);
+                : ClockDto.FromDomain(
+                    clock: clock,
+                    forcePaused: city.IsArchived);
         }
     }
 }

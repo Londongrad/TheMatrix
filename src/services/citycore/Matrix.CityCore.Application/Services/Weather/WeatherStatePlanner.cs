@@ -26,7 +26,7 @@ namespace Matrix.CityCore.Application.Services.Weather
             DateTimeOffset localTime = evaluatedAt.ValueUtc.ToOffset(environment.UtcOffset.Value);
             DateTimeOffset localWindowStart = ResolveLocalWindowStart(localTime);
             DateTimeOffset localWindowEnd = localWindowStart.AddHours(WeatherBlockHours);
-            int representativeHour = (localWindowStart.Hour + WeatherBlockHours / 2) % 24;
+            int representativeHour = (localWindowStart.Hour + (WeatherBlockHours / 2)) % 24;
 
             WeatherSeason season = ResolveSeason(
                 month: localWindowStart.Month,
@@ -112,7 +112,7 @@ namespace Matrix.CityCore.Application.Services.Weather
 
         private static decimal ResolveVolatilityFactor(WeatherVolatility volatility)
         {
-            return 0.70m + volatility.Value * 0.80m;
+            return 0.70m + (volatility.Value * 0.80m);
         }
 
         private static TemperatureC CalculateTemperature(
@@ -121,7 +121,8 @@ namespace Matrix.CityCore.Application.Services.Weather
             int representativeHour,
             decimal volatilityFactor)
         {
-            decimal baseline = climateProfile.GetBaselineTemperature(season).Value;
+            decimal baseline = climateProfile.GetBaselineTemperature(season)
+               .Value;
             decimal swing = climateProfile.TemperatureProfile.DailySwing.Value;
             decimal multiplier = representativeHour switch
             {
@@ -131,8 +132,11 @@ namespace Matrix.CityCore.Application.Services.Weather
                 _ => -0.10m
             };
 
-            decimal value = baseline + swing * multiplier * volatilityFactor;
-            return TemperatureC.From(Math.Round(value, 2));
+            decimal value = baseline + (swing * multiplier * volatilityFactor);
+            return TemperatureC.From(
+                Math.Round(
+                    d: value,
+                    decimals: 2));
         }
 
         private static HumidityPercent CalculateHumidity(
@@ -141,7 +145,8 @@ namespace Matrix.CityCore.Application.Services.Weather
             int representativeHour,
             decimal volatilityFactor)
         {
-            decimal baseline = climateProfile.GetBaselineHumidity(season).Value;
+            decimal baseline = climateProfile.GetBaselineHumidity(season)
+               .Value;
             decimal adjustment = representativeHour switch
             {
                 >= 0 and < 6 => 7m,
@@ -150,9 +155,15 @@ namespace Matrix.CityCore.Application.Services.Weather
                 _ => 1m
             };
 
-            decimal value = baseline + adjustment * volatilityFactor;
-            value = Math.Clamp(value, HumidityPercent.Min, HumidityPercent.Max);
-            return HumidityPercent.From(Math.Round(value, 2));
+            decimal value = baseline + (adjustment * volatilityFactor);
+            value = Math.Clamp(
+                value: value,
+                min: HumidityPercent.Min,
+                max: HumidityPercent.Max);
+            return HumidityPercent.From(
+                Math.Round(
+                    d: value,
+                    decimals: 2));
         }
 
         private static WindSpeedKph CalculateWindSpeed(
@@ -161,7 +172,8 @@ namespace Matrix.CityCore.Application.Services.Weather
             int representativeHour,
             decimal volatilityFactor)
         {
-            decimal baseline = climateProfile.GetBaselineWindSpeed(season).Value;
+            decimal baseline = climateProfile.GetBaselineWindSpeed(season)
+               .Value;
             decimal adjustment = representativeHour switch
             {
                 >= 0 and < 6 => -2m,
@@ -170,9 +182,15 @@ namespace Matrix.CityCore.Application.Services.Weather
                 _ => 1m
             };
 
-            decimal value = baseline + adjustment * volatilityFactor;
-            value = Math.Clamp(value, WindSpeedKph.Min, WindSpeedKph.Max);
-            return WindSpeedKph.From(Math.Round(value, 2));
+            decimal value = baseline + (adjustment * volatilityFactor);
+            value = Math.Clamp(
+                value: value,
+                min: WindSpeedKph.Min,
+                max: WindSpeedKph.Max);
+            return WindSpeedKph.From(
+                Math.Round(
+                    d: value,
+                    decimals: 2));
         }
 
         private static PrecipitationKind DeterminePrecipitationKind(
@@ -291,10 +309,16 @@ namespace Matrix.CityCore.Application.Services.Weather
         {
             decimal value = weatherType switch
             {
-                WeatherType.Clear => humidity.Value >= 55m ? 28m : 16m,
+                WeatherType.Clear => humidity.Value >= 55m
+                    ? 28m
+                    : 16m,
                 WeatherType.Overcast => 78m,
-                WeatherType.Rain => precipitationKind == PrecipitationKind.Drizzle ? 82m : 90m,
-                WeatherType.Snow => precipitationKind == PrecipitationKind.Sleet ? 88m : 94m,
+                WeatherType.Rain => precipitationKind == PrecipitationKind.Drizzle
+                    ? 82m
+                    : 90m,
+                WeatherType.Snow => precipitationKind == PrecipitationKind.Sleet
+                    ? 88m
+                    : 94m,
                 WeatherType.Storm => 100m,
                 WeatherType.Fog => 70m,
                 WeatherType.Windy => 42m,
@@ -306,8 +330,14 @@ namespace Matrix.CityCore.Application.Services.Weather
             if (weatherType == WeatherType.Clear || weatherType == WeatherType.Windy)
                 value += (volatilityFactor - 1m) * 8m;
 
-            value = Math.Clamp(value, CloudCoveragePercent.Min, CloudCoveragePercent.Max);
-            return CloudCoveragePercent.From(Math.Round(value, 2));
+            value = Math.Clamp(
+                value: value,
+                min: CloudCoveragePercent.Min,
+                max: CloudCoveragePercent.Max);
+            return CloudCoveragePercent.From(
+                Math.Round(
+                    d: value,
+                    decimals: 2));
         }
 
         private static PressureHpa DeterminePressure(
@@ -337,8 +367,14 @@ namespace Matrix.CityCore.Application.Services.Weather
             };
 
             value += adjustment * (volatilityFactor - 1m);
-            value = Math.Clamp(value, PressureHpa.Min, PressureHpa.Max);
-            return PressureHpa.From(Math.Round(value, 2));
+            value = Math.Clamp(
+                value: value,
+                min: PressureHpa.Min,
+                max: PressureHpa.Max);
+            return PressureHpa.From(
+                Math.Round(
+                    d: value,
+                    decimals: 2));
         }
 
         private static WeatherSeason ResolveSeason(

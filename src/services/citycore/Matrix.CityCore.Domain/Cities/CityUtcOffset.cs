@@ -15,7 +15,10 @@ namespace Matrix.CityCore.Domain.Cities
         {
             int totalMinutes = checked((int)value.TotalMinutes);
 
-            if (value.Ticks % TimeSpan.FromMinutes(StepMinutes).Ticks != 0)
+            if (value.Ticks %
+                TimeSpan.FromMinutes(StepMinutes)
+                   .Ticks !=
+                0)
                 throw DomainErrorsFactory.CityUtcOffsetMustAlignToStep(
                     valueMinutes: totalMinutes,
                     stepMinutes: StepMinutes,

@@ -38,7 +38,7 @@ namespace Matrix.CityCore.Domain.Cities
                 value: hemisphere,
                 propertyName: nameof(Hemisphere));
 
-            if (utcOffset == default)
+            if (utcOffset == default(CityUtcOffset?))
                 throw DomainErrorsFactory.InvalidCityEnvironment(
                     reason: "UTC offset is required.",
                     propertyName: nameof(UtcOffset));

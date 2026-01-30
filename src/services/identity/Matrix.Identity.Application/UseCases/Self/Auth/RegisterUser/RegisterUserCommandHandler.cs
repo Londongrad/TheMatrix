@@ -53,8 +53,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
                     Role assignedRole = await roleReadRepository.GetByNameAsync(
                                             roleName: assignedRoleName,
                                             cancellationToken: token) ??
-                                        throw ApplicationErrorsFactory.RequiredSystemRoleMissing(
-                                            assignedRoleName);
+                                        throw ApplicationErrorsFactory.RequiredSystemRoleMissing(assignedRoleName);
 
                     string passwordHash = passwordHasher.Hash(request.Password);
 
@@ -69,7 +68,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
 
                     await userRolesRepository.ReplaceUserRolesAsync(
                         userId: user.Id,
-                        roleIds: new[] { assignedRole.Id },
+                        roleIds: new[]
+                        {
+                            assignedRole.Id
+                        },
                         cancellationToken: token);
 
                     return new RegisterUserResult

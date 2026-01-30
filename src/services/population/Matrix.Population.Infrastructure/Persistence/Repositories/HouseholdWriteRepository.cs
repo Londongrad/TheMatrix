@@ -19,8 +19,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             await _dbContext.Households
-                .Where(x => x.CityId == cityId)
-                .ExecuteDeleteAsync(cancellationToken);
+               .Where(x => x.CityId == cityId)
+               .ExecuteDeleteAsync(cancellationToken);
         }
 
         public async Task AddRangeAsync(

@@ -78,7 +78,8 @@ export default function CitiesPage() {
                     <div className="cities-page__eyebrow">CityCore</div>
                     <h1 className="cities-page__title">Cities</h1>
                     <p className="cities-page__subtitle">
-                        Operate the city registry, separate live simulations from archived records, and launch new timelines without layout drift.
+                        Operate the city registry, separate live simulations from archived records, and launch new
+                        timelines without layout drift.
                     </p>
                 </div>
             </header>
@@ -110,7 +111,8 @@ export default function CitiesPage() {
                             <div>
                                 <h2 className="cities-card__title">City registry</h2>
                                 <p className="cities-card__subtitle">
-                                    Active cities stay at the top. Archived cities remain accessible but visually separated.
+                                    Active cities stay at the top. Archived cities remain accessible but visually
+                                    separated.
                                 </p>
                             </div>
                         </div>

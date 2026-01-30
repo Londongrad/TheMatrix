@@ -36,16 +36,16 @@ namespace Matrix.CityCore.Domain.Cities
         private City()
             : base(default(CityId))
         {
-            Name = default;
+            Name = default(CityName);
             Environment = null!;
-            GenerationSeed = default;
+            GenerationSeed = default(CityGenerationSeed);
             GenerationProfile = null!;
         }
 
         public CityName Name { get; private set; }
         public CityEnvironment Environment { get; private set; }
-        public CityGenerationSeed GenerationSeed { get; private set; }
-        public CityGenerationProfile GenerationProfile { get; private set; }
+        public CityGenerationSeed GenerationSeed { get; }
+        public CityGenerationProfile GenerationProfile { get; }
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
         public DateTimeOffset? ArchivedAtUtc { get; private set; }
@@ -66,9 +66,8 @@ namespace Matrix.CityCore.Domain.Cities
                     reason: "City environment is required.",
                     propertyName: nameof(environment));
 
-            if (generationSeed == default)
-                throw DomainErrorsFactory.CityGenerationSeedNullOrEmpty(
-                    propertyName: nameof(generationSeed));
+            if (generationSeed == default(CityGenerationSeed?))
+                throw DomainErrorsFactory.CityGenerationSeedNullOrEmpty(propertyName: nameof(generationSeed));
 
             if (generationProfile is null)
                 throw DomainErrorsFactory.InvalidCityGenerationProfile(

@@ -22,13 +22,13 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            CityId cityId = CityId.From(request.CityId);
+            var cityId = CityId.From(request.CityId);
             IReadOnlyCollection<ResidentialBuildingResidence> residentialBuildings = request.ResidentialBuildings
-                .Select(x => new ResidentialBuildingResidence(
+               .Select(x => new ResidentialBuildingResidence(
                     residentialBuildingId: ResidentialBuildingId.From(x.ResidentialBuildingId),
                     districtId: DistrictId.From(x.DistrictId),
                     residentCapacity: x.ResidentCapacity))
-                .ToArray();
+               .ToArray();
 
             PopulationBootstrapResult result = generator.GenerateForCity(
                 cityId: cityId,
@@ -60,8 +60,8 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
             int housedHouseholdCount = result.Households.Count(x => x.HousingStatus == HousingStatus.Housed);
             int homelessHouseholdCount = result.Households.Count - housedHouseholdCount;
             int housedPeopleCount = result.Households
-                .Where(x => x.HousingStatus == HousingStatus.Housed)
-                .Sum(x => x.Size.Value);
+               .Where(x => x.HousingStatus == HousingStatus.Housed)
+               .Sum(x => x.Size.Value);
             int homelessPeopleCount = result.Persons.Count - housedPeopleCount;
 
             return new CityPopulationBootstrapSummaryDto(

@@ -331,7 +331,8 @@ namespace Matrix.CityCore.Domain.Errors
         {
             return new DomainException(
                 code: "CityCore.Weather.Evaluation.Time.Backwards",
-                message: $"Weather evaluation time ({value}) cannot be earlier than the last evaluated time ({previous}).",
+                message:
+                $"Weather evaluation time ({value}) cannot be earlier than the last evaluated time ({previous}).",
                 propertyName: propertyName);
         }
 
@@ -353,7 +354,8 @@ namespace Matrix.CityCore.Domain.Errors
         {
             return new DomainException(
                 code: "CityCore.Weather.Transition.Timing.Invalid",
-                message: $"Weather state must be active at evaluation time ({evaluatedAt}); active range is [{startedAt}; {expectedUntil}).",
+                message:
+                $"Weather state must be active at evaluation time ({evaluatedAt}); active range is [{startedAt}; {expectedUntil}).",
                 propertyName: propertyName);
         }
 

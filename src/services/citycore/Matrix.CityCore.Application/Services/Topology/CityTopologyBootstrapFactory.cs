@@ -48,9 +48,14 @@ namespace Matrix.CityCore.Application.Services.Topology
                 random: random);
 
             var availableNames = generationContentCatalog.DistrictNamePresets
-               .Where(x => !string.Equals(x, "Central District", StringComparison.OrdinalIgnoreCase))
+               .Where(x => !string.Equals(
+                    a: x,
+                    b: "Central District",
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                .ToList();
-            Shuffle(availableNames, random);
+            Shuffle(
+                items: availableNames,
+                random: random);
 
             var districts = new List<District>
             {
@@ -93,7 +98,10 @@ namespace Matrix.CityCore.Application.Services.Topology
                     isCentral: isCentral,
                     random: random);
 
-                string districtLabel = district.Name.Value.Replace(" District", string.Empty, StringComparison.Ordinal);
+                string districtLabel = district.Name.Value.Replace(
+                    oldValue: " District",
+                    newValue: string.Empty,
+                    comparisonType: StringComparison.Ordinal);
                 var typeCounters = new Dictionary<ResidentialBuildingType, int>();
 
                 for (int buildingIndex = 0; buildingIndex < buildingCount; buildingIndex++)
@@ -103,7 +111,9 @@ namespace Matrix.CityCore.Application.Services.Topology
                         isCentral: isCentral,
                         random: random);
 
-                    int sequence = typeCounters.TryGetValue(type, out int current)
+                    int sequence = typeCounters.TryGetValue(
+                        key: type,
+                        value: out int current)
                         ? current + 1
                         : 1;
                     typeCounters[type] = sequence;
@@ -118,10 +128,11 @@ namespace Matrix.CityCore.Application.Services.Topology
                         ResidentialBuilding.Create(
                             cityId: city.Id,
                             districtId: district.Id,
-                            name: new ResidentialBuildingName(CreateBuildingName(
-                                districtLabel: districtLabel,
-                                type: type,
-                                sequence: sequence)),
+                            name: new ResidentialBuildingName(
+                                CreateBuildingName(
+                                    districtLabel: districtLabel,
+                                    type: type,
+                                    sequence: sequence)),
                             type: type,
                             residentCapacity: ResidentCapacity.From(residentCapacity),
                             createdAtUtc: createdAtUtc));
@@ -155,9 +166,13 @@ namespace Matrix.CityCore.Application.Services.Topology
                 ? 1
                 : 0;
 
-            int randomBonus = random.NextInt(0, densityBonus + 1);
+            int randomBonus = random.NextInt(
+                minInclusive: 0,
+                maxExclusive: densityBonus + 1);
 
-            return Math.Min(10, baseCount + developmentBonus + randomBonus);
+            return Math.Min(
+                val1: 10,
+                val2: baseCount + developmentBonus + randomBonus);
         }
 
         private static int GetBuildingCount(
@@ -181,11 +196,19 @@ namespace Matrix.CityCore.Application.Services.Topology
                 _ => 1
             };
 
-            int centralBonus = isCentral ? 2 : 0;
-            int developmentBonus = profile.DevelopmentLevel == CityDevelopmentLevel.Advanced ? 1 : 0;
-            int randomBonus = random.NextInt(0, 2);
+            int centralBonus = isCentral
+                ? 2
+                : 0;
+            int developmentBonus = profile.DevelopmentLevel == CityDevelopmentLevel.Advanced
+                ? 1
+                : 0;
+            int randomBonus = random.NextInt(
+                minInclusive: 0,
+                maxExclusive: 2);
 
-            return Math.Min(9, baseCount + sizeBonus + centralBonus + developmentBonus + randomBonus);
+            return Math.Min(
+                val1: 9,
+                val2: baseCount + sizeBonus + centralBonus + developmentBonus + randomBonus);
         }
 
         private static ResidentialBuildingType GetBuildingType(
@@ -222,7 +245,9 @@ namespace Matrix.CityCore.Application.Services.Topology
 
             if (isCentral)
             {
-                houseWeight = Math.Max(2, houseWeight - 15);
+                houseWeight = Math.Max(
+                    val1: 2,
+                    val2: houseWeight - 15);
                 apartmentWeight += 5;
                 towerWeight += 10;
             }
@@ -230,18 +255,27 @@ namespace Matrix.CityCore.Application.Services.Topology
             if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling)
             {
                 apartmentWeight += 10;
-                towerWeight = Math.Max(2, towerWeight - 10);
+                towerWeight = Math.Max(
+                    val1: 2,
+                    val2: towerWeight - 10);
             }
-            else if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
-            {
-                towerWeight += 10;
-                houseWeight = Math.Max(2, houseWeight - 5);
-            }
+            else
+                if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
+                {
+                    towerWeight += 10;
+                    houseWeight = Math.Max(
+                        val1: 2,
+                        val2: houseWeight - 5);
+                }
 
             if (profile.SizeTier == CitySizeTier.Small && !isCentral)
-                towerWeight = Math.Max(1, towerWeight - 10);
+                towerWeight = Math.Max(
+                    val1: 1,
+                    val2: towerWeight - 10);
 
-            int roll = random.NextInt(1, houseWeight + apartmentWeight + towerWeight + dormitoryWeight + 1);
+            int roll = random.NextInt(
+                minInclusive: 1,
+                maxExclusive: houseWeight + apartmentWeight + towerWeight + dormitoryWeight + 1);
 
             if (roll <= houseWeight)
                 return ResidentialBuildingType.House;
@@ -302,13 +336,19 @@ namespace Matrix.CityCore.Application.Services.Topology
                 _ => 1.0m
             };
 
-            decimal centralFactor = isCentral ? 1.1m : 1.0m;
-            int rawCapacity = random.NextInt(minCapacity, maxCapacity + 1);
+            decimal centralFactor = isCentral
+                ? 1.1m
+                : 1.0m;
+            int rawCapacity = random.NextInt(
+                minInclusive: minCapacity,
+                maxExclusive: maxCapacity + 1);
             decimal adjustedCapacity = rawCapacity * densityFactor * developmentFactor * centralFactor;
 
             return Math.Max(
-                ResidentCapacity.Min,
-                (int)Math.Round(adjustedCapacity, MidpointRounding.AwayFromZero));
+                val1: ResidentCapacity.Min,
+                val2: (int)Math.Round(
+                    d: adjustedCapacity,
+                    mode: MidpointRounding.AwayFromZero));
         }
 
         private static string CreateBuildingName(
@@ -346,7 +386,9 @@ namespace Matrix.CityCore.Application.Services.Topology
                 city.Environment.UtcOffset.TotalMinutes);
 
             byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(compositeSeed));
-            return BitConverter.ToUInt64(bytes, 0);
+            return BitConverter.ToUInt64(
+                value: bytes,
+                startIndex: 0);
         }
 
         private static void Shuffle<T>(
@@ -355,7 +397,9 @@ namespace Matrix.CityCore.Application.Services.Topology
         {
             for (int i = items.Count - 1; i > 0; i--)
             {
-                int swapIndex = random.NextInt(0, i + 1);
+                int swapIndex = random.NextInt(
+                    minInclusive: 0,
+                    maxExclusive: i + 1);
                 T current = items[i];
                 items[i] = items[swapIndex];
                 items[swapIndex] = current;
@@ -373,7 +417,9 @@ namespace Matrix.CityCore.Application.Services.Topology
                     : seed;
             }
 
-            public int NextInt(int minInclusive, int maxExclusive)
+            public int NextInt(
+                int minInclusive,
+                int maxExclusive)
             {
                 if (maxExclusive <= minInclusive)
                     return minInclusive;

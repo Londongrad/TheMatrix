@@ -2,11 +2,7 @@ import {type FormEvent, useMemo, useState} from "react";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import type {CityView} from "@services/citycore/cities/contracts/citiesContracts";
-import {
-    formatCityStatusLabel,
-    getCityStatusTone,
-    isArchivedCity,
-} from "@services/citycore/cities/utils/presentation";
+import {formatCityStatusLabel, getCityStatusTone, isArchivedCity,} from "@services/citycore/cities/utils/presentation";
 
 type Props = {
     city: CityView | null;
@@ -34,15 +30,15 @@ function formatDateTime(value: string | null | undefined): string {
 }
 
 export function CityOverviewCard({
-    city,
-    isLoading,
-    isSubmitting,
-    mutationError,
-    onClearMutationError,
-    onRename,
-    onArchive,
-    onDelete,
-}: Props) {
+                                     city,
+                                     isLoading,
+                                     isSubmitting,
+                                     mutationError,
+                                     onClearMutationError,
+                                     onRename,
+                                     onArchive,
+                                     onDelete,
+                                 }: Props) {
     const [renameInput, setRenameInput] = useState("");
     const [renameError, setRenameError] = useState<string | null>(null);
 
@@ -116,7 +112,8 @@ export function CityOverviewCard({
 
                     <div className="city-overview-stat">
                         <span className="city-overview-stat__label">City ID</span>
-                        <strong className="city-overview-stat__value city-overview-stat__value--mono" title={city.cityId}>
+                        <strong className="city-overview-stat__value city-overview-stat__value--mono"
+                                title={city.cityId}>
                             {city.cityId}
                         </strong>
                     </div>

@@ -7,7 +7,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.GetSuggestedCityNames
         public GetSuggestedCityNamesQueryValidator()
         {
             RuleFor(x => x.Count)
-               .InclusiveBetween(1, 25);
+               .InclusiveBetween(
+                    from: 1,
+                    to: 25);
         }
     }
 }
