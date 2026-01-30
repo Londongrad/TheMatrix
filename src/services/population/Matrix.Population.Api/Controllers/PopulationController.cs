@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
+using Matrix.Population.Application.UseCases.Population.InitializeCityPopulation;
 using Matrix.Population.Application.UseCases.Population.InitializePopulation;
 using Matrix.Population.Contracts.Models;
 using MediatR;
@@ -16,18 +17,30 @@ namespace Matrix.Population.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpPost("init")]
-        public async Task<IActionResult> InitializePopulation(
-            [FromQuery] int peopleCount = 10_000,
-            [FromQuery] int? randomSeed = null,
+        public async Task<ActionResult<CityPopulationBootstrapSummaryDto>> InitializeCityPopulation(
+            [FromBody] InitializeCityPopulationRequest request,
             CancellationToken cancellationToken = default)
         {
-            await _sender.Send(
-                request: new InitializePopulationCommand(
-                    PeopleCount: peopleCount,
-                    RandomSeed: randomSeed),
+            ArgumentNullException.ThrowIfNull(request);
+
+            IReadOnlyCollection<ResidentialBuildingSeedItem> residentialBuildings =
+                (request.ResidentialBuildings ?? Array.Empty<ResidentialBuildingSeedDto>())
+                .Select(x => new ResidentialBuildingSeedItem(
+                    ResidentialBuildingId: x.ResidentialBuildingId,
+                    DistrictId: x.DistrictId,
+                    ResidentCapacity: x.ResidentCapacity))
+                .ToArray();
+
+            CityPopulationBootstrapSummaryDto result = await _sender.Send(
+                request: new InitializeCityPopulationCommand(
+                    CityId: request.CityId,
+                    CurrentDate: request.CurrentDate,
+                    PeopleCount: request.PeopleCount,
+                    RandomSeed: request.RandomSeed,
+                    ResidentialBuildings: residentialBuildings),
                 cancellationToken: cancellationToken);
 
-            return NoContent();
+            return Ok(result);
         }
 
         [HttpGet("citizens")]
