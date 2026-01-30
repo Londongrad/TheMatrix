@@ -1,0 +1,26 @@
+using Matrix.BuildingBlocks.Domain;
+
+namespace Matrix.Population.Domain.ValueObjects
+{
+    public readonly record struct CityId
+    {
+        private CityId(Guid value)
+        {
+            Value = GuardHelper.AgainstEmptyGuid(
+                id: value,
+                propertyName: nameof(CityId));
+        }
+
+        public Guid Value { get; }
+
+        public static CityId New()
+        {
+            return new CityId(Guid.NewGuid());
+        }
+
+        public static CityId From(Guid value)
+        {
+            return new CityId(value);
+        }
+    }
+}

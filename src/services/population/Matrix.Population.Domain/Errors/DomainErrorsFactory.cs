@@ -459,5 +459,49 @@ namespace Matrix.Population.Domain.Errors
         }
 
         #endregion [ Person - Age ]
+
+        #region [ Household ]
+
+        public static DomainException HouseholdSizeOutOfRange(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Household.Size.OutOfRange",
+                message: "Household size must be within the supported range.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException HousedHouseholdRequiresPlacement(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Household.Placement.HousedRequiresPlacement",
+                message: "A housed household must have city, district, and residential building placement.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException HomelessHouseholdCannotHaveResidentialBuilding(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Household.Placement.HomelessCannotHaveResidentialBuilding",
+                message: "A homeless household cannot have a residential building assigned.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException HouseholdTimestampMustBeUtc(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Household.Timestamp.MustBeUtc",
+                message: "Household timestamps must be specified in UTC.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException ResidentialCapacityOutOfRange(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Household.ResidentialCapacity.OutOfRange",
+                message: "Residential capacity must be greater than zero.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Household ]
     }
 }
