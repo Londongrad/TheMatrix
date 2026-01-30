@@ -1,4 +1,4 @@
-﻿using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence
@@ -6,6 +6,7 @@ namespace Matrix.Population.Infrastructure.Persistence
     public class PopulationDbContext(DbContextOptions<PopulationDbContext> options)
         : DbContext(options)
     {
+        public DbSet<Household> Households => Set<Household>();
         public DbSet<Person> Persons => Set<Person>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

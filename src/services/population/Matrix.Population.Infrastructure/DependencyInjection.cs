@@ -1,4 +1,5 @@
-﻿using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
@@ -22,6 +23,8 @@ namespace Matrix.Population.Infrastructure
 
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
+            services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddPermissionCheckingFromClaims();
 
             return services;

@@ -1,4 +1,4 @@
-﻿using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,11 +45,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
         {
             _dbContext.Persons.Update(person);
             return Task.CompletedTask;
-        }
-
-        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }
