@@ -14,6 +14,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
         string UrbanDensity,
         string DevelopmentLevel,
         DateTimeOffset CreatedAtUtc,
+        DateTimeOffset? PopulationBootstrapCompletedAtUtc,
+        DateTimeOffset? PopulationBootstrapFailedAtUtc,
+        string? PopulationBootstrapError,
         DateTimeOffset? ArchivedAtUtc,
         bool IsArchived)
     {
@@ -31,6 +34,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
                 UrbanDensity: city.GenerationProfile.UrbanDensity.ToString(),
                 DevelopmentLevel: city.GenerationProfile.DevelopmentLevel.ToString(),
                 CreatedAtUtc: city.CreatedAtUtc,
+                PopulationBootstrapCompletedAtUtc: city.PopulationBootstrapCompletedAtUtc,
+                PopulationBootstrapFailedAtUtc: city.PopulationBootstrapFailedAtUtc,
+                PopulationBootstrapError: city.PopulationBootstrapError,
                 ArchivedAtUtc: city.ArchivedAtUtc,
                 IsArchived: city.IsArchived);
         }
