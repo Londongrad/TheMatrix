@@ -146,6 +146,25 @@ namespace Matrix.CityCore.Domain.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException CityPopulationBootstrapErrorNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.PopulationBootstrap.Error.NullOrEmpty",
+                message: "Population bootstrap error cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityPopulationBootstrapErrorTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.PopulationBootstrap.Error.TooLong",
+                message: $"Population bootstrap error cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
         #endregion [ Cities ]
 
         #region [ Topology ]

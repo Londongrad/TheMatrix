@@ -11,6 +11,8 @@ namespace Matrix.CityCore.Domain.Cities
     /// </summary>
     public sealed class City : AggregateRoot<CityId>
     {
+        public const int PopulationBootstrapErrorMaxLength = 1024;
+
         private City(
             CityId id,
             CityName name,
@@ -19,10 +21,16 @@ namespace Matrix.CityCore.Domain.Cities
             CityGenerationProfile generationProfile,
             CityStatus status,
             DateTimeOffset createdAtUtc,
+            DateTimeOffset? populationBootstrapCompletedAtUtc,
+            DateTimeOffset? populationBootstrapFailedAtUtc,
+            string? populationBootstrapError,
             DateTimeOffset? archivedAtUtc)
             : base(id)
         {
             EnsureUtc(createdAtUtc);
+            EnsureUtc(populationBootstrapCompletedAtUtc);
+            EnsureUtc(populationBootstrapFailedAtUtc);
+            EnsureUtc(archivedAtUtc);
 
             Name = name;
             Environment = environment;
@@ -30,6 +38,9 @@ namespace Matrix.CityCore.Domain.Cities
             GenerationProfile = generationProfile;
             Status = status;
             CreatedAtUtc = createdAtUtc;
+            PopulationBootstrapCompletedAtUtc = populationBootstrapCompletedAtUtc;
+            PopulationBootstrapFailedAtUtc = populationBootstrapFailedAtUtc;
+            PopulationBootstrapError = populationBootstrapError;
             ArchivedAtUtc = archivedAtUtc;
         }
 
@@ -48,9 +59,15 @@ namespace Matrix.CityCore.Domain.Cities
         public CityGenerationProfile GenerationProfile { get; }
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
+        public DateTimeOffset? PopulationBootstrapCompletedAtUtc { get; private set; }
+        public DateTimeOffset? PopulationBootstrapFailedAtUtc { get; private set; }
+        public string? PopulationBootstrapError { get; private set; }
         public DateTimeOffset? ArchivedAtUtc { get; private set; }
 
+        public bool IsActive => Status == CityStatus.Active;
         public bool IsArchived => Status == CityStatus.Archived;
+        public bool IsProvisioning => Status == CityStatus.Provisioning;
+        public bool HasPopulationBootstrapFailure => Status == CityStatus.ProvisioningFailed;
 
         public static City Create(
             CityName name,
@@ -80,8 +97,11 @@ namespace Matrix.CityCore.Domain.Cities
                 environment: environment,
                 generationSeed: generationSeed,
                 generationProfile: generationProfile,
-                status: CityStatus.Active,
+                status: CityStatus.Provisioning,
                 createdAtUtc: createdAtUtc,
+                populationBootstrapCompletedAtUtc: null,
+                populationBootstrapFailedAtUtc: null,
+                populationBootstrapError: null,
                 archivedAtUtc: null);
 
             city.AddDomainEvent(
@@ -141,6 +161,57 @@ namespace Matrix.CityCore.Domain.Cities
                     To: newEnvironment));
         }
 
+        public void CompletePopulationBootstrap(DateTimeOffset completedAtUtc)
+        {
+            EnsureUtc(completedAtUtc);
+
+            GuardHelper.Ensure(
+                condition: !IsArchived,
+                value: Status,
+                errorFactory: DomainErrorsFactory.CityIsArchived);
+
+            if (IsActive)
+                return;
+
+            Status = CityStatus.Active;
+            PopulationBootstrapCompletedAtUtc = completedAtUtc;
+            PopulationBootstrapFailedAtUtc = null;
+            PopulationBootstrapError = null;
+
+            AddDomainEvent(
+                new CityPopulationBootstrapCompletedDomainEvent(
+                    CityId: Id,
+                    CompletedAtUtc: completedAtUtc));
+        }
+
+        public void FailPopulationBootstrap(
+            string error,
+            DateTimeOffset failedAtUtc)
+        {
+            EnsureUtc(failedAtUtc);
+
+            GuardHelper.Ensure(
+                condition: !IsArchived,
+                value: Status,
+                errorFactory: DomainErrorsFactory.CityIsArchived);
+
+            if (IsActive)
+                return;
+
+            string normalizedError = NormalizePopulationBootstrapError(error);
+
+            Status = CityStatus.ProvisioningFailed;
+            PopulationBootstrapCompletedAtUtc = null;
+            PopulationBootstrapFailedAtUtc = failedAtUtc;
+            PopulationBootstrapError = normalizedError;
+
+            AddDomainEvent(
+                new CityPopulationBootstrapFailedDomainEvent(
+                    CityId: Id,
+                    Error: normalizedError,
+                    FailedAtUtc: failedAtUtc));
+        }
+
         public void Archive(DateTimeOffset archivedAtUtc)
         {
             EnsureUtc(archivedAtUtc);
@@ -157,12 +228,35 @@ namespace Matrix.CityCore.Domain.Cities
                     ArchivedAtUtc: archivedAtUtc));
         }
 
+        private static string NormalizePopulationBootstrapError(string error)
+        {
+            string normalizedError = error?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(normalizedError))
+                throw DomainErrorsFactory.CityPopulationBootstrapErrorNullOrEmpty(
+                    propertyName: nameof(PopulationBootstrapError));
+
+            if (normalizedError.Length > PopulationBootstrapErrorMaxLength)
+                throw DomainErrorsFactory.CityPopulationBootstrapErrorTooLong(
+                    value: normalizedError,
+                    max: PopulationBootstrapErrorMaxLength,
+                    propertyName: nameof(PopulationBootstrapError));
+
+            return normalizedError;
+        }
+
         private static void EnsureUtc(DateTimeOffset value)
         {
             GuardHelper.Ensure(
                 condition: value.Offset == TimeSpan.Zero,
                 value: value,
                 errorFactory: DomainErrorsFactory.CityTimestampMustBeUtc);
+        }
+
+        private static void EnsureUtc(DateTimeOffset? value)
+        {
+            if (value.HasValue)
+                EnsureUtc(value.Value);
         }
     }
 }
