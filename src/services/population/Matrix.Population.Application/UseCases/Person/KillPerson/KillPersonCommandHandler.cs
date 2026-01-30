@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
@@ -9,7 +10,8 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
 {
     public class KillPersonCommandHandler(
         IPersonReadRepository personReadRepository,
-        IPersonWriteRepository personWriteRepository)
+        IPersonWriteRepository personWriteRepository,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<KillPersonCommand, PersonDto>
     {
         public async Task<PersonDto> Handle(
@@ -24,13 +26,12 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                     cancellationToken: cancellationToken) ??
                 throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
-            // TODO: Получать дату извне
             person.Die(DateOnly.FromDateTime(DateTime.UtcNow));
 
             await personWriteRepository.UpdateAsync(
                 person: person,
                 cancellationToken: cancellationToken);
-            await personWriteRepository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return person.ToDto();
         }

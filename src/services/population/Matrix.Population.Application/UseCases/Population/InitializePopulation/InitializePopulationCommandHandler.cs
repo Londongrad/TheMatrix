@@ -1,4 +1,6 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Services;
 using MediatR;
 
@@ -6,7 +8,9 @@ namespace Matrix.Population.Application.UseCases.Population.InitializePopulation
 {
     public sealed class InitializePopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
-        PopulationGenerator generator)
+        IHouseholdWriteRepository householdWriteRepository,
+        CityPopulationBootstrapGenerator generator,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<InitializePopulationCommand>
     {
         public async Task Handle(
@@ -15,19 +19,29 @@ namespace Matrix.Population.Application.UseCases.Population.InitializePopulation
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            await personWriteRepository.DeleteAllAsync(cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async ct =>
+                {
+                    await personWriteRepository.DeleteAllAsync(ct);
+                    await householdWriteRepository.DeleteAllAsync(ct);
 
-            // TODO: Получать дату извне
-            IReadOnlyCollection<Domain.Entities.Person> persons = generator.Generate(
-                peopleCount: request.PeopleCount,
-                currentDate: DateOnly.FromDateTime(DateTime.UtcNow),
-                randomSeed: request.RandomSeed);
+                    PopulationBootstrapResult result = generator.GenerateStandalone(
+                        peopleCount: request.PeopleCount,
+                        currentDate: DateOnly.FromDateTime(DateTime.UtcNow),
+                        createdAtUtc: DateTimeOffset.UtcNow,
+                        randomSeed: request.RandomSeed);
 
-            await personWriteRepository.AddRangeAsync(
-                persons: persons,
+                    await householdWriteRepository.AddRangeAsync(
+                        households: result.Households,
+                        cancellationToken: ct);
+
+                    await personWriteRepository.AddRangeAsync(
+                        persons: result.Persons,
+                        cancellationToken: ct);
+
+                    await unitOfWork.SaveChangesAsync(ct);
+                },
                 cancellationToken: cancellationToken);
-
-            await personWriteRepository.SaveChangesAsync(cancellationToken);
         }
     }
 }

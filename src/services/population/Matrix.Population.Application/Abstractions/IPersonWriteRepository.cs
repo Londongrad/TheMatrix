@@ -21,7 +21,5 @@ namespace Matrix.Population.Application.Abstractions
         Task UpdateAsync(
             Person person,
             CancellationToken cancellationToken = default);
-
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -14,13 +14,12 @@ namespace Matrix.Population.Application
         {
             Assembly assembly = typeof(DependencyInjection).Assembly;
 
-            services.AddSingleton<PopulationGenerator>();
+            services.AddSingleton<CityPopulationBootstrapGenerator>();
 
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
 
             services.AddScoped<IValidationExceptionFactory, PopulationValidationErrorFactory>();
 
-            // Behaviors (используем общие из BuildingBlocks)
             services.AddTransient(
                 serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(LoggingBehavior<,>));

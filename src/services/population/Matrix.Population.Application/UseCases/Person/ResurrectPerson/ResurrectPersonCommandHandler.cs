@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
@@ -9,7 +10,8 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
 {
     public sealed class ResurrectPersonCommandHandler(
         IPersonReadRepository personReadRepository,
-        IPersonWriteRepository personWriteRepository)
+        IPersonWriteRepository personWriteRepository,
+        IUnitOfWork unitOfWork)
         : IRequestHandler<ResurrectPersonCommand, PersonDto>
     {
         public async Task<PersonDto> Handle(
@@ -29,7 +31,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
             await personWriteRepository.UpdateAsync(
                 person: person,
                 cancellationToken: cancellationToken);
-            await personWriteRepository.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return person.ToDto();
         }
