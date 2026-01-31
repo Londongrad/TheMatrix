@@ -99,12 +99,15 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("PopulationBootstrapCompletedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("PopulationBootstrapError")
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
+                    b.Property<string>("PopulationBootstrapFailureCode")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTimeOffset?>("PopulationBootstrapFailedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PopulationBootstrapOperationId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

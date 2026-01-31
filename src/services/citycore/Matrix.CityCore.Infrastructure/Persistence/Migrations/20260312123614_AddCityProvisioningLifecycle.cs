@@ -18,10 +18,10 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "PopulationBootstrapError",
+                name: "PopulationBootstrapFailureCode",
                 table: "Cities",
-                type: "character varying(1024)",
-                maxLength: 1024,
+                type: "character varying(128)",
+                maxLength: 128,
                 nullable: true);
 
             migrationBuilder.AddColumn<DateTimeOffset>(
@@ -29,6 +29,33 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Migrations
                 table: "Cities",
                 type: "timestamp with time zone",
                 nullable: true);
+
+            migrationBuilder.AddColumn<Guid>(
+                name: "PopulationBootstrapOperationId",
+                table: "Cities",
+                type: "uuid",
+                nullable: true);
+
+            migrationBuilder.Sql(
+                """
+                UPDATE "Cities"
+                SET
+                    "PopulationBootstrapOperationId" = "Id",
+                    "PopulationBootstrapCompletedAtUtc" = CASE
+                        WHEN "Status" IN (1, 2) THEN "CreatedAtUtc"
+                        ELSE "PopulationBootstrapCompletedAtUtc"
+                    END
+                WHERE "PopulationBootstrapOperationId" IS NULL;
+                """);
+
+            migrationBuilder.AlterColumn<Guid>(
+                name: "PopulationBootstrapOperationId",
+                table: "Cities",
+                type: "uuid",
+                nullable: false,
+                oldClrType: typeof(Guid),
+                oldType: "uuid",
+                oldNullable: true);
         }
 
         /// <inheritdoc />
@@ -39,11 +66,15 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Migrations
                 table: "Cities");
 
             migrationBuilder.DropColumn(
-                name: "PopulationBootstrapError",
+                name: "PopulationBootstrapFailureCode",
                 table: "Cities");
 
             migrationBuilder.DropColumn(
                 name: "PopulationBootstrapFailedAtUtc",
+                table: "Cities");
+
+            migrationBuilder.DropColumn(
+                name: "PopulationBootstrapOperationId",
                 table: "Cities");
         }
     }
