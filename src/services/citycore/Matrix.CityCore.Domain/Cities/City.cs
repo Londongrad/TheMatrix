@@ -247,6 +247,42 @@ namespace Matrix.CityCore.Domain.Cities
             return true;
         }
 
+        public bool TryRestartPopulationBootstrap(
+            DateTimeOffset restartedAtUtc,
+            out Guid operationId)
+        {
+            EnsureUtc(restartedAtUtc);
+
+            GuardHelper.Ensure(
+                condition: !IsArchived,
+                value: Status,
+                errorFactory: DomainErrorsFactory.CityIsArchived);
+
+            if (!HasPopulationBootstrapFailure)
+            {
+                operationId = PopulationBootstrapOperationId;
+                return false;
+            }
+
+            Guid previousOperationId = PopulationBootstrapOperationId;
+            operationId = Guid.NewGuid();
+
+            PopulationBootstrapOperationId = operationId;
+            Status = CityStatus.Provisioning;
+            PopulationBootstrapCompletedAtUtc = null;
+            PopulationBootstrapFailedAtUtc = null;
+            PopulationBootstrapFailureCode = null;
+
+            AddDomainEvent(
+                new CityPopulationBootstrapRestartedDomainEvent(
+                    CityId: Id,
+                    PreviousOperationId: previousOperationId,
+                    OperationId: operationId,
+                    RestartedAtUtc: restartedAtUtc));
+
+            return true;
+        }
+
         public void Archive(DateTimeOffset archivedAtUtc)
         {
             EnsureUtc(archivedAtUtc);
