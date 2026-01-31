@@ -18,6 +18,10 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
             Guid cityId,
             CancellationToken cancellationToken = default);
 
+        Task<CityProvisioningStatusView> GetProvisioningStatusAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<ResidentialBuildingView>> GetResidentialBuildingsAsync(
             Guid cityId,
             Guid? districtId = null,
@@ -25,6 +29,7 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
 
         Task CompletePopulationBootstrapAsync(
             Guid cityId,
+            CompleteCityPopulationBootstrapRequest request,
             CancellationToken cancellationToken = default);
 
         Task FailPopulationBootstrapAsync(

@@ -1,15 +1,19 @@
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Matrix.ApiGateway.Contracts.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
+using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.BuildingBlocks.Api.Errors;
+using Matrix.CityCore.Contracts.Cities;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
 using Matrix.CityCore.Contracts.Simulation.Views;
 using Matrix.CityCore.Contracts.Topology.Views;
 using Matrix.Population.Contracts.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Matrix.ApiGateway.Services.CityCore.Cities
 {
@@ -19,7 +23,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
         IPopulationApiClient populationApiClient,
         ILogger<CityProvisioningService> logger) : ICityProvisioningService
     {
-        private const int MaxBootstrapErrorLength = 1024;
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
         public async Task<CityProvisioningView> CreateCityAsync(
             CreateCityRequestDto request,
@@ -43,6 +47,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
 
             CityPopulationBootstrapView bootstrap = await BootstrapPopulationAsync(
                 cityId: created.CityId,
+                operationId: created.PopulationBootstrapOperationId,
                 cancellationToken: cancellationToken);
 
             await ReportBootstrapOutcomeAsync(
@@ -57,6 +62,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
 
         private async Task<CityPopulationBootstrapView> BootstrapPopulationAsync(
             Guid cityId,
+            Guid operationId,
             CancellationToken cancellationToken)
         {
             int? plannedPeopleCount = null;
@@ -108,15 +114,31 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                         cancellationToken: cancellationToken);
 
                 return new CityPopulationBootstrapView(
+                    OperationId: operationId,
                     Status: PopulationBootstrapStatuses.Completed,
                     PlannedPeopleCount: plannedPeopleCount,
                     ResidentialCapacity: residentialCapacity,
                     Summary: summary,
-                    Error: null);
+                    FailureCode: null);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Automatic population bootstrap timed out for cityId={CityId}.",
+                    cityId);
+
+                return new CityPopulationBootstrapView(
+                    OperationId: operationId,
+                    Status: PopulationBootstrapStatuses.Failed,
+                    PlannedPeopleCount: plannedPeopleCount,
+                    ResidentialCapacity: residentialCapacity,
+                    Summary: null,
+                    FailureCode: PopulationBootstrapFailureCodes.PopulationTimeout);
             }
             catch (Exception ex)
             {
@@ -126,11 +148,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                     cityId);
 
                 return new CityPopulationBootstrapView(
+                    OperationId: operationId,
                     Status: PopulationBootstrapStatuses.Failed,
                     PlannedPeopleCount: plannedPeopleCount,
                     ResidentialCapacity: residentialCapacity,
                     Summary: null,
-                    Error: NormalizeBootstrapError(ex.Message));
+                    FailureCode: DetermineFailureCode(ex));
             }
         }
 
@@ -144,6 +167,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                 case PopulationBootstrapStatuses.Completed:
                     await citiesApiClient.CompletePopulationBootstrapAsync(
                         cityId: cityId,
+                        request: new CompleteCityPopulationBootstrapRequest(OperationId: bootstrap.OperationId),
                         cancellationToken: cancellationToken);
                     break;
 
@@ -151,7 +175,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                     await citiesApiClient.FailPopulationBootstrapAsync(
                         cityId: cityId,
                         request: new FailCityPopulationBootstrapRequest(
-                            Error: NormalizeBootstrapError(bootstrap.Error)),
+                            OperationId: bootstrap.OperationId,
+                            FailureCode: bootstrap.FailureCode ??
+                                         PopulationBootstrapFailureCodes.PopulationUnexpectedError),
                         cancellationToken: cancellationToken);
                     break;
 
@@ -170,10 +196,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                 return 0;
 
             // Keep the bootstrap population comfortably below hard capacity.
-            decimal occupancyRate = GetBaseOccupancy(city.UrbanDensity)
-                + GetDevelopmentAdjustment(city.DevelopmentLevel)
-                + GetSizeAdjustment(city.SizeTier)
-                + GetSeedJitter(city.GenerationSeed);
+            decimal occupancyRate = GetBaseOccupancy(city.UrbanDensity) +
+                                    GetDevelopmentAdjustment(city.DevelopmentLevel) +
+                                    GetSizeAdjustment(city.SizeTier) +
+                                    GetSeedJitter(city.GenerationSeed);
 
             occupancyRate = Math.Clamp(
                 value: occupancyRate,
@@ -228,11 +254,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
 
         private static decimal GetSeedJitter(string generationSeed)
         {
-            byte[] hash = SHA256.HashData(
-                source: Encoding.UTF8.GetBytes($"{generationSeed}|population-bootstrap"));
+            byte[] hash = SHA256.HashData(source: Encoding.UTF8.GetBytes($"{generationSeed}|population-bootstrap"));
             int sample = BitConverter.ToInt32(
-                value: hash,
-                startIndex: 0) & int.MaxValue;
+                             value: hash,
+                             startIndex: 0) &
+                         int.MaxValue;
 
             decimal normalized = sample / (decimal)int.MaxValue;
             return (normalized - 0.5m) * 0.08m;
@@ -240,23 +266,68 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
 
         private static int BuildPopulationRandomSeed(string generationSeed)
         {
-            byte[] hash = SHA256.HashData(
-                source: Encoding.UTF8.GetBytes($"{generationSeed}|population-seed"));
+            byte[] hash = SHA256.HashData(source: Encoding.UTF8.GetBytes($"{generationSeed}|population-seed"));
 
             return BitConverter.ToInt32(
                 value: hash,
                 startIndex: 0);
         }
 
-        private static string NormalizeBootstrapError(string? error)
+        private static string DetermineFailureCode(Exception exception)
         {
-            string normalizedError = string.IsNullOrWhiteSpace(error)
-                ? "Population bootstrap failed with an unspecified error."
-                : error.Trim();
+            return exception switch
+            {
+                DownstreamServiceException downstreamException when
+                    TryReadDownstreamErrorCode(
+                        exception: downstreamException,
+                        errorCode: out string? errorCode) &&
+                    errorCode is "Gateway.InvalidDownstreamResponse" or "Gateway.InvalidDownstreamJson" =>
+                    PopulationBootstrapFailureCodes.PopulationResponseInvalid,
+                DownstreamServiceException downstreamException when
+                    downstreamException.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity =>
+                    PopulationBootstrapFailureCodes.PopulationValidationFailed,
+                DownstreamServiceException downstreamException when downstreamException.StatusCode ==
+                                                                    HttpStatusCode.Conflict =>
+                    PopulationBootstrapFailureCodes.PopulationConflict,
+                DownstreamServiceException downstreamException when downstreamException.StatusCode ==
+                                                                    HttpStatusCode.NotFound =>
+                    PopulationBootstrapFailureCodes.PopulationDependencyNotFound,
+                DownstreamServiceException downstreamException when
+                    downstreamException.StatusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout =>
+                    PopulationBootstrapFailureCodes.PopulationTimeout,
+                DownstreamServiceException downstreamException when (int)downstreamException.StatusCode >= 500 =>
+                    PopulationBootstrapFailureCodes.PopulationServiceUnavailable,
+                HttpRequestException => PopulationBootstrapFailureCodes.PopulationTransportError,
+                OperationCanceledException => PopulationBootstrapFailureCodes.PopulationTimeout,
+                _ => PopulationBootstrapFailureCodes.PopulationUnexpectedError
+            };
+        }
 
-            return normalizedError.Length <= MaxBootstrapErrorLength
-                ? normalizedError
-                : normalizedError[..MaxBootstrapErrorLength];
+        private static bool TryReadDownstreamErrorCode(
+            DownstreamServiceException exception,
+            out string? errorCode)
+        {
+            errorCode = null;
+
+            if (string.IsNullOrWhiteSpace(exception.Body))
+                return false;
+
+            try
+            {
+                ErrorResponse? error = JsonSerializer.Deserialize<ErrorResponse>(
+                    json: exception.Body,
+                    options: JsonOptions);
+
+                if (error is null || string.IsNullOrWhiteSpace(error.Code))
+                    return false;
+
+                errorCode = error.Code;
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
         }
 
         private static class PopulationBootstrapStatuses

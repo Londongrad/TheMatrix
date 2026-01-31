@@ -60,6 +60,22 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
                 requestUrl: url);
         }
 
+        public async Task<CityProvisioningStatusView> GetProvisioningStatusAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/provisioning";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityProvisioningStatusView>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<IReadOnlyList<ResidentialBuildingView>> GetResidentialBuildingsAsync(
             Guid cityId,
             Guid? districtId = null,
@@ -81,13 +97,14 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
 
         public async Task CompletePopulationBootstrapAsync(
             Guid cityId,
+            CompleteCityPopulationBootstrapRequest request,
             CancellationToken cancellationToken = default)
         {
             string url = $"{CitiesEndpoint}/{cityId}/population-bootstrap/complete";
 
-            using HttpResponseMessage response = await _client.PostAsync(
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 requestUri: url,
-                content: null,
+                value: request,
                 cancellationToken: cancellationToken);
 
             await response.EnsureSuccessOrThrowDownstreamAsync(

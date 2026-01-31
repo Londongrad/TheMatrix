@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.Contracts.CityCore.Cities;
+using Matrix.ApiGateway.Contracts.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
 using Matrix.ApiGateway.Services.CityCore.Cities;
 using Matrix.CityCore.Contracts.Cities.Requests;
@@ -54,6 +54,18 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
                 cancellationToken: cancellationToken);
 
             return Ok(city);
+        }
+
+        [HttpGet("{cityId:guid}/provisioning")]
+        public async Task<ActionResult<CityProvisioningStatusView>> GetProvisioning(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityProvisioningStatusView provisioning = await _citiesClient.GetProvisioningStatusAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(provisioning);
         }
 
         [HttpPut("{cityId:guid}/name")]
