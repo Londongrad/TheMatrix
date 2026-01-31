@@ -34,7 +34,7 @@ namespace Matrix.CityCore.Api.Controllers
             [FromBody] CreateCityRequest request,
             CancellationToken cancellationToken)
         {
-            Guid cityId = await mediator.Send(
+            CityCreatedDto created = await mediator.Send(
                 request: new CreateCityCommand(
                     Name: request.Name,
                     ClimateZone: request.ClimateZone,
@@ -49,8 +49,10 @@ namespace Matrix.CityCore.Api.Controllers
                 cancellationToken: cancellationToken);
 
             return Results.Created(
-                uri: $"/api/cities/{cityId}",
-                value: new CityCreatedView(CityId: cityId));
+                uri: $"/api/cities/{created.CityId}",
+                value: new CityCreatedView(
+                    CityId: created.CityId,
+                    PopulationBootstrapOperationId: created.PopulationBootstrapOperationId));
         }
 
         [HttpGet("generation/catalog")]
@@ -116,6 +118,21 @@ namespace Matrix.CityCore.Api.Controllers
             return Results.Ok(MapToView(city));
         }
 
+        [HttpGet("{cityId:guid}/provisioning")]
+        public async Task<IResult> GetProvisioning(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityDto? city = await mediator.Send(
+                request: new GetCityQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            if (city is null)
+                return Results.NotFound();
+
+            return Results.Ok(MapToProvisioningStatusView(city));
+        }
+
         [HttpGet("{cityId:guid}/districts")]
         public async Task<IResult> GetDistricts(
             [FromRoute] Guid cityId,
@@ -169,10 +186,13 @@ namespace Matrix.CityCore.Api.Controllers
         [HttpPost("{cityId:guid}/population-bootstrap/complete")]
         public async Task<IResult> CompletePopulationBootstrap(
             [FromRoute] Guid cityId,
+            [FromBody] CompleteCityPopulationBootstrapRequest request,
             CancellationToken cancellationToken)
         {
             bool updated = await mediator.Send(
-                request: new CompleteCityPopulationBootstrapCommand(CityId: cityId),
+                request: new CompleteCityPopulationBootstrapCommand(
+                    CityId: cityId,
+                    OperationId: request.OperationId),
                 cancellationToken: cancellationToken);
 
             return updated
@@ -189,7 +209,8 @@ namespace Matrix.CityCore.Api.Controllers
             bool updated = await mediator.Send(
                 request: new FailCityPopulationBootstrapCommand(
                     CityId: cityId,
-                    Error: request.Error),
+                    OperationId: request.OperationId,
+                    FailureCode: request.FailureCode),
                 cancellationToken: cancellationToken);
 
             return updated
@@ -284,10 +305,18 @@ namespace Matrix.CityCore.Api.Controllers
                 UrbanDensity: dto.UrbanDensity,
                 DevelopmentLevel: dto.DevelopmentLevel,
                 CreatedAtUtc: dto.CreatedAtUtc,
-                PopulationBootstrapCompletedAtUtc: dto.PopulationBootstrapCompletedAtUtc,
-                PopulationBootstrapFailedAtUtc: dto.PopulationBootstrapFailedAtUtc,
-                PopulationBootstrapError: dto.PopulationBootstrapError,
                 ArchivedAtUtc: dto.ArchivedAtUtc);
+        }
+
+        private static CityProvisioningStatusView MapToProvisioningStatusView(CityDto dto)
+        {
+            return new CityProvisioningStatusView(
+                CityId: dto.CityId,
+                Status: dto.Status,
+                PopulationBootstrapOperationId: dto.PopulationBootstrapOperationId,
+                PopulationBootstrapFailureCode: dto.PopulationBootstrapFailureCode,
+                PopulationBootstrapCompletedAtUtc: dto.PopulationBootstrapCompletedAtUtc,
+                PopulationBootstrapFailedAtUtc: dto.PopulationBootstrapFailedAtUtc);
         }
 
         private static CityListItemView MapToListItemView(CityDto dto)
