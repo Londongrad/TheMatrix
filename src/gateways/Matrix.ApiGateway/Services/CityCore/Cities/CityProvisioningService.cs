@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using Matrix.ApiGateway.Contracts.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
@@ -19,6 +19,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
         IPopulationApiClient populationApiClient,
         ILogger<CityProvisioningService> logger) : ICityProvisioningService
     {
+        private const int MaxBootstrapErrorLength = 1024;
+
         public async Task<CityProvisioningView> CreateCityAsync(
             CreateCityRequestDto request,
             CancellationToken cancellationToken = default)
@@ -39,8 +41,13 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                     SpeedMultiplier: request.SpeedMultiplier),
                 cancellationToken: cancellationToken);
 
-            CityPopulationBootstrapView bootstrap = await TryBootstrapPopulationAsync(
+            CityPopulationBootstrapView bootstrap = await BootstrapPopulationAsync(
                 cityId: created.CityId,
+                cancellationToken: cancellationToken);
+
+            await ReportBootstrapOutcomeAsync(
+                cityId: created.CityId,
+                bootstrap: bootstrap,
                 cancellationToken: cancellationToken);
 
             return new CityProvisioningView(
@@ -48,7 +55,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                 PopulationBootstrap: bootstrap);
         }
 
-        private async Task<CityPopulationBootstrapView> TryBootstrapPopulationAsync(
+        private async Task<CityPopulationBootstrapView> BootstrapPopulationAsync(
             Guid cityId,
             CancellationToken cancellationToken)
         {
@@ -123,7 +130,34 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                     PlannedPeopleCount: plannedPeopleCount,
                     ResidentialCapacity: residentialCapacity,
                     Summary: null,
-                    Error: ex.Message);
+                    Error: NormalizeBootstrapError(ex.Message));
+            }
+        }
+
+        private async Task ReportBootstrapOutcomeAsync(
+            Guid cityId,
+            CityPopulationBootstrapView bootstrap,
+            CancellationToken cancellationToken)
+        {
+            switch (bootstrap.Status)
+            {
+                case PopulationBootstrapStatuses.Completed:
+                    await citiesApiClient.CompletePopulationBootstrapAsync(
+                        cityId: cityId,
+                        cancellationToken: cancellationToken);
+                    break;
+
+                case PopulationBootstrapStatuses.Failed:
+                    await citiesApiClient.FailPopulationBootstrapAsync(
+                        cityId: cityId,
+                        request: new FailCityPopulationBootstrapRequest(
+                            Error: NormalizeBootstrapError(bootstrap.Error)),
+                        cancellationToken: cancellationToken);
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        $"Unsupported population bootstrap status '{bootstrap.Status}'.");
             }
         }
 
@@ -212,6 +246,17 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
             return BitConverter.ToInt32(
                 value: hash,
                 startIndex: 0);
+        }
+
+        private static string NormalizeBootstrapError(string? error)
+        {
+            string normalizedError = string.IsNullOrWhiteSpace(error)
+                ? "Population bootstrap failed with an unspecified error."
+                : error.Trim();
+
+            return normalizedError.Length <= MaxBootstrapErrorLength
+                ? normalizedError
+                : normalizedError[..MaxBootstrapErrorLength];
         }
 
         private static class PopulationBootstrapStatuses

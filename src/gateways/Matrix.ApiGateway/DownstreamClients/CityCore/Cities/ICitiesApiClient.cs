@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Contracts.Cities.Requests;
+using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
 using Matrix.CityCore.Contracts.Topology.Views;
 
@@ -21,6 +21,15 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
         Task<IReadOnlyList<ResidentialBuildingView>> GetResidentialBuildingsAsync(
             Guid cityId,
             Guid? districtId = null,
+            CancellationToken cancellationToken = default);
+
+        Task CompletePopulationBootstrapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
+        Task FailPopulationBootstrapAsync(
+            Guid cityId,
+            FailCityPopulationBootstrapRequest request,
             CancellationToken cancellationToken = default);
 
         Task RenameCityAsync(

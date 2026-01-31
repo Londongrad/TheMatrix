@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.DownstreamClients.Common;
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
@@ -77,6 +77,39 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
                 serviceName: DownstreamServiceNames.CityCore,
                 cancellationToken: cancellationToken,
                 requestUrl: url);
+        }
+
+        public async Task CompletePopulationBootstrapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/population-bootstrap/complete";
+
+            using HttpResponseMessage response = await _client.PostAsync(
+                requestUri: url,
+                content: null,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task FailPopulationBootstrapAsync(
+            Guid cityId,
+            FailCityPopulationBootstrapRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/population-bootstrap/fail";
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
         }
 
         public async Task RenameCityAsync(
