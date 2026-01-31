@@ -12,5 +12,8 @@ namespace Matrix.CityCore.Contracts.Cities.Views
         string UrbanDensity,
         string DevelopmentLevel,
         DateTimeOffset CreatedAtUtc,
+        DateTimeOffset? PopulationBootstrapCompletedAtUtc,
+        DateTimeOffset? PopulationBootstrapFailedAtUtc,
+        string? PopulationBootstrapError,
         DateTimeOffset? ArchivedAtUtc);
 }

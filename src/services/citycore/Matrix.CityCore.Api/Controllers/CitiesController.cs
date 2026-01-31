@@ -1,7 +1,9 @@
 using Matrix.CityCore.Application.UseCases.Cities.ArchiveCity;
 using Matrix.CityCore.Application.UseCases.Cities.Common;
+using Matrix.CityCore.Application.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.CityCore.Application.UseCases.Cities.CreateCity;
 using Matrix.CityCore.Application.UseCases.Cities.DeleteCity;
+using Matrix.CityCore.Application.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.CityCore.Application.UseCases.Cities.GetCity;
 using Matrix.CityCore.Application.UseCases.Cities.GetGenerationCatalog;
 using Matrix.CityCore.Application.UseCases.Cities.GetSuggestedCityNames;
@@ -164,6 +166,37 @@ namespace Matrix.CityCore.Api.Controllers
             return Results.Ok(MapToWeatherView(weather));
         }
 
+        [HttpPost("{cityId:guid}/population-bootstrap/complete")]
+        public async Task<IResult> CompletePopulationBootstrap(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            bool updated = await mediator.Send(
+                request: new CompleteCityPopulationBootstrapCommand(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return updated
+                ? Results.NoContent()
+                : Results.NotFound();
+        }
+
+        [HttpPost("{cityId:guid}/population-bootstrap/fail")]
+        public async Task<IResult> FailPopulationBootstrap(
+            [FromRoute] Guid cityId,
+            [FromBody] FailCityPopulationBootstrapRequest request,
+            CancellationToken cancellationToken)
+        {
+            bool updated = await mediator.Send(
+                request: new FailCityPopulationBootstrapCommand(
+                    CityId: cityId,
+                    Error: request.Error),
+                cancellationToken: cancellationToken);
+
+            return updated
+                ? Results.NoContent()
+                : Results.NotFound();
+        }
+
         [HttpPut("{cityId:guid}/name")]
         public async Task<IResult> Rename(
             [FromRoute] Guid cityId,
@@ -251,6 +284,9 @@ namespace Matrix.CityCore.Api.Controllers
                 UrbanDensity: dto.UrbanDensity,
                 DevelopmentLevel: dto.DevelopmentLevel,
                 CreatedAtUtc: dto.CreatedAtUtc,
+                PopulationBootstrapCompletedAtUtc: dto.PopulationBootstrapCompletedAtUtc,
+                PopulationBootstrapFailedAtUtc: dto.PopulationBootstrapFailedAtUtc,
+                PopulationBootstrapError: dto.PopulationBootstrapError,
                 ArchivedAtUtc: dto.ArchivedAtUtc);
         }
 
