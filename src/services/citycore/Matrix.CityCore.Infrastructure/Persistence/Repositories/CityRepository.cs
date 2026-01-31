@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Cities;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +23,7 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
             IQueryable<City> query = dbContext.Cities.AsNoTracking();
 
             if (!includeArchived)
-                query = query.Where(x => x.Status == CityStatus.Active);
+                query = query.Where(x => x.Status != CityStatus.Archived);
 
             return await query
                .OrderBy(x => x.CreatedAtUtc)

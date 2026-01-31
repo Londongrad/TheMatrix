@@ -38,11 +38,17 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                     if (city is null)
                         return false;
 
-                    if (city.IsArchived && !allowArchivedCity)
+                    if (!city.IsActive && !allowArchivedCity)
+                    {
                         throw new MatrixApplicationException(
-                            code: "CityCore.Simulation.ArchivedCity",
-                            message: "Archived cities are read-only. Simulation controls are unavailable.",
+                            code: city.IsArchived
+                                ? "CityCore.Simulation.ArchivedCity"
+                                : "CityCore.Simulation.CityNotActive",
+                            message: city.IsArchived
+                                ? "Archived cities are read-only. Simulation controls are unavailable."
+                                : "Only active cities can be controlled. Provisioning cities stay paused until population bootstrap finishes.",
                             errorType: ApplicationErrorType.Conflict);
+                    }
 
                     SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
                         predicate: x => x.Id == cityId,

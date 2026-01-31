@@ -87,6 +87,16 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
             builder.Property(x => x.CreatedAtUtc)
                .IsRequired();
 
+            builder.Property(x => x.PopulationBootstrapCompletedAtUtc)
+               .IsRequired(false);
+
+            builder.Property(x => x.PopulationBootstrapFailedAtUtc)
+               .IsRequired(false);
+
+            builder.Property(x => x.PopulationBootstrapError)
+               .HasMaxLength(City.PopulationBootstrapErrorMaxLength)
+               .IsRequired(false);
+
             builder.Property(x => x.ArchivedAtUtc)
                .IsRequired(false);
 
