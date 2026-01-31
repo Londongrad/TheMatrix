@@ -9,6 +9,7 @@ namespace Matrix.CityCore.Domain.Events.Cities
         CityEnvironment Environment,
         CityGenerationSeed GenerationSeed,
         CityGenerationProfile GenerationProfile,
+        Guid PopulationBootstrapOperationId,
         DateTimeOffset CreatedAtUtc)
         : DomainEventBase;
 }

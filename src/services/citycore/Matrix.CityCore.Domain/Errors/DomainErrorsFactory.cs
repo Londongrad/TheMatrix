@@ -146,22 +146,32 @@ namespace Matrix.CityCore.Domain.Errors
                 propertyName: propertyName);
         }
 
-        public static DomainException CityPopulationBootstrapErrorNullOrEmpty(string? propertyName = null)
+        public static DomainException CityPopulationBootstrapFailureCodeNullOrEmpty(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.PopulationBootstrap.Error.NullOrEmpty",
-                message: "Population bootstrap error cannot be null or empty.",
+                code: "CityCore.City.PopulationBootstrap.FailureCode.NullOrEmpty",
+                message: "Population bootstrap failure code cannot be null or empty.",
                 propertyName: propertyName);
         }
 
-        public static DomainException CityPopulationBootstrapErrorTooLong(
+        public static DomainException CityPopulationBootstrapFailureCodeTooLong(
             string value,
             int max,
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.PopulationBootstrap.Error.TooLong",
-                message: $"Population bootstrap error cannot be longer than {max} characters.",
+                code: "CityCore.City.PopulationBootstrap.FailureCode.TooLong",
+                message: $"Population bootstrap failure code cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityPopulationBootstrapFailureCodeInvalid(
+            string value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "CityCore.City.PopulationBootstrap.FailureCode.Invalid",
+                message: $"Population bootstrap failure code '{value}' must contain only ASCII letters, digits, or underscores.",
                 propertyName: propertyName);
         }
 

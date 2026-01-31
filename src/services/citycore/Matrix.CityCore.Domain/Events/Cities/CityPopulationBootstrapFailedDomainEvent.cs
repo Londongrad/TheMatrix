@@ -5,7 +5,8 @@ namespace Matrix.CityCore.Domain.Events.Cities
 {
     public sealed record CityPopulationBootstrapFailedDomainEvent(
         CityId CityId,
-        string Error,
+        Guid OperationId,
+        string FailureCode,
         DateTimeOffset FailedAtUtc)
         : DomainEventBase;
 }

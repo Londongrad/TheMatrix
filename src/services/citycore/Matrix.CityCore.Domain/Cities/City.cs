@@ -11,7 +11,7 @@ namespace Matrix.CityCore.Domain.Cities
     /// </summary>
     public sealed class City : AggregateRoot<CityId>
     {
-        public const int PopulationBootstrapErrorMaxLength = 1024;
+        public const int PopulationBootstrapFailureCodeMaxLength = 128;
 
         private City(
             CityId id,
@@ -21,9 +21,10 @@ namespace Matrix.CityCore.Domain.Cities
             CityGenerationProfile generationProfile,
             CityStatus status,
             DateTimeOffset createdAtUtc,
+            Guid populationBootstrapOperationId,
             DateTimeOffset? populationBootstrapCompletedAtUtc,
             DateTimeOffset? populationBootstrapFailedAtUtc,
-            string? populationBootstrapError,
+            string? populationBootstrapFailureCode,
             DateTimeOffset? archivedAtUtc)
             : base(id)
         {
@@ -31,6 +32,9 @@ namespace Matrix.CityCore.Domain.Cities
             EnsureUtc(populationBootstrapCompletedAtUtc);
             EnsureUtc(populationBootstrapFailedAtUtc);
             EnsureUtc(archivedAtUtc);
+            GuardHelper.AgainstEmptyGuid(
+                id: populationBootstrapOperationId,
+                propertyName: nameof(populationBootstrapOperationId));
 
             Name = name;
             Environment = environment;
@@ -38,9 +42,10 @@ namespace Matrix.CityCore.Domain.Cities
             GenerationProfile = generationProfile;
             Status = status;
             CreatedAtUtc = createdAtUtc;
+            PopulationBootstrapOperationId = populationBootstrapOperationId;
             PopulationBootstrapCompletedAtUtc = populationBootstrapCompletedAtUtc;
             PopulationBootstrapFailedAtUtc = populationBootstrapFailedAtUtc;
-            PopulationBootstrapError = populationBootstrapError;
+            PopulationBootstrapFailureCode = populationBootstrapFailureCode;
             ArchivedAtUtc = archivedAtUtc;
         }
 
@@ -59,9 +64,10 @@ namespace Matrix.CityCore.Domain.Cities
         public CityGenerationProfile GenerationProfile { get; }
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
+        public Guid PopulationBootstrapOperationId { get; private set; }
         public DateTimeOffset? PopulationBootstrapCompletedAtUtc { get; private set; }
         public DateTimeOffset? PopulationBootstrapFailedAtUtc { get; private set; }
-        public string? PopulationBootstrapError { get; private set; }
+        public string? PopulationBootstrapFailureCode { get; private set; }
         public DateTimeOffset? ArchivedAtUtc { get; private set; }
 
         public bool IsActive => Status == CityStatus.Active;
@@ -99,9 +105,10 @@ namespace Matrix.CityCore.Domain.Cities
                 generationProfile: generationProfile,
                 status: CityStatus.Provisioning,
                 createdAtUtc: createdAtUtc,
+                populationBootstrapOperationId: Guid.NewGuid(),
                 populationBootstrapCompletedAtUtc: null,
                 populationBootstrapFailedAtUtc: null,
-                populationBootstrapError: null,
+                populationBootstrapFailureCode: null,
                 archivedAtUtc: null);
 
             city.AddDomainEvent(
@@ -111,6 +118,7 @@ namespace Matrix.CityCore.Domain.Cities
                     Environment: city.Environment,
                     GenerationSeed: city.GenerationSeed,
                     GenerationProfile: city.GenerationProfile,
+                    PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
                     CreatedAtUtc: city.CreatedAtUtc));
 
             return city;
@@ -161,55 +169,82 @@ namespace Matrix.CityCore.Domain.Cities
                     To: newEnvironment));
         }
 
-        public void CompletePopulationBootstrap(DateTimeOffset completedAtUtc)
+        public bool TryCompletePopulationBootstrap(
+            Guid operationId,
+            DateTimeOffset completedAtUtc)
         {
             EnsureUtc(completedAtUtc);
+            GuardHelper.AgainstEmptyGuid(
+                id: operationId,
+                propertyName: nameof(operationId));
 
             GuardHelper.Ensure(
                 condition: !IsArchived,
                 value: Status,
                 errorFactory: DomainErrorsFactory.CityIsArchived);
 
+            if (operationId != PopulationBootstrapOperationId)
+                return false;
+
+            if (HasPopulationBootstrapFailure)
+                return false;
+
             if (IsActive)
-                return;
+                return true;
 
             Status = CityStatus.Active;
             PopulationBootstrapCompletedAtUtc = completedAtUtc;
             PopulationBootstrapFailedAtUtc = null;
-            PopulationBootstrapError = null;
+            PopulationBootstrapFailureCode = null;
 
             AddDomainEvent(
                 new CityPopulationBootstrapCompletedDomainEvent(
                     CityId: Id,
+                    OperationId: operationId,
                     CompletedAtUtc: completedAtUtc));
+
+            return true;
         }
 
-        public void FailPopulationBootstrap(
-            string error,
+        public bool TryFailPopulationBootstrap(
+            Guid operationId,
+            string failureCode,
             DateTimeOffset failedAtUtc)
         {
             EnsureUtc(failedAtUtc);
+            GuardHelper.AgainstEmptyGuid(
+                id: operationId,
+                propertyName: nameof(operationId));
 
             GuardHelper.Ensure(
                 condition: !IsArchived,
                 value: Status,
                 errorFactory: DomainErrorsFactory.CityIsArchived);
 
-            if (IsActive)
-                return;
+            if (operationId != PopulationBootstrapOperationId)
+                return false;
 
-            string normalizedError = NormalizePopulationBootstrapError(error);
+            if (IsActive)
+                return false;
+
+            if (HasPopulationBootstrapFailure)
+                return true;
+
+            string normalizedFailureCode = NormalizePopulationBootstrapFailureCode(failureCode);
 
             Status = CityStatus.ProvisioningFailed;
             PopulationBootstrapCompletedAtUtc = null;
             PopulationBootstrapFailedAtUtc = failedAtUtc;
-            PopulationBootstrapError = normalizedError;
+            PopulationBootstrapFailureCode = normalizedFailureCode;
 
             AddDomainEvent(
                 new CityPopulationBootstrapFailedDomainEvent(
                     CityId: Id,
-                    Error: normalizedError,
+                    OperationId: operationId,
+                    FailureCode: normalizedFailureCode,
                     FailedAtUtc: failedAtUtc));
+
+            return true;
         }
 
         public void Archive(DateTimeOffset archivedAtUtc)
@@ -228,21 +263,28 @@ namespace Matrix.CityCore.Domain.Cities
                     ArchivedAtUtc: archivedAtUtc));
         }
 
-        private static string NormalizePopulationBootstrapError(string error)
+        private static string NormalizePopulationBootstrapFailureCode(string failureCode)
         {
-            string normalizedError = error?.Trim() ?? string.Empty;
+            string normalizedFailureCode = GuardHelper.AgainstNullOrWhiteSpace(
+                    value: failureCode,
+                    errorFactory: DomainErrorsFactory.CityPopulationBootstrapFailureCodeNullOrEmpty)
+               .ToUpperInvariant();
 
-            if (string.IsNullOrWhiteSpace(normalizedError))
-                throw DomainErrorsFactory.CityPopulationBootstrapErrorNullOrEmpty(
-                    propertyName: nameof(PopulationBootstrapError));
+            if (normalizedFailureCode.Length > PopulationBootstrapFailureCodeMaxLength)
+                throw DomainErrorsFactory.CityPopulationBootstrapFailureCodeTooLong(
+                    value: normalizedFailureCode,
+                    max: PopulationBootstrapFailureCodeMaxLength,
+                    propertyName: nameof(PopulationBootstrapFailureCode));
 
-            if (normalizedError.Length > PopulationBootstrapErrorMaxLength)
-                throw DomainErrorsFactory.CityPopulationBootstrapErrorTooLong(
-                    value: normalizedError,
-                    max: PopulationBootstrapErrorMaxLength,
-                    propertyName: nameof(PopulationBootstrapError));
+            bool isValid = normalizedFailureCode.All(symbol =>
+                char.IsAsciiLetterOrDigit(symbol) || symbol == '_');
 
-            return normalizedError;
+            if (!isValid)
+                throw DomainErrorsFactory.CityPopulationBootstrapFailureCodeInvalid(
+                    value: normalizedFailureCode,
+                    propertyName: nameof(PopulationBootstrapFailureCode));
+
+            return normalizedFailureCode;
         }
 
         private static void EnsureUtc(DateTimeOffset value)
