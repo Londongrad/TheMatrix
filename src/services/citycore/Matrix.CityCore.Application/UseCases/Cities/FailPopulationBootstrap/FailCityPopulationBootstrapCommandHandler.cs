@@ -20,10 +20,14 @@ namespace Matrix.CityCore.Application.UseCases.Cities.FailPopulationBootstrap
             if (city is null)
                 return false;
 
-            city.FailPopulationBootstrap(
-                error: request.Error,
+            bool updated = city.TryFailPopulationBootstrap(
+                operationId: request.OperationId,
+                failureCode: request.FailureCode,
                 failedAtUtc: DateTimeOffset.UtcNow);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (updated)
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
             return true;
         }
     }

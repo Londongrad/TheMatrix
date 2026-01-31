@@ -9,6 +9,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CompletePopulationBootstra
         {
             RuleFor(x => x.CityId)
                .NotEmpty();
+
+            RuleFor(x => x.OperationId)
+               .NotEmpty();
         }
     }
 }

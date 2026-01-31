@@ -2,5 +2,7 @@ using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Cities.CompletePopulationBootstrap
 {
-    public sealed record CompleteCityPopulationBootstrapCommand(Guid CityId) : IRequest<bool>;
+    public sealed record CompleteCityPopulationBootstrapCommand(
+        Guid CityId,
+        Guid OperationId) : IRequest<bool>;
 }

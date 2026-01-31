@@ -13,10 +13,11 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
         string SizeTier,
         string UrbanDensity,
         string DevelopmentLevel,
+        Guid PopulationBootstrapOperationId,
         DateTimeOffset CreatedAtUtc,
         DateTimeOffset? PopulationBootstrapCompletedAtUtc,
         DateTimeOffset? PopulationBootstrapFailedAtUtc,
-        string? PopulationBootstrapError,
+        string? PopulationBootstrapFailureCode,
         DateTimeOffset? ArchivedAtUtc,
         bool IsArchived)
     {
@@ -33,10 +34,11 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
                 SizeTier: city.GenerationProfile.SizeTier.ToString(),
                 UrbanDensity: city.GenerationProfile.UrbanDensity.ToString(),
                 DevelopmentLevel: city.GenerationProfile.DevelopmentLevel.ToString(),
+                PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
                 CreatedAtUtc: city.CreatedAtUtc,
                 PopulationBootstrapCompletedAtUtc: city.PopulationBootstrapCompletedAtUtc,
                 PopulationBootstrapFailedAtUtc: city.PopulationBootstrapFailedAtUtc,
-                PopulationBootstrapError: city.PopulationBootstrapError,
+                PopulationBootstrapFailureCode: city.PopulationBootstrapFailureCode,
                 ArchivedAtUtc: city.ArchivedAtUtc,
                 IsArchived: city.IsArchived);
         }

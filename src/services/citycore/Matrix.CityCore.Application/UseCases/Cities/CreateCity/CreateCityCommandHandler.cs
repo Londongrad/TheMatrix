@@ -22,9 +22,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
         ICityTopologyBootstrapFactory cityTopologyBootstrapFactory,
         ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
         ICityCoreOutboxWriter outboxWriter,
-        IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, Guid>
+        IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, CityCreatedDto>
     {
-        public async Task<Guid> Handle(
+        public async Task<CityCreatedDto> Handle(
             CreateCityCommand request,
             CancellationToken cancellationToken)
         {
@@ -123,7 +123,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                 },
                 cancellationToken: cancellationToken);
 
-            return city.Id.Value;
+            return new CityCreatedDto(
+                CityId: city.Id.Value,
+                PopulationBootstrapOperationId: city.PopulationBootstrapOperationId);
         }
 
         private static TEnum ParseOrDefault<TEnum>(

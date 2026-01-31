@@ -20,8 +20,13 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CompletePopulationBootstra
             if (city is null)
                 return false;
 
-            city.CompletePopulationBootstrap(DateTimeOffset.UtcNow);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            bool updated = city.TryCompletePopulationBootstrap(
+                operationId: request.OperationId,
+                completedAtUtc: DateTimeOffset.UtcNow);
+
+            if (updated)
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
             return true;
         }
     }

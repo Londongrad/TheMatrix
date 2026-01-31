@@ -12,5 +12,5 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
         string? UrbanDensity,
         string? DevelopmentLevel,
         DateTimeOffset StartSimTimeUtc,
-        decimal SpeedMultiplier = 1.0m) : IRequest<Guid>;
+        decimal SpeedMultiplier = 1.0m) : IRequest<CityCreatedDto>;
 }
