@@ -1,4 +1,5 @@
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Application.Abstractions
 {
@@ -20,6 +21,10 @@ namespace Matrix.Population.Application.Abstractions
 
         Task UpdateAsync(
             Person person,
+            CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyCollection<Person>> ListByCityAsync(
+            CityId cityId,
             CancellationToken cancellationToken = default);
     }
 }
