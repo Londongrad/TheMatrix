@@ -1,5 +1,6 @@
-﻿using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories
@@ -37,6 +38,19 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
         {
             _dbContext.Persons.Remove(person);
             return Task.CompletedTask;
+        }
+
+        public async Task<IReadOnlyCollection<Person>> ListByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Persons
+               .Join(
+                    inner: _dbContext.Households.Where(x => x.CityId == cityId),
+                    outerKeySelector: person => person.HouseholdId,
+                    innerKeySelector: household => household.Id,
+                    resultSelector: (person, _) => person)
+               .ToListAsync(cancellationToken);
         }
 
         public Task UpdateAsync(
