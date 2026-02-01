@@ -1,10 +1,11 @@
 using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.CityCore.Application.Abstractions.Outbox;
+using Matrix.CityCore.Contracts.Events;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Events.Weather;
 using Matrix.CityCore.Domain.Simulation;
-using Matrix.CityCore.Infrastructure.Outbox.IntegrationEvents;
+using Matrix.CityCore.Domain.Weather;
 using Matrix.CityCore.Infrastructure.Persistence;
 
 namespace Matrix.CityCore.Infrastructure.Outbox
@@ -21,7 +22,7 @@ namespace Matrix.CityCore.Infrastructure.Outbox
         {
             DateTime occurredOnUtc = DateTime.UtcNow;
 
-            var integrationEvent = new CityTimeAdvancedIntegrationEvent(
+            var integrationEvent = new CityTimeAdvancedV1(
                 CityId: cityId.Value,
                 FromSimTimeUtc: from.ValueUtc,
                 ToSimTimeUtc: to.ValueUtc,
@@ -54,27 +55,27 @@ namespace Matrix.CityCore.Infrastructure.Outbox
                     CityWeatherCreatedDomainEvent created => OutboxMessage.Create(
                         type: IntegrationEventTypes.CityWeatherCreatedV1,
                         occurredOnUtc: occurredOnUtc,
-                        payload: new CityWeatherCreatedIntegrationEvent(
+                        payload: new CityWeatherCreatedV1(
                             CityId: created.CityId.Value,
-                            ClimateProfile: WeatherClimateProfileIntegrationData.FromDomain(created.ClimateProfile),
-                            InitialState: WeatherStateIntegrationData.FromDomain(created.InitialState),
+                            ClimateProfile: ToWeatherClimateProfile(created.ClimateProfile),
+                            InitialState: ToWeatherState(created.InitialState),
                             AtSimTimeUtc: created.AtSimTime.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     CityWeatherChangedDomainEvent changed => OutboxMessage.Create(
                         type: IntegrationEventTypes.CityWeatherChangedV1,
                         occurredOnUtc: occurredOnUtc,
-                        payload: new CityWeatherChangedIntegrationEvent(
+                        payload: new CityWeatherChangedV1(
                             CityId: changed.CityId.Value,
-                            PreviousState: WeatherStateIntegrationData.FromDomain(changed.PreviousState),
-                            CurrentState: WeatherStateIntegrationData.FromDomain(changed.CurrentState),
+                            PreviousState: ToWeatherState(changed.PreviousState),
+                            CurrentState: ToWeatherState(changed.CurrentState),
                             AtSimTimeUtc: changed.AtSimTime.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     WeatherOverrideStartedDomainEvent started => OutboxMessage.Create(
                         type: IntegrationEventTypes.WeatherOverrideStartedV1,
                         occurredOnUtc: occurredOnUtc,
-                        payload: new WeatherOverrideStartedIntegrationEvent(
+                        payload: new WeatherOverrideStartedV1(
                             CityId: started.CityId.Value,
-                            ForcedState: WeatherStateIntegrationData.FromDomain(started.ForcedState),
+                            ForcedState: ToWeatherState(started.ForcedState),
                             Source: started.Source.ToString(),
                             StartsAtUtc: started.StartsAt.ValueUtc,
                             EndsAtUtc: started.EndsAt.ValueUtc,
@@ -83,30 +84,28 @@ namespace Matrix.CityCore.Infrastructure.Outbox
                     WeatherOverrideCancelledDomainEvent cancelled => OutboxMessage.Create(
                         type: IntegrationEventTypes.WeatherOverrideCancelledV1,
                         occurredOnUtc: occurredOnUtc,
-                        payload: new WeatherOverrideCancelledIntegrationEvent(
+                        payload: new WeatherOverrideCancelledV1(
                             CityId: cancelled.CityId.Value,
-                            ForcedState: WeatherStateIntegrationData.FromDomain(cancelled.ForcedState),
+                            ForcedState: ToWeatherState(cancelled.ForcedState),
                             Source: cancelled.Source.ToString(),
                             CancelledAtUtc: cancelled.CancelledAt.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     WeatherOverrideExpiredDomainEvent expired => OutboxMessage.Create(
                         type: IntegrationEventTypes.WeatherOverrideExpiredV1,
                         occurredOnUtc: occurredOnUtc,
-                        payload: new WeatherOverrideExpiredIntegrationEvent(
+                        payload: new WeatherOverrideExpiredV1(
                             CityId: expired.CityId.Value,
-                            ForcedState: WeatherStateIntegrationData.FromDomain(expired.ForcedState),
+                            ForcedState: ToWeatherState(expired.ForcedState),
                             Source: expired.Source.ToString(),
                             ExpiredAtUtc: expired.ExpiredAt.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     ClimateProfileChangedDomainEvent profileChanged => OutboxMessage.Create(
                         type: IntegrationEventTypes.ClimateProfileChangedV1,
                         occurredOnUtc: occurredOnUtc,
-                        payload: new ClimateProfileChangedIntegrationEvent(
+                        payload: new ClimateProfileChangedV1(
                             CityId: profileChanged.CityId.Value,
-                            PreviousProfile: WeatherClimateProfileIntegrationData.FromDomain(
-                                profileChanged.PreviousProfile),
-                            CurrentProfile: WeatherClimateProfileIntegrationData.FromDomain(
-                                profileChanged.CurrentProfile),
+                            PreviousProfile: ToWeatherClimateProfile(profileChanged.PreviousProfile),
+                            CurrentProfile: ToWeatherClimateProfile(profileChanged.CurrentProfile),
                             AtSimTimeUtc: profileChanged.AtSimTime.ValueUtc,
                             OccurredOnUtc: occurredOnUtc)),
                     _ => throw new InvalidOperationException(
@@ -117,6 +116,33 @@ namespace Matrix.CityCore.Infrastructure.Outbox
             }
 
             return Task.CompletedTask;
+        }
+
+        private static WeatherStateV1 ToWeatherState(WeatherState state)
+        {
+            return new WeatherStateV1(
+                Type: state.Type.ToString(),
+                Severity: state.Severity.ToString(),
+                PrecipitationKind: state.PrecipitationKind.ToString(),
+                TemperatureC: state.Temperature.Value,
+                HumidityPercent: state.Humidity.Value,
+                WindSpeedKph: state.WindSpeed.Value,
+                CloudCoveragePercent: state.CloudCoverage.Value,
+                PressureHpa: state.Pressure.Value,
+                StartedAtUtc: state.StartedAt.ValueUtc,
+                ExpectedUntilUtc: state.ExpectedUntil.ValueUtc);
+        }
+
+        private static WeatherClimateProfileV1 ToWeatherClimateProfile(WeatherClimateProfile profile)
+        {
+            return new WeatherClimateProfileV1(
+                ClimateZone: profile.ClimateZone.ToString(),
+                Volatility: profile.Volatility.Value,
+                MaxOverallSeverity: profile.ExtremeWeatherProfile.MaxOverallSeverity.ToString(),
+                SupportsThunderstorms: profile.ExtremeWeatherProfile.SupportsThunderstorms,
+                SupportsSnowstorms: profile.ExtremeWeatherProfile.SupportsSnowstorms,
+                SupportsFog: profile.ExtremeWeatherProfile.SupportsFog,
+                SupportsHeatwaves: profile.ExtremeWeatherProfile.SupportsHeatwaves);
         }
     }
 }
