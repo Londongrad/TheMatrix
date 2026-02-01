@@ -9,6 +9,7 @@ using Matrix.CityCore.Application.UseCases.Cities.GetGenerationCatalog;
 using Matrix.CityCore.Application.UseCases.Cities.GetSuggestedCityNames;
 using Matrix.CityCore.Application.UseCases.Cities.ListCities;
 using Matrix.CityCore.Application.UseCases.Cities.RenameCity;
+using Matrix.CityCore.Application.UseCases.Cities.RestartPopulationBootstrap;
 using Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment;
 using Matrix.CityCore.Application.UseCases.Topology.GetCityDistricts;
 using Matrix.CityCore.Application.UseCases.Topology.GetCityResidentialBuildings;
@@ -181,6 +182,32 @@ namespace Matrix.CityCore.Api.Controllers
                 return Results.NotFound();
 
             return Results.Ok(MapToWeatherView(weather));
+        }
+
+        [HttpPost("{cityId:guid}/population-bootstrap/retry")]
+        public async Task<IResult> RetryPopulationBootstrap(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            RestartCityPopulationBootstrapResult result = await mediator.Send(
+                request: new RestartCityPopulationBootstrapCommand(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return result.Status switch
+            {
+                RestartCityPopulationBootstrapStatus.Restarted => Results.Ok(
+                    new CityPopulationBootstrapRestartedView(
+                        CityId: cityId,
+                        PopulationBootstrapOperationId: result.PopulationBootstrapOperationId!.Value)),
+                RestartCityPopulationBootstrapStatus.NotFound => Results.NotFound(),
+                RestartCityPopulationBootstrapStatus.NotAllowed => Results.Conflict(
+                    new
+                    {
+                        code = "CityCore.City.PopulationBootstrapRetryNotAllowed",
+                        message = "Population bootstrap retry is allowed only after a failed bootstrap attempt."
+                    }),
+                _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+            };
         }
 
         [HttpPost("{cityId:guid}/population-bootstrap/complete")]
