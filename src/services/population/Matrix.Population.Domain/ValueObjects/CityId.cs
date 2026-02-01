@@ -13,11 +13,6 @@ namespace Matrix.Population.Domain.ValueObjects
 
         public Guid Value { get; }
 
-        public static CityId New()
-        {
-            return new CityId(Guid.NewGuid());
-        }
-
         public static CityId From(Guid value)
         {
             return new CityId(value);
