@@ -95,6 +95,23 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
                 requestUrl: url);
         }
 
+        public async Task<CityPopulationBootstrapRestartedView> RestartPopulationBootstrapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/population-bootstrap/retry";
+
+            using HttpResponseMessage response = await _client.PostAsync(
+                requestUri: url,
+                content: null,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityPopulationBootstrapRestartedView>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task CompletePopulationBootstrapAsync(
             Guid cityId,
             CompleteCityPopulationBootstrapRequest request,

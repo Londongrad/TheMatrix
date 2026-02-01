@@ -68,6 +68,18 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
             return Ok(provisioning);
         }
 
+        [HttpPost("{cityId:guid}/population-bootstrap/retry")]
+        public async Task<ActionResult<CityProvisioningView>> RetryPopulationBootstrap(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityProvisioningView provisioning = await _cityProvisioningService.RetryPopulationBootstrapAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(provisioning);
+        }
+
         [HttpPut("{cityId:guid}/name")]
         public async Task<IActionResult> Rename(
             [FromRoute] Guid cityId,

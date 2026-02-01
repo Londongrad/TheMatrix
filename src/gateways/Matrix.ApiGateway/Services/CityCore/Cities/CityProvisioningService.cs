@@ -45,18 +45,43 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                     SpeedMultiplier: request.SpeedMultiplier),
                 cancellationToken: cancellationToken);
 
-            CityPopulationBootstrapView bootstrap = await BootstrapPopulationAsync(
+            return await ProvisionCityPopulationAsync(
                 cityId: created.CityId,
                 operationId: created.PopulationBootstrapOperationId,
                 cancellationToken: cancellationToken);
+        }
+
+        public async Task<CityProvisioningView> RetryPopulationBootstrapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            CityPopulationBootstrapRestartedView restarted = await citiesApiClient.RestartPopulationBootstrapAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return await ProvisionCityPopulationAsync(
+                cityId: restarted.CityId,
+                operationId: restarted.PopulationBootstrapOperationId,
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<CityProvisioningView> ProvisionCityPopulationAsync(
+            Guid cityId,
+            Guid operationId,
+            CancellationToken cancellationToken)
+        {
+            CityPopulationBootstrapView bootstrap = await BootstrapPopulationAsync(
+                cityId: cityId,
+                operationId: operationId,
+                cancellationToken: cancellationToken);
 
             await ReportBootstrapOutcomeAsync(
-                cityId: created.CityId,
+                cityId: cityId,
                 bootstrap: bootstrap,
                 cancellationToken: cancellationToken);
 
             return new CityProvisioningView(
-                CityId: created.CityId,
+                CityId: cityId,
                 PopulationBootstrap: bootstrap);
         }
 

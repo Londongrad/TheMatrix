@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.Contracts.CityCore.Cities;
+using Matrix.ApiGateway.Contracts.CityCore.Cities;
 
 namespace Matrix.ApiGateway.Services.CityCore.Cities
 {
@@ -6,6 +6,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
     {
         Task<CityProvisioningView> CreateCityAsync(
             CreateCityRequestDto request,
+            CancellationToken cancellationToken = default);
+
+        Task<CityProvisioningView> RetryPopulationBootstrapAsync(
+            Guid cityId,
             CancellationToken cancellationToken = default);
     }
 }

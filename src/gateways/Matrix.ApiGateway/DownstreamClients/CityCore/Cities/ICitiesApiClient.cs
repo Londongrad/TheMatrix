@@ -27,6 +27,10 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
             Guid? districtId = null,
             CancellationToken cancellationToken = default);
 
+        Task<CityPopulationBootstrapRestartedView> RestartPopulationBootstrapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
         Task CompletePopulationBootstrapAsync(
             Guid cityId,
             CompleteCityPopulationBootstrapRequest request,
