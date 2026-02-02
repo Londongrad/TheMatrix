@@ -30,6 +30,7 @@ namespace Matrix.CityCore.Infrastructure.Outbox.RabbitMq
             return publishEndpoint.Publish(
                 message: evt,
                 messageType: clrType,
+                publishPipe: Pipe.Execute<PublishContext>(context => { context.MessageId = messageId; }),
                 cancellationToken: cancellationToken);
         }
     }
