@@ -1,0 +1,63 @@
+using MassTransit;
+using MediatR;
+using Matrix.CityCore.Contracts.Events;
+using Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact;
+using Microsoft.Extensions.Logging;
+
+namespace Matrix.Population.Infrastructure.Consumers
+{
+    public sealed class CityWeatherChangedConsumer(
+        IMediator mediator,
+        ILogger<CityWeatherChangedConsumer> logger) : IConsumer<CityWeatherChangedV1>
+    {
+        public async Task Consume(ConsumeContext<CityWeatherChangedV1> context)
+        {
+            if (context.MessageId is null)
+                throw new InvalidOperationException("CityWeatherChanged message must have a MessageId.");
+
+            CityWeatherChangedV1 message = context.Message;
+
+            ApplyCityWeatherImpactResult result = await mediator.Send(
+                request: new ApplyCityWeatherImpactCommand(
+                    CityId: message.CityId,
+                    IntegrationMessageId: context.MessageId.Value,
+                    ConsumerName: CityWeatherChangedConsumerDefinition.EndpointNameValue,
+                    AtSimTimeUtc: message.AtSimTimeUtc,
+                    OccurredOnUtc: message.OccurredOnUtc,
+                    WeatherType: message.CurrentState.Type,
+                    WeatherSeverity: message.CurrentState.Severity,
+                    PrecipitationKind: message.CurrentState.PrecipitationKind,
+                    TemperatureC: message.CurrentState.TemperatureC,
+                    HumidityPercent: message.CurrentState.HumidityPercent,
+                    WindSpeedKph: message.CurrentState.WindSpeedKph,
+                    CloudCoveragePercent: message.CurrentState.CloudCoveragePercent,
+                    PressureHpa: message.CurrentState.PressureHpa),
+                cancellationToken: context.CancellationToken);
+
+            switch (result.Status)
+            {
+                case ApplyCityWeatherImpactStatus.Applied:
+                    logger.LogInformation(
+                        message: "Applied city weather impact for cityId={CityId}, messageId={MessageId}, affectedPeople={AffectedPeople}.",
+                        message.CityId,
+                        context.MessageId,
+                        result.AffectedPeopleCount);
+                    break;
+
+                case ApplyCityWeatherImpactStatus.Duplicate:
+                    logger.LogDebug(
+                        message: "Skipped duplicate city weather impact for cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
+
+                case ApplyCityWeatherImpactStatus.OutOfOrder:
+                    logger.LogWarning(
+                        message: "Skipped out-of-order city weather impact for cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
+            }
+        }
+    }
+}

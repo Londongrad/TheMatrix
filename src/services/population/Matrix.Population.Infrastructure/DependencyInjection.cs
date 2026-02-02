@@ -42,6 +42,8 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
             services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
+            services.AddScoped<ICityPopulationWeatherImpactStateRepository, CityPopulationWeatherImpactStateRepository>();
+            services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddPermissionCheckingFromClaims();
 
@@ -49,6 +51,7 @@ namespace Matrix.Population.Infrastructure
             {
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
+                x.AddConsumer<CityWeatherChangedConsumer, CityWeatherChangedConsumerDefinition>();
 
                 x.UsingRabbitMq((
                     context,

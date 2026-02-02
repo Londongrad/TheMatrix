@@ -1,4 +1,5 @@
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence
@@ -7,8 +8,10 @@ namespace Matrix.Population.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<CityPopulationProgressionState> CityPopulationProgressionStates => Set<CityPopulationProgressionState>();
+        public DbSet<CityPopulationWeatherImpactState> CityPopulationWeatherImpactStates => Set<CityPopulationWeatherImpactState>();
         public DbSet<Household> Households => Set<Household>();
         public DbSet<Person> Persons => Set<Person>();
+        public DbSet<ProcessedIntegrationMessage> ProcessedIntegrationMessages => Set<ProcessedIntegrationMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
