@@ -16,6 +16,7 @@ namespace Matrix.Population.Application
 
             services.AddSingleton<CityPopulationBootstrapGenerator>();
             services.AddSingleton<CityPopulationWeatherImpactPolicy>();
+            services.AddSingleton<CityPopulationWeatherExposurePolicy>();
 
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
 
