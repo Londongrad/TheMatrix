@@ -59,6 +59,16 @@ namespace Matrix.Population.Domain.Entities
         public decimal? PreviousPressureHpa { get; private set; }
         public DateTimeOffset? PreviousWeatherEffectiveAtSimTimeUtc { get; private set; }
 
+        public PopulationWeatherType? RecoverySourceType { get; private set; }
+        public PopulationWeatherSeverity? RecoverySourceSeverity { get; private set; }
+        public PopulationPrecipitationKind? RecoverySourcePrecipitationKind { get; private set; }
+        public decimal? RecoverySourceTemperatureC { get; private set; }
+        public decimal? RecoverySourceHumidityPercent { get; private set; }
+        public decimal? RecoverySourceWindSpeedKph { get; private set; }
+        public decimal? RecoverySourceCloudCoveragePercent { get; private set; }
+        public decimal? RecoverySourcePressureHpa { get; private set; }
+        public DateTimeOffset? RecoveryStartedAtSimTimeUtc { get; private set; }
+
         public DateTimeOffset LastWeatherOccurredOnUtc { get; private set; }
         public DateTimeOffset LastExposureProcessedAtSimTimeUtc { get; private set; }
         public DateTimeOffset UpdatedAtUtc { get; private set; }
@@ -95,6 +105,29 @@ namespace Matrix.Population.Domain.Entities
                 WindSpeedKph: PreviousWindSpeedKph!.Value,
                 CloudCoveragePercent: PreviousCloudCoveragePercent!.Value,
                 PressureHpa: PreviousPressureHpa!.Value);
+
+        public bool HasRecoverySource =>
+            RecoverySourceType.HasValue &&
+            RecoverySourceSeverity.HasValue &&
+            RecoverySourcePrecipitationKind.HasValue &&
+            RecoverySourceTemperatureC.HasValue &&
+            RecoverySourceHumidityPercent.HasValue &&
+            RecoverySourceWindSpeedKph.HasValue &&
+            RecoverySourceCloudCoveragePercent.HasValue &&
+            RecoverySourcePressureHpa.HasValue &&
+            RecoveryStartedAtSimTimeUtc.HasValue;
+
+        public WeatherImpactProfile? RecoverySourceWeather => !HasRecoverySource
+            ? null
+            : new WeatherImpactProfile(
+                Type: RecoverySourceType!.Value,
+                Severity: RecoverySourceSeverity!.Value,
+                PrecipitationKind: RecoverySourcePrecipitationKind!.Value,
+                TemperatureC: RecoverySourceTemperatureC!.Value,
+                HumidityPercent: RecoverySourceHumidityPercent!.Value,
+                WindSpeedKph: RecoverySourceWindSpeedKph!.Value,
+                CloudCoveragePercent: RecoverySourceCloudCoveragePercent!.Value,
+                PressureHpa: RecoverySourcePressureHpa!.Value);
 
         public static CityPopulationWeatherExposureState Create(
             CityId cityId,
@@ -142,6 +175,8 @@ namespace Matrix.Population.Domain.Entities
                     occurredOnUtc: occurredOnUtc))
                 throw new InvalidOperationException("Cannot apply stale weather update.");
 
+            WeatherImpactProfile previousCurrentWeather = CurrentWeather;
+
             PreviousType = CurrentType;
             PreviousSeverity = CurrentSeverity;
             PreviousPrecipitationKind = CurrentPrecipitationKind;
@@ -163,6 +198,18 @@ namespace Matrix.Population.Domain.Entities
             CurrentWeatherEffectiveAtSimTimeUtc = currentWeatherEffectiveAtSimTimeUtc;
             LastWeatherOccurredOnUtc = occurredOnUtc;
             UpdatedAtUtc = updatedAtUtc;
+
+            if (IsExposureRelevantWeather(previousCurrentWeather) &&
+                IsRecoveryWeather(currentWeather))
+            {
+                SetRecoverySource(
+                    recoverySourceWeather: previousCurrentWeather,
+                    recoveryStartedAtSimTimeUtc: currentWeatherEffectiveAtSimTimeUtc);
+                return;
+            }
+
+            if (!(HasRecoverySource && IsRecoveryWeather(currentWeather)))
+                ClearRecoverySource();
         }
 
         public void MarkExposureProcessed(
@@ -194,6 +241,52 @@ namespace Matrix.Population.Domain.Entities
             PreviousCloudCoveragePercent = null;
             PreviousPressureHpa = null;
             PreviousWeatherEffectiveAtSimTimeUtc = null;
+        }
+
+        private void SetRecoverySource(
+            WeatherImpactProfile recoverySourceWeather,
+            DateTimeOffset recoveryStartedAtSimTimeUtc)
+        {
+            EnsureUtc(recoveryStartedAtSimTimeUtc, nameof(recoveryStartedAtSimTimeUtc));
+            ArgumentNullException.ThrowIfNull(recoverySourceWeather);
+
+            RecoverySourceType = recoverySourceWeather.Type;
+            RecoverySourceSeverity = recoverySourceWeather.Severity;
+            RecoverySourcePrecipitationKind = recoverySourceWeather.PrecipitationKind;
+            RecoverySourceTemperatureC = recoverySourceWeather.TemperatureC;
+            RecoverySourceHumidityPercent = recoverySourceWeather.HumidityPercent;
+            RecoverySourceWindSpeedKph = recoverySourceWeather.WindSpeedKph;
+            RecoverySourceCloudCoveragePercent = recoverySourceWeather.CloudCoveragePercent;
+            RecoverySourcePressureHpa = recoverySourceWeather.PressureHpa;
+            RecoveryStartedAtSimTimeUtc = recoveryStartedAtSimTimeUtc;
+        }
+
+        private void ClearRecoverySource()
+        {
+            RecoverySourceType = null;
+            RecoverySourceSeverity = null;
+            RecoverySourcePrecipitationKind = null;
+            RecoverySourceTemperatureC = null;
+            RecoverySourceHumidityPercent = null;
+            RecoverySourceWindSpeedKph = null;
+            RecoverySourceCloudCoveragePercent = null;
+            RecoverySourcePressureHpa = null;
+            RecoveryStartedAtSimTimeUtc = null;
+        }
+
+        private static bool IsExposureRelevantWeather(WeatherImpactProfile weather)
+        {
+            return weather.Type is PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap &&
+                   weather.Severity >= PopulationWeatherSeverity.Moderate;
+        }
+
+        private static bool IsRecoveryWeather(WeatherImpactProfile weather)
+        {
+            return weather.Type is PopulationWeatherType.Clear or PopulationWeatherType.Overcast &&
+                   weather.Severity <= PopulationWeatherSeverity.Mild &&
+                   weather.PrecipitationKind == PopulationPrecipitationKind.None &&
+                   weather.WindSpeedKph <= 25m &&
+                   weather.TemperatureC is >= 10m and <= 28m;
         }
 
         private static void EnsureUtc(

@@ -1,8 +1,12 @@
+using Matrix.Population.Domain.Enums;
+
 namespace Matrix.Population.Domain.Models
 {
     public sealed record CityWeatherExposureSegment(
+        CityWeatherExposureKind Kind,
         WeatherImpactProfile Weather,
-        DateTimeOffset WeatherEffectiveAtSimTimeUtc,
+        DateTimeOffset EffectStartedAtSimTimeUtc,
         DateTimeOffset IntervalStartSimTimeUtc,
-        DateTimeOffset IntervalEndSimTimeUtc);
+        DateTimeOffset IntervalEndSimTimeUtc,
+        WeatherImpactProfile? SourceWeather = null);
 }
