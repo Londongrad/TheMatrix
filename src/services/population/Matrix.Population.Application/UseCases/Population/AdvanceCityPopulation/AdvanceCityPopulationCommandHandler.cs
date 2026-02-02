@@ -253,7 +253,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 return segments;
 
             if (weatherExposureState.HasPreviousWeather &&
-                weatherExposureState.PreviousWeather is not null &&
+                weatherExposureState.PreviousWeather is WeatherImpactProfile previousWeather &&
                 weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.HasValue &&
                 effectiveFrom < weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc)
             {
@@ -265,11 +265,12 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                     weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
 
                 if (previousEnd > previousStart &&
-                    IsExposureRelevantWeather(weatherExposureState.PreviousWeather))
+                    IsExposureRelevantWeather(previousWeather))
                     segments.Add(
                         new CityWeatherExposureSegment(
-                            Weather: weatherExposureState.PreviousWeather,
-                            WeatherEffectiveAtSimTimeUtc: weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.Value,
+                            Kind: CityWeatherExposureKind.Adverse,
+                            Weather: previousWeather,
+                            EffectStartedAtSimTimeUtc: weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.Value,
                             IntervalStartSimTimeUtc: previousStart,
                             IntervalEndSimTimeUtc: previousEnd));
             }
@@ -282,10 +283,32 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 IsExposureRelevantWeather(weatherExposureState.CurrentWeather))
                 segments.Add(
                     new CityWeatherExposureSegment(
+                        Kind: CityWeatherExposureKind.Adverse,
                         Weather: weatherExposureState.CurrentWeather,
-                        WeatherEffectiveAtSimTimeUtc: weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc,
+                        EffectStartedAtSimTimeUtc: weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc,
                         IntervalStartSimTimeUtc: currentStart,
                         IntervalEndSimTimeUtc: toSimTimeUtc));
+
+            if (toSimTimeUtc > currentStart &&
+                weatherExposureState.HasRecoverySource &&
+                weatherExposureState.RecoverySourceWeather is WeatherImpactProfile recoverySourceWeather &&
+                weatherExposureState.RecoveryStartedAtSimTimeUtc.HasValue &&
+                IsRecoveryWeather(weatherExposureState.CurrentWeather))
+            {
+                DateTimeOffset recoveryStart = Max(
+                    currentStart,
+                    weatherExposureState.RecoveryStartedAtSimTimeUtc.Value);
+
+                if (toSimTimeUtc > recoveryStart)
+                    segments.Add(
+                        new CityWeatherExposureSegment(
+                            Kind: CityWeatherExposureKind.Recovery,
+                            Weather: weatherExposureState.CurrentWeather,
+                            EffectStartedAtSimTimeUtc: weatherExposureState.RecoveryStartedAtSimTimeUtc.Value,
+                            IntervalStartSimTimeUtc: recoveryStart,
+                            IntervalEndSimTimeUtc: toSimTimeUtc,
+                            SourceWeather: recoverySourceWeather));
+            }
 
             return segments;
         }
@@ -303,6 +326,15 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
         {
             return weather.Type is PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap &&
                    weather.Severity >= PopulationWeatherSeverity.Moderate;
+        }
+
+        private static bool IsRecoveryWeather(WeatherImpactProfile weather)
+        {
+            return weather.Type is PopulationWeatherType.Clear or PopulationWeatherType.Overcast &&
+                   weather.Severity <= PopulationWeatherSeverity.Mild &&
+                   weather.PrecipitationKind == PopulationPrecipitationKind.None &&
+                   weather.WindSpeedKph <= 25m &&
+                   weather.TemperatureC is >= 10m and <= 28m;
         }
 
         private static DateTimeOffset Min(
