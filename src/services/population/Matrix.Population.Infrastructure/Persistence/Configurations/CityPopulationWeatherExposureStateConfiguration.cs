@@ -48,6 +48,21 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
             builder.Property(x => x.PreviousPressureHpa)
                .HasPrecision(10, 2);
 
+            builder.Property(x => x.RecoverySourceTemperatureC)
+               .HasPrecision(10, 2);
+
+            builder.Property(x => x.RecoverySourceHumidityPercent)
+               .HasPrecision(10, 2);
+
+            builder.Property(x => x.RecoverySourceWindSpeedKph)
+               .HasPrecision(10, 2);
+
+            builder.Property(x => x.RecoverySourceCloudCoveragePercent)
+               .HasPrecision(10, 2);
+
+            builder.Property(x => x.RecoverySourcePressureHpa)
+               .HasPrecision(10, 2);
+
             builder.Property(x => x.CurrentWeatherEffectiveAtSimTimeUtc)
                .IsRequired();
 
