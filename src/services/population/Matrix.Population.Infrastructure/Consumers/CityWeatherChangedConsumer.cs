@@ -24,14 +24,24 @@ namespace Matrix.Population.Infrastructure.Consumers
                     ConsumerName: CityWeatherChangedConsumerDefinition.EndpointNameValue,
                     AtSimTimeUtc: message.AtSimTimeUtc,
                     OccurredOnUtc: message.OccurredOnUtc,
-                    WeatherType: message.CurrentState.Type,
-                    WeatherSeverity: message.CurrentState.Severity,
-                    PrecipitationKind: message.CurrentState.PrecipitationKind,
-                    TemperatureC: message.CurrentState.TemperatureC,
-                    HumidityPercent: message.CurrentState.HumidityPercent,
-                    WindSpeedKph: message.CurrentState.WindSpeedKph,
-                    CloudCoveragePercent: message.CurrentState.CloudCoveragePercent,
-                    PressureHpa: message.CurrentState.PressureHpa),
+                    PreviousState: new WeatherImpactSnapshotInput(
+                        Type: message.PreviousState.Type,
+                        Severity: message.PreviousState.Severity,
+                        PrecipitationKind: message.PreviousState.PrecipitationKind,
+                        TemperatureC: message.PreviousState.TemperatureC,
+                        HumidityPercent: message.PreviousState.HumidityPercent,
+                        WindSpeedKph: message.PreviousState.WindSpeedKph,
+                        CloudCoveragePercent: message.PreviousState.CloudCoveragePercent,
+                        PressureHpa: message.PreviousState.PressureHpa),
+                    CurrentState: new WeatherImpactSnapshotInput(
+                        Type: message.CurrentState.Type,
+                        Severity: message.CurrentState.Severity,
+                        PrecipitationKind: message.CurrentState.PrecipitationKind,
+                        TemperatureC: message.CurrentState.TemperatureC,
+                        HumidityPercent: message.CurrentState.HumidityPercent,
+                        WindSpeedKph: message.CurrentState.WindSpeedKph,
+                        CloudCoveragePercent: message.CurrentState.CloudCoveragePercent,
+                        PressureHpa: message.CurrentState.PressureHpa)),
                 cancellationToken: context.CancellationToken);
 
             switch (result.Status)
