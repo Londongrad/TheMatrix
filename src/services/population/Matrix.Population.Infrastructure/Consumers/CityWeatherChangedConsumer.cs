@@ -2,6 +2,7 @@ using MassTransit;
 using MediatR;
 using Matrix.CityCore.Contracts.Events;
 using Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact;
+using Matrix.Population.Application.UseCases.Population.SyncCityWeatherExposureState;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Population.Infrastructure.Consumers
@@ -22,6 +23,33 @@ namespace Matrix.Population.Infrastructure.Consumers
                     CityId: message.CityId,
                     IntegrationMessageId: context.MessageId.Value,
                     ConsumerName: CityWeatherChangedConsumerDefinition.EndpointNameValue,
+                    AtSimTimeUtc: message.AtSimTimeUtc,
+                    OccurredOnUtc: message.OccurredOnUtc,
+                    PreviousState: new WeatherImpactSnapshotInput(
+                        Type: message.PreviousState.Type,
+                        Severity: message.PreviousState.Severity,
+                        PrecipitationKind: message.PreviousState.PrecipitationKind,
+                        TemperatureC: message.PreviousState.TemperatureC,
+                        HumidityPercent: message.PreviousState.HumidityPercent,
+                        WindSpeedKph: message.PreviousState.WindSpeedKph,
+                        CloudCoveragePercent: message.PreviousState.CloudCoveragePercent,
+                        PressureHpa: message.PreviousState.PressureHpa),
+                    CurrentState: new WeatherImpactSnapshotInput(
+                        Type: message.CurrentState.Type,
+                        Severity: message.CurrentState.Severity,
+                        PrecipitationKind: message.CurrentState.PrecipitationKind,
+                        TemperatureC: message.CurrentState.TemperatureC,
+                        HumidityPercent: message.CurrentState.HumidityPercent,
+                        WindSpeedKph: message.CurrentState.WindSpeedKph,
+                        CloudCoveragePercent: message.CurrentState.CloudCoveragePercent,
+                        PressureHpa: message.CurrentState.PressureHpa)),
+                cancellationToken: context.CancellationToken);
+
+            SyncCityWeatherExposureStateResult syncResult = await mediator.Send(
+                request: new SyncCityWeatherExposureStateCommand(
+                    CityId: message.CityId,
+                    IntegrationMessageId: context.MessageId.Value,
+                    ConsumerName: $"{CityWeatherChangedConsumerDefinition.EndpointNameValue}-sync",
                     AtSimTimeUtc: message.AtSimTimeUtc,
                     OccurredOnUtc: message.OccurredOnUtc,
                     PreviousState: new WeatherImpactSnapshotInput(
@@ -68,6 +96,12 @@ namespace Matrix.Population.Infrastructure.Consumers
                         context.MessageId);
                     break;
             }
+
+            if (syncResult.Status == SyncCityWeatherExposureStateStatus.OutOfOrder)
+                logger.LogWarning(
+                    message: "Skipped out-of-order city weather exposure sync for cityId={CityId}, messageId={MessageId}.",
+                    message.CityId,
+                    context.MessageId);
         }
     }
 }

@@ -8,6 +8,7 @@ namespace Matrix.Population.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<CityPopulationProgressionState> CityPopulationProgressionStates => Set<CityPopulationProgressionState>();
+        public DbSet<CityPopulationWeatherExposureState> CityPopulationWeatherExposureStates => Set<CityPopulationWeatherExposureState>();
         public DbSet<CityPopulationWeatherImpactState> CityPopulationWeatherImpactStates => Set<CityPopulationWeatherImpactState>();
         public DbSet<Household> Households => Set<Household>();
         public DbSet<Person> Persons => Set<Person>();
