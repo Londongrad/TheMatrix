@@ -34,10 +34,14 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
             if (request.AtSimTimeUtc.Offset != TimeSpan.Zero)
                 throw new ArgumentException("AtSimTimeUtc must be UTC.", nameof(request.AtSimTimeUtc));
 
+            ArgumentNullException.ThrowIfNull(request.PreviousState);
+            ArgumentNullException.ThrowIfNull(request.CurrentState);
+
             DateTimeOffset occurredOnUtc = NormalizeOccurredOnUtc(request.OccurredOnUtc);
             var cityId = CityId.From(request.CityId);
             DateOnly currentDate = DateOnly.FromDateTime(request.AtSimTimeUtc.UtcDateTime);
-            WeatherImpactProfile weather = CreateWeatherImpactProfile(request);
+            WeatherImpactProfile previousWeather = CreateWeatherImpactProfile(request.PreviousState);
+            WeatherImpactProfile currentWeather = CreateWeatherImpactProfile(request.CurrentState);
 
             return unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -74,7 +78,8 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                         if (ApplyWeatherImpact(
                                 person: person,
                                 currentDate: currentDate,
-                                weather: weather,
+                                previousWeather: previousWeather,
+                                currentWeather: currentWeather,
                                 weatherImpactPolicy: weatherImpactPolicy))
                             affectedPeopleCount++;
 
@@ -112,13 +117,15 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
         private static bool ApplyWeatherImpact(
             PersonEntity person,
             DateOnly currentDate,
-            WeatherImpactProfile weather,
+            WeatherImpactProfile previousWeather,
+            WeatherImpactProfile currentWeather,
             CityPopulationWeatherImpactPolicy weatherImpactPolicy)
         {
-            PersonWeatherImpact impact = weatherImpactPolicy.Calculate(
+            PersonWeatherImpact impact = weatherImpactPolicy.CalculateDifferential(
                 person: person,
                 currentDate: currentDate,
-                weather: weather);
+                previousWeather: previousWeather,
+                currentWeather: currentWeather);
 
             if (!impact.HasEffect)
                 return false;
@@ -149,17 +156,17 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
             return changed;
         }
 
-        private static WeatherImpactProfile CreateWeatherImpactProfile(ApplyCityWeatherImpactCommand request)
+        private static WeatherImpactProfile CreateWeatherImpactProfile(WeatherImpactSnapshotInput snapshot)
         {
             return new WeatherImpactProfile(
-                Type: ParseWeatherType(request.WeatherType),
-                Severity: ParseWeatherSeverity(request.WeatherSeverity),
-                PrecipitationKind: ParsePrecipitationKind(request.PrecipitationKind),
-                TemperatureC: request.TemperatureC,
-                HumidityPercent: request.HumidityPercent,
-                WindSpeedKph: request.WindSpeedKph,
-                CloudCoveragePercent: request.CloudCoveragePercent,
-                PressureHpa: request.PressureHpa);
+                Type: ParseWeatherType(snapshot.Type),
+                Severity: ParseWeatherSeverity(snapshot.Severity),
+                PrecipitationKind: ParsePrecipitationKind(snapshot.PrecipitationKind),
+                TemperatureC: snapshot.TemperatureC,
+                HumidityPercent: snapshot.HumidityPercent,
+                WindSpeedKph: snapshot.WindSpeedKph,
+                CloudCoveragePercent: snapshot.CloudCoveragePercent,
+                PressureHpa: snapshot.PressureHpa);
         }
 
         private static bool IsOutOfOrder(

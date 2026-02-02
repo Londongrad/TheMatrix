@@ -8,12 +8,6 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
         string ConsumerName,
         DateTimeOffset AtSimTimeUtc,
         DateTime OccurredOnUtc,
-        string WeatherType,
-        string WeatherSeverity,
-        string PrecipitationKind,
-        decimal TemperatureC,
-        decimal HumidityPercent,
-        decimal WindSpeedKph,
-        decimal CloudCoveragePercent,
-        decimal PressureHpa) : IRequest<ApplyCityWeatherImpactResult>;
+        WeatherImpactSnapshotInput PreviousState,
+        WeatherImpactSnapshotInput CurrentState) : IRequest<ApplyCityWeatherImpactResult>;
 }
