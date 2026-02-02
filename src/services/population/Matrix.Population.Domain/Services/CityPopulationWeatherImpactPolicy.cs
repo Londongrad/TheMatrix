@@ -6,17 +6,64 @@ namespace Matrix.Population.Domain.Services
 {
     public sealed class CityPopulationWeatherImpactPolicy
     {
-        public PersonWeatherImpact Calculate(
+        public PersonWeatherImpact CalculateDifferential(
             Person person,
             DateOnly currentDate,
-            WeatherImpactProfile weather)
+            WeatherImpactProfile previousWeather,
+            WeatherImpactProfile currentWeather)
         {
             ArgumentNullException.ThrowIfNull(person);
-            ArgumentNullException.ThrowIfNull(weather);
+            ArgumentNullException.ThrowIfNull(previousWeather);
+            ArgumentNullException.ThrowIfNull(currentWeather);
 
             if (!person.IsAlive)
                 return PersonWeatherImpact.None;
 
+            PersonWeatherImpact previousImpact = CalculateSnapshot(
+                person: person,
+                currentDate: currentDate,
+                weather: previousWeather);
+            PersonWeatherImpact currentImpact = CalculateSnapshot(
+                person: person,
+                currentDate: currentDate,
+                weather: currentWeather);
+
+            int healthDelta = currentImpact.HealthDelta - previousImpact.HealthDelta;
+            int happinessDelta = currentImpact.HappinessDelta - previousImpact.HappinessDelta;
+
+            // Weather changes can worsen health immediately, but improvement should not
+            // magically heal people in a single transition event.
+            healthDelta = Math.Min(0, healthDelta);
+
+            int severityShift = GetSeverityRank(currentWeather.Severity) - GetSeverityRank(previousWeather.Severity);
+            if (severityShift >= 2)
+                happinessDelta -= 1;
+            else if (severityShift <= -2)
+                happinessDelta += 1;
+
+            AgeGroup ageGroup = person.GetAgeGroup(currentDate);
+
+            if (IsAbruptAdverseOnset(previousWeather, currentWeather))
+            {
+                happinessDelta -= 1;
+
+                if (IsWeatherSensitiveAgeGroup(ageGroup))
+                    healthDelta -= 1;
+            }
+
+            if (IsReliefTransition(previousWeather, currentWeather))
+                happinessDelta += 1;
+
+            return new PersonWeatherImpact(
+                HealthDelta: Math.Clamp(healthDelta, min: -4, max: 0),
+                HappinessDelta: Math.Clamp(happinessDelta, min: -6, max: 4));
+        }
+
+        private static PersonWeatherImpact CalculateSnapshot(
+            Person person,
+            DateOnly currentDate,
+            WeatherImpactProfile weather)
+        {
             int healthDelta = GetBaseHealthDelta(weather);
             int happinessDelta = GetBaseHappinessDelta(weather);
 
@@ -61,6 +108,48 @@ namespace Matrix.Population.Domain.Services
             return new PersonWeatherImpact(
                 HealthDelta: healthDelta,
                 HappinessDelta: happinessDelta);
+        }
+
+        private static bool IsAbruptAdverseOnset(
+            WeatherImpactProfile previousWeather,
+            WeatherImpactProfile currentWeather)
+        {
+            return !IsAdverseWeather(previousWeather) &&
+                   IsAdverseWeather(currentWeather) &&
+                   currentWeather.Severity >= PopulationWeatherSeverity.Moderate;
+        }
+
+        private static bool IsReliefTransition(
+            WeatherImpactProfile previousWeather,
+            WeatherImpactProfile currentWeather)
+        {
+            return IsAdverseWeather(previousWeather) &&
+                   previousWeather.Severity >= PopulationWeatherSeverity.Moderate &&
+                   (!IsAdverseWeather(currentWeather) || GetSeverityRank(currentWeather.Severity) < GetSeverityRank(previousWeather.Severity));
+        }
+
+        private static bool IsAdverseWeather(WeatherImpactProfile weather)
+        {
+            return weather.Type is PopulationWeatherType.Rain
+                or PopulationWeatherType.Snow
+                or PopulationWeatherType.Storm
+                or PopulationWeatherType.Fog
+                or PopulationWeatherType.Windy
+                or PopulationWeatherType.Heatwave
+                or PopulationWeatherType.ColdSnap;
+        }
+
+        private static int GetSeverityRank(PopulationWeatherSeverity severity)
+        {
+            return severity switch
+            {
+                PopulationWeatherSeverity.Calm => 0,
+                PopulationWeatherSeverity.Mild => 1,
+                PopulationWeatherSeverity.Moderate => 2,
+                PopulationWeatherSeverity.Severe => 3,
+                PopulationWeatherSeverity.Extreme => 4,
+                _ => -1
+            };
         }
 
         private static int GetBaseHealthDelta(WeatherImpactProfile weather)
