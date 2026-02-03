@@ -41,6 +41,7 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
             services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
+            services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
             services.AddScoped<ICityPopulationWeatherImpactStateRepository, CityPopulationWeatherImpactStateRepository>();
             services.AddScoped<ICityPopulationWeatherExposureStateRepository, CityPopulationWeatherExposureStateRepository>();
