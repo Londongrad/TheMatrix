@@ -265,7 +265,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                     weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
 
                 if (previousEnd > previousStart &&
-                    IsExposureRelevantWeather(previousWeather))
+                    CityWeatherExposureRules.IsAdverseExposureWeather(previousWeather))
                     segments.Add(
                         new CityWeatherExposureSegment(
                             Kind: CityWeatherExposureKind.Adverse,
@@ -280,7 +280,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
 
             if (toSimTimeUtc > currentStart &&
-                IsExposureRelevantWeather(weatherExposureState.CurrentWeather))
+                CityWeatherExposureRules.IsAdverseExposureWeather(weatherExposureState.CurrentWeather))
                 segments.Add(
                     new CityWeatherExposureSegment(
                         Kind: CityWeatherExposureKind.Adverse,
@@ -293,7 +293,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 weatherExposureState.HasRecoverySource &&
                 weatherExposureState.RecoverySourceWeather is WeatherImpactProfile recoverySourceWeather &&
                 weatherExposureState.RecoveryStartedAtSimTimeUtc.HasValue &&
-                IsRecoveryWeather(weatherExposureState.CurrentWeather))
+                CityWeatherExposureRules.IsRecoveryWeather(weatherExposureState.CurrentWeather))
             {
                 DateTimeOffset recoveryStart = Max(
                     currentStart,
@@ -320,21 +320,6 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             return left >= right
                 ? left
                 : right;
-        }
-
-        private static bool IsExposureRelevantWeather(WeatherImpactProfile weather)
-        {
-            return weather.Type is PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap &&
-                   weather.Severity >= PopulationWeatherSeverity.Moderate;
-        }
-
-        private static bool IsRecoveryWeather(WeatherImpactProfile weather)
-        {
-            return weather.Type is PopulationWeatherType.Clear or PopulationWeatherType.Overcast &&
-                   weather.Severity <= PopulationWeatherSeverity.Mild &&
-                   weather.PrecipitationKind == PopulationPrecipitationKind.None &&
-                   weather.WindSpeedKph <= 25m &&
-                   weather.TemperatureC is >= 10m and <= 28m;
         }
 
         private static DateTimeOffset Min(
