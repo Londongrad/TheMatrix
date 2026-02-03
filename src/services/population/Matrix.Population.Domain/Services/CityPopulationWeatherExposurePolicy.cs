@@ -117,16 +117,61 @@ namespace Matrix.Population.Domain.Services
             WeatherImpactProfile weather,
             AgeGroup ageGroup)
         {
-            if (weather.Type is not (PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap))
-                return null;
-
-            if (weather.Severity is PopulationWeatherSeverity.Unknown
-                or PopulationWeatherSeverity.Calm
-                or PopulationWeatherSeverity.Mild)
+            if (!CityWeatherExposureRules.IsAdverseExposureWeather(weather))
                 return null;
 
             bool isSensitive = ageGroup is AgeGroup.Child or AgeGroup.Senior;
+            return weather.Type switch
+            {
+                PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap => CreateTemperatureStressRule(
+                    weather: weather,
+                    isSensitive: isSensitive),
+                PopulationWeatherType.Storm => CreateStormStressRule(
+                    weather: weather,
+                    isSensitive: isSensitive),
+                PopulationWeatherType.Snow => CreateSnowStressRule(
+                    weather: weather,
+                    isSensitive: isSensitive),
+                _ => null
+            };
+        }
 
+        private static RecoveryRule? CreateRecoveryRule(
+            WeatherImpactProfile currentWeather,
+            WeatherImpactProfile sourceWeather,
+            AgeGroup ageGroup)
+        {
+            if (!CityWeatherExposureRules.IsRecoveryWeather(currentWeather))
+                return null;
+
+            if (!CityWeatherExposureRules.IsAdverseExposureWeather(sourceWeather))
+                return null;
+
+            bool comfortableRecoveryWeather = CityWeatherExposureRules.IsComfortableRecoveryWeather(currentWeather);
+            bool isSensitive = ageGroup is AgeGroup.Child or AgeGroup.Senior;
+
+            return sourceWeather.Type switch
+            {
+                PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap => CreateTemperatureRecoveryRule(
+                    sourceWeather: sourceWeather,
+                    comfortableRecoveryWeather: comfortableRecoveryWeather,
+                    isSensitive: isSensitive),
+                PopulationWeatherType.Storm => CreateStormRecoveryRule(
+                    sourceWeather: sourceWeather,
+                    comfortableRecoveryWeather: comfortableRecoveryWeather,
+                    isSensitive: isSensitive),
+                PopulationWeatherType.Snow => CreateSnowRecoveryRule(
+                    sourceWeather: sourceWeather,
+                    comfortableRecoveryWeather: comfortableRecoveryWeather,
+                    isSensitive: isSensitive),
+                _ => null
+            };
+        }
+
+        private static ExposureRule? CreateTemperatureStressRule(
+            WeatherImpactProfile weather,
+            bool isSensitive)
+        {
             decimal stepHours = weather.Severity switch
             {
                 PopulationWeatherSeverity.Moderate => 24m,
@@ -140,13 +185,9 @@ namespace Matrix.Population.Domain.Services
 
             int healthDeltaPerBlock = weather.Severity switch
             {
-                PopulationWeatherSeverity.Moderate => isSensitive
-                    ? -1
-                    : 0,
+                PopulationWeatherSeverity.Moderate => isSensitive ? -1 : 0,
                 PopulationWeatherSeverity.Severe => -1,
-                PopulationWeatherSeverity.Extreme => isSensitive
-                    ? -2
-                    : -1,
+                PopulationWeatherSeverity.Extreme => isSensitive ? -2 : -1,
                 _ => 0
             };
 
@@ -172,21 +213,99 @@ namespace Matrix.Population.Domain.Services
                 HappinessDeltaPerBlock: happinessDeltaPerBlock);
         }
 
-        private static RecoveryRule? CreateRecoveryRule(
-            WeatherImpactProfile currentWeather,
-            WeatherImpactProfile sourceWeather,
-            AgeGroup ageGroup)
+        private static ExposureRule? CreateStormStressRule(
+            WeatherImpactProfile weather,
+            bool isSensitive)
         {
-            if (!IsRecoveryWeather(currentWeather))
+            decimal stepHours = weather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 12m,
+                PopulationWeatherSeverity.Severe => 8m,
+                PopulationWeatherSeverity.Extreme => 6m,
+                _ => decimal.MaxValue
+            };
+
+            if (stepHours == decimal.MaxValue)
                 return null;
 
-            if (sourceWeather.Type is not (PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap) ||
-                sourceWeather.Severity < PopulationWeatherSeverity.Moderate)
+            int healthDeltaPerBlock = weather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => isSensitive ? -1 : 0,
+                PopulationWeatherSeverity.Severe => -1,
+                PopulationWeatherSeverity.Extreme => isSensitive ? -2 : -1,
+                _ => 0
+            };
+
+            int happinessDeltaPerBlock = weather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => -1,
+                PopulationWeatherSeverity.Severe => -2,
+                PopulationWeatherSeverity.Extreme => -2,
+                _ => 0
+            };
+
+            if (weather.WindSpeedKph >= 60m)
+            {
+                healthDeltaPerBlock -= 1;
+                happinessDeltaPerBlock -= 1;
+            }
+
+            return new ExposureRule(
+                StepHours: stepHours,
+                HealthDeltaPerBlock: healthDeltaPerBlock,
+                HappinessDeltaPerBlock: happinessDeltaPerBlock);
+        }
+
+        private static ExposureRule? CreateSnowStressRule(
+            WeatherImpactProfile weather,
+            bool isSensitive)
+        {
+            decimal stepHours = weather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 24m,
+                PopulationWeatherSeverity.Severe => 12m,
+                PopulationWeatherSeverity.Extreme => 8m,
+                _ => decimal.MaxValue
+            };
+
+            if (stepHours == decimal.MaxValue)
                 return null;
 
-            bool comfortableRecoveryWeather = IsComfortableRecoveryWeather(currentWeather);
-            bool isSensitive = ageGroup is AgeGroup.Child or AgeGroup.Senior;
+            int healthDeltaPerBlock = weather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => isSensitive ? -1 : 0,
+                PopulationWeatherSeverity.Severe => -1,
+                PopulationWeatherSeverity.Extreme => isSensitive ? -2 : -1,
+                _ => 0
+            };
 
+            int happinessDeltaPerBlock = weather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => -1,
+                PopulationWeatherSeverity.Severe => -2,
+                PopulationWeatherSeverity.Extreme => -2,
+                _ => 0
+            };
+
+            if (weather.TemperatureC <= -10m)
+            {
+                if (isSensitive)
+                    healthDeltaPerBlock -= 1;
+
+                happinessDeltaPerBlock -= 1;
+            }
+
+            return new ExposureRule(
+                StepHours: stepHours,
+                HealthDeltaPerBlock: healthDeltaPerBlock,
+                HappinessDeltaPerBlock: happinessDeltaPerBlock);
+        }
+
+        private static RecoveryRule? CreateTemperatureRecoveryRule(
+            WeatherImpactProfile sourceWeather,
+            bool comfortableRecoveryWeather,
+            bool isSensitive)
+        {
             decimal stepHours = sourceWeather.Severity switch
             {
                 PopulationWeatherSeverity.Moderate => 24m,
@@ -212,12 +331,110 @@ namespace Matrix.Population.Domain.Services
             int healthDeltaPerBlock = sourceWeather.Severity switch
             {
                 PopulationWeatherSeverity.Moderate => 0,
-                PopulationWeatherSeverity.Severe => comfortableRecoveryWeather && !isSensitive
-                    ? 1
-                    : 0,
-                PopulationWeatherSeverity.Extreme => comfortableRecoveryWeather
-                    ? 1
-                    : 0,
+                PopulationWeatherSeverity.Severe => comfortableRecoveryWeather && !isSensitive ? 1 : 0,
+                PopulationWeatherSeverity.Extreme => comfortableRecoveryWeather ? 1 : 0,
+                _ => 0
+            };
+
+            int happinessDeltaPerBlock = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 1,
+                PopulationWeatherSeverity.Severe => 1,
+                PopulationWeatherSeverity.Extreme => 2,
+                _ => 0
+            };
+
+            if (comfortableRecoveryWeather)
+                happinessDeltaPerBlock += 1;
+
+            return new RecoveryRule(
+                StepHours: stepHours,
+                MaxBlocks: maxBlocks,
+                HealthDeltaPerBlock: healthDeltaPerBlock,
+                HappinessDeltaPerBlock: happinessDeltaPerBlock);
+        }
+
+        private static RecoveryRule? CreateStormRecoveryRule(
+            WeatherImpactProfile sourceWeather,
+            bool comfortableRecoveryWeather,
+            bool isSensitive)
+        {
+            decimal stepHours = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 12m,
+                PopulationWeatherSeverity.Severe => 12m,
+                PopulationWeatherSeverity.Extreme => 8m,
+                _ => decimal.MaxValue
+            };
+
+            if (stepHours == decimal.MaxValue)
+                return null;
+
+            int maxBlocks = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 1,
+                PopulationWeatherSeverity.Severe => 2,
+                PopulationWeatherSeverity.Extreme => 2,
+                _ => 0
+            };
+
+            if (maxBlocks == 0)
+                return null;
+
+            int healthDeltaPerBlock = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Extreme when comfortableRecoveryWeather && !isSensitive => 1,
+                _ => 0
+            };
+
+            int happinessDeltaPerBlock = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 1,
+                PopulationWeatherSeverity.Severe => 1,
+                PopulationWeatherSeverity.Extreme => 2,
+                _ => 0
+            };
+
+            if (comfortableRecoveryWeather)
+                happinessDeltaPerBlock += 1;
+
+            return new RecoveryRule(
+                StepHours: stepHours,
+                MaxBlocks: maxBlocks,
+                HealthDeltaPerBlock: healthDeltaPerBlock,
+                HappinessDeltaPerBlock: happinessDeltaPerBlock);
+        }
+
+        private static RecoveryRule? CreateSnowRecoveryRule(
+            WeatherImpactProfile sourceWeather,
+            bool comfortableRecoveryWeather,
+            bool isSensitive)
+        {
+            decimal stepHours = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 24m,
+                PopulationWeatherSeverity.Severe => 24m,
+                PopulationWeatherSeverity.Extreme => 12m,
+                _ => decimal.MaxValue
+            };
+
+            if (stepHours == decimal.MaxValue)
+                return null;
+
+            int maxBlocks = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Moderate => 1,
+                PopulationWeatherSeverity.Severe => 2,
+                PopulationWeatherSeverity.Extreme => 2,
+                _ => 0
+            };
+
+            if (maxBlocks == 0)
+                return null;
+
+            int healthDeltaPerBlock = sourceWeather.Severity switch
+            {
+                PopulationWeatherSeverity.Extreme when comfortableRecoveryWeather && !isSensitive => 1,
                 _ => 0
             };
 
@@ -247,25 +464,6 @@ namespace Matrix.Population.Domain.Services
                 PopulationWeatherType.ColdSnap => weather.TemperatureC <= -20m,
                 _ => false
             };
-        }
-
-        private static bool IsRecoveryWeather(WeatherImpactProfile weather)
-        {
-            return weather.Type is PopulationWeatherType.Clear or PopulationWeatherType.Overcast &&
-                   weather.Severity <= PopulationWeatherSeverity.Mild &&
-                   weather.PrecipitationKind == PopulationPrecipitationKind.None &&
-                   weather.WindSpeedKph <= 25m &&
-                   weather.TemperatureC is >= 10m and <= 28m;
-        }
-
-        private static bool IsComfortableRecoveryWeather(WeatherImpactProfile weather)
-        {
-            return weather.Type == PopulationWeatherType.Clear &&
-                   weather.Severity <= PopulationWeatherSeverity.Mild &&
-                   weather.TemperatureC is >= 18m and <= 24m &&
-                   weather.HumidityPercent is >= 35m and <= 65m &&
-                   weather.WindSpeedKph <= 20m &&
-                   weather.PrecipitationKind == PopulationPrecipitationKind.None;
         }
 
         private sealed record ExposureRule(

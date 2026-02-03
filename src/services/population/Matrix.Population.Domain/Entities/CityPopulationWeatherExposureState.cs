@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
+using Matrix.Population.Domain.Services;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Entities
@@ -199,8 +200,8 @@ namespace Matrix.Population.Domain.Entities
             LastWeatherOccurredOnUtc = occurredOnUtc;
             UpdatedAtUtc = updatedAtUtc;
 
-            if (IsExposureRelevantWeather(previousCurrentWeather) &&
-                IsRecoveryWeather(currentWeather))
+            if (CityWeatherExposureRules.IsAdverseExposureWeather(previousCurrentWeather) &&
+                CityWeatherExposureRules.IsRecoveryWeather(currentWeather))
             {
                 SetRecoverySource(
                     recoverySourceWeather: previousCurrentWeather,
@@ -208,7 +209,7 @@ namespace Matrix.Population.Domain.Entities
                 return;
             }
 
-            if (!(HasRecoverySource && IsRecoveryWeather(currentWeather)))
+            if (!(HasRecoverySource && CityWeatherExposureRules.IsRecoveryWeather(currentWeather)))
                 ClearRecoverySource();
         }
 
@@ -272,21 +273,6 @@ namespace Matrix.Population.Domain.Entities
             RecoverySourceCloudCoveragePercent = null;
             RecoverySourcePressureHpa = null;
             RecoveryStartedAtSimTimeUtc = null;
-        }
-
-        private static bool IsExposureRelevantWeather(WeatherImpactProfile weather)
-        {
-            return weather.Type is PopulationWeatherType.Heatwave or PopulationWeatherType.ColdSnap &&
-                   weather.Severity >= PopulationWeatherSeverity.Moderate;
-        }
-
-        private static bool IsRecoveryWeather(WeatherImpactProfile weather)
-        {
-            return weather.Type is PopulationWeatherType.Clear or PopulationWeatherType.Overcast &&
-                   weather.Severity <= PopulationWeatherSeverity.Mild &&
-                   weather.PrecipitationKind == PopulationPrecipitationKind.None &&
-                   weather.WindSpeedKph <= 25m &&
-                   weather.TemperatureC is >= 10m and <= 28m;
         }
 
         private static void EnsureUtc(
