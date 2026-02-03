@@ -4,13 +4,15 @@ using Matrix.Population.Domain.Models;
 
 namespace Matrix.Population.Domain.Services
 {
-    public sealed class CityPopulationWeatherImpactPolicy
+    public sealed class CityPopulationWeatherImpactPolicy(
+        CityPopulationClimateAdaptationPolicy climateAdaptationPolicy)
     {
         public PersonWeatherImpact CalculateDifferential(
             Person person,
             DateOnly currentDate,
             WeatherImpactProfile previousWeather,
-            WeatherImpactProfile currentWeather)
+            WeatherImpactProfile currentWeather,
+            CityPopulationEnvironment? environment)
         {
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(previousWeather);
@@ -22,11 +24,15 @@ namespace Matrix.Population.Domain.Services
             PersonWeatherImpact previousImpact = CalculateSnapshot(
                 person: person,
                 currentDate: currentDate,
-                weather: previousWeather);
+                weather: previousWeather,
+                environment: environment,
+                climateAdaptationPolicy: climateAdaptationPolicy);
             PersonWeatherImpact currentImpact = CalculateSnapshot(
                 person: person,
                 currentDate: currentDate,
-                weather: currentWeather);
+                weather: currentWeather,
+                environment: environment,
+                climateAdaptationPolicy: climateAdaptationPolicy);
 
             int healthDelta = currentImpact.HealthDelta - previousImpact.HealthDelta;
             int happinessDelta = currentImpact.HappinessDelta - previousImpact.HappinessDelta;
@@ -62,7 +68,9 @@ namespace Matrix.Population.Domain.Services
         private static PersonWeatherImpact CalculateSnapshot(
             Person person,
             DateOnly currentDate,
-            WeatherImpactProfile weather)
+            WeatherImpactProfile weather,
+            CityPopulationEnvironment? environment,
+            CityPopulationClimateAdaptationPolicy climateAdaptationPolicy)
         {
             int healthDelta = GetBaseHealthDelta(weather);
             int happinessDelta = GetBaseHappinessDelta(weather);
@@ -104,6 +112,18 @@ namespace Matrix.Population.Domain.Services
                     or PopulationWeatherType.Heatwave
                     or PopulationWeatherType.ColdSnap))
                 healthDelta -= 1;
+
+            int toleranceScore = climateAdaptationPolicy.GetToleranceScore(
+                environment: environment,
+                currentDate: currentDate,
+                weatherType: weather.Type);
+
+            healthDelta = climateAdaptationPolicy.AdjustNegativeDelta(
+                delta: healthDelta,
+                toleranceScore: toleranceScore);
+            happinessDelta = climateAdaptationPolicy.AdjustNegativeDelta(
+                delta: happinessDelta,
+                toleranceScore: toleranceScore);
 
             return new PersonWeatherImpact(
                 HealthDelta: healthDelta,

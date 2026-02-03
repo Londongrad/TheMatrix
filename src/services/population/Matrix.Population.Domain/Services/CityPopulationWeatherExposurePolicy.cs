@@ -4,12 +4,14 @@ using Matrix.Population.Domain.Models;
 
 namespace Matrix.Population.Domain.Services
 {
-    public sealed class CityPopulationWeatherExposurePolicy
+    public sealed class CityPopulationWeatherExposurePolicy(
+        CityPopulationClimateAdaptationPolicy climateAdaptationPolicy)
     {
         public PersonWeatherImpact Calculate(
             Person person,
             DateOnly currentDate,
-            CityWeatherExposureSegment segment)
+            CityWeatherExposureSegment segment,
+            CityPopulationEnvironment? environment)
         {
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(segment);
@@ -22,11 +24,15 @@ namespace Matrix.Population.Domain.Services
                 CityWeatherExposureKind.Adverse => CalculateAdverse(
                     person: person,
                     currentDate: currentDate,
-                    segment: segment),
+                    segment: segment,
+                    environment: environment,
+                    climateAdaptationPolicy: climateAdaptationPolicy),
                 CityWeatherExposureKind.Recovery => CalculateRecovery(
                     person: person,
                     currentDate: currentDate,
-                    segment: segment),
+                    segment: segment,
+                    environment: environment,
+                    climateAdaptationPolicy: climateAdaptationPolicy),
                 _ => PersonWeatherImpact.None
             };
         }
@@ -34,7 +40,9 @@ namespace Matrix.Population.Domain.Services
         private static PersonWeatherImpact CalculateAdverse(
             Person person,
             DateOnly currentDate,
-            CityWeatherExposureSegment segment)
+            CityWeatherExposureSegment segment,
+            CityPopulationEnvironment? environment,
+            CityPopulationClimateAdaptationPolicy climateAdaptationPolicy)
         {
             ExposureRule? exposureRule = CreateAdverseRule(
                 weather: segment.Weather,
@@ -43,24 +51,40 @@ namespace Matrix.Population.Domain.Services
             if (exposureRule is null)
                 return PersonWeatherImpact.None;
 
+            int toleranceScore = climateAdaptationPolicy.GetToleranceScore(
+                environment: environment,
+                currentDate: currentDate,
+                weatherType: segment.Weather.Type);
+
+            ExposureRule adaptedRule = new(
+                StepHours: climateAdaptationPolicy.AdjustExposureStepHours(
+                    stepHours: exposureRule.StepHours,
+                    toleranceScore: toleranceScore),
+                HealthDeltaPerBlock: climateAdaptationPolicy.AdjustNegativeDelta(
+                    delta: exposureRule.HealthDeltaPerBlock,
+                    toleranceScore: toleranceScore),
+                HappinessDeltaPerBlock: climateAdaptationPolicy.AdjustNegativeDelta(
+                    delta: exposureRule.HappinessDeltaPerBlock,
+                    toleranceScore: toleranceScore));
+
             decimal startHours = (decimal)(segment.IntervalStartSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
             decimal endHours = (decimal)(segment.IntervalEndSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
 
             if (endHours <= startHours)
                 return PersonWeatherImpact.None;
 
-            int completedBlocksAtStart = (int)Math.Floor(startHours / exposureRule.StepHours);
-            int completedBlocksAtEnd = (int)Math.Floor(endHours / exposureRule.StepHours);
+            int completedBlocksAtStart = (int)Math.Floor(startHours / adaptedRule.StepHours);
+            int completedBlocksAtEnd = (int)Math.Floor(endHours / adaptedRule.StepHours);
             int newlyCompletedBlocks = completedBlocksAtEnd - completedBlocksAtStart;
 
             if (newlyCompletedBlocks <= 0)
                 return PersonWeatherImpact.None;
 
             int healthDelta = Math.Max(
-                val1: newlyCompletedBlocks * exposureRule.HealthDeltaPerBlock,
+                val1: newlyCompletedBlocks * adaptedRule.HealthDeltaPerBlock,
                 val2: -6);
             int happinessDelta = Math.Max(
-                val1: newlyCompletedBlocks * exposureRule.HappinessDeltaPerBlock,
+                val1: newlyCompletedBlocks * adaptedRule.HappinessDeltaPerBlock,
                 val2: -6);
 
             return new PersonWeatherImpact(
@@ -71,7 +95,9 @@ namespace Matrix.Population.Domain.Services
         private static PersonWeatherImpact CalculateRecovery(
             Person person,
             DateOnly currentDate,
-            CityWeatherExposureSegment segment)
+            CityWeatherExposureSegment segment,
+            CityPopulationEnvironment? environment,
+            CityPopulationClimateAdaptationPolicy climateAdaptationPolicy)
         {
             if (segment.SourceWeather is null)
                 return PersonWeatherImpact.None;
@@ -83,6 +109,11 @@ namespace Matrix.Population.Domain.Services
 
             if (recoveryRule is null)
                 return PersonWeatherImpact.None;
+
+            int toleranceScore = climateAdaptationPolicy.GetToleranceScore(
+                environment: environment,
+                currentDate: currentDate,
+                weatherType: segment.SourceWeather.Type);
 
             decimal startHours = (decimal)(segment.IntervalStartSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
             decimal endHours = (decimal)(segment.IntervalEndSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
@@ -104,9 +135,11 @@ namespace Matrix.Population.Domain.Services
             int healthDelta = Math.Min(
                 newlyCompletedBlocks * recoveryRule.HealthDeltaPerBlock,
                 3);
-            int happinessDelta = Math.Min(
-                newlyCompletedBlocks * recoveryRule.HappinessDeltaPerBlock,
-                4);
+            int happinessDelta = climateAdaptationPolicy.AdjustPositiveReliefDelta(
+                delta: Math.Min(
+                    newlyCompletedBlocks * recoveryRule.HappinessDeltaPerBlock,
+                    4),
+                toleranceScore: toleranceScore);
 
             return new PersonWeatherImpact(
                 HealthDelta: healthDelta,
