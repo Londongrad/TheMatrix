@@ -146,6 +146,23 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
                 cancellationToken: cancellationToken);
         }
 
+        public async Task UpdateEnvironmentAsync(
+            Guid cityId,
+            UpdateCityEnvironmentRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/environment";
+
+            using HttpResponseMessage response = await _client.PutAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task RenameCityAsync(
             Guid cityId,
             RenameCityRequest request,

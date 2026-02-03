@@ -41,6 +41,11 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
             FailCityPopulationBootstrapRequest request,
             CancellationToken cancellationToken = default);
 
+        Task UpdateEnvironmentAsync(
+            Guid cityId,
+            UpdateCityEnvironmentRequest request,
+            CancellationToken cancellationToken = default);
+
         Task RenameCityAsync(
             Guid cityId,
             RenameCityRequest request,

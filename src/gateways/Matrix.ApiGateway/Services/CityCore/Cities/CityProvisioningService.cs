@@ -126,6 +126,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                     CurrentDate: DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime),
                     PeopleCount: plannedPeopleCount.Value,
                     RandomSeed: BuildPopulationRandomSeed(city.GenerationSeed),
+                    Environment: new CityPopulationEnvironmentDto(
+                        ClimateZone: city.ClimateZone,
+                        Hemisphere: city.Hemisphere,
+                        UtcOffsetMinutes: city.UtcOffsetMinutes),
                     ResidentialBuildings: buildings
                        .Select(x => new ResidentialBuildingSeedDto(
                             ResidentialBuildingId: x.ResidentialBuildingId,

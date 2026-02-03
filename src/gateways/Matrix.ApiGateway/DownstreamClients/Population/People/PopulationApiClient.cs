@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.DownstreamClients.Common;
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
@@ -31,6 +31,23 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: url);
+        }
+
+        public async Task SyncCityEnvironmentAsync(
+            Guid cityId,
+            SyncCityEnvironmentRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{PopulationBaseEndpoint}/cities/{cityId}/environment";
+
+            using HttpResponseMessage response = await _client.PutAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<PagedResult<PersonDto>> GetCitizensPageAsync(
