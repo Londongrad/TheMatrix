@@ -1,6 +1,8 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.UseCases.Population.Common;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Services;
@@ -12,6 +14,7 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
     public sealed class InitializeCityPopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
         IHouseholdWriteRepository householdWriteRepository,
+        ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         CityPopulationBootstrapGenerator generator,
         IUnitOfWork unitOfWork)
         : IRequestHandler<InitializeCityPopulationCommand, CityPopulationBootstrapSummaryDto>
@@ -41,6 +44,33 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
+                    if (request.Environment is not null)
+                    {
+                        DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                        CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
+
+                        if (environment is null)
+                        {
+                            CityPopulationEnvironment newEnvironment = CityPopulationEnvironmentMapper.Create(
+                                cityId: request.CityId,
+                                input: request.Environment,
+                                createdAtUtc: updatedAtUtc);
+
+                            await cityPopulationEnvironmentRepository.AddAsync(
+                                environment: newEnvironment,
+                                cancellationToken: ct);
+                        }
+                        else
+                        {
+                            CityPopulationEnvironmentMapper.Sync(
+                                environment: environment,
+                                input: request.Environment,
+                                updatedAtUtc: updatedAtUtc);
+                        }
+                    }
+
                     await householdWriteRepository.DeleteByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);

@@ -12,6 +12,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
 {
     public sealed class AdvanceCityPopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
+        ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
@@ -39,6 +40,9 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 throw new ArgumentException("ToSimTimeUtc date cannot be earlier than FromSimTimeUtc date.");
 
             CityPopulationProgressionState? state = await progressionStateRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
             CityPopulationWeatherExposureState? weatherExposureState = await weatherExposureStateRepository.GetByCityAsync(
@@ -87,6 +91,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                                 person: person,
                                 currentDate: toDate,
                                 requiresDateProgression: requiresDateProgression,
+                                environment: environment,
                                 exposureSegments: exposureSegments,
                                 weatherExposurePolicy: weatherExposurePolicy))
                             affectedPeopleCount++;
@@ -132,6 +137,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             PersonEntity person,
             DateOnly currentDate,
             bool requiresDateProgression,
+            CityPopulationEnvironment? environment,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
@@ -147,6 +153,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 if (ApplyWeatherExposure(
                         person: person,
                         currentDate: currentDate,
+                        environment: environment,
                         exposureSegments: exposureSegments,
                         weatherExposurePolicy: weatherExposurePolicy))
                     changed = true;
@@ -174,6 +181,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
         private static bool ApplyWeatherExposure(
             PersonEntity person,
             DateOnly currentDate,
+            CityPopulationEnvironment? environment,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
@@ -188,7 +196,8 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 PersonWeatherImpact impact = weatherExposurePolicy.Calculate(
                     person: person,
                     currentDate: currentDate,
-                    segment: segment);
+                    segment: segment,
+                    environment: environment);
 
                 totalHealthDelta += impact.HealthDelta;
                 totalHappinessDelta += impact.HappinessDelta;

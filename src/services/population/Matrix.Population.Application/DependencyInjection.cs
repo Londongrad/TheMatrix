@@ -15,6 +15,7 @@ namespace Matrix.Population.Application
             Assembly assembly = typeof(DependencyInjection).Assembly;
 
             services.AddSingleton<CityPopulationBootstrapGenerator>();
+            services.AddSingleton<CityPopulationClimateAdaptationPolicy>();
             services.AddSingleton<CityPopulationWeatherImpactPolicy>();
             services.AddSingleton<CityPopulationWeatherExposurePolicy>();
 

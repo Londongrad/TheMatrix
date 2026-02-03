@@ -12,6 +12,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
 {
     public sealed class ApplyCityWeatherImpactCommandHandler(
         IPersonWriteRepository personWriteRepository,
+        ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationWeatherImpactStateRepository weatherImpactStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
         CityPopulationWeatherImpactPolicy weatherImpactPolicy,
@@ -60,6 +61,9 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                     CityPopulationWeatherImpactState? state = await weatherImpactStateRepository.GetByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
+                    CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
 
                     if (IsOutOfOrder(
                             state: state,
@@ -80,6 +84,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                                 currentDate: currentDate,
                                 previousWeather: previousWeather,
                                 currentWeather: currentWeather,
+                                environment: environment,
                                 weatherImpactPolicy: weatherImpactPolicy))
                             affectedPeopleCount++;
 
@@ -119,13 +124,15 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
             DateOnly currentDate,
             WeatherImpactProfile previousWeather,
             WeatherImpactProfile currentWeather,
+            CityPopulationEnvironment? environment,
             CityPopulationWeatherImpactPolicy weatherImpactPolicy)
         {
             PersonWeatherImpact impact = weatherImpactPolicy.CalculateDifferential(
                 person: person,
                 currentDate: currentDate,
                 previousWeather: previousWeather,
-                currentWeather: currentWeather);
+                currentWeather: currentWeather,
+                environment: environment);
 
             if (!impact.HasEffect)
                 return false;

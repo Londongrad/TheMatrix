@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Population.Application.Authorization.Permissions;
+using Matrix.Population.Application.UseCases.Population.Common;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 
@@ -10,6 +11,7 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
         DateOnly CurrentDate,
         int PeopleCount,
         int? RandomSeed,
+        CityPopulationEnvironmentInput? Environment,
         IReadOnlyCollection<ResidentialBuildingSeedItem> ResidentialBuildings)
         : IRequest<CityPopulationBootstrapSummaryDto>, IRequirePermission
     {
