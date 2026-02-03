@@ -1,6 +1,8 @@
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.UseCases.Population.Common;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
 using Matrix.Population.Application.UseCases.Population.InitializeCityPopulation;
+using Matrix.Population.Application.UseCases.Population.SyncCityEnvironment;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -36,10 +38,35 @@ namespace Matrix.Population.Api.Controllers
                     CurrentDate: request.CurrentDate,
                     PeopleCount: request.PeopleCount,
                     RandomSeed: request.RandomSeed,
+                    Environment: request.Environment is null
+                        ? null
+                        : new CityPopulationEnvironmentInput(
+                            ClimateZone: request.Environment.ClimateZone,
+                            Hemisphere: request.Environment.Hemisphere,
+                            UtcOffsetMinutes: request.Environment.UtcOffsetMinutes),
                     ResidentialBuildings: residentialBuildings),
                 cancellationToken: cancellationToken);
 
             return Ok(result);
+        }
+
+        [HttpPut("cities/{cityId:guid}/environment")]
+        public async Task<IActionResult> SyncCityEnvironment(
+            [FromRoute] Guid cityId,
+            [FromBody] SyncCityEnvironmentRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            await _sender.Send(
+                request: new SyncCityEnvironmentCommand(
+                    CityId: cityId,
+                    ClimateZone: request.ClimateZone,
+                    Hemisphere: request.Hemisphere,
+                    UtcOffsetMinutes: request.UtcOffsetMinutes),
+                cancellationToken: cancellationToken);
+
+            return NoContent();
         }
 
         [HttpGet("citizens")]

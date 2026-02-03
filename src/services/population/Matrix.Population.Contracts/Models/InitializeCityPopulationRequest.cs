@@ -5,5 +5,6 @@ namespace Matrix.Population.Contracts.Models
         DateOnly CurrentDate,
         int PeopleCount,
         int? RandomSeed,
+        CityPopulationEnvironmentDto? Environment,
         IReadOnlyCollection<ResidentialBuildingSeedDto>? ResidentialBuildings);
 }
