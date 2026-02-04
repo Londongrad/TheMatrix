@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Contracts.Events;
 using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Events.Cities;
 using Matrix.CityCore.Domain.Events.Weather;
 using Matrix.CityCore.Domain.Simulation;
 using Matrix.CityCore.Domain.Weather;
@@ -12,6 +13,45 @@ namespace Matrix.CityCore.Infrastructure.Outbox
 {
     public sealed class CityCoreOutboxWriter(CityCoreDbContext dbContext) : ICityCoreOutboxWriter
     {
+        public Task AddCityEventsAsync(
+            IReadOnlyCollection<IDomainEvent> domainEvents,
+            CancellationToken cancellationToken)
+        {
+            if (domainEvents.Count == 0)
+                return Task.CompletedTask;
+
+            DateTimeOffset occurredOnUtc = DateTimeOffset.UtcNow;
+
+            foreach (IDomainEvent domainEvent in domainEvents)
+            {
+                OutboxMessage? message = domainEvent switch
+                {
+                    CityCreatedDomainEvent created => OutboxMessage.Create(
+                        type: IntegrationEventTypes.CityEnvironmentChangedV1,
+                        occurredOnUtc: occurredOnUtc.UtcDateTime,
+                        payload: new CityEnvironmentChangedV1(
+                            CityId: created.CityId.Value,
+                            PreviousEnvironment: null,
+                            CurrentEnvironment: ToCityEnvironment(created.Environment),
+                            OccurredOnUtc: occurredOnUtc)),
+                    CityEnvironmentChangedDomainEvent changed => OutboxMessage.Create(
+                        type: IntegrationEventTypes.CityEnvironmentChangedV1,
+                        occurredOnUtc: occurredOnUtc.UtcDateTime,
+                        payload: new CityEnvironmentChangedV1(
+                            CityId: changed.CityId.Value,
+                            PreviousEnvironment: ToCityEnvironment(changed.From),
+                            CurrentEnvironment: ToCityEnvironment(changed.To),
+                            OccurredOnUtc: occurredOnUtc)),
+                    _ => null
+                };
+
+                if (message is not null)
+                    dbContext.OutboxMessages.Add(message);
+            }
+
+            return Task.CompletedTask;
+        }
+
         public Task AddCityTimeAdvancedAsync(
             CityId cityId,
             SimTime from,
@@ -143,6 +183,14 @@ namespace Matrix.CityCore.Infrastructure.Outbox
                 SupportsSnowstorms: profile.ExtremeWeatherProfile.SupportsSnowstorms,
                 SupportsFog: profile.ExtremeWeatherProfile.SupportsFog,
                 SupportsHeatwaves: profile.ExtremeWeatherProfile.SupportsHeatwaves);
+        }
+
+        private static CityEnvironmentV1 ToCityEnvironment(CityEnvironment environment)
+        {
+            return new CityEnvironmentV1(
+                ClimateZone: environment.ClimateZone.ToString(),
+                Hemisphere: environment.Hemisphere.ToString(),
+                UtcOffsetMinutes: environment.UtcOffset.TotalMinutes);
         }
     }
 }

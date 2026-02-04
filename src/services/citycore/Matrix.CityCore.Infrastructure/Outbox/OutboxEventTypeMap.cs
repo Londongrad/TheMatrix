@@ -7,6 +7,7 @@ namespace Matrix.CityCore.Infrastructure.Outbox
         public static readonly IReadOnlyDictionary<string, Type> Map =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
+                [CityCoreEventTypes.CityEnvironmentChangedV1] = typeof(CityEnvironmentChangedV1),
                 [CityCoreEventTypes.CityTimeAdvancedV1] = typeof(CityTimeAdvancedV1),
                 [CityCoreEventTypes.CityWeatherCreatedV1] = typeof(CityWeatherCreatedV1),
                 [CityCoreEventTypes.CityWeatherChangedV1] = typeof(CityWeatherChangedV1),
