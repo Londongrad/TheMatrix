@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
+using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Cities.Enums;
@@ -9,6 +10,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment
 {
     public sealed class UpdateCityEnvironmentCommandHandler(
         ICityRepository cityRepository,
+        ICityCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<UpdateCityEnvironmentCommand, bool>
     {
         public async Task<bool> Handle(
@@ -36,6 +38,10 @@ namespace Matrix.CityCore.Application.UseCases.Cities.UpdateCityEnvironment
                 utcOffset: CityUtcOffset.FromMinutes(request.UtcOffsetMinutes));
 
             city.ChangeEnvironment(environment);
+            await outboxWriter.AddCityEventsAsync(
+                domainEvents: city.DomainEvents,
+                cancellationToken: cancellationToken);
+            city.ClearDomainEvents();
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
         }

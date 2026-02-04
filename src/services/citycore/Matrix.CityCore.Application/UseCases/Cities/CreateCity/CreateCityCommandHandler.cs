@@ -114,10 +114,14 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                     await clockRepository.AddAsync(
                         clock: clock,
                         cancellationToken: ct);
+                    await outboxWriter.AddCityEventsAsync(
+                        domainEvents: city.DomainEvents,
+                        cancellationToken: ct);
                     await outboxWriter.AddWeatherEventsAsync(
                         domainEvents: cityWeather.DomainEvents,
                         cancellationToken: ct);
 
+                    city.ClearDomainEvents();
                     cityWeather.ClearDomainEvents();
                     await unitOfWork.SaveChangesAsync(ct);
                 },
