@@ -26,6 +26,12 @@ namespace Matrix.CityCore.Infrastructure.Outbox
             {
                 OutboxMessage? message = domainEvent switch
                 {
+                    CityDeletedDomainEvent deleted => OutboxMessage.Create(
+                        type: IntegrationEventTypes.CityDeletedV1,
+                        occurredOnUtc: occurredOnUtc.UtcDateTime,
+                        payload: new CityDeletedV1(
+                            CityId: deleted.CityId.Value,
+                            DeletedAtUtc: deleted.DeletedAtUtc)),
                     CityCreatedDomainEvent created => OutboxMessage.Create(
                         type: IntegrationEventTypes.CityEnvironmentChangedV1,
                         occurredOnUtc: occurredOnUtc.UtcDateTime,

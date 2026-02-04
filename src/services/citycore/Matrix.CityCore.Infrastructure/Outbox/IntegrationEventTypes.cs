@@ -4,6 +4,7 @@ namespace Matrix.CityCore.Infrastructure.Outbox
 {
     public static class IntegrationEventTypes
     {
+        public const string CityDeletedV1 = CityCoreEventTypes.CityDeletedV1;
         public const string CityEnvironmentChangedV1 = CityCoreEventTypes.CityEnvironmentChangedV1;
         public const string CityTimeAdvancedV1 = CityCoreEventTypes.CityTimeAdvancedV1;
         public const string CityWeatherCreatedV1 = CityCoreEventTypes.CityWeatherCreatedV1;
