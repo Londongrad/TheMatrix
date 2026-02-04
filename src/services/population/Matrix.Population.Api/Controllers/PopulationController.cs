@@ -23,6 +23,7 @@ namespace Matrix.Population.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Environment);
 
             IReadOnlyCollection<ResidentialBuildingSeedItem> residentialBuildings =
                 (request.ResidentialBuildings ?? Array.Empty<ResidentialBuildingSeedDto>())
@@ -38,12 +39,10 @@ namespace Matrix.Population.Api.Controllers
                     CurrentDate: request.CurrentDate,
                     PeopleCount: request.PeopleCount,
                     RandomSeed: request.RandomSeed,
-                    Environment: request.Environment is null
-                        ? null
-                        : new CityPopulationEnvironmentInput(
-                            ClimateZone: request.Environment.ClimateZone,
-                            Hemisphere: request.Environment.Hemisphere,
-                            UtcOffsetMinutes: request.Environment.UtcOffsetMinutes),
+                    Environment: new CityPopulationEnvironmentInput(
+                        ClimateZone: request.Environment.ClimateZone,
+                        Hemisphere: request.Environment.Hemisphere,
+                        UtcOffsetMinutes: request.Environment.UtcOffsetMinutes),
                     ResidentialBuildings: residentialBuildings),
                 cancellationToken: cancellationToken);
 
