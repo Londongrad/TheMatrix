@@ -52,6 +52,7 @@ namespace Matrix.Population.Infrastructure
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddConsumer<CityEnvironmentChangedConsumer, CityEnvironmentChangedConsumerDefinition>();
                 x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
                 x.AddConsumer<CityWeatherCreatedConsumer, CityWeatherCreatedConsumerDefinition>();
                 x.AddConsumer<CityWeatherChangedConsumer, CityWeatherChangedConsumerDefinition>();
