@@ -9,29 +9,64 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
 {
     public sealed class SyncCityEnvironmentCommandHandler(
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
-        IUnitOfWork unitOfWork) : IRequestHandler<SyncCityEnvironmentCommand>
+        IUnitOfWork unitOfWork)
+        : IRequestHandler<SyncCityEnvironmentCommand, SyncCityEnvironmentResult>,
+            IRequestHandler<ApplyCityEnvironmentSyncCommand, SyncCityEnvironmentResult>
     {
-        public async Task Handle(
+        public async Task<SyncCityEnvironmentResult> Handle(
             SyncCityEnvironmentCommand request,
             CancellationToken cancellationToken)
         {
-            if (request.CityId == Guid.Empty)
-                throw new ArgumentException("CityId cannot be empty.", nameof(request.CityId));
+            return await HandleInternal(
+                cityIdValue: request.CityId,
+                climateZone: request.ClimateZone,
+                hemisphere: request.Hemisphere,
+                utcOffsetMinutes: request.UtcOffsetMinutes,
+                syncedAtUtcValue: request.SyncedAtUtc,
+                cancellationToken: cancellationToken);
+        }
 
-            ArgumentException.ThrowIfNullOrWhiteSpace(request.ClimateZone);
-            ArgumentException.ThrowIfNullOrWhiteSpace(request.Hemisphere);
+        public async Task<SyncCityEnvironmentResult> Handle(
+            ApplyCityEnvironmentSyncCommand request,
+            CancellationToken cancellationToken)
+        {
+            return await HandleInternal(
+                cityIdValue: request.CityId,
+                climateZone: request.ClimateZone,
+                hemisphere: request.Hemisphere,
+                utcOffsetMinutes: request.UtcOffsetMinutes,
+                syncedAtUtcValue: request.SyncedAtUtc,
+                cancellationToken: cancellationToken);
+        }
 
-            CityId cityId = CityId.From(request.CityId);
+        private async Task<SyncCityEnvironmentResult> HandleInternal(
+            Guid cityIdValue,
+            string climateZone,
+            string hemisphere,
+            int utcOffsetMinutes,
+            DateTimeOffset? syncedAtUtcValue,
+            CancellationToken cancellationToken)
+        {
+            if (cityIdValue == Guid.Empty)
+                throw new ArgumentException("CityId cannot be empty.", nameof(cityIdValue));
+
+            ArgumentException.ThrowIfNullOrWhiteSpace(climateZone);
+            ArgumentException.ThrowIfNullOrWhiteSpace(hemisphere);
+
+            CityId cityId = CityId.From(cityIdValue);
+            DateTimeOffset syncedAtUtc = syncedAtUtcValue ?? DateTimeOffset.UtcNow;
+
+            if (syncedAtUtc.Offset != TimeSpan.Zero)
+                throw new ArgumentException("SyncedAtUtc must be UTC.", nameof(syncedAtUtcValue));
+
             var input = new CityPopulationEnvironmentInput(
-                ClimateZone: request.ClimateZone,
-                Hemisphere: request.Hemisphere,
-                UtcOffsetMinutes: request.UtcOffsetMinutes);
+                ClimateZone: climateZone,
+                Hemisphere: hemisphere,
+                UtcOffsetMinutes: utcOffsetMinutes);
 
-            await unitOfWork.ExecuteInTransactionAsync(
+            return await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
-                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
-
                     CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
@@ -39,23 +74,36 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
                     if (environment is null)
                     {
                         CityPopulationEnvironment newEnvironment = CityPopulationEnvironmentMapper.Create(
-                            cityId: request.CityId,
+                            cityId: cityIdValue,
                             input: input,
-                            createdAtUtc: updatedAtUtc);
+                            createdAtUtc: syncedAtUtc);
 
                         await cityPopulationEnvironmentRepository.AddAsync(
                             environment: newEnvironment,
                             cancellationToken: ct);
-                    }
-                    else
-                    {
-                        CityPopulationEnvironmentMapper.Sync(
-                            environment: environment,
-                            input: input,
-                            updatedAtUtc: updatedAtUtc);
+
+                        await unitOfWork.SaveChangesAsync(ct);
+
+                        return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Applied);
                     }
 
+                    if (syncedAtUtc < environment.UpdatedAtUtc)
+                        return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Stale);
+
+                    if (syncedAtUtc == environment.UpdatedAtUtc &&
+                        environment.ClimateZone == CityPopulationEnvironmentMapper.ParseClimateZone(input.ClimateZone) &&
+                        environment.Hemisphere == CityPopulationEnvironmentMapper.ParseHemisphere(input.Hemisphere) &&
+                        environment.UtcOffsetMinutes == input.UtcOffsetMinutes)
+                        return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Duplicate);
+
+                    CityPopulationEnvironmentMapper.Sync(
+                        environment: environment,
+                        input: input,
+                        updatedAtUtc: syncedAtUtc);
+
                     await unitOfWork.SaveChangesAsync(ct);
+
+                    return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Applied);
                 },
                 cancellationToken: cancellationToken);
         }

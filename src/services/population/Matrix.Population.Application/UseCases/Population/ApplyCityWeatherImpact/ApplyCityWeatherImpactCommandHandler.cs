@@ -6,6 +6,7 @@ using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Services;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
 
 namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact
@@ -16,6 +17,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
         ICityPopulationWeatherImpactStateRepository weatherImpactStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
         CityPopulationWeatherImpactPolicy weatherImpactPolicy,
+        ILogger<ApplyCityWeatherImpactCommandHandler> logger,
         IUnitOfWork unitOfWork)
         : IRequestHandler<ApplyCityWeatherImpactCommand, ApplyCityWeatherImpactResult>
     {
@@ -64,6 +66,11 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                     CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
+
+                    if (environment is null)
+                        logger.LogWarning(
+                            message: "Applying city weather impact without synced environment for cityId={CityId}. Climate adaptation will be neutral.",
+                            request.CityId);
 
                     if (IsOutOfOrder(
                             state: state,

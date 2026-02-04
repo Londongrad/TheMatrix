@@ -11,7 +11,7 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
         DateOnly CurrentDate,
         int PeopleCount,
         int? RandomSeed,
-        CityPopulationEnvironmentInput? Environment,
+        CityPopulationEnvironmentInput Environment,
         IReadOnlyCollection<ResidentialBuildingSeedItem> ResidentialBuildings)
         : IRequest<CityPopulationBootstrapSummaryDto>, IRequirePermission
     {

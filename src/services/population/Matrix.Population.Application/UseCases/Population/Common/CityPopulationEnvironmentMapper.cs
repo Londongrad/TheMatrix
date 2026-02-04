@@ -31,7 +31,7 @@ namespace Matrix.Population.Application.UseCases.Population.Common
                 updatedAtUtc: updatedAtUtc);
         }
 
-        private static PopulationClimateZone ParseClimateZone(string value)
+        internal static PopulationClimateZone ParseClimateZone(string value)
         {
             return Enum.TryParse(
                        value: value,
@@ -41,7 +41,7 @@ namespace Matrix.Population.Application.UseCases.Population.Common
                 : PopulationClimateZone.Unknown;
         }
 
-        private static PopulationHemisphere ParseHemisphere(string value)
+        internal static PopulationHemisphere ParseHemisphere(string value)
         {
             return Enum.TryParse(
                        value: value,

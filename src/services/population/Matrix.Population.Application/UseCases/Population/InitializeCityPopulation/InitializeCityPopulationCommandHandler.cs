@@ -24,6 +24,7 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
             CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Environment);
 
             var cityId = CityId.From(request.CityId);
             IReadOnlyCollection<ResidentialBuildingResidence> residentialBuildings = request.ResidentialBuildings
@@ -44,31 +45,28 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
-                    if (request.Environment is not null)
+                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                    CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+
+                    if (environment is null)
                     {
-                        DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
-                        CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
-                            cityId: cityId,
+                        CityPopulationEnvironment newEnvironment = CityPopulationEnvironmentMapper.Create(
+                            cityId: request.CityId,
+                            input: request.Environment,
+                            createdAtUtc: updatedAtUtc);
+
+                        await cityPopulationEnvironmentRepository.AddAsync(
+                            environment: newEnvironment,
                             cancellationToken: ct);
-
-                        if (environment is null)
-                        {
-                            CityPopulationEnvironment newEnvironment = CityPopulationEnvironmentMapper.Create(
-                                cityId: request.CityId,
-                                input: request.Environment,
-                                createdAtUtc: updatedAtUtc);
-
-                            await cityPopulationEnvironmentRepository.AddAsync(
-                                environment: newEnvironment,
-                                cancellationToken: ct);
-                        }
-                        else
-                        {
-                            CityPopulationEnvironmentMapper.Sync(
-                                environment: environment,
-                                input: request.Environment,
-                                updatedAtUtc: updatedAtUtc);
-                        }
+                    }
+                    else
+                    {
+                        CityPopulationEnvironmentMapper.Sync(
+                            environment: environment,
+                            input: request.Environment,
+                            updatedAtUtc: updatedAtUtc);
                     }
 
                     await householdWriteRepository.DeleteByCityAsync(

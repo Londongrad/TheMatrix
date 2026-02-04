@@ -6,6 +6,7 @@ using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Services;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
 
 namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulation
@@ -16,6 +17,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
+        ILogger<AdvanceCityPopulationCommandHandler> logger,
         IUnitOfWork unitOfWork)
         : IRequestHandler<AdvanceCityPopulationCommand, AdvanceCityPopulationResult>
     {
@@ -76,6 +78,11 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                     toSimTimeUtc: request.ToSimTimeUtc)
                 : [];
             bool requiresWeatherExposure = exposureSegments.Count > 0;
+
+            if ((requiresDateProgression || requiresWeatherExposure) && environment is null)
+                logger.LogWarning(
+                    message: "Advancing city population without synced environment for cityId={CityId}. Climate adaptation will be neutral.",
+                    request.CityId);
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>

@@ -8,7 +8,8 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
         Guid CityId,
         string ClimateZone,
         string Hemisphere,
-        int UtcOffsetMinutes) : IRequest, IRequirePermission
+        int UtcOffsetMinutes,
+        DateTimeOffset? SyncedAtUtc = null) : IRequest<SyncCityEnvironmentResult>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.PopulationPeopleInitialize;
     }
