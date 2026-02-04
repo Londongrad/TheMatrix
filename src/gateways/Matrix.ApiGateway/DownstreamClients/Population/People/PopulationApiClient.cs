@@ -33,23 +33,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
                 requestUrl: url);
         }
 
-        public async Task SyncCityEnvironmentAsync(
-            Guid cityId,
-            SyncCityEnvironmentRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            string url = $"{PopulationBaseEndpoint}/cities/{cityId}/environment";
-
-            using HttpResponseMessage response = await _client.PutAsJsonAsync(
-                requestUri: url,
-                value: request,
-                cancellationToken: cancellationToken);
-
-            await response.EnsureSuccessOrThrowDownstreamAsync(
-                serviceName: ServiceName,
-                cancellationToken: cancellationToken);
-        }
-
         public async Task<PagedResult<PersonDto>> GetCitizensPageAsync(
             int pageNumber,
             int pageSize,

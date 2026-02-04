@@ -9,11 +9,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             InitializeCityPopulationRequest request,
             CancellationToken cancellationToken = default);
 
-        Task SyncCityEnvironmentAsync(
-            Guid cityId,
-            SyncCityEnvironmentRequest request,
-            CancellationToken cancellationToken = default);
-
         Task<PagedResult<PersonDto>> GetCitizensPageAsync(
             int pageNumber,
             int pageSize,

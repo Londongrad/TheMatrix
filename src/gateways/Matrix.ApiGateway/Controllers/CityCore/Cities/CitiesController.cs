@@ -1,10 +1,8 @@
 using Matrix.ApiGateway.Contracts.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
-using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.Services.CityCore.Cities;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
-using Matrix.Population.Contracts.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,11 +13,9 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
     [Route("api/cities")]
     public sealed class CitiesController(
         ICitiesApiClient citiesClient,
-        IPopulationApiClient populationClient,
         ICityProvisioningService cityProvisioningService) : ControllerBase
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
-        private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
 
         [HttpPost]
@@ -93,14 +89,6 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
             await _citiesClient.UpdateEnvironmentAsync(
                 cityId: cityId,
                 request: request,
-                cancellationToken: cancellationToken);
-
-            await _populationClient.SyncCityEnvironmentAsync(
-                cityId: cityId,
-                request: new SyncCityEnvironmentRequest(
-                    ClimateZone: request.ClimateZone,
-                    Hemisphere: request.Hemisphere,
-                    UtcOffsetMinutes: request.UtcOffsetMinutes),
                 cancellationToken: cancellationToken);
 
             return NoContent();
