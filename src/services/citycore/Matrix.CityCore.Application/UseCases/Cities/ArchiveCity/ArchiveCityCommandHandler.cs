@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Cities;
@@ -9,6 +10,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.ArchiveCity
     public sealed class ArchiveCityCommandHandler(
         ICityRepository cityRepository,
         ISimulationClockMutationExecutor simulationClockMutationExecutor,
+        ICityCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : IRequestHandler<ArchiveCityCommand, bool>
     {
         public async Task<bool> Handle(
@@ -39,6 +41,10 @@ namespace Matrix.CityCore.Application.UseCases.Cities.ArchiveCity
                 return city is not null;
 
             city.Archive(DateTimeOffset.UtcNow);
+            await outboxWriter.AddCityEventsAsync(
+                domainEvents: city.DomainEvents,
+                cancellationToken: cancellationToken);
+            city.ClearDomainEvents();
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
         }
