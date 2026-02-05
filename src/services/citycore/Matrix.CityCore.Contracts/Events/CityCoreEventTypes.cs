@@ -2,6 +2,7 @@ namespace Matrix.CityCore.Contracts.Events
 {
     public static class CityCoreEventTypes
     {
+        public const string CityDeletedV1 = "citycore.city-deleted.v1";
         public const string CityEnvironmentChangedV1 = "citycore.city-environment-changed.v1";
         public const string CityTimeAdvancedV1 = "citycore.city-time-advanced.v1";
         public const string CityWeatherCreatedV1 = "citycore.city-weather-created.v1";
