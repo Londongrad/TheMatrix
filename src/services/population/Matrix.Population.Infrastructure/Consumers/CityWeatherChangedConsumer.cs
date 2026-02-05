@@ -102,6 +102,13 @@ namespace Matrix.Population.Infrastructure.Consumers
                         message.CityId,
                         context.MessageId);
                     break;
+
+                case ApplyCityWeatherImpactStatus.CityArchived:
+                    logger.LogDebug(
+                        message: "Skipped city weather impact for archived cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
             }
 
             switch (syncResult.Status)
@@ -116,6 +123,13 @@ namespace Matrix.Population.Infrastructure.Consumers
                 case SyncCityWeatherExposureStateStatus.CityDeleted:
                     logger.LogDebug(
                         message: "Skipped city weather exposure sync for deleted cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
+
+                case SyncCityWeatherExposureStateStatus.CityArchived:
+                    logger.LogDebug(
+                        message: "Skipped city weather exposure sync for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;

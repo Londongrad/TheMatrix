@@ -41,6 +41,7 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
             services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
+            services.AddScoped<ICityPopulationArchiveStateRepository, CityPopulationArchiveStateRepository>();
             services.AddScoped<ICityPopulationDeletionStateRepository, CityPopulationDeletionStateRepository>();
             services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
@@ -53,6 +54,7 @@ namespace Matrix.Population.Infrastructure
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddConsumer<CityArchivedConsumer, CityArchivedConsumerDefinition>();
                 x.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
                 x.AddConsumer<CityEnvironmentChangedConsumer, CityEnvironmentChangedConsumerDefinition>();
                 x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();

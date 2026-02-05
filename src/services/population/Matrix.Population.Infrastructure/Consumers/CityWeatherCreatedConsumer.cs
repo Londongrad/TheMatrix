@@ -66,6 +66,13 @@ namespace Matrix.Population.Infrastructure.Consumers
                         message.CityId,
                         context.MessageId);
                     break;
+
+                case SyncCityWeatherExposureStateStatus.CityArchived:
+                    logger.LogDebug(
+                        message: "Skipped city weather exposure initialization for archived cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
             }
         }
     }
