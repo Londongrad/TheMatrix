@@ -4,6 +4,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
     {
         Applied = 0,
         Duplicate = 1,
-        OutOfOrder = 2
+        OutOfOrder = 2,
+        CityDeleted = 3
     }
 }

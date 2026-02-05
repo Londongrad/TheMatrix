@@ -8,6 +8,7 @@ using MediatR;
 namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
 {
     public sealed class SyncCityEnvironmentCommandHandler(
+        ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         IUnitOfWork unitOfWork)
         : IRequestHandler<SyncCityEnvironmentCommand, SyncCityEnvironmentResult>,
@@ -70,6 +71,12 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
                     CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
+                    CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+
+                    if (deletionState is not null)
+                        return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.CityDeleted);
 
                     if (environment is null)
                     {

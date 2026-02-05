@@ -12,5 +12,9 @@ namespace Matrix.Population.Application.Abstractions
         Task AddAsync(
             CityPopulationWeatherImpactState state,
             CancellationToken cancellationToken = default);
+
+        Task DeleteByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default);
     }
 }

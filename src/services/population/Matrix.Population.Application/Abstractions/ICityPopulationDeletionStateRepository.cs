@@ -3,18 +3,14 @@ using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Application.Abstractions
 {
-    public interface ICityPopulationProgressionStateRepository
+    public interface ICityPopulationDeletionStateRepository
     {
-        Task<CityPopulationProgressionState?> GetByCityAsync(
+        Task<CityPopulationDeletionState?> GetByCityAsync(
             CityId cityId,
             CancellationToken cancellationToken = default);
 
         Task AddAsync(
-            CityPopulationProgressionState state,
-            CancellationToken cancellationToken = default);
-
-        Task DeleteByCityAsync(
-            CityId cityId,
+            CityPopulationDeletionState state,
             CancellationToken cancellationToken = default);
     }
 }

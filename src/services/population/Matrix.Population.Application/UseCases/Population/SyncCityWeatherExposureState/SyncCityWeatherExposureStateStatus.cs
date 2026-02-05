@@ -4,6 +4,7 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
     {
         Applied = 0,
         Duplicate = 1,
-        OutOfOrder = 2
+        OutOfOrder = 2,
+        CityDeleted = 3
     }
 }

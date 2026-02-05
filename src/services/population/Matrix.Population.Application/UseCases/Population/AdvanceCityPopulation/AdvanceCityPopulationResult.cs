@@ -4,7 +4,8 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
     {
         Applied = 1,
         Duplicate = 2,
-        OutOfOrder = 3
+        OutOfOrder = 3,
+        CityDeleted = 4
     }
 
     public sealed record AdvanceCityPopulationResult(

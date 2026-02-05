@@ -14,6 +14,7 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
     public sealed class InitializeCityPopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
         IHouseholdWriteRepository householdWriteRepository,
+        ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         CityPopulationBootstrapGenerator generator,
         IUnitOfWork unitOfWork)
@@ -27,6 +28,14 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
             ArgumentNullException.ThrowIfNull(request.Environment);
 
             var cityId = CityId.From(request.CityId);
+            CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            if (deletionState is not null)
+                throw new InvalidOperationException(
+                    $"Cannot initialize population for deleted city '{request.CityId}'.");
+
             IReadOnlyCollection<ResidentialBuildingResidence> residentialBuildings = request.ResidentialBuildings
                .Select(x => new ResidentialBuildingResidence(
                     residentialBuildingId: ResidentialBuildingId.From(x.ResidentialBuildingId),
