@@ -14,6 +14,7 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
     public sealed class InitializeCityPopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
         IHouseholdWriteRepository householdWriteRepository,
+        ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         CityPopulationBootstrapGenerator generator,
@@ -28,9 +29,16 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
             ArgumentNullException.ThrowIfNull(request.Environment);
 
             var cityId = CityId.From(request.CityId);
+            CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
             CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
+
+            if (archiveState is not null)
+                throw new InvalidOperationException(
+                    $"Cannot initialize population for archived city '{request.CityId}'.");
 
             if (deletionState is not null)
                 throw new InvalidOperationException(

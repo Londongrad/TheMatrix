@@ -13,6 +13,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
 {
     public sealed class ApplyCityWeatherImpactCommandHandler(
         IPersonWriteRepository personWriteRepository,
+        ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationWeatherImpactStateRepository weatherImpactStateRepository,
@@ -68,6 +69,15 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                     if (deletionState is not null)
                         return new ApplyCityWeatherImpactResult(
                             Status: ApplyCityWeatherImpactStatus.CityDeleted,
+                            AffectedPeopleCount: 0);
+
+                    CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+
+                    if (archiveState is not null)
+                        return new ApplyCityWeatherImpactResult(
+                            Status: ApplyCityWeatherImpactStatus.CityArchived,
                             AffectedPeopleCount: 0);
 
                     CityPopulationWeatherImpactState? state = await weatherImpactStateRepository.GetByCityAsync(

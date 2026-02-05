@@ -8,6 +8,7 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
 {
     public sealed class DeleteCityPopulationDataCommandHandler(
         IHouseholdWriteRepository householdWriteRepository,
+        ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationProgressionStateRepository cityPopulationProgressionStateRepository,
         ICityPopulationWeatherImpactStateRepository cityPopulationWeatherImpactStateRepository,
@@ -55,6 +56,9 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
                         return new DeleteCityPopulationDataResult(DeleteCityPopulationDataStatus.Stale);
 
                     await householdWriteRepository.DeleteByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+                    await cityPopulationArchiveStateRepository.DeleteByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
                     await cityPopulationEnvironmentRepository.DeleteByCityAsync(

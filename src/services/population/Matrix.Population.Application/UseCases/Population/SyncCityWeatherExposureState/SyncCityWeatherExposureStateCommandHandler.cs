@@ -10,6 +10,7 @@ using MediatR;
 namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExposureState
 {
     public sealed class SyncCityWeatherExposureStateCommandHandler(
+        ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
@@ -58,6 +59,14 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
                     if (deletionState is not null)
                         return new SyncCityWeatherExposureStateResult(
                             Status: SyncCityWeatherExposureStateStatus.CityDeleted);
+
+                    CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+
+                    if (archiveState is not null)
+                        return new SyncCityWeatherExposureStateResult(
+                            Status: SyncCityWeatherExposureStateStatus.CityArchived);
 
                     CityPopulationWeatherExposureState? state = await weatherExposureStateRepository.GetByCityAsync(
                         cityId: cityId,

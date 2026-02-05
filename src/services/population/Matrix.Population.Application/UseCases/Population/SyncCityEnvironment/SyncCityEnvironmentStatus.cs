@@ -5,6 +5,7 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
         Applied = 0,
         Duplicate = 1,
         Stale = 2,
-        CityDeleted = 3
+        CityDeleted = 3,
+        CityArchived = 4
     }
 }

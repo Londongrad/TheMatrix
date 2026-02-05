@@ -13,6 +13,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
 {
     public sealed class AdvanceCityPopulationCommandHandler(
         IPersonWriteRepository personWriteRepository,
+        ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationProgressionStateRepository progressionStateRepository,
@@ -45,6 +46,9 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             CityPopulationProgressionState? state = await progressionStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
+            CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
             CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
@@ -71,6 +75,11 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             if (deletionState is not null)
                 return new AdvanceCityPopulationResult(
                     Status: AdvanceCityPopulationStatus.CityDeleted,
+                    AffectedPeopleCount: 0);
+
+            if (archiveState is not null)
+                return new AdvanceCityPopulationResult(
+                    Status: AdvanceCityPopulationStatus.CityArchived,
                     AffectedPeopleCount: 0);
 
             DateOnly previousDate = state?.LastProcessedDate ?? fromDate;
