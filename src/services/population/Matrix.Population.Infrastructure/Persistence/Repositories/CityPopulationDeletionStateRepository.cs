@@ -5,36 +5,27 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories
 {
-    public sealed class CityPopulationProgressionStateRepository(PopulationDbContext dbContext)
-        : ICityPopulationProgressionStateRepository
+    public sealed class CityPopulationDeletionStateRepository(PopulationDbContext dbContext)
+        : ICityPopulationDeletionStateRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
 
-        public Task<CityPopulationProgressionState?> GetByCityAsync(
+        public Task<CityPopulationDeletionState?> GetByCityAsync(
             CityId cityId,
             CancellationToken cancellationToken = default)
         {
-            return _dbContext.CityPopulationProgressionStates.FirstOrDefaultAsync(
+            return _dbContext.CityPopulationDeletionStates.FirstOrDefaultAsync(
                 predicate: x => x.CityId == cityId,
                 cancellationToken: cancellationToken);
         }
 
         public async Task AddAsync(
-            CityPopulationProgressionState state,
+            CityPopulationDeletionState state,
             CancellationToken cancellationToken = default)
         {
-            await _dbContext.CityPopulationProgressionStates.AddAsync(
+            await _dbContext.CityPopulationDeletionStates.AddAsync(
                 entity: state,
                 cancellationToken: cancellationToken);
-        }
-
-        public async Task DeleteByCityAsync(
-            CityId cityId,
-            CancellationToken cancellationToken = default)
-        {
-            await _dbContext.CityPopulationProgressionStates
-               .Where(x => x.CityId == cityId)
-               .ExecuteDeleteAsync(cancellationToken);
         }
     }
 }

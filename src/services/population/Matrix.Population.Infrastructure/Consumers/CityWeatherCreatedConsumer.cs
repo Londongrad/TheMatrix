@@ -59,6 +59,13 @@ namespace Matrix.Population.Infrastructure.Consumers
                         message.CityId,
                         context.MessageId);
                     break;
+
+                case SyncCityWeatherExposureStateStatus.CityDeleted:
+                    logger.LogDebug(
+                        message: "Skipped city weather exposure initialization for deleted cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
             }
         }
     }

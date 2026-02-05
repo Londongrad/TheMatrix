@@ -42,6 +42,12 @@ namespace Matrix.Population.Infrastructure.Consumers
                         message: "Skipped stale city environment sync for cityId={CityId}.",
                         message.CityId);
                     break;
+
+                case SyncCityEnvironmentStatus.CityDeleted:
+                    logger.LogDebug(
+                        message: "Skipped city environment sync for deleted cityId={CityId}.",
+                        message.CityId);
+                    break;
             }
         }
     }

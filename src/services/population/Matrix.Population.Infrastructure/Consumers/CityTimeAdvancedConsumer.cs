@@ -45,6 +45,13 @@ namespace Matrix.Population.Infrastructure.Consumers
                         message.CityId,
                         message.TickId);
                     break;
+
+                case AdvanceCityPopulationStatus.CityDeleted:
+                    logger.LogDebug(
+                        message: "Skipped city population progression for deleted cityId={CityId}, tickId={TickId}.",
+                        message.CityId,
+                        message.TickId);
+                    break;
             }
         }
     }

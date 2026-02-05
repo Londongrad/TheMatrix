@@ -95,13 +95,31 @@ namespace Matrix.Population.Infrastructure.Consumers
                         message.CityId,
                         context.MessageId);
                     break;
+
+                case ApplyCityWeatherImpactStatus.CityDeleted:
+                    logger.LogDebug(
+                        message: "Skipped city weather impact for deleted cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
             }
 
-            if (syncResult.Status == SyncCityWeatherExposureStateStatus.OutOfOrder)
-                logger.LogWarning(
-                    message: "Skipped out-of-order city weather exposure sync for cityId={CityId}, messageId={MessageId}.",
-                    message.CityId,
-                    context.MessageId);
+            switch (syncResult.Status)
+            {
+                case SyncCityWeatherExposureStateStatus.OutOfOrder:
+                    logger.LogWarning(
+                        message: "Skipped out-of-order city weather exposure sync for cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
+
+                case SyncCityWeatherExposureStateStatus.CityDeleted:
+                    logger.LogDebug(
+                        message: "Skipped city weather exposure sync for deleted cityId={CityId}, messageId={MessageId}.",
+                        message.CityId,
+                        context.MessageId);
+                    break;
+            }
         }
     }
 }

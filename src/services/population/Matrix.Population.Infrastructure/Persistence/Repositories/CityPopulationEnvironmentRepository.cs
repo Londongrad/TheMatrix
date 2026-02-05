@@ -27,5 +27,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                 entity: environment,
                 cancellationToken: cancellationToken);
         }
+
+        public async Task DeleteByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            await _dbContext.CityPopulationEnvironments
+               .Where(x => x.CityId == cityId)
+               .ExecuteDeleteAsync(cancellationToken);
+        }
     }
 }
