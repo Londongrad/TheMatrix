@@ -1,0 +1,43 @@
+using Matrix.Population.Domain.Enums;
+
+namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary
+{
+    public sealed record CityPopulationSummaryReadModel(
+        Guid CityId,
+        DateOnly CurrentDate,
+        bool IsArchived,
+        DateTimeOffset? ArchivedAtUtc,
+        bool IsDeleted,
+        DateTimeOffset? DeletedAtUtc,
+        PopulationClimateZone? ClimateZone,
+        PopulationHemisphere? Hemisphere,
+        int? UtcOffsetMinutes,
+        DateTimeOffset? EnvironmentUpdatedAtUtc,
+        long? LastProcessedTickId,
+        DateOnly? LastProcessedDate,
+        DateTimeOffset? SimulationUpdatedAtUtc,
+        PopulationWeatherType? CurrentWeatherType,
+        PopulationWeatherSeverity? CurrentWeatherSeverity,
+        bool IsWeatherRecoveryActive,
+        DateTimeOffset? CurrentWeatherEffectiveAtSimTimeUtc,
+        DateTimeOffset? LastWeatherOccurredOnUtc,
+        DateTimeOffset? LastExposureProcessedAtSimTimeUtc,
+        DateTimeOffset? LastWeatherImpactAppliedAtSimTimeUtc,
+        int HouseholdCount,
+        int HousedHouseholdCount,
+        int HomelessHouseholdCount,
+        int ResidentCount,
+        int DeceasedCount,
+        int HousedResidentCount,
+        int HomelessResidentCount,
+        int ChildCount,
+        int YouthCount,
+        int AdultCount,
+        int SeniorCount,
+        int EmployedCount,
+        int StudentCount,
+        int UnemployedCount,
+        int RetiredCount,
+        decimal? AverageHealth,
+        decimal? AverageHappiness);
+}
