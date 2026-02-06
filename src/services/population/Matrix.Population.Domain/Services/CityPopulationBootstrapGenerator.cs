@@ -2,61 +2,14 @@ using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Rules;
+using Matrix.Population.Domain.Services.Abstractions;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Services
 {
-    public sealed partial class CityPopulationBootstrapGenerator
+    public sealed class CityPopulationBootstrapGenerator(IPopulationGenerationContentCatalog contentCatalog)
     {
-        private static readonly string[] JobTitles =
-        {
-            "Software Engineer",
-            "Teacher",
-            "Doctor",
-            "Nurse",
-            "Builder",
-            "Store Clerk",
-            "Taxi Driver",
-            "Accountant",
-            "Electrician",
-            "Plumber"
-        };
-
-        private static readonly string[] MaleFirstNames =
-        {
-            "Ivan",
-            "Alexey",
-            "Mikhail",
-            "Dmitry",
-            "Sergey",
-            "Pavel",
-            "Nikolay",
-            "Andrey"
-        };
-
-        private static readonly string[] FemaleFirstNames =
-        {
-            "Anna",
-            "Maria",
-            "Ekaterina",
-            "Olga",
-            "Natalya",
-            "Elena",
-            "Irina",
-            "Sofia"
-        };
-
-        private static readonly string[] LastNames =
-        {
-            "Ivanov",
-            "Petrov",
-            "Sidorov",
-            "Smirnov",
-            "Kovalev",
-            "Volkov",
-            "Morozov",
-            "Lebedev"
-        };
+        private readonly IPopulationGenerationContentCatalog _contentCatalog = contentCatalog;
 
         public PopulationBootstrapResult GenerateStandalone(
             int peopleCount,
@@ -149,7 +102,7 @@ namespace Matrix.Population.Domain.Services
                 Persons: persons);
         }
 
-        private static IReadOnlyCollection<Person> CreateHouseholdMembers(
+        private IReadOnlyCollection<Person> CreateHouseholdMembers(
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
@@ -207,7 +160,7 @@ namespace Matrix.Population.Domain.Services
             return HouseholdComposition.AdultOnly;
         }
 
-        private static IReadOnlyCollection<Person> CreateMarriedFamily(
+        private IReadOnlyCollection<Person> CreateMarriedFamily(
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
@@ -215,7 +168,7 @@ namespace Matrix.Population.Domain.Services
         {
             var persons = new List<Person>(householdSizeValue);
 
-            string familyLastName = CreateRandomLastName(random);
+            PopulationFamilySurnameCatalogItem familySurname = CreateRandomFamilySurname(random);
             PersonId firstSpouseId = PersonId.New();
             PersonId secondSpouseId = PersonId.New();
 
@@ -236,7 +189,7 @@ namespace Matrix.Population.Domain.Services
                     ageYears: firstSpouseAgeYears,
                     maritalStatus: MaritalStatus.Married,
                     spouseId: secondSpouseId,
-                    familyLastName: familyLastName));
+                    familySurname: familySurname));
 
             persons.Add(
                 CreateGeneratedPerson(
@@ -248,7 +201,7 @@ namespace Matrix.Population.Domain.Services
                     ageYears: secondSpouseAgeYears,
                     maritalStatus: MaritalStatus.Married,
                     spouseId: firstSpouseId,
-                    familyLastName: familyLastName));
+                    familySurname: familySurname));
 
             int remainingMembers = householdSizeValue - 2;
             int youngestParentAgeYears = Math.Min(firstSpouseAgeYears, secondSpouseAgeYears);
@@ -264,7 +217,7 @@ namespace Matrix.Population.Domain.Services
                 currentDate: currentDate,
                 childCount: childCount,
                 youngestCaregiverAgeYears: youngestParentAgeYears,
-                familyLastName: familyLastName);
+                familySurname: familySurname);
 
             AddAdultRelatives(
                 persons: persons,
@@ -272,12 +225,12 @@ namespace Matrix.Population.Domain.Services
                 householdId: householdId,
                 currentDate: currentDate,
                 count: remainingMembers - childCount,
-                familyLastName: familyLastName);
+                familySurname: familySurname);
 
             return persons;
         }
 
-        private static IReadOnlyCollection<Person> CreateSingleParentFamily(
+        private IReadOnlyCollection<Person> CreateSingleParentFamily(
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
@@ -285,7 +238,7 @@ namespace Matrix.Population.Domain.Services
         {
             var persons = new List<Person>(householdSizeValue);
 
-            string familyLastName = CreateRandomLastName(random);
+            PopulationFamilySurnameCatalogItem familySurname = CreateRandomFamilySurname(random);
             int parentAgeYears = CreateRandomParentAgeYears(random);
             MaritalStatus parentMaritalStatus = CreateSingleParentMaritalStatus(
                 random: random,
@@ -301,7 +254,7 @@ namespace Matrix.Population.Domain.Services
                     ageYears: parentAgeYears,
                     maritalStatus: parentMaritalStatus,
                     spouseId: null,
-                    familyLastName: familyLastName));
+                    familySurname: familySurname));
 
             int remainingMembers = householdSizeValue - 1;
             int childCount = DetermineChildCountForSingleParentFamily(
@@ -315,7 +268,7 @@ namespace Matrix.Population.Domain.Services
                 currentDate: currentDate,
                 childCount: childCount,
                 youngestCaregiverAgeYears: parentAgeYears,
-                familyLastName: familyLastName);
+                familySurname: familySurname);
 
             AddAdultRelatives(
                 persons: persons,
@@ -323,12 +276,12 @@ namespace Matrix.Population.Domain.Services
                 householdId: householdId,
                 currentDate: currentDate,
                 count: remainingMembers - childCount,
-                familyLastName: familyLastName);
+                familySurname: familySurname);
 
             return persons;
         }
 
-        private static IReadOnlyCollection<Person> CreateAdultOnlyHousehold(
+        private IReadOnlyCollection<Person> CreateAdultOnlyHousehold(
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
@@ -336,8 +289,8 @@ namespace Matrix.Population.Domain.Services
         {
             var persons = new List<Person>(householdSizeValue);
 
-            string? sharedLastName = random.NextDouble() < 0.35
-                ? CreateRandomLastName(random)
+            PopulationFamilySurnameCatalogItem? sharedFamilySurname = random.NextDouble() < 0.35
+                ? CreateRandomFamilySurname(random)
                 : null;
 
             for (int i = 0; i < householdSizeValue; i++)
@@ -355,20 +308,20 @@ namespace Matrix.Population.Domain.Services
                             random: random,
                             ageYears: ageYears),
                         spouseId: null,
-                        familyLastName: sharedLastName));
+                        familySurname: sharedFamilySurname));
             }
 
             return persons;
         }
 
-        private static void AddChildren(
+        private void AddChildren(
             List<Person> persons,
             Random random,
             HouseholdId householdId,
             DateOnly currentDate,
             int childCount,
             int youngestCaregiverAgeYears,
-            string familyLastName)
+            PopulationFamilySurnameCatalogItem familySurname)
         {
             for (int i = 0; i < childCount; i++)
             {
@@ -384,17 +337,17 @@ namespace Matrix.Population.Domain.Services
                             youngestCaregiverAgeYears: youngestCaregiverAgeYears),
                         maritalStatus: MaritalStatus.Single,
                         spouseId: null,
-                        familyLastName: familyLastName));
+                        familySurname: familySurname));
             }
         }
 
-        private static void AddAdultRelatives(
+        private void AddAdultRelatives(
             List<Person> persons,
             Random random,
             HouseholdId householdId,
             DateOnly currentDate,
             int count,
-            string familyLastName)
+            PopulationFamilySurnameCatalogItem familySurname)
         {
             for (int i = 0; i < count; i++)
             {
@@ -411,16 +364,17 @@ namespace Matrix.Population.Domain.Services
                             random: random,
                             ageYears: ageYears),
                         spouseId: null,
-                        familyLastName: familyLastName));
+                        familySurname: familySurname));
             }
         }
 
-        private static Person CreateSingleResident(
+        private Person CreateSingleResident(
             Random random,
             HouseholdId householdId,
             DateOnly currentDate)
         {
             int ageYears = CreateRandomIndependentAdultAgeYears(random);
+            PopulationFamilySurnameCatalogItem familySurname = CreateRandomFamilySurname(random);
 
             return CreateGeneratedPerson(
                 random: random,
@@ -433,10 +387,10 @@ namespace Matrix.Population.Domain.Services
                     random: random,
                     ageYears: ageYears),
                 spouseId: null,
-                familyLastName: null);
+                familySurname: familySurname);
         }
 
-        private static Person CreateGeneratedPerson(
+        private Person CreateGeneratedPerson(
             Random random,
             PersonId personId,
             HouseholdId householdId,
@@ -445,12 +399,12 @@ namespace Matrix.Population.Domain.Services
             int ageYears,
             MaritalStatus maritalStatus,
             PersonId? spouseId,
-            string? familyLastName)
+            PopulationFamilySurnameCatalogItem? familySurname)
         {
             PersonName name = CreateRandomName(
                 random: random,
                 sex: sex,
-                familyLastName: familyLastName);
+                familySurname: familySurname);
             DateOnly birthDate = currentDate.AddYears(-ageYears);
             Age age = Age.FromYears(ageYears);
             AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
@@ -714,25 +668,28 @@ namespace Matrix.Population.Domain.Services
                 : Sex.Male;
         }
 
-        private static PersonName CreateRandomName(
+        private PersonName CreateRandomName(
             Random random,
             Sex sex,
-            string? familyLastName)
+            PopulationFamilySurnameCatalogItem? familySurname)
         {
             string firstName = sex == Sex.Male
-                ? MaleFirstNames[random.Next(MaleFirstNames.Length)]
-                : FemaleFirstNames[random.Next(FemaleFirstNames.Length)];
+                ? _contentCatalog.MaleFirstNames[random.Next(_contentCatalog.MaleFirstNames.Count)]
+                : _contentCatalog.FemaleFirstNames[random.Next(_contentCatalog.FemaleFirstNames.Count)];
 
-            string lastName = familyLastName ?? CreateRandomLastName(random);
+            PopulationFamilySurnameCatalogItem resolvedSurname = familySurname ?? CreateRandomFamilySurname(random);
+            string lastName = ResolveSurnameForSex(
+                surname: resolvedSurname,
+                sex: sex);
 
             return new PersonName(
                 firstName: firstName,
                 lastName: lastName);
         }
 
-        private static string CreateRandomLastName(Random random)
+        private PopulationFamilySurnameCatalogItem CreateRandomFamilySurname(Random random)
         {
-            return LastNames[random.Next(LastNames.Length)];
+            return _contentCatalog.FamilySurnames[random.Next(_contentCatalog.FamilySurnames.Count)];
         }
 
         private static BodyWeight CreateRandomWeight(
@@ -891,14 +848,43 @@ namespace Matrix.Population.Domain.Services
             return EmploymentStatus.Student;
         }
 
-        private static Job CreateRandomJob(Random random)
+        private Job CreateRandomJob(Random random)
         {
-            string title = JobTitles[random.Next(JobTitles.Length)];
+            PopulationProfessionCatalogItem profession = PickProfession(random);
             WorkplaceId workplaceId = WorkplaceId.New();
 
             return new Job(
                 workplaceId: workplaceId,
-                title: title);
+                title: profession.Title);
+        }
+
+        private PopulationProfessionCatalogItem PickProfession(Random random)
+        {
+            int totalWeight = 0;
+            for (int i = 0; i < _contentCatalog.Professions.Count; i++)
+                totalWeight += _contentCatalog.Professions[i].Weight;
+
+            int roll = random.Next(0, totalWeight);
+            int accumulated = 0;
+
+            for (int i = 0; i < _contentCatalog.Professions.Count; i++)
+            {
+                PopulationProfessionCatalogItem item = _contentCatalog.Professions[i];
+                accumulated += item.Weight;
+                if (roll < accumulated)
+                    return item;
+            }
+
+            return _contentCatalog.Professions[^1];
+        }
+
+        private static string ResolveSurnameForSex(
+            PopulationFamilySurnameCatalogItem surname,
+            Sex sex)
+        {
+            return sex == Sex.Female
+                ? surname.Feminine
+                : surname.Masculine;
         }
 
         private static EducationLevel CreateRandomEducationLevel(
