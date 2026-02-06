@@ -6,7 +6,7 @@ using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Services
 {
-    public sealed class CityPopulationBootstrapGenerator
+    public sealed partial class CityPopulationBootstrapGenerator
     {
         private static readonly string[] JobTitles =
         {
@@ -75,15 +75,15 @@ namespace Matrix.Population.Domain.Services
 
             for (int i = 0; i < peopleCount; i++)
             {
-                var householdId = HouseholdId.New();
-                var household = Household.CreateHomeless(
+                HouseholdId householdId = HouseholdId.New();
+                Household household = Household.CreateHomeless(
                     id: householdId,
                     size: HouseholdSize.From(1),
                     createdAtUtc: createdAtUtc);
 
                 households.Add(household);
                 persons.Add(
-                    CreateRandomPerson(
+                    CreateSingleResident(
                         random: random,
                         householdId: householdId,
                         currentDate: currentDate));
@@ -123,8 +123,8 @@ namespace Matrix.Population.Domain.Services
                 int householdSizeValue = NextHouseholdSize(
                     random: random,
                     remainingPeople: remainingPeople);
-                var householdSize = HouseholdSize.From(householdSizeValue);
-                var householdId = HouseholdId.New();
+                HouseholdSize householdSize = HouseholdSize.From(householdSizeValue);
+                HouseholdId householdId = HouseholdId.New();
                 Household household = TryAllocateHousehold(
                     cityId: cityId,
                     householdId: householdId,
@@ -134,13 +134,12 @@ namespace Matrix.Population.Domain.Services
                     random: random);
 
                 households.Add(household);
-
-                for (int memberIndex = 0; memberIndex < householdSizeValue; memberIndex++)
-                    persons.Add(
-                        CreateRandomPerson(
-                            random: random,
-                            householdId: household.Id,
-                            currentDate: currentDate));
+                persons.AddRange(
+                    CreateHouseholdMembers(
+                        random: random,
+                        householdId: household.Id,
+                        householdSizeValue: householdSizeValue,
+                        currentDate: currentDate));
 
                 remainingPeople -= householdSizeValue;
             }
@@ -148,6 +147,353 @@ namespace Matrix.Population.Domain.Services
             return new PopulationBootstrapResult(
                 Households: households,
                 Persons: persons);
+        }
+
+        private static IReadOnlyCollection<Person> CreateHouseholdMembers(
+            Random random,
+            HouseholdId householdId,
+            int householdSizeValue,
+            DateOnly currentDate)
+        {
+            if (householdSizeValue <= 0)
+                return Array.Empty<Person>();
+
+            if (householdSizeValue == 1)
+                return new[] { CreateSingleResident(random, householdId, currentDate) };
+
+            HouseholdComposition composition = PickHouseholdComposition(
+                random: random,
+                householdSizeValue: householdSizeValue);
+
+            return composition switch
+            {
+                HouseholdComposition.MarriedFamily => CreateMarriedFamily(
+                    random: random,
+                    householdId: householdId,
+                    householdSizeValue: householdSizeValue,
+                    currentDate: currentDate),
+                HouseholdComposition.SingleParentFamily => CreateSingleParentFamily(
+                    random: random,
+                    householdId: householdId,
+                    householdSizeValue: householdSizeValue,
+                    currentDate: currentDate),
+                _ => CreateAdultOnlyHousehold(
+                    random: random,
+                    householdId: householdId,
+                    householdSizeValue: householdSizeValue,
+                    currentDate: currentDate)
+            };
+        }
+
+        private static HouseholdComposition PickHouseholdComposition(
+            Random random,
+            int householdSizeValue)
+        {
+            if (householdSizeValue == 2)
+            {
+                double roll = random.NextDouble();
+                if (roll < 0.65)
+                    return HouseholdComposition.MarriedFamily;
+                if (roll < 0.85)
+                    return HouseholdComposition.SingleParentFamily;
+                return HouseholdComposition.AdultOnly;
+            }
+
+            double familyRoll = random.NextDouble();
+            if (familyRoll < 0.70)
+                return HouseholdComposition.MarriedFamily;
+            if (familyRoll < 0.92)
+                return HouseholdComposition.SingleParentFamily;
+            return HouseholdComposition.AdultOnly;
+        }
+
+        private static IReadOnlyCollection<Person> CreateMarriedFamily(
+            Random random,
+            HouseholdId householdId,
+            int householdSizeValue,
+            DateOnly currentDate)
+        {
+            var persons = new List<Person>(householdSizeValue);
+
+            string familyLastName = CreateRandomLastName(random);
+            PersonId firstSpouseId = PersonId.New();
+            PersonId secondSpouseId = PersonId.New();
+
+            Sex firstSpouseSex = CreateRandomSex(random);
+            Sex secondSpouseSex = CreateOppositeSex(firstSpouseSex);
+            int firstSpouseAgeYears = CreateRandomParentAgeYears(random);
+            int secondSpouseAgeYears = CreateRandomSpouseAgeYears(
+                random: random,
+                primarySpouseAgeYears: firstSpouseAgeYears);
+
+            persons.Add(
+                CreateGeneratedPerson(
+                    random: random,
+                    personId: firstSpouseId,
+                    householdId: householdId,
+                    currentDate: currentDate,
+                    sex: firstSpouseSex,
+                    ageYears: firstSpouseAgeYears,
+                    maritalStatus: MaritalStatus.Married,
+                    spouseId: secondSpouseId,
+                    familyLastName: familyLastName));
+
+            persons.Add(
+                CreateGeneratedPerson(
+                    random: random,
+                    personId: secondSpouseId,
+                    householdId: householdId,
+                    currentDate: currentDate,
+                    sex: secondSpouseSex,
+                    ageYears: secondSpouseAgeYears,
+                    maritalStatus: MaritalStatus.Married,
+                    spouseId: firstSpouseId,
+                    familyLastName: familyLastName));
+
+            int remainingMembers = householdSizeValue - 2;
+            int youngestParentAgeYears = Math.Min(firstSpouseAgeYears, secondSpouseAgeYears);
+            int childCount = DetermineChildCountForPartneredFamily(
+                random: random,
+                remainingMembers: remainingMembers,
+                youngestParentAgeYears: youngestParentAgeYears);
+
+            AddChildren(
+                persons: persons,
+                random: random,
+                householdId: householdId,
+                currentDate: currentDate,
+                childCount: childCount,
+                youngestCaregiverAgeYears: youngestParentAgeYears,
+                familyLastName: familyLastName);
+
+            AddAdultRelatives(
+                persons: persons,
+                random: random,
+                householdId: householdId,
+                currentDate: currentDate,
+                count: remainingMembers - childCount,
+                familyLastName: familyLastName);
+
+            return persons;
+        }
+
+        private static IReadOnlyCollection<Person> CreateSingleParentFamily(
+            Random random,
+            HouseholdId householdId,
+            int householdSizeValue,
+            DateOnly currentDate)
+        {
+            var persons = new List<Person>(householdSizeValue);
+
+            string familyLastName = CreateRandomLastName(random);
+            int parentAgeYears = CreateRandomParentAgeYears(random);
+            MaritalStatus parentMaritalStatus = CreateSingleParentMaritalStatus(
+                random: random,
+                ageYears: parentAgeYears);
+
+            persons.Add(
+                CreateGeneratedPerson(
+                    random: random,
+                    personId: PersonId.New(),
+                    householdId: householdId,
+                    currentDate: currentDate,
+                    sex: CreateRandomSex(random),
+                    ageYears: parentAgeYears,
+                    maritalStatus: parentMaritalStatus,
+                    spouseId: null,
+                    familyLastName: familyLastName));
+
+            int remainingMembers = householdSizeValue - 1;
+            int childCount = DetermineChildCountForSingleParentFamily(
+                remainingMembers: remainingMembers,
+                parentAgeYears: parentAgeYears);
+
+            AddChildren(
+                persons: persons,
+                random: random,
+                householdId: householdId,
+                currentDate: currentDate,
+                childCount: childCount,
+                youngestCaregiverAgeYears: parentAgeYears,
+                familyLastName: familyLastName);
+
+            AddAdultRelatives(
+                persons: persons,
+                random: random,
+                householdId: householdId,
+                currentDate: currentDate,
+                count: remainingMembers - childCount,
+                familyLastName: familyLastName);
+
+            return persons;
+        }
+
+        private static IReadOnlyCollection<Person> CreateAdultOnlyHousehold(
+            Random random,
+            HouseholdId householdId,
+            int householdSizeValue,
+            DateOnly currentDate)
+        {
+            var persons = new List<Person>(householdSizeValue);
+
+            string? sharedLastName = random.NextDouble() < 0.35
+                ? CreateRandomLastName(random)
+                : null;
+
+            for (int i = 0; i < householdSizeValue; i++)
+            {
+                int ageYears = CreateRandomIndependentAdultAgeYears(random);
+                persons.Add(
+                    CreateGeneratedPerson(
+                        random: random,
+                        personId: PersonId.New(),
+                        householdId: householdId,
+                        currentDate: currentDate,
+                        sex: CreateRandomSex(random),
+                        ageYears: ageYears,
+                        maritalStatus: CreateRandomNonMarriedAdultStatus(
+                            random: random,
+                            ageYears: ageYears),
+                        spouseId: null,
+                        familyLastName: sharedLastName));
+            }
+
+            return persons;
+        }
+
+        private static void AddChildren(
+            List<Person> persons,
+            Random random,
+            HouseholdId householdId,
+            DateOnly currentDate,
+            int childCount,
+            int youngestCaregiverAgeYears,
+            string familyLastName)
+        {
+            for (int i = 0; i < childCount; i++)
+            {
+                persons.Add(
+                    CreateGeneratedPerson(
+                        random: random,
+                        personId: PersonId.New(),
+                        householdId: householdId,
+                        currentDate: currentDate,
+                        sex: CreateRandomSex(random),
+                        ageYears: CreateRandomChildAgeYears(
+                            random: random,
+                            youngestCaregiverAgeYears: youngestCaregiverAgeYears),
+                        maritalStatus: MaritalStatus.Single,
+                        spouseId: null,
+                        familyLastName: familyLastName));
+            }
+        }
+
+        private static void AddAdultRelatives(
+            List<Person> persons,
+            Random random,
+            HouseholdId householdId,
+            DateOnly currentDate,
+            int count,
+            string familyLastName)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                int ageYears = CreateRandomIndependentAdultAgeYears(random);
+                persons.Add(
+                    CreateGeneratedPerson(
+                        random: random,
+                        personId: PersonId.New(),
+                        householdId: householdId,
+                        currentDate: currentDate,
+                        sex: CreateRandomSex(random),
+                        ageYears: ageYears,
+                        maritalStatus: CreateRandomNonMarriedAdultStatus(
+                            random: random,
+                            ageYears: ageYears),
+                        spouseId: null,
+                        familyLastName: familyLastName));
+            }
+        }
+
+        private static Person CreateSingleResident(
+            Random random,
+            HouseholdId householdId,
+            DateOnly currentDate)
+        {
+            int ageYears = CreateRandomIndependentAdultAgeYears(random);
+
+            return CreateGeneratedPerson(
+                random: random,
+                personId: PersonId.New(),
+                householdId: householdId,
+                currentDate: currentDate,
+                sex: CreateRandomSex(random),
+                ageYears: ageYears,
+                maritalStatus: CreateRandomNonMarriedAdultStatus(
+                    random: random,
+                    ageYears: ageYears),
+                spouseId: null,
+                familyLastName: null);
+        }
+
+        private static Person CreateGeneratedPerson(
+            Random random,
+            PersonId personId,
+            HouseholdId householdId,
+            DateOnly currentDate,
+            Sex sex,
+            int ageYears,
+            MaritalStatus maritalStatus,
+            PersonId? spouseId,
+            string? familyLastName)
+        {
+            PersonName name = CreateRandomName(
+                random: random,
+                sex: sex,
+                familyLastName: familyLastName);
+            DateOnly birthDate = currentDate.AddYears(-ageYears);
+            Age age = Age.FromYears(ageYears);
+            AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
+            HealthLevel health = CreateRandomHealth(
+                random: random,
+                ageYears: ageYears);
+            BodyWeight weight = CreateRandomWeight(
+                random: random,
+                sex: sex,
+                ageYears: ageYears);
+            Personality personality = Personality.CreateRandom(random);
+            EmploymentStatus employmentStatus = CreateRandomEmploymentStatus(
+                random: random,
+                ageGroup: ageGroup);
+            Job? job = employmentStatus == EmploymentStatus.Employed
+                ? CreateRandomJob(random)
+                : null;
+            HappinessLevel happiness = CreateInitialHappiness(
+                random: random,
+                ageGroup: ageGroup,
+                employmentStatus: employmentStatus,
+                maritalStatus: maritalStatus);
+            EducationLevel educationLevel = CreateRandomEducationLevel(
+                random: random,
+                ageYears: ageYears);
+
+            return Person.CreatePerson(
+                id: personId,
+                householdId: householdId,
+                name: name,
+                sex: sex,
+                lifeStatus: LifeStatus.Alive,
+                maritalStatus: maritalStatus,
+                spouseId: spouseId,
+                educationLevel: educationLevel,
+                employmentStatus: employmentStatus,
+                happinessLevel: happiness,
+                personality: personality,
+                birthDate: birthDate,
+                healthLevel: health,
+                weight: weight,
+                job: job,
+                currentDate: currentDate);
         }
 
         private static Household TryAllocateHousehold(
@@ -158,7 +504,7 @@ namespace Matrix.Population.Domain.Services
             List<BuildingCapacityState> capacityStates,
             Random random)
         {
-            var candidates = capacityStates
+            List<BuildingCapacityState> candidates = capacityStates
                .Where(x => x.RemainingCapacity >= householdSize.Value)
                .ToList();
 
@@ -211,104 +557,144 @@ namespace Matrix.Population.Domain.Services
                 : new Random();
         }
 
-        private static Person CreateRandomPerson(
+        private static int DetermineChildCountForPartneredFamily(
             Random random,
-            HouseholdId householdId,
-            DateOnly currentDate)
+            int remainingMembers,
+            int youngestParentAgeYears)
         {
-            var personId = PersonId.New();
-            Sex sex = CreateRandomSex(random);
-            PersonName name = CreateRandomName(
-                random: random,
-                sex: sex);
-            int ageYears = CreateRandomAgeYears(random);
-            DateOnly birthDate = currentDate.AddYears(-ageYears);
-            var age = Age.FromYears(ageYears);
-            AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
-            HealthLevel health = CreateRandomHealth(
-                random: random,
-                ageYears: ageYears);
-            BodyWeight weight = CreateRandomWeight(
-                random: random,
-                sex: sex,
-                ageYears: ageYears);
-            var personality = Personality.CreateRandom(random);
-            EmploymentStatus employmentStatus = CreateRandomEmploymentStatus(
-                random: random,
-                ageGroup: ageGroup);
-            Job? job = employmentStatus == EmploymentStatus.Employed
-                ? CreateRandomJob(random)
-                : null;
-            HappinessLevel happiness = CreateInitialHappiness(
-                random: random,
-                ageGroup: ageGroup,
-                employmentStatus: employmentStatus);
-            EducationLevel educationLevel = CreateRandomEducationLevel(
-                random: random,
-                ageYears: ageYears);
-            MaritalStatus maritalStatus = CreateRandomMaritalStatus(
-                random: random,
-                ageGroup: ageGroup,
-                ageYears: ageYears);
+            if (remainingMembers <= 0)
+                return 0;
 
-            return Person.CreatePerson(
-                id: personId,
-                householdId: householdId,
-                name: name,
-                sex: sex,
-                lifeStatus: LifeStatus.Alive,
-                maritalStatus: maritalStatus,
-                spouseId: null,
-                educationLevel: educationLevel,
-                employmentStatus: employmentStatus,
-                happinessLevel: happiness,
-                personality: personality,
-                birthDate: birthDate,
-                healthLevel: health,
-                weight: weight,
-                job: job,
-                currentDate: currentDate);
+            int maxChildAgeYears = Math.Min(17, youngestParentAgeYears - 18);
+            if (maxChildAgeYears < 0)
+                return 0;
+
+            double probability = youngestParentAgeYears switch
+            {
+                < 28 => 0.85,
+                < 42 => 0.75,
+                < 55 => 0.55,
+                _ => 0.25
+            };
+
+            if (random.NextDouble() >= probability)
+                return 0;
+
+            int minimum = remainingMembers == 1 ? 1 : 0;
+            return random.Next(minimum, remainingMembers + 1);
         }
 
-        private static MaritalStatus CreateRandomMaritalStatus(
+        private static int DetermineChildCountForSingleParentFamily(
+            int remainingMembers,
+            int parentAgeYears)
+        {
+            if (remainingMembers <= 0)
+                return 0;
+
+            int maxChildAgeYears = Math.Min(17, parentAgeYears - 18);
+            if (maxChildAgeYears < 0)
+                return 0;
+
+            return remainingMembers;
+        }
+
+        private static int CreateRandomParentAgeYears(Random random)
+        {
+            double roll = random.NextDouble();
+
+            if (roll < 0.20)
+                return random.Next(20, 28);
+            if (roll < 0.75)
+                return random.Next(28, 46);
+            if (roll < 0.95)
+                return random.Next(46, 61);
+            return random.Next(61, 76);
+        }
+
+        private static int CreateRandomSpouseAgeYears(
             Random random,
-            AgeGroup ageGroup,
+            int primarySpouseAgeYears)
+        {
+            int delta = random.Next(-8, 9);
+            return Math.Clamp(
+                value: primarySpouseAgeYears + delta,
+                min: 18,
+                max: 85);
+        }
+
+        private static int CreateRandomChildAgeYears(
+            Random random,
+            int youngestCaregiverAgeYears)
+        {
+            int maxChildAgeYears = Math.Min(17, youngestCaregiverAgeYears - 18);
+            int upperBoundExclusive = Math.Max(1, maxChildAgeYears + 1);
+            return random.Next(0, upperBoundExclusive);
+        }
+
+        private static int CreateRandomIndependentAdultAgeYears(Random random)
+        {
+            double roll = random.NextDouble();
+
+            if (roll < 0.70)
+                return random.Next(18, 66);
+            return random.Next(66, 91);
+        }
+
+        private static MaritalStatus CreateRandomNonMarriedAdultStatus(
+            Random random,
             int ageYears)
         {
-            if (ageGroup == AgeGroup.Child)
+            if (ageYears < 22)
                 return MaritalStatus.Single;
 
-            if (ageGroup == AgeGroup.Adult)
+            if (ageYears < 40)
+                return random.NextDouble() < 0.75
+                    ? MaritalStatus.Single
+                    : MaritalStatus.Divorced;
+
+            if (ageYears < 66)
             {
                 double roll = random.NextDouble();
-
-                if (ageYears < 25)
-                    return roll < 0.8
-                        ? MaritalStatus.Single
-                        : MaritalStatus.Married;
-
-                if (ageYears < 40)
-                {
-                    if (roll < 0.6)
-                        return MaritalStatus.Married;
-                    if (roll < 0.8)
-                        return MaritalStatus.Single;
-                    return MaritalStatus.Divorced;
-                }
-
-                if (roll < 0.6)
-                    return MaritalStatus.Married;
+                if (roll < 0.45)
+                    return MaritalStatus.Single;
                 if (roll < 0.85)
                     return MaritalStatus.Divorced;
-                return MaritalStatus.Single;
+                return MaritalStatus.Widowed;
             }
 
             double seniorRoll = random.NextDouble();
-            if (seniorRoll < 0.5)
-                return MaritalStatus.Married;
-            if (seniorRoll < 0.8)
+            if (seniorRoll < 0.55)
                 return MaritalStatus.Widowed;
-            return MaritalStatus.Divorced;
+            if (seniorRoll < 0.80)
+                return MaritalStatus.Divorced;
+            return MaritalStatus.Single;
+        }
+
+        private static MaritalStatus CreateSingleParentMaritalStatus(
+            Random random,
+            int ageYears)
+        {
+            if (ageYears < 26)
+                return MaritalStatus.Single;
+
+            double roll = random.NextDouble();
+            if (ageYears < 40)
+                return roll < 0.55
+                    ? MaritalStatus.Single
+                    : MaritalStatus.Divorced;
+
+            if (ageYears < 66)
+            {
+                if (roll < 0.35)
+                    return MaritalStatus.Single;
+                if (roll < 0.80)
+                    return MaritalStatus.Divorced;
+                return MaritalStatus.Widowed;
+            }
+
+            return roll < 0.65
+                ? MaritalStatus.Widowed
+                : MaritalStatus.Divorced;
         }
 
         private static Sex CreateRandomSex(Random random)
@@ -321,19 +707,32 @@ namespace Matrix.Population.Domain.Services
                 : Sex.Female;
         }
 
+        private static Sex CreateOppositeSex(Sex sex)
+        {
+            return sex == Sex.Male
+                ? Sex.Female
+                : Sex.Male;
+        }
+
         private static PersonName CreateRandomName(
             Random random,
-            Sex sex)
+            Sex sex,
+            string? familyLastName)
         {
             string firstName = sex == Sex.Male
                 ? MaleFirstNames[random.Next(MaleFirstNames.Length)]
                 : FemaleFirstNames[random.Next(FemaleFirstNames.Length)];
 
-            string lastName = LastNames[random.Next(LastNames.Length)];
+            string lastName = familyLastName ?? CreateRandomLastName(random);
 
             return new PersonName(
                 firstName: firstName,
                 lastName: lastName);
+        }
+
+        private static string CreateRandomLastName(Random random)
+        {
+            return LastNames[random.Next(LastNames.Length)];
         }
 
         private static BodyWeight CreateRandomWeight(
@@ -425,29 +824,11 @@ namespace Matrix.Population.Domain.Services
             return HealthLevel.From(value);
         }
 
-        private static int CreateRandomAgeYears(Random random)
-        {
-            double roll = random.NextDouble();
-
-            if (roll < 0.2)
-                return random.Next(
-                    minValue: 0,
-                    maxValue: 18);
-
-            if (roll < 0.8)
-                return random.Next(
-                    minValue: 18,
-                    maxValue: 66);
-
-            return random.Next(
-                minValue: 66,
-                maxValue: 121);
-        }
-
         private static HappinessLevel CreateInitialHappiness(
             Random random,
             AgeGroup ageGroup,
-            EmploymentStatus employmentStatus)
+            EmploymentStatus employmentStatus,
+            MaritalStatus maritalStatus)
         {
             int value = random.Next(
                 minValue: 40,
@@ -457,16 +838,22 @@ namespace Matrix.Population.Domain.Services
                 value += random.Next(
                     minValue: 0,
                     maxValue: 11);
-            else
-                if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
-                    value -= random.Next(
-                        minValue: 5,
-                        maxValue: 16);
-                else
-                    if (employmentStatus == EmploymentStatus.Retired)
-                        value += random.Next(
-                            minValue: 0,
-                            maxValue: 6);
+            else if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
+                value -= random.Next(
+                    minValue: 5,
+                    maxValue: 16);
+            else if (employmentStatus == EmploymentStatus.Retired)
+                value += random.Next(
+                    minValue: 0,
+                    maxValue: 6);
+
+            value += maritalStatus switch
+            {
+                MaritalStatus.Married => random.Next(3, 9),
+                MaritalStatus.Widowed => -random.Next(4, 10),
+                MaritalStatus.Divorced => -random.Next(2, 8),
+                _ => 0
+            };
 
             value = Math.Clamp(
                 value: value,
@@ -481,7 +868,10 @@ namespace Matrix.Population.Domain.Services
         {
             return ageGroup switch
             {
-                AgeGroup.Child => random.NextDouble() < 0.9
+                AgeGroup.Child => random.NextDouble() < 0.95
+                    ? EmploymentStatus.Student
+                    : EmploymentStatus.Unemployed,
+                AgeGroup.Youth => random.NextDouble() < 0.90
                     ? EmploymentStatus.Student
                     : EmploymentStatus.Unemployed,
                 AgeGroup.Adult => CreateRandomAdultEmploymentStatus(random),
@@ -504,7 +894,7 @@ namespace Matrix.Population.Domain.Services
         private static Job CreateRandomJob(Random random)
         {
             string title = JobTitles[random.Next(JobTitles.Length)];
-            var workplaceId = WorkplaceId.New();
+            WorkplaceId workplaceId = WorkplaceId.New();
 
             return new Job(
                 workplaceId: workplaceId,
@@ -581,6 +971,13 @@ namespace Matrix.Population.Domain.Services
             }
 
             return items[^1].level;
+        }
+
+        private enum HouseholdComposition
+        {
+            MarriedFamily = 1,
+            SingleParentFamily = 2,
+            AdultOnly = 3
         }
 
         private sealed class BuildingCapacityState(
