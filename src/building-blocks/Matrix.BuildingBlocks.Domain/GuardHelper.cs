@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using Matrix.BuildingBlocks.Domain.Errors;
-using Matrix.BuildingBlocks.Domain.Exceptions;
 
 namespace Matrix.BuildingBlocks.Domain
 {
@@ -14,7 +13,7 @@ namespace Matrix.BuildingBlocks.Domain
         public static void Ensure<T>(
             bool condition,
             T value,
-            Func<T, string?, DomainException> errorFactory,
+            Func<T, string?, Exception> errorFactory,
             [CallerArgumentExpression("value")] string? propertyName = null)
             where T : struct
         {
@@ -40,7 +39,7 @@ namespace Matrix.BuildingBlocks.Domain
 
         public static string AgainstNullOrWhiteSpace(
             string? value,
-            Func<string?, DomainException> errorFactory,
+            Func<string?, Exception> errorFactory,
             bool trim = true,
             [CallerArgumentExpression("value")] string? propertyName = null)
         {
@@ -64,7 +63,7 @@ namespace Matrix.BuildingBlocks.Domain
 
         public static Guid AgainstEmptyGuid(
             Guid id,
-            Func<string?, DomainException> errorFactory,
+            Func<string?, Exception> errorFactory,
             [CallerArgumentExpression("id")] string? propertyName = null)
         {
             if (id == Guid.Empty)
@@ -84,16 +83,16 @@ namespace Matrix.BuildingBlocks.Domain
             return value;
         }
 
-        public static void AgainstNull<T>(
+        public static T AgainstNull<T>(
             T? value,
-            Func<T, string?, DomainException> errorFactory,
+            Func<string?, Exception> errorFactory,
             [CallerArgumentExpression("value")] string? propertyName = null)
-            where T : struct
+            where T : class
         {
-            if (value is not null)
-                throw errorFactory(
-                    arg1: value.Value,
-                    arg2: propertyName);
+            if (value is null)
+                throw errorFactory(propertyName);
+
+            return value;
         }
 
         #endregion [ NullOrEmpty ]
@@ -115,7 +114,7 @@ namespace Matrix.BuildingBlocks.Domain
 
         public static TEnum AgainstInvalidEnum<TEnum>(
             TEnum value,
-            Func<TEnum, string?, DomainException> errorFactory,
+            Func<TEnum, string?, Exception> errorFactory,
             [CallerArgumentExpression("value")] string? propertyName = null)
             where TEnum : struct, Enum
         {
@@ -129,7 +128,7 @@ namespace Matrix.BuildingBlocks.Domain
 
         public static TEnum AgainstInvalidEnum<TEnum>(
             TEnum value,
-            Func<string?, DomainException> errorFactory,
+            Func<string?, Exception> errorFactory,
             [CallerArgumentExpression("value")] string? propertyName = null)
             where TEnum : struct, Enum
         {
@@ -170,6 +169,18 @@ namespace Matrix.BuildingBlocks.Domain
             return value;
         }
 
+        public static T AgainstNonPositiveNumber<T>(
+            T value,
+            Func<string?, Exception> errorFactory,
+            [CallerArgumentExpression("value")] string? propertyName = null)
+            where T : struct, IComparable<T>
+        {
+            if (value.CompareTo(default) <= 0)
+                throw errorFactory(propertyName);
+
+            return value;
+        }
+
         public static T AgainstNegativeNumber<T>(
             T value,
             string propertyName)
@@ -177,6 +188,20 @@ namespace Matrix.BuildingBlocks.Domain
         {
             if (value.CompareTo(default(T)) < 0)
                 throw DomainErrorsFactory.NegativeNumber(propertyName);
+
+            return value;
+        }
+
+        public static T AgainstNegativeNumber<T>(
+            T value,
+            Func<T, string?, Exception> errorFactory,
+            [CallerArgumentExpression("value")] string? propertyName = null)
+            where T : struct, IComparable<T>
+        {
+            if (value.CompareTo(default) < 0)
+                throw errorFactory(
+                    arg1: value,
+                    arg2: propertyName);
 
             return value;
         }
@@ -201,7 +226,7 @@ namespace Matrix.BuildingBlocks.Domain
             T value,
             T min,
             T max,
-            Func<T, T, T, string?, DomainException> errorFactory,
+            Func<T, T, T, string?, Exception> errorFactory,
             [CallerArgumentExpression("value")] string? propertyName = null)
             where T : struct, IComparable<T>
         {
