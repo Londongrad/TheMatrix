@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -27,21 +29,33 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             AdvanceCityPopulationCommand request,
             CancellationToken cancellationToken)
         {
-            if (request.FromSimTimeUtc.Offset != TimeSpan.Zero)
-                throw new ArgumentException("FromSimTimeUtc must be UTC.", nameof(request.FromSimTimeUtc));
+            GuardHelper.Ensure(
+                condition: request.FromSimTimeUtc.Offset == TimeSpan.Zero,
+                value: request.FromSimTimeUtc,
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(request.FromSimTimeUtc));
 
-            if (request.ToSimTimeUtc.Offset != TimeSpan.Zero)
-                throw new ArgumentException("ToSimTimeUtc must be UTC.", nameof(request.ToSimTimeUtc));
+            GuardHelper.Ensure(
+                condition: request.ToSimTimeUtc.Offset == TimeSpan.Zero,
+                value: request.ToSimTimeUtc,
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(request.ToSimTimeUtc));
 
-            if (request.TickId < 0)
-                throw new ArgumentOutOfRangeException(nameof(request.TickId));
+            GuardHelper.AgainstNegativeNumber(
+                value: request.TickId,
+                errorFactory: ApplicationErrorsFactory.NumberMustNotBeNegative,
+                propertyName: nameof(request.TickId));
 
             var cityId = CityId.From(request.CityId);
             DateOnly fromDate = DateOnly.FromDateTime(request.FromSimTimeUtc.UtcDateTime);
             DateOnly toDate = DateOnly.FromDateTime(request.ToSimTimeUtc.UtcDateTime);
 
             if (toDate < fromDate)
-                throw new ArgumentException("ToSimTimeUtc date cannot be earlier than FromSimTimeUtc date.");
+                throw ApplicationErrorsFactory.InvalidDateRange(
+                    from: fromDate,
+                    to: toDate,
+                    fromName: nameof(request.FromSimTimeUtc),
+                    toName: nameof(request.ToSimTimeUtc));
 
             CityPopulationProgressionState? state = await progressionStateRepository.GetByCityAsync(
                 cityId: cityId,

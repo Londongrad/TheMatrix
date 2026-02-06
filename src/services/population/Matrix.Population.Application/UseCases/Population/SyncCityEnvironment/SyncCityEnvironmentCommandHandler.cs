@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.UseCases.Population.Common;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.ValueObjects;
@@ -49,17 +51,28 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
             DateTimeOffset? syncedAtUtcValue,
             CancellationToken cancellationToken)
         {
-            if (cityIdValue == Guid.Empty)
-                throw new ArgumentException("CityId cannot be empty.", nameof(cityIdValue));
+            GuardHelper.AgainstEmptyGuid(
+                id: cityIdValue,
+                errorFactory: ApplicationErrorsFactory.EmptyId,
+                propertyName: nameof(cityIdValue));
 
-            ArgumentException.ThrowIfNullOrWhiteSpace(climateZone);
-            ArgumentException.ThrowIfNullOrWhiteSpace(hemisphere);
+            climateZone = GuardHelper.AgainstNullOrWhiteSpace(
+                value: climateZone,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(climateZone));
+            hemisphere = GuardHelper.AgainstNullOrWhiteSpace(
+                value: hemisphere,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(hemisphere));
 
             CityId cityId = CityId.From(cityIdValue);
             DateTimeOffset syncedAtUtc = syncedAtUtcValue ?? DateTimeOffset.UtcNow;
 
-            if (syncedAtUtc.Offset != TimeSpan.Zero)
-                throw new ArgumentException("SyncedAtUtc must be UTC.", nameof(syncedAtUtcValue));
+            GuardHelper.Ensure(
+                condition: syncedAtUtc.Offset == TimeSpan.Zero,
+                value: syncedAtUtc,
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(syncedAtUtcValue));
 
             var input = new CityPopulationEnvironmentInput(
                 ClimateZone: climateZone,

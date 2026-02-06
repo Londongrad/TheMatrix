@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Entities;
 
@@ -13,7 +15,10 @@ namespace Matrix.Population.Application.Mapping
             this Person person,
             DateOnly currentDate)
         {
-            ArgumentNullException.ThrowIfNull(person);
+            person = GuardHelper.AgainstNull(
+                value: person,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(person));
 
             int age = person.GetAge(currentDate)
                .Years;
@@ -61,7 +66,10 @@ namespace Matrix.Population.Application.Mapping
             this IEnumerable<Person> persons,
             DateOnly currentDate)
         {
-            ArgumentNullException.ThrowIfNull(persons);
+            persons = GuardHelper.AgainstNull(
+                value: persons,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(persons));
 
             return persons
                .Select(p => p.ToDto(currentDate))

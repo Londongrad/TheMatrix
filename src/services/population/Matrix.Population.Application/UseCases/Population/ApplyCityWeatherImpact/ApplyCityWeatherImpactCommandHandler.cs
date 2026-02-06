@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -27,32 +29,45 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
             ApplyCityWeatherImpactCommand request,
             CancellationToken cancellationToken)
         {
-            if (request.CityId == Guid.Empty)
-                throw new ArgumentException("CityId cannot be empty.", nameof(request.CityId));
+            GuardHelper.AgainstEmptyGuid(
+                id: request.CityId,
+                errorFactory: ApplicationErrorsFactory.EmptyId,
+                propertyName: nameof(request.CityId));
+            GuardHelper.AgainstEmptyGuid(
+                id: request.IntegrationMessageId,
+                errorFactory: ApplicationErrorsFactory.EmptyId,
+                propertyName: nameof(request.IntegrationMessageId));
 
-            if (request.IntegrationMessageId == Guid.Empty)
-                throw new ArgumentException("IntegrationMessageId cannot be empty.", nameof(request.IntegrationMessageId));
+            string consumerName = GuardHelper.AgainstNullOrWhiteSpace(
+                value: request.ConsumerName,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(request.ConsumerName));
+            GuardHelper.Ensure(
+                condition: request.AtSimTimeUtc.Offset == TimeSpan.Zero,
+                value: request.AtSimTimeUtc,
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(request.AtSimTimeUtc));
 
-            if (string.IsNullOrWhiteSpace(request.ConsumerName))
-                throw new ArgumentException("ConsumerName is required.", nameof(request.ConsumerName));
-
-            if (request.AtSimTimeUtc.Offset != TimeSpan.Zero)
-                throw new ArgumentException("AtSimTimeUtc must be UTC.", nameof(request.AtSimTimeUtc));
-
-            ArgumentNullException.ThrowIfNull(request.PreviousState);
-            ArgumentNullException.ThrowIfNull(request.CurrentState);
+            WeatherImpactSnapshotInput previousState = GuardHelper.AgainstNull(
+                value: request.PreviousState,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(request.PreviousState));
+            WeatherImpactSnapshotInput currentState = GuardHelper.AgainstNull(
+                value: request.CurrentState,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(request.CurrentState));
 
             DateTimeOffset occurredOnUtc = NormalizeOccurredOnUtc(request.OccurredOnUtc);
             var cityId = CityId.From(request.CityId);
             DateOnly currentDate = DateOnly.FromDateTime(request.AtSimTimeUtc.UtcDateTime);
-            WeatherImpactProfile previousWeather = CreateWeatherImpactProfile(request.PreviousState);
-            WeatherImpactProfile currentWeather = CreateWeatherImpactProfile(request.CurrentState);
+            WeatherImpactProfile previousWeather = CreateWeatherImpactProfile(previousState);
+            WeatherImpactProfile currentWeather = CreateWeatherImpactProfile(currentState);
 
             return unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
                     bool markedAsProcessed = await processedIntegrationMessageRepository.TryMarkProcessedAsync(
-                        consumer: request.ConsumerName,
+                        consumer: consumerName,
                         messageId: request.IntegrationMessageId,
                         processedAtUtc: DateTimeOffset.UtcNow,
                         cancellationToken: ct);
@@ -220,6 +235,12 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
 
         private static DateTimeOffset NormalizeOccurredOnUtc(DateTime occurredOnUtc)
         {
+            GuardHelper.Ensure(
+                condition: occurredOnUtc.Kind is DateTimeKind.Utc or DateTimeKind.Unspecified,
+                value: occurredOnUtc,
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(occurredOnUtc));
+
             return occurredOnUtc.Kind switch
             {
                 DateTimeKind.Utc => new DateTimeOffset(occurredOnUtc),
@@ -227,7 +248,9 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                     DateTime.SpecifyKind(
                         value: occurredOnUtc,
                         kind: DateTimeKind.Utc)),
-                _ => throw new ArgumentException("OccurredOnUtc must be UTC.", nameof(occurredOnUtc))
+                _ => throw ApplicationErrorsFactory.TimestampMustBeUtc(
+                    value: occurredOnUtc,
+                    propertyName: nameof(occurredOnUtc))
             };
         }
 

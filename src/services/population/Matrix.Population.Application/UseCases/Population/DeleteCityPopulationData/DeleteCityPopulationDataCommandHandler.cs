@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
@@ -22,17 +24,24 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
             DeleteCityPopulationDataCommand request,
             CancellationToken cancellationToken)
         {
-            if (request.CityId == Guid.Empty)
-                throw new ArgumentException("CityId cannot be empty.", nameof(request.CityId));
+            GuardHelper.AgainstEmptyGuid(
+                id: request.CityId,
+                errorFactory: ApplicationErrorsFactory.EmptyId,
+                propertyName: nameof(request.CityId));
+            GuardHelper.AgainstEmptyGuid(
+                id: request.IntegrationMessageId,
+                errorFactory: ApplicationErrorsFactory.EmptyId,
+                propertyName: nameof(request.IntegrationMessageId));
 
-            if (request.IntegrationMessageId == Guid.Empty)
-                throw new ArgumentException("IntegrationMessageId cannot be empty.", nameof(request.IntegrationMessageId));
-
-            if (string.IsNullOrWhiteSpace(request.ConsumerName))
-                throw new ArgumentException("ConsumerName is required.", nameof(request.ConsumerName));
-
-            if (request.DeletedAtUtc.Offset != TimeSpan.Zero)
-                throw new ArgumentException("DeletedAtUtc must be UTC.", nameof(request.DeletedAtUtc));
+            string consumerName = GuardHelper.AgainstNullOrWhiteSpace(
+                value: request.ConsumerName,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(request.ConsumerName));
+            GuardHelper.Ensure(
+                condition: request.DeletedAtUtc.Offset == TimeSpan.Zero,
+                value: request.DeletedAtUtc,
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(request.DeletedAtUtc));
 
             CityId cityId = CityId.From(request.CityId);
 
@@ -40,7 +49,7 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
                 action: async ct =>
                 {
                     bool markedAsProcessed = await processedIntegrationMessageRepository.TryMarkProcessedAsync(
-                        consumer: request.ConsumerName,
+                        consumer: consumerName,
                         messageId: request.IntegrationMessageId,
                         processedAtUtc: DateTimeOffset.UtcNow,
                         cancellationToken: ct);

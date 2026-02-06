@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
@@ -18,7 +19,10 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
             ResurrectPersonCommand request,
             CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(argument: request);
+            request = GuardHelper.AgainstNull(
+                value: request,
+                errorFactory: ApplicationErrorsFactory.Required,
+                propertyName: nameof(request));
 
             Domain.Entities.Person person =
                 await personReadRepository.FindByIdAsync(
