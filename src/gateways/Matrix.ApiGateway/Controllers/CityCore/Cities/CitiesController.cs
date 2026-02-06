@@ -1,8 +1,12 @@
 using Matrix.ApiGateway.Contracts.CityCore.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
+using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
+using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.Services.CityCore.Cities;
 using Matrix.CityCore.Contracts.Cities.Requests;
 using Matrix.CityCore.Contracts.Cities.Views;
+using Matrix.CityCore.Contracts.Simulation.Views;
+using Matrix.Population.Contracts.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,9 +17,13 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
     [Route("api/cities")]
     public sealed class CitiesController(
         ICitiesApiClient citiesClient,
+        ISimulationApiClient simulationClient,
+        IPopulationApiClient populationClient,
         ICityProvisioningService cityProvisioningService) : ControllerBase
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
+        private readonly ISimulationApiClient _simulationClient = simulationClient;
+        private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
 
         [HttpPost]
@@ -54,6 +62,25 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
                 cancellationToken: cancellationToken);
 
             return Ok(city);
+        }
+
+        [HttpGet("{cityId:guid}/population-summary")]
+        public async Task<ActionResult<CityPopulationSummaryDto>> GetPopulationSummary(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            DateOnly currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityPopulationSummaryDto summary = await _populationClient.GetCityPopulationSummaryAsync(
+                cityId: cityId,
+                currentDate: currentDate,
+                cancellationToken: cancellationToken);
+
+            return Ok(summary);
         }
 
         [HttpGet("{cityId:guid}/provisioning")]

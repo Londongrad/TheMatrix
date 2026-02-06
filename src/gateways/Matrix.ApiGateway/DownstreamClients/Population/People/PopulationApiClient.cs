@@ -2,6 +2,7 @@ using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
+using System.Globalization;
 
 namespace Matrix.ApiGateway.DownstreamClients.Population.People
 {
@@ -28,6 +29,25 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
                 cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<CityPopulationBootstrapSummaryDto>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task<CityPopulationSummaryDto> GetCityPopulationSummaryAsync(
+            Guid cityId,
+            DateOnly currentDate,
+            CancellationToken cancellationToken = default)
+        {
+            string currentDateValue = Uri.EscapeDataString(
+                stringToEscape: currentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            string url = $"{PopulationBaseEndpoint}/cities/{cityId}/summary?currentDate={currentDateValue}";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityPopulationSummaryDto>(
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: url);
