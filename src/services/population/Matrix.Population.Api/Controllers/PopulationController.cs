@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.Population.Common;
+using Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
 using Matrix.Population.Application.UseCases.Population.InitializeCityPopulation;
 using Matrix.Population.Application.UseCases.Population.SyncCityEnvironment;
@@ -66,6 +67,21 @@ namespace Matrix.Population.Api.Controllers
                 cancellationToken: cancellationToken);
 
             return NoContent();
+        }
+
+        [HttpGet("cities/{cityId:guid}/summary")]
+        public async Task<ActionResult<CityPopulationSummaryDto>> GetCitySummary(
+            [FromRoute] Guid cityId,
+            [FromQuery] DateOnly currentDate,
+            CancellationToken cancellationToken = default)
+        {
+            CityPopulationSummaryDto? result = await _sender.Send(
+                request: new GetCityPopulationSummaryQuery(
+                    CityId: cityId,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return result is null ? NotFound() : Ok(result);
         }
 
         [HttpGet("citizens")]
