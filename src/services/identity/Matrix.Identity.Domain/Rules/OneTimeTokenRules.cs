@@ -45,11 +45,11 @@ namespace Matrix.Identity.Domain.Rules
             DateTime? usedAtUtc,
             DateTime? revokedAtUtc)
         {
-            GuardHelper.AgainstNull(
+            GuardHelper.AgainstNotNull(
                 value: revokedAtUtc,
                 errorFactory: DomainErrorsFactory.OneTimeTokenRevoked);
 
-            GuardHelper.AgainstNull(
+            GuardHelper.AgainstNotNull(
                 value: usedAtUtc,
                 errorFactory: DomainErrorsFactory.OneTimeTokenAlreadyUsed);
 

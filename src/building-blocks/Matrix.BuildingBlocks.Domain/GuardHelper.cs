@@ -95,6 +95,18 @@ namespace Matrix.BuildingBlocks.Domain
             return value;
         }
 
+        public static void AgainstNotNull<T>(
+            T? value,
+            Func<T, string?, Exception> errorFactory,
+            [CallerArgumentExpression("value")] string? propertyName = null)
+            where T : struct
+        {
+            if (value is not null)
+                throw errorFactory(
+                    arg1: value.Value,
+                    arg2: propertyName);
+        }
+
         #endregion [ NullOrEmpty ]
 
         #region [ Enums ]
