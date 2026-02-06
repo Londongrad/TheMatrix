@@ -1,0 +1,239 @@
+using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary;
+using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.ValueObjects;
+using Microsoft.EntityFrameworkCore;
+
+namespace Matrix.Population.Infrastructure.Persistence.Repositories
+{
+    public sealed class CityPopulationSummaryReadRepository(PopulationDbContext dbContext)
+        : ICityPopulationSummaryReadRepository
+    {
+        private readonly PopulationDbContext _dbContext = dbContext;
+
+        public async Task<CityPopulationSummaryReadModel?> GetByCityIdAsync(
+            CityId cityId,
+            DateOnly currentDate,
+            CancellationToken cancellationToken = default)
+        {
+            HouseholdAggregate householdAggregate = await GetHouseholdAggregateAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken)
+                ?? HouseholdAggregate.Empty;
+
+            ResidentAggregate residentAggregate = await GetResidentAggregateAsync(
+                    cityId: cityId,
+                    currentDate: currentDate,
+                    cancellationToken: cancellationToken)
+                ?? ResidentAggregate.Empty;
+
+            CityPopulationEnvironment? environment = await _dbContext
+               .CityPopulationEnvironments
+               .AsNoTracking()
+               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+
+            CityPopulationProgressionState? progression = await _dbContext
+               .CityPopulationProgressionStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+
+            CityPopulationWeatherExposureState? weatherExposure = await _dbContext
+               .CityPopulationWeatherExposureStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+
+            CityPopulationWeatherImpactState? weatherImpact = await _dbContext
+               .CityPopulationWeatherImpactStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+
+            CityPopulationArchiveState? archiveState = await _dbContext
+               .CityPopulationArchiveStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+
+            CityPopulationDeletionState? deletionState = await _dbContext
+               .CityPopulationDeletionStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+
+            bool exists = householdAggregate.HouseholdCount > 0 ||
+                          residentAggregate.ResidentCount > 0 ||
+                          residentAggregate.DeceasedCount > 0 ||
+                          environment is not null ||
+                          progression is not null ||
+                          weatherExposure is not null ||
+                          weatherImpact is not null ||
+                          archiveState is not null ||
+                          deletionState is not null;
+
+            if (!exists)
+                return null;
+
+            return new CityPopulationSummaryReadModel(
+                CityId: cityId.Value,
+                CurrentDate: currentDate,
+                IsArchived: archiveState is not null,
+                ArchivedAtUtc: archiveState?.ArchivedAtUtc,
+                IsDeleted: deletionState is not null,
+                DeletedAtUtc: deletionState?.DeletedAtUtc,
+                ClimateZone: environment?.ClimateZone,
+                Hemisphere: environment?.Hemisphere,
+                UtcOffsetMinutes: environment?.UtcOffsetMinutes,
+                EnvironmentUpdatedAtUtc: environment?.UpdatedAtUtc,
+                LastProcessedTickId: progression?.LastProcessedTickId,
+                LastProcessedDate: progression?.LastProcessedDate,
+                SimulationUpdatedAtUtc: progression?.UpdatedAtUtc,
+                CurrentWeatherType: weatherExposure?.CurrentType,
+                CurrentWeatherSeverity: weatherExposure?.CurrentSeverity,
+                IsWeatherRecoveryActive: weatherExposure?.HasRecoverySource ?? false,
+                CurrentWeatherEffectiveAtSimTimeUtc: weatherExposure?.CurrentWeatherEffectiveAtSimTimeUtc,
+                LastWeatherOccurredOnUtc: weatherExposure?.LastWeatherOccurredOnUtc,
+                LastExposureProcessedAtSimTimeUtc: weatherExposure?.LastExposureProcessedAtSimTimeUtc,
+                LastWeatherImpactAppliedAtSimTimeUtc: weatherImpact?.LastAppliedAtSimTimeUtc,
+                HouseholdCount: householdAggregate.HouseholdCount,
+                HousedHouseholdCount: householdAggregate.HousedHouseholdCount,
+                HomelessHouseholdCount: householdAggregate.HomelessHouseholdCount,
+                ResidentCount: residentAggregate.ResidentCount,
+                DeceasedCount: residentAggregate.DeceasedCount,
+                HousedResidentCount: residentAggregate.HousedResidentCount,
+                HomelessResidentCount: residentAggregate.HomelessResidentCount,
+                ChildCount: residentAggregate.ChildCount,
+                YouthCount: residentAggregate.YouthCount,
+                AdultCount: residentAggregate.AdultCount,
+                SeniorCount: residentAggregate.SeniorCount,
+                EmployedCount: residentAggregate.EmployedCount,
+                StudentCount: residentAggregate.StudentCount,
+                UnemployedCount: residentAggregate.UnemployedCount,
+                RetiredCount: residentAggregate.RetiredCount,
+                AverageHealth: residentAggregate.AverageHealth,
+                AverageHappiness: residentAggregate.AverageHappiness);
+        }
+
+        private async Task<HouseholdAggregate?> GetHouseholdAggregateAsync(
+            CityId cityId,
+            CancellationToken cancellationToken)
+        {
+            return await _dbContext
+               .Households
+               .AsNoTracking()
+               .Where(x => x.CityId == cityId)
+               .GroupBy(_ => 1)
+               .Select(g => new HouseholdAggregate(
+                    g.Count(),
+                    g.Count(x => x.HousingStatus == HousingStatus.Housed),
+                    g.Count(x => x.HousingStatus == HousingStatus.Homeless)))
+               .SingleOrDefaultAsync(cancellationToken);
+        }
+
+        private async Task<ResidentAggregate?> GetResidentAggregateAsync(
+            CityId cityId,
+            DateOnly currentDate,
+            CancellationToken cancellationToken)
+        {
+            string aliveStatus = LifeStatus.Alive.ToString();
+            string deceasedStatus = LifeStatus.Deceased.ToString();
+            string employedStatus = EmploymentStatus.Employed.ToString();
+            string studentStatus = EmploymentStatus.Student.ToString();
+            string unemployedStatus = EmploymentStatus.Unemployed.ToString();
+            string retiredStatus = EmploymentStatus.Retired.ToString();
+
+            DateTime childBoundary = currentDate.AddYears(-7).ToDateTime(TimeOnly.MinValue);
+            DateTime youthBoundary = currentDate.AddYears(-17).ToDateTime(TimeOnly.MinValue);
+            DateTime seniorBoundary = currentDate.AddYears(-66).ToDateTime(TimeOnly.MinValue);
+
+            var residentsQuery =
+                from person in _dbContext.Persons.AsNoTracking()
+                join household in _dbContext.Households.AsNoTracking().Where(x => x.CityId == cityId)
+                    on person.HouseholdId equals household.Id
+                select new
+                {
+                    LifeStatus = EF.Property<string>(person, "LifeStatus"),
+                    EmploymentStatus = EF.Property<string>(person, "EmploymentStatus"),
+                    BirthDate = EF.Property<DateTime>(person, "BirthDate"),
+                    Health = EF.Property<int>(person, "Health"),
+                    Happiness = EF.Property<int>(person, "Happiness"),
+                    household.HousingStatus
+                };
+
+            return await residentsQuery
+               .GroupBy(_ => 1)
+               .Select(g => new ResidentAggregate(
+                    g.Count(x => x.LifeStatus == aliveStatus),
+                    g.Count(x => x.LifeStatus == deceasedStatus),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Housed),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Homeless),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.BirthDate > childBoundary),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus &&
+                             x.BirthDate <= childBoundary &&
+                             x.BirthDate > youthBoundary),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus &&
+                             x.BirthDate <= youthBoundary &&
+                             x.BirthDate > seniorBoundary),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.BirthDate <= seniorBoundary),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == employedStatus),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == studentStatus),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == unemployedStatus),
+                    g.Count(
+                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == retiredStatus),
+                    g.Where(x => x.LifeStatus == aliveStatus)
+                       .Select(x => (decimal?)x.Health)
+                       .Average(),
+                    g.Where(x => x.LifeStatus == aliveStatus)
+                       .Select(x => (decimal?)x.Happiness)
+                       .Average()))
+               .SingleOrDefaultAsync(cancellationToken);
+        }
+
+        private sealed record HouseholdAggregate(
+            int HouseholdCount,
+            int HousedHouseholdCount,
+            int HomelessHouseholdCount)
+        {
+            public static HouseholdAggregate Empty { get; } = new(0, 0, 0);
+        }
+
+        private sealed record ResidentAggregate(
+            int ResidentCount,
+            int DeceasedCount,
+            int HousedResidentCount,
+            int HomelessResidentCount,
+            int ChildCount,
+            int YouthCount,
+            int AdultCount,
+            int SeniorCount,
+            int EmployedCount,
+            int StudentCount,
+            int UnemployedCount,
+            int RetiredCount,
+            decimal? AverageHealth,
+            decimal? AverageHappiness)
+        {
+            public static ResidentAggregate Empty { get; } = new(
+                ResidentCount: 0,
+                DeceasedCount: 0,
+                HousedResidentCount: 0,
+                HomelessResidentCount: 0,
+                ChildCount: 0,
+                YouthCount: 0,
+                AdultCount: 0,
+                SeniorCount: 0,
+                EmployedCount: 0,
+                StudentCount: 0,
+                UnemployedCount: 0,
+                RetiredCount: 0,
+                AverageHealth: null,
+                AverageHappiness: null);
+        }
+    }
+}

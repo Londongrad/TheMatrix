@@ -45,6 +45,7 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<ICityPopulationDeletionStateRepository, CityPopulationDeletionStateRepository>();
             services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
+            services.AddScoped<ICityPopulationSummaryReadRepository, CityPopulationSummaryReadRepository>();
             services.AddScoped<ICityPopulationWeatherImpactStateRepository, CityPopulationWeatherImpactStateRepository>();
             services.AddScoped<ICityPopulationWeatherExposureStateRepository, CityPopulationWeatherExposureStateRepository>();
             services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
