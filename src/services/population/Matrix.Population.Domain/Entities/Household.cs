@@ -114,8 +114,11 @@ namespace Matrix.Population.Domain.Entities
 
         private static void EnsureUtc(DateTimeOffset value)
         {
-            if (value.Offset != TimeSpan.Zero)
-                throw DomainErrorsFactory.HouseholdTimestampMustBeUtc();
+            GuardHelper.Ensure(
+                condition: value.Offset == TimeSpan.Zero,
+                value: value,
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(CreatedAtUtc));
         }
     }
 }

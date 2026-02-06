@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Entities
@@ -52,10 +54,11 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset value,
             string paramName)
         {
-            if (value.Offset != TimeSpan.Zero)
-                throw new ArgumentException(
-                    message: "Timestamps must be in UTC.",
-                    paramName: paramName);
+            GuardHelper.Ensure(
+                condition: value.Offset == TimeSpan.Zero,
+                value: value,
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
+                propertyName: paramName);
         }
     }
 }

@@ -87,7 +87,9 @@ namespace Matrix.Population.Domain.ValueObjects
             Random random,
             PersonalityArchetype archetype = PersonalityArchetype.Balanced)
         {
-            ArgumentNullException.ThrowIfNull(random);
+            random = GuardHelper.AgainstNull(
+                value: random,
+                propertyName: nameof(random));
 
             return archetype switch
             {

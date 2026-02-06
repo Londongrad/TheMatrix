@@ -460,6 +460,117 @@ namespace Matrix.Population.Domain.Errors
 
         #endregion [ Person - Age ]
 
+        #region [ Common ]
+
+        public static DomainException TimestampMustBeUtc(
+            DateTimeOffset value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Timestamp.NotUtc",
+                message: "Population timestamps must be in UTC (Offset=00:00).",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Common ]
+
+        #region [ Population - Environment ]
+
+        public static DomainException CityPopulationUtcOffsetMinutesOutOfRange(
+            int value,
+            int min,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Environment.UtcOffsetMinutes.OutOfRange",
+                message: $"UTC offset minutes must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Population - Environment ]
+
+        #region [ Population - Progression ]
+
+        public static DomainException CityPopulationTickIdCannotBeNegative(
+            long value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Progression.TickId.Negative",
+                message: "Population progression tick id cannot be negative.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityPopulationTickIdCannotMoveBackwards(
+            long value,
+            long previous,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Progression.TickId.Backwards",
+                message: $"Population progression tick id '{value}' cannot move backwards from '{previous}'.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityPopulationProcessedDateCannotMoveBackwards(
+            DateOnly value,
+            DateOnly previous,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Progression.ProcessedDate.Backwards",
+                message: $"Population progression date '{value}' cannot move backwards from '{previous}'.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Population - Progression ]
+
+        #region [ Population - Weather ]
+
+        public static DomainException CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
+            DateTimeOffset value,
+            DateTimeOffset previous,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.WeatherImpact.SimTime.Backwards",
+                message: $"Weather impact sim time '{value:O}' cannot move backwards from '{previous:O}'.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
+            DateTimeOffset value,
+            DateTimeOffset previous,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.WeatherImpact.OccurredOn.Backwards",
+                message: $"Weather impact occurrence '{value:O}' cannot move backwards from '{previous:O}' at the same sim time.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityPopulationWeatherExposureStaleUpdate(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.WeatherExposure.Update.Stale",
+                message: "Cannot apply stale weather exposure update.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
+            DateTimeOffset value,
+            DateTimeOffset previous,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.WeatherExposure.ProcessedAt.Backwards",
+                message: $"Weather exposure processed time '{value:O}' cannot move backwards from '{previous:O}'.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Population - Weather ]
+
         #region [ Household ]
 
         public static DomainException HouseholdSizeOutOfRange(string? propertyName = null)
@@ -483,14 +594,6 @@ namespace Matrix.Population.Domain.Errors
             return new DomainException(
                 code: "Population.Household.Placement.HomelessCannotHaveResidentialBuilding",
                 message: "A homeless household cannot have a residential building assigned.",
-                propertyName: propertyName);
-        }
-
-        public static DomainException HouseholdTimestampMustBeUtc(string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Population.Household.Timestamp.MustBeUtc",
-                message: "Household timestamps must be specified in UTC.",
                 propertyName: propertyName);
         }
 

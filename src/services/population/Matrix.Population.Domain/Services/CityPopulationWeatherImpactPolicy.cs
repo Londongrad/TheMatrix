@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -14,9 +15,15 @@ namespace Matrix.Population.Domain.Services
             WeatherImpactProfile currentWeather,
             CityPopulationEnvironment? environment)
         {
-            ArgumentNullException.ThrowIfNull(person);
-            ArgumentNullException.ThrowIfNull(previousWeather);
-            ArgumentNullException.ThrowIfNull(currentWeather);
+            person = GuardHelper.AgainstNull(
+                value: person,
+                propertyName: nameof(person));
+            previousWeather = GuardHelper.AgainstNull(
+                value: previousWeather,
+                propertyName: nameof(previousWeather));
+            currentWeather = GuardHelper.AgainstNull(
+                value: currentWeather,
+                propertyName: nameof(currentWeather));
 
             if (!person.IsAlive)
                 return PersonWeatherImpact.None;

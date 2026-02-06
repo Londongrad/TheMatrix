@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Entities
@@ -49,14 +51,23 @@ namespace Matrix.Population.Domain.Entities
             EnsureUtc(occurredOnUtc, nameof(occurredOnUtc));
             EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
 
-            if (atSimTimeUtc < LastAppliedAtSimTimeUtc)
-                throw new InvalidOperationException(
-                    $"Weather impact sim time '{atSimTimeUtc:O}' cannot move backwards from '{LastAppliedAtSimTimeUtc:O}'.");
+            GuardHelper.Ensure(
+                condition: atSimTimeUtc >= LastAppliedAtSimTimeUtc,
+                value: atSimTimeUtc,
+                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
+                    value: value,
+                    previous: LastAppliedAtSimTimeUtc,
+                    propertyName: propertyName),
+                propertyName: nameof(atSimTimeUtc));
 
-            if (atSimTimeUtc == LastAppliedAtSimTimeUtc &&
-                occurredOnUtc <= LastAppliedOccurredOnUtc)
-                throw new InvalidOperationException(
-                    $"Weather impact occurrence '{occurredOnUtc:O}' cannot move backwards from '{LastAppliedOccurredOnUtc:O}' at the same sim time.");
+            GuardHelper.Ensure(
+                condition: atSimTimeUtc != LastAppliedAtSimTimeUtc || occurredOnUtc > LastAppliedOccurredOnUtc,
+                value: occurredOnUtc,
+                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
+                    value: value,
+                    previous: LastAppliedOccurredOnUtc,
+                    propertyName: propertyName),
+                propertyName: nameof(occurredOnUtc));
 
             LastAppliedAtSimTimeUtc = atSimTimeUtc;
             LastAppliedOccurredOnUtc = occurredOnUtc;
@@ -67,10 +78,11 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset value,
             string paramName)
         {
-            if (value.Offset != TimeSpan.Zero)
-                throw new ArgumentException(
-                    message: "Timestamps must be in UTC.",
-                    paramName: paramName);
+            GuardHelper.Ensure(
+                condition: value.Offset == TimeSpan.Zero,
+                value: value,
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
+                propertyName: paramName);
         }
     }
 }

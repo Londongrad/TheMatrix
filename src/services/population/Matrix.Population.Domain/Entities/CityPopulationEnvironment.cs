@@ -1,4 +1,6 @@
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Entities
@@ -17,12 +19,20 @@ namespace Matrix.Population.Domain.Entities
         {
             EnsureUtc(createdAtUtc, nameof(createdAtUtc));
             EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
-            EnsureUtcOffsetMinutes(utcOffsetMinutes);
 
             CityId = cityId;
-            ClimateZone = climateZone;
-            Hemisphere = hemisphere;
-            UtcOffsetMinutes = utcOffsetMinutes;
+            ClimateZone = GuardHelper.AgainstInvalidEnum(
+                value: climateZone,
+                propertyName: nameof(ClimateZone));
+            Hemisphere = GuardHelper.AgainstInvalidEnum(
+                value: hemisphere,
+                propertyName: nameof(Hemisphere));
+            UtcOffsetMinutes = GuardHelper.AgainstOutOfRange(
+                value: utcOffsetMinutes,
+                min: -14 * 60,
+                max: 14 * 60,
+                errorFactory: DomainErrorsFactory.CityPopulationUtcOffsetMinutesOutOfRange,
+                propertyName: nameof(UtcOffsetMinutes));
             CreatedAtUtc = createdAtUtc;
             UpdatedAtUtc = updatedAtUtc;
         }
@@ -57,11 +67,19 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset updatedAtUtc)
         {
             EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
-            EnsureUtcOffsetMinutes(utcOffsetMinutes);
 
-            ClimateZone = climateZone;
-            Hemisphere = hemisphere;
-            UtcOffsetMinutes = utcOffsetMinutes;
+            ClimateZone = GuardHelper.AgainstInvalidEnum(
+                value: climateZone,
+                propertyName: nameof(ClimateZone));
+            Hemisphere = GuardHelper.AgainstInvalidEnum(
+                value: hemisphere,
+                propertyName: nameof(Hemisphere));
+            UtcOffsetMinutes = GuardHelper.AgainstOutOfRange(
+                value: utcOffsetMinutes,
+                min: -14 * 60,
+                max: 14 * 60,
+                errorFactory: DomainErrorsFactory.CityPopulationUtcOffsetMinutesOutOfRange,
+                propertyName: nameof(UtcOffsetMinutes));
             UpdatedAtUtc = updatedAtUtc;
         }
 
@@ -69,18 +87,11 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset value,
             string paramName)
         {
-            if (value.Offset != TimeSpan.Zero)
-                throw new ArgumentException(
-                    message: "Timestamps must be in UTC.",
-                    paramName: paramName);
-        }
-
-        private static void EnsureUtcOffsetMinutes(int value)
-        {
-            if (value is < -14 * 60 or > 14 * 60)
-                throw new ArgumentOutOfRangeException(
-                    paramName: nameof(value),
-                    message: "UTC offset minutes must be within [-840, 840].");
+            GuardHelper.Ensure(
+                condition: value.Offset == TimeSpan.Zero,
+                value: value,
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
+                propertyName: paramName);
         }
     }
 }

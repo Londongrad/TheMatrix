@@ -1,4 +1,6 @@
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Services;
 using Matrix.Population.Domain.ValueObjects;
@@ -21,7 +23,9 @@ namespace Matrix.Population.Domain.Entities
             EnsureUtc(lastWeatherOccurredOnUtc, nameof(lastWeatherOccurredOnUtc));
             EnsureUtc(lastExposureProcessedAtSimTimeUtc, nameof(lastExposureProcessedAtSimTimeUtc));
             EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
-            ArgumentNullException.ThrowIfNull(currentWeather);
+            currentWeather = GuardHelper.AgainstNull(
+                value: currentWeather,
+                propertyName: nameof(currentWeather));
 
             CityId = cityId;
             CurrentType = currentWeather.Type;
@@ -169,12 +173,17 @@ namespace Matrix.Population.Domain.Entities
             EnsureUtc(currentWeatherEffectiveAtSimTimeUtc, nameof(currentWeatherEffectiveAtSimTimeUtc));
             EnsureUtc(occurredOnUtc, nameof(occurredOnUtc));
             EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
-            ArgumentNullException.ThrowIfNull(currentWeather);
+            currentWeather = GuardHelper.AgainstNull(
+                value: currentWeather,
+                propertyName: nameof(currentWeather));
 
-            if (!CanApplyWeatherUpdate(
+            GuardHelper.Ensure(
+                condition: CanApplyWeatherUpdate(
                     atSimTimeUtc: currentWeatherEffectiveAtSimTimeUtc,
-                    occurredOnUtc: occurredOnUtc))
-                throw new InvalidOperationException("Cannot apply stale weather update.");
+                    occurredOnUtc: occurredOnUtc),
+                value: currentWeatherEffectiveAtSimTimeUtc,
+                errorFactory: (_, propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureStaleUpdate(propertyName),
+                propertyName: nameof(currentWeatherEffectiveAtSimTimeUtc));
 
             WeatherImpactProfile previousCurrentWeather = CurrentWeather;
 
@@ -220,9 +229,14 @@ namespace Matrix.Population.Domain.Entities
             EnsureUtc(processedAtSimTimeUtc, nameof(processedAtSimTimeUtc));
             EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
 
-            if (processedAtSimTimeUtc < LastExposureProcessedAtSimTimeUtc)
-                throw new InvalidOperationException(
-                    $"Exposure processed time '{processedAtSimTimeUtc:O}' cannot move backwards from '{LastExposureProcessedAtSimTimeUtc:O}'.");
+            GuardHelper.Ensure(
+                condition: processedAtSimTimeUtc >= LastExposureProcessedAtSimTimeUtc,
+                value: processedAtSimTimeUtc,
+                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
+                    value: value,
+                    previous: LastExposureProcessedAtSimTimeUtc,
+                    propertyName: propertyName),
+                propertyName: nameof(processedAtSimTimeUtc));
 
             LastExposureProcessedAtSimTimeUtc = processedAtSimTimeUtc;
             UpdatedAtUtc = updatedAtUtc;
@@ -249,7 +263,9 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset recoveryStartedAtSimTimeUtc)
         {
             EnsureUtc(recoveryStartedAtSimTimeUtc, nameof(recoveryStartedAtSimTimeUtc));
-            ArgumentNullException.ThrowIfNull(recoverySourceWeather);
+            recoverySourceWeather = GuardHelper.AgainstNull(
+                value: recoverySourceWeather,
+                propertyName: nameof(recoverySourceWeather));
 
             RecoverySourceType = recoverySourceWeather.Type;
             RecoverySourceSeverity = recoverySourceWeather.Severity;
@@ -279,10 +295,11 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset value,
             string paramName)
         {
-            if (value.Offset != TimeSpan.Zero)
-                throw new ArgumentException(
-                    message: "Timestamps must be in UTC.",
-                    paramName: paramName);
+            GuardHelper.Ensure(
+                condition: value.Offset == TimeSpan.Zero,
+                value: value,
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
+                propertyName: paramName);
         }
     }
 }

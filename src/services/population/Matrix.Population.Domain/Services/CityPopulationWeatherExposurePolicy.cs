@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -13,8 +14,12 @@ namespace Matrix.Population.Domain.Services
             CityWeatherExposureSegment segment,
             CityPopulationEnvironment? environment)
         {
-            ArgumentNullException.ThrowIfNull(person);
-            ArgumentNullException.ThrowIfNull(segment);
+            person = GuardHelper.AgainstNull(
+                value: person,
+                propertyName: nameof(person));
+            segment = GuardHelper.AgainstNull(
+                value: segment,
+                propertyName: nameof(segment));
 
             if (!person.IsAlive)
                 return PersonWeatherImpact.None;

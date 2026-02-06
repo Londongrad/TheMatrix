@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Domain;
+using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Entities
@@ -12,10 +14,10 @@ namespace Matrix.Population.Domain.Entities
             DateOnly lastProcessedDate,
             DateTimeOffset updatedAtUtc)
         {
-            if (lastProcessedTickId < 0)
-                throw new ArgumentOutOfRangeException(
-                    paramName: nameof(lastProcessedTickId),
-                    message: "Last processed tick id cannot be negative.");
+            GuardHelper.AgainstNegativeNumber(
+                value: lastProcessedTickId,
+                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative,
+                propertyName: nameof(lastProcessedTickId));
 
             EnsureUtc(updatedAtUtc);
 
@@ -48,18 +50,28 @@ namespace Matrix.Population.Domain.Entities
             DateOnly processedDate,
             DateTimeOffset updatedAtUtc)
         {
-            if (tickId < 0)
-                throw new ArgumentOutOfRangeException(
-                    paramName: nameof(tickId),
-                    message: "Tick id cannot be negative.");
+            GuardHelper.AgainstNegativeNumber(
+                value: tickId,
+                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative,
+                propertyName: nameof(tickId));
 
-            if (tickId < LastProcessedTickId)
-                throw new InvalidOperationException(
-                    $"Tick id '{tickId}' cannot move backwards from '{LastProcessedTickId}'.");
+            GuardHelper.Ensure(
+                condition: tickId >= LastProcessedTickId,
+                value: tickId,
+                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationTickIdCannotMoveBackwards(
+                    value: value,
+                    previous: LastProcessedTickId,
+                    propertyName: propertyName),
+                propertyName: nameof(tickId));
 
-            if (processedDate < LastProcessedDate)
-                throw new InvalidOperationException(
-                    $"Processed date '{processedDate}' cannot move backwards from '{LastProcessedDate}'.");
+            GuardHelper.Ensure(
+                condition: processedDate >= LastProcessedDate,
+                value: processedDate,
+                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationProcessedDateCannotMoveBackwards(
+                    value: value,
+                    previous: LastProcessedDate,
+                    propertyName: propertyName),
+                propertyName: nameof(processedDate));
 
             EnsureUtc(updatedAtUtc);
 
@@ -70,10 +82,11 @@ namespace Matrix.Population.Domain.Entities
 
         private static void EnsureUtc(DateTimeOffset value)
         {
-            if (value.Offset != TimeSpan.Zero)
-                throw new ArgumentException(
-                    message: "Timestamps must be in UTC.",
-                    paramName: nameof(value));
+            GuardHelper.Ensure(
+                condition: value.Offset == TimeSpan.Zero,
+                value: value,
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
+                propertyName: nameof(value));
         }
     }
 }
