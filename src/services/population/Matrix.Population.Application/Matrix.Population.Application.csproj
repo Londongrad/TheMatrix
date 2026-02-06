@@ -16,4 +16,8 @@
     <ProjectReference Include="..\Matrix.Population.Domain\Matrix.Population.Domain.csproj"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Services\Generation\Content\*.json" />
+  </ItemGroup>
+
 </Project>
