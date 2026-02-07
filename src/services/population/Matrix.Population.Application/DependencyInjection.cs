@@ -19,6 +19,7 @@ namespace Matrix.Population.Application
             services.AddSingleton<IPopulationGenerationContentCatalog, PopulationGenerationContentCatalog>();
             services.AddSingleton<CityPopulationBootstrapGenerator>();
             services.AddSingleton<CityPopulationClimateAdaptationPolicy>();
+            services.AddSingleton<PersonNeedsProgressionPolicy>();
             services.AddSingleton<CityPopulationWeatherImpactPolicy>();
             services.AddSingleton<CityPopulationWeatherExposurePolicy>();
 

@@ -20,6 +20,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
+        PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
         IUnitOfWork unitOfWork)
@@ -99,6 +100,7 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             DateOnly previousDate = state?.LastProcessedDate ?? fromDate;
             int affectedPeopleCount = 0;
             bool requiresDateProgression = state is null || toDate > previousDate;
+            bool requiresNeedsProgression = request.ToSimTimeUtc > request.FromSimTimeUtc;
             bool shouldAdvanceWeatherExposureCheckpoint = ShouldAdvanceWeatherExposureCheckpoint(
                 weatherExposureState: weatherExposureState,
                 fromSimTimeUtc: request.FromSimTimeUtc,
@@ -111,27 +113,31 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 : [];
             bool requiresWeatherExposure = exposureSegments.Count > 0;
 
-            if ((requiresDateProgression || requiresWeatherExposure) && environment is null)
+            if ((requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure) && environment is null)
                 logger.LogWarning(
-                    message: "Advancing city population without synced environment for cityId={CityId}. Climate adaptation will be neutral.",
+                    message: "Advancing city population without synced environment for cityId={CityId}. Climate adaptation will be neutral and needs progression will use UTC fallback.",
                     request.CityId);
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
-                    if (requiresDateProgression || requiresWeatherExposure)
+                    if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
                     {
                         IReadOnlyCollection<PersonEntity> persons = await personWriteRepository.ListByCityAsync(
                             cityId: cityId,
                             cancellationToken: ct);
 
                         foreach (PersonEntity person in persons)
-                            if (ApplyProgressionAndExposure(
+                            if (ApplyProgressionNeedsAndExposure(
                                 person: person,
+                                fromSimTimeUtc: request.FromSimTimeUtc,
+                                toSimTimeUtc: request.ToSimTimeUtc,
                                 currentDate: toDate,
                                 requiresDateProgression: requiresDateProgression,
+                                requiresNeedsProgression: requiresNeedsProgression,
                                 environment: environment,
                                 exposureSegments: exposureSegments,
+                                personNeedsProgressionPolicy: personNeedsProgressionPolicy,
                                 weatherExposurePolicy: weatherExposurePolicy))
                             affectedPeopleCount++;
                     }
@@ -172,15 +178,29 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 AffectedPeopleCount: affectedPeopleCount);
         }
 
-        private static bool ApplyProgressionAndExposure(
+        private static bool ApplyProgressionNeedsAndExposure(
             PersonEntity person,
+            DateTimeOffset fromSimTimeUtc,
+            DateTimeOffset toSimTimeUtc,
             DateOnly currentDate,
             bool requiresDateProgression,
+            bool requiresNeedsProgression,
             CityPopulationEnvironment? environment,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
+            PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
             bool changed = false;
+
+            if (requiresNeedsProgression &&
+                ApplyNeedsProgression(
+                    person: person,
+                    fromSimTimeUtc: fromSimTimeUtc,
+                    toSimTimeUtc: toSimTimeUtc,
+                    currentDate: currentDate,
+                    environment: environment,
+                    personNeedsProgressionPolicy: personNeedsProgressionPolicy))
+                changed = true;
 
             if (requiresDateProgression &&
                 ApplyTimeProgression(
@@ -198,6 +218,27 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                     changed = true;
 
             return changed;
+        }
+
+        private static bool ApplyNeedsProgression(
+            PersonEntity person,
+            DateTimeOffset fromSimTimeUtc,
+            DateTimeOffset toSimTimeUtc,
+            DateOnly currentDate,
+            CityPopulationEnvironment? environment,
+            PersonNeedsProgressionPolicy personNeedsProgressionPolicy)
+        {
+            int utcOffsetMinutes = environment?.UtcOffsetMinutes ?? 0;
+
+            PersonNeedsProgressionEffect effect = personNeedsProgressionPolicy.Calculate(
+                person: person,
+                fromSimTimeUtc: fromSimTimeUtc,
+                toSimTimeUtc: toSimTimeUtc,
+                utcOffsetMinutes: utcOffsetMinutes);
+
+            return person.ApplyNeedsProgression(
+                effect: effect,
+                currentDate: currentDate);
         }
 
         private static bool ApplyTimeProgression(

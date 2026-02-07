@@ -46,7 +46,11 @@ namespace Matrix.Population.Application.Mapping
                 LifeStatus: person.Life.Status.ToString(),
                 MaritalStatus: person.MaritalStatus.ToString(), // если позже перейдёшь на MaritalInfo → Marital.Status
                 EducationLevel: person.EducationLevel.ToString(), // если будет EducationInfo → Education.Level
+                Health: person.Health.Value,
                 Happiness: person.Happiness.Value,
+                Energy: person.Energy.Value,
+                Stress: person.Stress.Value,
+                SocialNeed: person.SocialNeed.Value,
                 EmploymentStatus: person.Employment.Status.ToString(),
                 JobTitle: person.Employment.Job?.Title);
         }

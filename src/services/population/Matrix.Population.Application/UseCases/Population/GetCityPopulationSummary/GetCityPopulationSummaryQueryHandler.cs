@@ -95,7 +95,10 @@ namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSum
                 UnemployedCount: summary.UnemployedCount,
                 RetiredCount: summary.RetiredCount,
                 AverageHealth: RoundMetric(summary.AverageHealth),
-                AverageHappiness: RoundMetric(summary.AverageHappiness));
+                AverageHappiness: RoundMetric(summary.AverageHappiness),
+                AverageEnergy: RoundMetric(summary.AverageEnergy),
+                AverageStress: RoundMetric(summary.AverageStress),
+                AverageSocialNeed: RoundMetric(summary.AverageSocialNeed));
 
             return new CityPopulationSummaryDto(
                 CityId: summary.CityId,

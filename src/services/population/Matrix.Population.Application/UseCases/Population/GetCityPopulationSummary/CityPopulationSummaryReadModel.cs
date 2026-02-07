@@ -39,5 +39,8 @@ namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSum
         int UnemployedCount,
         int RetiredCount,
         decimal? AverageHealth,
-        decimal? AverageHappiness);
+        decimal? AverageHappiness,
+        decimal? AverageEnergy,
+        decimal? AverageStress,
+        decimal? AverageSocialNeed);
 }
