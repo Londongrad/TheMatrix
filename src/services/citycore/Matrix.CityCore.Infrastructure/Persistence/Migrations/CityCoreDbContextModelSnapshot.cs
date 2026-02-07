@@ -106,6 +106,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("PopulationBootstrapOperationId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("SimulationKind")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 

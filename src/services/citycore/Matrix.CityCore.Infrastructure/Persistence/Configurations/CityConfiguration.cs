@@ -25,6 +25,10 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                .HasMaxLength(CityName.MaxLength)
                .IsRequired();
 
+            builder.Property(x => x.SimulationKind)
+               .HasConversion<int>()
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.Environment,
                 buildAction: environment =>
