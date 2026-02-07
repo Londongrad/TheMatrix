@@ -3,5 +3,6 @@
     public sealed record CityListItemView(
         Guid CityId,
         string Name,
+        string SimulationKind,
         string Status);
 }

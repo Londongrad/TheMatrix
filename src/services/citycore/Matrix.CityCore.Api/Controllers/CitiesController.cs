@@ -38,6 +38,7 @@ namespace Matrix.CityCore.Api.Controllers
             CityCreatedDto created = await mediator.Send(
                 request: new CreateCityCommand(
                     Name: request.Name,
+                    SimulationKind: request.SimulationKind,
                     ClimateZone: request.ClimateZone,
                     Hemisphere: request.Hemisphere,
                     UtcOffsetMinutes: request.UtcOffsetMinutes,
@@ -53,7 +54,8 @@ namespace Matrix.CityCore.Api.Controllers
                 uri: $"/api/cities/{created.CityId}",
                 value: new CityCreatedView(
                     CityId: created.CityId,
-                    PopulationBootstrapOperationId: created.PopulationBootstrapOperationId));
+                    PopulationBootstrapOperationId: created.PopulationBootstrapOperationId,
+                    SimulationKind: created.SimulationKind));
         }
 
         [HttpGet("generation/catalog")]
@@ -198,7 +200,8 @@ namespace Matrix.CityCore.Api.Controllers
                 RestartCityPopulationBootstrapStatus.Restarted => Results.Ok(
                     new CityPopulationBootstrapRestartedView(
                         CityId: cityId,
-                        PopulationBootstrapOperationId: result.PopulationBootstrapOperationId!.Value)),
+                        PopulationBootstrapOperationId: result.PopulationBootstrapOperationId!.Value,
+                        SimulationKind: result.SimulationKind!)),
                 RestartCityPopulationBootstrapStatus.NotFound => Results.NotFound(),
                 RestartCityPopulationBootstrapStatus.NotAllowed => Results.Conflict(
                     new
@@ -323,6 +326,7 @@ namespace Matrix.CityCore.Api.Controllers
             return new CityView(
                 CityId: dto.CityId,
                 Name: dto.Name,
+                SimulationKind: dto.SimulationKind,
                 Status: dto.Status,
                 ClimateZone: dto.ClimateZone,
                 Hemisphere: dto.Hemisphere,
@@ -351,6 +355,7 @@ namespace Matrix.CityCore.Api.Controllers
             return new CityListItemView(
                 CityId: dto.CityId,
                 Name: dto.Name,
+                SimulationKind: dto.SimulationKind,
                 Status: dto.Status);
         }
 
