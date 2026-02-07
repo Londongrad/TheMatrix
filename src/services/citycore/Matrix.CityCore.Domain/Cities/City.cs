@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
+using Matrix.CityCore.Domain.Cities.Enums;
 using Matrix.CityCore.Domain.Errors;
 using Matrix.CityCore.Domain.Events.Cities;
 
@@ -16,6 +17,7 @@ namespace Matrix.CityCore.Domain.Cities
         private City(
             CityId id,
             CityName name,
+            SimulationKind simulationKind,
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             CityGenerationProfile generationProfile,
@@ -37,6 +39,9 @@ namespace Matrix.CityCore.Domain.Cities
                 propertyName: nameof(populationBootstrapOperationId));
 
             Name = name;
+            SimulationKind = GuardHelper.AgainstInvalidEnum(
+                value: simulationKind,
+                propertyName: nameof(simulationKind));
             Environment = environment;
             GenerationSeed = generationSeed;
             GenerationProfile = generationProfile;
@@ -53,12 +58,14 @@ namespace Matrix.CityCore.Domain.Cities
             : base(default(CityId))
         {
             Name = default(CityName);
+            SimulationKind = SimulationKind.ClassicCity;
             Environment = null!;
             GenerationSeed = default(CityGenerationSeed);
             GenerationProfile = null!;
         }
 
         public CityName Name { get; private set; }
+        public SimulationKind SimulationKind { get; private set; }
         public CityEnvironment Environment { get; private set; }
         public CityGenerationSeed GenerationSeed { get; }
         public CityGenerationProfile GenerationProfile { get; }
@@ -77,9 +84,11 @@ namespace Matrix.CityCore.Domain.Cities
 
         public static City Create(
             CityName name,
+            SimulationKind simulationKind,
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             CityGenerationProfile generationProfile,
+            bool requiresPopulationBootstrap,
             DateTimeOffset createdAtUtc)
         {
             EnsureUtc(createdAtUtc);
@@ -100,13 +109,18 @@ namespace Matrix.CityCore.Domain.Cities
             var city = new City(
                 id: CityId.New(),
                 name: name,
+                simulationKind: simulationKind,
                 environment: environment,
                 generationSeed: generationSeed,
                 generationProfile: generationProfile,
-                status: CityStatus.Provisioning,
+                status: requiresPopulationBootstrap
+                    ? CityStatus.Provisioning
+                    : CityStatus.Active,
                 createdAtUtc: createdAtUtc,
                 populationBootstrapOperationId: Guid.NewGuid(),
-                populationBootstrapCompletedAtUtc: null,
+                populationBootstrapCompletedAtUtc: requiresPopulationBootstrap
+                    ? null
+                    : createdAtUtc,
                 populationBootstrapFailedAtUtc: null,
                 populationBootstrapFailureCode: null,
                 archivedAtUtc: null);
@@ -115,6 +129,7 @@ namespace Matrix.CityCore.Domain.Cities
                 new CityCreatedDomainEvent(
                     CityId: city.Id,
                     Name: city.Name,
+                    SimulationKind: city.SimulationKind,
                     Environment: city.Environment,
                     GenerationSeed: city.GenerationSeed,
                     GenerationProfile: city.GenerationProfile,
