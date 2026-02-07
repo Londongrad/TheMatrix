@@ -14,5 +14,8 @@ namespace Matrix.Population.Contracts.Models
         int UnemployedCount,
         int RetiredCount,
         decimal? AverageHealth,
-        decimal? AverageHappiness);
+        decimal? AverageHappiness,
+        decimal? AverageEnergy,
+        decimal? AverageStress,
+        decimal? AverageSocialNeed);
 }

@@ -11,7 +11,11 @@ namespace Matrix.Population.Contracts.Models
         string LifeStatus,
         string MaritalStatus,
         string EducationLevel,
+        int Health,
         int Happiness,
+        int Energy,
+        int Stress,
+        int SocialNeed,
         string EmploymentStatus,
         string? JobTitle);
 }
