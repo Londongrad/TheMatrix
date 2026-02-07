@@ -108,7 +108,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                 UnemployedCount: residentAggregate.UnemployedCount,
                 RetiredCount: residentAggregate.RetiredCount,
                 AverageHealth: residentAggregate.AverageHealth,
-                AverageHappiness: residentAggregate.AverageHappiness);
+                AverageHappiness: residentAggregate.AverageHappiness,
+                AverageEnergy: residentAggregate.AverageEnergy,
+                AverageStress: residentAggregate.AverageStress,
+                AverageSocialNeed: residentAggregate.AverageSocialNeed);
         }
 
         private async Task<HouseholdAggregate?> GetHouseholdAggregateAsync(
@@ -154,6 +157,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                     BirthDate = EF.Property<DateTime>(person, "BirthDate"),
                     Health = EF.Property<int>(person, "Health"),
                     Happiness = EF.Property<int>(person, "Happiness"),
+                    Energy = EF.Property<int>(person, "Energy"),
+                    Stress = EF.Property<int>(person, "Stress"),
+                    SocialNeed = EF.Property<int>(person, "SocialNeed"),
                     household.HousingStatus
                 };
 
@@ -191,6 +197,15 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                        .Average(),
                     g.Where(x => x.LifeStatus == aliveStatus)
                        .Select(x => (decimal?)x.Happiness)
+                       .Average(),
+                    g.Where(x => x.LifeStatus == aliveStatus)
+                       .Select(x => (decimal?)x.Energy)
+                       .Average(),
+                    g.Where(x => x.LifeStatus == aliveStatus)
+                       .Select(x => (decimal?)x.Stress)
+                       .Average(),
+                    g.Where(x => x.LifeStatus == aliveStatus)
+                       .Select(x => (decimal?)x.SocialNeed)
                        .Average()))
                .SingleOrDefaultAsync(cancellationToken);
         }
@@ -217,7 +232,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             int UnemployedCount,
             int RetiredCount,
             decimal? AverageHealth,
-            decimal? AverageHappiness)
+            decimal? AverageHappiness,
+            decimal? AverageEnergy,
+            decimal? AverageStress,
+            decimal? AverageSocialNeed)
         {
             public static ResidentAggregate Empty { get; } = new(
                 ResidentCount: 0,
@@ -233,7 +251,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                 UnemployedCount: 0,
                 RetiredCount: 0,
                 AverageHealth: null,
-                AverageHappiness: null);
+                AverageHappiness: null,
+                AverageEnergy: null,
+                AverageStress: null,
+                AverageSocialNeed: null);
         }
     }
 }

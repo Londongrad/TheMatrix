@@ -43,6 +43,27 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                .HasColumnName("Happiness")
                .IsRequired();
 
+            builder.Property(p => p.Energy)
+               .HasConversion(
+                    convertToProviderExpression: value => value.Value,
+                    convertFromProviderExpression: value => EnergyLevel.From(value))
+               .HasColumnName("Energy")
+               .IsRequired();
+
+            builder.Property(p => p.Stress)
+               .HasConversion(
+                    convertToProviderExpression: value => value.Value,
+                    convertFromProviderExpression: value => StressLevel.From(value))
+               .HasColumnName("Stress")
+               .IsRequired();
+
+            builder.Property(p => p.SocialNeed)
+               .HasConversion(
+                    convertToProviderExpression: value => value.Value,
+                    convertFromProviderExpression: value => SocialNeedLevel.From(value))
+               .HasColumnName("SocialNeed")
+               .IsRequired();
+
             builder.Property(p => p.Weight)
                .HasConversion(
                     convertToProviderExpression: w => w.Kilograms,
