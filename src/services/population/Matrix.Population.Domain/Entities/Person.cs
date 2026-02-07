@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Rules;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -23,6 +24,9 @@ namespace Matrix.Population.Domain.Entities
             EducationLevel educationLevel,
             EmploymentStatus employmentStatus,
             HappinessLevel happinessLevel,
+            EnergyLevel energyLevel,
+            StressLevel stressLevel,
+            SocialNeedLevel socialNeedLevel,
             Personality personality,
             DateOnly birthDate,
             HealthLevel healthLevel,
@@ -60,6 +64,9 @@ namespace Matrix.Population.Domain.Entities
                 education: education,
                 employment: employment,
                 happiness: happinessLevel,
+                energy: energyLevel,
+                stress: stressLevel,
+                socialNeed: socialNeedLevel,
                 personality: personality,
                 weight: weight);
         }
@@ -82,6 +89,9 @@ namespace Matrix.Population.Domain.Entities
 
         public BodyWeight Weight { get; private set; } = null!;
         public HappinessLevel Happiness { get; private set; }
+        public EnergyLevel Energy { get; private set; }
+        public StressLevel Stress { get; private set; }
+        public SocialNeedLevel SocialNeed { get; private set; }
         public Personality Personality { get; } = null!;
 
         #endregion [ Properties ]
@@ -103,7 +113,6 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Constructors ]
 
-        // Для EF Core
         private Person() { }
 
         private Person(
@@ -116,6 +125,9 @@ namespace Matrix.Population.Domain.Entities
             EducationInfo education,
             EmploymentInfo employment,
             HappinessLevel happiness,
+            EnergyLevel energy,
+            StressLevel stress,
+            SocialNeedLevel socialNeed,
             Personality personality,
             BodyWeight weight)
         {
@@ -143,6 +155,9 @@ namespace Matrix.Population.Domain.Entities
                 propertyName: nameof(Employment));
 
             Happiness = happiness;
+            Energy = energy;
+            Stress = stress;
+            SocialNeed = socialNeed;
             Personality = GuardHelper.AgainstNull(
                 value: personality,
                 propertyName: nameof(Personality));
@@ -169,7 +184,7 @@ namespace Matrix.Population.Domain.Entities
 
         #endregion [ Age ]
 
-        #region [ Happiness ]
+        #region [ Needs / Happiness ]
 
         public void ChangeHappiness(int delta)
         {
@@ -177,7 +192,65 @@ namespace Matrix.Population.Domain.Entities
             Happiness = Happiness.WithDelta(finalDelta);
         }
 
-        #endregion [ Happiness ]
+        public void ChangeEnergy(int delta)
+        {
+            Energy = Energy.WithDelta(delta);
+        }
+
+        public void ChangeStress(int delta)
+        {
+            Stress = Stress.WithDelta(delta);
+        }
+
+        public void ChangeSocialNeed(int delta)
+        {
+            SocialNeed = SocialNeed.WithDelta(delta);
+        }
+
+        public bool ApplyNeedsProgression(
+            PersonNeedsProgressionEffect effect,
+            DateOnly currentDate)
+        {
+            effect = GuardHelper.AgainstNull(
+                value: effect,
+                propertyName: nameof(effect));
+
+            if (!effect.HasAnyEffect || !IsAlive)
+                return false;
+
+            int previousEnergy = Energy.Value;
+            int previousStress = Stress.Value;
+            int previousSocialNeed = SocialNeed.Value;
+            int previousHealth = Health.Value;
+            int previousHappiness = Happiness.Value;
+            bool wasAlive = IsAlive;
+
+            if (effect.EnergyDelta != 0)
+                ChangeEnergy(effect.EnergyDelta);
+
+            if (effect.StressDelta != 0)
+                ChangeStress(effect.StressDelta);
+
+            if (effect.SocialNeedDelta != 0)
+                ChangeSocialNeed(effect.SocialNeedDelta);
+
+            if (effect.HealthDelta != 0)
+                ChangeHealth(
+                    delta: effect.HealthDelta,
+                    currentDate: currentDate);
+
+            if (effect.HappinessDelta != 0 && IsAlive)
+                ChangeHappiness(effect.HappinessDelta);
+
+            return previousEnergy != Energy.Value ||
+                   previousStress != Stress.Value ||
+                   previousSocialNeed != SocialNeed.Value ||
+                   previousHealth != Health.Value ||
+                   previousHappiness != Happiness.Value ||
+                   wasAlive != IsAlive;
+        }
+
+        #endregion [ Needs / Happiness ]
 
         #region [ Health / Life ]
 
@@ -192,14 +265,14 @@ namespace Matrix.Population.Domain.Entities
                 currentDate: currentDate);
 
             if (wasAlive && !IsAlive)
-                // Человек умер из-за здоровья - чистим работу
+            {
+                ClearNeedsForDeath();
                 Employment = Employment.Change(
                     newStatus: EmploymentStatus.None,
                     newJob: null,
                     lifeStatus: LifeStatus,
                     ageGroup: GetAgeGroup(currentDate));
-            // Возможно: создать событие PersonDiedEvent
-            // AddDomainEvent(new PersonDiedEvent(Id, currentDate, Marital.SpouseId));
+            }
         }
 
         public void Die(DateOnly currentDate)
@@ -214,6 +287,8 @@ namespace Matrix.Population.Domain.Entities
                 newJob: null,
                 lifeStatus: LifeStatus,
                 ageGroup: GetAgeGroup(currentDate));
+
+            ClearNeedsForDeath();
         }
 
         public void Resurrect()
@@ -223,7 +298,9 @@ namespace Matrix.Population.Domain.Entities
                 newHealth: HealthLevel.From(100),
                 newDeathDate: null);
 
-            // AddDomainEvent(new PersonResurrectedEvent(Id, currentDate));
+            Energy = EnergyLevel.Default();
+            Stress = StressLevel.Default();
+            SocialNeed = SocialNeedLevel.Default();
         }
 
         #endregion [ Health / Life ]
@@ -241,17 +318,11 @@ namespace Matrix.Population.Domain.Entities
 
         #region [ Education ]
 
-        /// <summary>
-        ///     Жёсткая установка уровня (для генерации / миграций).
-        /// </summary>
         public void SetEducationLevel(EducationLevel newLevel)
         {
             Education = EducationInfo.FromLevel(newLevel);
         }
 
-        /// <summary>
-        ///     Доменный переход: человек получает новый уровень образования.
-        /// </summary>
         public void GraduateTo(EducationLevel newLevel)
         {
             Education = Education.GraduateTo(newLevel);
@@ -319,6 +390,13 @@ namespace Matrix.Population.Domain.Entities
         {
             Marital = MaritalInfo.Widowed();
             ChangeHappiness(PersonHappinessDeltas.OnWidow);
+        }
+
+        private void ClearNeedsForDeath()
+        {
+            Energy = EnergyLevel.From(0);
+            Stress = StressLevel.From(0);
+            SocialNeed = SocialNeedLevel.From(0);
         }
 
         #endregion [ Marital ]

@@ -427,6 +427,19 @@ namespace Matrix.Population.Domain.Services
                 ageGroup: ageGroup,
                 employmentStatus: employmentStatus,
                 maritalStatus: maritalStatus);
+            EnergyLevel energy = CreateInitialEnergy(
+                random: random,
+                ageGroup: ageGroup,
+                employmentStatus: employmentStatus);
+            StressLevel stress = CreateInitialStress(
+                random: random,
+                ageGroup: ageGroup,
+                employmentStatus: employmentStatus);
+            SocialNeedLevel socialNeed = CreateInitialSocialNeed(
+                random: random,
+                ageGroup: ageGroup,
+                employmentStatus: employmentStatus,
+                maritalStatus: maritalStatus);
             EducationLevel educationLevel = CreateRandomEducationLevel(
                 random: random,
                 ageYears: ageYears);
@@ -442,6 +455,9 @@ namespace Matrix.Population.Domain.Services
                 educationLevel: educationLevel,
                 employmentStatus: employmentStatus,
                 happinessLevel: happiness,
+                energyLevel: energy,
+                stressLevel: stress,
+                socialNeedLevel: socialNeed,
                 personality: personality,
                 birthDate: birthDate,
                 healthLevel: health,
@@ -846,6 +862,104 @@ namespace Matrix.Population.Domain.Services
             if (roll < 0.85)
                 return EmploymentStatus.Unemployed;
             return EmploymentStatus.Student;
+        }
+
+        private static EnergyLevel CreateInitialEnergy(
+            Random random,
+            AgeGroup ageGroup,
+            EmploymentStatus employmentStatus)
+        {
+            int baseValue = ageGroup switch
+            {
+                AgeGroup.Child => random.Next(78, 101),
+                AgeGroup.Youth => random.Next(70, 96),
+                AgeGroup.Adult => random.Next(58, 86),
+                AgeGroup.Senior => random.Next(48, 76),
+                _ => random.Next(60, 81)
+            };
+
+            baseValue += employmentStatus switch
+            {
+                EmploymentStatus.Employed => -5,
+                EmploymentStatus.Student => -3,
+                EmploymentStatus.Retired => +4,
+                _ => 0
+            };
+
+            return EnergyLevel.From(
+                Math.Clamp(
+                    value: baseValue,
+                    min: EnergyLevel.MinEnergy,
+                    max: EnergyLevel.MaxEnergy));
+        }
+
+        private static StressLevel CreateInitialStress(
+            Random random,
+            AgeGroup ageGroup,
+            EmploymentStatus employmentStatus)
+        {
+            int baseValue = ageGroup switch
+            {
+                AgeGroup.Child => random.Next(5, 31),
+                AgeGroup.Youth => random.Next(15, 46),
+                AgeGroup.Adult => random.Next(20, 56),
+                AgeGroup.Senior => random.Next(10, 36),
+                _ => random.Next(15, 41)
+            };
+
+            baseValue += employmentStatus switch
+            {
+                EmploymentStatus.Employed => +8,
+                EmploymentStatus.Student => +6,
+                EmploymentStatus.Unemployed => +3,
+                EmploymentStatus.Retired => -4,
+                _ => 0
+            };
+
+            return StressLevel.From(
+                Math.Clamp(
+                    value: baseValue,
+                    min: StressLevel.MinStress,
+                    max: StressLevel.MaxStress));
+        }
+
+        private static SocialNeedLevel CreateInitialSocialNeed(
+            Random random,
+            AgeGroup ageGroup,
+            EmploymentStatus employmentStatus,
+            MaritalStatus maritalStatus)
+        {
+            int baseValue = ageGroup switch
+            {
+                AgeGroup.Child => random.Next(10, 36),
+                AgeGroup.Youth => random.Next(15, 41),
+                AgeGroup.Adult => random.Next(30, 61),
+                AgeGroup.Senior => random.Next(25, 56),
+                _ => random.Next(20, 51)
+            };
+
+            baseValue += employmentStatus switch
+            {
+                EmploymentStatus.Unemployed => +6,
+                EmploymentStatus.Retired => +4,
+                EmploymentStatus.Employed => -3,
+                EmploymentStatus.Student => -2,
+                _ => 0
+            };
+
+            baseValue += maritalStatus switch
+            {
+                MaritalStatus.Married => -15,
+                MaritalStatus.Divorced => +8,
+                MaritalStatus.Widowed => +12,
+                _ => 0
+            };
+
+            return SocialNeedLevel.From(
+                Math.Clamp(
+                    value: baseValue,
+                    min: SocialNeedLevel.MinSocialNeed,
+                    max: SocialNeedLevel.MaxSocialNeed));
         }
 
         private Job CreateRandomJob(Random random)
