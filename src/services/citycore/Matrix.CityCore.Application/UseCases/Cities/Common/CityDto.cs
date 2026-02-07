@@ -5,6 +5,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
     public sealed record CityDto(
         Guid CityId,
         string Name,
+        string SimulationKind,
         string Status,
         string ClimateZone,
         string Hemisphere,
@@ -26,6 +27,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
             return new CityDto(
                 CityId: city.Id.Value,
                 Name: city.Name.Value,
+                SimulationKind: city.SimulationKind.ToString(),
                 Status: city.Status.ToString(),
                 ClimateZone: city.Environment.ClimateZone.ToString(),
                 Hemisphere: city.Environment.Hemisphere.ToString(),

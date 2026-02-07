@@ -13,6 +13,11 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                .NotEmpty()
                .MaximumLength(CityName.MaxLength);
 
+            RuleFor(x => x.SimulationKind)
+               .Must(BeValidSimulationKind)
+               .When(x => !string.IsNullOrWhiteSpace(x.SimulationKind))
+               .WithMessage("SimulationKind is invalid.");
+
             RuleFor(x => x.ClimateZone)
                .NotEmpty()
                .Must(BeValidClimateZone)
@@ -75,6 +80,15 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
                        ignoreCase: true,
                        result: out Hemisphere hemisphere) &&
                    Enum.IsDefined(hemisphere);
+        }
+
+        private static bool BeValidSimulationKind(string? value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out SimulationKind simulationKind) &&
+                   Enum.IsDefined(simulationKind);
         }
 
         private static bool BeValidSizeTier(string? value)

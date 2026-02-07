@@ -9,27 +9,33 @@ namespace Matrix.CityCore.Application.UseCases.Cities.RestartPopulationBootstrap
 
     public sealed record RestartCityPopulationBootstrapResult(
         RestartCityPopulationBootstrapStatus Status,
-        Guid? PopulationBootstrapOperationId)
+        Guid? PopulationBootstrapOperationId,
+        string? SimulationKind)
     {
-        public static RestartCityPopulationBootstrapResult Restarted(Guid operationId)
+        public static RestartCityPopulationBootstrapResult Restarted(
+            Guid operationId,
+            string simulationKind)
         {
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.Restarted,
-                PopulationBootstrapOperationId: operationId);
+                PopulationBootstrapOperationId: operationId,
+                SimulationKind: simulationKind);
         }
 
         public static RestartCityPopulationBootstrapResult NotFound()
         {
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.NotFound,
-                PopulationBootstrapOperationId: null);
+                PopulationBootstrapOperationId: null,
+                SimulationKind: null);
         }
 
         public static RestartCityPopulationBootstrapResult NotAllowed()
         {
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.NotAllowed,
-                PopulationBootstrapOperationId: null);
+                PopulationBootstrapOperationId: null,
+                SimulationKind: null);
         }
     }
 }

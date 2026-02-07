@@ -4,6 +4,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.CreateCity
 {
     public sealed record CreateCityCommand(
         string Name,
+        string? SimulationKind,
         string ClimateZone,
         string Hemisphere,
         int UtcOffsetMinutes,

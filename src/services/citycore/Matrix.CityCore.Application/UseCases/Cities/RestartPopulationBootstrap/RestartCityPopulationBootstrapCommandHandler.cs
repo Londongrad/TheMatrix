@@ -32,7 +32,9 @@ namespace Matrix.CityCore.Application.UseCases.Cities.RestartPopulationBootstrap
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return RestartCityPopulationBootstrapResult.Restarted(operationId);
+            return RestartCityPopulationBootstrapResult.Restarted(
+                operationId: operationId,
+                simulationKind: city.SimulationKind.ToString());
         }
     }
 }
