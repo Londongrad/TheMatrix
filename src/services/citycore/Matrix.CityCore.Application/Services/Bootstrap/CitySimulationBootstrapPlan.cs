@@ -9,5 +9,6 @@ namespace Matrix.CityCore.Application.Services.Bootstrap
         City City,
         SimulationClock Clock,
         CityTopologySeed Topology,
-        CityWeather? Weather);
+        CityWeather? Weather,
+        bool SupportsAutomaticPopulationBootstrap);
 }
