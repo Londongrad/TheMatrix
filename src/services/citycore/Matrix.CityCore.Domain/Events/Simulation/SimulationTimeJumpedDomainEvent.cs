@@ -5,6 +5,7 @@ using Matrix.CityCore.Domain.Simulation;
 namespace Matrix.CityCore.Domain.Events.Simulation
 {
     public sealed record SimulationTimeJumpedDomainEvent(
+        SimulationId SimulationId,
         CityId CityId,
         TickId TickId,
         SimTime From,

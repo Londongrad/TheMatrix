@@ -5,6 +5,7 @@ using Matrix.CityCore.Domain.Simulation;
 namespace Matrix.CityCore.Domain.Events.Simulation
 {
     public sealed record SimulationClockCreatedDomainEvent(
+        SimulationId SimulationId,
         CityId CityId,
         SimTime StartTime,
         SimSpeed Speed,
