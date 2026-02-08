@@ -74,7 +74,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
             Guid operationId,
             CancellationToken cancellationToken)
         {
-            if (!SupportsAutomaticPopulationBootstrap(simulationKind))
+            bool supportsAutomaticPopulationBootstrap = await SupportsAutomaticPopulationBootstrapAsync(
+                simulationKind: simulationKind,
+                cancellationToken: cancellationToken);
+
+            if (!supportsAutomaticPopulationBootstrap)
                 return new CityProvisioningView(
                     CityId: cityId,
                     SimulationKind: simulationKind,
@@ -383,12 +387,29 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
             public const string Skipped = "Skipped";
         }
 
-        private static bool SupportsAutomaticPopulationBootstrap(string simulationKind)
+        private async Task<bool> SupportsAutomaticPopulationBootstrapAsync(
+            string simulationKind,
+            CancellationToken cancellationToken)
         {
-            return string.Equals(
-                a: simulationKind,
-                b: SimulationKinds.ClassicCity,
-                comparisonType: StringComparison.Ordinal);
+            IReadOnlyList<SimulationKindCatalogItemView> supportedKinds =
+                await citiesApiClient.GetSimulationKindsAsync(cancellationToken);
+
+            SimulationKindCatalogItemView? descriptor = supportedKinds.FirstOrDefault(item =>
+                string.Equals(
+                    a: item.Kind,
+                    b: simulationKind,
+                    comparisonType: StringComparison.OrdinalIgnoreCase));
+
+            if (descriptor is null)
+            {
+                logger.LogWarning(
+                    message: "Simulation kind metadata was not found for kind '{SimulationKind}'. Automatic population bootstrap will be skipped.",
+                    simulationKind);
+
+                return false;
+            }
+
+            return descriptor.SupportsAutomaticPopulationBootstrap;
         }
     }
 }

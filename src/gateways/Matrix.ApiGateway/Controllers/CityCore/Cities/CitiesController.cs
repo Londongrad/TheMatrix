@@ -40,6 +40,16 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
                 value: created);
         }
 
+        [HttpGet("simulation-kinds")]
+        public async Task<ActionResult<IReadOnlyList<SimulationKindCatalogItemView>>> GetSimulationKinds(
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<SimulationKindCatalogItemView> kinds = await _citiesClient.GetSimulationKindsAsync(
+                cancellationToken: cancellationToken);
+
+            return Ok(kinds);
+        }
+
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<CityListItemView>>> List(
             [FromQuery] bool includeArchived,

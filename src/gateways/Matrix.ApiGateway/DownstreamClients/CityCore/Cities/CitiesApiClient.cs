@@ -28,6 +28,21 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
                 requestUrl: url);
         }
 
+        public async Task<IReadOnlyList<SimulationKindCatalogItemView>> GetSimulationKindsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            const string url = $"{CitiesEndpoint}/simulation-kinds";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<IReadOnlyList<SimulationKindCatalogItemView>>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<IReadOnlyList<CityListItemView>> ListCitiesAsync(
             bool includeArchived,
             CancellationToken cancellationToken = default)

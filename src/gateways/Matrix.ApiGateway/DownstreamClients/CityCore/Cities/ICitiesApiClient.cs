@@ -10,6 +10,9 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
             CreateCityRequest request,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyList<SimulationKindCatalogItemView>> GetSimulationKindsAsync(
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<CityListItemView>> ListCitiesAsync(
             bool includeArchived,
             CancellationToken cancellationToken = default);
