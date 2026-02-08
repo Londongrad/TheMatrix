@@ -6,6 +6,7 @@ using Matrix.CityCore.Application.UseCases.Cities.DeleteCity;
 using Matrix.CityCore.Application.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.CityCore.Application.UseCases.Cities.GetCity;
 using Matrix.CityCore.Application.UseCases.Cities.GetGenerationCatalog;
+using Matrix.CityCore.Application.UseCases.Cities.GetSimulationKinds;
 using Matrix.CityCore.Application.UseCases.Cities.GetSuggestedCityNames;
 using Matrix.CityCore.Application.UseCases.Cities.ListCities;
 using Matrix.CityCore.Application.UseCases.Cities.RenameCity;
@@ -70,6 +71,25 @@ namespace Matrix.CityCore.Api.Controllers
                     CityNamePresets: catalog.CityNamePresets.ToArray(),
                     DistrictNamePresets: catalog.DistrictNamePresets.ToArray(),
                     StreetNamePresets: catalog.StreetNamePresets.ToArray()));
+        }
+
+        [HttpGet("simulation-kinds")]
+        public async Task<IResult> GetSimulationKinds(CancellationToken cancellationToken)
+        {
+            IReadOnlyList<SimulationKindCatalogItemDto> kinds = await mediator.Send(
+                request: new GetSimulationKindsQuery(),
+                cancellationToken: cancellationToken);
+
+            SimulationKindCatalogItemView[] views = kinds
+               .Select(kind => new SimulationKindCatalogItemView(
+                    Kind: kind.Kind,
+                    DisplayName: kind.DisplayName,
+                    Description: kind.Description,
+                    SupportsAutomaticPopulationBootstrap: kind.SupportsAutomaticPopulationBootstrap,
+                    IsDefault: kind.IsDefault))
+               .ToArray();
+
+            return Results.Ok(views);
         }
 
         [HttpGet("generation/city-name-suggestions")]
