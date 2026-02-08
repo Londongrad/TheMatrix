@@ -2,7 +2,12 @@ import {type FormEvent, useMemo, useState} from "react";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import type {CityView} from "@services/citycore/cities/contracts/citiesContracts";
-import {formatCityStatusLabel, getCityStatusTone, isArchivedCity,} from "@services/citycore/cities/utils/presentation";
+import {
+    formatCityStatusLabel,
+    formatSimulationKindLabel,
+    getCityStatusTone,
+    isArchivedCity,
+} from "@services/citycore/cities/utils/presentation";
 
 type Props = {
     city: CityView | null;
@@ -115,6 +120,13 @@ export function CityOverviewCard({
                         <strong className="city-overview-stat__value city-overview-stat__value--mono"
                                 title={city.cityId}>
                             {city.cityId}
+                        </strong>
+                    </div>
+
+                    <div className="city-overview-stat">
+                        <span className="city-overview-stat__label">Simulation type</span>
+                        <strong className="city-overview-stat__value">
+                            {formatSimulationKindLabel(city.simulationKind)}
                         </strong>
                     </div>
 

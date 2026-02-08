@@ -5,6 +5,7 @@ import {CitiesToolbar} from "@services/citycore/cities/components/CitiesToolbar"
 import {CreateCityForm} from "@services/citycore/cities/components/CreateCityForm";
 import {useCitiesQuery} from "@services/citycore/cities/hooks/useCitiesQuery";
 import {useCityMutations} from "@services/citycore/cities/hooks/useCityMutations";
+import {useSimulationKindsQuery} from "@services/citycore/cities/hooks/useSimulationKindsQuery";
 import {isArchivedCity} from "@services/citycore/cities/utils/presentation";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/cities/styles/cities.css";
@@ -20,6 +21,7 @@ export default function CitiesPage() {
     const [includeArchived, setIncludeArchived] = useState(false);
 
     const citiesQuery = useCitiesQuery(includeArchived);
+    const simulationKindsQuery = useSimulationKindsQuery();
     const cityMutations = useCityMutations();
 
     const filteredCities = useMemo(() => {
@@ -32,9 +34,13 @@ export default function CitiesPage() {
         return citiesQuery.data.filter((city) => {
             const name = city.name.toLowerCase();
             const cityId = city.cityId.toLowerCase();
+            const simulationKind = city.simulationKind.toLowerCase();
             const status = city.status.toLowerCase();
 
-            return name.includes(query) || cityId.includes(query) || status.includes(query);
+            return name.includes(query) ||
+                   cityId.includes(query) ||
+                   simulationKind.includes(query) ||
+                   status.includes(query);
         });
     }, [citiesQuery.data, search]);
 
@@ -168,7 +174,7 @@ export default function CitiesPage() {
                             <div>
                                 <h2 className="cities-card__title">Create city</h2>
                                 <p className="cities-card__subtitle">
-                                    Define the city identity and choose the simulation baseline before launch.
+                                    Define the city identity and choose which simulation baseline should own the launch.
                                 </p>
                             </div>
                         </div>
@@ -176,6 +182,9 @@ export default function CitiesPage() {
                         <CreateCityForm
                             isSubmitting={cityMutations.isSubmitting}
                             submitError={cityMutations.error}
+                            simulationKinds={simulationKindsQuery.data}
+                            simulationKindsError={simulationKindsQuery.error}
+                            isSimulationKindsLoading={simulationKindsQuery.isLoading}
                             onSubmit={cityMutations.create}
                             onCreated={handleCreated}
                             onClearSubmitError={cityMutations.clearError}

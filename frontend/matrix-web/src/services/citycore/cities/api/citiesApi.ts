@@ -5,8 +5,16 @@ import type {
     CityView,
     CreateCityRequest,
     RenameCityRequest,
+    SimulationKindCatalogItemView,
 } from "@services/citycore/cities/contracts/citiesContracts";
 import {API_CITY_URL} from "@shared/api/config";
+
+export function getSimulationKinds(signal?: AbortSignal) {
+    return apiRequest<SimulationKindCatalogItemView[]>(
+        `${API_CITY_URL}/simulation-kinds`,
+        {method: "GET", signal},
+    );
+}
 
 export function getCities(includeArchived: boolean, signal?: AbortSignal) {
     return apiRequest<CityListItemView[]>(

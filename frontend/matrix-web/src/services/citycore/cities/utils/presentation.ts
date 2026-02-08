@@ -32,3 +32,13 @@ export function getCityStatusTone(
 
     return isArchivedCity(status, archivedAtUtc) ? "archived" : "active";
 }
+
+export function formatSimulationKindLabel(simulationKind?: string): string {
+    if (!simulationKind) {
+        return "Unknown";
+    }
+
+    return simulationKind
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .trim();
+}

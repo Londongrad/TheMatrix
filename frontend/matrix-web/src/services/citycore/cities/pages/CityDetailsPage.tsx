@@ -59,6 +59,7 @@ const CityDetailsPage = () => {
             <CityDetailsHeader
                 title={cityQuery.data?.name ?? "City details"}
                 cityId={cityQuery.data?.cityId ?? cityId}
+                simulationKind={cityQuery.data?.simulationKind}
                 status={cityQuery.data?.status}
                 archivedAtUtc={cityQuery.data?.archivedAtUtc}
             />

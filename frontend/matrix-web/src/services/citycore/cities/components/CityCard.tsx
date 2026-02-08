@@ -3,6 +3,7 @@ import type {CityListItemView} from "@services/citycore/cities/contracts/citiesC
 import {
     formatCityShortId,
     formatCityStatusLabel,
+    formatSimulationKindLabel,
     getCityStatusTone,
 } from "@services/citycore/cities/utils/presentation";
 
@@ -32,6 +33,9 @@ const CityCard = ({city, onOpen}: CityCardProps) => {
                     {statusTone === "archived"
                         ? "Read-only record. Simulation controls stay locked while the city remains archived."
                         : "Live city workspace with active simulation controls and timeline management."}
+                </p>
+                <p className="city-card__description">
+                    Simulation type: {formatSimulationKindLabel(city.simulationKind)}
                 </p>
             </div>
 

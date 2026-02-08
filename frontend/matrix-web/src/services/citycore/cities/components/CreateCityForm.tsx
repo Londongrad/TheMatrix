@@ -1,10 +1,15 @@
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
-import type {CityCreatedView, CreateCityRequest} from "@services/citycore/cities/contracts/citiesContracts";
-import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso,} from "@services/citycore/cities/utils/dateTime";
+import type {
+    CityCreatedView,
+    CreateCityRequest,
+    SimulationKindCatalogItemView,
+} from "@services/citycore/cities/contracts/citiesContracts";
+import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso} from "@services/citycore/cities/utils/dateTime";
 
 type ValidationErrors = {
     name?: string;
+    simulationKind?: string;
     startSimTimeLocal?: string;
     speedMultiplier?: string;
 };
@@ -12,6 +17,9 @@ type ValidationErrors = {
 type Props = {
     isSubmitting: boolean;
     submitError: string | null;
+    simulationKinds: SimulationKindCatalogItemView[];
+    simulationKindsError: string | null;
+    isSimulationKindsLoading: boolean;
     onSubmit: (request: CreateCityRequest) => Promise<CityCreatedView | null>;
     onCreated: (created: CityCreatedView) => void | Promise<void>;
     onClearSubmitError?: () => void;
@@ -19,6 +27,7 @@ type Props = {
 
 function validate(
     name: string,
+    simulationKind: string,
     startSimTimeLocal: string,
     speedMultiplier: string,
 ): ValidationErrors {
@@ -26,6 +35,10 @@ function validate(
 
     if (!name.trim()) {
         errors.name = "City name is required.";
+    }
+
+    if (!simulationKind.trim()) {
+        errors.simulationKind = "Simulation type is required.";
     }
 
     if (!startSimTimeLocal.trim()) {
@@ -48,13 +61,23 @@ function validate(
 }
 
 export function CreateCityForm({
-                                   isSubmitting,
-                                   submitError,
-                                   onSubmit,
-                                   onCreated,
-                                   onClearSubmitError,
-                               }: Props) {
+    isSubmitting,
+    submitError,
+    simulationKinds,
+    simulationKindsError,
+    isSimulationKindsLoading,
+    onSubmit,
+    onCreated,
+    onClearSubmitError,
+}: Props) {
+    const defaultSimulationKind = useMemo(() => {
+        return simulationKinds.find((kind) => kind.isDefault)?.kind ??
+               simulationKinds[0]?.kind ??
+               "ClassicCity";
+    }, [simulationKinds]);
+
     const [name, setName] = useState("");
+    const [simulationKind, setSimulationKind] = useState(defaultSimulationKind);
     const [startSimTimeLocal, setStartSimTimeLocal] = useState(
         getNowLocalDateTimeInputValue(),
     );
@@ -65,6 +88,17 @@ export function CreateCityForm({
         () => Object.keys(validationErrors).length > 0,
         [validationErrors],
     );
+
+    const selectedSimulation = useMemo(() => {
+        return simulationKinds.find((kind) => kind.kind === simulationKind) ?? null;
+    }, [simulationKind, simulationKinds]);
+
+    useEffect(() => {
+        setSimulationKind((current) => {
+            const hasCurrent = simulationKinds.some((kind) => kind.kind === current);
+            return hasCurrent ? current : defaultSimulationKind;
+        });
+    }, [defaultSimulationKind, simulationKinds]);
 
     function clearFieldError(field: keyof ValidationErrors) {
         setValidationErrors((current) => {
@@ -81,7 +115,8 @@ export function CreateCityForm({
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const errors = validate(name, startSimTimeLocal, speedMultiplier);
+        const effectiveSimulationKind = simulationKind || defaultSimulationKind;
+        const errors = validate(name, effectiveSimulationKind, startSimTimeLocal, speedMultiplier);
         setValidationErrors(errors);
 
         if (Object.keys(errors).length > 0) {
@@ -99,6 +134,7 @@ export function CreateCityForm({
 
         const response = await onSubmit({
             name: name.trim(),
+            simulationKind: effectiveSimulationKind,
             startSimTimeUtc,
             speedMultiplier: Number(speedMultiplier),
         });
@@ -108,6 +144,7 @@ export function CreateCityForm({
         }
 
         setName("");
+        setSimulationKind(defaultSimulationKind);
         setStartSimTimeLocal(getNowLocalDateTimeInputValue());
         setSpeedMultiplier("1");
         setValidationErrors({});
@@ -118,7 +155,7 @@ export function CreateCityForm({
     return (
         <form className="cities-create-form" onSubmit={handleSubmit} noValidate>
             <div className="cities-create-form__intro">
-                Provision a new city, seed its simulation clock, and hand off the scenario to operators.
+                Provision a new world state, choose the simulation baseline, and hand off the launched timeline to operators.
             </div>
 
             <div className="cities-create-form__grid">
@@ -141,6 +178,42 @@ export function CreateCityForm({
                     />
                     {validationErrors.name ? (
                         <div className="cities-field-error">{validationErrors.name}</div>
+                    ) : null}
+                </div>
+
+                <div className="cities-field cities-field--wide">
+                    <label className="cities-label" htmlFor="city-simulation-kind">
+                        Simulation type
+                    </label>
+                    <select
+                        id="city-simulation-kind"
+                        className="cities-input"
+                        value={simulationKind}
+                        disabled={isSimulationKindsLoading || simulationKinds.length === 0}
+                        onChange={(event) => {
+                            setSimulationKind(event.target.value);
+                            clearFieldError("simulationKind");
+                            onClearSubmitError?.();
+                        }}
+                    >
+                        {simulationKinds.length === 0 ? (
+                            <option value={defaultSimulationKind}>Classic City</option>
+                        ) : simulationKinds.map((kind) => (
+                            <option key={kind.kind} value={kind.kind}>
+                                {kind.displayName}
+                            </option>
+                        ))}
+                    </select>
+                    {validationErrors.simulationKind ? (
+                        <div className="cities-field-error">{validationErrors.simulationKind}</div>
+                    ) : null}
+                    {selectedSimulation ? (
+                        <div className="cities-form-hint">
+                            {selectedSimulation.description}
+                        </div>
+                    ) : null}
+                    {simulationKindsError ? (
+                        <div className="cities-field-error">{simulationKindsError}</div>
                     ) : null}
                 </div>
 
@@ -205,9 +278,9 @@ export function CreateCityForm({
                 <Button
                     type="submit"
                     variant="primary"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isSimulationKindsLoading}
                 >
-                    {isSubmitting ? "Creating city..." : "Create city"}
+                    {isSubmitting ? "Launching simulation..." : "Launch simulation"}
                 </Button>
             </div>
 

@@ -2,17 +2,19 @@ import {Link} from "react-router-dom";
 import {
     formatCityShortId,
     formatCityStatusLabel,
+    formatSimulationKindLabel,
     getCityStatusTone,
 } from "@services/citycore/cities/utils/presentation";
 
 type Props = {
     title: string;
     cityId: string;
+    simulationKind?: string;
     status?: string;
     archivedAtUtc?: string | null;
 };
 
-export function CityDetailsHeader({title, cityId, status, archivedAtUtc}: Props) {
+export function CityDetailsHeader({title, cityId, simulationKind, status, archivedAtUtc}: Props) {
     const statusTone = getCityStatusTone(status, archivedAtUtc);
     const statusLabel = formatCityStatusLabel(status, archivedAtUtc);
 
@@ -31,6 +33,9 @@ export function CityDetailsHeader({title, cityId, status, archivedAtUtc}: Props)
                 <div className="city-hero__meta-row">
                     <span className="city-hero__id-chip" title={cityId}>
                         ID {formatCityShortId(cityId, 10, 6)}
+                    </span>
+                    <span className="city-hero__id-chip">
+                        {formatSimulationKindLabel(simulationKind)}
                     </span>
                     <span className="city-hero__caption">
                         {statusTone === "archived"
