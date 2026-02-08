@@ -9,18 +9,18 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
 {
     [Authorize]
     [ApiController]
-    [Route("api/cities/{cityId:guid}/simulation")]
-    public sealed class SimulationController(ISimulationApiClient simulationClient) : ControllerBase
+    [Route("api/simulations/{simulationId:guid}")]
+    public sealed class SimulationsController(ISimulationApiClient simulationClient) : ControllerBase
     {
         private readonly ISimulationApiClient _simulationClient = simulationClient;
 
         [HttpGet]
         public async Task<ActionResult<SimulationClockView?>> GetClock(
-            [FromRoute] Guid cityId,
+            [FromRoute] Guid simulationId,
             CancellationToken cancellationToken)
         {
             SimulationClockView clock = await _simulationClient.GetClockAsync(
-                simulationId: cityId,
+                simulationId: simulationId,
                 cancellationToken: cancellationToken);
 
             return Ok(clock);
@@ -28,11 +28,11 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
 
         [HttpPost("pause")]
         public async Task<IActionResult> PauseClock(
-            [FromRoute] Guid cityId,
+            [FromRoute] Guid simulationId,
             CancellationToken cancellationToken)
         {
             await _simulationClient.PauseClockAsync(
-                simulationId: cityId,
+                simulationId: simulationId,
                 cancellationToken: cancellationToken);
 
             return NoContent();
@@ -40,11 +40,11 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
 
         [HttpPost("resume")]
         public async Task<IActionResult> ResumeClock(
-            [FromRoute] Guid cityId,
+            [FromRoute] Guid simulationId,
             CancellationToken cancellationToken)
         {
             await _simulationClient.ResumeClockAsync(
-                simulationId: cityId,
+                simulationId: simulationId,
                 cancellationToken: cancellationToken);
 
             return NoContent();
@@ -52,12 +52,12 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
 
         [HttpPost("speed")]
         public async Task<IActionResult> SetClockSpeed(
-            [FromRoute] Guid cityId,
+            [FromRoute] Guid simulationId,
             [FromBody] SetCityClockSpeedRequestDto request,
             CancellationToken cancellationToken)
         {
             await _simulationClient.SetClockSpeedAsync(
-                simulationId: cityId,
+                simulationId: simulationId,
                 request: new SetSpeedRequest(request.Multiplier),
                 cancellationToken: cancellationToken);
 
@@ -66,12 +66,12 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
 
         [HttpPost("jump")]
         public async Task<IActionResult> JumpClock(
-            [FromRoute] Guid cityId,
+            [FromRoute] Guid simulationId,
             [FromBody] JumpCityClockRequestDto request,
             CancellationToken cancellationToken)
         {
             await _simulationClient.JumpClockAsync(
-                simulationId: cityId,
+                simulationId: simulationId,
                 request: new JumpClockRequest(request.NewSimTimeUtc),
                 cancellationToken: cancellationToken);
 

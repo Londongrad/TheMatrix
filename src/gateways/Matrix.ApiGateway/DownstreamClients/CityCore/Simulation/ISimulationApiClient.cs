@@ -6,24 +6,24 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Simulation
     public interface ISimulationApiClient
     {
         Task<SimulationClockView> GetClockAsync(
-            Guid cityId,
+            Guid simulationId,
             CancellationToken cancellationToken = default);
 
         Task PauseClockAsync(
-            Guid cityId,
+            Guid simulationId,
             CancellationToken cancellationToken = default);
 
         Task ResumeClockAsync(
-            Guid cityId,
+            Guid simulationId,
             CancellationToken cancellationToken = default);
 
         Task SetClockSpeedAsync(
-            Guid cityId,
+            Guid simulationId,
             SetSpeedRequest request,
             CancellationToken cancellationToken = default);
 
         Task JumpClockAsync(
-            Guid cityId,
+            Guid simulationId,
             JumpClockRequest request,
             CancellationToken cancellationToken = default);
     }

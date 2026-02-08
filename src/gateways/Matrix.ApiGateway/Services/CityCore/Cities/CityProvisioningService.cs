@@ -120,7 +120,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
                     cityId: cityId,
                     cancellationToken: cancellationToken);
                 Task<SimulationClockView> clockTask = simulationApiClient.GetClockAsync(
-                    cityId: cityId,
+                    simulationId: cityId,
                     cancellationToken: cancellationToken);
                 Task<IReadOnlyList<ResidentialBuildingView>> buildingsTask =
                     citiesApiClient.GetResidentialBuildingsAsync(

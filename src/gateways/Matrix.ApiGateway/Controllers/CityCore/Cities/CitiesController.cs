@@ -80,7 +80,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Cities
             CancellationToken cancellationToken)
         {
             SimulationClockView clock = await _simulationClient.GetClockAsync(
-                cityId: cityId,
+                simulationId: cityId,
                 cancellationToken: cancellationToken);
 
             DateOnly currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
