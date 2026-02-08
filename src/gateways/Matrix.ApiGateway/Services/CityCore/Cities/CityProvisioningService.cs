@@ -34,6 +34,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
             CityCreatedView created = await citiesApiClient.CreateCityAsync(
                 request: new CreateCityRequest(
                     Name: request.Name,
+                    SimulationKind: request.SimulationKind,
                     ClimateZone: request.ClimateZone,
                     Hemisphere: request.Hemisphere,
                     UtcOffsetMinutes: request.UtcOffsetMinutes,
@@ -47,6 +48,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
 
             return await ProvisionCityPopulationAsync(
                 cityId: created.CityId,
+                simulationKind: created.SimulationKind,
                 operationId: created.PopulationBootstrapOperationId,
                 cancellationToken: cancellationToken);
         }
@@ -61,15 +63,29 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
 
             return await ProvisionCityPopulationAsync(
                 cityId: restarted.CityId,
+                simulationKind: restarted.SimulationKind,
                 operationId: restarted.PopulationBootstrapOperationId,
                 cancellationToken: cancellationToken);
         }
 
         private async Task<CityProvisioningView> ProvisionCityPopulationAsync(
             Guid cityId,
+            string simulationKind,
             Guid operationId,
             CancellationToken cancellationToken)
         {
+            if (!SupportsAutomaticPopulationBootstrap(simulationKind))
+                return new CityProvisioningView(
+                    CityId: cityId,
+                    SimulationKind: simulationKind,
+                    PopulationBootstrap: new CityPopulationBootstrapView(
+                        OperationId: operationId,
+                        Status: PopulationBootstrapStatuses.Skipped,
+                        PlannedPeopleCount: null,
+                        ResidentialCapacity: null,
+                        Summary: null,
+                        FailureCode: null));
+
             CityPopulationBootstrapView bootstrap = await BootstrapPopulationAsync(
                 cityId: cityId,
                 operationId: operationId,
@@ -82,6 +98,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
 
             return new CityProvisioningView(
                 CityId: cityId,
+                SimulationKind: simulationKind,
                 PopulationBootstrap: bootstrap);
         }
 
@@ -363,6 +380,15 @@ namespace Matrix.ApiGateway.Services.CityCore.Cities
         {
             public const string Completed = "Completed";
             public const string Failed = "Failed";
+            public const string Skipped = "Skipped";
+        }
+
+        private static bool SupportsAutomaticPopulationBootstrap(string simulationKind)
+        {
+            return string.Equals(
+                a: simulationKind,
+                b: SimulationKinds.ClassicCity,
+                comparisonType: StringComparison.Ordinal);
         }
     }
 }

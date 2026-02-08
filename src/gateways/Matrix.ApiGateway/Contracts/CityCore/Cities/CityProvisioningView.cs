@@ -2,5 +2,6 @@
 {
     public sealed record CityProvisioningView(
         Guid CityId,
+        string SimulationKind,
         CityPopulationBootstrapView PopulationBootstrap);
 }
