@@ -10,7 +10,7 @@ import "@services/citycore/simulation/styles/simulation-panel.css";
 const TICK_INTERVAL_MS = 250;
 
 interface SimulationPanelProps {
-    cityId: string;
+    simulationId: string;
     isReadOnly?: boolean;
     readOnlyMessage?: string;
 }
@@ -39,11 +39,11 @@ function readClockValue(base: LocalClockBase, nowMs: number): number {
 }
 
 const SimulationPanel = ({
-                             cityId,
-                             isReadOnly = false,
-                             readOnlyMessage,
-                         }: SimulationPanelProps) => {
-    const simulationQuery = useSimulationClock(cityId, isReadOnly ? 0 : 5000);
+    simulationId,
+    isReadOnly = false,
+    readOnlyMessage,
+}: SimulationPanelProps) => {
+    const simulationQuery = useSimulationClock(simulationId, isReadOnly ? 0 : 5000);
     const simulationMutations = useSimulationMutations();
 
     const [localSimMs, setLocalSimMs] = useState<number | null>(null);
@@ -165,7 +165,7 @@ const SimulationPanel = ({
         }
 
         setCustomSpeedError(null);
-        await runCommand(() => simulationMutations.setSpeed(cityId, speed));
+        await runCommand(() => simulationMutations.setSpeed(simulationId, speed));
     };
 
     const onJump = async (event: FormEvent) => {
@@ -179,7 +179,7 @@ const SimulationPanel = ({
         }
 
         setJumpError(null);
-        await runCommand(() => simulationMutations.jump(cityId, utcIso));
+        await runCommand(() => simulationMutations.jump(simulationId, utcIso));
     };
 
     return (
@@ -225,8 +225,7 @@ const SimulationPanel = ({
                     </div>
                     <div className="sim-panel__snapshot-item">
                         <span className="sim-panel__snapshot-label">Refresh cadence</span>
-                        <strong
-                            className="sim-panel__snapshot-value">{isReadOnly ? "Manual" : "Every 5 seconds"}</strong>
+                        <strong className="sim-panel__snapshot-value">{isReadOnly ? "Manual" : "Every 5 seconds"}</strong>
                     </div>
                 </div>
 
@@ -244,7 +243,7 @@ const SimulationPanel = ({
 
                             <div className="sim-controls-row">
                                 <Button
-                                    onClick={() => void runCommand(() => simulationMutations.pause(cityId))}
+                                    onClick={() => void runCommand(() => simulationMutations.pause(simulationId))}
                                     disabled={!clock || simulationMutations.isSubmitting || !isRunning}
                                 >
                                     Pause
@@ -252,7 +251,7 @@ const SimulationPanel = ({
 
                                 <Button
                                     variant="success"
-                                    onClick={() => void runCommand(() => simulationMutations.resume(cityId))}
+                                    onClick={() => void runCommand(() => simulationMutations.resume(simulationId))}
                                     disabled={!clock || simulationMutations.isSubmitting || isRunning}
                                 >
                                     Resume
@@ -268,7 +267,7 @@ const SimulationPanel = ({
                                     <Button
                                         key={value}
                                         size="sm"
-                                        onClick={() => void runCommand(() => simulationMutations.setSpeed(cityId, value))}
+                                        onClick={() => void runCommand(() => simulationMutations.setSpeed(simulationId, value))}
                                         disabled={!clock || simulationMutations.isSubmitting}
                                     >
                                         {value}x

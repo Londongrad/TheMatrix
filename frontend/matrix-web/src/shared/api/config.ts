@@ -13,3 +13,4 @@ export const API_PERSON_URL = API_BASE_URL + "/api/person";
 export const API_ADMIN_URL = API_BASE_URL + "/api/admin";
 export const API_ADMIN_USERS_URL = API_ADMIN_URL + "/users";
 export const API_CITY_URL = API_BASE_URL + "/api/cities";
+export const API_SIMULATION_URL = API_BASE_URL + "/api/simulations";

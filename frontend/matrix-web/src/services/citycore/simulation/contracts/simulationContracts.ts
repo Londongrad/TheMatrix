@@ -1,6 +1,8 @@
-//src/services/citycore/simulation/contracts/simulationContracts.tsx
 export interface SimulationView {
-    cityId: string;
+    simulationId: string;
+    hostId: string;
+    hostKind: string;
+    simulationKind: string;
     simTimeUtc: string;
     tickId: number;
     speed: number;

@@ -1,6 +1,6 @@
-//src/services/citycore/cities/contracts/citiesContracts.ts
 export interface CityListItemView {
     cityId: string;
+    simulationId: string;
     name: string;
     simulationKind: string;
     status: string;
@@ -21,6 +21,7 @@ export interface CityCreatedView {
 
 export interface CityView {
     cityId: string;
+    simulationId: string;
     name: string;
     simulationKind: string;
     status: string;

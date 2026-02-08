@@ -13,7 +13,7 @@ function getErrorMessage(error: unknown, fallback: string) {
         : fallback;
 }
 
-export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
+export function useSimulationClock(simulationId: string, refetchIntervalMs = 5000) {
     const abortRef = useRef<AbortController | null>(null);
 
     const [data, setData] = useState<SimulationView | null>(null);
@@ -22,7 +22,7 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
     const [syncMeta, setSyncMeta] = useState<SimulationClockSyncMeta | null>(null);
 
     const load = useCallback(async () => {
-        if (!cityId) {
+        if (!simulationId) {
             setData(null);
             setError(null);
             setIsLoading(false);
@@ -40,7 +40,7 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
             setIsLoading(true);
             setError(null);
 
-            const response = await getSimulationClock(cityId, abortController.signal);
+            const response = await getSimulationClock(simulationId, abortController.signal);
 
             if (abortController.signal.aborted) {
                 return;
@@ -63,7 +63,7 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
                 setIsLoading(false);
             }
         }
-    }, [cityId]);
+    }, [simulationId]);
 
     useEffect(() => {
         void load();
@@ -74,7 +74,7 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
     }, [load]);
 
     useEffect(() => {
-        if (!cityId || refetchIntervalMs <= 0) {
+        if (!simulationId || refetchIntervalMs <= 0) {
             return;
         }
 
@@ -85,7 +85,7 @@ export function useSimulationClock(cityId: string, refetchIntervalMs = 5000) {
         return () => {
             window.clearInterval(timerId);
         };
-    }, [cityId, load, refetchIntervalMs]);
+    }, [simulationId, load, refetchIntervalMs]);
 
     return useMemo(
         () => ({

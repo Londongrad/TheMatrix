@@ -92,7 +92,7 @@ const CityDetailsPage = () => {
 
             {cityQuery.data ? (
                 <SimulationPanel
-                    cityId={cityQuery.data.cityId}
+                    simulationId={cityQuery.data.simulationId || cityQuery.data.cityId}
                     isReadOnly={isArchived}
                     readOnlyMessage="This city is archived. Simulation time is shown as a snapshot and control mutations are disabled."
                 />
