@@ -345,6 +345,7 @@ namespace Matrix.CityCore.Api.Controllers
         {
             return new CityView(
                 CityId: dto.CityId,
+                SimulationId: dto.SimulationId,
                 Name: dto.Name,
                 SimulationKind: dto.SimulationKind,
                 Status: dto.Status,
@@ -374,6 +375,7 @@ namespace Matrix.CityCore.Api.Controllers
         {
             return new CityListItemView(
                 CityId: dto.CityId,
+                SimulationId: dto.SimulationId,
                 Name: dto.Name,
                 SimulationKind: dto.SimulationKind,
                 Status: dto.Status);
