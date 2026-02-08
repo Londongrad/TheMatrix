@@ -3,7 +3,10 @@ using Matrix.CityCore.Domain.Simulation;
 namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
 {
     public sealed record ClockDto(
-        Guid CityId,
+        Guid SimulationId,
+        Guid HostId,
+        string HostKind,
+        string SimulationKind,
         DateTimeOffset SimTimeUtc,
         long TickId,
         decimal Speed,
@@ -11,10 +14,14 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
     {
         public static ClockDto FromDomain(
             SimulationClock clock,
+            string simulationKind,
             bool forcePaused = false)
         {
             return new ClockDto(
-                CityId: clock.Id.Value,
+                SimulationId: clock.SimulationId.Value,
+                HostId: clock.Id.Value,
+                HostKind: "city",
+                SimulationKind: simulationKind,
                 SimTimeUtc: clock.CurrentTime.ValueUtc,
                 TickId: clock.TickId.Value,
                 Speed: clock.Speed.Multiplier,

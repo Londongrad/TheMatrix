@@ -1,8 +1,8 @@
-﻿using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Services.Simulation
 {
     public sealed record SimulationAdvanceExecutionResult(
-        CityId CityId,
+        SimulationId SimulationId,
         SimulationAdvanceExecutionStatus Status);
 }

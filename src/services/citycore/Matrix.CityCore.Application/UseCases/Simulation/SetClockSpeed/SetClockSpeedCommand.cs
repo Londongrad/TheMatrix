@@ -1,8 +1,8 @@
-﻿using MediatR;
+using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.SetClockSpeed
 {
     public sealed record SetClockSpeedCommand(
-        Guid CityId,
+        Guid SimulationId,
         decimal Multiplier) : IRequest<bool>;
 }

@@ -3,6 +3,7 @@ using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Cities.ArchiveCity
@@ -28,7 +29,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.ArchiveCity
                 return true;
 
             _ = await simulationClockMutationExecutor.ExecuteAsync(
-                cityId: city.Id,
+                simulationId: new SimulationId(city.Id.Value),
                 mutate: clock => clock.Pause(),
                 cancellationToken: cancellationToken,
                 allowArchivedCity: true);

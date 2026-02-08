@@ -1,6 +1,6 @@
-﻿using MediatR;
+using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
 {
-    public sealed record GetClockQuery(Guid CityId) : IRequest<ClockDto?>;
+    public sealed record GetClockQuery(Guid SimulationId) : IRequest<ClockDto?>;
 }

@@ -4,6 +4,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
 {
     public sealed record CityDto(
         Guid CityId,
+        Guid SimulationId,
         string Name,
         string SimulationKind,
         string Status,
@@ -26,6 +27,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.Common
         {
             return new CityDto(
                 CityId: city.Id.Value,
+                SimulationId: city.Id.Value,
                 Name: city.Name.Value,
                 SimulationKind: city.SimulationKind.ToString(),
                 Status: city.Status.ToString(),

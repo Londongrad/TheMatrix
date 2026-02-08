@@ -1,8 +1,8 @@
-﻿using MediatR;
+using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime
 {
     public sealed record AdvanceCitySimulationCommand(
-        Guid CityId,
+        Guid SimulationId,
         TimeSpan RealDelta) : IRequest<bool>;
 }

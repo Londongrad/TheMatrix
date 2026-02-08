@@ -1,5 +1,5 @@
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.ResumeClock
@@ -12,7 +12,7 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.ResumeClock
             CancellationToken cancellationToken)
         {
             return mutationExecutor.ExecuteAsync(
-                cityId: new CityId(request.CityId),
+                simulationId: new SimulationId(request.SimulationId),
                 mutate: clock => clock.Resume(),
                 cancellationToken: cancellationToken);
         }

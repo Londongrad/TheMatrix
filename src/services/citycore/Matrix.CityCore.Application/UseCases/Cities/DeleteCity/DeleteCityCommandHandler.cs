@@ -3,6 +3,7 @@ using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Events.Cities;
+using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Cities.DeleteCity
@@ -40,8 +41,8 @@ namespace Matrix.CityCore.Application.UseCases.Cities.DeleteCity
                                 DeletedAtUtc: deletedAtUtc)
                         ],
                         cancellationToken: ct);
-                    await clockRepository.DeleteByCityIdAsync(
-                        cityId: city.Id,
+                    await clockRepository.DeleteBySimulationIdAsync(
+                        simulationId: new SimulationId(city.Id.Value),
                         cancellationToken: ct);
                     await cityRepository.DeleteAsync(
                         city: city,

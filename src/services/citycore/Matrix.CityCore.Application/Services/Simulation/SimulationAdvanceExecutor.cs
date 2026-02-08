@@ -17,17 +17,19 @@ namespace Matrix.CityCore.Application.Services.Simulation
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
     {
         public async Task<SimulationAdvanceExecutionResult> ExecuteAsync(
-            CityId cityId,
+            SimulationId simulationId,
             TimeSpan realDelta,
             CancellationToken cancellationToken)
         {
-            SimulationClock? clock = await repository.GetByCityIdAsync(
-                cityId: cityId,
+            CityId cityId = new(simulationId.Value);
+
+            SimulationClock? clock = await repository.GetBySimulationIdAsync(
+                simulationId: simulationId,
                 cancellationToken: cancellationToken);
 
             if (clock is null)
                 return new SimulationAdvanceExecutionResult(
-                    CityId: cityId,
+                    SimulationId: simulationId,
                     Status: SimulationAdvanceExecutionStatus.NotFound);
 
             bool advanced = false;
@@ -73,7 +75,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
                 cancellationToken: cancellationToken);
 
             return new SimulationAdvanceExecutionResult(
-                CityId: cityId,
+                SimulationId: simulationId,
                 Status: advanced
                     ? SimulationAdvanceExecutionStatus.Advanced
                     : SimulationAdvanceExecutionStatus.Skipped);

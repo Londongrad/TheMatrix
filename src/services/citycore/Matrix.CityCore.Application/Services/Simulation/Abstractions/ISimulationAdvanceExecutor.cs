@@ -1,11 +1,11 @@
-﻿using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Services.Simulation.Abstractions
 {
     public interface ISimulationAdvanceExecutor
     {
         Task<SimulationAdvanceExecutionResult> ExecuteAsync(
-            CityId cityId,
+            SimulationId simulationId,
             TimeSpan realDelta,
             CancellationToken cancellationToken);
     }

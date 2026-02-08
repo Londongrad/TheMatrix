@@ -1,7 +1,7 @@
-﻿using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -17,18 +17,18 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceRunningSimulati
             AdvanceRunningSimulationsCommand request,
             CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityId> cityIds = await repository.ListActiveRunningCityIdsAsync(
+            IReadOnlyList<SimulationId> simulationIds = await repository.ListActiveRunningSimulationIdsAsync(
                 cancellationToken: cancellationToken);
 
             int advancedCount = 0;
             int skippedCount = 0;
             int failedCount = 0;
 
-            foreach (CityId cityId in cityIds)
+            foreach (SimulationId simulationId in simulationIds)
                 try
                 {
                     SimulationAdvanceExecutionResult result = await executor.ExecuteAsync(
-                        cityId: cityId,
+                        simulationId: simulationId,
                         realDelta: request.RealDelta,
                         cancellationToken: cancellationToken);
 
@@ -50,12 +50,12 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceRunningSimulati
 
                     logger.LogError(
                         exception: ex,
-                        message: "Failed to advance simulation for city {CityId}.",
-                        args: cityId.Value);
+                        message: "Failed to advance simulation {SimulationId}.",
+                        args: simulationId.Value);
                 }
 
             return new AdvanceRunningSimulationsResult(
-                ProcessedCount: cityIds.Count,
+                ProcessedCount: simulationIds.Count,
                 AdvancedCount: advancedCount,
                 SkippedCount: skippedCount,
                 FailedCount: failedCount);

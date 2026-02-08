@@ -1,22 +1,21 @@
-﻿using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Abstractions.Persistence
 {
     public interface ISimulationClockRepository
     {
-        Task<SimulationClock?> GetByCityIdAsync(
-            CityId cityId,
+        Task<SimulationClock?> GetBySimulationIdAsync(
+            SimulationId simulationId,
             CancellationToken cancellationToken);
 
         Task AddAsync(
             SimulationClock clock,
             CancellationToken cancellationToken);
 
-        Task DeleteByCityIdAsync(
-            CityId cityId,
+        Task DeleteBySimulationIdAsync(
+            SimulationId simulationId,
             CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<CityId>> ListActiveRunningCityIdsAsync(CancellationToken cancellationToken);
+        Task<IReadOnlyList<SimulationId>> ListActiveRunningSimulationIdsAsync(CancellationToken cancellationToken);
     }
 }

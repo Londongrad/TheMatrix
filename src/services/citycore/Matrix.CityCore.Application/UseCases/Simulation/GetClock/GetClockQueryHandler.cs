@@ -14,21 +14,24 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
             GetClockQuery request,
             CancellationToken cancellationToken)
         {
+            CityId cityId = new(request.SimulationId);
+
             City? city = await cityRepository.GetByIdAsync(
-                cityId: new CityId(request.CityId),
+                cityId: cityId,
                 cancellationToken: cancellationToken);
 
             if (city is null)
                 return null;
 
-            SimulationClock? clock = await repository.GetByCityIdAsync(
-                cityId: new CityId(request.CityId),
+            SimulationClock? clock = await repository.GetBySimulationIdAsync(
+                simulationId: new SimulationId(request.SimulationId),
                 cancellationToken: cancellationToken);
 
             return clock is null
                 ? null
                 : ClockDto.FromDomain(
                     clock: clock,
+                    simulationKind: city.SimulationKind.ToString(),
                     forcePaused: !city.IsActive);
         }
     }

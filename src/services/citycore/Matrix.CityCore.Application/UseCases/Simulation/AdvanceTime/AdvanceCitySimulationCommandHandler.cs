@@ -1,6 +1,6 @@
-﻿using Matrix.CityCore.Application.Services.Simulation;
+using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime
@@ -13,7 +13,7 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime
             CancellationToken cancellationToken)
         {
             SimulationAdvanceExecutionResult result = await executor.ExecuteAsync(
-                cityId: new CityId(request.CityId),
+                simulationId: new SimulationId(request.SimulationId),
                 realDelta: request.RealDelta,
                 cancellationToken: cancellationToken);
 
