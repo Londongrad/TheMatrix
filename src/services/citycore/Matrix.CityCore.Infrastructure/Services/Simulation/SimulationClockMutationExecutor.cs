@@ -16,11 +16,12 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
         private const int MaxAttempts = 3;
 
         public async Task<bool> ExecuteAsync(
-            CityId cityId,
+            SimulationId simulationId,
             Action<SimulationClock> mutate,
             CancellationToken cancellationToken,
             bool allowArchivedCity = false)
         {
+            CityId cityId = new(simulationId.Value);
             DbUpdateConcurrencyException? lastException = null;
 
             for (int attempt = 1; attempt <= MaxAttempts; attempt++)
@@ -68,10 +69,10 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                     logger.LogWarning(
                         exception: ex,
                         message:
-                        "Concurrent update detected for simulation clock {CityId}. Retrying attempt {Attempt} of {MaxAttempts}.",
+                        "Concurrent update detected for simulation clock {SimulationId}. Retrying attempt {Attempt} of {MaxAttempts}.",
                         args:
                         [
-                            cityId.Value,
+                            simulationId.Value,
                             attempt + 1,
                             MaxAttempts
                         ]);
@@ -89,10 +90,10 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
             logger.LogWarning(
                 exception: lastException,
                 message:
-                "Simulation clock {CityId} could not be updated after {MaxAttempts} attempts because it kept changing concurrently.",
+                "Simulation clock {SimulationId} could not be updated after {MaxAttempts} attempts because it kept changing concurrently.",
                 args:
                 [
-                    cityId.Value,
+                    simulationId.Value,
                     MaxAttempts
                 ]);
 
