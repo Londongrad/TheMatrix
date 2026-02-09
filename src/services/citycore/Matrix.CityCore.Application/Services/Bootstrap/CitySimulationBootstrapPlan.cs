@@ -1,7 +1,7 @@
-using Matrix.CityCore.Application.Services.Topology;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.CityCore.Domain.Simulation;
-using Matrix.CityCore.Domain.Weather;
 
 namespace Matrix.CityCore.Application.Services.Bootstrap
 {

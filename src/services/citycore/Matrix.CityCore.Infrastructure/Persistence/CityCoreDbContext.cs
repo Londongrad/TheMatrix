@@ -1,9 +1,9 @@
 ﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Topology;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.CityCore.Domain.Simulation;
-using Matrix.CityCore.Domain.Topology;
-using Matrix.CityCore.Domain.Weather;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.CityCore.Infrastructure.Persistence

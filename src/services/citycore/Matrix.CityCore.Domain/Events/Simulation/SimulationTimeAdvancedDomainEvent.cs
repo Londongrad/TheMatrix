@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Events;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Domain.Events.Simulation

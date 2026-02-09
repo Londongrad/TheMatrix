@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain.Exceptions;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.CityCore.Domain.Simulation;
-using Matrix.CityCore.Domain.Weather.Enums;
 
 namespace Matrix.CityCore.Domain.Errors
 {

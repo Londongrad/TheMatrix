@@ -1,6 +1,6 @@
 using Matrix.CityCore.Application.Abstractions.Persistence;
-using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Weather;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.CityCore.Infrastructure.Persistence.Repositories

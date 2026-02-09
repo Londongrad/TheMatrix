@@ -1,12 +1,12 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
+using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
-using Matrix.CityCore.Application.Services.Weather.Abstractions;
-using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Events.Simulation;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.CityCore.Domain.Simulation;
-using Matrix.CityCore.Domain.Weather;
 
 namespace Matrix.CityCore.Application.Services.Simulation
 {

@@ -2,11 +2,11 @@ using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Contracts.Events;
-using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Events.Cities;
-using Matrix.CityCore.Domain.Events.Weather;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Events.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Events.Weather;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.CityCore.Domain.Simulation;
-using Matrix.CityCore.Domain.Weather;
 using Matrix.CityCore.Infrastructure.Persistence;
 
 namespace Matrix.CityCore.Infrastructure.Outbox

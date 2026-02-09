@@ -1,4 +1,4 @@
-using Matrix.CityCore.Domain.Weather;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 
 namespace Matrix.CityCore.Infrastructure.Outbox.IntegrationEvents
 {

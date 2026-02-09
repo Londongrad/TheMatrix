@@ -1,4 +1,4 @@
-﻿using Matrix.CityCore.Domain.Cities;
+﻿using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 
 namespace Matrix.CityCore.Application.Abstractions.Persistence
 {

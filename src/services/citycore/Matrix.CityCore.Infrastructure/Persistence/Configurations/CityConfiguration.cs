@@ -1,4 +1,4 @@
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

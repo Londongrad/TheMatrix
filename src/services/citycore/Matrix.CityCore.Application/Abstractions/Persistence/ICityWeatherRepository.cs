@@ -1,5 +1,5 @@
-using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Weather;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 
 namespace Matrix.CityCore.Application.Abstractions.Persistence
 {

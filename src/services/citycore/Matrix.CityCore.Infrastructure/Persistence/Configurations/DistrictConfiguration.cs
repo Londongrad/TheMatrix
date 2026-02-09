@@ -1,5 +1,5 @@
-using Matrix.CityCore.Domain.Cities;
-using Matrix.CityCore.Domain.Topology;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Topology;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

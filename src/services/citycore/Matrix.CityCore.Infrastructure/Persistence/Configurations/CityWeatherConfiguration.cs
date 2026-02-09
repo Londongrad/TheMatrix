@@ -1,8 +1,8 @@
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.CityCore.Domain.Simulation;
-using Matrix.CityCore.Domain.Weather;
-using Matrix.CityCore.Domain.Weather.Profiles;
-using Matrix.CityCore.Domain.Weather.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -2,7 +2,7 @@ using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Simulation;
 using Matrix.CityCore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
