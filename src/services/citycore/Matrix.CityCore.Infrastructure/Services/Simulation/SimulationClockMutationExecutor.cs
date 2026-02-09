@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
+using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Cities;
 using Matrix.CityCore.Domain.Simulation;
@@ -11,6 +12,7 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
 {
     public sealed class SimulationClockMutationExecutor(
         CityCoreDbContext dbContext,
+        ISimulationHostResolver simulationHostResolver,
         ILogger<SimulationClockMutationExecutor> logger) : ISimulationClockMutationExecutor
     {
         private const int MaxAttempts = 3;
@@ -19,7 +21,7 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
             SimulationId simulationId,
             Action<SimulationClock> mutate,
             CancellationToken cancellationToken,
-            bool allowArchivedCity = false)
+            bool allowArchivedHost = false)
         {
             CityId cityId = new(simulationId.Value);
             DbUpdateConcurrencyException? lastException = null;
@@ -30,24 +32,22 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
 
                 try
                 {
-                    City? city = await dbContext.Cities
-                       .AsNoTracking()
-                       .SingleOrDefaultAsync(
-                            predicate: x => x.Id == cityId,
-                            cancellationToken: cancellationToken);
+                    SimulationHostDescriptor? host = await simulationHostResolver.GetBySimulationIdAsync(
+                        simulationId: simulationId,
+                        cancellationToken: cancellationToken);
 
-                    if (city is null)
+                    if (host is null)
                         return false;
 
-                    if (!city.IsActive && !allowArchivedCity)
+                    if (!host.IsActive && !allowArchivedHost)
                     {
                         throw new MatrixApplicationException(
-                            code: city.IsArchived
-                                ? "CityCore.Simulation.ArchivedCity"
-                                : "CityCore.Simulation.CityNotActive",
-                            message: city.IsArchived
-                                ? "Archived cities are read-only. Simulation controls are unavailable."
-                                : "Only active cities can be controlled. Provisioning cities stay paused until population bootstrap finishes.",
+                            code: host.IsArchived
+                                ? "CityCore.Simulation.ArchivedHost"
+                                : "CityCore.Simulation.HostNotActive",
+                            message: host.IsArchived
+                                ? "Archived simulation hosts are read-only. Simulation controls are unavailable."
+                                : "Only active simulation hosts can be controlled. Provisioning hosts stay paused until bootstrap finishes.",
                             errorType: ApplicationErrorType.Conflict);
                     }
 
