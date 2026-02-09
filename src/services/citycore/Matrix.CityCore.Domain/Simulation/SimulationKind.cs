@@ -1,4 +1,4 @@
-namespace Matrix.CityCore.Domain.Cities.Enums
+namespace Matrix.CityCore.Domain.Simulation
 {
     public enum SimulationKind
     {

@@ -30,6 +30,7 @@ namespace Matrix.CityCore.Domain.Simulation
             : base(default(CityId)) { }
 
         public SimulationId SimulationId => new(Id.Value);
+        public SimulationHostId HostId => new(Id.Value);
         public SimTime CurrentTime { get; private set; }
         public TickId TickId { get; private set; }
         public SimSpeed Speed { get; private set; }
