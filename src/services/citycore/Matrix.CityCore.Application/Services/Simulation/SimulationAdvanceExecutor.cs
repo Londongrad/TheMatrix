@@ -12,6 +12,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
 {
     public sealed class SimulationAdvanceExecutor(
         ISimulationClockRepository repository,
+        ISimulationHostResolver simulationHostResolver,
         IWeatherAdvanceExecutor weatherAdvanceExecutor,
         ICityCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
@@ -21,7 +22,14 @@ namespace Matrix.CityCore.Application.Services.Simulation
             TimeSpan realDelta,
             CancellationToken cancellationToken)
         {
-            CityId cityId = new(simulationId.Value);
+            SimulationHostDescriptor? host = await simulationHostResolver.GetBySimulationIdAsync(
+                simulationId: simulationId,
+                cancellationToken: cancellationToken);
+
+            if (host is null)
+                return new SimulationAdvanceExecutionResult(
+                    SimulationId: simulationId,
+                    Status: SimulationAdvanceExecutionStatus.NotFound);
 
             SimulationClock? clock = await repository.GetBySimulationIdAsync(
                 simulationId: simulationId,
@@ -47,25 +55,30 @@ namespace Matrix.CityCore.Application.Services.Simulation
                     {
                         advanced = true;
 
-                        CityWeather? cityWeather = await weatherAdvanceExecutor.AdvanceAsync(
-                            cityId: cityId,
-                            evaluatedAt: advancedEvent.To,
-                            cancellationToken: ct);
-
-                        await outboxWriter.AddCityTimeAdvancedAsync(
-                            cityId: advancedEvent.CityId,
-                            from: advancedEvent.From,
-                            to: advancedEvent.To,
-                            tickId: advancedEvent.TickId,
-                            speed: advancedEvent.Speed,
-                            cancellationToken: ct);
-
-                        if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
+                        if (host.HostKind == SimulationHostKind.City)
                         {
-                            await outboxWriter.AddWeatherEventsAsync(
-                                domainEvents: cityWeather.DomainEvents,
+                            CityId cityId = new(host.HostId.Value);
+
+                            CityWeather? cityWeather = await weatherAdvanceExecutor.AdvanceAsync(
+                                cityId: cityId,
+                                evaluatedAt: advancedEvent.To,
                                 cancellationToken: ct);
-                            cityWeather.ClearDomainEvents();
+
+                            await outboxWriter.AddCityTimeAdvancedAsync(
+                                cityId: cityId,
+                                from: advancedEvent.From,
+                                to: advancedEvent.To,
+                                tickId: advancedEvent.TickId,
+                                speed: advancedEvent.Speed,
+                                cancellationToken: ct);
+
+                            if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
+                            {
+                                await outboxWriter.AddWeatherEventsAsync(
+                                    domainEvents: cityWeather.DomainEvents,
+                                    cancellationToken: ct);
+                                cityWeather.ClearDomainEvents();
+                            }
                         }
                     }
 

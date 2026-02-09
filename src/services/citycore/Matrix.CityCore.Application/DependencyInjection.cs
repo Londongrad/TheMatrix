@@ -22,6 +22,7 @@ namespace Matrix.CityCore.Application
 
             // Services
             services.AddScoped<ISimulationAdvanceExecutor, SimulationAdvanceExecutor>();
+            services.AddScoped<ISimulationHostResolver, CitySimulationHostResolver>();
             services.AddScoped<IWeatherAdvanceExecutor, WeatherAdvanceExecutor>();
             services.AddSingleton<ICityGenerationContentCatalog, CityGenerationContentCatalog>();
             services.AddSingleton<ICityNameSuggestionService, CityNameSuggestionService>();

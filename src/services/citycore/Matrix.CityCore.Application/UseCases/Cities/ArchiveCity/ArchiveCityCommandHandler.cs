@@ -32,7 +32,7 @@ namespace Matrix.CityCore.Application.UseCases.Cities.ArchiveCity
                 simulationId: new SimulationId(city.Id.Value),
                 mutate: clock => clock.Pause(),
                 cancellationToken: cancellationToken,
-                allowArchivedCity: true);
+                allowArchivedHost: true);
 
             city = await cityRepository.GetByIdAsync(
                 cityId: new CityId(request.CityId),

@@ -1,3 +1,4 @@
+using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
@@ -14,14 +15,14 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
     {
         public static ClockDto FromDomain(
             SimulationClock clock,
-            string simulationKind,
+            SimulationHostDescriptor host,
             bool forcePaused = false)
         {
             return new ClockDto(
                 SimulationId: clock.SimulationId.Value,
-                HostId: clock.Id.Value,
-                HostKind: "city",
-                SimulationKind: simulationKind,
+                HostId: clock.HostId.Value,
+                HostKind: host.HostKind.ToString(),
+                SimulationKind: host.SimulationKind.ToString(),
                 SimTimeUtc: clock.CurrentTime.ValueUtc,
                 TickId: clock.TickId.Value,
                 Speed: clock.Speed.Multiplier,

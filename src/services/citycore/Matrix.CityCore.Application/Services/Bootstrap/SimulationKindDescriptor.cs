@@ -1,4 +1,4 @@
-using Matrix.CityCore.Domain.Cities.Enums;
+using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Services.Bootstrap
 {

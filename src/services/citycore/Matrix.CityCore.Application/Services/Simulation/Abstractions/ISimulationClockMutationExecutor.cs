@@ -8,6 +8,6 @@ namespace Matrix.CityCore.Application.Services.Simulation.Abstractions
             SimulationId simulationId,
             Action<SimulationClock> mutate,
             CancellationToken cancellationToken,
-            bool allowArchivedCity = false);
+            bool allowArchivedHost = false);
     }
 }

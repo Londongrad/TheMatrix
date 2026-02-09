@@ -1,5 +1,6 @@
 using Matrix.CityCore.Application.Abstractions.Persistence;
-using Matrix.CityCore.Domain.Cities;
+using Matrix.CityCore.Application.Services.Simulation;
+using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
@@ -7,32 +8,32 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
 {
     public sealed class GetClockQueryHandler(
         ISimulationClockRepository repository,
-        ICityRepository cityRepository)
+        ISimulationHostResolver simulationHostResolver)
         : IRequestHandler<GetClockQuery, ClockDto?>
     {
         public async Task<ClockDto?> Handle(
             GetClockQuery request,
             CancellationToken cancellationToken)
         {
-            CityId cityId = new(request.SimulationId);
+            SimulationId simulationId = new(request.SimulationId);
 
-            City? city = await cityRepository.GetByIdAsync(
-                cityId: cityId,
+            SimulationHostDescriptor? host = await simulationHostResolver.GetBySimulationIdAsync(
+                simulationId: simulationId,
                 cancellationToken: cancellationToken);
 
-            if (city is null)
+            if (host is null)
                 return null;
 
             SimulationClock? clock = await repository.GetBySimulationIdAsync(
-                simulationId: new SimulationId(request.SimulationId),
+                simulationId: simulationId,
                 cancellationToken: cancellationToken);
 
             return clock is null
                 ? null
                 : ClockDto.FromDomain(
                     clock: clock,
-                    simulationKind: city.SimulationKind.ToString(),
-                    forcePaused: !city.IsActive);
+                    host: host,
+                    forcePaused: !host.IsActive);
         }
     }
 }
