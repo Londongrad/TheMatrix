@@ -1,8 +1,8 @@
 using MassTransit;
-using MediatR;
 using Matrix.CityCore.Contracts.Events;
 using Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact;
 using Matrix.Population.Application.UseCases.Population.SyncCityWeatherExposureState;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Population.Infrastructure.Consumers
@@ -48,28 +48,32 @@ namespace Matrix.Population.Infrastructure.Consumers
 
                 case SyncCityWeatherExposureStateStatus.Duplicate:
                     logger.LogDebug(
-                        message: "Skipped duplicate city weather exposure initialization for cityId={CityId}, messageId={MessageId}.",
+                        message:
+                        "Skipped duplicate city weather exposure initialization for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;
 
                 case SyncCityWeatherExposureStateStatus.OutOfOrder:
                     logger.LogWarning(
-                        message: "Skipped out-of-order city weather exposure initialization for cityId={CityId}, messageId={MessageId}.",
+                        message:
+                        "Skipped out-of-order city weather exposure initialization for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;
 
                 case SyncCityWeatherExposureStateStatus.CityDeleted:
                     logger.LogDebug(
-                        message: "Skipped city weather exposure initialization for deleted cityId={CityId}, messageId={MessageId}.",
+                        message:
+                        "Skipped city weather exposure initialization for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;
 
                 case SyncCityWeatherExposureStateStatus.CityArchived:
                     logger.LogDebug(
-                        message: "Skipped city weather exposure initialization for archived cityId={CityId}, messageId={MessageId}.",
+                        message:
+                        "Skipped city weather exposure initialization for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;

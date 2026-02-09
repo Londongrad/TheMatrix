@@ -8,8 +8,7 @@ using MediatR;
 
 namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary
 {
-    public sealed class GetCityPopulationSummaryQueryHandler(
-        ICityPopulationSummaryReadRepository summaryReadRepository)
+    public sealed class GetCityPopulationSummaryQueryHandler(ICityPopulationSummaryReadRepository summaryReadRepository)
         : IRequestHandler<GetCityPopulationSummaryQuery, CityPopulationSummaryDto?>
     {
         public async Task<CityPopulationSummaryDto?> Handle(
@@ -18,8 +17,7 @@ namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSum
         {
             request = GuardHelper.AgainstNull(
                 value: request,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             CityPopulationSummaryReadModel? summary = await summaryReadRepository.GetByCityIdAsync(
                 cityId: CityId.From(request.CityId),
@@ -40,24 +38,20 @@ namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSum
                 summary.Hemisphere.HasValue &&
                 summary.UtcOffsetMinutes.HasValue &&
                 summary.EnvironmentUpdatedAtUtc.HasValue)
-            {
                 environment = new CityPopulationSummaryEnvironmentDto(
                     ClimateZone: summary.ClimateZone.Value.ToString(),
                     Hemisphere: summary.Hemisphere.Value.ToString(),
                     UtcOffsetMinutes: summary.UtcOffsetMinutes.Value,
                     UpdatedAtUtc: FormatTimestamp(summary.EnvironmentUpdatedAtUtc) !);
-            }
 
             CityPopulationSummarySimulationDto? simulation = null;
             if (summary.LastProcessedTickId.HasValue &&
                 summary.LastProcessedDate.HasValue &&
                 summary.SimulationUpdatedAtUtc.HasValue)
-            {
                 simulation = new CityPopulationSummarySimulationDto(
                     LastProcessedTickId: summary.LastProcessedTickId.Value,
                     LastProcessedDate: FormatDate(summary.LastProcessedDate.Value),
                     UpdatedAtUtc: FormatTimestamp(summary.SimulationUpdatedAtUtc) !);
-            }
 
             CityPopulationSummaryWeatherDto? weather = null;
             if (summary.CurrentWeatherType.HasValue &&
@@ -65,7 +59,6 @@ namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSum
                 summary.CurrentWeatherEffectiveAtSimTimeUtc.HasValue &&
                 summary.LastWeatherOccurredOnUtc.HasValue &&
                 summary.LastExposureProcessedAtSimTimeUtc.HasValue)
-            {
                 weather = new CityPopulationSummaryWeatherDto(
                     CurrentType: summary.CurrentWeatherType.Value.ToString(),
                     CurrentSeverity: summary.CurrentWeatherSeverity.Value.ToString(),
@@ -73,8 +66,8 @@ namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSum
                     CurrentWeatherEffectiveAtSimTimeUtc: FormatTimestamp(summary.CurrentWeatherEffectiveAtSimTimeUtc) !,
                     LastWeatherOccurredOnUtc: FormatTimestamp(summary.LastWeatherOccurredOnUtc) !,
                     LastExposureProcessedAtSimTimeUtc: FormatTimestamp(summary.LastExposureProcessedAtSimTimeUtc) !,
-                    LastWeatherImpactAppliedAtSimTimeUtc: FormatTimestamp(summary.LastWeatherImpactAppliedAtSimTimeUtc));
-            }
+                    LastWeatherImpactAppliedAtSimTimeUtc: FormatTimestamp(
+                        summary.LastWeatherImpactAppliedAtSimTimeUtc));
 
             CityPopulationSummaryHousingDto housing = new(
                 HouseholdCount: summary.HouseholdCount,
@@ -113,18 +106,25 @@ namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSum
 
         private static string FormatDate(DateOnly value)
         {
-            return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            return value.ToString(
+                format: "yyyy-MM-dd",
+                provider: CultureInfo.InvariantCulture);
         }
 
         private static string? FormatTimestamp(DateTimeOffset? value)
         {
-            return value?.ToString("O", CultureInfo.InvariantCulture);
+            return value?.ToString(
+                format: "O",
+                formatProvider: CultureInfo.InvariantCulture);
         }
 
         private static decimal? RoundMetric(decimal? value)
         {
             return value.HasValue
-                ? decimal.Round(value.Value, 2, MidpointRounding.AwayFromZero)
+                ? decimal.Round(
+                    d: value.Value,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero)
                 : null;
         }
     }

@@ -34,9 +34,9 @@ namespace Matrix.Population.Application.UseCases.Population.Common
         internal static PopulationClimateZone ParseClimateZone(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationClimateZone parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationClimateZone parsed)
                 ? parsed
                 : PopulationClimateZone.Unknown;
         }
@@ -44,9 +44,9 @@ namespace Matrix.Population.Application.UseCases.Population.Common
         internal static PopulationHemisphere ParseHemisphere(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationHemisphere parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationHemisphere parsed)
                 ? parsed
                 : PopulationHemisphere.Unknown;
         }

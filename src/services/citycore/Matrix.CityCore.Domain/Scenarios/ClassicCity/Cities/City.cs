@@ -65,7 +65,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         }
 
         public CityName Name { get; private set; }
-        public SimulationKind SimulationKind { get; private set; }
+        public SimulationKind SimulationKind { get; }
         public CityEnvironment Environment { get; private set; }
         public CityGenerationSeed GenerationSeed { get; }
         public CityGenerationProfile GenerationProfile { get; }

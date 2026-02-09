@@ -21,8 +21,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
         {
             request = GuardHelper.AgainstNull(
                 value: request,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             Domain.Entities.Person person =
                 await personReadRepository.FindByIdAsync(

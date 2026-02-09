@@ -64,17 +64,19 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
                         return new SyncCityWeatherExposureStateResult(
                             Status: SyncCityWeatherExposureStateStatus.Duplicate);
 
-                    CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationDeletionState? deletionState =
+                        await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (deletionState is not null)
                         return new SyncCityWeatherExposureStateResult(
                             Status: SyncCityWeatherExposureStateStatus.CityDeleted);
 
-                    CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationArchiveState? archiveState =
+                        await cityPopulationArchiveStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (archiveState is not null)
                         return new SyncCityWeatherExposureStateResult(
@@ -88,7 +90,7 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
 
                     if (state is null)
                     {
-                        CityPopulationWeatherExposureState newState = CityPopulationWeatherExposureState.Create(
+                        var newState = CityPopulationWeatherExposureState.Create(
                             cityId: cityId,
                             currentWeather: currentWeather,
                             currentWeatherEffectiveAtSimTimeUtc: request.AtSimTimeUtc,
@@ -118,8 +120,7 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
 
                     await unitOfWork.SaveChangesAsync(ct);
 
-                    return new SyncCityWeatherExposureStateResult(
-                        Status: SyncCityWeatherExposureStateStatus.Applied);
+                    return new SyncCityWeatherExposureStateResult(Status: SyncCityWeatherExposureStateStatus.Applied);
                 },
                 cancellationToken: cancellationToken);
         }
@@ -129,8 +130,7 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
             GuardHelper.Ensure(
                 condition: occurredOnUtc.Kind is DateTimeKind.Utc or DateTimeKind.Unspecified,
                 value: occurredOnUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(occurredOnUtc));
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc);
 
             return occurredOnUtc.Kind switch
             {
@@ -161,9 +161,9 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
         private static PopulationWeatherType ParseWeatherType(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationWeatherType parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationWeatherType parsed)
                 ? parsed
                 : PopulationWeatherType.Unknown;
         }
@@ -171,9 +171,9 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
         private static PopulationWeatherSeverity ParseWeatherSeverity(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationWeatherSeverity parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationWeatherSeverity parsed)
                 ? parsed
                 : PopulationWeatherSeverity.Unknown;
         }
@@ -181,9 +181,9 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExpos
         private static PopulationPrecipitationKind ParsePrecipitationKind(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationPrecipitationKind parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationPrecipitationKind parsed)
                 ? parsed
                 : PopulationPrecipitationKind.Unknown;
         }

@@ -1,5 +1,4 @@
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.CityCore.Application.Services.Bootstrap;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Services.Bootstrap.Abstractions

@@ -87,11 +87,12 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
             IEnumerable<ICitySimulationBootstrapStrategy> simulationBootstrapStrategies,
             SimulationKind simulationKind)
         {
-            ICitySimulationBootstrapStrategy? strategy = simulationBootstrapStrategies.SingleOrDefault(
-                x => x.Kind == simulationKind);
+            ICitySimulationBootstrapStrategy? strategy =
+                simulationBootstrapStrategies.SingleOrDefault(x => x.Kind == simulationKind);
 
-            return strategy ?? throw new InvalidOperationException(
-                $"City simulation bootstrap strategy is not registered for kind '{simulationKind}'.");
+            return strategy ??
+                   throw new InvalidOperationException(
+                       $"City simulation bootstrap strategy is not registered for kind '{simulationKind}'.");
         }
     }
 }

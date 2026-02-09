@@ -1,91 +1,358 @@
 [
-  { "title": "Software Engineer", "weight": 6 },
-  { "title": "Teacher", "weight": 7 },
-  { "title": "Doctor", "weight": 4 },
-  { "title": "Nurse", "weight": 6 },
-  { "title": "Builder", "weight": 7 },
-  { "title": "Store Clerk", "weight": 7 },
-  { "title": "Taxi Driver", "weight": 5 },
-  { "title": "Accountant", "weight": 5 },
-  { "title": "Electrician", "weight": 5 },
-  { "title": "Plumber", "weight": 5 },
-  { "title": "Mechanic", "weight": 6 },
-  { "title": "Welder", "weight": 4 },
-  { "title": "Carpenter", "weight": 5 },
-  { "title": "Bricklayer", "weight": 4 },
-  { "title": "Painter", "weight": 4 },
-  { "title": "Bus Driver", "weight": 5 },
-  { "title": "Train Operator", "weight": 2 },
-  { "title": "Courier", "weight": 4 },
-  { "title": "Warehouse Worker", "weight": 6 },
-  { "title": "Forklift Operator", "weight": 3 },
-  { "title": "Security Guard", "weight": 5 },
-  { "title": "Police Officer", "weight": 3 },
-  { "title": "Firefighter", "weight": 2 },
-  { "title": "Paramedic", "weight": 2 },
-  { "title": "Pharmacist", "weight": 2 },
-  { "title": "Dentist", "weight": 2 },
-  { "title": "Lab Technician", "weight": 2 },
-  { "title": "Veterinarian", "weight": 1 },
-  { "title": "Cook", "weight": 5 },
-  { "title": "Chef", "weight": 2 },
-  { "title": "Baker", "weight": 3 },
-  { "title": "Barista", "weight": 3 },
-  { "title": "Waiter", "weight": 4 },
-  { "title": "Hotel Receptionist", "weight": 2 },
-  { "title": "Cleaner", "weight": 6 },
-  { "title": "Janitor", "weight": 4 },
-  { "title": "Groundskeeper", "weight": 2 },
-  { "title": "Cashier", "weight": 6 },
-  { "title": "Sales Manager", "weight": 4 },
-  { "title": "Procurement Specialist", "weight": 2 },
-  { "title": "Logistics Coordinator", "weight": 3 },
-  { "title": "Dispatcher", "weight": 3 },
-  { "title": "Office Administrator", "weight": 4 },
-  { "title": "HR Specialist", "weight": 2 },
-  { "title": "Recruiter", "weight": 1 },
-  { "title": "Lawyer", "weight": 1 },
-  { "title": "Legal Assistant", "weight": 1 },
-  { "title": "Journalist", "weight": 1 },
-  { "title": "Editor", "weight": 1 },
-  { "title": "Graphic Designer", "weight": 2 },
-  { "title": "Photographer", "weight": 1 },
-  { "title": "Architect", "weight": 1 },
-  { "title": "Civil Engineer", "weight": 2 },
-  { "title": "Mechanical Engineer", "weight": 2 },
-  { "title": "QA Engineer", "weight": 2 },
-  { "title": "Data Analyst", "weight": 2 },
-  { "title": "System Administrator", "weight": 2 },
-  { "title": "Network Engineer", "weight": 1 },
-  { "title": "Support Technician", "weight": 3 },
-  { "title": "Research Assistant", "weight": 1 },
-  { "title": "University Lecturer", "weight": 1 },
-  { "title": "School Principal", "weight": 1 },
-  { "title": "Librarian", "weight": 2 },
-  { "title": "Social Worker", "weight": 2 },
-  { "title": "Psychologist", "weight": 1 },
-  { "title": "Fitness Trainer", "weight": 1 },
-  { "title": "Hairdresser", "weight": 3 },
-  { "title": "Tailor", "weight": 1 },
-  { "title": "Seamstress", "weight": 2 },
-  { "title": "Florist", "weight": 1 },
-  { "title": "Farmer", "weight": 3 },
-  { "title": "Agronomist", "weight": 1 },
-  { "title": "Fisherman", "weight": 1 },
-  { "title": "Factory Operator", "weight": 5 },
-  { "title": "Assembly Worker", "weight": 4 },
-  { "title": "Machine Operator", "weight": 4 },
-  { "title": "Quality Inspector", "weight": 2 },
-  { "title": "Bookkeeper", "weight": 3 },
-  { "title": "Bank Clerk", "weight": 2 },
-  { "title": "Insurance Agent", "weight": 2 },
-  { "title": "Real Estate Agent", "weight": 1 },
-  { "title": "Travel Agent", "weight": 1 },
-  { "title": "Post Office Clerk", "weight": 2 },
-  { "title": "Mail Carrier", "weight": 2 },
-  { "title": "Station Attendant", "weight": 1 },
-  { "title": "Museum Guide", "weight": 1 },
-  { "title": "Event Coordinator", "weight": 1 },
-  { "title": "Call Center Operator", "weight": 3 },
-  { "title": "Content Moderator", "weight": 1 }
+  {
+    "title": "Software Engineer",
+    "weight": 6
+  },
+  {
+    "title": "Teacher",
+    "weight": 7
+  },
+  {
+    "title": "Doctor",
+    "weight": 4
+  },
+  {
+    "title": "Nurse",
+    "weight": 6
+  },
+  {
+    "title": "Builder",
+    "weight": 7
+  },
+  {
+    "title": "Store Clerk",
+    "weight": 7
+  },
+  {
+    "title": "Taxi Driver",
+    "weight": 5
+  },
+  {
+    "title": "Accountant",
+    "weight": 5
+  },
+  {
+    "title": "Electrician",
+    "weight": 5
+  },
+  {
+    "title": "Plumber",
+    "weight": 5
+  },
+  {
+    "title": "Mechanic",
+    "weight": 6
+  },
+  {
+    "title": "Welder",
+    "weight": 4
+  },
+  {
+    "title": "Carpenter",
+    "weight": 5
+  },
+  {
+    "title": "Bricklayer",
+    "weight": 4
+  },
+  {
+    "title": "Painter",
+    "weight": 4
+  },
+  {
+    "title": "Bus Driver",
+    "weight": 5
+  },
+  {
+    "title": "Train Operator",
+    "weight": 2
+  },
+  {
+    "title": "Courier",
+    "weight": 4
+  },
+  {
+    "title": "Warehouse Worker",
+    "weight": 6
+  },
+  {
+    "title": "Forklift Operator",
+    "weight": 3
+  },
+  {
+    "title": "Security Guard",
+    "weight": 5
+  },
+  {
+    "title": "Police Officer",
+    "weight": 3
+  },
+  {
+    "title": "Firefighter",
+    "weight": 2
+  },
+  {
+    "title": "Paramedic",
+    "weight": 2
+  },
+  {
+    "title": "Pharmacist",
+    "weight": 2
+  },
+  {
+    "title": "Dentist",
+    "weight": 2
+  },
+  {
+    "title": "Lab Technician",
+    "weight": 2
+  },
+  {
+    "title": "Veterinarian",
+    "weight": 1
+  },
+  {
+    "title": "Cook",
+    "weight": 5
+  },
+  {
+    "title": "Chef",
+    "weight": 2
+  },
+  {
+    "title": "Baker",
+    "weight": 3
+  },
+  {
+    "title": "Barista",
+    "weight": 3
+  },
+  {
+    "title": "Waiter",
+    "weight": 4
+  },
+  {
+    "title": "Hotel Receptionist",
+    "weight": 2
+  },
+  {
+    "title": "Cleaner",
+    "weight": 6
+  },
+  {
+    "title": "Janitor",
+    "weight": 4
+  },
+  {
+    "title": "Groundskeeper",
+    "weight": 2
+  },
+  {
+    "title": "Cashier",
+    "weight": 6
+  },
+  {
+    "title": "Sales Manager",
+    "weight": 4
+  },
+  {
+    "title": "Procurement Specialist",
+    "weight": 2
+  },
+  {
+    "title": "Logistics Coordinator",
+    "weight": 3
+  },
+  {
+    "title": "Dispatcher",
+    "weight": 3
+  },
+  {
+    "title": "Office Administrator",
+    "weight": 4
+  },
+  {
+    "title": "HR Specialist",
+    "weight": 2
+  },
+  {
+    "title": "Recruiter",
+    "weight": 1
+  },
+  {
+    "title": "Lawyer",
+    "weight": 1
+  },
+  {
+    "title": "Legal Assistant",
+    "weight": 1
+  },
+  {
+    "title": "Journalist",
+    "weight": 1
+  },
+  {
+    "title": "Editor",
+    "weight": 1
+  },
+  {
+    "title": "Graphic Designer",
+    "weight": 2
+  },
+  {
+    "title": "Photographer",
+    "weight": 1
+  },
+  {
+    "title": "Architect",
+    "weight": 1
+  },
+  {
+    "title": "Civil Engineer",
+    "weight": 2
+  },
+  {
+    "title": "Mechanical Engineer",
+    "weight": 2
+  },
+  {
+    "title": "QA Engineer",
+    "weight": 2
+  },
+  {
+    "title": "Data Analyst",
+    "weight": 2
+  },
+  {
+    "title": "System Administrator",
+    "weight": 2
+  },
+  {
+    "title": "Network Engineer",
+    "weight": 1
+  },
+  {
+    "title": "Support Technician",
+    "weight": 3
+  },
+  {
+    "title": "Research Assistant",
+    "weight": 1
+  },
+  {
+    "title": "University Lecturer",
+    "weight": 1
+  },
+  {
+    "title": "School Principal",
+    "weight": 1
+  },
+  {
+    "title": "Librarian",
+    "weight": 2
+  },
+  {
+    "title": "Social Worker",
+    "weight": 2
+  },
+  {
+    "title": "Psychologist",
+    "weight": 1
+  },
+  {
+    "title": "Fitness Trainer",
+    "weight": 1
+  },
+  {
+    "title": "Hairdresser",
+    "weight": 3
+  },
+  {
+    "title": "Tailor",
+    "weight": 1
+  },
+  {
+    "title": "Seamstress",
+    "weight": 2
+  },
+  {
+    "title": "Florist",
+    "weight": 1
+  },
+  {
+    "title": "Farmer",
+    "weight": 3
+  },
+  {
+    "title": "Agronomist",
+    "weight": 1
+  },
+  {
+    "title": "Fisherman",
+    "weight": 1
+  },
+  {
+    "title": "Factory Operator",
+    "weight": 5
+  },
+  {
+    "title": "Assembly Worker",
+    "weight": 4
+  },
+  {
+    "title": "Machine Operator",
+    "weight": 4
+  },
+  {
+    "title": "Quality Inspector",
+    "weight": 2
+  },
+  {
+    "title": "Bookkeeper",
+    "weight": 3
+  },
+  {
+    "title": "Bank Clerk",
+    "weight": 2
+  },
+  {
+    "title": "Insurance Agent",
+    "weight": 2
+  },
+  {
+    "title": "Real Estate Agent",
+    "weight": 1
+  },
+  {
+    "title": "Travel Agent",
+    "weight": 1
+  },
+  {
+    "title": "Post Office Clerk",
+    "weight": 2
+  },
+  {
+    "title": "Mail Carrier",
+    "weight": 2
+  },
+  {
+    "title": "Station Attendant",
+    "weight": 1
+  },
+  {
+    "title": "Museum Guide",
+    "weight": 1
+  },
+  {
+    "title": "Event Coordinator",
+    "weight": 1
+  },
+  {
+    "title": "Call Center Operator",
+    "weight": 3
+  },
+  {
+    "title": "Content Moderator",
+    "weight": 1
+  }
 ]

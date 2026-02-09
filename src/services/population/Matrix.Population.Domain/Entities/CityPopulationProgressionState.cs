@@ -16,8 +16,7 @@ namespace Matrix.Population.Domain.Entities
         {
             GuardHelper.AgainstNegativeNumber(
                 value: lastProcessedTickId,
-                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative,
-                propertyName: nameof(lastProcessedTickId));
+                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative);
 
             EnsureUtc(updatedAtUtc);
 
@@ -52,26 +51,27 @@ namespace Matrix.Population.Domain.Entities
         {
             GuardHelper.AgainstNegativeNumber(
                 value: tickId,
-                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative,
-                propertyName: nameof(tickId));
+                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative);
 
             GuardHelper.Ensure(
                 condition: tickId >= LastProcessedTickId,
                 value: tickId,
-                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationTickIdCannotMoveBackwards(
+                errorFactory: (
+                    value,
+                    propertyName) => DomainErrorsFactory.CityPopulationTickIdCannotMoveBackwards(
                     value: value,
                     previous: LastProcessedTickId,
-                    propertyName: propertyName),
-                propertyName: nameof(tickId));
+                    propertyName: propertyName));
 
             GuardHelper.Ensure(
                 condition: processedDate >= LastProcessedDate,
                 value: processedDate,
-                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationProcessedDateCannotMoveBackwards(
+                errorFactory: (
+                    value,
+                    propertyName) => DomainErrorsFactory.CityPopulationProcessedDateCannotMoveBackwards(
                     value: value,
                     previous: LastProcessedDate,
-                    propertyName: propertyName),
-                propertyName: nameof(processedDate));
+                    propertyName: propertyName));
 
             EnsureUtc(updatedAtUtc);
 
@@ -85,8 +85,7 @@ namespace Matrix.Population.Domain.Entities
             GuardHelper.Ensure(
                 condition: value.Offset == TimeSpan.Zero,
                 value: value,
-                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(value));
+                errorFactory: DomainErrorsFactory.TimestampMustBeUtc);
         }
     }
 }

@@ -17,8 +17,7 @@ namespace Matrix.Population.Application.Mapping
         {
             person = GuardHelper.AgainstNull(
                 value: person,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(person));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             int age = person.GetAge(currentDate)
                .Years;
@@ -72,8 +71,7 @@ namespace Matrix.Population.Application.Mapping
         {
             persons = GuardHelper.AgainstNull(
                 value: persons,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(persons));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             return persons
                .Select(p => p.ToDto(currentDate))

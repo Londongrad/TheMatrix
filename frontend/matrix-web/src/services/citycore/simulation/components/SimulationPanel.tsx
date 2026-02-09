@@ -39,10 +39,10 @@ function readClockValue(base: LocalClockBase, nowMs: number): number {
 }
 
 const SimulationPanel = ({
-    simulationId,
-    isReadOnly = false,
-    readOnlyMessage,
-}: SimulationPanelProps) => {
+                             simulationId,
+                             isReadOnly = false,
+                             readOnlyMessage,
+                         }: SimulationPanelProps) => {
     const simulationQuery = useSimulationClock(simulationId, isReadOnly ? 0 : 5000);
     const simulationMutations = useSimulationMutations();
 
@@ -225,7 +225,8 @@ const SimulationPanel = ({
                     </div>
                     <div className="sim-panel__snapshot-item">
                         <span className="sim-panel__snapshot-label">Refresh cadence</span>
-                        <strong className="sim-panel__snapshot-value">{isReadOnly ? "Manual" : "Every 5 seconds"}</strong>
+                        <strong
+                            className="sim-panel__snapshot-value">{isReadOnly ? "Manual" : "Every 5 seconds"}</strong>
                     </div>
                 </div>
 

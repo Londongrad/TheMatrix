@@ -18,7 +18,7 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
             IRequestHandler<ApplyCityEnvironmentSyncCommand, SyncCityEnvironmentResult>
     {
         public async Task<SyncCityEnvironmentResult> Handle(
-            SyncCityEnvironmentCommand request,
+            ApplyCityEnvironmentSyncCommand request,
             CancellationToken cancellationToken)
         {
             return await HandleInternal(
@@ -31,7 +31,7 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
         }
 
         public async Task<SyncCityEnvironmentResult> Handle(
-            ApplyCityEnvironmentSyncCommand request,
+            SyncCityEnvironmentCommand request,
             CancellationToken cancellationToken)
         {
             return await HandleInternal(
@@ -53,19 +53,16 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
         {
             GuardHelper.AgainstEmptyGuid(
                 id: cityIdValue,
-                errorFactory: ApplicationErrorsFactory.EmptyId,
-                propertyName: nameof(cityIdValue));
+                errorFactory: ApplicationErrorsFactory.EmptyId);
 
             climateZone = GuardHelper.AgainstNullOrWhiteSpace(
                 value: climateZone,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(climateZone));
+                errorFactory: ApplicationErrorsFactory.Required);
             hemisphere = GuardHelper.AgainstNullOrWhiteSpace(
                 value: hemisphere,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(hemisphere));
+                errorFactory: ApplicationErrorsFactory.Required);
 
-            CityId cityId = CityId.From(cityIdValue);
+            var cityId = CityId.From(cityIdValue);
             DateTimeOffset syncedAtUtc = syncedAtUtcValue ?? DateTimeOffset.UtcNow;
 
             GuardHelper.Ensure(
@@ -85,16 +82,18 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
                     CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
-                    CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationDeletionState? deletionState =
+                        await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (deletionState is not null)
                         return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.CityDeleted);
 
-                    CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationArchiveState? archiveState =
+                        await cityPopulationArchiveStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (archiveState is not null)
                         return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.CityArchived);
@@ -119,7 +118,8 @@ namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
                         return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Stale);
 
                     if (syncedAtUtc == environment.UpdatedAtUtc &&
-                        environment.ClimateZone == CityPopulationEnvironmentMapper.ParseClimateZone(input.ClimateZone) &&
+                        environment.ClimateZone ==
+                        CityPopulationEnvironmentMapper.ParseClimateZone(input.ClimateZone) &&
                         environment.Hemisphere == CityPopulationEnvironmentMapper.ParseHemisphere(input.Hemisphere) &&
                         environment.UtcOffsetMinutes == input.UtcOffsetMinutes)
                         return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Duplicate);

@@ -5,7 +5,10 @@ import type {
     CreateCityRequest,
     SimulationKindCatalogItemView,
 } from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
-import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso} from "@services/citycore/scenarios/classic-city/utils/dateTime";
+import {
+    getNowLocalDateTimeInputValue,
+    localDateTimeToUtcIso
+} from "@services/citycore/scenarios/classic-city/utils/dateTime";
 
 type ValidationErrors = {
     name?: string;
@@ -61,19 +64,19 @@ function validate(
 }
 
 export function CreateCityForm({
-    isSubmitting,
-    submitError,
-    simulationKinds,
-    simulationKindsError,
-    isSimulationKindsLoading,
-    onSubmit,
-    onCreated,
-    onClearSubmitError,
-}: Props) {
+                                   isSubmitting,
+                                   submitError,
+                                   simulationKinds,
+                                   simulationKindsError,
+                                   isSimulationKindsLoading,
+                                   onSubmit,
+                                   onCreated,
+                                   onClearSubmitError,
+                               }: Props) {
     const defaultSimulationKind = useMemo(() => {
         return simulationKinds.find((kind) => kind.isDefault)?.kind ??
-               simulationKinds[0]?.kind ??
-               "ClassicCity";
+            simulationKinds[0]?.kind ??
+            "ClassicCity";
     }, [simulationKinds]);
 
     const [name, setName] = useState("");
@@ -155,7 +158,8 @@ export function CreateCityForm({
     return (
         <form className="cities-create-form" onSubmit={handleSubmit} noValidate>
             <div className="cities-create-form__intro">
-                Provision a new world state, choose the simulation baseline, and hand off the launched timeline to operators.
+                Provision a new world state, choose the simulation baseline, and hand off the launched timeline to
+                operators.
             </div>
 
             <div className="cities-create-form__grid">

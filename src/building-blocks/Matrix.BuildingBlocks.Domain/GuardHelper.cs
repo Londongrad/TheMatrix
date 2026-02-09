@@ -187,7 +187,7 @@ namespace Matrix.BuildingBlocks.Domain
             [CallerArgumentExpression("value")] string? propertyName = null)
             where T : struct, IComparable<T>
         {
-            if (value.CompareTo(default) <= 0)
+            if (value.CompareTo(default(T)) <= 0)
                 throw errorFactory(propertyName);
 
             return value;
@@ -210,7 +210,7 @@ namespace Matrix.BuildingBlocks.Domain
             [CallerArgumentExpression("value")] string? propertyName = null)
             where T : struct, IComparable<T>
         {
-            if (value.CompareTo(default) < 0)
+            if (value.CompareTo(default(T)) < 0)
                 throw errorFactory(
                     arg1: value,
                     arg2: propertyName);

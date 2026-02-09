@@ -7,6 +7,7 @@ using Matrix.CityCore.Application.Services.Bootstrap;
 using Matrix.CityCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
@@ -74,7 +75,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
             var generationSeed = new CityGenerationSeed(effectiveSeed);
             var startSimTime = SimTime.FromUtc(request.StartSimTimeUtc);
 
-            City city = City.Create(
+            var city = City.Create(
                 name: new CityName(request.Name),
                 simulationKind: Kind,
                 environment: environment,
@@ -85,7 +86,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
 
             CityTopologySeed topology = cityTopologyBootstrapFactory.CreateInitial(city);
 
-            var weather = cityWeatherBootstrapFactory.CreateInitial(
+            CityWeather weather = cityWeatherBootstrapFactory.CreateInitial(
                 city: city,
                 initialTime: startSimTime);
 
@@ -93,7 +94,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 ? SimSpeed.RealTime()
                 : SimSpeed.From(request.SpeedMultiplier);
 
-            SimulationClock clock = SimulationClock.Create(
+            var clock = SimulationClock.Create(
                 cityId: city.Id,
                 startTime: startSimTime,
                 speed: speed);

@@ -1,8 +1,8 @@
 using MassTransit;
-using MediatR;
 using Matrix.CityCore.Contracts.Events;
 using Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact;
 using Matrix.Population.Application.UseCases.Population.SyncCityWeatherExposureState;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Population.Infrastructure.Consumers
@@ -76,7 +76,8 @@ namespace Matrix.Population.Infrastructure.Consumers
             {
                 case ApplyCityWeatherImpactStatus.Applied:
                     logger.LogInformation(
-                        message: "Applied city weather impact for cityId={CityId}, messageId={MessageId}, affectedPeople={AffectedPeople}.",
+                        message:
+                        "Applied city weather impact for cityId={CityId}, messageId={MessageId}, affectedPeople={AffectedPeople}.",
                         message.CityId,
                         context.MessageId,
                         result.AffectedPeopleCount);
@@ -115,21 +116,24 @@ namespace Matrix.Population.Infrastructure.Consumers
             {
                 case SyncCityWeatherExposureStateStatus.OutOfOrder:
                     logger.LogWarning(
-                        message: "Skipped out-of-order city weather exposure sync for cityId={CityId}, messageId={MessageId}.",
+                        message:
+                        "Skipped out-of-order city weather exposure sync for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;
 
                 case SyncCityWeatherExposureStateStatus.CityDeleted:
                     logger.LogDebug(
-                        message: "Skipped city weather exposure sync for deleted cityId={CityId}, messageId={MessageId}.",
+                        message:
+                        "Skipped city weather exposure sync for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;
 
                 case SyncCityWeatherExposureStateStatus.CityArchived:
                     logger.LogDebug(
-                        message: "Skipped city weather exposure sync for archived cityId={CityId}, messageId={MessageId}.",
+                        message:
+                        "Skipped city weather exposure sync for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
                     break;

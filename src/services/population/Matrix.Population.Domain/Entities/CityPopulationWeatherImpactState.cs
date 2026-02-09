@@ -14,9 +14,15 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset lastAppliedOccurredOnUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(lastAppliedAtSimTimeUtc, nameof(lastAppliedAtSimTimeUtc));
-            EnsureUtc(lastAppliedOccurredOnUtc, nameof(lastAppliedOccurredOnUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: lastAppliedAtSimTimeUtc,
+                paramName: nameof(lastAppliedAtSimTimeUtc));
+            EnsureUtc(
+                value: lastAppliedOccurredOnUtc,
+                paramName: nameof(lastAppliedOccurredOnUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             CityId = cityId;
             LastAppliedAtSimTimeUtc = lastAppliedAtSimTimeUtc;
@@ -47,27 +53,35 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset occurredOnUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(atSimTimeUtc, nameof(atSimTimeUtc));
-            EnsureUtc(occurredOnUtc, nameof(occurredOnUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: atSimTimeUtc,
+                paramName: nameof(atSimTimeUtc));
+            EnsureUtc(
+                value: occurredOnUtc,
+                paramName: nameof(occurredOnUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             GuardHelper.Ensure(
                 condition: atSimTimeUtc >= LastAppliedAtSimTimeUtc,
                 value: atSimTimeUtc,
-                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
+                errorFactory: (
+                    value,
+                    propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
                     value: value,
                     previous: LastAppliedAtSimTimeUtc,
-                    propertyName: propertyName),
-                propertyName: nameof(atSimTimeUtc));
+                    propertyName: propertyName));
 
             GuardHelper.Ensure(
                 condition: atSimTimeUtc != LastAppliedAtSimTimeUtc || occurredOnUtc > LastAppliedOccurredOnUtc,
                 value: occurredOnUtc,
-                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
+                errorFactory: (
+                    value,
+                    propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
                     value: value,
                     previous: LastAppliedOccurredOnUtc,
-                    propertyName: propertyName),
-                propertyName: nameof(occurredOnUtc));
+                    propertyName: propertyName));
 
             LastAppliedAtSimTimeUtc = atSimTimeUtc;
             LastAppliedOccurredOnUtc = occurredOnUtc;

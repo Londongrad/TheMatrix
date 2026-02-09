@@ -19,10 +19,18 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset lastExposureProcessedAtSimTimeUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(currentWeatherEffectiveAtSimTimeUtc, nameof(currentWeatherEffectiveAtSimTimeUtc));
-            EnsureUtc(lastWeatherOccurredOnUtc, nameof(lastWeatherOccurredOnUtc));
-            EnsureUtc(lastExposureProcessedAtSimTimeUtc, nameof(lastExposureProcessedAtSimTimeUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: currentWeatherEffectiveAtSimTimeUtc,
+                paramName: nameof(currentWeatherEffectiveAtSimTimeUtc));
+            EnsureUtc(
+                value: lastWeatherOccurredOnUtc,
+                paramName: nameof(lastWeatherOccurredOnUtc));
+            EnsureUtc(
+                value: lastExposureProcessedAtSimTimeUtc,
+                paramName: nameof(lastExposureProcessedAtSimTimeUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
             currentWeather = GuardHelper.AgainstNull(
                 value: currentWeather,
                 propertyName: nameof(currentWeather));
@@ -154,8 +162,12 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset atSimTimeUtc,
             DateTimeOffset occurredOnUtc)
         {
-            EnsureUtc(atSimTimeUtc, nameof(atSimTimeUtc));
-            EnsureUtc(occurredOnUtc, nameof(occurredOnUtc));
+            EnsureUtc(
+                value: atSimTimeUtc,
+                paramName: nameof(atSimTimeUtc));
+            EnsureUtc(
+                value: occurredOnUtc,
+                paramName: nameof(occurredOnUtc));
 
             if (atSimTimeUtc < CurrentWeatherEffectiveAtSimTimeUtc)
                 return false;
@@ -170,9 +182,15 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset occurredOnUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(currentWeatherEffectiveAtSimTimeUtc, nameof(currentWeatherEffectiveAtSimTimeUtc));
-            EnsureUtc(occurredOnUtc, nameof(occurredOnUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: currentWeatherEffectiveAtSimTimeUtc,
+                paramName: nameof(currentWeatherEffectiveAtSimTimeUtc));
+            EnsureUtc(
+                value: occurredOnUtc,
+                paramName: nameof(occurredOnUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
             currentWeather = GuardHelper.AgainstNull(
                 value: currentWeather,
                 propertyName: nameof(currentWeather));
@@ -182,8 +200,9 @@ namespace Matrix.Population.Domain.Entities
                     atSimTimeUtc: currentWeatherEffectiveAtSimTimeUtc,
                     occurredOnUtc: occurredOnUtc),
                 value: currentWeatherEffectiveAtSimTimeUtc,
-                errorFactory: (_, propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureStaleUpdate(propertyName),
-                propertyName: nameof(currentWeatherEffectiveAtSimTimeUtc));
+                errorFactory: (
+                    _,
+                    propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureStaleUpdate(propertyName));
 
             WeatherImpactProfile previousCurrentWeather = CurrentWeather;
 
@@ -226,17 +245,22 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset processedAtSimTimeUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(processedAtSimTimeUtc, nameof(processedAtSimTimeUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: processedAtSimTimeUtc,
+                paramName: nameof(processedAtSimTimeUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             GuardHelper.Ensure(
                 condition: processedAtSimTimeUtc >= LastExposureProcessedAtSimTimeUtc,
                 value: processedAtSimTimeUtc,
-                errorFactory: (value, propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
+                errorFactory: (
+                    value,
+                    propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
                     value: value,
                     previous: LastExposureProcessedAtSimTimeUtc,
-                    propertyName: propertyName),
-                propertyName: nameof(processedAtSimTimeUtc));
+                    propertyName: propertyName));
 
             LastExposureProcessedAtSimTimeUtc = processedAtSimTimeUtc;
             UpdatedAtUtc = updatedAtUtc;
@@ -262,7 +286,9 @@ namespace Matrix.Population.Domain.Entities
             WeatherImpactProfile recoverySourceWeather,
             DateTimeOffset recoveryStartedAtSimTimeUtc)
         {
-            EnsureUtc(recoveryStartedAtSimTimeUtc, nameof(recoveryStartedAtSimTimeUtc));
+            EnsureUtc(
+                value: recoveryStartedAtSimTimeUtc,
+                paramName: nameof(recoveryStartedAtSimTimeUtc));
             recoverySourceWeather = GuardHelper.AgainstNull(
                 value: recoverySourceWeather,
                 propertyName: nameof(recoverySourceWeather));

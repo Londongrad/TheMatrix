@@ -380,13 +380,6 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             }
         }
 
-        private static class PopulationBootstrapStatuses
-        {
-            public const string Completed = "Completed";
-            public const string Failed = "Failed";
-            public const string Skipped = "Skipped";
-        }
-
         private async Task<bool> SupportsAutomaticPopulationBootstrapAsync(
             string simulationKind,
             CancellationToken cancellationToken)
@@ -403,13 +396,21 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             if (descriptor is null)
             {
                 logger.LogWarning(
-                    message: "Simulation kind metadata was not found for kind '{SimulationKind}'. Automatic population bootstrap will be skipped.",
+                    message:
+                    "Simulation kind metadata was not found for kind '{SimulationKind}'. Automatic population bootstrap will be skipped.",
                     simulationKind);
 
                 return false;
             }
 
             return descriptor.SupportsAutomaticPopulationBootstrap;
+        }
+
+        private static class PopulationBootstrapStatuses
+        {
+            public const string Completed = "Completed";
+            public const string Failed = "Failed";
+            public const string Skipped = "Skipped";
         }
     }
 }

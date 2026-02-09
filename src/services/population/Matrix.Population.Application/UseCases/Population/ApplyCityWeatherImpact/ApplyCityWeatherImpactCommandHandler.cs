@@ -59,7 +59,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
 
             DateTimeOffset occurredOnUtc = NormalizeOccurredOnUtc(request.OccurredOnUtc);
             var cityId = CityId.From(request.CityId);
-            DateOnly currentDate = DateOnly.FromDateTime(request.AtSimTimeUtc.UtcDateTime);
+            var currentDate = DateOnly.FromDateTime(request.AtSimTimeUtc.UtcDateTime);
             WeatherImpactProfile previousWeather = CreateWeatherImpactProfile(previousState);
             WeatherImpactProfile currentWeather = CreateWeatherImpactProfile(currentState);
 
@@ -77,18 +77,20 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                             Status: ApplyCityWeatherImpactStatus.Duplicate,
                             AffectedPeopleCount: 0);
 
-                    CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationDeletionState? deletionState =
+                        await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (deletionState is not null)
                         return new ApplyCityWeatherImpactResult(
                             Status: ApplyCityWeatherImpactStatus.CityDeleted,
                             AffectedPeopleCount: 0);
 
-                    CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationArchiveState? archiveState =
+                        await cityPopulationArchiveStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (archiveState is not null)
                         return new ApplyCityWeatherImpactResult(
@@ -104,7 +106,8 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
 
                     if (environment is null)
                         logger.LogWarning(
-                            message: "Applying city weather impact without synced environment for cityId={CityId}. Climate adaptation will be neutral.",
+                            message:
+                            "Applying city weather impact without synced environment for cityId={CityId}. Climate adaptation will be neutral.",
                             request.CityId);
 
                     if (IsOutOfOrder(
@@ -134,7 +137,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
 
                     if (state is null)
                     {
-                        CityPopulationWeatherImpactState newState = CityPopulationWeatherImpactState.Create(
+                        var newState = CityPopulationWeatherImpactState.Create(
                             cityId: cityId,
                             lastAppliedAtSimTimeUtc: request.AtSimTimeUtc,
                             lastAppliedOccurredOnUtc: occurredOnUtc,
@@ -145,12 +148,10 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
                             cancellationToken: ct);
                     }
                     else
-                    {
                         state.MarkApplied(
                             atSimTimeUtc: request.AtSimTimeUtc,
                             occurredOnUtc: occurredOnUtc,
                             updatedAtUtc: updatedAtUtc);
-                    }
 
                     await unitOfWork.SaveChangesAsync(ct);
 
@@ -238,8 +239,7 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
             GuardHelper.Ensure(
                 condition: occurredOnUtc.Kind is DateTimeKind.Utc or DateTimeKind.Unspecified,
                 value: occurredOnUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(occurredOnUtc));
+                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc);
 
             return occurredOnUtc.Kind switch
             {
@@ -257,9 +257,9 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
         private static PopulationWeatherType ParseWeatherType(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationWeatherType parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationWeatherType parsed)
                 ? parsed
                 : PopulationWeatherType.Unknown;
         }
@@ -267,9 +267,9 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
         private static PopulationWeatherSeverity ParseWeatherSeverity(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationWeatherSeverity parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationWeatherSeverity parsed)
                 ? parsed
                 : PopulationWeatherSeverity.Unknown;
         }
@@ -277,9 +277,9 @@ namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpa
         private static PopulationPrecipitationKind ParsePrecipitationKind(string value)
         {
             return Enum.TryParse(
-                       value: value,
-                       ignoreCase: true,
-                       result: out PopulationPrecipitationKind parsed)
+                value: value,
+                ignoreCase: true,
+                result: out PopulationPrecipitationKind parsed)
                 ? parsed
                 : PopulationPrecipitationKind.Unknown;
         }

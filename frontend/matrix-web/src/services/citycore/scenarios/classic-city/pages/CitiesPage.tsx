@@ -38,9 +38,9 @@ export default function CitiesPage() {
             const status = city.status.toLowerCase();
 
             return name.includes(query) ||
-                   cityId.includes(query) ||
-                   simulationKind.includes(query) ||
-                   status.includes(query);
+                cityId.includes(query) ||
+                simulationKind.includes(query) ||
+                status.includes(query);
         });
     }, [citiesQuery.data, search]);
 

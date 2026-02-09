@@ -7,6 +7,5 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
         Stale = 2
     }
 
-    public sealed record DeleteCityPopulationDataResult(
-        DeleteCityPopulationDataStatus Status);
+    public sealed record DeleteCityPopulationDataResult(DeleteCityPopulationDataStatus Status);
 }

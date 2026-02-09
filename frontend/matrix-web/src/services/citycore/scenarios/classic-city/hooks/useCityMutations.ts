@@ -1,6 +1,14 @@
 import {useState} from "react";
-import {archiveCity, createCity, deleteCity, renameCity,} from "@services/citycore/scenarios/classic-city/api/citiesApi";
-import type {CityCreatedView, CreateCityRequest,} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
+import {
+    archiveCity,
+    createCity,
+    deleteCity,
+    renameCity,
+} from "@services/citycore/scenarios/classic-city/api/citiesApi";
+import type {
+    CityCreatedView,
+    CreateCityRequest,
+} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0

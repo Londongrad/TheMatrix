@@ -1,8 +1,8 @@
+using System.Globalization;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
-using System.Globalization;
 
 namespace Matrix.ApiGateway.DownstreamClients.Population.People
 {
@@ -40,7 +40,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             CancellationToken cancellationToken = default)
         {
             string currentDateValue = Uri.EscapeDataString(
-                stringToEscape: currentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+                stringToEscape: currentDate.ToString(
+                    format: "yyyy-MM-dd",
+                    provider: CultureInfo.InvariantCulture));
             string url = $"{PopulationBaseEndpoint}/cities/{cityId}/summary?currentDate={currentDateValue}";
 
             using HttpResponseMessage response = await _client.GetAsync(

@@ -35,8 +35,7 @@ namespace Matrix.Population.Application.Services.Generation
         {
             fileName = GuardHelper.AgainstNullOrWhiteSpace(
                 value: fileName,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(fileName));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             string[]? values = LoadResource<string[]>(fileName);
 
@@ -64,10 +63,10 @@ namespace Matrix.Population.Application.Services.Generation
         {
             fileName = GuardHelper.AgainstNullOrWhiteSpace(
                 value: fileName,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(fileName));
+                errorFactory: ApplicationErrorsFactory.Required);
 
-            PopulationFamilySurnameCatalogItem[]? entries = LoadResource<PopulationFamilySurnameCatalogItem[]>(fileName);
+            PopulationFamilySurnameCatalogItem[]?
+                entries = LoadResource<PopulationFamilySurnameCatalogItem[]>(fileName);
 
             if (entries is null || entries.Length == 0)
                 throw ApplicationErrorsFactory.InvalidGenerationContent(
@@ -90,13 +89,11 @@ namespace Matrix.Population.Application.Services.Generation
             return Array.AsReadOnly(sanitized);
         }
 
-        private static IReadOnlyList<PopulationProfessionCatalogItem> LoadProfessionsCatalogResource(
-            string fileName)
+        private static IReadOnlyList<PopulationProfessionCatalogItem> LoadProfessionsCatalogResource(string fileName)
         {
             fileName = GuardHelper.AgainstNullOrWhiteSpace(
                 value: fileName,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(fileName));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             PopulationProfessionCatalogItem[]? entries = LoadResource<PopulationProfessionCatalogItem[]>(fileName);
 
@@ -110,7 +107,9 @@ namespace Matrix.Population.Application.Services.Generation
                     Title: x.Title?.Trim() ?? string.Empty,
                     Weight: x.Weight))
                .Where(x => !string.IsNullOrWhiteSpace(x.Title) && x.Weight > 0)
-               .GroupBy(x => x.Title, StringComparer.OrdinalIgnoreCase)
+               .GroupBy(
+                    keySelector: x => x.Title,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .Select(g => g.First())
                .ToArray();
 
@@ -126,8 +125,7 @@ namespace Matrix.Population.Application.Services.Generation
         {
             fileName = GuardHelper.AgainstNullOrWhiteSpace(
                 value: fileName,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(fileName));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             Assembly assembly = typeof(PopulationGenerationContentCatalog).Assembly;
             string resourceName =
@@ -139,7 +137,9 @@ namespace Matrix.Population.Application.Services.Generation
                     catalogName: fileName,
                     reason: $"Embedded resource '{resourceName}' was not found.");
 
-            T? value = JsonSerializer.Deserialize<T>(stream, JsonOptions);
+            T? value = JsonSerializer.Deserialize<T>(
+                utf8Json: stream,
+                options: JsonOptions);
             if (value is null)
                 throw ApplicationErrorsFactory.InvalidGenerationContent(
                     catalogName: fileName,

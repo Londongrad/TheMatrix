@@ -1,4 +1,3 @@
-using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Services.Simulation.Abstractions

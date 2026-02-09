@@ -171,7 +171,8 @@ namespace Matrix.CityCore.Domain.Errors
         {
             return new DomainException(
                 code: "CityCore.City.PopulationBootstrap.FailureCode.Invalid",
-                message: $"Population bootstrap failure code '{value}' must contain only ASCII letters, digits, or underscores.",
+                message:
+                $"Population bootstrap failure code '{value}' must contain only ASCII letters, digits, or underscores.",
                 propertyName: propertyName);
         }
 

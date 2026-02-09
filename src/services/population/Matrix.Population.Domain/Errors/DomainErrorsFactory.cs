@@ -18,6 +18,36 @@ namespace Matrix.Population.Domain.Errors
 
         #endregion [ Person - Name ]
 
+        #region [ Common ]
+
+        public static DomainException TimestampMustBeUtc(
+            DateTimeOffset value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Timestamp.NotUtc",
+                message: "Population timestamps must be in UTC (Offset=00:00).",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Common ]
+
+        #region [ Population - Environment ]
+
+        public static DomainException CityPopulationUtcOffsetMinutesOutOfRange(
+            int value,
+            int min,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Environment.UtcOffsetMinutes.OutOfRange",
+                message: $"UTC offset minutes must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Population - Environment ]
+
         #region [ Person - Life ]
 
         public static DomainException PersonAlreadyDead(string? propertyName = null)
@@ -460,36 +490,6 @@ namespace Matrix.Population.Domain.Errors
 
         #endregion [ Person - Age ]
 
-        #region [ Common ]
-
-        public static DomainException TimestampMustBeUtc(
-            DateTimeOffset value,
-            string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Population.Timestamp.NotUtc",
-                message: "Population timestamps must be in UTC (Offset=00:00).",
-                propertyName: propertyName);
-        }
-
-        #endregion [ Common ]
-
-        #region [ Population - Environment ]
-
-        public static DomainException CityPopulationUtcOffsetMinutesOutOfRange(
-            int value,
-            int min,
-            int max,
-            string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Population.Environment.UtcOffsetMinutes.OutOfRange",
-                message: $"UTC offset minutes must be in range [{min}; {max}].",
-                propertyName: propertyName);
-        }
-
-        #endregion [ Population - Environment ]
-
         #region [ Population - Progression ]
 
         public static DomainException CityPopulationTickIdCannotBeNegative(
@@ -546,7 +546,8 @@ namespace Matrix.Population.Domain.Errors
         {
             return new DomainException(
                 code: "Population.WeatherImpact.OccurredOn.Backwards",
-                message: $"Weather impact occurrence '{value:O}' cannot move backwards from '{previous:O}' at the same sim time.",
+                message:
+                $"Weather impact occurrence '{value:O}' cannot move backwards from '{previous:O}' at the same sim time.",
                 propertyName: propertyName);
         }
 

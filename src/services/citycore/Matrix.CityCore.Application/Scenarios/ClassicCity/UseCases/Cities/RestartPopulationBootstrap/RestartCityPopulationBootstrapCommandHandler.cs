@@ -7,7 +7,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Rest
 {
     public sealed class RestartCityPopulationBootstrapCommandHandler(
         ICityRepository cityRepository,
-        IUnitOfWork unitOfWork) : IRequestHandler<RestartCityPopulationBootstrapCommand, RestartCityPopulationBootstrapResult>
+        IUnitOfWork unitOfWork)
+        : IRequestHandler<RestartCityPopulationBootstrapCommand, RestartCityPopulationBootstrapResult>
     {
         public async Task<RestartCityPopulationBootstrapResult> Handle(
             RestartCityPopulationBootstrapCommand request,

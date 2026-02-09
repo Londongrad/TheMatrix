@@ -43,7 +43,7 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
                 errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
                 propertyName: nameof(request.DeletedAtUtc));
 
-            CityId cityId = CityId.From(request.CityId);
+            var cityId = CityId.From(request.CityId);
 
             return unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -57,9 +57,10 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
                     if (!markedAsProcessed)
                         return new DeleteCityPopulationDataResult(DeleteCityPopulationDataStatus.Duplicate);
 
-                    CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationDeletionState? deletionState =
+                        await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (deletionState is not null && request.DeletedAtUtc < deletionState.DeletedAtUtc)
                         return new DeleteCityPopulationDataResult(DeleteCityPopulationDataStatus.Stale);
@@ -87,7 +88,7 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
 
                     if (deletionState is null)
                     {
-                        CityPopulationDeletionState newDeletionState = CityPopulationDeletionState.Create(
+                        var newDeletionState = CityPopulationDeletionState.Create(
                             cityId: cityId,
                             deletedAtUtc: request.DeletedAtUtc,
                             updatedAtUtc: updatedAtUtc);
@@ -97,11 +98,9 @@ namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulation
                             cancellationToken: ct);
                     }
                     else
-                    {
                         deletionState.MarkDeleted(
                             deletedAtUtc: request.DeletedAtUtc,
                             updatedAtUtc: updatedAtUtc);
-                    }
 
                     await unitOfWork.SaveChangesAsync(ct);
 

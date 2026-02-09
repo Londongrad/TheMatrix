@@ -18,7 +18,8 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<IReadOnlyList<SimulationId>> ListActiveRunningSimulationIdsAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<SimulationId>> ListActiveRunningSimulationIdsAsync(
+            CancellationToken cancellationToken)
         {
             List<CityId> cityIds = await dbContext.SimulationClocks
                .AsNoTracking()

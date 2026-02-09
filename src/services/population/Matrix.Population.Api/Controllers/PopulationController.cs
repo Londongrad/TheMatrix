@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.UseCases.Population.Common;
-using Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
+using Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.UseCases.Population.InitializeCityPopulation;
 using Matrix.Population.Application.UseCases.Population.SyncCityEnvironment;
 using Matrix.Population.Contracts.Models;
@@ -81,7 +81,9 @@ namespace Matrix.Population.Api.Controllers
                     CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 
-            return result is null ? NotFound() : Ok(result);
+            return result is null
+                ? NotFound()
+                : Ok(result);
         }
 
         [HttpGet("citizens")]

@@ -18,45 +18,57 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             HouseholdAggregate householdAggregate = await GetHouseholdAggregateAsync(
-                    cityId: cityId,
-                    cancellationToken: cancellationToken)
-                ?? HouseholdAggregate.Empty;
+                                                        cityId: cityId,
+                                                        cancellationToken: cancellationToken) ??
+                                                    HouseholdAggregate.Empty;
 
             ResidentAggregate residentAggregate = await GetResidentAggregateAsync(
-                    cityId: cityId,
-                    currentDate: currentDate,
-                    cancellationToken: cancellationToken)
-                ?? ResidentAggregate.Empty;
+                                                      cityId: cityId,
+                                                      currentDate: currentDate,
+                                                      cancellationToken: cancellationToken) ??
+                                                  ResidentAggregate.Empty;
 
             CityPopulationEnvironment? environment = await _dbContext
                .CityPopulationEnvironments
                .AsNoTracking()
-               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             CityPopulationProgressionState? progression = await _dbContext
                .CityPopulationProgressionStates
                .AsNoTracking()
-               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             CityPopulationWeatherExposureState? weatherExposure = await _dbContext
                .CityPopulationWeatherExposureStates
                .AsNoTracking()
-               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             CityPopulationWeatherImpactState? weatherImpact = await _dbContext
                .CityPopulationWeatherImpactStates
                .AsNoTracking()
-               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             CityPopulationArchiveState? archiveState = await _dbContext
                .CityPopulationArchiveStates
                .AsNoTracking()
-               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             CityPopulationDeletionState? deletionState = await _dbContext
                .CityPopulationDeletionStates
                .AsNoTracking()
-               .SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             bool exists = householdAggregate.HouseholdCount > 0 ||
                           residentAggregate.ResidentCount > 0 ||
@@ -142,24 +154,44 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             string unemployedStatus = EmploymentStatus.Unemployed.ToString();
             string retiredStatus = EmploymentStatus.Retired.ToString();
 
-            DateTime childBoundary = currentDate.AddYears(-7).ToDateTime(TimeOnly.MinValue);
-            DateTime youthBoundary = currentDate.AddYears(-17).ToDateTime(TimeOnly.MinValue);
-            DateTime seniorBoundary = currentDate.AddYears(-66).ToDateTime(TimeOnly.MinValue);
+            var childBoundary = currentDate.AddYears(-7)
+               .ToDateTime(TimeOnly.MinValue);
+            var youthBoundary = currentDate.AddYears(-17)
+               .ToDateTime(TimeOnly.MinValue);
+            var seniorBoundary = currentDate.AddYears(-66)
+               .ToDateTime(TimeOnly.MinValue);
 
             var residentsQuery =
                 from person in _dbContext.Persons.AsNoTracking()
-                join household in _dbContext.Households.AsNoTracking().Where(x => x.CityId == cityId)
+                join household in _dbContext.Households.AsNoTracking()
+                       .Where(x => x.CityId == cityId)
                     on person.HouseholdId equals household.Id
                 select new
                 {
-                    LifeStatus = EF.Property<string>(person, "LifeStatus"),
-                    EmploymentStatus = EF.Property<string>(person, "EmploymentStatus"),
-                    BirthDate = EF.Property<DateTime>(person, "BirthDate"),
-                    Health = EF.Property<int>(person, "Health"),
-                    Happiness = EF.Property<int>(person, "Happiness"),
-                    Energy = EF.Property<int>(person, "Energy"),
-                    Stress = EF.Property<int>(person, "Stress"),
-                    SocialNeed = EF.Property<int>(person, "SocialNeed"),
+                    LifeStatus = EF.Property<string>(
+                        person,
+                        "LifeStatus"),
+                    EmploymentStatus = EF.Property<string>(
+                        person,
+                        "EmploymentStatus"),
+                    BirthDate = EF.Property<DateTime>(
+                        person,
+                        "BirthDate"),
+                    Health = EF.Property<int>(
+                        person,
+                        "Health"),
+                    Happiness = EF.Property<int>(
+                        person,
+                        "Happiness"),
+                    Energy = EF.Property<int>(
+                        person,
+                        "Energy"),
+                    Stress = EF.Property<int>(
+                        person,
+                        "Stress"),
+                    SocialNeed = EF.Property<int>(
+                        person,
+                        "SocialNeed"),
                     household.HousingStatus
                 };
 
@@ -168,30 +200,20 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                .Select(g => new ResidentAggregate(
                     g.Count(x => x.LifeStatus == aliveStatus),
                     g.Count(x => x.LifeStatus == deceasedStatus),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Housed),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Homeless),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.BirthDate > childBoundary),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus &&
-                             x.BirthDate <= childBoundary &&
-                             x.BirthDate > youthBoundary),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus &&
-                             x.BirthDate <= youthBoundary &&
-                             x.BirthDate > seniorBoundary),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.BirthDate <= seniorBoundary),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == employedStatus),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == studentStatus),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == unemployedStatus),
-                    g.Count(
-                        x => x.LifeStatus == aliveStatus && x.EmploymentStatus == retiredStatus),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Housed),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Homeless),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.BirthDate > childBoundary),
+                    g.Count(x => x.LifeStatus == aliveStatus &&
+                                 x.BirthDate <= childBoundary &&
+                                 x.BirthDate > youthBoundary),
+                    g.Count(x => x.LifeStatus == aliveStatus &&
+                                 x.BirthDate <= youthBoundary &&
+                                 x.BirthDate > seniorBoundary),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.BirthDate <= seniorBoundary),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == employedStatus),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == studentStatus),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == unemployedStatus),
+                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == retiredStatus),
                     g.Where(x => x.LifeStatus == aliveStatus)
                        .Select(x => (decimal?)x.Health)
                        .Average(),
@@ -215,7 +237,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             int HousedHouseholdCount,
             int HomelessHouseholdCount)
         {
-            public static HouseholdAggregate Empty { get; } = new(0, 0, 0);
+            public static HouseholdAggregate Empty { get; } = new(
+                HouseholdCount: 0,
+                HousedHouseholdCount: 0,
+                HomelessHouseholdCount: 0);
         }
 
         private sealed record ResidentAggregate(

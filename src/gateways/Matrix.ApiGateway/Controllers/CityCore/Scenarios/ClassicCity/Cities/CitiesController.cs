@@ -22,9 +22,9 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
         ICityProvisioningService cityProvisioningService) : ControllerBase
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
-        private readonly ISimulationApiClient _simulationClient = simulationClient;
-        private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
+        private readonly IPopulationApiClient _populationClient = populationClient;
+        private readonly ISimulationApiClient _simulationClient = simulationClient;
 
         [HttpPost]
         public async Task<ActionResult<CityProvisioningView>> Create(
@@ -83,7 +83,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 simulationId: cityId,
                 cancellationToken: cancellationToken);
 
-            DateOnly currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
 
             CityPopulationSummaryDto summary = await _populationClient.GetCityPopulationSummaryAsync(
                 cityId: cityId,

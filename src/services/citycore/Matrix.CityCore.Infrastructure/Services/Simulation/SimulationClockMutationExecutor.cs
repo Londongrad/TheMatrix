@@ -40,7 +40,6 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                         return false;
 
                     if (!host.IsActive && !allowArchivedHost)
-                    {
                         throw new MatrixApplicationException(
                             code: host.IsArchived
                                 ? "CityCore.Simulation.ArchivedHost"
@@ -49,7 +48,6 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                                 ? "Archived simulation hosts are read-only. Simulation controls are unavailable."
                                 : "Only active simulation hosts can be controlled. Provisioning hosts stay paused until bootstrap finishes.",
                             errorType: ApplicationErrorType.Conflict);
-                    }
 
                     SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
                         predicate: x => x.Id == cityId,

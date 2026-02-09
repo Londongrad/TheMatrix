@@ -13,8 +13,12 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset archivedAtUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(archivedAtUtc, nameof(archivedAtUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: archivedAtUtc,
+                paramName: nameof(archivedAtUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             CityId = cityId;
             ArchivedAtUtc = archivedAtUtc;
@@ -40,8 +44,12 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset archivedAtUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(archivedAtUtc, nameof(archivedAtUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: archivedAtUtc,
+                paramName: nameof(archivedAtUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             if (archivedAtUtc < ArchivedAtUtc)
                 return;

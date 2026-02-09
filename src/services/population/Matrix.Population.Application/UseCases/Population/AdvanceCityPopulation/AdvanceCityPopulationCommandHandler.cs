@@ -48,8 +48,8 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 propertyName: nameof(request.TickId));
 
             var cityId = CityId.From(request.CityId);
-            DateOnly fromDate = DateOnly.FromDateTime(request.FromSimTimeUtc.UtcDateTime);
-            DateOnly toDate = DateOnly.FromDateTime(request.ToSimTimeUtc.UtcDateTime);
+            var fromDate = DateOnly.FromDateTime(request.FromSimTimeUtc.UtcDateTime);
+            var toDate = DateOnly.FromDateTime(request.ToSimTimeUtc.UtcDateTime);
 
             if (toDate < fromDate)
                 throw ApplicationErrorsFactory.InvalidDateRange(
@@ -70,9 +70,10 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
-            CityPopulationWeatherExposureState? weatherExposureState = await weatherExposureStateRepository.GetByCityAsync(
-                cityId: cityId,
-                cancellationToken: cancellationToken);
+            CityPopulationWeatherExposureState? weatherExposureState =
+                await weatherExposureStateRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
 
             if (state is not null)
             {
@@ -105,17 +106,19 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 weatherExposureState: weatherExposureState,
                 fromSimTimeUtc: request.FromSimTimeUtc,
                 toSimTimeUtc: request.ToSimTimeUtc);
-            List<CityWeatherExposureSegment> exposureSegments = shouldAdvanceWeatherExposureCheckpoint && weatherExposureState is not null
-                ? BuildExposureSegments(
-                    weatherExposureState: weatherExposureState,
-                    fromSimTimeUtc: request.FromSimTimeUtc,
-                    toSimTimeUtc: request.ToSimTimeUtc)
-                : [];
+            List<CityWeatherExposureSegment> exposureSegments =
+                shouldAdvanceWeatherExposureCheckpoint && weatherExposureState is not null
+                    ? BuildExposureSegments(
+                        weatherExposureState: weatherExposureState,
+                        fromSimTimeUtc: request.FromSimTimeUtc,
+                        toSimTimeUtc: request.ToSimTimeUtc)
+                    : [];
             bool requiresWeatherExposure = exposureSegments.Count > 0;
 
             if ((requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure) && environment is null)
                 logger.LogWarning(
-                    message: "Advancing city population without synced environment for cityId={CityId}. Climate adaptation will be neutral and needs progression will use UTC fallback.",
+                    message:
+                    "Advancing city population without synced environment for cityId={CityId}. Climate adaptation will be neutral and needs progression will use UTC fallback.",
                     request.CityId);
 
             await unitOfWork.ExecuteInTransactionAsync(
@@ -129,24 +132,24 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
 
                         foreach (PersonEntity person in persons)
                             if (ApplyProgressionNeedsAndExposure(
-                                person: person,
-                                fromSimTimeUtc: request.FromSimTimeUtc,
-                                toSimTimeUtc: request.ToSimTimeUtc,
-                                currentDate: toDate,
-                                requiresDateProgression: requiresDateProgression,
-                                requiresNeedsProgression: requiresNeedsProgression,
-                                environment: environment,
-                                exposureSegments: exposureSegments,
-                                personNeedsProgressionPolicy: personNeedsProgressionPolicy,
-                                weatherExposurePolicy: weatherExposurePolicy))
-                            affectedPeopleCount++;
+                                    person: person,
+                                    fromSimTimeUtc: request.FromSimTimeUtc,
+                                    toSimTimeUtc: request.ToSimTimeUtc,
+                                    currentDate: toDate,
+                                    requiresDateProgression: requiresDateProgression,
+                                    requiresNeedsProgression: requiresNeedsProgression,
+                                    environment: environment,
+                                    exposureSegments: exposureSegments,
+                                    personNeedsProgressionPolicy: personNeedsProgressionPolicy,
+                                    weatherExposurePolicy: weatherExposurePolicy))
+                                affectedPeopleCount++;
                     }
 
                     DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
 
                     if (state is null)
                     {
-                        CityPopulationProgressionState newState = CityPopulationProgressionState.Create(
+                        var newState = CityPopulationProgressionState.Create(
                             cityId: cityId,
                             lastProcessedTickId: request.TickId,
                             lastProcessedDate: toDate,
@@ -157,12 +160,10 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                             cancellationToken: ct);
                     }
                     else
-                    {
                         state.MarkProcessed(
                             tickId: request.TickId,
                             processedDate: toDate,
                             updatedAtUtc: updatedAtUtc);
-                    }
 
                     if (shouldAdvanceWeatherExposureCheckpoint && weatherExposureState is not null)
                         weatherExposureState.MarkExposureProcessed(
@@ -321,8 +322,8 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 return false;
 
             DateTimeOffset effectiveFrom = Max(
-                fromSimTimeUtc,
-                weatherExposureState.LastExposureProcessedAtSimTimeUtc);
+                left: fromSimTimeUtc,
+                right: weatherExposureState.LastExposureProcessedAtSimTimeUtc);
 
             return toSimTimeUtc > effectiveFrom;
         }
@@ -335,8 +336,8 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             var segments = new List<CityWeatherExposureSegment>();
 
             DateTimeOffset effectiveFrom = Max(
-                fromSimTimeUtc,
-                weatherExposureState.LastExposureProcessedAtSimTimeUtc);
+                left: fromSimTimeUtc,
+                right: weatherExposureState.LastExposureProcessedAtSimTimeUtc);
 
             if (toSimTimeUtc <= effectiveFrom)
                 return segments;
@@ -347,11 +348,11 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 effectiveFrom < weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc)
             {
                 DateTimeOffset previousStart = Max(
-                    effectiveFrom,
-                    weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.Value);
+                    left: effectiveFrom,
+                    right: weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.Value);
                 DateTimeOffset previousEnd = Min(
-                    toSimTimeUtc,
-                    weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
+                    left: toSimTimeUtc,
+                    right: weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
 
                 if (previousEnd > previousStart &&
                     CityWeatherExposureRules.IsAdverseExposureWeather(previousWeather))
@@ -365,8 +366,8 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
             }
 
             DateTimeOffset currentStart = Max(
-                effectiveFrom,
-                weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
+                left: effectiveFrom,
+                right: weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
 
             if (toSimTimeUtc > currentStart &&
                 CityWeatherExposureRules.IsAdverseExposureWeather(weatherExposureState.CurrentWeather))
@@ -385,8 +386,8 @@ namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulatio
                 CityWeatherExposureRules.IsRecoveryWeather(weatherExposureState.CurrentWeather))
             {
                 DateTimeOffset recoveryStart = Max(
-                    currentStart,
-                    weatherExposureState.RecoveryStartedAtSimTimeUtc.Value);
+                    left: currentStart,
+                    right: weatherExposureState.RecoveryStartedAtSimTimeUtc.Value);
 
                 if (toSimTimeUtc > recoveryStart)
                     segments.Add(

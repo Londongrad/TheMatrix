@@ -29,8 +29,7 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
         {
             request = GuardHelper.AgainstNull(
                 value: request,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request));
+                errorFactory: ApplicationErrorsFactory.Required);
             CityPopulationEnvironmentInput environmentInput = GuardHelper.AgainstNull(
                 value: request.Environment,
                 errorFactory: ApplicationErrorsFactory.Required,
@@ -85,12 +84,10 @@ namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopula
                             cancellationToken: ct);
                     }
                     else
-                    {
                         CityPopulationEnvironmentMapper.Sync(
                             environment: environment,
                             input: environmentInput,
                             updatedAtUtc: updatedAtUtc);
-                    }
 
                     await householdWriteRepository.DeleteByCityAsync(
                         cityId: cityId,

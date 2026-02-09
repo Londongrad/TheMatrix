@@ -17,8 +17,12 @@ namespace Matrix.Population.Domain.Entities
             DateTimeOffset createdAtUtc,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(createdAtUtc, nameof(createdAtUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: createdAtUtc,
+                paramName: nameof(createdAtUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             CityId = cityId;
             ClimateZone = GuardHelper.AgainstInvalidEnum(
@@ -66,7 +70,9 @@ namespace Matrix.Population.Domain.Entities
             int utcOffsetMinutes,
             DateTimeOffset updatedAtUtc)
         {
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             ClimateZone = GuardHelper.AgainstInvalidEnum(
                 value: climateZone,

@@ -8,6 +8,5 @@ namespace Matrix.Population.Application.UseCases.Population.ArchiveCityPopulatio
         CityDeleted = 3
     }
 
-    public sealed record ArchiveCityPopulationDataResult(
-        ArchiveCityPopulationDataStatus Status);
+    public sealed record ArchiveCityPopulationDataResult(ArchiveCityPopulationDataStatus Status);
 }

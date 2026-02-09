@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Matrix.Population.Infrastructure.Persistence.Configurations
 {
-    public sealed class CityPopulationProgressionStateConfiguration : IEntityTypeConfiguration<CityPopulationProgressionState>
+    public sealed class
+        CityPopulationProgressionStateConfiguration : IEntityTypeConfiguration<CityPopulationProgressionState>
     {
         public void Configure(EntityTypeBuilder<CityPopulationProgressionState> builder)
         {

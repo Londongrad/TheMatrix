@@ -15,7 +15,9 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetS
                .Select(strategy => SimulationKindCatalogItemDto.FromDescriptor(strategy.Descriptor))
                .DistinctBy(item => item.Kind)
                .OrderByDescending(item => item.IsDefault)
-               .ThenBy(item => item.DisplayName, StringComparer.Ordinal)
+               .ThenBy(
+                    keySelector: item => item.DisplayName,
+                    comparer: StringComparer.Ordinal)
                .ToArray();
 
             return Task.FromResult(items);

@@ -28,8 +28,8 @@ namespace Matrix.Population.Domain.Services
 
             for (int i = 0; i < peopleCount; i++)
             {
-                HouseholdId householdId = HouseholdId.New();
-                Household household = Household.CreateHomeless(
+                var householdId = HouseholdId.New();
+                var household = Household.CreateHomeless(
                     id: householdId,
                     size: HouseholdSize.From(1),
                     createdAtUtc: createdAtUtc);
@@ -76,8 +76,8 @@ namespace Matrix.Population.Domain.Services
                 int householdSizeValue = NextHouseholdSize(
                     random: random,
                     remainingPeople: remainingPeople);
-                HouseholdSize householdSize = HouseholdSize.From(householdSizeValue);
-                HouseholdId householdId = HouseholdId.New();
+                var householdSize = HouseholdSize.From(householdSizeValue);
+                var householdId = HouseholdId.New();
                 Household household = TryAllocateHousehold(
                     cityId: cityId,
                     householdId: householdId,
@@ -112,7 +112,13 @@ namespace Matrix.Population.Domain.Services
                 return Array.Empty<Person>();
 
             if (householdSizeValue == 1)
-                return new[] { CreateSingleResident(random, householdId, currentDate) };
+                return new[]
+                {
+                    CreateSingleResident(
+                        random: random,
+                        householdId: householdId,
+                        currentDate: currentDate)
+                };
 
             HouseholdComposition composition = PickHouseholdComposition(
                 random: random,
@@ -169,8 +175,8 @@ namespace Matrix.Population.Domain.Services
             var persons = new List<Person>(householdSizeValue);
 
             PopulationFamilySurnameCatalogItem familySurname = CreateRandomFamilySurname(random);
-            PersonId firstSpouseId = PersonId.New();
-            PersonId secondSpouseId = PersonId.New();
+            var firstSpouseId = PersonId.New();
+            var secondSpouseId = PersonId.New();
 
             Sex firstSpouseSex = CreateRandomSex(random);
             Sex secondSpouseSex = CreateOppositeSex(firstSpouseSex);
@@ -204,7 +210,9 @@ namespace Matrix.Population.Domain.Services
                     familySurname: familySurname));
 
             int remainingMembers = householdSizeValue - 2;
-            int youngestParentAgeYears = Math.Min(firstSpouseAgeYears, secondSpouseAgeYears);
+            int youngestParentAgeYears = Math.Min(
+                val1: firstSpouseAgeYears,
+                val2: secondSpouseAgeYears);
             int childCount = DetermineChildCountForPartneredFamily(
                 random: random,
                 remainingMembers: remainingMembers,
@@ -324,7 +332,6 @@ namespace Matrix.Population.Domain.Services
             PopulationFamilySurnameCatalogItem familySurname)
         {
             for (int i = 0; i < childCount; i++)
-            {
                 persons.Add(
                     CreateGeneratedPerson(
                         random: random,
@@ -338,7 +345,6 @@ namespace Matrix.Population.Domain.Services
                         maritalStatus: MaritalStatus.Single,
                         spouseId: null,
                         familySurname: familySurname));
-            }
         }
 
         private void AddAdultRelatives(
@@ -406,7 +412,7 @@ namespace Matrix.Population.Domain.Services
                 sex: sex,
                 familySurname: familySurname);
             DateOnly birthDate = currentDate.AddYears(-ageYears);
-            Age age = Age.FromYears(ageYears);
+            var age = Age.FromYears(ageYears);
             AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
             HealthLevel health = CreateRandomHealth(
                 random: random,
@@ -415,7 +421,7 @@ namespace Matrix.Population.Domain.Services
                 random: random,
                 sex: sex,
                 ageYears: ageYears);
-            Personality personality = Personality.CreateRandom(random);
+            var personality = Personality.CreateRandom(random);
             EmploymentStatus employmentStatus = CreateRandomEmploymentStatus(
                 random: random,
                 ageGroup: ageGroup);
@@ -474,7 +480,7 @@ namespace Matrix.Population.Domain.Services
             List<BuildingCapacityState> capacityStates,
             Random random)
         {
-            List<BuildingCapacityState> candidates = capacityStates
+            var candidates = capacityStates
                .Where(x => x.RemainingCapacity >= householdSize.Value)
                .ToList();
 
@@ -535,7 +541,9 @@ namespace Matrix.Population.Domain.Services
             if (remainingMembers <= 0)
                 return 0;
 
-            int maxChildAgeYears = Math.Min(17, youngestParentAgeYears - 18);
+            int maxChildAgeYears = Math.Min(
+                val1: 17,
+                val2: youngestParentAgeYears - 18);
             if (maxChildAgeYears < 0)
                 return 0;
 
@@ -550,8 +558,12 @@ namespace Matrix.Population.Domain.Services
             if (random.NextDouble() >= probability)
                 return 0;
 
-            int minimum = remainingMembers == 1 ? 1 : 0;
-            return random.Next(minimum, remainingMembers + 1);
+            int minimum = remainingMembers == 1
+                ? 1
+                : 0;
+            return random.Next(
+                minValue: minimum,
+                maxValue: remainingMembers + 1);
         }
 
         private static int DetermineChildCountForSingleParentFamily(
@@ -561,7 +573,9 @@ namespace Matrix.Population.Domain.Services
             if (remainingMembers <= 0)
                 return 0;
 
-            int maxChildAgeYears = Math.Min(17, parentAgeYears - 18);
+            int maxChildAgeYears = Math.Min(
+                val1: 17,
+                val2: parentAgeYears - 18);
             if (maxChildAgeYears < 0)
                 return 0;
 
@@ -573,19 +587,29 @@ namespace Matrix.Population.Domain.Services
             double roll = random.NextDouble();
 
             if (roll < 0.20)
-                return random.Next(20, 28);
+                return random.Next(
+                    minValue: 20,
+                    maxValue: 28);
             if (roll < 0.75)
-                return random.Next(28, 46);
+                return random.Next(
+                    minValue: 28,
+                    maxValue: 46);
             if (roll < 0.95)
-                return random.Next(46, 61);
-            return random.Next(61, 76);
+                return random.Next(
+                    minValue: 46,
+                    maxValue: 61);
+            return random.Next(
+                minValue: 61,
+                maxValue: 76);
         }
 
         private static int CreateRandomSpouseAgeYears(
             Random random,
             int primarySpouseAgeYears)
         {
-            int delta = random.Next(-8, 9);
+            int delta = random.Next(
+                minValue: -8,
+                maxValue: 9);
             return Math.Clamp(
                 value: primarySpouseAgeYears + delta,
                 min: 18,
@@ -596,9 +620,15 @@ namespace Matrix.Population.Domain.Services
             Random random,
             int youngestCaregiverAgeYears)
         {
-            int maxChildAgeYears = Math.Min(17, youngestCaregiverAgeYears - 18);
-            int upperBoundExclusive = Math.Max(1, maxChildAgeYears + 1);
-            return random.Next(0, upperBoundExclusive);
+            int maxChildAgeYears = Math.Min(
+                val1: 17,
+                val2: youngestCaregiverAgeYears - 18);
+            int upperBoundExclusive = Math.Max(
+                val1: 1,
+                val2: maxChildAgeYears + 1);
+            return random.Next(
+                minValue: 0,
+                maxValue: upperBoundExclusive);
         }
 
         private static int CreateRandomIndependentAdultAgeYears(Random random)
@@ -606,8 +636,12 @@ namespace Matrix.Population.Domain.Services
             double roll = random.NextDouble();
 
             if (roll < 0.70)
-                return random.Next(18, 66);
-            return random.Next(66, 91);
+                return random.Next(
+                    minValue: 18,
+                    maxValue: 66);
+            return random.Next(
+                minValue: 66,
+                maxValue: 91);
         }
 
         private static MaritalStatus CreateRandomNonMarriedAdultStatus(
@@ -811,20 +845,28 @@ namespace Matrix.Population.Domain.Services
                 value += random.Next(
                     minValue: 0,
                     maxValue: 11);
-            else if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
-                value -= random.Next(
-                    minValue: 5,
-                    maxValue: 16);
-            else if (employmentStatus == EmploymentStatus.Retired)
-                value += random.Next(
-                    minValue: 0,
-                    maxValue: 6);
+            else
+                if (employmentStatus == EmploymentStatus.Unemployed && ageGroup == AgeGroup.Adult)
+                    value -= random.Next(
+                        minValue: 5,
+                        maxValue: 16);
+                else
+                    if (employmentStatus == EmploymentStatus.Retired)
+                        value += random.Next(
+                            minValue: 0,
+                            maxValue: 6);
 
             value += maritalStatus switch
             {
-                MaritalStatus.Married => random.Next(3, 9),
-                MaritalStatus.Widowed => -random.Next(4, 10),
-                MaritalStatus.Divorced => -random.Next(2, 8),
+                MaritalStatus.Married => random.Next(
+                    minValue: 3,
+                    maxValue: 9),
+                MaritalStatus.Widowed => -random.Next(
+                    minValue: 4,
+                    maxValue: 10),
+                MaritalStatus.Divorced => -random.Next(
+                    minValue: 2,
+                    maxValue: 8),
                 _ => 0
             };
 
@@ -871,11 +913,21 @@ namespace Matrix.Population.Domain.Services
         {
             int baseValue = ageGroup switch
             {
-                AgeGroup.Child => random.Next(78, 101),
-                AgeGroup.Youth => random.Next(70, 96),
-                AgeGroup.Adult => random.Next(58, 86),
-                AgeGroup.Senior => random.Next(48, 76),
-                _ => random.Next(60, 81)
+                AgeGroup.Child => random.Next(
+                    minValue: 78,
+                    maxValue: 101),
+                AgeGroup.Youth => random.Next(
+                    minValue: 70,
+                    maxValue: 96),
+                AgeGroup.Adult => random.Next(
+                    minValue: 58,
+                    maxValue: 86),
+                AgeGroup.Senior => random.Next(
+                    minValue: 48,
+                    maxValue: 76),
+                _ => random.Next(
+                    minValue: 60,
+                    maxValue: 81)
             };
 
             baseValue += employmentStatus switch
@@ -900,11 +952,21 @@ namespace Matrix.Population.Domain.Services
         {
             int baseValue = ageGroup switch
             {
-                AgeGroup.Child => random.Next(5, 31),
-                AgeGroup.Youth => random.Next(15, 46),
-                AgeGroup.Adult => random.Next(20, 56),
-                AgeGroup.Senior => random.Next(10, 36),
-                _ => random.Next(15, 41)
+                AgeGroup.Child => random.Next(
+                    minValue: 5,
+                    maxValue: 31),
+                AgeGroup.Youth => random.Next(
+                    minValue: 15,
+                    maxValue: 46),
+                AgeGroup.Adult => random.Next(
+                    minValue: 20,
+                    maxValue: 56),
+                AgeGroup.Senior => random.Next(
+                    minValue: 10,
+                    maxValue: 36),
+                _ => random.Next(
+                    minValue: 15,
+                    maxValue: 41)
             };
 
             baseValue += employmentStatus switch
@@ -931,11 +993,21 @@ namespace Matrix.Population.Domain.Services
         {
             int baseValue = ageGroup switch
             {
-                AgeGroup.Child => random.Next(10, 36),
-                AgeGroup.Youth => random.Next(15, 41),
-                AgeGroup.Adult => random.Next(30, 61),
-                AgeGroup.Senior => random.Next(25, 56),
-                _ => random.Next(20, 51)
+                AgeGroup.Child => random.Next(
+                    minValue: 10,
+                    maxValue: 36),
+                AgeGroup.Youth => random.Next(
+                    minValue: 15,
+                    maxValue: 41),
+                AgeGroup.Adult => random.Next(
+                    minValue: 30,
+                    maxValue: 61),
+                AgeGroup.Senior => random.Next(
+                    minValue: 25,
+                    maxValue: 56),
+                _ => random.Next(
+                    minValue: 20,
+                    maxValue: 51)
             };
 
             baseValue += employmentStatus switch
@@ -965,7 +1037,7 @@ namespace Matrix.Population.Domain.Services
         private Job CreateRandomJob(Random random)
         {
             PopulationProfessionCatalogItem profession = PickProfession(random);
-            WorkplaceId workplaceId = WorkplaceId.New();
+            var workplaceId = WorkplaceId.New();
 
             return new Job(
                 workplaceId: workplaceId,
@@ -978,7 +1050,9 @@ namespace Matrix.Population.Domain.Services
             for (int i = 0; i < _contentCatalog.Professions.Count; i++)
                 totalWeight += _contentCatalog.Professions[i].Weight;
 
-            int roll = random.Next(0, totalWeight);
+            int roll = random.Next(
+                minValue: 0,
+                maxValue: totalWeight);
             int accumulated = 0;
 
             for (int i = 0; i < _contentCatalog.Professions.Count; i++)

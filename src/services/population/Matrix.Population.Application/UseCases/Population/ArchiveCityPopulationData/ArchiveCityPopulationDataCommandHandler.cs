@@ -38,7 +38,7 @@ namespace Matrix.Population.Application.UseCases.Population.ArchiveCityPopulatio
                 errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
                 propertyName: nameof(request.ArchivedAtUtc));
 
-            CityId cityId = CityId.From(request.CityId);
+            var cityId = CityId.From(request.CityId);
 
             return unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -52,16 +52,18 @@ namespace Matrix.Population.Application.UseCases.Population.ArchiveCityPopulatio
                     if (!markedAsProcessed)
                         return new ArchiveCityPopulationDataResult(ArchiveCityPopulationDataStatus.Duplicate);
 
-                    CityPopulationDeletionState? deletionState = await cityPopulationDeletionStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationDeletionState? deletionState =
+                        await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (deletionState is not null)
                         return new ArchiveCityPopulationDataResult(ArchiveCityPopulationDataStatus.CityDeleted);
 
-                    CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
-                        cityId: cityId,
-                        cancellationToken: ct);
+                    CityPopulationArchiveState? archiveState =
+                        await cityPopulationArchiveStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
 
                     if (archiveState is not null && request.ArchivedAtUtc < archiveState.ArchivedAtUtc)
                         return new ArchiveCityPopulationDataResult(ArchiveCityPopulationDataStatus.Stale);
@@ -70,7 +72,7 @@ namespace Matrix.Population.Application.UseCases.Population.ArchiveCityPopulatio
 
                     if (archiveState is null)
                     {
-                        CityPopulationArchiveState newArchiveState = CityPopulationArchiveState.Create(
+                        var newArchiveState = CityPopulationArchiveState.Create(
                             cityId: cityId,
                             archivedAtUtc: request.ArchivedAtUtc,
                             updatedAtUtc: updatedAtUtc);
@@ -80,11 +82,9 @@ namespace Matrix.Population.Application.UseCases.Population.ArchiveCityPopulatio
                             cancellationToken: ct);
                     }
                     else
-                    {
                         archiveState.MarkArchived(
                             archivedAtUtc: request.ArchivedAtUtc,
                             updatedAtUtc: updatedAtUtc);
-                    }
 
                     await unitOfWork.SaveChangesAsync(ct);
 

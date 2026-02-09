@@ -15,21 +15,27 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(consumer))
-                throw new ArgumentException("Consumer is required.", nameof(consumer));
+                throw new ArgumentException(
+                    message: "Consumer is required.",
+                    paramName: nameof(consumer));
 
             if (messageId == Guid.Empty)
-                throw new ArgumentException("MessageId cannot be empty.", nameof(messageId));
+                throw new ArgumentException(
+                    message: "MessageId cannot be empty.",
+                    paramName: nameof(messageId));
 
             if (processedAtUtc.Offset != TimeSpan.Zero)
-                throw new ArgumentException("ProcessedAtUtc must be UTC.", nameof(processedAtUtc));
+                throw new ArgumentException(
+                    message: "ProcessedAtUtc must be UTC.",
+                    paramName: nameof(processedAtUtc));
 
             int affectedRows = await _dbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"""
-                 INSERT INTO "ProcessedIntegrationMessages" ("Consumer", "MessageId", "ProcessedAtUtc")
-                 VALUES ({consumer}, {messageId}, {processedAtUtc})
-                 ON CONFLICT ("Consumer", "MessageId") DO NOTHING
-                 """,
-                cancellationToken);
+                sql: $"""
+                      INSERT INTO "ProcessedIntegrationMessages" ("Consumer", "MessageId", "ProcessedAtUtc")
+                      VALUES ({consumer}, {messageId}, {processedAtUtc})
+                      ON CONFLICT ("Consumer", "MessageId") DO NOTHING
+                      """,
+                cancellationToken: cancellationToken);
 
             return affectedRows == 1;
         }

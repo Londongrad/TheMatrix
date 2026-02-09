@@ -72,7 +72,8 @@ namespace Matrix.Population.Domain.Services
                     delta: exposureRule.HappinessDeltaPerBlock,
                     toleranceScore: toleranceScore));
 
-            decimal startHours = (decimal)(segment.IntervalStartSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
+            decimal startHours =
+                (decimal)(segment.IntervalStartSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
             decimal endHours = (decimal)(segment.IntervalEndSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
 
             if (endHours <= startHours)
@@ -120,30 +121,31 @@ namespace Matrix.Population.Domain.Services
                 currentDate: currentDate,
                 weatherType: segment.SourceWeather.Type);
 
-            decimal startHours = (decimal)(segment.IntervalStartSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
+            decimal startHours =
+                (decimal)(segment.IntervalStartSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
             decimal endHours = (decimal)(segment.IntervalEndSimTimeUtc - segment.EffectStartedAtSimTimeUtc).TotalHours;
 
             if (endHours <= startHours)
                 return PersonWeatherImpact.None;
 
             int completedBlocksAtStart = Math.Min(
-                (int)Math.Floor(startHours / recoveryRule.StepHours),
-                recoveryRule.MaxBlocks);
+                val1: (int)Math.Floor(startHours / recoveryRule.StepHours),
+                val2: recoveryRule.MaxBlocks);
             int completedBlocksAtEnd = Math.Min(
-                (int)Math.Floor(endHours / recoveryRule.StepHours),
-                recoveryRule.MaxBlocks);
+                val1: (int)Math.Floor(endHours / recoveryRule.StepHours),
+                val2: recoveryRule.MaxBlocks);
             int newlyCompletedBlocks = completedBlocksAtEnd - completedBlocksAtStart;
 
             if (newlyCompletedBlocks <= 0)
                 return PersonWeatherImpact.None;
 
             int healthDelta = Math.Min(
-                newlyCompletedBlocks * recoveryRule.HealthDeltaPerBlock,
-                3);
+                val1: newlyCompletedBlocks * recoveryRule.HealthDeltaPerBlock,
+                val2: 3);
             int happinessDelta = climateAdaptationPolicy.AdjustPositiveReliefDelta(
                 delta: Math.Min(
-                    newlyCompletedBlocks * recoveryRule.HappinessDeltaPerBlock,
-                    4),
+                    val1: newlyCompletedBlocks * recoveryRule.HappinessDeltaPerBlock,
+                    val2: 4),
                 toleranceScore: toleranceScore);
 
             return new PersonWeatherImpact(
@@ -223,9 +225,13 @@ namespace Matrix.Population.Domain.Services
 
             int healthDeltaPerBlock = weather.Severity switch
             {
-                PopulationWeatherSeverity.Moderate => isSensitive ? -1 : 0,
+                PopulationWeatherSeverity.Moderate => isSensitive
+                    ? -1
+                    : 0,
                 PopulationWeatherSeverity.Severe => -1,
-                PopulationWeatherSeverity.Extreme => isSensitive ? -2 : -1,
+                PopulationWeatherSeverity.Extreme => isSensitive
+                    ? -2
+                    : -1,
                 _ => 0
             };
 
@@ -268,9 +274,13 @@ namespace Matrix.Population.Domain.Services
 
             int healthDeltaPerBlock = weather.Severity switch
             {
-                PopulationWeatherSeverity.Moderate => isSensitive ? -1 : 0,
+                PopulationWeatherSeverity.Moderate => isSensitive
+                    ? -1
+                    : 0,
                 PopulationWeatherSeverity.Severe => -1,
-                PopulationWeatherSeverity.Extreme => isSensitive ? -2 : -1,
+                PopulationWeatherSeverity.Extreme => isSensitive
+                    ? -2
+                    : -1,
                 _ => 0
             };
 
@@ -311,9 +321,13 @@ namespace Matrix.Population.Domain.Services
 
             int healthDeltaPerBlock = weather.Severity switch
             {
-                PopulationWeatherSeverity.Moderate => isSensitive ? -1 : 0,
+                PopulationWeatherSeverity.Moderate => isSensitive
+                    ? -1
+                    : 0,
                 PopulationWeatherSeverity.Severe => -1,
-                PopulationWeatherSeverity.Extreme => isSensitive ? -2 : -1,
+                PopulationWeatherSeverity.Extreme => isSensitive
+                    ? -2
+                    : -1,
                 _ => 0
             };
 
@@ -369,8 +383,12 @@ namespace Matrix.Population.Domain.Services
             int healthDeltaPerBlock = sourceWeather.Severity switch
             {
                 PopulationWeatherSeverity.Moderate => 0,
-                PopulationWeatherSeverity.Severe => comfortableRecoveryWeather && !isSensitive ? 1 : 0,
-                PopulationWeatherSeverity.Extreme => comfortableRecoveryWeather ? 1 : 0,
+                PopulationWeatherSeverity.Severe => comfortableRecoveryWeather && !isSensitive
+                    ? 1
+                    : 0,
+                PopulationWeatherSeverity.Extreme => comfortableRecoveryWeather
+                    ? 1
+                    : 0,
                 _ => 0
             };
 

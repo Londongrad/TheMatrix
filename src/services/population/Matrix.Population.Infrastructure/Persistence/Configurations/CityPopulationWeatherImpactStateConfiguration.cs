@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Matrix.Population.Infrastructure.Persistence.Configurations
 {
-    public sealed class CityPopulationWeatherImpactStateConfiguration : IEntityTypeConfiguration<CityPopulationWeatherImpactState>
+    public sealed class
+        CityPopulationWeatherImpactStateConfiguration : IEntityTypeConfiguration<CityPopulationWeatherImpactState>
     {
         public void Configure(EntityTypeBuilder<CityPopulationWeatherImpactState> builder)
         {

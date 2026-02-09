@@ -4,7 +4,6 @@ using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology.Abstractions;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
-using Matrix.CityCore.Application.Services.Bootstrap;
 using Matrix.CityCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.CityCore.Application.Services.Generation;
 using Matrix.CityCore.Application.Services.Generation.Abstractions;

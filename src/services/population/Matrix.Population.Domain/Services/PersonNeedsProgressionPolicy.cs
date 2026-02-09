@@ -12,6 +12,7 @@ namespace Matrix.Population.Domain.Services
         private static readonly TimeSpan ActivityStart = TimeSpan.FromHours(8);
         private static readonly TimeSpan StudentActivityEnd = TimeSpan.FromHours(15);
         private static readonly TimeSpan EmploymentActivityEnd = TimeSpan.FromHours(17);
+
         private static readonly TimeSpan[] PhaseBoundaries =
         {
             SleepEnd,
@@ -34,7 +35,7 @@ namespace Matrix.Population.Domain.Services
             if (!person.IsAlive || toSimTimeUtc <= fromSimTimeUtc)
                 return PersonNeedsProgressionEffect.None;
 
-            TimeSpan utcOffset = TimeSpan.FromMinutes(utcOffsetMinutes);
+            var utcOffset = TimeSpan.FromMinutes(utcOffsetMinutes);
             DateTimeOffset localCursor = fromSimTimeUtc.ToOffset(utcOffset);
             DateTimeOffset localEnd = toSimTimeUtc.ToOffset(utcOffset);
 
@@ -143,10 +144,11 @@ namespace Matrix.Population.Domain.Services
                     EnergyPerHour: +6.0m,
                     StressPerHour: -3.0m,
                     SocialNeedPerHour: 0.10m * socialPressureFactor),
-                PersonRoutinePhase.StructuredActivity when person.Employment.Status == EmploymentStatus.Student => new RoutineDrift(
-                    EnergyPerHour: -3.5m * disciplineFactor,
-                    StressPerHour: +2.4m * disciplineFactor,
-                    SocialNeedPerHour: -0.85m * contactsFactor),
+                PersonRoutinePhase.StructuredActivity when person.Employment.Status == EmploymentStatus.Student => new
+                    RoutineDrift(
+                        EnergyPerHour: -3.5m * disciplineFactor,
+                        StressPerHour: +2.4m * disciplineFactor,
+                        SocialNeedPerHour: -0.85m * contactsFactor),
                 PersonRoutinePhase.StructuredActivity => new RoutineDrift(
                     EnergyPerHour: -4.2m * disciplineFactor,
                     StressPerHour: +3.2m * disciplineFactor,
@@ -176,28 +178,25 @@ namespace Matrix.Population.Domain.Services
 
             decimal socialNeedPerHour;
             if (person.MaritalStatus == MaritalStatus.Married)
-            {
                 socialNeedPerHour = -0.70m * contactsFactor;
-            }
-            else if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
-            {
-                socialNeedPerHour = -0.35m * contactsFactor;
-            }
             else
-            {
-                decimal basePressure = person.Employment.Status switch
+                if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
+                    socialNeedPerHour = -0.35m * contactsFactor;
+                else
                 {
-                    EmploymentStatus.Unemployed => 0.90m,
-                    EmploymentStatus.Retired => 0.70m,
-                    EmploymentStatus.None => 0.60m,
-                    _ => 0.30m
-                };
+                    decimal basePressure = person.Employment.Status switch
+                    {
+                        EmploymentStatus.Unemployed => 0.90m,
+                        EmploymentStatus.Retired => 0.70m,
+                        EmploymentStatus.None => 0.60m,
+                        _ => 0.30m
+                    };
 
-                if (person.MaritalStatus is MaritalStatus.Divorced or MaritalStatus.Widowed)
-                    basePressure += 0.20m;
+                    if (person.MaritalStatus is MaritalStatus.Divorced or MaritalStatus.Widowed)
+                        basePressure += 0.20m;
 
-                socialNeedPerHour = basePressure * socialPressureFactor;
-            }
+                    socialNeedPerHour = basePressure * socialPressureFactor;
+                }
 
             return new RoutineDrift(
                 EnergyPerHour: energyDrain,
@@ -219,31 +218,26 @@ namespace Matrix.Population.Domain.Services
                 totalHealthDelta -= 0.45m * hours;
                 totalHappinessDelta -= 0.90m * hours;
             }
-            else if (averageEnergy < 30)
-            {
-                totalHappinessDelta -= 0.35m * hours;
-            }
+            else
+                if (averageEnergy < 30)
+                    totalHappinessDelta -= 0.35m * hours;
 
             if (averageStress > 85)
             {
                 totalHealthDelta -= 0.30m * hours;
                 totalHappinessDelta -= 0.65m * hours;
             }
-            else if (averageStress > 70)
-            {
-                totalHappinessDelta -= 0.30m * hours;
-            }
+            else
+                if (averageStress > 70)
+                    totalHappinessDelta -= 0.30m * hours;
 
             if (averageSocialNeed > 80)
-            {
                 totalHappinessDelta -= 0.55m * hours;
-            }
-            else if (averageSocialNeed > 65)
-            {
-                totalHappinessDelta -= 0.20m * hours;
-            }
+            else
+                if (averageSocialNeed > 65)
+                    totalHappinessDelta -= 0.20m * hours;
 
-            if ((phase is PersonRoutinePhase.Sleep or PersonRoutinePhase.Leisure) &&
+            if (phase is PersonRoutinePhase.Sleep or PersonRoutinePhase.Leisure &&
                 averageEnergy > 65 &&
                 averageStress < 35 &&
                 averageSocialNeed < 45)
@@ -331,8 +325,8 @@ namespace Matrix.Population.Domain.Services
         private static int RoundToInt(decimal value)
         {
             return (int)Math.Round(
-                value,
-                MidpointRounding.AwayFromZero);
+                d: value,
+                mode: MidpointRounding.AwayFromZero);
         }
 
         private enum PersonRoutinePhase

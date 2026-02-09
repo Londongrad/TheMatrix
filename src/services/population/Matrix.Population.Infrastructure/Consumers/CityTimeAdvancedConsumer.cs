@@ -1,7 +1,7 @@
 using MassTransit;
-using MediatR;
 using Matrix.CityCore.Contracts.Events;
 using Matrix.Population.Application.UseCases.Population.AdvanceCityPopulation;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Population.Infrastructure.Consumers
@@ -26,7 +26,8 @@ namespace Matrix.Population.Infrastructure.Consumers
             {
                 case AdvanceCityPopulationStatus.Applied:
                     logger.LogInformation(
-                        message: "Applied city population progression for cityId={CityId}, tickId={TickId}, affectedPeople={AffectedPeople}.",
+                        message:
+                        "Applied city population progression for cityId={CityId}, tickId={TickId}, affectedPeople={AffectedPeople}.",
                         message.CityId,
                         message.TickId,
                         result.AffectedPeopleCount);
@@ -41,7 +42,8 @@ namespace Matrix.Population.Infrastructure.Consumers
 
                 case AdvanceCityPopulationStatus.OutOfOrder:
                     logger.LogWarning(
-                        message: "Skipped out-of-order city population progression for cityId={CityId}, tickId={TickId}.",
+                        message:
+                        "Skipped out-of-order city population progression for cityId={CityId}, tickId={TickId}.",
                         message.CityId,
                         message.TickId);
                     break;

@@ -49,7 +49,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories
                     inner: _dbContext.Households.Where(x => x.CityId == cityId),
                     outerKeySelector: person => person.HouseholdId,
                     innerKeySelector: household => household.Id,
-                    resultSelector: (person, _) => person)
+                    resultSelector: (
+                        person,
+                        _) => person)
                .ToListAsync(cancellationToken);
         }
 

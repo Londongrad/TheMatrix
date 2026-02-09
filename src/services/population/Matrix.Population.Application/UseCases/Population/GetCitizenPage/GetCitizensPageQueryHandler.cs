@@ -18,8 +18,7 @@ namespace Matrix.Population.Application.UseCases.Population.GetCitizenPage
         {
             request = GuardHelper.AgainstNull(
                 value: request,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request));
+                errorFactory: ApplicationErrorsFactory.Required);
 
             (IReadOnlyCollection<DomainPerson> persons, int totalCount) = await personReadRepository
                .GetPageAsync(
