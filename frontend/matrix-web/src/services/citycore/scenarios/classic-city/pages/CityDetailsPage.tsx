@@ -1,13 +1,13 @@
 import {useNavigate, useParams} from "react-router-dom";
-import {CityDetailsHeader} from "@services/citycore/cities/components/CityDetailsHeader";
-import {CityOverviewCard} from "@services/citycore/cities/components/CityOverviewCard";
-import {useCityDetails} from "@services/citycore/cities/hooks/useCityDetails";
-import {useCityMutations} from "@services/citycore/cities/hooks/useCityMutations";
-import {isArchivedCity} from "@services/citycore/cities/utils/presentation";
+import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
+import {CityOverviewCard} from "@services/citycore/scenarios/classic-city/components/CityOverviewCard";
+import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
+import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityMutations";
+import {isArchivedCity} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
 import Button from "@shared/ui/controls/Button/Button";
-import "@services/citycore/cities/styles/cities.css";
-import "@services/citycore/cities/styles/city-details.css";
+import "@services/citycore/scenarios/classic-city/styles/cities.css";
+import "@services/citycore/scenarios/classic-city/styles/city-details.css";
 
 const CityDetailsPage = () => {
     const params = useParams<{ cityId: string }>();

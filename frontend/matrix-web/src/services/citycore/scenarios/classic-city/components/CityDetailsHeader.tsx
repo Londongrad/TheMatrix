@@ -4,7 +4,7 @@ import {
     formatCityStatusLabel,
     formatSimulationKindLabel,
     getCityStatusTone,
-} from "@services/citycore/cities/utils/presentation";
+} from "@services/citycore/scenarios/classic-city/utils/presentation";
 
 type Props = {
     title: string;

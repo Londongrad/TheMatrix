@@ -1,14 +1,14 @@
 import {useMemo, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import CityList from "@services/citycore/cities/components/CityList";
-import {CitiesToolbar} from "@services/citycore/cities/components/CitiesToolbar";
-import {CreateCityForm} from "@services/citycore/cities/components/CreateCityForm";
-import {useCitiesQuery} from "@services/citycore/cities/hooks/useCitiesQuery";
-import {useCityMutations} from "@services/citycore/cities/hooks/useCityMutations";
-import {useSimulationKindsQuery} from "@services/citycore/cities/hooks/useSimulationKindsQuery";
-import {isArchivedCity} from "@services/citycore/cities/utils/presentation";
+import CityList from "@services/citycore/scenarios/classic-city/components/CityList";
+import {CitiesToolbar} from "@services/citycore/scenarios/classic-city/components/CitiesToolbar";
+import {CreateCityForm} from "@services/citycore/scenarios/classic-city/components/CreateCityForm";
+import {useCitiesQuery} from "@services/citycore/scenarios/classic-city/hooks/useCitiesQuery";
+import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityMutations";
+import {useSimulationKindsQuery} from "@services/citycore/scenarios/classic-city/hooks/useSimulationKindsQuery";
+import {isArchivedCity} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import Button from "@shared/ui/controls/Button/Button";
-import "@services/citycore/cities/styles/cities.css";
+import "@services/citycore/scenarios/classic-city/styles/cities.css";
 
 function normalize(value: string): string {
     return value.trim().toLowerCase();

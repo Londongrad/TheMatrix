@@ -2,8 +2,8 @@ import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 
 import CitizensPage from "@services/population/people/pages/CitizensPage";
 import DashboardPage from "@services/citycore/dashboard/pages/DashboardPage";
-import CitiesPage from "@services/citycore/cities/pages/CitiesPage";
-import CityDetailsPage from "@services/citycore/cities/pages/CityDetailsPage";
+import CitiesPage from "@services/citycore/scenarios/classic-city/pages/CitiesPage";
+import CityDetailsPage from "@services/citycore/scenarios/classic-city/pages/CityDetailsPage";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 
 import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage";
@@ -35,13 +35,13 @@ const App = () => {
             <AuthProvider>
                 <ConfirmProvider>
                     <Routes>
-                        {/* публичные страницы */}
+                        {/* РїСѓР±Р»РёС‡РЅС‹Рµ СЃС‚СЂР°РЅРёС†С‹ */}
                         <Route path="/login" element={<LoginPage/>}/>
                         <Route path="/register" element={<RegisterPage/>}/>
                         <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
                         <Route path="/forbidden" element={<ForbiddenPage/>}/>
 
-                        {/* защищённые страницы — с MainLayout */}
+                        {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ СЃС‚СЂР°РЅРёС†С‹ вЂ” СЃ MainLayout */}
                         <Route
                             element={
                                 <RequireAuth>
@@ -64,7 +64,7 @@ const App = () => {
                             />
                         </Route>
 
-                        {/* защищённые user settings страницы - с UserSettingsLayout */}
+                        {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ user settings СЃС‚СЂР°РЅРёС†С‹ - СЃ UserSettingsLayout */}
                         <Route
                             path="/userSettings"
                             element={
@@ -84,7 +84,7 @@ const App = () => {
                             <Route path="danger" element={<UserSettingsDangerPage/>}/>
                         </Route>
 
-                        {/* защищённые admin страницы - с AdminLayout */}
+                        {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ admin СЃС‚СЂР°РЅРёС†С‹ - СЃ AdminLayout */}
                         <Route
                             path="/admin"
                             element={

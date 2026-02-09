@@ -4,8 +4,8 @@ import type {
     CityCreatedView,
     CreateCityRequest,
     SimulationKindCatalogItemView,
-} from "@services/citycore/cities/contracts/citiesContracts";
-import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso} from "@services/citycore/cities/utils/dateTime";
+} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
+import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso} from "@services/citycore/scenarios/classic-city/utils/dateTime";
 
 type ValidationErrors = {
     name?: string;

@@ -1,11 +1,11 @@
 import Button from "@shared/ui/controls/Button/Button";
-import type {CityListItemView} from "@services/citycore/cities/contracts/citiesContracts";
+import type {CityListItemView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 import {
     formatCityShortId,
     formatCityStatusLabel,
     formatSimulationKindLabel,
     getCityStatusTone,
-} from "@services/citycore/cities/utils/presentation";
+} from "@services/citycore/scenarios/classic-city/utils/presentation";
 
 interface CityCardProps {
     city: CityListItemView;

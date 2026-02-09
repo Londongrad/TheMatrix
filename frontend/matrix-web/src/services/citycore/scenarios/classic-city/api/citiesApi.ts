@@ -6,7 +6,7 @@ import type {
     CreateCityRequest,
     RenameCityRequest,
     SimulationKindCatalogItemView,
-} from "@services/citycore/cities/contracts/citiesContracts";
+} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 import {API_CITY_URL} from "@shared/api/config";
 
 export function getSimulationKinds(signal?: AbortSignal) {

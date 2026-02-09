@@ -1,8 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {getSimulationKinds} from "@services/citycore/cities/api/citiesApi";
-import type {SimulationKindCatalogItemView} from "@services/citycore/cities/contracts/citiesContracts";
-
-let simulationKindsCache: SimulationKindCatalogItemView[] | null = null;
+import {getCity} from "@services/citycore/scenarios/classic-city/api/citiesApi";
+import type {CityView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0
@@ -10,16 +8,21 @@ function getErrorMessage(error: unknown, fallback: string) {
         : fallback;
 }
 
-export function useSimulationKindsQuery() {
+export function useCityDetails(cityId: string) {
     const abortRef = useRef<AbortController | null>(null);
 
-    const [data, setData] = useState<SimulationKindCatalogItemView[]>(
-        () => simulationKindsCache ?? [],
-    );
-    const [isLoading, setIsLoading] = useState(simulationKindsCache === null);
+    const [data, setData] = useState<CityView | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const load = useCallback(async () => {
+        if (!cityId) {
+            setData(null);
+            setError(null);
+            setIsLoading(false);
+            return;
+        }
+
         abortRef.current?.abort();
 
         const abortController = new AbortController();
@@ -29,21 +32,20 @@ export function useSimulationKindsQuery() {
             setIsLoading(true);
             setError(null);
 
-            const kinds = await getSimulationKinds(abortController.signal);
-            simulationKindsCache = kinds;
-            setData(kinds);
+            const city = await getCity(cityId, abortController.signal);
+            setData(city);
         } catch (error: unknown) {
             if (abortController.signal.aborted) {
                 return;
             }
 
-            setError(getErrorMessage(error, "Failed to load simulation kinds."));
+            setError(getErrorMessage(error, "Failed to load city details."));
         } finally {
             if (!abortController.signal.aborted) {
                 setIsLoading(false);
             }
         }
-    }, []);
+    }, [cityId]);
 
     useEffect(() => {
         void load();

@@ -1,5 +1,5 @@
-import CityCard from "@services/citycore/cities/components/CityCard";
-import type {CityListItemView} from "@services/citycore/cities/contracts/citiesContracts";
+import CityCard from "@services/citycore/scenarios/classic-city/components/CityCard";
+import type {CityListItemView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 
 interface CityListProps {
     cities: CityListItemView[];

@@ -4,7 +4,7 @@ import Card from "@shared/ui/controls/Card/Card";
 import ClockDisplay from "@services/citycore/simulation/components/ClockDisplay";
 import {useSimulationClock} from "@services/citycore/simulation/hooks/useSimulationClock";
 import {useSimulationMutations} from "@services/citycore/simulation/hooks/useSimulationMutations";
-import {localDateTimeToUtcIso} from "@services/citycore/cities/utils/dateTime";
+import {localDateTimeToUtcIso} from "@services/citycore/scenarios/classic-city/utils/dateTime";
 import "@services/citycore/simulation/styles/simulation-panel.css";
 
 const TICK_INTERVAL_MS = 250;
