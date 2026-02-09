@@ -1,6 +1,6 @@
-using Matrix.ApiGateway.Contracts.CityCore.Cities;
+using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
 
-namespace Matrix.ApiGateway.Services.CityCore.Cities
+namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 {
     public interface ICityProvisioningService
     {

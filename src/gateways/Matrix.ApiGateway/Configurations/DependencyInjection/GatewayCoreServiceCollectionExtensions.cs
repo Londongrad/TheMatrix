@@ -1,4 +1,4 @@
-﻿using Matrix.ApiGateway.Services.CityCore.Cities;
+﻿using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Mvc;
 

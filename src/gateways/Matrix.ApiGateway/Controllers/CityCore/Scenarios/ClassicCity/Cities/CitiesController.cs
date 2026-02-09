@@ -1,16 +1,16 @@
-using Matrix.ApiGateway.Contracts.CityCore.Cities;
-using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
+using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
-using Matrix.ApiGateway.Services.CityCore.Cities;
-using Matrix.CityCore.Contracts.Cities.Requests;
-using Matrix.CityCore.Contracts.Cities.Views;
+using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Simulation.Views;
 using Matrix.Population.Contracts.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers.CityCore.Cities
+namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
 {
     [Authorize]
     [ApiController]

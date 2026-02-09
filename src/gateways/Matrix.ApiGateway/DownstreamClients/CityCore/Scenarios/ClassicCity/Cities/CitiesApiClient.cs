@@ -1,10 +1,10 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
-using Matrix.CityCore.Contracts.Cities.Requests;
-using Matrix.CityCore.Contracts.Cities.Views;
-using Matrix.CityCore.Contracts.Topology.Views;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 
-namespace Matrix.ApiGateway.DownstreamClients.CityCore.Cities
+namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities
 {
     internal sealed class CitiesApiClient(HttpClient client) : ICitiesApiClient
     {

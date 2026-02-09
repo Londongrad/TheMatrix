@@ -1,6 +1,6 @@
 using Matrix.Population.Contracts.Models;
 
-namespace Matrix.ApiGateway.Contracts.CityCore.Cities
+namespace Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities
 {
     public sealed record CityPopulationBootstrapView(
         Guid OperationId,

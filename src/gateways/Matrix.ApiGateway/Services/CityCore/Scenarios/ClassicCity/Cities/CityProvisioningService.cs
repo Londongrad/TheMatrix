@@ -2,20 +2,20 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Matrix.ApiGateway.Contracts.CityCore.Cities;
-using Matrix.ApiGateway.DownstreamClients.CityCore.Cities;
+using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Api.Errors;
-using Matrix.CityCore.Contracts.Cities;
-using Matrix.CityCore.Contracts.Cities.Requests;
-using Matrix.CityCore.Contracts.Cities.Views;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.CityCore.Contracts.Simulation.Views;
-using Matrix.CityCore.Contracts.Topology.Views;
 using Matrix.Population.Contracts.Models;
 
-namespace Matrix.ApiGateway.Services.CityCore.Cities
+namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 {
     public sealed class CityProvisioningService(
         ICitiesApiClient citiesApiClient,

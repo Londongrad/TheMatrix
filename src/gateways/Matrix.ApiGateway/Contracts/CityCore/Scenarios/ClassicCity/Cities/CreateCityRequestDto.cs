@@ -1,4 +1,4 @@
-﻿namespace Matrix.ApiGateway.Contracts.CityCore.Cities
+﻿namespace Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities
 {
     public sealed record CreateCityRequestDto(
         string Name,
