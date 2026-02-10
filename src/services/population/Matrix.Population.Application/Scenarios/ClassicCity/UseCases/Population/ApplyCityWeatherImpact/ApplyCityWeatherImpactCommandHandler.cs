@@ -16,7 +16,7 @@ using PersonEntity = Matrix.Population.Domain.Entities.Person;
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityWeatherImpact
 {
     public sealed class ApplyCityWeatherImpactCommandHandler(
-        IPersonWriteRepository personWriteRepository,
+        ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
@@ -121,7 +121,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             AffectedPeopleCount: 0);
 
                     int affectedPeopleCount = 0;
-                    IReadOnlyCollection<PersonEntity> persons = await personWriteRepository.ListByCityAsync(
+                    IReadOnlyCollection<PersonEntity> persons = await personReadRepository.ListByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
 

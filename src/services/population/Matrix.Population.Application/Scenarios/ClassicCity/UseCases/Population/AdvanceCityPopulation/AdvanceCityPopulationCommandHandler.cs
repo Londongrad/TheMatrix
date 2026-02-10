@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Enums;
@@ -18,7 +17,7 @@ using PersonEntity = Matrix.Population.Domain.Entities.Person;
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
     public sealed class AdvanceCityPopulationCommandHandler(
-        IPersonWriteRepository personWriteRepository,
+        ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
@@ -130,7 +129,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 {
                     if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
                     {
-                        IReadOnlyCollection<PersonEntity> persons = await personWriteRepository.ListByCityAsync(
+                        IReadOnlyCollection<PersonEntity> persons = await personReadRepository.ListByCityAsync(
                             cityId: cityId,
                             cancellationToken: ct);
 
