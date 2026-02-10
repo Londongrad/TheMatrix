@@ -1,4 +1,3 @@
-using Matrix.CityCore.Application.Services.Simulation;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
@@ -15,7 +14,7 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
     {
         public static ClockDto FromDomain(
             SimulationClock clock,
-            SimulationHostDescriptor host,
+            SimulationHost host,
             bool forcePaused = false)
         {
             return new ClockDto(

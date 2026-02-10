@@ -1,6 +1,4 @@
 using Matrix.CityCore.Application.Abstractions.Persistence;
-using Matrix.CityCore.Application.Services.Simulation;
-using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Simulation;
 using MediatR;
 
@@ -8,7 +6,7 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
 {
     public sealed class GetClockQueryHandler(
         ISimulationClockRepository repository,
-        ISimulationHostResolver simulationHostResolver)
+        ISimulationHostReadRepository simulationHostRepository)
         : IRequestHandler<GetClockQuery, ClockDto?>
     {
         public async Task<ClockDto?> Handle(
@@ -17,7 +15,7 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
         {
             SimulationId simulationId = new(request.SimulationId);
 
-            SimulationHostDescriptor? host = await simulationHostResolver.GetBySimulationIdAsync(
+            SimulationHost? host = await simulationHostRepository.GetBySimulationIdAsync(
                 simulationId: simulationId,
                 cancellationToken: cancellationToken);
 

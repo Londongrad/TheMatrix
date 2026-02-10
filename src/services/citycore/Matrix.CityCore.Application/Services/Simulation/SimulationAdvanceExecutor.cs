@@ -12,7 +12,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
 {
     public sealed class SimulationAdvanceExecutor(
         ISimulationClockRepository repository,
-        ISimulationHostResolver simulationHostResolver,
+        ISimulationHostReadRepository simulationHostRepository,
         IWeatherAdvanceExecutor weatherAdvanceExecutor,
         ICityCoreOutboxWriter outboxWriter,
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
@@ -22,7 +22,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
             TimeSpan realDelta,
             CancellationToken cancellationToken)
         {
-            SimulationHostDescriptor? host = await simulationHostResolver.GetBySimulationIdAsync(
+            SimulationHost? host = await simulationHostRepository.GetBySimulationIdAsync(
                 simulationId: simulationId,
                 cancellationToken: cancellationToken);
 
