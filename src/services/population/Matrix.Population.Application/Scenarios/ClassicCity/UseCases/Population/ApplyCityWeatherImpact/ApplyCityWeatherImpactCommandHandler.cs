@@ -2,16 +2,18 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
+using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Models;
-using Matrix.Population.Domain.Services;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
 
-namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityWeatherImpact
 {
     public sealed class ApplyCityWeatherImpactCommandHandler(
         IPersonWriteRepository personWriteRepository,

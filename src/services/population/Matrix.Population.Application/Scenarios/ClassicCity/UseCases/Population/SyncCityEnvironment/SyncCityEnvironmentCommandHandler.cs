@@ -1,13 +1,13 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Application.UseCases.Population.Common;
-using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.Population.SyncCityEnvironment
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment
 {
     public sealed class SyncCityEnvironmentCommandHandler(
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,

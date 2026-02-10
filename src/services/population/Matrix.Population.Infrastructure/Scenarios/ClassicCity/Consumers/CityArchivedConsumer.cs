@@ -1,10 +1,10 @@
 using MassTransit;
 using Matrix.CityCore.Contracts.Events;
-using Matrix.Population.Application.UseCases.Population.ArchiveCityPopulationData;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ArchiveCityPopulationData;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Matrix.Population.Infrastructure.Consumers
+namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityArchivedConsumer(
         IMediator mediator,

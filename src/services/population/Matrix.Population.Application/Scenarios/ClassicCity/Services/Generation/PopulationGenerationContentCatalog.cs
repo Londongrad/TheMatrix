@@ -2,10 +2,10 @@ using System.Reflection;
 using System.Text.Json;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Domain.Models;
-using Matrix.Population.Domain.Services.Abstractions;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 
-namespace Matrix.Population.Application.Services.Generation
+namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Generation
 {
     public sealed class PopulationGenerationContentCatalog : IPopulationGenerationContentCatalog
     {

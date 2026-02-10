@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityWeatherImpact
 {
     public sealed record ApplyCityWeatherImpactCommand(
         Guid CityId,

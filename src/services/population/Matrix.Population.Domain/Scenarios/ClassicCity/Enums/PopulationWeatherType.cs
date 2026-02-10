@@ -1,4 +1,4 @@
-namespace Matrix.Population.Domain.Enums
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Enums
 {
     public enum PopulationWeatherType
     {

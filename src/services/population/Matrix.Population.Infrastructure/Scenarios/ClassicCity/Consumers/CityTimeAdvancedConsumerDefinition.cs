@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace Matrix.Population.Infrastructure.Consumers
+namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityTimeAdvancedConsumerDefinition : ConsumerDefinition<CityTimeAdvancedConsumer>
     {

@@ -2,9 +2,10 @@ using System.Reflection;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Application.Services.Generation;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Generation;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 using Matrix.Population.Domain.Services;
-using Matrix.Population.Domain.Services.Abstractions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 

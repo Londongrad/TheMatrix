@@ -1,4 +1,4 @@
-namespace Matrix.Population.Domain.Models
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record PopulationFamilySurnameCatalogItem(
         string Masculine,

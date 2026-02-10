@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 
 namespace Matrix.ApiGateway.DownstreamClients.Population.People
 {

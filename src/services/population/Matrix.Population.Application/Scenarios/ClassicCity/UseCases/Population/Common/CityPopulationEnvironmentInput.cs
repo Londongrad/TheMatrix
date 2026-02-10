@@ -1,4 +1,4 @@
-namespace Matrix.Population.Application.UseCases.Population.Common
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common
 {
     public sealed record CityPopulationEnvironmentInput(
         string ClimateZone,

@@ -1,7 +1,7 @@
-using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.Population.Domain.Services
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
     public sealed class CityPopulationClimateAdaptationPolicy
     {

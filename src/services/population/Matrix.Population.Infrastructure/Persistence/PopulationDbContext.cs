@@ -1,4 +1,5 @@
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 

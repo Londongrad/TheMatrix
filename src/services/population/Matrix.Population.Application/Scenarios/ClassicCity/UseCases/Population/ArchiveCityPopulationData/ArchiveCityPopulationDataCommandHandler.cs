@@ -2,11 +2,12 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.Population.ArchiveCityPopulationData
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ArchiveCityPopulationData
 {
     public sealed class ArchiveCityPopulationDataCommandHandler(
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,

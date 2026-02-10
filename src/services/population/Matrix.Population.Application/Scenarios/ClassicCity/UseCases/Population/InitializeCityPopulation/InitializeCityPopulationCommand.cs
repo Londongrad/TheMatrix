@@ -1,10 +1,10 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.Population.Application.Authorization.Permissions;
-using Matrix.Population.Application.UseCases.Population.Common;
-using Matrix.Population.Contracts.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopulation
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation
 {
     public sealed record InitializeCityPopulationCommand(
         Guid CityId,

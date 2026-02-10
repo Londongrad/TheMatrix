@@ -1,6 +1,6 @@
-using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.Population.Domain.Models
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record WeatherImpactProfile(
         PopulationWeatherType Type,

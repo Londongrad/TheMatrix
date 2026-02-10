@@ -1,4 +1,4 @@
-namespace Matrix.Population.Application.UseCases.Population.DeleteCityPopulationData
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.DeleteCityPopulationData
 {
     public enum DeleteCityPopulationDataStatus
     {

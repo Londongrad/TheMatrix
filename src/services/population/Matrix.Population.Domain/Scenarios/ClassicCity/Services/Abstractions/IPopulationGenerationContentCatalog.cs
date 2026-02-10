@@ -1,6 +1,6 @@
-using Matrix.Population.Domain.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
-namespace Matrix.Population.Domain.Services.Abstractions
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions
 {
     public interface IPopulationGenerationContentCatalog
     {

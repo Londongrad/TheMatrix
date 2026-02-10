@@ -7,6 +7,7 @@ using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Simulation.Views;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

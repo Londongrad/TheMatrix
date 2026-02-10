@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.Population.AdvanceCityPopulation
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
     public sealed record AdvanceCityPopulationCommand(
         Guid CityId,

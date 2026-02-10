@@ -2,14 +2,15 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact;
-using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Models;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityWeatherImpact;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
 
-namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExposureState
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityWeatherExposureState
 {
     public sealed class SyncCityWeatherExposureStateCommandHandler(
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,

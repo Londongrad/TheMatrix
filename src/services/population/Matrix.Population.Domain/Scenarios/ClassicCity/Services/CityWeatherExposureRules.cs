@@ -1,7 +1,7 @@
-using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
-namespace Matrix.Population.Domain.Services
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
     public static class CityWeatherExposureRules
     {

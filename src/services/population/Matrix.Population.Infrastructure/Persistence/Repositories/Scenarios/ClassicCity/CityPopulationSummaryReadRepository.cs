@@ -1,11 +1,12 @@
-using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary;
-using Matrix.Population.Domain.Entities;
+using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Population.Infrastructure.Persistence.Repositories
+namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
 {
     public sealed class CityPopulationSummaryReadRepository(PopulationDbContext dbContext)
         : ICityPopulationSummaryReadRepository

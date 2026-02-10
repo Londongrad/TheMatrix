@@ -1,8 +1,8 @@
-using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
-namespace Matrix.Population.Application.UseCases.Population.Common
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common
 {
     internal static class CityPopulationEnvironmentMapper
     {

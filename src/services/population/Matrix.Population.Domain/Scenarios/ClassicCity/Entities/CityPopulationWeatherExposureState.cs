@@ -1,11 +1,11 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Errors;
-using Matrix.Population.Domain.Models;
-using Matrix.Population.Domain.Services;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
-namespace Matrix.Population.Domain.Entities
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 {
     public sealed class CityPopulationWeatherExposureState
     {

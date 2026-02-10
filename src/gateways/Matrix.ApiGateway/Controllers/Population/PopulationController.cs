@@ -1,6 +1,7 @@
 ﻿using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

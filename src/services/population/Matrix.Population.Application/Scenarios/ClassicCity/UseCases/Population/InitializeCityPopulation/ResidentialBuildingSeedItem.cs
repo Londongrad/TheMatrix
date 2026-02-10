@@ -1,4 +1,4 @@
-namespace Matrix.Population.Application.UseCases.Population.InitializeCityPopulation
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation
 {
     public sealed record ResidentialBuildingSeedItem(
         Guid ResidentialBuildingId,

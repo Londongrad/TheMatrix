@@ -14,6 +14,7 @@ using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.CityCore.Contracts.Simulation.Views;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 
 namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 {

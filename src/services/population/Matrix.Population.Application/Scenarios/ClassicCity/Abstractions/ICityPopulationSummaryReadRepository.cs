@@ -1,7 +1,7 @@
-using Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
-namespace Matrix.Population.Application.Abstractions
+namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
 {
     public interface ICityPopulationSummaryReadRepository
     {

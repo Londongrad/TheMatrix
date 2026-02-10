@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 
-namespace Matrix.Population.Domain.ValueObjects
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects
 {
     public readonly record struct CityId
     {

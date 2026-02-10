@@ -1,6 +1,6 @@
-using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 
-namespace Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary
 {
     public sealed record CityPopulationSummaryReadModel(
         Guid CityId,

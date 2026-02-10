@@ -1,4 +1,4 @@
-namespace Matrix.Population.Application.UseCases.Population.SyncCityWeatherExposureState
+namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityWeatherExposureState
 {
     public enum SyncCityWeatherExposureStateStatus
     {

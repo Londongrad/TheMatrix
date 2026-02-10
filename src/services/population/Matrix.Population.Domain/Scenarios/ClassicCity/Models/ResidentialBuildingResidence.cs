@@ -1,7 +1,7 @@
 using Matrix.Population.Domain.Errors;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
-namespace Matrix.Population.Domain.Models
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record ResidentialBuildingResidence
     {

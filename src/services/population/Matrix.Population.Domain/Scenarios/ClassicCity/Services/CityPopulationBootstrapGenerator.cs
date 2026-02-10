@@ -1,11 +1,13 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Rules;
-using Matrix.Population.Domain.Services.Abstractions;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
-namespace Matrix.Population.Domain.Services
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
     public sealed class CityPopulationBootstrapGenerator(IPopulationGenerationContentCatalog contentCatalog)
     {

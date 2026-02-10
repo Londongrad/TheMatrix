@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 

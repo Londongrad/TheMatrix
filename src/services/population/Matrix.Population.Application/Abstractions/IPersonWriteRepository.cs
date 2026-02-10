@@ -1,4 +1,5 @@
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Application.Abstractions

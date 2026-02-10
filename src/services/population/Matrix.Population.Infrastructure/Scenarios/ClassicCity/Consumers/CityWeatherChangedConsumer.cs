@@ -1,11 +1,11 @@
 using MassTransit;
 using Matrix.CityCore.Contracts.Events;
-using Matrix.Population.Application.UseCases.Population.ApplyCityWeatherImpact;
-using Matrix.Population.Application.UseCases.Population.SyncCityWeatherExposureState;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.ApplyCityWeatherImpact;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityWeatherExposureState;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Matrix.Population.Infrastructure.Consumers
+namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityWeatherChangedConsumer(
         IMediator mediator,

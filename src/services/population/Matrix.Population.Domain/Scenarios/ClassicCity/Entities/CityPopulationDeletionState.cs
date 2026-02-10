@@ -1,8 +1,8 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
-namespace Matrix.Population.Domain.Entities
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 {
     public sealed class CityPopulationDeletionState
     {

@@ -1,9 +1,9 @@
-using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.ValueObjects;
+using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matrix.Population.Infrastructure.Persistence.Repositories
+namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
 {
     public sealed class CityPopulationWeatherImpactStateRepository(PopulationDbContext dbContext)
         : ICityPopulationWeatherImpactStateRepository

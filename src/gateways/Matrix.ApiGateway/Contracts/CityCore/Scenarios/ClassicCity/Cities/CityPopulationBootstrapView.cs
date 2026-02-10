@@ -1,4 +1,5 @@
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 
 namespace Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities
 {

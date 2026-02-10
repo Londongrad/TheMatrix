@@ -1,15 +1,16 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Population.Application.UseCases.Population.Common;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;
-using Matrix.Population.Application.UseCases.Population.GetCityPopulationSummary;
-using Matrix.Population.Application.UseCases.Population.InitializeCityPopulation;
-using Matrix.Population.Application.UseCases.Population.SyncCityEnvironment;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.Population.Api.Controllers
+namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
 {
     [ApiController]
     [Authorize]

@@ -1,4 +1,4 @@
-namespace Matrix.Population.Contracts.Models
+namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
 {
     public sealed record class CityPopulationSummaryWeatherDto(
         string CurrentType,
