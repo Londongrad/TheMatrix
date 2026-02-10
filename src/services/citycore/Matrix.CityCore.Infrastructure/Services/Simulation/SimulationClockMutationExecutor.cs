@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
-using Matrix.CityCore.Application.Services.Simulation;
+using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Simulation;
@@ -12,7 +12,7 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
 {
     public sealed class SimulationClockMutationExecutor(
         CityCoreDbContext dbContext,
-        ISimulationHostResolver simulationHostResolver,
+        ISimulationHostReadRepository simulationHostRepository,
         ILogger<SimulationClockMutationExecutor> logger) : ISimulationClockMutationExecutor
     {
         private const int MaxAttempts = 3;
@@ -23,7 +23,6 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
             CancellationToken cancellationToken,
             bool allowArchivedHost = false)
         {
-            CityId cityId = new(simulationId.Value);
             DbUpdateConcurrencyException? lastException = null;
 
             for (int attempt = 1; attempt <= MaxAttempts; attempt++)
@@ -32,7 +31,7 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
 
                 try
                 {
-                    SimulationHostDescriptor? host = await simulationHostResolver.GetBySimulationIdAsync(
+                    SimulationHost? host = await simulationHostRepository.GetBySimulationIdAsync(
                         simulationId: simulationId,
                         cancellationToken: cancellationToken);
 
@@ -48,6 +47,8 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                                 ? "Archived simulation hosts are read-only. Simulation controls are unavailable."
                                 : "Only active simulation hosts can be controlled. Provisioning hosts stay paused until bootstrap finishes.",
                             errorType: ApplicationErrorType.Conflict);
+
+                    CityId cityId = new(host.HostId.Value);
 
                     SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
                         predicate: x => x.Id == cityId,

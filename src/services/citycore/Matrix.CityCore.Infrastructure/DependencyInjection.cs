@@ -11,6 +11,7 @@ using Matrix.CityCore.Infrastructure.Outbox;
 using Matrix.CityCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.CityCore.Infrastructure.Persistence;
 using Matrix.CityCore.Infrastructure.Persistence.Repositories;
+using Matrix.CityCore.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity;
 using Matrix.CityCore.Infrastructure.Services.Simulation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -48,6 +49,7 @@ namespace Matrix.CityCore.Infrastructure
                .ValidateOnStart();
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
+            services.AddScoped<ISimulationHostReadRepository, ClassicCitySimulationHostReadRepository>();
             services.AddScoped<ICityRepository, CityRepository>();
             services.AddScoped<IDistrictRepository, DistrictRepository>();
             services.AddScoped<IResidentialBuildingRepository, ResidentialBuildingRepository>();
