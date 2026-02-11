@@ -21,6 +21,9 @@ namespace Matrix.Population.Infrastructure.Persistence
         public DbSet<CityPopulationWeatherImpactState> CityPopulationWeatherImpactStates
             => Set<CityPopulationWeatherImpactState>();
 
+        public DbSet<ClassicCityHouseholdPlacement> ClassicCityHouseholdPlacements
+            => Set<ClassicCityHouseholdPlacement>();
+
         public DbSet<Household> Households => Set<Household>();
         public DbSet<Person> Persons => Set<Person>();
         public DbSet<ProcessedIntegrationMessage> ProcessedIntegrationMessages => Set<ProcessedIntegrationMessage>();

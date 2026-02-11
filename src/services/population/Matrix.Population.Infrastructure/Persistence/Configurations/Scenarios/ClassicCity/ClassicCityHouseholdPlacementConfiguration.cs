@@ -1,3 +1,4 @@
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -6,27 +7,25 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.ClassicCity
 {
-    public sealed class HouseholdConfiguration : IEntityTypeConfiguration<Household>
+    public sealed class ClassicCityHouseholdPlacementConfiguration
+        : IEntityTypeConfiguration<ClassicCityHouseholdPlacement>
     {
-        public void Configure(EntityTypeBuilder<Household> builder)
+        public void Configure(EntityTypeBuilder<ClassicCityHouseholdPlacement> builder)
         {
-            builder.ToTable("Households");
+            builder.ToTable("ClassicCityHouseholdPlacements");
 
-            builder.HasKey(x => x.Id);
+            builder.HasKey(x => x.HouseholdId);
 
-            builder.Property(x => x.Id)
+            builder.Property(x => x.HouseholdId)
                .HasConversion(
                     convertToProviderExpression: id => id.Value,
                     convertFromProviderExpression: value => HouseholdId.From(value));
 
             builder.Property(x => x.CityId)
                .HasConversion(
-                    convertToProviderExpression: id => id.HasValue
-                        ? id.Value.Value
-                        : (Guid?)null,
-                    convertFromProviderExpression: value => value.HasValue
-                        ? CityId.From(value.Value)
-                        : null);
+                    convertToProviderExpression: id => id.Value,
+                    convertFromProviderExpression: value => CityId.From(value))
+               .IsRequired();
 
             builder.Property(x => x.DistrictId)
                .HasConversion(
@@ -51,15 +50,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                .HasMaxLength(32)
                .IsRequired();
 
-            builder.Property(x => x.Size)
-               .HasConversion(
-                    convertToProviderExpression: size => size.Value,
-                    convertFromProviderExpression: value => HouseholdSize.From(value))
-               .HasColumnName("Size")
-               .IsRequired();
-
-            builder.Property(x => x.CreatedAtUtc)
-               .IsRequired();
+            builder.HasOne<Household>()
+               .WithMany()
+               .HasForeignKey(x => x.HouseholdId)
+               .HasPrincipalKey(x => x.Id)
+               .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => x.DistrictId);

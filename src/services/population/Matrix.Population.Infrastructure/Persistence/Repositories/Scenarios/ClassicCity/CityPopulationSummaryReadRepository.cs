@@ -132,7 +132,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken)
         {
             return await _dbContext
-               .Households
+               .ClassicCityHouseholdPlacements
                .AsNoTracking()
                .Where(x => x.CityId == cityId)
                .GroupBy(_ => 1)
@@ -164,9 +164,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             var residentsQuery =
                 from person in _dbContext.Persons.AsNoTracking()
-                join household in _dbContext.Households.AsNoTracking()
+                join householdPlacement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
                        .Where(x => x.CityId == cityId)
-                    on person.HouseholdId equals household.Id
+                    on person.HouseholdId equals householdPlacement.HouseholdId
                 select new
                 {
                     LifeStatus = EF.Property<string>(
@@ -193,7 +193,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     SocialNeed = EF.Property<int>(
                         person,
                         "SocialNeed"),
-                    household.HousingStatus
+                    householdPlacement.HousingStatus
                 };
 
             return await residentsQuery

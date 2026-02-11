@@ -16,9 +16,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
         {
             return await _dbContext.Persons
                .Join(
-                    inner: _dbContext.Households.Where(x => x.CityId == cityId),
+                    inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
                     outerKeySelector: person => person.HouseholdId,
-                    innerKeySelector: household => household.Id,
+                    innerKeySelector: placement => placement.HouseholdId,
                     resultSelector: (
                         person,
                         _) => person)
