@@ -2,12 +2,10 @@ using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Infrastructure.Messaging;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
-using Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity;
-using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,18 +40,7 @@ namespace Matrix.Population.Infrastructure
 
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
-            services.AddScoped<ICityPopulationPersonReadRepository, CityPopulationPersonReadRepository>();
-            services.AddScoped<IHouseholdWriteRepository, HouseholdWriteRepository>();
-            services.AddScoped<ICityPopulationArchiveStateRepository, CityPopulationArchiveStateRepository>();
-            services.AddScoped<ICityPopulationDeletionStateRepository, CityPopulationDeletionStateRepository>();
-            services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
-            services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
-            services.AddScoped<ICityPopulationSummaryReadRepository, CityPopulationSummaryReadRepository>();
-            services
-               .AddScoped<ICityPopulationWeatherImpactStateRepository, CityPopulationWeatherImpactStateRepository>();
-            services
-               .AddScoped<ICityPopulationWeatherExposureStateRepository,
-                    CityPopulationWeatherExposureStateRepository>();
+            services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddPermissionCheckingFromClaims();
@@ -61,12 +48,7 @@ namespace Matrix.Population.Infrastructure
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
-                x.AddConsumer<CityArchivedConsumer, CityArchivedConsumerDefinition>();
-                x.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
-                x.AddConsumer<CityEnvironmentChangedConsumer, CityEnvironmentChangedConsumerDefinition>();
-                x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
-                x.AddConsumer<CityWeatherCreatedConsumer, CityWeatherCreatedConsumerDefinition>();
-                x.AddConsumer<CityWeatherChangedConsumer, CityWeatherChangedConsumerDefinition>();
+                x.AddClassicCityScenarioConsumers();
 
                 x.UsingRabbitMq((
                     context,
