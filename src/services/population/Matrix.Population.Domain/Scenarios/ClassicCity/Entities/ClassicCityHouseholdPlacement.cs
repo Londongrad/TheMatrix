@@ -6,74 +6,58 @@ using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 {
-    public sealed class Household
+    public sealed class ClassicCityHouseholdPlacement
     {
-        private Household() { }
+        private ClassicCityHouseholdPlacement() { }
 
-        private Household(
-            HouseholdId id,
-            CityId? cityId,
+        private ClassicCityHouseholdPlacement(
+            HouseholdId householdId,
+            CityId cityId,
             DistrictId? districtId,
             ResidentialBuildingId? residentialBuildingId,
-            HousingStatus housingStatus,
-            HouseholdSize size,
-            DateTimeOffset createdAtUtc)
+            HousingStatus housingStatus)
         {
-            EnsureUtc(createdAtUtc);
-
-            Id = id;
+            HouseholdId = householdId;
             CityId = cityId;
             DistrictId = districtId;
             ResidentialBuildingId = residentialBuildingId;
             HousingStatus = GuardHelper.AgainstInvalidEnum(
                 value: housingStatus,
                 propertyName: nameof(HousingStatus));
-            Size = size;
-            CreatedAtUtc = createdAtUtc;
 
             EnsureHousingConsistency();
         }
 
-        public HouseholdId Id { get; private set; }
-        public CityId? CityId { get; private set; }
+        public HouseholdId HouseholdId { get; private set; }
+        public CityId CityId { get; private set; }
         public DistrictId? DistrictId { get; private set; }
         public ResidentialBuildingId? ResidentialBuildingId { get; private set; }
         public HousingStatus HousingStatus { get; private set; }
-        public HouseholdSize Size { get; private set; }
-        public DateTimeOffset CreatedAtUtc { get; private set; }
 
-        public static Household CreateHoused(
-            HouseholdId id,
+        public static ClassicCityHouseholdPlacement CreateHoused(
+            HouseholdId householdId,
             CityId cityId,
             DistrictId districtId,
-            ResidentialBuildingId residentialBuildingId,
-            HouseholdSize size,
-            DateTimeOffset createdAtUtc)
+            ResidentialBuildingId residentialBuildingId)
         {
-            return new Household(
-                id: id,
+            return new ClassicCityHouseholdPlacement(
+                householdId: householdId,
                 cityId: cityId,
                 districtId: districtId,
                 residentialBuildingId: residentialBuildingId,
-                housingStatus: HousingStatus.Housed,
-                size: size,
-                createdAtUtc: createdAtUtc);
+                housingStatus: HousingStatus.Housed);
         }
 
-        public static Household CreateHomeless(
-            HouseholdId id,
-            HouseholdSize size,
-            DateTimeOffset createdAtUtc,
-            CityId? cityId = null)
+        public static ClassicCityHouseholdPlacement CreateHomeless(
+            HouseholdId householdId,
+            CityId cityId)
         {
-            return new Household(
-                id: id,
+            return new ClassicCityHouseholdPlacement(
+                householdId: householdId,
                 cityId: cityId,
                 districtId: null,
                 residentialBuildingId: null,
-                housingStatus: HousingStatus.Homeless,
-                size: size,
-                createdAtUtc: createdAtUtc);
+                housingStatus: HousingStatus.Homeless);
         }
 
         public void Relocate(
@@ -89,7 +73,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             EnsureHousingConsistency();
         }
 
-        public void BecomeHomeless(CityId? cityId = null)
+        public void BecomeHomeless(CityId cityId)
         {
             CityId = cityId;
             DistrictId = null;
@@ -103,7 +87,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         {
             if (HousingStatus == HousingStatus.Housed)
             {
-                if (!CityId.HasValue || !DistrictId.HasValue || !ResidentialBuildingId.HasValue)
+                if (!DistrictId.HasValue || !ResidentialBuildingId.HasValue)
                     throw DomainErrorsFactory.HousedHouseholdRequiresPlacement();
 
                 return;
@@ -111,15 +95,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 
             if (ResidentialBuildingId.HasValue)
                 throw DomainErrorsFactory.HomelessHouseholdCannotHaveResidentialBuilding();
-        }
-
-        private static void EnsureUtc(DateTimeOffset value)
-        {
-            GuardHelper.Ensure(
-                condition: value.Offset == TimeSpan.Zero,
-                value: value,
-                errorFactory: DomainErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(CreatedAtUtc));
         }
     }
 }

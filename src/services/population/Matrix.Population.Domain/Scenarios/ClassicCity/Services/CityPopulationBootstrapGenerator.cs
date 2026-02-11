@@ -22,16 +22,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (peopleCount <= 0)
                 return new PopulationBootstrapResult(
                     Households: Array.Empty<Household>(),
+                    HouseholdPlacements: Array.Empty<ClassicCityHouseholdPlacement>(),
                     Persons: Array.Empty<Person>());
 
             Random random = CreateRandom(randomSeed);
             var households = new List<Household>(peopleCount);
+            var householdPlacements = new List<ClassicCityHouseholdPlacement>();
             var persons = new List<Person>(peopleCount);
 
             for (int i = 0; i < peopleCount; i++)
             {
                 var householdId = HouseholdId.New();
-                var household = Household.CreateHomeless(
+                var household = Household.Create(
                     id: householdId,
                     size: HouseholdSize.From(1),
                     createdAtUtc: createdAtUtc);
@@ -46,6 +48,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             return new PopulationBootstrapResult(
                 Households: households,
+                HouseholdPlacements: householdPlacements,
                 Persons: persons);
         }
 
@@ -60,10 +63,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (peopleCount <= 0)
                 return new PopulationBootstrapResult(
                     Households: Array.Empty<Household>(),
+                    HouseholdPlacements: Array.Empty<ClassicCityHouseholdPlacement>(),
                     Persons: Array.Empty<Person>());
 
             Random random = CreateRandom(randomSeed);
             var households = new List<Household>();
+            var householdPlacements = new List<ClassicCityHouseholdPlacement>();
             var persons = new List<Person>(peopleCount);
             var capacityStates = residentialBuildings
                .Select(x => new BuildingCapacityState(
@@ -80,15 +85,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     remainingPeople: remainingPeople);
                 var householdSize = HouseholdSize.From(householdSizeValue);
                 var householdId = HouseholdId.New();
-                Household household = TryAllocateHousehold(
+                Household household = Household.Create(
+                    id: householdId,
+                    size: householdSize,
+                    createdAtUtc: createdAtUtc);
+                ClassicCityHouseholdPlacement householdPlacement = TryAllocateHouseholdPlacement(
                     cityId: cityId,
                     householdId: householdId,
                     householdSize: householdSize,
-                    createdAtUtc: createdAtUtc,
                     capacityStates: capacityStates,
                     random: random);
 
                 households.Add(household);
+                householdPlacements.Add(householdPlacement);
                 persons.AddRange(
                     CreateHouseholdMembers(
                         random: random,
@@ -101,6 +110,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             return new PopulationBootstrapResult(
                 Households: households,
+                HouseholdPlacements: householdPlacements,
                 Persons: persons);
         }
 
@@ -474,11 +484,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 currentDate: currentDate);
         }
 
-        private static Household TryAllocateHousehold(
+        private static ClassicCityHouseholdPlacement TryAllocateHouseholdPlacement(
             CityId cityId,
             HouseholdId householdId,
             HouseholdSize householdSize,
-            DateTimeOffset createdAtUtc,
             List<BuildingCapacityState> capacityStates,
             Random random)
         {
@@ -487,22 +496,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .ToList();
 
             if (candidates.Count == 0)
-                return Household.CreateHomeless(
-                    id: householdId,
-                    size: householdSize,
-                    createdAtUtc: createdAtUtc,
+                return ClassicCityHouseholdPlacement.CreateHomeless(
+                    householdId: householdId,
                     cityId: cityId);
 
             BuildingCapacityState selected = candidates[random.Next(candidates.Count)];
             selected.RemainingCapacity -= householdSize.Value;
 
-            return Household.CreateHoused(
-                id: householdId,
+            return ClassicCityHouseholdPlacement.CreateHoused(
+                householdId: householdId,
                 cityId: cityId,
                 districtId: selected.DistrictId,
-                residentialBuildingId: selected.BuildingId,
-                size: householdSize,
-                createdAtUtc: createdAtUtc);
+                residentialBuildingId: selected.BuildingId);
         }
 
         private static int NextHouseholdSize(
