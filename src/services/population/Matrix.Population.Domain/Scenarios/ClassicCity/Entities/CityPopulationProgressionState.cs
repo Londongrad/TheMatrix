@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
@@ -16,7 +17,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         {
             GuardHelper.AgainstNegativeNumber(
                 value: lastProcessedTickId,
-                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative);
+                errorFactory: ClassicCityDomainErrorsFactory.CityPopulationTickIdCannotBeNegative);
 
             EnsureUtc(updatedAtUtc);
 
@@ -51,14 +52,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         {
             GuardHelper.AgainstNegativeNumber(
                 value: tickId,
-                errorFactory: DomainErrorsFactory.CityPopulationTickIdCannotBeNegative);
+                errorFactory: ClassicCityDomainErrorsFactory.CityPopulationTickIdCannotBeNegative);
 
             GuardHelper.Ensure(
                 condition: tickId >= LastProcessedTickId,
                 value: tickId,
                 errorFactory: (
                     value,
-                    propertyName) => DomainErrorsFactory.CityPopulationTickIdCannotMoveBackwards(
+                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationTickIdCannotMoveBackwards(
                     value: value,
                     previous: LastProcessedTickId,
                     propertyName: propertyName));
@@ -68,7 +69,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: processedDate,
                 errorFactory: (
                     value,
-                    propertyName) => DomainErrorsFactory.CityPopulationProcessedDateCannotMoveBackwards(
+                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationProcessedDateCannotMoveBackwards(
                     value: value,
                     previous: LastProcessedDate,
                     propertyName: propertyName));

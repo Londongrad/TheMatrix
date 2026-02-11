@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -88,13 +89,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             if (HousingStatus == HousingStatus.Housed)
             {
                 if (!DistrictId.HasValue || !ResidentialBuildingId.HasValue)
-                    throw DomainErrorsFactory.HousedHouseholdRequiresPlacement();
+                    throw ClassicCityDomainErrorsFactory.HousedHouseholdRequiresPlacement();
 
                 return;
             }
 
             if (ResidentialBuildingId.HasValue)
-                throw DomainErrorsFactory.HomelessHouseholdCannotHaveResidentialBuilding();
+                throw ClassicCityDomainErrorsFactory.HomelessHouseholdCannotHaveResidentialBuilding();
         }
     }
 }

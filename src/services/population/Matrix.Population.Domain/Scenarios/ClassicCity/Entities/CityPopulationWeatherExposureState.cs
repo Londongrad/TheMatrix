@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
@@ -202,7 +203,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: currentWeatherEffectiveAtSimTimeUtc,
                 errorFactory: (
                     _,
-                    propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureStaleUpdate(propertyName));
+                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherExposureStaleUpdate(propertyName));
 
             WeatherImpactProfile previousCurrentWeather = CurrentWeather;
 
@@ -257,7 +258,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: processedAtSimTimeUtc,
                 errorFactory: (
                     value,
-                    propertyName) => DomainErrorsFactory.CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
+                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
                     value: value,
                     previous: LastExposureProcessedAtSimTimeUtc,
                     propertyName: propertyName));

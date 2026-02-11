@@ -1,4 +1,4 @@
-using Matrix.Population.Domain.Errors;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
@@ -11,7 +11,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
             int residentCapacity)
         {
             if (residentCapacity <= 0)
-                throw DomainErrorsFactory.ResidentialCapacityOutOfRange();
+                throw ClassicCityDomainErrorsFactory.ResidentialCapacityOutOfRange();
 
             ResidentialBuildingId = residentialBuildingId;
             DistrictId = districtId;

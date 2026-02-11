@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
@@ -35,7 +36,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: utcOffsetMinutes,
                 min: -14 * 60,
                 max: 14 * 60,
-                errorFactory: DomainErrorsFactory.CityPopulationUtcOffsetMinutesOutOfRange,
+                errorFactory: ClassicCityDomainErrorsFactory.CityPopulationUtcOffsetMinutesOutOfRange,
                 propertyName: nameof(UtcOffsetMinutes));
             CreatedAtUtc = createdAtUtc;
             UpdatedAtUtc = updatedAtUtc;
@@ -84,7 +85,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: utcOffsetMinutes,
                 min: -14 * 60,
                 max: 14 * 60,
-                errorFactory: DomainErrorsFactory.CityPopulationUtcOffsetMinutesOutOfRange,
+                errorFactory: ClassicCityDomainErrorsFactory.CityPopulationUtcOffsetMinutesOutOfRange,
                 propertyName: nameof(UtcOffsetMinutes));
             UpdatedAtUtc = updatedAtUtc;
         }

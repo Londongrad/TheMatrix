@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
@@ -68,7 +69,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: atSimTimeUtc,
                 errorFactory: (
                     value,
-                    propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
+                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
                     value: value,
                     previous: LastAppliedAtSimTimeUtc,
                     propertyName: propertyName));
@@ -78,7 +79,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: occurredOnUtc,
                 errorFactory: (
                     value,
-                    propertyName) => DomainErrorsFactory.CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
+                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
                     value: value,
                     previous: LastAppliedOccurredOnUtc,
                     propertyName: propertyName));
