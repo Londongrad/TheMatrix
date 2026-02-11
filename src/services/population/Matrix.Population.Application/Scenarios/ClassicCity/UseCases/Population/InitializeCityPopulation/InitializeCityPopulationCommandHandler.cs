@@ -10,6 +10,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation
@@ -96,6 +97,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     await householdWriteRepository.AddRangeAsync(
                         households: result.Households,
+                        householdPlacements: result.HouseholdPlacements,
                         cancellationToken: ct);
 
                     await personWriteRepository.AddRangeAsync(
@@ -106,10 +108,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 },
                 cancellationToken: cancellationToken);
 
-            int housedHouseholdCount = result.Households.Count(x => x.HousingStatus == HousingStatus.Housed);
-            int homelessHouseholdCount = result.Households.Count - housedHouseholdCount;
-            int housedPeopleCount = result.Households
+            int housedHouseholdCount = result.HouseholdPlacements.Count(x => x.HousingStatus == HousingStatus.Housed);
+            int homelessHouseholdCount = result.HouseholdPlacements.Count - housedHouseholdCount;
+            HashSet<HouseholdId> housedHouseholdIds = result.HouseholdPlacements
                .Where(x => x.HousingStatus == HousingStatus.Housed)
+               .Select(x => x.HouseholdId)
+               .ToHashSet();
+            int housedPeopleCount = result.Households
+               .Where(x => housedHouseholdIds.Contains(x.Id))
                .Sum(x => x.Size.Value);
             int homelessPeopleCount = result.Persons.Count - housedPeopleCount;
 
