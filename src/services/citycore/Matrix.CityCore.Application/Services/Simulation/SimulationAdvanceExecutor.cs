@@ -1,11 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
-using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Domain.Events.Simulation;
-using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
-using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Services.Simulation
@@ -13,8 +9,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
     public sealed class SimulationAdvanceExecutor(
         ISimulationClockRepository repository,
         ISimulationHostReadRepository simulationHostRepository,
-        IWeatherAdvanceExecutor weatherAdvanceExecutor,
-        ICityCoreOutboxWriter outboxWriter,
+        IReadOnlyCollection<ISimulationScenarioAdvanceHandler> scenarioAdvanceHandlers,
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
     {
         public async Task<SimulationAdvanceExecutionResult> ExecuteAsync(
@@ -55,31 +50,14 @@ namespace Matrix.CityCore.Application.Services.Simulation
                     {
                         advanced = true;
 
-                        if (host.HostKind == SimulationHostKind.City)
-                        {
-                            CityId cityId = new(host.HostId.Value);
+                        ISimulationScenarioAdvanceHandler? handler = scenarioAdvanceHandlers
+                           .FirstOrDefault(x => x.HostKind == host.HostKind);
 
-                            CityWeather? cityWeather = await weatherAdvanceExecutor.AdvanceAsync(
-                                cityId: cityId,
-                                evaluatedAt: advancedEvent.To,
+                        if (handler is not null)
+                            await handler.HandleAdvancedAsync(
+                                host: host,
+                                advancedEvent: advancedEvent,
                                 cancellationToken: ct);
-
-                            await outboxWriter.AddCityTimeAdvancedAsync(
-                                cityId: cityId,
-                                from: advancedEvent.From,
-                                to: advancedEvent.To,
-                                tickId: advancedEvent.TickId,
-                                speed: advancedEvent.Speed,
-                                cancellationToken: ct);
-
-                            if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
-                            {
-                                await outboxWriter.AddWeatherEventsAsync(
-                                    domainEvents: cityWeather.DomainEvents,
-                                    cancellationToken: ct);
-                                cityWeather.ClearDomainEvents();
-                            }
-                        }
                     }
 
                     clock.ClearDomainEvents();
