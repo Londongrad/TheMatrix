@@ -83,22 +83,6 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.Validation);
         }
 
-        public static MatrixApplicationException CannotInitializePopulationForArchivedCity(Guid cityId)
-        {
-            return new MatrixApplicationException(
-                code: "Population.City.Archived",
-                message: $"Cannot initialize population for archived city '{cityId}'.",
-                errorType: ApplicationErrorType.Conflict);
-        }
-
-        public static MatrixApplicationException CannotInitializePopulationForDeletedCity(Guid cityId)
-        {
-            return new MatrixApplicationException(
-                code: "Population.City.Deleted",
-                message: $"Cannot initialize population for deleted city '{cityId}'.",
-                errorType: ApplicationErrorType.Conflict);
-        }
-
         public static MatrixApplicationException InvalidGenerationContent(
             string catalogName,
             string reason)

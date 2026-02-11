@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -46,10 +47,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 cancellationToken: cancellationToken);
 
             if (archiveState is not null)
-                throw ApplicationErrorsFactory.CannotInitializePopulationForArchivedCity(request.CityId);
+                throw ClassicCityApplicationErrorsFactory.CannotInitializePopulationForArchivedCity(request.CityId);
 
             if (deletionState is not null)
-                throw ApplicationErrorsFactory.CannotInitializePopulationForDeletedCity(request.CityId);
+                throw ClassicCityApplicationErrorsFactory.CannotInitializePopulationForDeletedCity(request.CityId);
 
             IReadOnlyCollection<ResidentialBuildingResidence> residentialBuildings = request.ResidentialBuildings
                .Select(x => new ResidentialBuildingResidence(
