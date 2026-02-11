@@ -1,5 +1,5 @@
 ﻿using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
 {
@@ -14,12 +14,12 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         {
             string normalized = GuardHelper.AgainstNullOrWhiteSpace(
                 value: value,
-                errorFactory: DomainErrorsFactory.CityNameNullOrEmpty,
+                errorFactory: ClassicCityDomainErrorsFactory.CityNameNullOrEmpty,
                 trim: true,
                 propertyName: nameof(Value));
 
             if (normalized.Length > MaxLength)
-                throw DomainErrorsFactory.CityNameTooLong(
+                throw ClassicCityDomainErrorsFactory.CityNameTooLong(
                     value: normalized,
                     max: MaxLength,
                     propertyName: nameof(Value));

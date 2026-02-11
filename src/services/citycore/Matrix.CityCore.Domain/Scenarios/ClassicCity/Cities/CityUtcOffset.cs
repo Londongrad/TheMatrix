@@ -1,4 +1,4 @@
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
 {
@@ -19,13 +19,13 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 TimeSpan.FromMinutes(StepMinutes)
                    .Ticks !=
                 0)
-                throw DomainErrorsFactory.CityUtcOffsetMustAlignToStep(
+                throw ClassicCityDomainErrorsFactory.CityUtcOffsetMustAlignToStep(
                     valueMinutes: totalMinutes,
                     stepMinutes: StepMinutes,
                     propertyName: nameof(Value));
 
             if (totalMinutes < MinMinutes || totalMinutes > MaxMinutes)
-                throw DomainErrorsFactory.CityUtcOffsetOutOfRange(
+                throw ClassicCityDomainErrorsFactory.CityUtcOffsetOutOfRange(
                     valueMinutes: totalMinutes,
                     minMinutes: MinMinutes,
                     maxMinutes: MaxMinutes,

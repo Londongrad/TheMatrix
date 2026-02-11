@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
@@ -37,11 +37,6 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.AgainstInvalidEnum(
                 value: hemisphere,
                 propertyName: nameof(Hemisphere));
-
-            if (utcOffset == default(CityUtcOffset?))
-                throw DomainErrorsFactory.InvalidCityEnvironment(
-                    reason: "UTC offset is required.",
-                    propertyName: nameof(UtcOffset));
 
             return new CityEnvironment(
                 climateZone: climateZone,

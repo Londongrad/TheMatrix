@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
-using Matrix.CityCore.Domain.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Events.Weather;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.CityCore.Domain.Simulation;
@@ -54,7 +54,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
                 propertyName: nameof(cityId));
 
             if (climateProfile is null)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Climate profile is required.",
                     propertyName: nameof(climateProfile));
 
@@ -126,7 +126,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
                 propertyName: nameof(source));
 
             if (ActiveOverride is not null)
-                throw DomainErrorsFactory.OverrideAlreadyActive(nameof(ActiveOverride));
+                throw ClassicCityDomainErrorsFactory.OverrideAlreadyActive(nameof(ActiveOverride));
 
             EnsureStateIsApplicable(
                 state: forcedState,
@@ -164,7 +164,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
             EnsureEvaluationTimeNotGoingBackwards(cancelledAt);
 
             WeatherOverride activeOverride = ActiveOverride ??
-                                             throw DomainErrorsFactory.NoActiveOverrideToCancel(nameof(ActiveOverride));
+                                             throw ClassicCityDomainErrorsFactory.NoActiveOverrideToCancel(nameof(ActiveOverride));
 
             ActiveOverride = null;
 
@@ -211,7 +211,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
             SimTime changedAt)
         {
             if (newClimateProfile is null)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Climate profile is required.",
                     propertyName: nameof(newClimateProfile));
 
@@ -241,7 +241,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
             WeatherState fallbackState)
         {
             WeatherOverride expiredOverride = ActiveOverride ??
-                                              throw DomainErrorsFactory.NoActiveOverrideToCancel(
+                                              throw ClassicCityDomainErrorsFactory.NoActiveOverrideToCancel(
                                                   nameof(ActiveOverride));
 
             ActiveOverride = null;
@@ -293,7 +293,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
         private void EnsureEvaluationTimeNotGoingBackwards(SimTime evaluatedAt)
         {
             if (evaluatedAt.CompareTo(LastEvaluatedAt) < 0)
-                throw DomainErrorsFactory.WeatherEvaluationTimeGoingBackwards(
+                throw ClassicCityDomainErrorsFactory.WeatherEvaluationTimeGoingBackwards(
                     value: evaluatedAt,
                     previous: LastEvaluatedAt,
                     propertyName: nameof(evaluatedAt));
@@ -304,7 +304,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
             SimTime evaluatedAt)
         {
             if (!state.IsActiveAt(evaluatedAt))
-                throw DomainErrorsFactory.InvalidWeatherTransitionTiming(
+                throw ClassicCityDomainErrorsFactory.InvalidWeatherTransitionTiming(
                     evaluatedAt: evaluatedAt,
                     startedAt: state.StartedAt,
                     expectedUntil: state.ExpectedUntil,

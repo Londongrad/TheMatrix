@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.CityCore.Domain.Simulation;
 
@@ -55,7 +55,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
             SimTime endsAt = forcedState.ExpectedUntil;
 
             if (endsAt.CompareTo(startsAt) <= 0)
-                throw DomainErrorsFactory.InvalidOverrideTimeRange(
+                throw ClassicCityDomainErrorsFactory.InvalidOverrideTimeRange(
                     startsAt: startsAt,
                     endsAt: endsAt,
                     propertyName: nameof(EndsAt));

@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Topology
@@ -63,7 +63,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Topology
             GuardHelper.Ensure(
                 condition: value.Offset == TimeSpan.Zero,
                 value: value,
-                errorFactory: DomainErrorsFactory.TopologyTimestampMustBeUtc);
+                errorFactory: ClassicCityDomainErrorsFactory.TopologyTimestampMustBeUtc);
         }
     }
 }

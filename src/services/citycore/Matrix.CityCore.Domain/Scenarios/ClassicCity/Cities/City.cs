@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Events.Cities;
 using Matrix.CityCore.Domain.Simulation;
 
@@ -94,15 +94,15 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             EnsureUtc(createdAtUtc);
 
             if (environment is null)
-                throw DomainErrorsFactory.InvalidCityEnvironment(
+                throw ClassicCityDomainErrorsFactory.InvalidCityEnvironment(
                     reason: "City environment is required.",
                     propertyName: nameof(environment));
 
-            if (generationSeed == default(CityGenerationSeed?))
-                throw DomainErrorsFactory.CityGenerationSeedNullOrEmpty(propertyName: nameof(generationSeed));
+            if (generationSeed.Value is null)
+                throw ClassicCityDomainErrorsFactory.CityGenerationSeedNullOrEmpty(propertyName: nameof(generationSeed));
 
             if (generationProfile is null)
-                throw DomainErrorsFactory.InvalidCityGenerationProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidCityGenerationProfile(
                     reason: "City generation profile is required.",
                     propertyName: nameof(generationProfile));
 
@@ -144,7 +144,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.Ensure(
                 condition: !IsArchived,
                 value: Status,
-                errorFactory: DomainErrorsFactory.CityIsArchived);
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
 
             if (newName.Equals(Name))
                 return;
@@ -164,10 +164,10 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.Ensure(
                 condition: !IsArchived,
                 value: Status,
-                errorFactory: DomainErrorsFactory.CityIsArchived);
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
 
             if (newEnvironment is null)
-                throw DomainErrorsFactory.InvalidCityEnvironment(
+                throw ClassicCityDomainErrorsFactory.InvalidCityEnvironment(
                     reason: "City environment is required.",
                     propertyName: nameof(newEnvironment));
 
@@ -196,7 +196,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.Ensure(
                 condition: !IsArchived,
                 value: Status,
-                errorFactory: DomainErrorsFactory.CityIsArchived);
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
 
             if (operationId != PopulationBootstrapOperationId)
                 return false;
@@ -234,7 +234,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.Ensure(
                 condition: !IsArchived,
                 value: Status,
-                errorFactory: DomainErrorsFactory.CityIsArchived);
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
 
             if (operationId != PopulationBootstrapOperationId)
                 return false;
@@ -271,7 +271,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.Ensure(
                 condition: !IsArchived,
                 value: Status,
-                errorFactory: DomainErrorsFactory.CityIsArchived);
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
 
             if (!HasPopulationBootstrapFailure)
             {
@@ -318,11 +318,11 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         {
             string normalizedFailureCode = GuardHelper.AgainstNullOrWhiteSpace(
                     value: failureCode,
-                    errorFactory: DomainErrorsFactory.CityPopulationBootstrapFailureCodeNullOrEmpty)
+                    errorFactory: ClassicCityDomainErrorsFactory.CityPopulationBootstrapFailureCodeNullOrEmpty)
                .ToUpperInvariant();
 
             if (normalizedFailureCode.Length > PopulationBootstrapFailureCodeMaxLength)
-                throw DomainErrorsFactory.CityPopulationBootstrapFailureCodeTooLong(
+                throw ClassicCityDomainErrorsFactory.CityPopulationBootstrapFailureCodeTooLong(
                     value: normalizedFailureCode,
                     max: PopulationBootstrapFailureCodeMaxLength,
                     propertyName: nameof(PopulationBootstrapFailureCode));
@@ -331,7 +331,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 char.IsAsciiLetterOrDigit(symbol) || symbol == '_');
 
             if (!isValid)
-                throw DomainErrorsFactory.CityPopulationBootstrapFailureCodeInvalid(
+                throw ClassicCityDomainErrorsFactory.CityPopulationBootstrapFailureCodeInvalid(
                     value: normalizedFailureCode,
                     propertyName: nameof(PopulationBootstrapFailureCode));
 
@@ -343,7 +343,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.Ensure(
                 condition: value.Offset == TimeSpan.Zero,
                 value: value,
-                errorFactory: DomainErrorsFactory.CityTimestampMustBeUtc);
+                errorFactory: ClassicCityDomainErrorsFactory.CityTimestampMustBeUtc);
         }
 
         private static void EnsureUtc(DateTimeOffset? value)

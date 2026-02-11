@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
@@ -50,22 +50,22 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
                 propertyName: nameof(ClimateZone));
 
             if (temperatureProfile is null)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Temperature profile is required.",
                     propertyName: nameof(temperatureProfile));
 
             if (precipitationProfile is null)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Precipitation profile is required.",
                     propertyName: nameof(precipitationProfile));
 
             if (windProfile is null)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Wind profile is required.",
                     propertyName: nameof(windProfile));
 
             if (extremeWeatherProfile is null)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Extreme weather profile is required.",
                     propertyName: nameof(extremeWeatherProfile));
 

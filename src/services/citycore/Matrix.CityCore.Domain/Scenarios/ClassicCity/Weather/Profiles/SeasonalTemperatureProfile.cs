@@ -1,4 +1,4 @@
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 
@@ -39,7 +39,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles
             TemperatureC dailySwing)
         {
             if (dailySwing.Value < 0m)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Daily temperature swing cannot be negative.",
                     propertyName: nameof(dailySwing));
 
@@ -59,7 +59,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles
                 WeatherSeason.Summer => SummerAverage,
                 WeatherSeason.Autumn => AutumnAverage,
                 WeatherSeason.Winter => WinterAverage,
-                _ => throw DomainErrorsFactory.InvalidClimateProfile(
+                _ => throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Unknown weather season for temperature profile.",
                     propertyName: nameof(season))
             };

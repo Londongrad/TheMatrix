@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 
@@ -84,7 +84,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles
                 WeatherSeason.Summer => SummerHumidity,
                 WeatherSeason.Autumn => AutumnHumidity,
                 WeatherSeason.Winter => WinterHumidity,
-                _ => throw DomainErrorsFactory.InvalidClimateProfile(
+                _ => throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Unknown weather season for precipitation profile humidity.",
                     propertyName: nameof(season))
             };
@@ -98,7 +98,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles
                 WeatherSeason.Summer => SummerDominantKind,
                 WeatherSeason.Autumn => AutumnDominantKind,
                 WeatherSeason.Winter => WinterDominantKind,
-                _ => throw DomainErrorsFactory.InvalidClimateProfile(
+                _ => throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Unknown weather season for precipitation profile kind.",
                     propertyName: nameof(season))
             };

@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.CityCore.Domain.Simulation;
@@ -71,7 +71,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
                 propertyName: nameof(PrecipitationKind));
 
             if (expectedUntil.CompareTo(startedAt) <= 0)
-                throw DomainErrorsFactory.InvalidWeatherStateTimeRange(
+                throw ClassicCityDomainErrorsFactory.InvalidWeatherStateTimeRange(
                     startedAt: startedAt,
                     expectedUntil: expectedUntil,
                     propertyName: nameof(ExpectedUntil));
@@ -136,7 +136,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
             };
 
             if (!isValid)
-                throw DomainErrorsFactory.IncoherentWeatherPrecipitation(
+                throw ClassicCityDomainErrorsFactory.IncoherentWeatherPrecipitation(
                     type: type,
                     precipitationKind: precipitationKind,
                     propertyName: nameof(PrecipitationKind));

@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles
@@ -48,7 +48,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Profiles
                                            supportsHeatwaves;
 
             if (maxOverallSeverity == WeatherSeverity.Calm && hasAnyExtremeCapability)
-                throw DomainErrorsFactory.InvalidClimateProfile(
+                throw ClassicCityDomainErrorsFactory.InvalidClimateProfile(
                     reason: "Extreme weather capabilities require a non-calm maximum severity.",
                     propertyName: nameof(maxOverallSeverity));
 

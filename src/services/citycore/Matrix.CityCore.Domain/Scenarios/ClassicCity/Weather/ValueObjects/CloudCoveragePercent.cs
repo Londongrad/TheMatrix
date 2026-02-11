@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Errors;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects
 {
@@ -17,7 +17,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects
                 value: value,
                 min: Min,
                 max: Max,
-                errorFactory: DomainErrorsFactory.CloudCoveragePercentOutOfRange,
+                errorFactory: ClassicCityDomainErrorsFactory.CloudCoveragePercentOutOfRange,
                 propertyName: nameof(Value));
         }
 
