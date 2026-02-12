@@ -2,8 +2,6 @@ import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 
 import CitizensPage from "@services/population/people/pages/CitizensPage";
 import DashboardPage from "@services/citycore/dashboard/pages/DashboardPage";
-import CitiesPage from "@services/citycore/scenarios/classic-city/pages/CitiesPage";
-import CityDetailsPage from "@services/citycore/scenarios/classic-city/pages/CityDetailsPage";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 
 import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage";
@@ -23,6 +21,7 @@ import {RegisterPage} from "@services/identity/self/auth/pages/RegisterPage";
 import {ForgotPasswordPage} from "@services/identity/self/auth/pages/ForgotPasswordPage";
 import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
+import {cityCoreRoutes} from "@app/router/CityCoreRoutes";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 import MainLayout from "./layouts/main/MainLayout";
@@ -50,8 +49,7 @@ const App = () => {
                             }
                         >
                             <Route path="/" element={<DashboardPage/>}/>
-                            <Route path="/cities" element={<CitiesPage/>}/>
-                            <Route path="/cities/:cityId" element={<CityDetailsPage/>}/>
+                            {cityCoreRoutes}
                             <Route
                                 path="/citizens"
                                 element={
