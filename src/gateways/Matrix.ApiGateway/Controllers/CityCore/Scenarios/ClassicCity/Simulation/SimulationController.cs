@@ -5,7 +5,7 @@ using Matrix.CityCore.Contracts.Simulation.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
+namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Simulation
 {
     [Authorize]
     [ApiController]
@@ -53,7 +53,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
         [HttpPost("speed")]
         public async Task<IActionResult> SetClockSpeed(
             [FromRoute] Guid cityId,
-            [FromBody] SetCityClockSpeedRequestDto request,
+            [FromBody] SetSimulationClockSpeedRequestDto request,
             CancellationToken cancellationToken)
         {
             await _simulationClient.SetClockSpeedAsync(
@@ -67,7 +67,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
         [HttpPost("jump")]
         public async Task<IActionResult> JumpClock(
             [FromRoute] Guid cityId,
-            [FromBody] JumpCityClockRequestDto request,
+            [FromBody] JumpSimulationClockRequestDto request,
             CancellationToken cancellationToken)
         {
             await _simulationClient.JumpClockAsync(

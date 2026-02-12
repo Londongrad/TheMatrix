@@ -53,7 +53,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
         [HttpPost("speed")]
         public async Task<IActionResult> SetClockSpeed(
             [FromRoute] Guid simulationId,
-            [FromBody] SetCityClockSpeedRequestDto request,
+            [FromBody] SetSimulationClockSpeedRequestDto request,
             CancellationToken cancellationToken)
         {
             await _simulationClient.SetClockSpeedAsync(
@@ -67,7 +67,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Simulation
         [HttpPost("jump")]
         public async Task<IActionResult> JumpClock(
             [FromRoute] Guid simulationId,
-            [FromBody] JumpCityClockRequestDto request,
+            [FromBody] JumpSimulationClockRequestDto request,
             CancellationToken cancellationToken)
         {
             await _simulationClient.JumpClockAsync(
