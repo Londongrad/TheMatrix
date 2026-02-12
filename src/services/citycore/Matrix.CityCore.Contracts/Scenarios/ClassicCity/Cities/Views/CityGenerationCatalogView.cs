@@ -1,4 +1,4 @@
-namespace Matrix.CityCore.Contracts.Generation.Views
+namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views
 {
     public sealed record CityGenerationCatalogView(
         string[] CityNamePresets,
