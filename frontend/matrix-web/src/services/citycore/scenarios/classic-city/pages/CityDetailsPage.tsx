@@ -4,6 +4,7 @@ import {CityOverviewCard} from "@services/citycore/scenarios/classic-city/compon
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityMutations";
 import {isArchivedCity} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {CLASSIC_CITY_LIST_PATH} from "@services/citycore/scenarios/registry";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/scenarios/classic-city/styles/cities.css";
@@ -50,7 +51,7 @@ const CityDetailsPage = () => {
         const isOk = await cityMutations.delete(cityId);
 
         if (isOk) {
-            navigate("/cities");
+            navigate(CLASSIC_CITY_LIST_PATH);
         }
     }
 

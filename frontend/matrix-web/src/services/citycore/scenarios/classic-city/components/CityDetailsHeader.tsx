@@ -1,4 +1,5 @@
 import {Link} from "react-router-dom";
+import {CLASSIC_CITY_LIST_PATH} from "@services/citycore/scenarios/registry";
 import {
     formatCityShortId,
     formatCityStatusLabel,
@@ -45,7 +46,7 @@ export function CityDetailsHeader({title, cityId, simulationKind, status, archiv
                 </div>
             </div>
 
-            <Link className="city-link" to="/cities">
+            <Link className="city-link" to={CLASSIC_CITY_LIST_PATH}>
                 Back to cities
             </Link>
         </header>

@@ -7,6 +7,7 @@ import {useCitiesQuery} from "@services/citycore/scenarios/classic-city/hooks/us
 import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityMutations";
 import {useSimulationKindsQuery} from "@services/citycore/scenarios/classic-city/hooks/useSimulationKindsQuery";
 import {isArchivedCity} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {getClassicCityDetailsPath} from "@services/citycore/scenarios/registry";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/scenarios/classic-city/styles/cities.css";
 
@@ -70,11 +71,11 @@ export default function CitiesPage() {
     }, [citiesQuery.data, orderedCities.length]);
 
     async function handleCreated(response: { cityId: string }) {
-        navigate(`/cities/${response.cityId}`);
+        navigate(getClassicCityDetailsPath(response.cityId));
     }
 
     function handleOpen(cityId: string) {
-        navigate(`/cities/${cityId}`);
+        navigate(getClassicCityDetailsPath(cityId));
     }
 
     return (
