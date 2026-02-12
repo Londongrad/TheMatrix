@@ -4,7 +4,7 @@ import Card from "@shared/ui/controls/Card/Card";
 import ClockDisplay from "@services/citycore/simulation/components/ClockDisplay";
 import {useSimulationClock} from "@services/citycore/simulation/hooks/useSimulationClock";
 import {useSimulationMutations} from "@services/citycore/simulation/hooks/useSimulationMutations";
-import {localDateTimeToUtcIso} from "@services/citycore/scenarios/classic-city/utils/dateTime";
+import {localDateTimeToUtcIso} from "@services/citycore/simulation/utils/dateTime";
 import "@services/citycore/simulation/styles/simulation-panel.css";
 
 const TICK_INTERVAL_MS = 250;
@@ -185,14 +185,14 @@ const SimulationPanel = ({
     return (
         <Card
             title="Simulation"
-            subtitle={isReadOnly ? "Clock snapshot for an archived city" : "Clock state and controls"}
+            subtitle={isReadOnly ? "Clock snapshot for an archived simulation host" : "Clock state and controls"}
             right={<span
                 className={`sim-panel__mode-badge ${isReadOnly ? "sim-panel__mode-badge--archived" : ""}`}>{modeLabel}</span>}
             className={isReadOnly ? "sim-panel-card sim-panel-card--readonly" : "sim-panel-card"}
         >
             <div className="sim-panel">
                 {simulationQuery.error ? (
-                    <div className="citycore-error-banner" role="alert">
+                    <div className="sim-panel__error" role="alert">
                         <span>{simulationQuery.error}</span>
                         <Button size="sm" onClick={() => void simulationQuery.refetch()}>
                             Retry
@@ -201,7 +201,7 @@ const SimulationPanel = ({
                 ) : null}
 
                 {simulationMutations.error ? (
-                    <div className="citycore-error-banner" role="alert">
+                    <div className="sim-panel__error" role="alert">
                         <span>{simulationMutations.error}</span>
                         <Button size="sm" onClick={() => simulationMutations.clearError()}>
                             Dismiss
@@ -211,9 +211,9 @@ const SimulationPanel = ({
 
                 {isReadOnly ? (
                     <div className="sim-panel__notice" role="status">
-                        <div className="sim-panel__notice-title">Archived city</div>
+                        <div className="sim-panel__notice-title">Archived simulation host</div>
                         <div className="sim-panel__notice-text">
-                            {readOnlyMessage ?? "Simulation mutations are disabled for archived cities."}
+                            {readOnlyMessage ?? "Simulation mutations are disabled for archived hosts."}
                         </div>
                     </div>
                 ) : null}
@@ -303,7 +303,7 @@ const SimulationPanel = ({
                             </form>
 
                             {customSpeedError ? (
-                                <div className="city-inline-error" role="alert">
+                                <div className="sim-panel__inline-error" role="alert">
                                     {customSpeedError}
                                 </div>
                             ) : null}
@@ -334,12 +334,12 @@ const SimulationPanel = ({
                             </form>
 
                             {jumpError ? (
-                                <div className="city-inline-error" role="alert">
+                                <div className="sim-panel__inline-error" role="alert">
                                     {jumpError}
                                 </div>
                             ) : null}
 
-                            <div className="city-details-hint">
+                            <div className="sim-panel__hint">
                                 Jump time uses local browser date/time input and converts it to UTC before sending to
                                 backend.
                             </div>
