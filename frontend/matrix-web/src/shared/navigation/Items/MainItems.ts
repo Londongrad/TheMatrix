@@ -8,7 +8,7 @@ import {PermissionKeys} from "@shared/permissions/permissionKeys";
 export const mainNavItems: NavItem[] = [
     {to: "/", label: "Dashboard", end: true},
     {to: CITYCORE_SCENARIO_CATALOG_PATH, label: "Scenarios"},
-    {to: CLASSIC_CITY_LIST_PATH, label: "Cities"},
+    {to: CLASSIC_CITY_LIST_PATH, label: "Classic City"},
     {
         to: "/citizens",
         label: "Citizens",

@@ -18,8 +18,8 @@ const MainLayout = () => {
             title="The Matrix"
             items={items}
             storageKey="main.sidebar.collapsed"
-            topbarTitle="City control panel"
-            topbarSubtitle="Matrix live operations"
+            topbarTitle="Simulation operations"
+            topbarSubtitle="Scenario workspaces and live runtime control"
         >
             <Outlet/>
         </ShellLayout>

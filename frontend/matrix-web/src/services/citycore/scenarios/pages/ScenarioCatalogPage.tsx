@@ -6,7 +6,7 @@ export default function ScenarioCatalogPage() {
     return (
         <section className="scenario-catalog">
             <header className="scenario-catalog__hero">
-                <div className="scenario-catalog__eyebrow">CityCore</div>
+                <div className="scenario-catalog__eyebrow">Scenario registry</div>
                 <h1 className="scenario-catalog__title">Scenario catalog</h1>
                 <p className="scenario-catalog__subtitle">
                     Choose which simulation workspace to operate. New scenario modules can plug into this catalog
