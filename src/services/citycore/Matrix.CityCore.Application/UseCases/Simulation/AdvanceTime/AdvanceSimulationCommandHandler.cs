@@ -5,11 +5,11 @@ using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceTime
 {
-    public sealed class AdvanceCitySimulationCommandHandler(ISimulationAdvanceExecutor executor)
-        : IRequestHandler<AdvanceCitySimulationCommand, bool>
+    public sealed class AdvanceSimulationCommandHandler(ISimulationAdvanceExecutor executor)
+        : IRequestHandler<AdvanceSimulationCommand, bool>
     {
         public async Task<bool> Handle(
-            AdvanceCitySimulationCommand request,
+            AdvanceSimulationCommand request,
             CancellationToken cancellationToken)
         {
             SimulationAdvanceExecutionResult result = await executor.ExecuteAsync(
