@@ -9,7 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Matrix.CityCore.Api.Controllers
+namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity.Simulation
 {
     [ApiController]
     [Authorize]

@@ -15,7 +15,6 @@ using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCi
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather;
-using Matrix.CityCore.Contracts.Generation.Views;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Topology.Views;
