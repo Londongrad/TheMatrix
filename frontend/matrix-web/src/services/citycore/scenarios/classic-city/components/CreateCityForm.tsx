@@ -8,7 +8,7 @@ import type {
 import {
     getNowLocalDateTimeInputValue,
     localDateTimeToUtcIso
-} from "@services/citycore/scenarios/classic-city/utils/dateTime";
+} from "@services/citycore/simulation/utils/dateTime";
 
 type ValidationErrors = {
     name?: string;
