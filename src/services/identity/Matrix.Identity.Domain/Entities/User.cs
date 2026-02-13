@@ -120,17 +120,22 @@ namespace Matrix.Identity.Domain.Entities
         ///     и, по-хорошему, захэширован.
         /// </summary>
         public RefreshToken IssueRefreshToken(
+            Guid sessionId,
             string tokenHash,
             DateTime expiresAtUtc,
             DeviceInfo deviceInfo,
             GeoLocation? geoLocation,
             bool isPersistent)
         {
+            if (sessionId == Guid.Empty)
+                throw DomainErrorsFactory.EmptyId(nameof(sessionId));
+
             if (string.IsNullOrWhiteSpace(tokenHash))
                 throw DomainErrorsFactory.RefreshTokenNotFound(nameof(tokenHash));
 
             var refreshToken = RefreshToken.Create(
                 userId: Id,
+                sessionId: sessionId,
                 tokenHash: tokenHash,
                 expiresAtUtc: expiresAtUtc,
                 deviceInfo: deviceInfo,
@@ -190,6 +195,37 @@ namespace Matrix.Identity.Domain.Entities
                         a: token.DeviceInfo.DeviceId,
                         b: deviceId,
                         comparisonType: StringComparison.Ordinal))
+                    continue;
+
+                if (token.Revoke(
+                        reason: reason,
+                        revokedAtUtc: revokedAtUtc))
+                    revokedCount++;
+            }
+
+            return revokedCount;
+        }
+
+        public int RevokeActiveRefreshTokensBySession(
+            Guid sessionId,
+            RefreshTokenRevocationReason reason,
+            Guid? excludedRefreshTokenId = null,
+            DateTime? revokedAtUtc = null)
+        {
+            if (sessionId == Guid.Empty)
+                throw DomainErrorsFactory.EmptyId(nameof(sessionId));
+
+            int revokedCount = 0;
+
+            foreach (RefreshToken token in _refreshTokens)
+            {
+                if (!token.IsActive())
+                    continue;
+
+                if (excludedRefreshTokenId.HasValue && token.Id == excludedRefreshTokenId.Value)
+                    continue;
+
+                if (token.SessionId != sessionId)
                     continue;
 
                 if (token.Revoke(

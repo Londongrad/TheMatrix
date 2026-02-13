@@ -10,6 +10,7 @@ namespace Matrix.Identity.Domain.Entities
 
         public static RefreshToken Create(
             Guid userId,
+            Guid sessionId,
             string tokenHash,
             DateTime expiresAtUtc,
             DeviceInfo deviceInfo,
@@ -20,6 +21,7 @@ namespace Matrix.Identity.Domain.Entities
 
             return new RefreshToken(
                 userId: userId,
+                sessionId: sessionId,
                 tokenHash: tokenHash,
                 expiresAtUtc: expiresAtUtc,
                 deviceInfo: deviceInfo,
@@ -33,6 +35,7 @@ namespace Matrix.Identity.Domain.Entities
 
         public Guid Id { get; private set; }
         public Guid UserId { get; private set; }
+        public Guid SessionId { get; private set; }
         public string TokenHash { get; private set; } = null!;
         public DateTime CreatedAtUtc { get; private set; }
         public DateTime ExpiresAtUtc { get; }
@@ -54,6 +57,7 @@ namespace Matrix.Identity.Domain.Entities
 
         private RefreshToken(
             Guid userId,
+            Guid sessionId,
             string tokenHash,
             DateTime expiresAtUtc,
             DeviceInfo deviceInfo,
@@ -62,6 +66,7 @@ namespace Matrix.Identity.Domain.Entities
         {
             Id = Guid.NewGuid();
             UserId = userId;
+            SessionId = sessionId;
 
             TokenHash = tokenHash;
             CreatedAtUtc = DateTime.UtcNow;
