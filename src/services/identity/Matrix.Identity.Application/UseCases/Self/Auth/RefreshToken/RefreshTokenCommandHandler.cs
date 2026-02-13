@@ -95,6 +95,11 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                 userAgent: request.UserAgent,
                 ipAddress: request.IpAddress);
 
+            user.RevokeActiveRefreshTokensByDevice(
+                deviceId: currentDeviceInfo.DeviceId,
+                reason: RefreshTokenRevocationReason.SessionReplaced,
+                excludedRefreshTokenId: currentToken.Id);
+
             user.IssueRefreshToken(
                 tokenHash: newDescriptor.TokenHash,
                 expiresAtUtc: newDescriptor.ExpiresAtUtc,

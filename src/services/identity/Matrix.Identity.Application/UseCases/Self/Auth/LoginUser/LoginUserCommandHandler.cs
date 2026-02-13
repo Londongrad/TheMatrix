@@ -89,6 +89,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     cancellationToken: cancellationToken);
 
             // 6) Выпускаем refresh-токен, уже привязанный к устройству + локации
+            user.RevokeActiveRefreshTokensByDevice(
+                deviceId: deviceInfo.DeviceId,
+                reason: Domain.Enums.RefreshTokenRevocationReason.SessionReplaced);
+
             user.IssueRefreshToken(
                 tokenHash: refreshDescriptor.TokenHash,
                 expiresAtUtc: refreshDescriptor.ExpiresAtUtc,
