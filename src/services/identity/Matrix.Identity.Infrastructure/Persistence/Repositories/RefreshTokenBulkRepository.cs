@@ -76,5 +76,49 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                .Where(t => t.IsRevoked && t.ExpiresAtUtc <= utcNow)
                .ExecuteDeleteAsync(cancellationToken);
         }
+
+        public Task<int> DeleteExpiredBatchAsync(
+            DateTime expiredBeforeUtc,
+            int batchSize,
+            CancellationToken cancellationToken)
+        {
+            return _db.Database.ExecuteSqlInterpolatedAsync(
+                sql: $"""
+                      WITH cte AS (
+                          SELECT "Id"
+                          FROM "UserRefreshTokens"
+                          WHERE "ExpiresAtUtc" <= {expiredBeforeUtc}
+                          ORDER BY "ExpiresAtUtc"
+                          LIMIT {batchSize}
+                      )
+                      DELETE FROM "UserRefreshTokens" t
+                      USING cte
+                      WHERE t."Id" = cte."Id"
+                      """,
+                cancellationToken: cancellationToken);
+        }
+
+        public Task<int> DeleteRevokedBatchAsync(
+            DateTime revokedBeforeUtc,
+            int batchSize,
+            CancellationToken cancellationToken)
+        {
+            return _db.Database.ExecuteSqlInterpolatedAsync(
+                sql: $"""
+                      WITH cte AS (
+                          SELECT "Id"
+                          FROM "UserRefreshTokens"
+                          WHERE "IsRevoked" = TRUE
+                            AND "RevokedAtUtc" IS NOT NULL
+                            AND "RevokedAtUtc" <= {revokedBeforeUtc}
+                          ORDER BY "RevokedAtUtc"
+                          LIMIT {batchSize}
+                      )
+                      DELETE FROM "UserRefreshTokens" t
+                      USING cte
+                      WHERE t."Id" = cte."Id"
+                      """,
+                cancellationToken: cancellationToken);
+        }
     }
 }

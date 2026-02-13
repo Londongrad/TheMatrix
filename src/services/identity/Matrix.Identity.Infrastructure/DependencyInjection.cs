@@ -21,11 +21,13 @@ using Matrix.Identity.Infrastructure.Persistence.Seed;
 using Matrix.Identity.Infrastructure.Security.PasswordHashing;
 using Matrix.Identity.Infrastructure.Security.Processor;
 using Matrix.Identity.Infrastructure.Security.Tokens;
+using Matrix.Identity.Infrastructure.Security.Tokens.Cleanup;
 using Matrix.Identity.Infrastructure.Storage;
 using Matrix.Identity.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.Identity.Infrastructure
@@ -109,6 +111,28 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IAccessTokenService, ExternalJwtAccessTokenService>();
             services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
             services.AddScoped<IOneTimeTokenService, OneTimeTokenService>();
+            services.AddOptions<RefreshTokenCleanupOptions>()
+               .Bind(configuration.GetSection(RefreshTokenCleanupOptions.SectionName))
+               .Validate(
+                    validation: o => o.PollIntervalSeconds > 0,
+                    failureMessage:
+                    $"{RefreshTokenCleanupOptions.SectionName}:PollIntervalSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.BatchSize > 0,
+                    failureMessage:
+                    $"{RefreshTokenCleanupOptions.SectionName}:BatchSize must be greater than 0.")
+               .Validate(
+                    validation: o => o.RevokedRetentionHours >= 0,
+                    failureMessage:
+                    $"{RefreshTokenCleanupOptions.SectionName}:RevokedRetentionHours must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.ExpiredRetentionHours >= 0,
+                    failureMessage:
+                    $"{RefreshTokenCleanupOptions.SectionName}:ExpiredRetentionHours must be greater than or equal to 0.")
+               .ValidateOnStart();
+            services.TryAddSingleton(TimeProvider.System);
+            services.AddScoped<RefreshTokenCleaner>();
+            services.AddHostedService<RefreshTokenCleanupHostedService>();
 
             // Security state change processing
             services.AddScoped<ISecurityStateChangeProcessor, SecurityStateChangeProcessor>();
