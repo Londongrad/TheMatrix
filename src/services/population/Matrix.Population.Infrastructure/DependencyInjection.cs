@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Infrastructure.Messaging;
 using Matrix.Population.Infrastructure.Persistence;
@@ -9,6 +10,7 @@ using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.Population.Infrastructure
@@ -38,12 +40,19 @@ namespace Matrix.Population.Infrastructure
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
 
+            services.AddOptions<ProcessedIntegrationMessageCleanupOptions>()
+               .Bind(configuration.GetSection(ProcessedIntegrationMessageCleanupOptions.SectionName));
+
+            services.TryAddSingleton(TimeProvider.System);
+
             services.AddScoped<IPersonReadRepository, PersonReadRepository>();
             services.AddScoped<IPersonWriteRepository, PersonWriteRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
+            services.AddScoped<ProcessedIntegrationMessageCleaner>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddPermissionCheckingFromClaims();
+            services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
 
             services.AddMassTransit(x =>
             {
