@@ -22,5 +22,15 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
         Task<int> DeleteRevokedAndExpiredAsync(
             DateTime utcNow,
             CancellationToken cancellationToken);
+
+        Task<int> DeleteExpiredBatchAsync(
+            DateTime expiredBeforeUtc,
+            int batchSize,
+            CancellationToken cancellationToken);
+
+        Task<int> DeleteRevokedBatchAsync(
+            DateTime revokedBeforeUtc,
+            int batchSize,
+            CancellationToken cancellationToken);
     }
 }
