@@ -167,6 +167,40 @@ namespace Matrix.Identity.Domain.Entities
                         revokedAtUtc: revokedAtUtc);
         }
 
+        public int RevokeActiveRefreshTokensByDevice(
+            string deviceId,
+            RefreshTokenRevocationReason reason,
+            Guid? excludedRefreshTokenId = null,
+            DateTime? revokedAtUtc = null)
+        {
+            if (string.IsNullOrWhiteSpace(deviceId))
+                throw DomainErrorsFactory.InvalidDeviceId(nameof(deviceId));
+
+            int revokedCount = 0;
+
+            foreach (RefreshToken token in _refreshTokens)
+            {
+                if (!token.IsActive())
+                    continue;
+
+                if (excludedRefreshTokenId.HasValue && token.Id == excludedRefreshTokenId.Value)
+                    continue;
+
+                if (!string.Equals(
+                        a: token.DeviceInfo.DeviceId,
+                        b: deviceId,
+                        comparisonType: StringComparison.Ordinal))
+                    continue;
+
+                if (token.Revoke(
+                        reason: reason,
+                        revokedAtUtc: revokedAtUtc))
+                    revokedCount++;
+            }
+
+            return revokedCount;
+        }
+
         public void BumpPermissionsVersion()
         {
             PermissionsVersion++;
