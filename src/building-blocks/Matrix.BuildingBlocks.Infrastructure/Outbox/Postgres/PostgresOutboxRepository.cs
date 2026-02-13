@@ -124,6 +124,28 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
                 cancellationToken: cancellationToken);
         }
 
+        public Task<int> DeleteProcessedBatchAsync(
+            DateTime processedBeforeUtc,
+            int batchSize,
+            CancellationToken cancellationToken)
+        {
+            return dbContext.Database.ExecuteSqlInterpolatedAsync(
+                sql: $"""
+                      WITH cte AS (
+                          SELECT "Id"
+                          FROM "OutboxMessages"
+                          WHERE "ProcessedOnUtc" IS NOT NULL
+                            AND "ProcessedOnUtc" <= {processedBeforeUtc}
+                          ORDER BY "ProcessedOnUtc"
+                          LIMIT {batchSize}
+                      )
+                      DELETE FROM "OutboxMessages" o
+                      USING cte
+                      WHERE o."Id" = cte."Id"
+                      """,
+                cancellationToken: cancellationToken);
+        }
+
         private DbCommand CreateCommand(string sql)
         {
             DbCommand cmd = dbContext.Database.GetDbConnection()

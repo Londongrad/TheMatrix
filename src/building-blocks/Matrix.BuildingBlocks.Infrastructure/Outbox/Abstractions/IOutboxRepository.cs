@@ -21,5 +21,10 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions
             string error,
             DateTime nextAttemptOnUtc,
             CancellationToken cancellationToken);
+
+        Task<int> DeleteProcessedBatchAsync(
+            DateTime processedBeforeUtc,
+            int batchSize,
+            CancellationToken cancellationToken);
     }
 }
