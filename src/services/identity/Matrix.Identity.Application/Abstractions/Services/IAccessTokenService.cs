@@ -6,6 +6,7 @@ namespace Matrix.Identity.Application.Abstractions.Services
     {
         AccessTokenModel Generate(
             Guid userId,
-            int permissionsVersion);
+            int permissionsVersion,
+            Guid sessionId);
     }
 }

@@ -59,14 +59,6 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             if (!user.CanLogin())
                 throw ApplicationErrorsFactory.UserBlocked();
 
-            AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
-                userId: user.Id,
-                cancellationToken: cancellationToken);
-
-            AccessTokenModel accessTokenModel = accessTokenService.Generate(
-                userId: user.Id,
-                permissionsVersion: ctx.PermissionsVersion);
-
             RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);
 
             var deviceInfo = DeviceInfo.Create(
@@ -131,6 +123,15 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                 deviceInfo: deviceInfo,
                 geoLocation: geoLocation,
                 isPersistent: request.RememberMe);
+
+            AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
+                userId: user.Id,
+                cancellationToken: cancellationToken);
+
+            AccessTokenModel accessTokenModel = accessTokenService.Generate(
+                userId: user.Id,
+                permissionsVersion: ctx.PermissionsVersion,
+                sessionId: session.Id);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 

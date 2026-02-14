@@ -130,7 +130,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
 
             AccessTokenModel accessModel = accessTokenService.Generate(
                 userId: user.Id,
-                permissionsVersion: ctx.PermissionsVersion);
+                permissionsVersion: ctx.PermissionsVersion,
+                sessionId: session.Id);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
