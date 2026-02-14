@@ -11,7 +11,7 @@ const UserSettingsSessionsPage = () => {
     return (
         <UserSettingsSection
             title="Sessions"
-            subtitle="Track and revoke active devices connected to your Matrix identity."
+            subtitle="Review signed-in devices, spot the current session, and revoke the ones you no longer need."
         >
             <UserSettingsSessionsCard
                 token={token}

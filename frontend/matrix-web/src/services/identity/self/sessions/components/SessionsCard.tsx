@@ -1,8 +1,7 @@
-// src/services/identity/self/sessions/components/SessionsCard.tsx
 import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes";
-import {useSessions} from "../hooks/useSessions";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {useSessions} from "../hooks/useSessions";
 import "@services/identity/self/sessions/styles/sessions-card.css";
 
 type Props = {
@@ -27,16 +26,26 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         isCurrentSession,
     } = useSessions({token, logout, confirm});
 
-    const buildLocation = (s: SessionInfo) => {
-        if (s.location) return s.location;
-        const parts = [s.city, s.region, s.country].filter(Boolean) as string[];
+    const buildLocation = (session: SessionInfo) => {
+        if (session.location) return session.location;
+
+        const parts = [session.city, session.region, session.country].filter(Boolean) as string[];
         return parts.length ? parts.join(", ") : "";
     };
 
     const fmtUtc = (value?: string | null) => {
         if (!value) return "";
-        const d = new Date(value);
-        return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+    };
+
+    const getSessionStatus = (session: SessionInfo) => {
+        if (isCurrentSession(session) && session.isActive) {
+            return "Current";
+        }
+
+        return session.isActive ? "Active" : "Ended";
     };
 
     return (
@@ -45,7 +54,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                 <div>
                     <h2 className="settings-card-title">Sessions</h2>
                     <p className="settings-card-description">
-                        Manage active sessions across devices.
+                        Review every signed-in device and revoke the ones you no longer trust.
                     </p>
                 </div>
 
@@ -69,7 +78,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                     <button
                         type="button"
                         className="settings-button settings-button--secondary"
-                        onClick={() => setIsSessionsOpen((v) => !v)}
+                        onClick={() => setIsSessionsOpen((value) => !value)}
                         disabled={!token}
                     >
                         {isSessionsOpen ? "Hide sessions" : "Show sessions"}
@@ -89,8 +98,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                         </div>
                     ) : (
                         <p className="settings-muted">
-                            Sessions are hidden. Click <b>Show sessions</b> to load and
-                            manage.
+                            Sessions are hidden. Click <b>Show sessions</b> to load and manage them.
                         </p>
                     )}
                 </div>
@@ -116,47 +124,65 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                         <p className="settings-muted">No sessions found.</p>
                     ) : (
                         <div className="settings-session-list">
-                            {sortedSessions.map((s) => {
-                                const location = buildLocation(s);
+                            {sortedSessions.map((session) => {
+                                const location = buildLocation(session);
+                                const current = isCurrentSession(session);
 
                                 return (
                                     <div
-                                        key={s.id}
+                                        key={session.id}
                                         className={`settings-session-item ${
-                                            isCurrentSession(s)
-                                                ? "settings-session-item--current"
-                                                : ""
+                                            current ? "settings-session-item--current" : ""
                                         }`}
                                     >
                                         <div className="settings-session-main">
                                             <div className="settings-session-title">
-                        <span className="settings-session-device">
-                          {s.deviceName}
-                        </span>
-                                                {isCurrentSession(s) && (
+                                                <span className="settings-session-device">
+                                                    {session.deviceName}
+                                                </span>
+
+                                                {current ? (
                                                     <span className="settings-pill">Current</span>
+                                                ) : (
+                                                    <span className="settings-session-status">
+                                                        {getSessionStatus(session)}
+                                                    </span>
                                                 )}
                                             </div>
 
                                             <div className="settings-session-meta">
-                                                {s.ipAddress && (
+                                                {session.ipAddress && (
                                                     <span className="settings-session-chip">
-                            IP: {s.ipAddress}
-                          </span>
+                                                        IP: {session.ipAddress}
+                                                    </span>
                                                 )}
+
                                                 {location && (
                                                     <span className="settings-session-chip">
-                            {location}
-                          </span>
+                                                        {location}
+                                                    </span>
                                                 )}
+
                                                 <span className="settings-session-chip">
-                          {s.lastUsedAtUtc
-                              ? `Last used: ${fmtUtc(s.lastUsedAtUtc)}`
-                              : `Created: ${fmtUtc(s.createdAtUtc)}`}
-                        </span>
+                                                    {session.lastUsedAtUtc
+                                                        ? `Last used: ${fmtUtc(session.lastUsedAtUtc)}`
+                                                        : `Created: ${fmtUtc(session.createdAtUtc)}`}
+                                                </span>
+
+                                                {!session.isActive && (
+                                                    <span className="settings-session-chip">
+                                                        Session ended
+                                                    </span>
+                                                )}
                                             </div>
 
-                                            <div className="settings-session-ua">{s.userAgent}</div>
+                                            {current && (
+                                                <div className="settings-session-current-note">
+                                                    You are using this session right now.
+                                                </div>
+                                            )}
+
+                                            <div className="settings-session-ua">{session.userAgent}</div>
                                         </div>
 
                                         <div className="settings-session-actions">
@@ -167,12 +193,16 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                                 <button
                                                     type="button"
                                                     className="settings-button settings-button--ghost-danger"
-                                                    onClick={() => void revokeOne(s)}
-                                                    disabled={revokingSessionId === s.id || isRevokingAll}
+                                                    onClick={() => void revokeOne(session)}
+                                                    disabled={
+                                                        revokingSessionId === session.id || isRevokingAll
+                                                    }
                                                 >
-                                                    {revokingSessionId === s.id
+                                                    {revokingSessionId === session.id
                                                         ? "Revoking..."
-                                                        : "Отозвать"}
+                                                        : current
+                                                            ? "Log out"
+                                                            : "Revoke"}
                                                 </button>
                                             </RequirePermission>
                                         </div>
@@ -193,9 +223,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                 onClick={() => void revokeAll()}
                                 disabled={!token || isRevokingAll || isLoadingSessions}
                             >
-                                {isRevokingAll
-                                    ? "Revoking..."
-                                    : "Отозвать все (включая текущую)"}
+                                {isRevokingAll ? "Revoking..." : "Revoke all sessions"}
                             </button>
                         </RequirePermission>
                     </div>

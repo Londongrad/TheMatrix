@@ -1,7 +1,6 @@
-// src/services/identity/self/sessions/hooks/useSessions.ts
 import {useEffect, useMemo, useState} from "react";
 import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes.ts";
-import {getSessions, revokeAllSessions, revokeSession,} from "@services/identity/api/self/sessions/sessionsApi";
+import {getSessions, revokeAllSessions, revokeSession} from "@services/identity/api/self/sessions/sessionsApi";
 import {getOrCreateDeviceId} from "@services/identity/api/self/auth/deviceInfo";
 
 type ConfirmFn = (options: any) => Promise<boolean>;
@@ -19,9 +18,7 @@ export function useSessions(options: {
     const [sessions, setSessions] = useState<SessionInfo[]>([]);
     const [sessionsError, setSessionsError] = useState<string | null>(null);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
-    const [revokingSessionId, setRevokingSessionId] = useState<string | null>(
-        null
-    );
+    const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
     const [isRevokingAll, setIsRevokingAll] = useState(false);
 
     const safeConfirm = async (cfg: any): Promise<boolean> => {
@@ -44,6 +41,7 @@ export function useSessions(options: {
         try {
             setIsLoadingSessions(true);
             setSessionsError(null);
+
             const list = await getSessions();
             setSessions(list ?? []);
         } catch (err: any) {
@@ -54,7 +52,6 @@ export function useSessions(options: {
         }
     };
 
-    // Ленивая загрузка: грузим, когда открыли блок (и есть токен)
     useEffect(() => {
         if (isSessionsOpen) {
             void loadSessions();
@@ -63,8 +60,15 @@ export function useSessions(options: {
     }, [isSessionsOpen, token]);
 
     const currentSessionId = useMemo(() => {
+        const currentByServer = sessions.find((s) => s.isCurrent);
+        if (currentByServer) {
+            return currentByServer.id;
+        }
+
         const sameDevice = sessions.filter((s) => s.deviceId === currentDeviceId);
-        if (sameDevice.length === 0) return null;
+        if (sameDevice.length === 0) {
+            return null;
+        }
 
         sameDevice.sort((a, b) => {
             const at = new Date(a.lastUsedAtUtc ?? a.createdAtUtc).getTime();
@@ -75,8 +79,8 @@ export function useSessions(options: {
         return sameDevice[0].id;
     }, [sessions, currentDeviceId]);
 
-    const isCurrentSession = (s: SessionInfo) =>
-        currentSessionId !== null && s.id === currentSessionId;
+    const isCurrentSession = (session: SessionInfo) =>
+        session.isCurrent || (currentSessionId !== null && session.id === currentSessionId);
 
     const sortedSessions = useMemo(() => {
         const copy = [...sessions];
@@ -84,8 +88,12 @@ export function useSessions(options: {
         copy.sort((a, b) => {
             const ac = isCurrentSession(a);
             const bc = isCurrentSession(b);
+
             if (ac && !bc) return -1;
             if (!ac && bc) return 1;
+
+            if (a.isActive && !b.isActive) return -1;
+            if (!a.isActive && b.isActive) return 1;
 
             const at = new Date(a.lastUsedAtUtc ?? a.createdAtUtc).getTime();
             const bt = new Date(b.lastUsedAtUtc ?? b.createdAtUtc).getTime();
@@ -105,31 +113,33 @@ export function useSessions(options: {
         }
     };
 
-    const revokeOne = async (s: SessionInfo) => {
+    const revokeOne = async (session: SessionInfo) => {
         if (!token) {
             setSessionsError("You are not authenticated.");
             return;
         }
 
         const confirmed = await safeConfirm({
-            title: "Отозвать сессию",
-            description: isCurrentSession(s)
-                ? "Это текущая сессия. После отзыва ты будешь разлогинен на этом устройстве."
-                : "Устройство будет разлогинено и должно будет войти снова.",
-            confirmText: "Отозвать",
-            cancelText: "Отмена",
+            title: isCurrentSession(session)
+                ? "Log out from this session"
+                : "Revoke session",
+            description: isCurrentSession(session)
+                ? "This is your current session. Revoking it will immediately log you out on this device."
+                : "This device will be signed out and will need to log in again.",
+            confirmText: isCurrentSession(session) ? "Log out" : "Revoke",
+            cancelText: "Cancel",
             tone: "danger",
         });
 
         if (!confirmed) return;
 
         try {
-            setRevokingSessionId(s.id);
+            setRevokingSessionId(session.id);
             setSessionsError(null);
 
-            await revokeSession(s.id);
+            await revokeSession(session.id);
 
-            if (isCurrentSession(s)) {
+            if (isCurrentSession(session)) {
                 await doLogoutAndRedirect();
                 return;
             }
@@ -150,11 +160,11 @@ export function useSessions(options: {
         }
 
         const confirmed = await safeConfirm({
-            title: "Отозвать все сессии",
+            title: "Revoke all sessions",
             description:
-                "Будут отозваны ВСЕ сессии, включая текущую. Ты будешь разлогинен на этом устройстве.",
-            confirmText: "Отозвать все",
-            cancelText: "Отмена",
+                "Every session will be revoked, including the current one. You will be signed out on this device too.",
+            confirmText: "Revoke all",
+            cancelText: "Cancel",
             tone: "danger",
         });
 
@@ -165,7 +175,6 @@ export function useSessions(options: {
             setSessionsError(null);
 
             await revokeAllSessions();
-
             await doLogoutAndRedirect();
         } catch (err: any) {
             console.error(err);

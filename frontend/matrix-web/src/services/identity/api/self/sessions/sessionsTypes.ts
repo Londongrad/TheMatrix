@@ -14,6 +14,7 @@ export interface SessionInfo {
     lastUsedAtUtc?: string | null;
 
     isActive: boolean;
+    isCurrent: boolean;
 
     location?: string | null;
 }
