@@ -9,6 +9,7 @@ namespace Matrix.Identity.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<User> Users => Set<User>();
+        public DbSet<UserSession> UserSessions => Set<UserSession>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<OneTimeToken> OneTimeTokens => Set<OneTimeToken>();
 

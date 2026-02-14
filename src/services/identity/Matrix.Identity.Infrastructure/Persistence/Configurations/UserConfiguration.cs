@@ -77,6 +77,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                     token.Property(t => t.Id)
                        .ValueGeneratedNever();
 
+                    token.Property(t => t.SessionId)
+                       .IsRequired();
+
                     token.Property(t => t.TokenHash)
                        .HasMaxLength(512)
                        .IsRequired();
@@ -110,6 +113,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                         t.UserId,
                         t.IsRevoked
                     });
+                    token.HasIndex(t => t.SessionId);
                     token.HasIndex(t => new
                     {
                         t.UserId,
