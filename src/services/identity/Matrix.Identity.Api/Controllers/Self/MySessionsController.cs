@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession;
@@ -19,6 +21,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         public async Task<ActionResult<List<SessionResponse>>> GetSessions(CancellationToken cancellationToken)
         {
             var query = new GetMySessionsQuery();
+            Guid? currentSessionId = TryGetCurrentSessionId(User);
 
             IReadOnlyCollection<MySessionResult> sessions =
                 await _sender.Send(
@@ -38,7 +41,8 @@ namespace Matrix.Identity.Api.Controllers.Self
                     City = s.City,
                     CreatedAtUtc = s.CreatedAtUtc,
                     LastUsedAtUtc = s.LastUsedAtUtc,
-                    IsActive = s.IsActive
+                    IsActive = s.IsActive,
+                    IsCurrent = currentSessionId.HasValue && s.Id == currentSessionId.Value
                 })
                .ToList();
 
@@ -71,6 +75,17 @@ namespace Matrix.Identity.Api.Controllers.Self
 
             // Idempotent: даже если все токены уже были отозваны, просто возвращаем 204
             return NoContent();
+        }
+
+        private static Guid? TryGetCurrentSessionId(ClaimsPrincipal? user)
+        {
+            string? sessionId = user?.FindFirstValue(JwtClaimNames.SessionId) ?? user?.FindFirstValue(ClaimTypes.Sid);
+
+            return Guid.TryParse(
+                input: sessionId,
+                result: out Guid parsedSessionId)
+                ? parsedSessionId
+                : null;
         }
     }
 }
