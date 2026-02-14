@@ -16,7 +16,8 @@ namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
 
         public AccessTokenModel Generate(
             Guid userId,
-            int permissionsVersion)
+            int permissionsVersion,
+            Guid sessionId)
         {
             var claims = new List<Claim>
             {
@@ -29,7 +30,10 @@ namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
                        .ToString()),
                 new(
                     type: JwtClaimNames.PermissionsVersion,
-                    value: permissionsVersion.ToString(CultureInfo.InvariantCulture))
+                    value: permissionsVersion.ToString(CultureInfo.InvariantCulture)),
+                new(
+                    type: JwtClaimNames.SessionId,
+                    value: sessionId.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
