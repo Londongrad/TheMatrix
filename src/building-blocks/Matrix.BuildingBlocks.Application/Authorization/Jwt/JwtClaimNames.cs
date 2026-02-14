@@ -4,5 +4,6 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
     {
         public const string PermissionsVersion = "pv";
         public const string Permission = "perm";
+        public const string SessionId = "sid";
     }
 }
