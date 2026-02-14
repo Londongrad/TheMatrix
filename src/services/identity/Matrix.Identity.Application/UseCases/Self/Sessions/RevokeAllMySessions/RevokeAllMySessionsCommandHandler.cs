@@ -10,6 +10,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
 {
     public sealed class RevokeAllMySessionsCommandHandler(
         IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserContext currentUser)
         : IRequestHandler<RevokeAllMySessionsCommand>
@@ -24,6 +25,14 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
                             userId: userId,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);
+
+            IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
+
+            foreach (UserSession session in sessions)
+                if (session.IsActive())
+                    session.Revoke(RefreshTokenRevocationReason.UserRevoked);
 
             user.RevokeAllRefreshTokens(RefreshTokenRevocationReason.UserRevoked);
 

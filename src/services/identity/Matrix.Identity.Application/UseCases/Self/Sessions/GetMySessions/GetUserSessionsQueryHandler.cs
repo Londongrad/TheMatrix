@@ -9,6 +9,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
 {
     public sealed class GetUserSessionsQueryHandler(
         IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository,
         ICurrentUserContext currentUser)
         : IRequestHandler<GetMySessionsQuery, IReadOnlyCollection<MySessionResult>>
     {
@@ -18,14 +19,19 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
         {
             Guid userId = currentUser.GetUserIdOrThrow();
 
-            User user = await userRepository.GetByIdWithRefreshTokensAsync(
-                            userId: userId,
-                            cancellationToken: cancellationToken) ??
-                        throw ApplicationErrorsFactory.UserNotFound(userId);
+            bool userExists = await userRepository.ExistsAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
 
-            MySessionResult[] sessions = user.RefreshTokens
-               .Where(s => s.IsActive())
-               .OrderByDescending(t => t.CreatedAtUtc)
+            if (!userExists)
+                throw ApplicationErrorsFactory.UserNotFound(userId);
+
+            IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
+
+            return sessions
+               .OrderByDescending(t => t.LastUsedAtUtc ?? t.CreatedAtUtc)
                .Select(t => new MySessionResult
                 {
                     Id = t.Id,
@@ -41,8 +47,6 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
                     IsActive = t.IsActive()
                 })
                .ToArray();
-
-            return sessions;
         }
     }
 }

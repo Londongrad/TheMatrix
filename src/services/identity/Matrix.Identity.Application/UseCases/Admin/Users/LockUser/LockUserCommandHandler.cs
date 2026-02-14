@@ -11,6 +11,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
 {
     public sealed class LockUserCommandHandler(
         IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository,
         IAdminUserGuard adminUserGuard,
         ISecurityStateChangeCollector securityStateChangeCollector,
         IUnitOfWork unitOfWork)
@@ -38,6 +39,16 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
                     user.RevokeAllRefreshTokens(
                         reason: RefreshTokenRevocationReason.UserLocked,
                         revokedAtUtc: DateTime.UtcNow);
+
+                    IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
+                        userId: user.Id,
+                        cancellationToken: token);
+
+                    foreach (UserSession session in sessions)
+                        if (session.IsActive())
+                            session.Revoke(
+                                reason: RefreshTokenRevocationReason.UserLocked,
+                                revokedAtUtc: DateTime.UtcNow);
 
                     if (!wasLocked)
                         securityStateChangeCollector.MarkUserChanged(user.Id);

@@ -14,6 +14,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
 {
     public sealed class RefreshTokenCommandHandler(
         IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository,
         IAccessTokenService accessTokenService,
         IRefreshTokenProvider refreshTokenProvider,
         IGeoLocationService geoLocationService,
@@ -25,24 +26,27 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
             RefreshTokenCommand request,
             CancellationToken cancellationToken)
         {
-            // 1) Хэш текущего refresh
             string hash = refreshTokenProvider.ComputeHash(request.RefreshToken);
 
-            // 2) Находим пользователя с этим токеном
             User user = await userRepository.GetByRefreshTokenHashAsync(
                             tokenHash: hash,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            // 3) Находим КОНКРЕТНЫЙ токен
             DomainRefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash) ??
                                               throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            // 4) Проверяем активность
             if (!currentToken.IsActive())
                 throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            // 5) Проверяем, что DeviceId совпадает
+            UserSession session = await userSessionRepository.GetByIdAsync(
+                                      sessionId: currentToken.SessionId,
+                                      cancellationToken: cancellationToken) ??
+                                  throw ApplicationErrorsFactory.InvalidRefreshToken();
+
+            if (!session.IsActive())
+                throw ApplicationErrorsFactory.InvalidRefreshToken();
+
             DeviceInfo currentDeviceInfo = currentToken.DeviceInfo;
 
             if (!string.Equals(
@@ -54,65 +58,76 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                     reason: RefreshTokenRevocationReason.SecurityEvent,
                     revokedAtUtc: DateTime.UtcNow);
 
+                session.Revoke(
+                    reason: RefreshTokenRevocationReason.SecurityEvent,
+                    revokedAtUtc: DateTime.UtcNow);
+
                 await unitOfWork.SaveChangesAsync(cancellationToken);
 
                 throw ApplicationErrorsFactory.InvalidRefreshToken();
             }
 
-            // 6) Собираем обновлённый DeviceInfo ДЛЯ ТЕКУЩЕГО токена
             var updatedDeviceInfoForCurrent = DeviceInfo.Create(
                 deviceId: currentDeviceInfo.DeviceId,
                 deviceName: currentDeviceInfo.DeviceName,
                 userAgent: request.UserAgent,
                 ipAddress: request.IpAddress);
 
-            // 7) Опционально геолокация
             GeoLocation? geoLocation = null;
             if (!string.IsNullOrWhiteSpace(request.IpAddress))
                 geoLocation = await geoLocationService.ResolveAsync(
                     ipAddress: request.IpAddress!,
                     cancellationToken: cancellationToken);
 
-            // 8) Обновляем "последнее использование" старого токена
             currentToken.Touch(
                 deviceInfo: updatedDeviceInfoForCurrent,
                 geoLocation: geoLocation);
 
-            // 9) Ревокаем старый токен
             currentToken.Revoke(
                 reason: RefreshTokenRevocationReason.SessionReplaced,
                 revokedAtUtc: DateTime.UtcNow);
 
-            // 10) Генерим новый refresh + DeviceInfo ДЛЯ НОВОГО токена
             RefreshTokenDescriptor newDescriptor = refreshTokenProvider.Generate(currentToken.IsPersistent);
 
-            // По какой-то причине использование этого handler'а с одним DeviceInfo(но обновленным) экземпляром
-            // приводит к багу (что-то типа EF Core не может расшарить сущность). Так что дублируем создание и кладем
-            // в токен новый экземпляр DeviceInfo
             var deviceInfoForNewToken = DeviceInfo.Create(
                 deviceId: currentDeviceInfo.DeviceId,
                 deviceName: currentDeviceInfo.DeviceName,
                 userAgent: request.UserAgent,
                 ipAddress: request.IpAddress);
 
-            user.RevokeActiveRefreshTokensByDevice(
-                deviceId: currentDeviceInfo.DeviceId,
+            session.Touch(
+                deviceInfo: deviceInfoForNewToken,
+                geoLocation: geoLocation,
+                refreshTokenExpiresAtUtc: newDescriptor.ExpiresAtUtc,
+                isPersistent: currentToken.IsPersistent);
+
+            IReadOnlyCollection<UserSession> deviceSessions =
+                await userSessionRepository.ListByUserIdAndDeviceIdAsync(
+                    userId: user.Id,
+                    deviceId: currentDeviceInfo.DeviceId,
+                    cancellationToken: cancellationToken);
+
+            foreach (UserSession deviceSession in deviceSessions)
+                if (deviceSession.Id != session.Id && deviceSession.IsActive())
+                    deviceSession.Revoke(RefreshTokenRevocationReason.SessionReplaced);
+
+            user.RevokeActiveRefreshTokensBySession(
+                sessionId: session.Id,
                 reason: RefreshTokenRevocationReason.SessionReplaced,
                 excludedRefreshTokenId: currentToken.Id);
 
             user.IssueRefreshToken(
+                sessionId: session.Id,
                 tokenHash: newDescriptor.TokenHash,
                 expiresAtUtc: newDescriptor.ExpiresAtUtc,
-                deviceInfo: deviceInfoForNewToken, // новый экземпляр
+                deviceInfo: deviceInfoForNewToken,
                 geoLocation: geoLocation,
                 isPersistent: currentToken.IsPersistent);
 
-            // 11) Get user's permissions and roles
             AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
                 userId: user.Id,
                 cancellationToken: cancellationToken);
 
-            // 12) New access-token
             AccessTokenModel accessModel = accessTokenService.Generate(
                 userId: user.Id,
                 permissionsVersion: ctx.PermissionsVersion);

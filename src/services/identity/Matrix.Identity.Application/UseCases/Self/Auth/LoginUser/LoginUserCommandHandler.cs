@@ -11,6 +11,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
 {
     public sealed class LoginUserCommandHandler(
         IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository,
         IPasswordHasher passwordHasher,
         IAccessTokenService accessTokenService,
         IRefreshTokenProvider refreshTokenProvider,
@@ -31,7 +32,6 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
 
             if (request.Login.Contains('@'))
             {
-                // считаем, что это email
                 var email = Email.Create(request.Login);
                 user = await userRepository.GetByEmailAsync(
                     normalizedEmail: email.Value,
@@ -39,7 +39,6 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             }
             else
             {
-                // считаем, что это username
                 var username = Username.Create(request.Login);
                 user = await userRepository.GetByUsernameAsync(
                     login: username.Value,
@@ -60,27 +59,22 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             if (!user.CanLogin())
                 throw ApplicationErrorsFactory.UserBlocked();
 
-            // 1) Get effective permissions and roles
             AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
                 userId: user.Id,
                 cancellationToken: cancellationToken);
 
-            // 2) Access token
             AccessTokenModel accessTokenModel = accessTokenService.Generate(
                 userId: user.Id,
                 permissionsVersion: ctx.PermissionsVersion);
 
-            // 3) Refresh token descriptor (сырое значение + hash + время жизни)
             RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);
 
-            // 4) Собираем DeviceInfo из команды
             var deviceInfo = DeviceInfo.Create(
                 deviceId: request.DeviceId,
                 deviceName: request.DeviceName,
                 userAgent: request.UserAgent,
                 ipAddress: request.IpAddress);
 
-            // 5) Пытаемся получить GeoLocation по IP (опционально)
             GeoLocation? geoLocation = null;
 
             if (!string.IsNullOrWhiteSpace(request.IpAddress))
@@ -88,12 +82,50 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     ipAddress: request.IpAddress,
                     cancellationToken: cancellationToken);
 
-            // 6) Выпускаем refresh-токен, уже привязанный к устройству + локации
+            UserSession? session = await userSessionRepository.GetActiveByUserIdAndDeviceIdAsync(
+                userId: user.Id,
+                deviceId: deviceInfo.DeviceId,
+                utcNow: DateTime.UtcNow,
+                cancellationToken: cancellationToken);
+
+            if (session is null)
+            {
+                session = UserSession.Create(
+                    userId: user.Id,
+                    deviceInfo: deviceInfo,
+                    geoLocation: geoLocation,
+                    refreshTokenExpiresAtUtc: refreshDescriptor.ExpiresAtUtc,
+                    isPersistent: request.RememberMe);
+
+                await userSessionRepository.AddAsync(
+                    session: session,
+                    cancellationToken: cancellationToken);
+            }
+            else
+            {
+                session.Touch(
+                    deviceInfo: deviceInfo,
+                    geoLocation: geoLocation,
+                    refreshTokenExpiresAtUtc: refreshDescriptor.ExpiresAtUtc,
+                    isPersistent: request.RememberMe);
+            }
+
+            IReadOnlyCollection<UserSession> deviceSessions =
+                await userSessionRepository.ListByUserIdAndDeviceIdAsync(
+                    userId: user.Id,
+                    deviceId: deviceInfo.DeviceId,
+                    cancellationToken: cancellationToken);
+
+            foreach (UserSession deviceSession in deviceSessions)
+                if (deviceSession.Id != session.Id && deviceSession.IsActive())
+                    deviceSession.Revoke(Domain.Enums.RefreshTokenRevocationReason.SessionReplaced);
+
             user.RevokeActiveRefreshTokensByDevice(
                 deviceId: deviceInfo.DeviceId,
                 reason: Domain.Enums.RefreshTokenRevocationReason.SessionReplaced);
 
             user.IssueRefreshToken(
+                sessionId: session.Id,
                 tokenHash: refreshDescriptor.TokenHash,
                 expiresAtUtc: refreshDescriptor.ExpiresAtUtc,
                 deviceInfo: deviceInfo,

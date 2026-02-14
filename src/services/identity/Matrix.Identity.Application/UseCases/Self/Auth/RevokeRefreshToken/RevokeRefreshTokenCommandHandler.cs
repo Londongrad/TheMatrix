@@ -9,6 +9,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
 {
     public sealed class RevokeRefreshTokenCommandHandler(
         IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository,
         IRefreshTokenProvider refreshTokenProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<RevokeRefreshTokenCommand>
@@ -24,7 +25,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
                 cancellationToken: cancellationToken);
 
             if (user is null)
-                return; // тихо выходим
+                return;
 
             Domain.Entities.RefreshToken? token = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash);
             if (token is null)
@@ -33,6 +34,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
             if (!token.IsRevoked)
             {
                 token.Revoke(RefreshTokenRevocationReason.UserRevoked);
+
+                UserSession? session = await userSessionRepository.GetByIdAsync(
+                    sessionId: token.SessionId,
+                    cancellationToken: cancellationToken);
+
+                session?.Revoke(RefreshTokenRevocationReason.UserRevoked);
+
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
         }

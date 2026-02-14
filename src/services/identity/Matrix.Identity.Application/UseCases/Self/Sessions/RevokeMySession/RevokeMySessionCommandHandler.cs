@@ -10,6 +10,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
 {
     public sealed class RevokeMySessionCommandHandler(
         IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserContext currentUser)
         : IRequestHandler<RevokeMySessionCommand>
@@ -25,10 +26,16 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);
 
-            // Домен сам решает, есть такой токен или нет.
-            // Если нет – просто ничего не сделает (idempotent).
-            user.RevokeRefreshToken(
-                refreshTokenId: request.SessionId,
+            UserSession? session = await userSessionRepository.GetByIdAsync(
+                sessionId: request.SessionId,
+                cancellationToken: cancellationToken);
+
+            if (session is null || session.UserId != userId)
+                return;
+
+            session.Revoke(RefreshTokenRevocationReason.UserRevoked);
+            user.RevokeActiveRefreshTokensBySession(
+                sessionId: request.SessionId,
                 reason: RefreshTokenRevocationReason.UserRevoked);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
