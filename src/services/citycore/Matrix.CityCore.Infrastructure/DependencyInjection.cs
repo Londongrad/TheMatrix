@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.CityCore.Application.Abstractions.Persistence;
@@ -48,7 +49,7 @@ namespace Matrix.CityCore.Infrastructure
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
             services.AddClassicCityScenarioInfrastructure();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<CityCoreDbContext>>();
             services.AddScoped<ISimulationClockMutationExecutor, SimulationClockMutationExecutor>();
 
             services.AddOutbox<CityCoreDbContext>(configuration);
