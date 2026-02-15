@@ -1,4 +1,3 @@
-using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology.Abstractions;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
@@ -29,28 +28,25 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
 
         public CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request)
         {
-            ClimateZone climateZone = GuardHelper.AgainstInvalidStringToEnum<ClimateZone>(
+            ClimateZone climateZone = Enum.Parse<ClimateZone>(
                 value: request.ClimateZone,
-                propertyName: nameof(request.ClimateZone));
+                ignoreCase: true);
 
-            Hemisphere hemisphere = GuardHelper.AgainstInvalidStringToEnum<Hemisphere>(
+            Hemisphere hemisphere = Enum.Parse<Hemisphere>(
                 value: request.Hemisphere,
-                propertyName: nameof(request.Hemisphere));
+                ignoreCase: true);
 
             CitySizeTier sizeTier = ParseOrDefault(
                 value: request.SizeTier,
-                defaultValue: CitySizeTier.Medium,
-                propertyName: nameof(request.SizeTier));
+                defaultValue: CitySizeTier.Medium);
 
             UrbanDensity urbanDensity = ParseOrDefault(
                 value: request.UrbanDensity,
-                defaultValue: UrbanDensity.Balanced,
-                propertyName: nameof(request.UrbanDensity));
+                defaultValue: UrbanDensity.Balanced);
 
             CityDevelopmentLevel developmentLevel = ParseOrDefault(
                 value: request.DevelopmentLevel,
-                defaultValue: CityDevelopmentLevel.Balanced,
-                propertyName: nameof(request.DevelopmentLevel));
+                defaultValue: CityDevelopmentLevel.Balanced);
 
             var environment = CityEnvironment.Create(
                 climateZone: climateZone,
@@ -109,15 +105,14 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
 
         private static TEnum ParseOrDefault<TEnum>(
             string? value,
-            TEnum defaultValue,
-            string propertyName)
+            TEnum defaultValue)
             where TEnum : struct, Enum
         {
             return string.IsNullOrWhiteSpace(value)
                 ? defaultValue
-                : GuardHelper.AgainstInvalidStringToEnum<TEnum>(
+                : Enum.Parse<TEnum>(
                     value: value,
-                    propertyName: propertyName);
+                    ignoreCase: true);
         }
 
         private static string BuildDefaultGenerationSeed(

@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
@@ -24,13 +23,13 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Upda
             if (city is null)
                 return false;
 
-            ClimateZone climateZone = GuardHelper.AgainstInvalidStringToEnum<ClimateZone>(
+            ClimateZone climateZone = Enum.Parse<ClimateZone>(
                 value: request.ClimateZone,
-                propertyName: nameof(request.ClimateZone));
+                ignoreCase: true);
 
-            Hemisphere hemisphere = GuardHelper.AgainstInvalidStringToEnum<Hemisphere>(
+            Hemisphere hemisphere = Enum.Parse<Hemisphere>(
                 value: request.Hemisphere,
-                propertyName: nameof(request.Hemisphere));
+                ignoreCase: true);
 
             var environment = CityEnvironment.Create(
                 climateZone: climateZone,

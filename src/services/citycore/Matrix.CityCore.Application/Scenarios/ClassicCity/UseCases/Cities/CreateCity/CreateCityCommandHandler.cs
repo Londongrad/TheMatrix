@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
 using Matrix.CityCore.Application.Abstractions.Outbox;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology;
@@ -78,9 +77,9 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
         {
             return string.IsNullOrWhiteSpace(value)
                 ? SimulationKind.ClassicCity
-                : GuardHelper.AgainstInvalidStringToEnum<SimulationKind>(
+                : Enum.Parse<SimulationKind>(
                     value: value,
-                    propertyName: nameof(CreateCityCommand.SimulationKind));
+                    ignoreCase: true);
         }
 
         private static ICitySimulationBootstrapStrategy ResolveBootstrapStrategy(
