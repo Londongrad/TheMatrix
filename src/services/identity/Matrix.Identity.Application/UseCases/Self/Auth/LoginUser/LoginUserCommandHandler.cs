@@ -24,10 +24,6 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             LoginUserCommand request,
             CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.Login) ||
-                string.IsNullOrWhiteSpace(request.Password))
-                throw ApplicationErrorsFactory.InvalidCredentials();
-
             User? user;
 
             if (request.Login.Contains('@'))
