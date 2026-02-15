@@ -1,4 +1,5 @@
 using System.Reflection;
+using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
 using Matrix.Population.Application.Errors;
@@ -19,6 +20,7 @@ namespace Matrix.Population.Application
             services.AddClassicCityScenarioApplication();
 
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
+            services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped<IValidationExceptionFactory, PopulationValidationErrorFactory>();
 
