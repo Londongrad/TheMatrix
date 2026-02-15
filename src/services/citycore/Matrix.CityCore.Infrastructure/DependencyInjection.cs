@@ -25,9 +25,11 @@ namespace Matrix.CityCore.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            string connectionString = configuration.GetConnectionString("CityCoreDb") ??
-                                      throw new InvalidOperationException(
-                                          "Connection string 'CityCoreDb' is not configured.");
+            string? connectionString = configuration.GetConnectionString("CityCoreDb");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException(
+                    "Connection string 'CityCoreDb' is not configured.");
 
             services.AddDbContext<CityCoreDbContext>(options => { options.UseNpgsql(connectionString); });
 

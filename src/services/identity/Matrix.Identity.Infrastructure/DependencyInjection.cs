@@ -39,9 +39,11 @@ namespace Matrix.Identity.Infrastructure
             IConfiguration configuration)
         {
             // DbContext
-            string connectionString = configuration.GetConnectionString("IdentityDb") ??
-                                      throw new InvalidOperationException(
-                                          "Connection string 'IdentityDb' is not configured.");
+            string? connectionString = configuration.GetConnectionString("IdentityDb");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException(
+                    "Connection string 'IdentityDb' is not configured.");
 
             services.AddDbContext<IdentityDbContext>(options => { options.UseNpgsql(connectionString); });
 
