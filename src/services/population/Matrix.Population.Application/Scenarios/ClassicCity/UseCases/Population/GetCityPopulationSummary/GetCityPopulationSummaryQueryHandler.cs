@@ -1,6 +1,4 @@
 using System.Globalization;
-using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -15,10 +13,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             GetCityPopulationSummaryQuery request,
             CancellationToken cancellationToken)
         {
-            request = GuardHelper.AgainstNull(
-                value: request,
-                errorFactory: ApplicationErrorsFactory.Required);
-
             CityPopulationSummaryReadModel? summary = await summaryReadRepository.GetByCityIdAsync(
                 cityId: CityId.From(request.CityId),
                 currentDate: request.CurrentDate,

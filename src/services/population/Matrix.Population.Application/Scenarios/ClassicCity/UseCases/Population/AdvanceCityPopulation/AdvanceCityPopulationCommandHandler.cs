@@ -1,6 +1,4 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -33,33 +31,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             AdvanceCityPopulationCommand request,
             CancellationToken cancellationToken)
         {
-            GuardHelper.Ensure(
-                condition: request.FromSimTimeUtc.Offset == TimeSpan.Zero,
-                value: request.FromSimTimeUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(request.FromSimTimeUtc));
-
-            GuardHelper.Ensure(
-                condition: request.ToSimTimeUtc.Offset == TimeSpan.Zero,
-                value: request.ToSimTimeUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(request.ToSimTimeUtc));
-
-            GuardHelper.AgainstNegativeNumber(
-                value: request.TickId,
-                errorFactory: ApplicationErrorsFactory.NumberMustNotBeNegative,
-                propertyName: nameof(request.TickId));
-
             var cityId = CityId.From(request.CityId);
             var fromDate = DateOnly.FromDateTime(request.FromSimTimeUtc.UtcDateTime);
             var toDate = DateOnly.FromDateTime(request.ToSimTimeUtc.UtcDateTime);
-
-            if (toDate < fromDate)
-                throw ApplicationErrorsFactory.InvalidDateRange(
-                    from: fromDate,
-                    to: toDate,
-                    fromName: nameof(request.FromSimTimeUtc),
-                    toName: nameof(request.ToSimTimeUtc));
 
             CityPopulationProgressionState? state = await progressionStateRepository.GetByCityAsync(
                 cityId: cityId,

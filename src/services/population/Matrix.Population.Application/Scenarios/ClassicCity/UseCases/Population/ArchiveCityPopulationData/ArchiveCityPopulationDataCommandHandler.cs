@@ -1,7 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -20,24 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ArchiveCityPopulationDataCommand request,
             CancellationToken cancellationToken)
         {
-            GuardHelper.AgainstEmptyGuid(
-                id: request.CityId,
-                errorFactory: ApplicationErrorsFactory.EmptyId,
-                propertyName: nameof(request.CityId));
-            GuardHelper.AgainstEmptyGuid(
-                id: request.IntegrationMessageId,
-                errorFactory: ApplicationErrorsFactory.EmptyId,
-                propertyName: nameof(request.IntegrationMessageId));
-
-            string consumerName = GuardHelper.AgainstNullOrWhiteSpace(
-                value: request.ConsumerName,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request.ConsumerName));
-            GuardHelper.Ensure(
-                condition: request.ArchivedAtUtc.Offset == TimeSpan.Zero,
-                value: request.ArchivedAtUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(request.ArchivedAtUtc));
+            string consumerName = request.ConsumerName;
 
             var cityId = CityId.From(request.CityId);
 

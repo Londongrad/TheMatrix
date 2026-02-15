@@ -1,6 +1,4 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
-using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -51,25 +49,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateTimeOffset? syncedAtUtcValue,
             CancellationToken cancellationToken)
         {
-            GuardHelper.AgainstEmptyGuid(
-                id: cityIdValue,
-                errorFactory: ApplicationErrorsFactory.EmptyId);
-
-            climateZone = GuardHelper.AgainstNullOrWhiteSpace(
-                value: climateZone,
-                errorFactory: ApplicationErrorsFactory.Required);
-            hemisphere = GuardHelper.AgainstNullOrWhiteSpace(
-                value: hemisphere,
-                errorFactory: ApplicationErrorsFactory.Required);
-
             var cityId = CityId.From(cityIdValue);
             DateTimeOffset syncedAtUtc = syncedAtUtcValue ?? DateTimeOffset.UtcNow;
-
-            GuardHelper.Ensure(
-                condition: syncedAtUtc.Offset == TimeSpan.Zero,
-                value: syncedAtUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(syncedAtUtcValue));
 
             var input = new CityPopulationEnvironmentInput(
                 ClimateZone: climateZone,

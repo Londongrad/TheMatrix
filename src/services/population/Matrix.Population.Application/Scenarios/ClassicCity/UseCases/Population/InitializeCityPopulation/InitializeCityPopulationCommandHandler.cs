@@ -1,7 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
@@ -30,13 +28,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             InitializeCityPopulationCommand request,
             CancellationToken cancellationToken)
         {
-            request = GuardHelper.AgainstNull(
-                value: request,
-                errorFactory: ApplicationErrorsFactory.Required);
-            CityPopulationEnvironmentInput environmentInput = GuardHelper.AgainstNull(
-                value: request.Environment,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request.Environment));
+            CityPopulationEnvironmentInput environmentInput = request.Environment!;
 
             var cityId = CityId.From(request.CityId);
             CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(

@@ -1,7 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -31,33 +29,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ApplyCityWeatherImpactCommand request,
             CancellationToken cancellationToken)
         {
-            GuardHelper.AgainstEmptyGuid(
-                id: request.CityId,
-                errorFactory: ApplicationErrorsFactory.EmptyId,
-                propertyName: nameof(request.CityId));
-            GuardHelper.AgainstEmptyGuid(
-                id: request.IntegrationMessageId,
-                errorFactory: ApplicationErrorsFactory.EmptyId,
-                propertyName: nameof(request.IntegrationMessageId));
-
-            string consumerName = GuardHelper.AgainstNullOrWhiteSpace(
-                value: request.ConsumerName,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request.ConsumerName));
-            GuardHelper.Ensure(
-                condition: request.AtSimTimeUtc.Offset == TimeSpan.Zero,
-                value: request.AtSimTimeUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc,
-                propertyName: nameof(request.AtSimTimeUtc));
-
-            WeatherImpactSnapshotInput previousState = GuardHelper.AgainstNull(
-                value: request.PreviousState,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request.PreviousState));
-            WeatherImpactSnapshotInput currentState = GuardHelper.AgainstNull(
-                value: request.CurrentState,
-                errorFactory: ApplicationErrorsFactory.Required,
-                propertyName: nameof(request.CurrentState));
+            string consumerName = request.ConsumerName;
+            WeatherImpactSnapshotInput previousState = request.PreviousState!;
+            WeatherImpactSnapshotInput currentState = request.CurrentState!;
 
             DateTimeOffset occurredOnUtc = NormalizeOccurredOnUtc(request.OccurredOnUtc);
             var cityId = CityId.From(request.CityId);
@@ -238,11 +212,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static DateTimeOffset NormalizeOccurredOnUtc(DateTime occurredOnUtc)
         {
-            GuardHelper.Ensure(
-                condition: occurredOnUtc.Kind is DateTimeKind.Utc or DateTimeKind.Unspecified,
-                value: occurredOnUtc,
-                errorFactory: ApplicationErrorsFactory.TimestampMustBeUtc);
-
             return occurredOnUtc.Kind switch
             {
                 DateTimeKind.Utc => new DateTimeOffset(occurredOnUtc),
@@ -250,9 +219,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     DateTime.SpecifyKind(
                         value: occurredOnUtc,
                         kind: DateTimeKind.Utc)),
-                _ => throw ApplicationErrorsFactory.TimestampMustBeUtc(
-                    value: occurredOnUtc,
-                    propertyName: nameof(occurredOnUtc))
+                _ => throw new InvalidOperationException(
+                    "OccurredOnUtc must be validated before normalization.")
             };
         }
 

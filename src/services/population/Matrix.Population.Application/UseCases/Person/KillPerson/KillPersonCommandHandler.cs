@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
@@ -19,10 +18,6 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
             KillPersonCommand request,
             CancellationToken cancellationToken = default)
         {
-            request = GuardHelper.AgainstNull(
-                value: request,
-                errorFactory: ApplicationErrorsFactory.Required);
-
             Domain.Entities.Person person =
                 await personReadRepository.FindByIdAsync(
                     id: PersonId.From(request.Id),

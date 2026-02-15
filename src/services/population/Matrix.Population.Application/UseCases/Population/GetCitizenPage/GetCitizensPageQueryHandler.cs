@@ -1,7 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
 using MediatR;
@@ -16,10 +14,6 @@ namespace Matrix.Population.Application.UseCases.Population.GetCitizenPage
             GetCitizensPageQuery request,
             CancellationToken cancellationToken)
         {
-            request = GuardHelper.AgainstNull(
-                value: request,
-                errorFactory: ApplicationErrorsFactory.Required);
-
             (IReadOnlyCollection<DomainPerson> persons, int totalCount) = await personReadRepository
                .GetPageAsync(
                     pagination: request.Pagination,
