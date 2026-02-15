@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Infrastructure.Messaging;
@@ -50,7 +51,7 @@ namespace Matrix.Population.Infrastructure
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IProcessedIntegrationMessageRepository, ProcessedIntegrationMessageRepository>();
             services.AddScoped<ProcessedIntegrationMessageCleaner>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<PopulationDbContext>>();
             services.AddPermissionCheckingFromClaims();
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
 
