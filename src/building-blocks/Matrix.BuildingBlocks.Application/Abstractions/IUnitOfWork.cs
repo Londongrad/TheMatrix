@@ -9,7 +9,7 @@ namespace Matrix.BuildingBlocks.Application.Abstractions
         /// <summary>
         ///     Executes the provided action inside a database transaction.
         ///     If there is an active transaction, the action is executed within it (no nested transaction is created).
-        ///     By default, SaveChanges is called once and then the transaction is committed.
+        ///     Implementations may differ in whether they call SaveChanges automatically inside the transaction.
         /// </summary>
         Task ExecuteInTransactionAsync(
             Func<CancellationToken, Task> action,
