@@ -9,7 +9,7 @@ namespace Matrix.CityCore.Application.Services.Simulation
     public sealed class SimulationAdvanceExecutor(
         ISimulationClockRepository repository,
         ISimulationHostReadRepository simulationHostRepository,
-        IReadOnlyCollection<ISimulationScenarioAdvanceHandler> scenarioAdvanceHandlers,
+        IEnumerable<ISimulationScenarioAdvanceHandler> scenarioAdvanceHandlers,
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
     {
         public async Task<SimulationAdvanceExecutionResult> ExecuteAsync(
