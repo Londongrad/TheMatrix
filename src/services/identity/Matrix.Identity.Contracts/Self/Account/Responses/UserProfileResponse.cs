@@ -9,6 +9,7 @@ namespace Matrix.Identity.Contracts.Self.Account.Responses
         public required string Username { get; init; }
 
         public string? AvatarUrl { get; set; }
+        public bool IsEmailConfirmed { get; init; }
 
         public required string[] EffectivePermissions { get; init; }
 
