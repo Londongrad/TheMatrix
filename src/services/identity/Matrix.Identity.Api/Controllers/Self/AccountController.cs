@@ -33,6 +33,7 @@ namespace Matrix.Identity.Api.Controllers.Self
                 Email = result.Email,
                 Username = result.Username,
                 AvatarUrl = result.AvatarUrl,
+                IsEmailConfirmed = result.IsEmailConfirmed,
                 EffectivePermissions = result.EffectivePermissions.ToArray(),
                 PermissionsVersion = result.PermissionsVersion
             };

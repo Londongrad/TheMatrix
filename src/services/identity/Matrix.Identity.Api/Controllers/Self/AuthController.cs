@@ -1,7 +1,11 @@
 using Matrix.Identity.Application.UseCases.Self.Auth.LoginUser;
+using Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword;
 using Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken;
 using Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser;
 using Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken;
+using Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset;
+using Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail;
+using Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmation;
 using Matrix.Identity.Contracts.Self.Auth.Requests;
 using Matrix.Identity.Contracts.Self.Auth.Responses;
 using MediatR;
@@ -153,5 +157,70 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         #endregion [ Logout ]
+
+        #region [ Email confirmation & password reset ]
+
+        [HttpPost("email-confirmation/send")]
+        public async Task<IActionResult> SendEmailConfirmation(
+            [FromBody] SendEmailConfirmationRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new SendEmailConfirmationCommand(request.Email);
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("email-confirmation/confirm")]
+        public async Task<IActionResult> ConfirmEmail(
+            [FromBody] ConfirmEmailRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new ConfirmEmailCommand(
+                UserId: request.UserId,
+                Token: request.Token);
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("password/forgot")]
+        public async Task<IActionResult> ForgotPassword(
+            [FromBody] ForgotPasswordRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new SendPasswordResetCommand(request.Email);
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("password/reset")]
+        public async Task<IActionResult> ResetPassword(
+            [FromBody] ResetPasswordRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new ResetPasswordCommand(
+                UserId: request.UserId,
+                Token: request.Token,
+                NewPassword: request.NewPassword);
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        #endregion [ Email confirmation & password reset ]
     }
 }
