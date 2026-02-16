@@ -3,19 +3,30 @@ import {Link} from "react-router-dom";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
+import {forgotPassword} from "@services/identity/api/self/auth/authApi";
 
 export const ForgotPasswordPage = () => {
     const [email, setEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
         setIsSubmitting(true);
-        setNotice(
-            "If an account exists for this email, a reset link will appear in your inbox shortly."
-        );
-        setIsSubmitting(false);
+
+        try {
+            await forgotPassword({email});
+            setNotice(
+                "If an account exists for this email, a reset link will appear in your inbox shortly.",
+            );
+        } catch (err: any) {
+            setError(err?.message || "Failed to send reset email. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -82,6 +93,7 @@ export const ForgotPasswordPage = () => {
                     </div>
 
                     {notice && <div className="auth-success">{notice}</div>}
+                    {error && <div className="auth-error">{error}</div>}
 
                     <button className="auth-button" type="submit" disabled={isSubmitting}>
                         {isSubmitting && (

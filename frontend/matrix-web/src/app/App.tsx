@@ -18,7 +18,9 @@ import {AuthProvider} from "@services/identity/api/self/auth/AuthContext";
 import {RequireAuth} from "@services/identity/api/self/auth/RequireAuth";
 import {LoginPage} from "@services/identity/self/auth/pages/LoginPage";
 import {RegisterPage} from "@services/identity/self/auth/pages/RegisterPage";
+import {ConfirmEmailPage} from "@services/identity/self/auth/pages/ConfirmEmailPage";
 import {ForgotPasswordPage} from "@services/identity/self/auth/pages/ForgotPasswordPage";
+import {ResetPasswordPage} from "@services/identity/self/auth/pages/ResetPasswordPage";
 import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
 import {cityCoreRoutes} from "@app/router/CityCoreRoutes";
@@ -37,7 +39,9 @@ const App = () => {
                         {/* РїСѓР±Р»РёС‡РЅС‹Рµ СЃС‚СЂР°РЅРёС†С‹ */}
                         <Route path="/login" element={<LoginPage/>}/>
                         <Route path="/register" element={<RegisterPage/>}/>
+                        <Route path="/confirm-email" element={<ConfirmEmailPage/>}/>
                         <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+                        <Route path="/reset-password" element={<ResetPasswordPage/>}/>
                         <Route path="/forbidden" element={<ForbiddenPage/>}/>
 
                         {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ СЃС‚СЂР°РЅРёС†С‹ вЂ” СЃ MainLayout */}

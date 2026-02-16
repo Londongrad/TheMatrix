@@ -4,7 +4,13 @@ import {useLocation, useNavigate} from "react-router-dom";
 import type {LoginRequest} from "./authTypes";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {fetchProfile} from "@services/identity/api/self/account/accountApi";
-import {loginUser, logoutAuth, refreshAuth, registerUser} from "./authApi";
+import {
+    loginUser,
+    logoutAuth,
+    refreshAuth,
+    registerUser,
+    sendEmailConfirmationEmail,
+} from "./authApi";
 import {configureHttpAuth} from "@shared/api/http";
 
 interface AuthContextValue {
@@ -160,6 +166,12 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
             password: data.password,
             rememberMe: true,
         });
+
+        try {
+            await sendEmailConfirmationEmail({email: data.email});
+        } catch (error) {
+            console.warn("Failed to send confirmation email after registration.", error);
+        }
     };
 
     const logout = async () => {

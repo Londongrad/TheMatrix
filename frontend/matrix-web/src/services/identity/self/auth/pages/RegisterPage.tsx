@@ -30,7 +30,10 @@ export const RegisterPage = () => {
 
         try {
             await register({email, username, password, confirmPassword});
-            navigate("/", {replace: true});
+            navigate("/userSettings/security", {
+                replace: true,
+                state: {emailConfirmationRequested: true},
+            });
         } catch (err: any) {
             setError(err.message || "Registration failed");
         } finally {

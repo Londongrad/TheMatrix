@@ -11,6 +11,26 @@ export interface RegisterResponse {
     username: string;
 }
 
+export interface SendEmailConfirmationRequest {
+    email: string;
+}
+
+export interface ConfirmEmailRequest {
+    userId: string;
+    token: string;
+}
+
+export interface ForgotPasswordRequest {
+    email: string;
+}
+
+export interface ResetPasswordRequest {
+    userId: string;
+    token: string;
+    newPassword: string;
+    confirmNewPassword: string;
+}
+
 export interface LoginRequest {
     login: string;
     password: string;

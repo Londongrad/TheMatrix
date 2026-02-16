@@ -14,6 +14,7 @@ export interface ProfileResponse {
     email: string;
     username: string;
     avatarUrl: string | null;
+    isEmailConfirmed: boolean;
     effectivePermissions: string[];
     permissionsVersion: number;
 }
