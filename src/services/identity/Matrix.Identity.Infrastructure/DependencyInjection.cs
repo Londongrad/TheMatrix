@@ -133,6 +133,17 @@ namespace Matrix.Identity.Infrastructure
                     failureMessage:
                     $"{RefreshTokenCleanupOptions.SectionName}:ExpiredRetentionHours must be greater than or equal to 0.")
                .ValidateOnStart();
+            services.AddOptions<OneTimeTokenOptions>()
+               .Bind(configuration.GetSection(OneTimeTokenOptions.SectionName))
+               .Validate(
+                    validation: o => o.EmailConfirmationLifetimeMinutes > 0,
+                    failureMessage:
+                    $"{OneTimeTokenOptions.SectionName}:EmailConfirmationLifetimeMinutes must be greater than 0.")
+               .Validate(
+                    validation: o => o.PasswordResetLifetimeMinutes > 0,
+                    failureMessage:
+                    $"{OneTimeTokenOptions.SectionName}:PasswordResetLifetimeMinutes must be greater than 0.")
+               .ValidateOnStart();
             services.TryAddSingleton(TimeProvider.System);
             services.AddScoped<RefreshTokenCleaner>();
             services.AddHostedService<RefreshTokenCleanupHostedService>();
@@ -141,6 +152,33 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<ISecurityStateChangeProcessor, SecurityStateChangeProcessor>();
 
             services.AddScoped<IClock, SystemClock>();
+            services.AddOptions<EmailOptions>()
+               .Bind(configuration.GetSection(EmailOptions.SectionName))
+               .Validate(
+                    validation: o => Enum.IsDefined(o.DeliveryMode),
+                    failureMessage: $"{EmailOptions.SectionName}:DeliveryMode is invalid.")
+               .Validate(
+                    validation: o => o.DeliveryMode != EmailDeliveryMode.Smtp || !string.IsNullOrWhiteSpace(o.FromEmail),
+                    failureMessage: $"{EmailOptions.SectionName}:FromEmail is required when SMTP delivery is enabled.")
+               .Validate(
+                    validation: o => o.DeliveryMode != EmailDeliveryMode.Smtp || !string.IsNullOrWhiteSpace(o.SmtpHost),
+                    failureMessage: $"{EmailOptions.SectionName}:SmtpHost is required when SMTP delivery is enabled.")
+               .Validate(
+                    validation: o => o.DeliveryMode != EmailDeliveryMode.Smtp || o.SmtpPort > 0,
+                    failureMessage: $"{EmailOptions.SectionName}:SmtpPort must be greater than 0 when SMTP delivery is enabled.")
+               .ValidateOnStart();
+            services.AddOptions<FrontendLinksOptions>()
+               .Bind(configuration.GetSection(FrontendLinksOptions.SectionName))
+               .Validate(
+                    validation: o => Uri.TryCreate(o.BaseUrl, UriKind.Absolute, out _),
+                    failureMessage: $"{FrontendLinksOptions.SectionName}:BaseUrl must be an absolute URI.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.ConfirmEmailPath),
+                    failureMessage: $"{FrontendLinksOptions.SectionName}:ConfirmEmailPath is required.")
+               .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.ResetPasswordPath),
+                    failureMessage: $"{FrontendLinksOptions.SectionName}:ResetPasswordPath is required.")
+               .ValidateOnStart();
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IFrontendLinkBuilder, FrontendLinkBuilder>();
 
