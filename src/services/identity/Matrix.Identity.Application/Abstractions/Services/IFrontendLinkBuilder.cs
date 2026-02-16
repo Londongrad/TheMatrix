@@ -5,5 +5,9 @@ namespace Matrix.Identity.Application.Abstractions.Services
         string BuildConfirmEmailLink(
             Guid userId,
             string rawToken);
+
+        string BuildResetPasswordLink(
+            Guid userId,
+            string rawToken);
     }
 }

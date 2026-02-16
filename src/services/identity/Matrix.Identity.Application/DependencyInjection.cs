@@ -2,11 +2,13 @@ using System.Reflection;
 using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.Services;
+using Matrix.Identity.Application.Services.Identity;
 using Matrix.Identity.Application.Services.SecurityState;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +32,7 @@ namespace Matrix.Identity.Application
 
             // Admin guards
             services.AddScoped<IAdminUserGuard, AdminUserGuard>();
+            services.AddScoped<IOneTimeTokenDeliveryService, OneTimeTokenDeliveryService>();
 
             // Validators
             services.AddScoped<IRoleIdsValidator, RoleIdsValidator>();
