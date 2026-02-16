@@ -71,32 +71,35 @@ const SecurityCard = ({
                 </div>
             </div>
 
-            <div className="settings-form" style={{marginBottom: "1.5rem"}}>
-                <div className="settings-field">
-                    <div className="settings-label-row">
-                        <span className="settings-label">Email verification</span>
-                        <span>{email || "No email loaded"}</span>
+            {!isEmailConfirmed ? (
+                <div className="settings-email-warning" role="alert">
+                    <div className="settings-email-warning__content">
+                        <div className="settings-email-warning__eyebrow">
+                            Email verification required
+                        </div>
+                        <h3 className="settings-email-warning__title">
+                            Confirm your email
+                        </h3>
+                        <p className="settings-email-warning__text">
+                            Confirm <strong>{email || "your email address"}</strong> to
+                            keep password recovery and account security flows available.
+                        </p>
+
+                        {confirmationNotice && (
+                            <p className="settings-email-warning__notice">
+                                {confirmationNotice}
+                            </p>
+                        )}
+
+                        {confirmationError && (
+                            <p className="settings-error-text">{confirmationError}</p>
+                        )}
                     </div>
-                    <p className="settings-card-description">
-                        {isEmailConfirmed
-                            ? "Your email is confirmed and ready for recovery flows."
-                            : "Your email is not confirmed yet. Confirm it to make recovery flows safer and more predictable."}
-                    </p>
-                </div>
 
-                {confirmationNotice && (
-                    <p className="settings-save-badge">{confirmationNotice}</p>
-                )}
-
-                {confirmationError && (
-                    <p className="settings-error-text">{confirmationError}</p>
-                )}
-
-                {!isEmailConfirmed && (
-                    <div className="settings-actions-row">
+                    <div className="settings-email-warning__actions">
                         <button
                             type="button"
-                            className="settings-button"
+                            className="settings-button settings-button--warning"
                             disabled={isSendingConfirmation || !email}
                             onClick={() => {
                                 void resendConfirmation();
@@ -107,8 +110,21 @@ const SecurityCard = ({
                                 : "Send verification email"}
                         </button>
                     </div>
-                )}
-            </div>
+                </div>
+            ) : (
+                <div className="settings-email-status">
+                    <div>
+                        <div className="settings-email-status__eyebrow">
+                            Email verification
+                        </div>
+                        <p className="settings-email-status__text">
+                            {email || "Your email"} is confirmed and ready for recovery
+                            flows.
+                        </p>
+                    </div>
+                    <span className="settings-pill">Confirmed</span>
+                </div>
+            )}
 
             <form className="settings-form" onSubmit={submit}>
                 <div className="settings-field">
