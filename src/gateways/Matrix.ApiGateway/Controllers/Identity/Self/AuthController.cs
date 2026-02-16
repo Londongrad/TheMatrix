@@ -125,6 +125,58 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
 
         #endregion [ Refresh & Logout endpoints ]
 
+        #region [ Email confirmation & password reset ]
+
+        [HttpPost("email-confirmation/send")]
+        public async Task<IActionResult> SendEmailConfirmation(
+            [FromBody] SendEmailConfirmationRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _identityAuthClient.SendEmailConfirmationAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("email-confirmation/confirm")]
+        public async Task<IActionResult> ConfirmEmail(
+            [FromBody] ConfirmEmailRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _identityAuthClient.ConfirmEmailAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("password/forgot")]
+        public async Task<IActionResult> ForgotPassword(
+            [FromBody] ForgotPasswordRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _identityAuthClient.ForgotPasswordAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("password/reset")]
+        public async Task<IActionResult> ResetPassword(
+            [FromBody] ResetPasswordRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _identityAuthClient.ResetPasswordAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        #endregion [ Email confirmation & password reset ]
+
         #region [ Cookie Management ]
 
         private const string RefreshCookieName = "matrix_refresh_token";

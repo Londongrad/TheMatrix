@@ -17,6 +17,22 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
             RefreshRequest request,
             CancellationToken cancellationToken = default);
 
+        Task SendEmailConfirmationAsync(
+            SendEmailConfirmationRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task ConfirmEmailAsync(
+            ConfirmEmailRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task ForgotPasswordAsync(
+            ForgotPasswordRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task ResetPasswordAsync(
+            ResetPasswordRequest request,
+            CancellationToken cancellationToken = default);
+
         Task LogoutAsync(
             LogoutRequest request,
             CancellationToken cancellationToken = default);

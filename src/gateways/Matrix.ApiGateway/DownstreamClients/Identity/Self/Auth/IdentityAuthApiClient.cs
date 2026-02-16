@@ -60,6 +60,62 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
                 requestUrl: RefreshEndpoint);
         }
 
+        public async Task SendEmailConfirmationAsync(
+            SendEmailConfirmationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
+                requestUri: SendEmailConfirmationEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task ConfirmEmailAsync(
+            ConfirmEmailRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
+                requestUri: ConfirmEmailEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task ForgotPasswordAsync(
+            ForgotPasswordRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
+                requestUri: ForgotPasswordEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task ResetPasswordAsync(
+            ResetPasswordRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
+                requestUri: ResetPasswordEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task LogoutAsync(
             LogoutRequest request,
             CancellationToken cancellationToken = default)
@@ -87,6 +143,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
 
         private const string LogoutEndpoint = AuthBaseUrl + "/logout";
         private const string RefreshEndpoint = AuthBaseUrl + "/refresh";
+        private const string SendEmailConfirmationEndpoint = AuthBaseUrl + "/email-confirmation/send";
+        private const string ConfirmEmailEndpoint = AuthBaseUrl + "/email-confirmation/confirm";
+        private const string ForgotPasswordEndpoint = AuthBaseUrl + "/password/forgot";
+        private const string ResetPasswordEndpoint = AuthBaseUrl + "/password/reset";
 
         #endregion [ Constants ]
     }
