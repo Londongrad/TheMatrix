@@ -10,9 +10,9 @@
     min-height: 30px;
     padding: 0 12px;
     border-radius: 999px;
-    border: 1px solid rgba(88, 255, 169, 0.18);
-    background: rgba(76, 255, 155, 0.1);
-    color: #b8ffd2;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
+    background: rgba(var(--shell-accent-rgb), 0.1);
+    color: color-mix(in srgb, var(--shell-accent) 58%, white);
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
@@ -32,7 +32,7 @@
     padding: 16px 18px;
     border-radius: 18px;
     border: 1px solid rgba(255, 191, 118, 0.2);
-    background: rgba(37, 25, 12, 0.72);
+    background: color-mix(in srgb, var(--shell-surface) 88%, rgba(255, 191, 118, 0.12));
 }
 
 .sim-panel__notice-title {
@@ -41,7 +41,7 @@
 }
 
 .sim-panel__notice-text {
-    color: rgba(255, 226, 184, 0.74);
+    color: color-mix(in srgb, #ffe2b8 74%, var(--app-text));
     line-height: 1.55;
 }
 
@@ -57,24 +57,24 @@
     gap: 4px;
     padding: 14px 16px;
     border-radius: 16px;
-    border: 1px solid rgba(88, 255, 169, 0.12);
-    background: rgba(8, 17, 12, 0.68);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
+    background: color-mix(in srgb, var(--shell-surface) 88%, transparent);
 }
 
 .sim-panel-card--readonly .sim-panel__snapshot-item {
     border-color: rgba(255, 191, 118, 0.14);
-    background: rgba(26, 20, 11, 0.68);
+    background: color-mix(in srgb, var(--shell-surface) 88%, rgba(255, 191, 118, 0.12));
 }
 
 .sim-panel__snapshot-label {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: rgba(177, 255, 206, 0.56);
+    color: var(--app-text-muted);
 }
 
 .sim-panel__snapshot-value {
-    color: #f1fff3;
+    color: var(--app-text-strong);
 }
 
 .sim-panel__section {
@@ -89,7 +89,7 @@
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: rgba(140, 255, 180, 0.72);
+    color: rgba(var(--shell-accent-rgb), 0.72);
 }
 
 .sim-controls-row {
@@ -118,7 +118,7 @@
     padding: 12px 14px;
     border-radius: 18px;
     border: 1px solid rgba(255, 90, 90, 0.3);
-    background: rgba(60, 10, 10, 0.55);
+    background: color-mix(in srgb, var(--shell-surface) 80%, rgba(239, 68, 68, 0.18));
     color: #ffd6d6;
 }
 
@@ -132,21 +132,21 @@
     min-height: 48px;
     padding: 12px 14px;
     border-radius: 16px;
-    border: 1px solid rgba(88, 255, 169, 0.14);
-    background: rgba(7, 16, 11, 0.84);
-    color: #ebfff0;
+    border: 1px solid var(--settings-input-border);
+    background: var(--settings-input-bg);
+    color: var(--app-text);
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .text-input:focus {
-    border-color: rgba(92, 255, 171, 0.44);
-    box-shadow: 0 0 0 4px rgba(92, 255, 171, 0.1);
+    border-color: var(--settings-input-focus-border);
+    box-shadow: 0 0 0 4px rgba(var(--shell-accent-rgb), 0.1);
 }
 
 .sim-panel__hint {
     font-size: 13px;
-    color: rgba(210, 255, 220, 0.66);
+    color: var(--app-text-muted);
     line-height: 1.5;
 }
 

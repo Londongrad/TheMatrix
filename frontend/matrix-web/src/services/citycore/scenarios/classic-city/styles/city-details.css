@@ -28,7 +28,7 @@
     font-size: clamp(38px, 5vw, 54px);
     line-height: 0.94;
     letter-spacing: -0.05em;
-    color: #f1fff5;
+    color: var(--app-text-strong);
 }
 
 .city-hero__meta-row {
@@ -44,16 +44,16 @@
     min-height: 34px;
     padding: 0 12px;
     border-radius: 999px;
-    border: 1px solid rgba(88, 255, 169, 0.18);
-    background: rgba(7, 16, 11, 0.76);
-    color: rgba(216, 255, 225, 0.74);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
+    background: color-mix(in srgb, var(--shell-surface) 92%, transparent);
+    color: color-mix(in srgb, var(--app-text) 76%, transparent);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
     font-size: 12px;
     letter-spacing: 0.08em;
 }
 
 .city-hero__caption {
-    color: rgba(214, 255, 224, 0.68);
+    color: color-mix(in srgb, var(--app-text) 74%, transparent);
     line-height: 1.5;
 }
 
@@ -63,9 +63,9 @@
     min-height: 44px;
     padding: 0 14px;
     border-radius: 16px;
-    border: 1px solid rgba(88, 255, 169, 0.16);
-    background: rgba(8, 18, 12, 0.74);
-    color: rgba(138, 255, 196, 0.92);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.16);
+    background: color-mix(in srgb, var(--shell-surface) 92%, transparent);
+    color: color-mix(in srgb, var(--shell-accent) 62%, white);
     text-decoration: none;
     white-space: nowrap;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
@@ -73,8 +73,8 @@
 
 .city-link:hover {
     transform: translateY(-1px);
-    border-color: rgba(88, 255, 169, 0.3);
-    box-shadow: 0 12px 30px rgba(14, 102, 58, 0.16);
+    border-color: rgba(var(--shell-accent-rgb), 0.3);
+    box-shadow: 0 12px 30px rgba(var(--shell-accent-rgb), 0.12);
 }
 
 .city-overview-grid {
@@ -89,19 +89,19 @@
     gap: 6px;
     padding: 16px 18px;
     border-radius: 18px;
-    border: 1px solid rgba(88, 255, 169, 0.1);
-    background: rgba(6, 15, 10, 0.62);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.1);
+    background: color-mix(in srgb, var(--shell-surface) 88%, transparent);
 }
 
 .city-overview-stat__label {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: rgba(173, 255, 203, 0.54);
+    color: var(--app-text-muted);
 }
 
 .city-overview-stat__value {
-    color: #effff3;
+    color: var(--app-text-strong);
     line-height: 1.5;
 }
 
@@ -117,27 +117,27 @@
     gap: 8px;
     padding: 16px 18px;
     border-radius: 20px;
-    border: 1px solid rgba(88, 255, 169, 0.14);
-    background: rgba(8, 18, 12, 0.72);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.14);
+    background: color-mix(in srgb, var(--shell-surface) 90%, transparent);
 }
 
 .city-state-banner--active {
-    border-color: rgba(88, 255, 169, 0.16);
-    background: rgba(8, 22, 14, 0.72);
+    border-color: rgba(var(--shell-accent-rgb), 0.16);
+    background: color-mix(in srgb, var(--shell-surface) 90%, rgba(var(--shell-accent-rgb), 0.06));
 }
 
 .city-state-banner--archived {
     border-color: rgba(255, 191, 118, 0.2);
-    background: rgba(35, 24, 10, 0.72);
+    background: color-mix(in srgb, var(--shell-surface) 90%, rgba(255, 191, 118, 0.12));
 }
 
 .city-state-banner__title {
     font-size: 16px;
-    color: #f4fff6;
+    color: var(--app-text-strong);
 }
 
 .city-state-banner__text {
-    color: rgba(214, 255, 224, 0.68);
+    color: color-mix(in srgb, var(--app-text) 74%, transparent);
     line-height: 1.55;
 }
 
