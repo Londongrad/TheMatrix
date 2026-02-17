@@ -7,7 +7,7 @@
     isolation: isolate;
 
     /* базовый тёмный фон */
-    background: #05080b;
+    background: var(--app-bg);
 }
 
 /* ---------- Сетка (как в ForbiddenPage) ---------- */
@@ -15,21 +15,21 @@
     position: absolute;
     inset: -30%;
     z-index: 0;
-    opacity: 0.33;
+    opacity: 0.3;
     transform: perspective(900px) rotateX(55deg) translateY(10%);
     transform-origin: center;
 
     background-image: repeating-linear-gradient(
             90deg,
-            rgba(87, 255, 170, 0.12) 0,
-            rgba(87, 255, 170, 0.12) 1px,
+            rgba(var(--shell-accent-rgb), 0.12) 0,
+            rgba(var(--shell-accent-rgb), 0.12) 1px,
             transparent 1px,
             transparent 48px
     ),
     repeating-linear-gradient(
             0deg,
-            rgba(87, 255, 170, 0.1) 0,
-            rgba(87, 255, 170, 0.1) 1px,
+            rgba(var(--shell-accent-rgb), 0.1) 0,
+            rgba(var(--shell-accent-rgb), 0.1) 1px,
             transparent 1px,
             transparent 48px
     );
@@ -46,7 +46,7 @@
 
     background: radial-gradient(
             900px 450px at 50% 35%,
-            rgba(87, 255, 170, 0.18),
+            rgba(var(--shell-accent-rgb), 0.18),
             transparent 62%
     ),
     radial-gradient(
@@ -73,9 +73,9 @@
     background: linear-gradient(
             180deg,
             transparent 0%,
-            rgba(87, 255, 170, 0.08) 45%,
-            rgba(87, 255, 170, 0.22) 50%,
-            rgba(87, 255, 170, 0.08) 55%,
+            rgba(var(--shell-accent-rgb), 0.08) 45%,
+            rgba(var(--shell-accent-rgb), 0.22) 50%,
+            rgba(var(--shell-accent-rgb), 0.08) 55%,
             transparent 100%
     );
 
@@ -124,18 +124,18 @@
     /* “голова ярче, хвост темнее” через градиент текста */
     background: linear-gradient(
             180deg,
-            rgba(87, 255, 170, 0) 0%,
-            rgba(87, 255, 170, 0.45) 22%,
-            rgba(87, 255, 170, 0.98) 55%,
-            rgba(87, 255, 170, 0.18) 86%,
-            rgba(87, 255, 170, 0) 100%
+            rgba(var(--shell-accent-rgb), 0) 0%,
+            rgba(var(--shell-accent-rgb), 0.45) 22%,
+            rgba(var(--shell-accent-rgb), 0.98) 55%,
+            rgba(var(--shell-accent-rgb), 0.18) 86%,
+            rgba(var(--shell-accent-rgb), 0) 100%
     );
 
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 
-    filter: drop-shadow(0 0 10px rgba(87, 255, 170, 0.14));
+    filter: drop-shadow(0 0 10px rgba(var(--shell-accent-rgb), 0.14));
     will-change: transform;
 
     animation: matrixRain var(--duration) linear infinite;
