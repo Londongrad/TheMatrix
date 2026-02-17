@@ -4,9 +4,9 @@
     gap: 8px;
     padding: 10px 14px;
     border-radius: 14px;
-    border: 1px solid rgba(87, 255, 170, 0.2);
-    background: rgba(10, 14, 16, 0.35);
-    color: rgba(232, 255, 245, 0.92);
+    border: 1px solid var(--shell-border);
+    background: var(--shell-button-surface);
+    color: var(--app-text);
     cursor: pointer;
     transition: transform 0.14s ease, border-color 0.14s ease,
     box-shadow 0.14s ease, background 0.14s ease;
@@ -14,9 +14,9 @@
 
 .ui-button:hover {
     transform: translateY(-1px);
-    border-color: rgba(87, 255, 170, 0.36);
-    box-shadow: 0 0 22px rgba(87, 255, 170, 0.12);
-    background: rgba(10, 14, 16, 0.5);
+    border-color: var(--shell-border-strong);
+    box-shadow: 0 0 22px rgba(var(--shell-accent-rgb), 0.12);
+    background: color-mix(in srgb, var(--shell-button-surface) 84%, white 16%);
 }
 
 .ui-button:disabled {
@@ -32,9 +32,9 @@
 }
 
 .ui-button--primary {
-    background: rgba(87, 255, 170, 0.12);
-    border-color: rgba(87, 255, 170, 0.45);
-    color: rgba(232, 255, 245, 0.95);
+    background: rgba(var(--shell-accent-rgb), 0.12);
+    border-color: rgba(var(--shell-accent-rgb), 0.45);
+    color: var(--app-text-strong);
 }
 
 .ui-button--danger {
@@ -49,12 +49,12 @@
 }
 
 .ui-button--success {
-    border-color: rgba(87, 255, 170, 0.45);
+    border-color: rgba(var(--shell-accent-rgb), 0.45);
     background: rgba(22, 163, 74, 0.2);
     color: #bbf7d0;
 }
 
 .ui-button--success:hover {
-    border-color: rgba(87, 255, 170, 0.65);
-    box-shadow: 0 0 22px rgba(87, 255, 170, 0.18);
+    border-color: rgba(var(--shell-accent-rgb), 0.65);
+    box-shadow: 0 0 22px rgba(var(--shell-accent-rgb), 0.18);
 }
