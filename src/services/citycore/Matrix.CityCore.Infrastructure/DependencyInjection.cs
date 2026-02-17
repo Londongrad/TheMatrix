@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
@@ -53,6 +54,7 @@ namespace Matrix.CityCore.Infrastructure
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<CityCoreDbContext>>();
             services.AddScoped<ISimulationClockMutationExecutor, SimulationClockMutationExecutor>();
+            services.AddPermissionCheckingFromClaims();
 
             services.AddOutbox<CityCoreDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
