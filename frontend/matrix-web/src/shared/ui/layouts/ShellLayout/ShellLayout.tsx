@@ -4,6 +4,7 @@ import Sidebar from "@shared/navigation/Sidebar/Sidebar";
 import Topbar from "@shared/navigation/Topbar/Topbar";
 import type {NavItem} from "@shared/navigation/Sidebar/types";
 import {ChevronRight} from "lucide-react";
+import {useWorkspacePreferences} from "@shared/theme/workspacePreferences";
 import "./shell-layout.css";
 
 export default function MatrixShellLayout({
@@ -25,6 +26,7 @@ export default function MatrixShellLayout({
     topbarTitle?: string;
     topbarSubtitle?: string;
 }) {
+    const {preferences} = useWorkspacePreferences();
     const [collapsed, setCollapsed] = useState(() => {
         try {
             return localStorage.getItem(storageKey) === "1";
@@ -50,13 +52,28 @@ export default function MatrixShellLayout({
         return () => window.removeEventListener("resize", onResize);
     }, []);
 
+    const showBackdrop = preferences.theme !== "light";
+    const backdropRainOpacity =
+        preferences.theme === "matrix"
+            ? 0.4
+            : preferences.theme === "glass"
+              ? 0.28
+              : 0.18;
+
     return (
         <div
-            className={`mx-shell${collapsed ? " is-collapsed" : ""}${
+            className={`mx-shell mx-shell--theme-${preferences.theme}${
+                collapsed ? " is-collapsed" : ""
+            }${
                 mobileOpen ? " is-mobile-open" : ""
             }`}
         >
-            <MatrixBackdrop rainOpacity={0.4}/>
+            {showBackdrop ? (
+                <MatrixBackdrop
+                    rainOpacity={backdropRainOpacity}
+                    showScanline={preferences.theme !== "dark"}
+                />
+            ) : null}
             <div className="mx-shell__overlay" onClick={() => setMobileOpen(false)}/>
 
             <aside className="mx-shell__sidebar">
