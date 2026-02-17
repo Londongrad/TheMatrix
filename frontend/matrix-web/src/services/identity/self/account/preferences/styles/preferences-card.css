@@ -2,49 +2,153 @@
     border-color: rgba(87, 255, 170, 0.22);
 }
 
-.settings-switch {
+.preferences-spotlight {
+    display: grid;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.05rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(87, 255, 170, 0.24);
+    background:
+        linear-gradient(135deg, rgba(87, 255, 170, 0.14), transparent 64%),
+        rgba(7, 16, 13, 0.68);
+    box-shadow:
+        0 18px 42px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(87, 255, 170, 0.06) inset;
+}
+
+.preferences-spotlight__eyebrow,
+.preferences-actions__eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.preferences-spotlight__eyebrow {
+    color: rgba(110, 231, 183, 0.86);
+}
+
+.preferences-spotlight__headline {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.9rem;
+}
+
+.preferences-spotlight__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(240, 255, 247, 0.96);
+}
+
+.preferences-spotlight__description,
+.preferences-actions__text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: rgba(232, 255, 245, 0.76);
+}
+
+.preferences-spotlight__description {
+    margin-top: 0.28rem;
+}
+
+.preferences-spotlight__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.preferences-spotlight__meta-item,
+.preferences-theme-note {
+    border-radius: 0.85rem;
+    border: 1px solid rgba(87, 255, 170, 0.18);
+    background: rgba(3, 10, 8, 0.48);
+}
+
+.preferences-spotlight__meta-item {
+    padding: 0.38rem 0.62rem;
+    font-size: 0.76rem;
+    color: rgba(214, 255, 236, 0.82);
+}
+
+.preferences-theme-note {
+    display: grid;
+    gap: 0.16rem;
+    padding: 0.7rem 0.82rem;
+}
+
+.preferences-theme-note strong {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: rgba(240, 255, 247, 0.95);
+}
+
+.preferences-theme-note span {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: rgba(232, 255, 245, 0.68);
+}
+
+.preferences-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.55rem;
+    padding-top: 0.35rem;
+}
+
+.preferences-actions__copy {
+    max-width: 32rem;
+}
+
+.preferences-actions__eyebrow {
+    color: rgba(110, 231, 183, 0.82);
+}
+
+.preferences-actions__text {
+    margin-top: 0.24rem;
+}
+
+.settings-actions-row--preferences {
+    margin-top: 0;
+    flex-wrap: wrap;
+}
+
+.settings-button--preferences {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    user-select: none;
+    gap: 0.55rem;
+    padding-inline: 1.05rem 1.18rem;
+    background-image: linear-gradient(135deg, #57ffaa, #12b886 58%, #22d3ee);
 }
 
-.settings-switch input {
-    display: none;
+.settings-button__icon {
+    width: 0.95rem;
+    height: 0.95rem;
 }
 
-.settings-switch-track {
-    width: 40px;
-    height: 22px;
-    border-radius: 999px;
-    background: rgba(2, 8, 10, 0.85);
-    border: 1px solid rgba(87, 255, 170, 0.35);
-    padding: 2px;
-    display: flex;
-    align-items: center;
-    transition: background 0.2s ease, border-color 0.2s ease;
+.settings-button__icon--spin {
+    animation: preferencesSpin 0.9s linear infinite;
 }
 
-.settings-switch-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #57ffaa, #12b886);
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
-    transform: translateX(0);
-    transition: transform 0.2s ease;
+@keyframes preferencesSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-.settings-switch input:checked + .settings-switch-track {
-    background: rgba(8, 12, 14, 0.85);
-    border-color: rgba(87, 255, 170, 0.7);
-}
+@media (max-width: 720px) {
+    .preferences-spotlight__headline,
+    .preferences-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-.settings-switch input:checked + .settings-switch-track .settings-switch-thumb {
-    transform: translateX(16px);
-}
-
-.settings-switch-text {
-    font-size: 0.86rem;
+    .settings-actions-row--preferences {
+        justify-content: flex-start;
+    }
 }
