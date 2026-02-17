@@ -1,6 +1,6 @@
 .user-settings-page {
     padding: 1.5rem 1.75rem 2rem;
-    color: rgba(232, 255, 245, 0.92);
+    color: var(--app-text);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -24,7 +24,7 @@
 .user-settings-subtitle {
     margin-top: 0.35rem;
     font-size: 0.9rem;
-    color: rgba(232, 255, 245, 0.6);
+    color: var(--app-text-muted);
 }
 
 /* Сетка карточек */

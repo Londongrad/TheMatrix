@@ -1,13 +1,16 @@
 .settings-card {
     position: relative;
     border-radius: 18px;
-    border: 1px solid rgba(87, 255, 170, 0.2);
-    background: linear-gradient(135deg, rgba(87, 255, 170, 0.08), transparent 60%),
-    rgba(8, 12, 14, 0.7);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(87, 255, 170, 0.06) inset;
+    border: 1px solid var(--settings-card-border);
+    background:
+        linear-gradient(135deg, var(--settings-card-accent), transparent 60%),
+        var(--settings-card-bg);
+    box-shadow:
+        var(--settings-card-shadow),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.06) inset;
     backdrop-filter: blur(14px);
     padding: 1.3rem 1.5rem 1.25rem;
+    color: var(--app-text);
 }
 
 .settings-card-header {
@@ -28,7 +31,7 @@
 .settings-card-description {
     margin-top: 0.2rem;
     font-size: 0.86rem;
-    color: rgba(232, 255, 245, 0.6);
+    color: var(--app-text-muted);
 }
 
 .settings-form {
@@ -47,7 +50,7 @@
     justify-content: space-between;
     align-items: baseline;
     font-size: 0.78rem;
-    color: rgba(232, 255, 245, 0.55);
+    color: var(--app-text-muted);
 }
 
 .settings-label {
@@ -58,10 +61,10 @@
 
 .settings-input {
     border-radius: 0.75rem;
-    border: 1px solid rgba(15, 23, 42, 0.8);
-    background: rgba(2, 8, 10, 0.85);
+    border: 1px solid var(--settings-input-border);
+    background: var(--settings-input-bg);
     padding: 0.55rem 0.8rem;
-    color: rgba(232, 255, 245, 0.92);
+    color: var(--app-text);
     font-size: 0.92rem;
     outline: none;
     transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out,
@@ -69,14 +72,13 @@
 }
 
 .settings-input::placeholder {
-    color: rgba(232, 255, 245, 0.3);
+    color: color-mix(in srgb, var(--app-text-muted) 68%, transparent);
 }
 
 .settings-input:focus {
-    border-color: rgba(87, 255, 170, 0.8);
-    box-shadow: 0 0 0 1px rgba(87, 255, 170, 0.5),
-    0 12px 30px rgba(14, 38, 30, 0.8);
-    background: rgba(8, 14, 16, 0.92);
+    border-color: var(--settings-input-focus-border);
+    box-shadow: var(--settings-input-focus-shadow);
+    background: color-mix(in srgb, var(--settings-input-bg) 88%, white 12%);
     transform: translateY(-1px);
 }
 
@@ -87,9 +89,13 @@
     background-image: linear-gradient(
             45deg,
             transparent 50%,
-            rgba(232, 255, 245, 0.6) 50%
+            color-mix(in srgb, var(--app-text-muted) 86%, transparent) 50%
     ),
-    linear-gradient(135deg, rgba(232, 255, 245, 0.6) 50%, transparent 50%);
+    linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--app-text-muted) 86%, transparent) 50%,
+        transparent 50%
+    );
     background-position: calc(100% - 14px) 54%, calc(100% - 9px) 54%;
     background-size: 6px 6px, 6px 6px;
     background-repeat: no-repeat;
@@ -122,10 +128,9 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     cursor: pointer;
-    background-image: linear-gradient(135deg, #57ffaa, #12b886);
-    color: #04120c;
-    box-shadow: 0 12px 32px rgba(8, 47, 34, 0.75),
-    0 0 0 1px rgba(15, 23, 42, 0.95);
+    background-image: var(--settings-button-gradient);
+    color: var(--settings-button-text);
+    box-shadow: var(--settings-button-shadow);
     transition: transform 0.08s ease-out, box-shadow 0.12s ease-out,
     filter 0.12s ease-out;
 }
@@ -133,12 +138,12 @@
 .settings-button:hover {
     transform: translateY(-1px);
     filter: brightness(1.05);
-    box-shadow: 0 16px 45px rgba(8, 47, 34, 0.9), 0 0 0 1px rgba(15, 23, 42, 1);
+    box-shadow: var(--settings-button-shadow-hover);
 }
 
 .settings-button:active {
     transform: translateY(0);
-    box-shadow: 0 8px 24px rgba(6, 25, 19, 0.85), 0 0 0 1px rgba(15, 23, 42, 1);
+    box-shadow: 0 8px 24px rgba(var(--shell-accent-rgb), 0.25);
 }
 
 .settings-button:disabled {
@@ -149,10 +154,12 @@
 
 .settings-button--secondary {
     background-image: none;
-    background: rgba(8, 12, 14, 0.75);
-    border: 1px solid rgba(87, 255, 170, 0.2);
-    color: rgba(232, 255, 245, 0.86);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(87, 255, 170, 0.1);
+    background: var(--shell-surface);
+    border: 1px solid var(--shell-border);
+    color: var(--app-text);
+    box-shadow:
+        var(--shell-shadow-soft),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.08);
 }
 
 .settings-button--ghost-danger {
@@ -189,9 +196,9 @@
     font-size: 0.78rem;
     padding: 0.15rem 0.5rem;
     border-radius: 999px;
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid rgba(87, 255, 170, 0.6);
-    color: rgba(187, 247, 208, 0.95);
+    background: var(--settings-pill-bg);
+    border: 1px solid var(--settings-pill-border);
+    color: var(--settings-pill-text);
     animation: settingsSavedIn 0.2s ease-out;
 }
 
@@ -205,14 +212,14 @@
 
 .settings-muted {
     font-size: 0.84rem;
-    color: rgba(232, 255, 245, 0.55);
+    color: var(--app-text-muted);
     line-height: 1.4;
 }
 
 .settings-hint {
     margin-top: 0.35rem;
     font-size: 0.78rem;
-    color: rgba(232, 255, 245, 0.55);
+    color: var(--app-text-muted);
 }
 
 .settings-alert {
@@ -220,9 +227,9 @@
     padding: 0.65rem 0.85rem;
     font-size: 0.85rem;
     line-height: 1.35;
-    border: 1px solid rgba(87, 255, 170, 0.22);
-    background: rgba(8, 12, 14, 0.55);
-    color: rgba(232, 255, 245, 0.9);
+    border: 1px solid var(--shell-border);
+    background: var(--shell-surface-soft);
+    color: var(--app-text);
 }
 
 .settings-alert--error {
@@ -241,9 +248,9 @@
     font-size: 0.72rem;
     padding: 0.12rem 0.45rem;
     border-radius: 999px;
-    background: rgba(87, 255, 170, 0.12);
-    border: 1px solid rgba(87, 255, 170, 0.55);
-    color: rgba(187, 247, 208, 0.95);
+    background: var(--settings-pill-bg);
+    border: 1px solid var(--settings-pill-border);
+    color: var(--settings-pill-text);
 }
 
 @keyframes settingsSavedIn {

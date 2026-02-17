@@ -1,5 +1,5 @@
 .settings-card--preferences {
-    border-color: rgba(87, 255, 170, 0.22);
+    border-color: var(--settings-card-border);
 }
 
 .preferences-spotlight {
@@ -8,13 +8,13 @@
     margin-bottom: 1.25rem;
     padding: 1rem 1.05rem;
     border-radius: 1rem;
-    border: 1px solid rgba(87, 255, 170, 0.24);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.24);
     background:
-        linear-gradient(135deg, rgba(87, 255, 170, 0.14), transparent 64%),
-        rgba(7, 16, 13, 0.68);
+        linear-gradient(135deg, rgba(var(--shell-accent-rgb), 0.14), transparent 64%),
+        color-mix(in srgb, var(--settings-card-bg) 92%, var(--app-bg) 8%);
     box-shadow:
-        0 18px 42px rgba(0, 0, 0, 0.35),
-        0 0 0 1px rgba(87, 255, 170, 0.06) inset;
+        var(--shell-shadow-soft),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.06) inset;
 }
 
 .preferences-spotlight__eyebrow,
@@ -25,7 +25,7 @@
 }
 
 .preferences-spotlight__eyebrow {
-    color: rgba(110, 231, 183, 0.86);
+    color: rgba(var(--shell-accent-rgb), 0.86);
 }
 
 .preferences-spotlight__headline {
@@ -38,14 +38,14 @@
 .preferences-spotlight__title {
     font-size: 1rem;
     font-weight: 700;
-    color: rgba(240, 255, 247, 0.96);
+    color: var(--app-text-strong);
 }
 
 .preferences-spotlight__description,
 .preferences-actions__text {
     font-size: 0.85rem;
     line-height: 1.5;
-    color: rgba(232, 255, 245, 0.76);
+    color: color-mix(in srgb, var(--app-text) 78%, transparent);
 }
 
 .preferences-spotlight__description {
@@ -61,14 +61,14 @@
 .preferences-spotlight__meta-item,
 .preferences-theme-note {
     border-radius: 0.85rem;
-    border: 1px solid rgba(87, 255, 170, 0.18);
-    background: rgba(3, 10, 8, 0.48);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
+    background: color-mix(in srgb, var(--settings-card-bg) 78%, var(--app-bg) 22%);
 }
 
 .preferences-spotlight__meta-item {
     padding: 0.38rem 0.62rem;
     font-size: 0.76rem;
-    color: rgba(214, 255, 236, 0.82);
+    color: color-mix(in srgb, var(--app-text) 84%, transparent);
 }
 
 .preferences-theme-note {
@@ -80,13 +80,13 @@
 .preferences-theme-note strong {
     font-size: 0.84rem;
     font-weight: 600;
-    color: rgba(240, 255, 247, 0.95);
+    color: var(--app-text-strong);
 }
 
 .preferences-theme-note span {
     font-size: 0.8rem;
     line-height: 1.45;
-    color: rgba(232, 255, 245, 0.68);
+    color: var(--app-text-muted);
 }
 
 .preferences-actions {
@@ -103,7 +103,7 @@
 }
 
 .preferences-actions__eyebrow {
-    color: rgba(110, 231, 183, 0.82);
+    color: rgba(var(--shell-accent-rgb), 0.82);
 }
 
 .preferences-actions__text {
@@ -120,7 +120,12 @@
     align-items: center;
     gap: 0.55rem;
     padding-inline: 1.05rem 1.18rem;
-    background-image: linear-gradient(135deg, #57ffaa, #12b886 58%, #22d3ee);
+    background-image: linear-gradient(
+        135deg,
+        var(--shell-accent),
+        var(--shell-accent-strong) 58%,
+        color-mix(in srgb, var(--shell-accent) 55%, white)
+    );
 }
 
 .settings-button__icon {

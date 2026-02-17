@@ -1,16 +1,12 @@
 import {Sparkles, LoaderCircle} from "lucide-react";
-import {useEffect, useRef, useState, type FormEvent} from "react";
+import {useEffect, useState, type FormEvent} from "react";
 import "@services/identity/self/account/preferences/styles/preferences-card.css";
-
-type Language = "en" | "ru";
-type Theme = "matrix" | "dark" | "light" | "glass";
-
-type PreferencesState = {
-    language: Language;
-    theme: Theme;
-};
-
-const PREFERENCES_STORAGE_KEY = "matrix.identity.preferences";
+import {
+    useWorkspacePreferences,
+    type WorkspaceLanguage as Language,
+    type WorkspacePreferences as PreferencesState,
+    type WorkspaceTheme as Theme,
+} from "@shared/theme/workspacePreferences";
 
 const languageOptions: Array<{value: Language; label: string}> = [
     {value: "en", label: "English (EN)"},
@@ -49,57 +45,15 @@ const themeOptions: Array<{
     },
 ];
 
-const defaultPreferences: PreferencesState = {
-    language: "en",
-    theme: "matrix",
-};
-
-const readStoredPreferences = (): PreferencesState => {
-    if (typeof window === "undefined") {
-        return defaultPreferences;
-    }
-
-    try {
-        const raw = window.localStorage.getItem(PREFERENCES_STORAGE_KEY);
-
-        if (!raw) {
-            return defaultPreferences;
-        }
-
-        const parsed = JSON.parse(raw) as Partial<PreferencesState>;
-
-        return {
-            language: languageOptions.some(({value}) => value === parsed.language)
-                ? parsed.language!
-                : defaultPreferences.language,
-            theme: themeOptions.some(({value}) => value === parsed.theme)
-                ? parsed.theme!
-                : defaultPreferences.theme,
-        };
-    } catch {
-        return defaultPreferences;
-    }
-};
-
-const persistPreferences = (preferences: PreferencesState) => {
-    if (typeof window === "undefined") {
-        return;
-    }
-
-    window.localStorage.setItem(
-        PREFERENCES_STORAGE_KEY,
-        JSON.stringify(preferences),
-    );
-};
-
 const PreferencesCard = () => {
-    const initialPreferencesRef = useRef<PreferencesState>(readStoredPreferences());
+    const {
+        preferences: storedPreferences,
+        savePreferences,
+    } = useWorkspacePreferences();
 
-    const [preferences, setPreferences] = useState<PreferencesState>(
-        initialPreferencesRef.current,
-    );
+    const [preferences, setPreferences] = useState<PreferencesState>(storedPreferences);
     const [savedPreferences, setSavedPreferences] = useState<PreferencesState>(
-        initialPreferencesRef.current,
+        storedPreferences,
     );
     const [isSavingPreferences, setIsSavingPreferences] = useState(false);
     const [preferencesSaved, setPreferencesSaved] = useState(false);
@@ -128,16 +82,21 @@ const PreferencesCard = () => {
         };
     }, [preferencesSaved]);
 
+    useEffect(() => {
+        setPreferences(storedPreferences);
+        setSavedPreferences(storedPreferences);
+    }, [storedPreferences]);
+
     const applyPreferences = (nextPreferences: PreferencesState) => {
         setIsSavingPreferences(true);
         setPreferencesSaved(false);
 
         window.setTimeout(() => {
-            persistPreferences(nextPreferences);
+            savePreferences(nextPreferences);
             setSavedPreferences(nextPreferences);
             setIsSavingPreferences(false);
             setPreferencesSaved(true);
-        }, 420);
+        }, 320);
     };
 
     const handlePreferencesSubmit = (e: FormEvent<HTMLFormElement>) => {
