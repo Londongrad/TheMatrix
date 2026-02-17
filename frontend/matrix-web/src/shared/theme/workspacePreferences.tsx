@@ -8,7 +8,7 @@ import {
 } from "react";
 
 export type WorkspaceLanguage = "en" | "ru";
-export type WorkspaceTheme = "matrix" | "dark" | "light" | "glass";
+export type WorkspaceTheme = "matrix" | "dark" | "light";
 
 export type WorkspacePreferences = {
     language: WorkspaceLanguage;
@@ -49,7 +49,6 @@ export const readStoredWorkspacePreferences = (): WorkspacePreferences => {
             theme:
                 parsed.theme === "dark" ||
                 parsed.theme === "light" ||
-                parsed.theme === "glass" ||
                 parsed.theme === "matrix"
                     ? parsed.theme
                     : defaultWorkspacePreferences.theme,
