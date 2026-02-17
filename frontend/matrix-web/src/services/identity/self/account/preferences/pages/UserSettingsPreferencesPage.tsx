@@ -4,8 +4,8 @@ import PreferencesCard from "../components/PreferencesCard";
 const UserSettingsPreferencesPage = () => {
     return (
         <UserSettingsSection
-            title="Preferences"
-            subtitle="Tune display, locale and notification presets for your console."
+            title="Workspace preferences"
+            subtitle="Tune how this device presents the control panel, starting with language and theme presets."
         >
             <PreferencesCard/>
         </UserSettingsSection>
