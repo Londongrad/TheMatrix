@@ -1,5 +1,5 @@
 .settings-card--security {
-    border-color: rgba(87, 255, 170, 0.24);
+    border-color: var(--settings-card-border);
 }
 
 .settings-email-warning {
@@ -8,13 +8,13 @@
     margin-bottom: 1.5rem;
     padding: 1rem 1.1rem;
     border-radius: 1rem;
-    border: 1px solid rgba(245, 158, 11, 0.45);
+    border: 1px solid var(--status-warning-border);
     background:
-        linear-gradient(135deg, rgba(245, 158, 11, 0.18), transparent 68%),
-        rgba(54, 33, 7, 0.6);
+        linear-gradient(135deg, var(--status-warning-bg), transparent 68%),
+        color-mix(in srgb, var(--status-warning-bg) 52%, var(--settings-card-bg));
     box-shadow:
-        0 18px 45px rgba(32, 18, 4, 0.4),
-        0 0 0 1px rgba(251, 191, 36, 0.08) inset;
+        var(--status-warning-shadow),
+        0 0 0 1px color-mix(in srgb, var(--status-warning-border-strong) 18%, transparent) inset;
 }
 
 .settings-email-warning__content {
@@ -30,25 +30,25 @@
 }
 
 .settings-email-warning__eyebrow {
-    color: rgba(253, 224, 71, 0.9);
+    color: var(--status-warning-text);
 }
 
 .settings-email-warning__title {
     font-size: 1rem;
     font-weight: 700;
-    color: #fef3c7;
+    color: var(--status-warning-text);
 }
 
 .settings-email-warning__text {
     font-size: 0.88rem;
     line-height: 1.5;
-    color: rgba(255, 244, 214, 0.9);
+    color: var(--status-warning-text-muted);
 }
 
 .settings-email-warning__notice {
     font-size: 0.82rem;
     line-height: 1.4;
-    color: rgba(254, 243, 199, 0.95);
+    color: var(--status-warning-text);
 }
 
 .settings-email-warning__actions {
@@ -64,33 +64,37 @@
     margin-bottom: 1.5rem;
     padding: 0.95rem 1rem;
     border-radius: 0.95rem;
-    border: 1px solid rgba(87, 255, 170, 0.22);
-    background: rgba(8, 18, 14, 0.55);
+    border: 1px solid var(--status-success-border);
+    background: color-mix(in srgb, var(--status-success-bg) 72%, var(--settings-card-bg));
 }
 
 .settings-email-status__eyebrow {
-    color: rgba(110, 231, 183, 0.85);
+    color: var(--status-success-text);
 }
 
 .settings-email-status__text {
     margin-top: 0.3rem;
     font-size: 0.86rem;
     line-height: 1.45;
-    color: rgba(232, 255, 245, 0.82);
+    color: color-mix(in srgb, var(--status-success-text) 86%, var(--app-text));
 }
 
 .settings-button--warning {
-    background-image: linear-gradient(135deg, #facc15, #f59e0b);
-    color: #261602;
+    background-image: linear-gradient(
+        135deg,
+        var(--status-warning-fill),
+        var(--status-warning-fill-strong)
+    );
+    color: var(--status-warning-on-fill);
     box-shadow:
-        0 12px 32px rgba(120, 53, 15, 0.45),
-        0 0 0 1px rgba(120, 53, 15, 0.2);
+        0 12px 32px color-mix(in srgb, var(--status-warning-fill-strong) 28%, transparent),
+        0 0 0 1px color-mix(in srgb, var(--status-warning-border) 48%, transparent);
 }
 
 .settings-button--warning:hover {
     box-shadow:
-        0 16px 40px rgba(120, 53, 15, 0.55),
-        0 0 0 1px rgba(120, 53, 15, 0.24);
+        0 16px 40px color-mix(in srgb, var(--status-warning-fill-strong) 36%, transparent),
+        0 0 0 1px var(--status-warning-border-strong);
 }
 
 @media (max-width: 640px) {

@@ -1,5 +1,5 @@
 .settings-card--profile {
-    border-color: rgba(87, 255, 170, 0.28);
+    border-color: var(--settings-card-border);
 }
 
 .settings-avatar-row {
@@ -23,14 +23,23 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    background-image: linear-gradient(#020617, #020617),
-    conic-gradient(from 140deg, #57ffaa, #12b886, #00d4ff, #57ffaa);
+    background-image:
+        linear-gradient(var(--shell-surface-solid), var(--shell-surface-solid)),
+        conic-gradient(
+            from 140deg,
+            var(--shell-accent),
+            var(--shell-accent-strong),
+            color-mix(in srgb, var(--shell-accent) 56%, white),
+            var(--shell-accent)
+        );
     background-origin: border-box;
     background-clip: padding-box, border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9), 0 0 18px rgba(87, 255, 170, 0.6);
+    box-shadow:
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.18),
+        0 0 18px rgba(var(--shell-accent-rgb), 0.24);
     transition: transform 0.12s ease-out, box-shadow 0.15s ease-out,
     filter 0.15s ease-out;
 }
@@ -38,32 +47,38 @@
 .settings-avatar:hover {
     transform: translateY(-1px) scale(1.02);
     filter: brightness(1.05);
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 1), 0 0 24px rgba(87, 255, 170, 0.85);
+    box-shadow:
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.28),
+        0 0 24px rgba(var(--shell-accent-rgb), 0.34);
 }
 
 .settings-avatar:disabled {
     cursor: progress;
     opacity: 0.75;
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+    box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.12);
 }
 
 .settings-avatar:disabled:hover {
     transform: none;
     filter: none;
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+    box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.12);
 }
 
 .settings-avatar-initial {
     width: 46px;
     height: 46px;
     border-radius: 999px;
-    background: radial-gradient(circle at 30% 30%, #57ffaa, #12b886);
+    background: radial-gradient(
+        circle at 30% 30%,
+        color-mix(in srgb, var(--shell-accent) 88%, white),
+        var(--shell-accent-strong)
+    );
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 1.1rem;
-    color: #04120c;
+    color: color-mix(in srgb, var(--shell-accent-strong) 28%, #020617);
 }
 
 .settings-avatar-text {
@@ -79,5 +94,5 @@
 
 .settings-avatar-meta {
     font-size: 0.8rem;
-    color: rgba(232, 255, 245, 0.55);
+    color: var(--app-text-muted);
 }
