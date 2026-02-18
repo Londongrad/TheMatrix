@@ -1,5 +1,5 @@
 .citizens-page {
-    color: rgba(232, 255, 245, 0.9);
+    color: var(--app-text);
 }
 
 .page-title {
@@ -8,7 +8,7 @@
     margin-bottom: 0;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(232, 255, 245, 0.92);
+    color: var(--app-text-strong);
 }
 
 .citizens-page-toolbar {
@@ -51,17 +51,16 @@
     width: 14px;
     height: 14px;
     border-radius: 999px;
-    border: 2px solid rgba(87, 255, 170, 0.25); /* контур */
-    border-top-color: rgba(87, 255, 170, 0.9); /* матричный акцент */
-    border-right-color: rgba(0, 212, 255, 0.6);
+    border: 2px solid rgba(var(--shell-accent-rgb), 0.25);
+    border-top-color: rgba(var(--shell-accent-rgb), 0.9);
+    border-right-color: color-mix(in srgb, var(--shell-accent) 60%, white);
     animation: citizens-loading-spin 0.6s linear infinite;
-    box-shadow: 0 0 8px rgba(87, 255, 170, 0.35);
+    box-shadow: 0 0 8px rgba(var(--shell-accent-rgb), 0.25);
 }
 
 .citizens-page-toolbar-left .card-sub {
     margin: 0;
     line-height: 1.2;
-    box-shadow: 0 0 8px rgba(87, 255, 170, 0.35);
 }
 
 @keyframes citizens-loading-spin {
