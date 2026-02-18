@@ -38,23 +38,23 @@
 }
 
 .ui-button--danger {
-    border-color: rgba(255, 80, 135, 0.35);
-    background: rgba(255, 80, 135, 0.1);
-    color: #fecaca;
+    border-color: var(--status-danger-border);
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
 }
 
 .ui-button--danger:hover {
-    border-color: rgba(255, 80, 135, 0.65);
-    box-shadow: 0 0 22px rgba(255, 80, 135, 0.18);
+    border-color: var(--status-danger-border-strong);
+    box-shadow: var(--status-danger-shadow);
 }
 
 .ui-button--success {
-    border-color: rgba(var(--shell-accent-rgb), 0.45);
-    background: rgba(22, 163, 74, 0.2);
-    color: #bbf7d0;
+    border-color: var(--status-success-border);
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
 }
 
 .ui-button--success:hover {
-    border-color: rgba(var(--shell-accent-rgb), 0.65);
-    box-shadow: 0 0 22px rgba(var(--shell-accent-rgb), 0.18);
+    border-color: var(--status-success-border-strong);
+    box-shadow: var(--status-success-shadow);
 }
