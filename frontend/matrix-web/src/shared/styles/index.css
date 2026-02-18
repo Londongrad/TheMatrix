@@ -58,174 +58,113 @@
 }
 
 :root[data-theme="dark"] {
-    --app-background:
-        radial-gradient(circle at top, rgba(54, 71, 96, 0.2), transparent 30%),
-        linear-gradient(180deg, #111827 0%, #0b1120 72%);
-    --app-bg: #0b1120;
-    --app-text: #e5edf8;
-    --app-text-strong: rgba(244, 248, 255, 0.97);
-    --app-text-muted: rgba(214, 224, 238, 0.64);
-    --shell-accent-rgb: 148, 163, 184;
-    --shell-accent: #94a3b8;
-    --shell-accent-strong: #64748b;
-    --shell-surface: rgba(15, 23, 42, 0.74);
-    --shell-surface-soft: rgba(10, 16, 30, 0.62);
-    --shell-surface-strong: rgba(17, 24, 39, 0.84);
-    --shell-surface-solid: rgba(15, 23, 42, 0.96);
-    --shell-border: rgba(148, 163, 184, 0.2);
-    --shell-border-strong: rgba(148, 163, 184, 0.35);
+    --app-background: #111827;
+    --app-bg: #111827;
+    --app-text: #e5e7eb;
+    --app-text-strong: rgba(249, 250, 251, 0.98);
+    --app-text-muted: rgba(156, 163, 175, 0.84);
+    --shell-accent-rgb: 96, 165, 250;
+    --shell-accent: #60a5fa;
+    --shell-accent-strong: #2563eb;
+    --shell-surface: rgba(17, 24, 39, 0.9);
+    --shell-surface-soft: rgba(17, 24, 39, 0.96);
+    --shell-surface-strong: rgba(31, 41, 55, 0.98);
+    --shell-surface-solid: #111827;
+    --shell-border: rgba(75, 85, 99, 0.7);
+    --shell-border-strong: rgba(96, 165, 250, 0.4);
     --shell-shadow: 0 18px 60px rgba(2, 6, 23, 0.55);
     --shell-shadow-soft: 0 18px 60px rgba(2, 6, 23, 0.38);
     --shell-overlay: rgba(2, 6, 23, 0.62);
-    --shell-avatar-start: #cbd5e1;
-    --shell-avatar-end: #64748b;
-    --shell-hover: rgba(148, 163, 184, 0.08);
-    --shell-active: rgba(148, 163, 184, 0.1);
-    --shell-active-border: rgba(148, 163, 184, 0.28);
-    --shell-button-surface: rgba(15, 23, 42, 0.54);
-    --shell-button-text: rgba(229, 237, 248, 0.92);
-    --shell-focus-ring: rgba(148, 163, 184, 0.24);
-    --scrollbar-track: rgba(15, 23, 42, 0.9);
-    --scrollbar-track-edge: rgba(71, 85, 105, 0.18);
-    --scrollbar-thumb: rgba(148, 163, 184, 0.54);
-    --scrollbar-thumb-hover: rgba(176, 188, 204, 0.76);
-    --scrollbar-thumb-active: rgba(203, 213, 225, 0.88);
-    --scrollbar-thumb-border: rgba(15, 23, 42, 0.92);
-    --settings-card-accent: rgba(148, 163, 184, 0.1);
-    --settings-card-bg: rgba(15, 23, 42, 0.74);
-    --settings-card-border: rgba(148, 163, 184, 0.22);
+    --shell-avatar-start: #60a5fa;
+    --shell-avatar-end: #1d4ed8;
+    --shell-hover: rgba(255, 255, 255, 0.04);
+    --shell-active: rgba(96, 165, 250, 0.12);
+    --shell-active-border: rgba(96, 165, 250, 0.32);
+    --shell-button-surface: rgba(31, 41, 55, 0.92);
+    --shell-button-text: rgba(229, 231, 235, 0.96);
+    --shell-focus-ring: rgba(96, 165, 250, 0.22);
+    --scrollbar-track: rgba(17, 24, 39, 0.96);
+    --scrollbar-track-edge: rgba(75, 85, 99, 0.28);
+    --scrollbar-thumb: rgba(107, 114, 128, 0.64);
+    --scrollbar-thumb-hover: rgba(156, 163, 175, 0.78);
+    --scrollbar-thumb-active: rgba(209, 213, 219, 0.88);
+    --scrollbar-thumb-border: rgba(17, 24, 39, 0.96);
+    --settings-card-accent: rgba(255, 255, 255, 0.02);
+    --settings-card-bg: rgba(17, 24, 39, 0.94);
+    --settings-card-border: rgba(75, 85, 99, 0.64);
     --settings-card-shadow: 0 24px 80px rgba(2, 6, 23, 0.48);
-    --settings-input-bg: rgba(11, 18, 32, 0.92);
-    --settings-input-border: rgba(71, 85, 105, 0.5);
-    --settings-input-focus-border: rgba(148, 163, 184, 0.75);
+    --settings-input-bg: rgba(31, 41, 55, 0.98);
+    --settings-input-border: rgba(75, 85, 99, 0.84);
+    --settings-input-focus-border: rgba(96, 165, 250, 0.74);
     --settings-input-focus-shadow:
-        0 0 0 1px rgba(148, 163, 184, 0.34),
+        0 0 0 1px rgba(96, 165, 250, 0.34),
         0 12px 30px rgba(15, 23, 42, 0.55);
-    --settings-pill-bg: rgba(148, 163, 184, 0.12);
-    --settings-pill-border: rgba(148, 163, 184, 0.38);
-    --settings-pill-text: rgba(226, 232, 240, 0.92);
-    --settings-button-gradient: linear-gradient(135deg, #cbd5e1, #94a3b8);
-    --settings-button-text: #111827;
+    --settings-pill-bg: rgba(96, 165, 250, 0.12);
+    --settings-pill-border: rgba(96, 165, 250, 0.34);
+    --settings-pill-text: rgba(219, 234, 254, 0.94);
+    --settings-button-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
+    --settings-button-text: #eff6ff;
     --settings-button-shadow:
-        0 12px 32px rgba(15, 23, 42, 0.55),
-        0 0 0 1px rgba(71, 85, 105, 0.4);
+        0 12px 32px rgba(37, 99, 235, 0.24),
+        0 0 0 1px rgba(37, 99, 235, 0.18);
     --settings-button-shadow-hover:
-        0 16px 45px rgba(15, 23, 42, 0.68),
-        0 0 0 1px rgba(100, 116, 139, 0.56);
+        0 16px 45px rgba(37, 99, 235, 0.32),
+        0 0 0 1px rgba(37, 99, 235, 0.26);
 }
 
 :root[data-theme="light"] {
-    --app-background:
-        radial-gradient(circle at top, rgba(52, 211, 153, 0.12), transparent 28%),
-        linear-gradient(180deg, #f8fffb 0%, #eef7f1 72%);
-    --app-bg: #eef7f1;
-    --app-text: #11231d;
-    --app-text-strong: rgba(9, 22, 18, 0.98);
-    --app-text-muted: rgba(43, 72, 63, 0.72);
-    --shell-accent-rgb: 16, 185, 129;
-    --shell-accent: #10b981;
-    --shell-accent-strong: #0f766e;
-    --shell-surface: rgba(255, 255, 255, 0.82);
-    --shell-surface-soft: rgba(244, 250, 246, 0.9);
-    --shell-surface-strong: rgba(255, 255, 255, 0.94);
-    --shell-surface-solid: rgba(255, 255, 255, 0.98);
-    --shell-border: rgba(15, 118, 110, 0.18);
-    --shell-border-strong: rgba(15, 118, 110, 0.3);
+    --app-background: #f8fafc;
+    --app-bg: #f8fafc;
+    --app-text: #111827;
+    --app-text-strong: rgba(3, 7, 18, 0.98);
+    --app-text-muted: rgba(75, 85, 99, 0.84);
+    --shell-accent-rgb: 37, 99, 235;
+    --shell-accent: #3b82f6;
+    --shell-accent-strong: #2563eb;
+    --shell-surface: rgba(255, 255, 255, 0.96);
+    --shell-surface-soft: rgba(255, 255, 255, 1);
+    --shell-surface-strong: rgba(248, 250, 252, 1);
+    --shell-surface-solid: #ffffff;
+    --shell-border: rgba(203, 213, 225, 0.92);
+    --shell-border-strong: rgba(37, 99, 235, 0.26);
     --shell-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
     --shell-shadow-soft: 0 18px 60px rgba(15, 23, 42, 0.06);
     --shell-overlay: rgba(15, 23, 42, 0.16);
-    --shell-avatar-start: #10b981;
-    --shell-avatar-end: #0f766e;
-    --shell-hover: rgba(16, 185, 129, 0.08);
-    --shell-active: rgba(16, 185, 129, 0.12);
-    --shell-active-border: rgba(15, 118, 110, 0.3);
-    --shell-button-surface: rgba(255, 255, 255, 0.8);
-    --shell-button-text: rgba(17, 35, 29, 0.92);
-    --shell-focus-ring: rgba(16, 185, 129, 0.2);
-    --scrollbar-track: rgba(222, 242, 235, 0.92);
-    --scrollbar-track-edge: rgba(16, 185, 129, 0.12);
-    --scrollbar-thumb: rgba(16, 185, 129, 0.46);
-    --scrollbar-thumb-hover: rgba(15, 118, 110, 0.62);
-    --scrollbar-thumb-active: rgba(13, 148, 136, 0.78);
-    --scrollbar-thumb-border: rgba(226, 239, 232, 0.95);
-    --settings-card-accent: rgba(16, 185, 129, 0.08);
-    --settings-card-bg: rgba(255, 255, 255, 0.84);
-    --settings-card-border: rgba(15, 118, 110, 0.18);
+    --shell-avatar-start: #60a5fa;
+    --shell-avatar-end: #2563eb;
+    --shell-hover: rgba(37, 99, 235, 0.06);
+    --shell-active: rgba(37, 99, 235, 0.08);
+    --shell-active-border: rgba(37, 99, 235, 0.18);
+    --shell-button-surface: rgba(255, 255, 255, 0.98);
+    --shell-button-text: rgba(17, 24, 39, 0.94);
+    --shell-focus-ring: rgba(37, 99, 235, 0.16);
+    --scrollbar-track: rgba(241, 245, 249, 1);
+    --scrollbar-track-edge: rgba(203, 213, 225, 0.5);
+    --scrollbar-thumb: rgba(148, 163, 184, 0.66);
+    --scrollbar-thumb-hover: rgba(100, 116, 139, 0.74);
+    --scrollbar-thumb-active: rgba(71, 85, 105, 0.82);
+    --scrollbar-thumb-border: rgba(248, 250, 252, 1);
+    --settings-card-accent: rgba(255, 255, 255, 0);
+    --settings-card-bg: rgba(255, 255, 255, 0.98);
+    --settings-card-border: rgba(203, 213, 225, 0.82);
     --settings-card-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-    --settings-input-bg: rgba(248, 252, 249, 0.98);
-    --settings-input-border: rgba(148, 163, 184, 0.42);
-    --settings-input-focus-border: rgba(15, 118, 110, 0.72);
+    --settings-input-bg: rgba(255, 255, 255, 1);
+    --settings-input-border: rgba(203, 213, 225, 0.94);
+    --settings-input-focus-border: rgba(37, 99, 235, 0.42);
     --settings-input-focus-shadow:
-        0 0 0 1px rgba(16, 185, 129, 0.18),
+        0 0 0 1px rgba(37, 99, 235, 0.14),
         0 12px 30px rgba(15, 23, 42, 0.08);
-    --settings-pill-bg: rgba(16, 185, 129, 0.1);
-    --settings-pill-border: rgba(15, 118, 110, 0.3);
-    --settings-pill-text: rgba(6, 78, 59, 0.9);
-    --settings-button-gradient: linear-gradient(135deg, #10b981, #0f766e);
-    --settings-button-text: #f8fffb;
+    --settings-pill-bg: rgba(37, 99, 235, 0.08);
+    --settings-pill-border: rgba(37, 99, 235, 0.2);
+    --settings-pill-text: rgba(30, 64, 175, 0.9);
+    --settings-button-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
+    --settings-button-text: #eff6ff;
     --settings-button-shadow:
-        0 12px 32px rgba(15, 118, 110, 0.18),
-        0 0 0 1px rgba(15, 118, 110, 0.14);
+        0 12px 32px rgba(37, 99, 235, 0.14),
+        0 0 0 1px rgba(37, 99, 235, 0.1);
     --settings-button-shadow-hover:
-        0 16px 45px rgba(15, 118, 110, 0.24),
-        0 0 0 1px rgba(15, 118, 110, 0.2);
-}
-
-:root[data-theme="glass"] {
-    --app-background:
-        radial-gradient(circle at top, rgba(34, 211, 238, 0.18), transparent 30%),
-        linear-gradient(180deg, #07111a 0%, #04070d 74%);
-    --app-bg: #04070d;
-    --app-text: #e8fbff;
-    --app-text-strong: rgba(245, 252, 255, 0.98);
-    --app-text-muted: rgba(208, 232, 240, 0.66);
-    --shell-accent-rgb: 34, 211, 238;
-    --shell-accent: #22d3ee;
-    --shell-accent-strong: #0ea5e9;
-    --shell-surface: rgba(9, 15, 24, 0.62);
-    --shell-surface-soft: rgba(5, 10, 18, 0.52);
-    --shell-surface-strong: rgba(12, 19, 29, 0.74);
-    --shell-surface-solid: rgba(9, 15, 24, 0.94);
-    --shell-border: rgba(34, 211, 238, 0.18);
-    --shell-border-strong: rgba(34, 211, 238, 0.34);
-    --shell-shadow: 0 18px 60px rgba(3, 7, 18, 0.52);
-    --shell-shadow-soft: 0 18px 60px rgba(3, 7, 18, 0.38);
-    --shell-overlay: rgba(3, 7, 18, 0.6);
-    --shell-avatar-start: #67e8f9;
-    --shell-avatar-end: #0ea5e9;
-    --shell-hover: rgba(34, 211, 238, 0.08);
-    --shell-active: rgba(34, 211, 238, 0.12);
-    --shell-active-border: rgba(34, 211, 238, 0.28);
-    --shell-button-surface: rgba(9, 15, 24, 0.52);
-    --shell-button-text: rgba(232, 251, 255, 0.92);
-    --shell-focus-ring: rgba(34, 211, 238, 0.22);
-    --scrollbar-track: rgba(7, 18, 31, 0.92);
-    --scrollbar-track-edge: rgba(34, 211, 238, 0.16);
-    --scrollbar-thumb: rgba(34, 211, 238, 0.48);
-    --scrollbar-thumb-hover: rgba(103, 232, 249, 0.72);
-    --scrollbar-thumb-active: rgba(125, 211, 252, 0.84);
-    --scrollbar-thumb-border: rgba(7, 18, 31, 0.92);
-    --settings-card-accent: rgba(34, 211, 238, 0.08);
-    --settings-card-bg: rgba(9, 15, 24, 0.68);
-    --settings-card-border: rgba(34, 211, 238, 0.18);
-    --settings-card-shadow: 0 24px 80px rgba(3, 7, 18, 0.48);
-    --settings-input-bg: rgba(4, 11, 19, 0.9);
-    --settings-input-border: rgba(34, 211, 238, 0.18);
-    --settings-input-focus-border: rgba(34, 211, 238, 0.64);
-    --settings-input-focus-shadow:
-        0 0 0 1px rgba(34, 211, 238, 0.28),
-        0 12px 30px rgba(4, 11, 19, 0.58);
-    --settings-pill-bg: rgba(34, 211, 238, 0.1);
-    --settings-pill-border: rgba(34, 211, 238, 0.32);
-    --settings-pill-text: rgba(186, 230, 253, 0.94);
-    --settings-button-gradient: linear-gradient(135deg, #67e8f9, #0ea5e9);
-    --settings-button-text: #03131a;
-    --settings-button-shadow:
-        0 12px 32px rgba(14, 116, 144, 0.28),
-        0 0 0 1px rgba(34, 211, 238, 0.14);
-    --settings-button-shadow-hover:
-        0 16px 45px rgba(14, 116, 144, 0.35),
-        0 0 0 1px rgba(34, 211, 238, 0.2);
+        0 16px 45px rgba(37, 99, 235, 0.2),
+        0 0 0 1px rgba(37, 99, 235, 0.16);
 }
 
 html {
@@ -234,8 +173,7 @@ html {
 
 html:not([data-theme]),
 html[data-theme="matrix"],
-html[data-theme="dark"],
-html[data-theme="glass"] {
+html[data-theme="dark"] {
     color-scheme: dark;
 }
 

@@ -52,13 +52,7 @@ export default function MatrixShellLayout({
         return () => window.removeEventListener("resize", onResize);
     }, []);
 
-    const showBackdrop = preferences.theme !== "light";
-    const backdropRainOpacity =
-        preferences.theme === "matrix"
-            ? 0.4
-            : preferences.theme === "glass"
-              ? 0.28
-              : 0.18;
+    const showBackdrop = preferences.theme === "matrix";
 
     return (
         <div
@@ -69,10 +63,7 @@ export default function MatrixShellLayout({
             }`}
         >
             {showBackdrop ? (
-                <MatrixBackdrop
-                    rainOpacity={backdropRainOpacity}
-                    showScanline={preferences.theme !== "dark"}
-                />
+                <MatrixBackdrop rainOpacity={0.4}/>
             ) : null}
             <div className="mx-shell__overlay" onClick={() => setMobileOpen(false)}/>
 
