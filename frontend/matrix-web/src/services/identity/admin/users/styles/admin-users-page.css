@@ -11,7 +11,7 @@
 
 .mx-admin-users__error {
     margin-bottom: 12px;
-    color: #ff7a7a;
+    color: var(--status-danger-text);
 }
 
 .mx-admin-users__loading {
@@ -27,13 +27,14 @@
 }
 
 .mx-admin-users__card {
-    background: #10131a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--settings-card-bg);
+    border: 1px solid var(--settings-card-border);
     border-radius: 16px;
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-shadow: var(--shell-shadow-soft);
 }
 
 .mx-admin-users__cardTop {
@@ -46,8 +47,8 @@
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    background: rgba(123, 156, 255, 0.2);
-    color: #c9d4ff;
+    background: rgba(var(--shell-accent-rgb), 0.18);
+    color: color-mix(in srgb, var(--shell-accent) 58%, var(--app-text));
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -70,13 +71,13 @@
 
 .mx-admin-users__username {
     font-weight: 600;
-    color: #f4f6ff;
+    color: var(--app-text-strong);
 }
 
 .mx-admin-users__email,
 .mx-admin-users__id {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--app-text-muted);
     word-break: break-all;
 }
 
@@ -91,7 +92,7 @@
     display: flex;
     justify-content: space-between;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in srgb, var(--app-text) 84%, transparent);
 }
 
 .mx-admin-users__actions {
@@ -110,7 +111,7 @@
 }
 
 .mx-admin-users__muted {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--app-text-muted);
     font-size: 13px;
 }
 
@@ -138,8 +139,8 @@
 }
 
 .mx-admin-users__badge.info {
-    background: rgba(88, 130, 255, 0.18);
-    color: #9fb5ff;
+    background: rgba(var(--shell-accent-rgb), 0.18);
+    color: color-mix(in srgb, var(--shell-accent) 62%, var(--app-text));
 }
 
 .mx-admin-users__modal {
@@ -151,7 +152,7 @@
 .mx-admin-users__sectionTitle {
     font-weight: 600;
     margin-bottom: 12px;
-    color: #f5f6fb;
+    color: var(--app-text-strong);
 }
 
 .mx-admin-users__profileGrid {
@@ -170,7 +171,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, var(--settings-card-bg) 84%, white 16%);
     padding: 8px 10px;
     border-radius: 10px;
 }
@@ -180,8 +181,8 @@
     font-size: 11px;
     padding: 2px 6px;
     border-radius: 999px;
-    background: rgba(123, 156, 255, 0.2);
-    color: #9bb0ff;
+    background: rgba(var(--shell-accent-rgb), 0.18);
+    color: color-mix(in srgb, var(--shell-accent) 62%, var(--app-text));
 }
 
 .mx-admin-users__rolesActions {
@@ -203,16 +204,16 @@
     gap: 16px;
     padding: 12px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--settings-card-border);
 }
 
 .mx-admin-users__permKey {
     font-weight: 600;
-    color: #f5f6fb;
+    color: var(--app-text-strong);
 }
 
 .mx-admin-users__permDesc {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--app-text-muted);
     font-size: 12px;
 }
 

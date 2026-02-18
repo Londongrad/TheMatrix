@@ -8,8 +8,9 @@
     margin-bottom: 10px;
     padding: 10px 12px;
     border-radius: 14px;
-    border: 1px solid rgba(255, 80, 135, 0.22);
-    background: rgba(255, 80, 135, 0.06);
+    border: 1px solid var(--status-danger-border);
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
 }
 
 .mx-admin-perm__loading {
@@ -24,10 +25,14 @@
     gap: 12px;
 }
 
-.mx-admin-perm__roles {
-    border: 1px solid rgba(87, 255, 170, 0.12);
+.mx-admin-perm__roles,
+.mx-admin-perm__matrix {
+    border: 1px solid var(--settings-card-border);
     border-radius: 14px;
-    background: rgba(10, 14, 16, 0.3);
+    background: var(--settings-card-bg);
+}
+
+.mx-admin-perm__roles {
     padding: 12px;
 }
 
@@ -35,7 +40,7 @@
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(232, 255, 245, 0.62);
+    color: var(--app-text-muted);
     margin-bottom: 10px;
 }
 
@@ -48,24 +53,26 @@
 .mx-admin-perm__roleBtn {
     text-align: left;
     border-radius: 12px;
-    border: 1px solid rgba(87, 255, 170, 0.12);
-    background: rgba(10, 14, 16, 0.24);
+    border: 1px solid var(--settings-card-border);
+    background: color-mix(in srgb, var(--settings-card-bg) 84%, white 16%);
     padding: 10px 12px;
-    color: rgba(232, 255, 245, 0.92);
+    color: var(--app-text);
     cursor: pointer;
-    transition: transform 0.14s ease, border-color 0.14s ease,
-    box-shadow 0.14s ease;
+    transition:
+        transform 0.14s ease,
+        border-color 0.14s ease,
+        box-shadow 0.14s ease;
 }
 
 .mx-admin-perm__roleBtn:hover {
     transform: translateY(-1px);
-    border-color: rgba(87, 255, 170, 0.28);
-    box-shadow: 0 0 18px rgba(87, 255, 170, 0.08);
+    border-color: var(--shell-border-strong);
+    box-shadow: 0 0 18px rgba(var(--shell-accent-rgb), 0.08);
 }
 
 .mx-admin-perm__roleBtn.is-active {
-    background: rgba(87, 255, 170, 0.08);
-    border-color: rgba(87, 255, 170, 0.32);
+    background: rgba(var(--shell-accent-rgb), 0.08);
+    border-color: rgba(var(--shell-accent-rgb), 0.32);
 }
 
 .mx-admin-perm__roleName {
@@ -75,20 +82,17 @@
 .mx-admin-perm__roleMeta {
     margin-top: 4px;
     font-size: 12px;
-    color: rgba(232, 255, 245, 0.62);
+    color: var(--app-text-muted);
 }
 
 .mx-admin-perm__matrix {
-    border: 1px solid rgba(87, 255, 170, 0.12);
-    border-radius: 14px;
-    background: rgba(10, 14, 16, 0.3);
     overflow: hidden;
 }
 
 .mx-admin-perm__matrixHead {
     padding: 12px;
-    border-bottom: 1px solid rgba(87, 255, 170, 0.1);
-    background: rgba(0, 0, 0, 0.18);
+    border-bottom: 1px solid var(--settings-card-border);
+    background: color-mix(in srgb, var(--settings-card-bg) 88%, black 12%);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -102,7 +106,7 @@
 .mx-admin-perm__matrixSub {
     margin-top: 4px;
     font-size: 12px;
-    color: rgba(232, 255, 245, 0.62);
+    color: var(--app-text-muted);
 }
 
 .mx-admin-perm__groups {
@@ -112,59 +116,15 @@
     gap: 12px;
 }
 
-.mx-admin-perm__section {
-    border: 1px solid rgba(87, 255, 170, 0.12);
-    border-radius: 14px;
-    background: rgba(10, 14, 16, 0.24);
-    overflow: hidden;
-}
-
-.mx-admin-perm__sectionTitle {
-    list-style: none;
-    cursor: pointer;
-    padding: 12px;
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(232, 255, 245, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.12);
-}
-
-.mx-admin-perm__sectionTitle::marker,
-.mx-admin-perm__sectionTitle::-webkit-details-marker {
-    display: none;
-}
-
-.mx-admin-perm__sectionTitle::after {
-    content: "▾";
-    font-size: 12px;
-    color: rgba(232, 255, 245, 0.62);
-    transition: transform 0.14s ease;
-}
-
-.mx-admin-perm__section[open] > .mx-admin-perm__sectionTitle::after {
-    transform: rotate(180deg);
-}
-
-.mx-admin-perm__sectionBody {
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
+.mx-admin-perm__section,
 .mx-admin-perm__group {
-    border: 1px solid rgba(87, 255, 170, 0.12);
+    border: 1px solid var(--settings-card-border);
     border-radius: 14px;
-    background: rgba(10, 14, 16, 0.24);
-    padding: 0;
+    background: color-mix(in srgb, var(--settings-card-bg) 88%, white 12%);
     overflow: hidden;
 }
 
+.mx-admin-perm__sectionTitle,
 .mx-admin-perm__groupTitle {
     list-style: none;
     cursor: pointer;
@@ -172,42 +132,45 @@
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(232, 255, 245, 0.7);
-    margin: 0;
+    color: color-mix(in srgb, var(--app-text) 78%, transparent);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    background: rgba(0, 0, 0, 0.12);
+    background: color-mix(in srgb, var(--settings-card-bg) 88%, black 12%);
 }
 
+.mx-admin-perm__sectionTitle::marker,
+.mx-admin-perm__sectionTitle::-webkit-details-marker,
 .mx-admin-perm__groupTitle::marker,
 .mx-admin-perm__groupTitle::-webkit-details-marker {
     display: none;
 }
 
+.mx-admin-perm__sectionTitle::after,
 .mx-admin-perm__groupTitle::after {
     content: "▾";
     font-size: 12px;
-    color: rgba(232, 255, 245, 0.62);
+    color: var(--app-text-muted);
     transition: transform 0.14s ease;
 }
 
+.mx-admin-perm__section[open] > .mx-admin-perm__sectionTitle::after,
 .mx-admin-perm__group[open] > .mx-admin-perm__groupTitle::after {
     transform: rotate(180deg);
 }
 
-.mx-admin-perm__groupBody {
-    border: 1px solid rgba(87, 255, 170, 0.12);
-    border-radius: 14px;
-    background: rgba;
-}
-
+.mx-admin-perm__sectionBody,
 .mx-admin-perm__rows {
     padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+}
+
+.mx-admin-perm__groupBody {
+    border-top: 1px solid var(--settings-card-border);
+    background: transparent;
 }
 
 .mx-admin-perm__row {
@@ -217,19 +180,26 @@
     align-items: center;
     padding: 10px 10px;
     border-radius: 12px;
-    border: 1px solid rgba(87, 255, 170, 0.1);
-    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid var(--settings-card-border);
+    background: color-mix(in srgb, var(--settings-card-bg) 82%, black 18%);
 }
 
 .mx-admin-perm__permKey {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-    color: rgba(232, 255, 245, 0.88);
+    font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        "Liberation Mono",
+        "Courier New",
+        monospace;
+    color: var(--app-text-strong);
     font-size: 13px;
 }
 
 .mx-admin-perm__permDesc {
-    color: rgba(232, 255, 245, 0.62);
+    color: var(--app-text-muted);
     font-size: 13px;
 }
 
@@ -249,8 +219,8 @@
     width: 44px;
     height: 24px;
     border-radius: 999px;
-    border: 1px solid rgba(87, 255, 170, 0.18);
-    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
+    background: color-mix(in srgb, var(--settings-card-bg) 84%, black 16%);
     position: relative;
     transition: background 0.14s ease, border-color 0.14s ease;
 }
@@ -260,7 +230,7 @@
     width: 18px;
     height: 18px;
     border-radius: 999px;
-    background: rgba(232, 255, 245, 0.82);
+    background: color-mix(in srgb, var(--app-text) 88%, white 12%);
     position: absolute;
     top: 2px;
     left: 3px;
@@ -268,13 +238,13 @@
 }
 
 .mx-admin-perm__toggle input:checked + span {
-    background: rgba(87, 255, 170, 0.14);
-    border-color: rgba(87, 255, 170, 0.32);
+    background: rgba(var(--shell-accent-rgb), 0.14);
+    border-color: rgba(var(--shell-accent-rgb), 0.32);
 }
 
 .mx-admin-perm__toggle input:checked + span::after {
     transform: translateX(18px);
-    background: rgba(87, 255, 170, 0.92);
+    background: rgba(var(--shell-accent-rgb), 0.92);
 }
 
 @media (max-width: 1060px) {
