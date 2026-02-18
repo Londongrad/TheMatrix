@@ -2,6 +2,7 @@
 import {useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import MatrixBackdrop from "@shared/ui/backgrounds/BackgroundRain/MatrixRainBackground";
+import {useWorkspacePreferences} from "@shared/theme/workspacePreferences";
 import "./forbidden-page.css";
 
 type ForbiddenState = {
@@ -14,6 +15,8 @@ export default function ForbiddenPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const {logout} = useAuth();
+    const {preferences} = useWorkspacePreferences();
+    const isAnimatedTheme = preferences.theme === "matrix";
 
     const state = (location.state ?? {}) as ForbiddenState;
 
@@ -26,8 +29,10 @@ export default function ForbiddenPage() {
     };
 
     return (
-        <div className="forbidden">
-            <MatrixBackdrop rainOpacity={0.3}/>
+        <div
+            className={`forbidden${isAnimatedTheme ? " forbidden--animated" : ""}`}
+        >
+            {isAnimatedTheme ? <MatrixBackdrop rainOpacity={0.3}/> : null}
 
             {/* контент */}
             <div className="forbidden__wrap">
