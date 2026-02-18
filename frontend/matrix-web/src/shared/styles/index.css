@@ -1,5 +1,6 @@
 :root,
 :root[data-theme="matrix"] {
+    --glass-blur-strength: 14px;
     --app-background:
         radial-gradient(circle at top, rgba(19, 78, 54, 0.26), transparent 32%),
         linear-gradient(180deg, #08120f 0%, #05080b 68%);
@@ -38,6 +39,16 @@
     --settings-card-bg: rgba(8, 12, 14, 0.7);
     --settings-card-border: rgba(87, 255, 170, 0.2);
     --settings-card-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+    --ui-card-bg: rgba(10, 14, 16, 0.56);
+    --ui-card-border: rgba(87, 255, 170, 0.14);
+    --ui-card-header-border: rgba(87, 255, 170, 0.1);
+    --ui-card-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    --ui-card-highlight:
+        radial-gradient(300px 140px at 20% 0%, rgba(87, 255, 170, 0.1), transparent 65%);
+    --modal-bg: rgba(8, 12, 14, 0.96);
+    --modal-border: rgba(87, 255, 170, 0.18);
+    --modal-shadow: 0 30px 80px rgba(0, 0, 0, 0.46);
+    --modal-backdrop: rgba(9, 12, 20, 0.6);
     --settings-input-bg: rgba(2, 8, 10, 0.85);
     --settings-input-border: rgba(15, 23, 42, 0.8);
     --settings-input-focus-border: rgba(87, 255, 170, 0.8);
@@ -60,14 +71,30 @@
     --status-danger-border-strong: rgba(255, 80, 135, 0.65);
     --status-danger-text: #fecaca;
     --status-danger-shadow: 0 0 22px rgba(255, 80, 135, 0.18);
+    --status-danger-fill: #ef4444;
+    --status-danger-fill-strong: #b91c1c;
+    --status-danger-on-fill: #fff1f2;
     --status-success-bg: rgba(22, 163, 74, 0.2);
     --status-success-border: rgba(87, 255, 170, 0.45);
     --status-success-border-strong: rgba(87, 255, 170, 0.65);
     --status-success-text: #bbf7d0;
     --status-success-shadow: 0 0 22px rgba(87, 255, 170, 0.18);
+    --status-success-fill: #12b886;
+    --status-success-fill-strong: #0f9c72;
+    --status-success-on-fill: #04120c;
+    --status-warning-bg: rgba(245, 158, 11, 0.18);
+    --status-warning-border: rgba(245, 158, 11, 0.42);
+    --status-warning-border-strong: rgba(251, 191, 36, 0.56);
+    --status-warning-text: #fef3c7;
+    --status-warning-text-muted: rgba(255, 244, 214, 0.9);
+    --status-warning-shadow: 0 18px 45px rgba(32, 18, 4, 0.4);
+    --status-warning-fill: #facc15;
+    --status-warning-fill-strong: #f59e0b;
+    --status-warning-on-fill: #261602;
 }
 
 :root[data-theme="dark"] {
+    --glass-blur-strength: 0px;
     --app-background: #111827;
     --app-bg: #111827;
     --app-text: #e5e7eb;
@@ -103,6 +130,16 @@
     --settings-card-bg: rgba(17, 24, 39, 0.94);
     --settings-card-border: rgba(75, 85, 99, 0.64);
     --settings-card-shadow: 0 24px 80px rgba(2, 6, 23, 0.48);
+    --ui-card-bg: rgba(17, 24, 39, 0.94);
+    --ui-card-border: rgba(75, 85, 99, 0.64);
+    --ui-card-header-border: rgba(75, 85, 99, 0.46);
+    --ui-card-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
+    --ui-card-highlight:
+        linear-gradient(135deg, rgba(96, 165, 250, 0.08), transparent 58%);
+    --modal-bg: rgba(17, 24, 39, 0.98);
+    --modal-border: rgba(75, 85, 99, 0.7);
+    --modal-shadow: 0 30px 80px rgba(2, 6, 23, 0.48);
+    --modal-backdrop: rgba(2, 6, 23, 0.62);
     --settings-input-bg: rgba(31, 41, 55, 0.98);
     --settings-input-border: rgba(75, 85, 99, 0.84);
     --settings-input-focus-border: rgba(96, 165, 250, 0.74);
@@ -125,14 +162,30 @@
     --status-danger-border-strong: rgba(248, 113, 113, 0.62);
     --status-danger-text: #fecaca;
     --status-danger-shadow: 0 0 22px rgba(248, 113, 113, 0.16);
+    --status-danger-fill: #ef4444;
+    --status-danger-fill-strong: #b91c1c;
+    --status-danger-on-fill: #fff1f2;
     --status-success-bg: rgba(34, 197, 94, 0.18);
     --status-success-border: rgba(74, 222, 128, 0.38);
     --status-success-border-strong: rgba(74, 222, 128, 0.58);
     --status-success-text: #dcfce7;
     --status-success-shadow: 0 0 22px rgba(74, 222, 128, 0.16);
+    --status-success-fill: #16a34a;
+    --status-success-fill-strong: #15803d;
+    --status-success-on-fill: #f0fdf4;
+    --status-warning-bg: rgba(245, 158, 11, 0.14);
+    --status-warning-border: rgba(251, 191, 36, 0.34);
+    --status-warning-border-strong: rgba(251, 191, 36, 0.48);
+    --status-warning-text: #fde68a;
+    --status-warning-text-muted: rgba(253, 230, 138, 0.86);
+    --status-warning-shadow: 0 18px 45px rgba(120, 53, 15, 0.24);
+    --status-warning-fill: #f59e0b;
+    --status-warning-fill-strong: #d97706;
+    --status-warning-on-fill: #1f1301;
 }
 
 :root[data-theme="light"] {
+    --glass-blur-strength: 0px;
     --app-background: #f8fafc;
     --app-bg: #f8fafc;
     --app-text: #111827;
@@ -168,6 +221,16 @@
     --settings-card-bg: rgba(255, 255, 255, 0.98);
     --settings-card-border: rgba(203, 213, 225, 0.82);
     --settings-card-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+    --ui-card-bg: rgba(255, 255, 255, 0.98);
+    --ui-card-border: rgba(203, 213, 225, 0.82);
+    --ui-card-header-border: rgba(226, 232, 240, 0.96);
+    --ui-card-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+    --ui-card-highlight:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.06), transparent 58%);
+    --modal-bg: rgba(255, 255, 255, 1);
+    --modal-border: rgba(203, 213, 225, 0.92);
+    --modal-shadow: 0 30px 80px rgba(15, 23, 42, 0.14);
+    --modal-backdrop: rgba(15, 23, 42, 0.18);
     --settings-input-bg: rgba(255, 255, 255, 1);
     --settings-input-border: rgba(203, 213, 225, 0.94);
     --settings-input-focus-border: rgba(37, 99, 235, 0.42);
@@ -190,11 +253,26 @@
     --status-danger-border-strong: rgba(220, 38, 38, 0.48);
     --status-danger-text: #b91c1c;
     --status-danger-shadow: 0 0 22px rgba(239, 68, 68, 0.14);
+    --status-danger-fill: #ef4444;
+    --status-danger-fill-strong: #dc2626;
+    --status-danger-on-fill: #fff5f5;
     --status-success-bg: rgba(34, 197, 94, 0.12);
     --status-success-border: rgba(34, 197, 94, 0.28);
     --status-success-border-strong: rgba(22, 163, 74, 0.42);
     --status-success-text: #166534;
     --status-success-shadow: 0 0 22px rgba(34, 197, 94, 0.14);
+    --status-success-fill: #22c55e;
+    --status-success-fill-strong: #16a34a;
+    --status-success-on-fill: #f0fdf4;
+    --status-warning-bg: rgba(245, 158, 11, 0.12);
+    --status-warning-border: rgba(245, 158, 11, 0.28);
+    --status-warning-border-strong: rgba(217, 119, 6, 0.42);
+    --status-warning-text: #92400e;
+    --status-warning-text-muted: rgba(146, 64, 14, 0.84);
+    --status-warning-shadow: 0 18px 45px rgba(217, 119, 6, 0.14);
+    --status-warning-fill: #f59e0b;
+    --status-warning-fill-strong: #d97706;
+    --status-warning-on-fill: #fff7ed;
 }
 
 html {
