@@ -22,26 +22,20 @@ const themeOptions: Array<{
     {
         value: "matrix",
         label: "Matrix",
-        availability: "Live default",
-        description: "The current neon control-panel theme used across the app today.",
+        availability: "Animated signature",
+        description: "Our live green control-panel theme with the animated Matrix shell.",
     },
     {
         value: "dark",
         label: "Dark",
-        availability: "Preview stub",
-        description: "A softer dark shell for long operator sessions and future theme rollout.",
+        availability: "Classic static",
+        description: "A plain dark interface without animated overlays or stylized motion.",
     },
     {
         value: "light",
         label: "Light",
-        availability: "Preview stub",
-        description: "A brighter utility palette for daylight dashboards and admin work.",
-    },
-    {
-        value: "glass",
-        label: "Glass",
-        availability: "Preview stub",
-        description: "A translucent concept theme reserved for future visual experiments.",
+        availability: "Classic static",
+        description: "A plain light interface for regular daytime work and neutral dashboards.",
     },
 ];
 
@@ -204,8 +198,8 @@ const PreferencesCard = () => {
                     </div>
 
                     <p className="settings-hint">
-                        Only Matrix is wired into the live shell right now. The other
-                        presets are intentionally staged as future theme placeholders.
+                        Matrix keeps the animated shell. Dark and Light stay deliberately
+                        plain and static, like classic application themes.
                     </p>
                 </div>
 
