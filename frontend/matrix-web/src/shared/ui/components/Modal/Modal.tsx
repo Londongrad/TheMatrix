@@ -25,7 +25,7 @@ const Modal = ({open, title, onClose, children, footer}: ModalProps) => {
                         aria-label="Close"
                         onClick={onClose}
                     >
-                        ✕
+                        ×
                     </button>
                 </div>
                 <div className="mx-modal-body">{children}</div>

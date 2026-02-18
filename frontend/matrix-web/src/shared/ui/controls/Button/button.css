@@ -32,29 +32,46 @@
 }
 
 .ui-button--primary {
-    background: rgba(var(--shell-accent-rgb), 0.12);
-    border-color: rgba(var(--shell-accent-rgb), 0.45);
-    color: var(--app-text-strong);
+    background: var(--settings-button-gradient);
+    border-color: transparent;
+    color: var(--settings-button-text);
+    box-shadow: var(--settings-button-shadow);
+}
+
+.ui-button--primary:hover {
+    box-shadow: var(--settings-button-shadow-hover);
 }
 
 .ui-button--danger {
-    border-color: var(--status-danger-border);
-    background: var(--status-danger-bg);
-    color: var(--status-danger-text);
-}
-
-.ui-button--danger:hover {
-    border-color: var(--status-danger-border-strong);
+    border-color: transparent;
+    background: linear-gradient(
+        135deg,
+        var(--status-danger-fill),
+        var(--status-danger-fill-strong)
+    );
+    color: var(--status-danger-on-fill);
     box-shadow: var(--status-danger-shadow);
 }
 
+.ui-button--danger:hover {
+    box-shadow:
+        0 18px 42px color-mix(in srgb, var(--status-danger-fill-strong) 42%, transparent),
+        0 0 0 1px var(--status-danger-border-strong);
+}
+
 .ui-button--success {
-    border-color: var(--status-success-border);
-    background: var(--status-success-bg);
-    color: var(--status-success-text);
+    border-color: transparent;
+    background: linear-gradient(
+        135deg,
+        var(--status-success-fill),
+        var(--status-success-fill-strong)
+    );
+    color: var(--status-success-on-fill);
+    box-shadow: var(--status-success-shadow);
 }
 
 .ui-button--success:hover {
-    border-color: var(--status-success-border-strong);
-    box-shadow: var(--status-success-shadow);
+    box-shadow:
+        0 18px 42px color-mix(in srgb, var(--status-success-fill-strong) 40%, transparent),
+        0 0 0 1px var(--status-success-border-strong);
 }

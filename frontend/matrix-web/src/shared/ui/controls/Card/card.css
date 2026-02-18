@@ -1,9 +1,9 @@
 .ui-card {
     border-radius: 18px;
-    background: rgba(10, 14, 16, 0.56);
-    border: 1px solid rgba(87, 255, 170, 0.14);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    background: var(--ui-card-bg);
+    border: 1px solid var(--ui-card-border);
+    backdrop-filter: blur(var(--glass-blur-strength));
+    box-shadow: var(--ui-card-shadow);
     overflow: hidden;
     position: relative;
 }
@@ -13,11 +13,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(
-            300px 140px at 20% 0%,
-            rgba(87, 255, 170, 0.1),
-            transparent 65%
-    );
+    background: var(--ui-card-highlight);
 }
 
 .ui-card__header {
@@ -27,18 +23,18 @@
     justify-content: space-between;
     gap: 12px;
     padding: 14px 14px 10px;
-    border-bottom: 1px solid rgba(87, 255, 170, 0.1);
+    border-bottom: 1px solid var(--ui-card-header-border);
 }
 
 .ui-card__title {
     font-weight: 900;
-    color: rgba(232, 255, 245, 0.92);
+    color: var(--app-text-strong);
 }
 
 .ui-card__sub {
     margin-top: 4px;
     font-size: 12px;
-    color: rgba(232, 255, 245, 0.62);
+    color: var(--app-text-muted);
 }
 
 .ui-card__body {
