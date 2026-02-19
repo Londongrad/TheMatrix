@@ -20,5 +20,16 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             OneTimeTokenPurpose purpose,
             DateTime nowUtc,
             CancellationToken cancellationToken);
+
+        Task<DateTime?> GetLatestCreatedAtUtc(
+            Guid userId,
+            OneTimeTokenPurpose purpose,
+            CancellationToken cancellationToken);
+
+        Task<int> CountCreatedSinceUtc(
+            Guid userId,
+            OneTimeTokenPurpose purpose,
+            DateTime sinceUtc,
+            CancellationToken cancellationToken);
     }
 }

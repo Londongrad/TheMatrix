@@ -60,6 +60,32 @@ namespace Matrix.Identity.Application.Services.Identity
                 return;
 
             DateTime nowUtc = clock.UtcNow;
+            TimeSpan cooldown = oneTimeTokenService.GetDeliveryCooldown(purpose);
+            int maxAttemptsPerHour = oneTimeTokenService.GetMaxDeliveryAttemptsPerHour(purpose);
+
+            if (cooldown > TimeSpan.Zero)
+            {
+                DateTime? latestCreatedAtUtc = await oneTimeTokenRepository.GetLatestCreatedAtUtc(
+                    userId: user.Id,
+                    purpose: purpose,
+                    cancellationToken: cancellationToken);
+
+                if (latestCreatedAtUtc.HasValue &&
+                    nowUtc - latestCreatedAtUtc.Value < cooldown)
+                    return;
+            }
+
+            if (maxAttemptsPerHour > 0)
+            {
+                int recentAttempts = await oneTimeTokenRepository.CountCreatedSinceUtc(
+                    userId: user.Id,
+                    purpose: purpose,
+                    sinceUtc: nowUtc.AddHours(-1),
+                    cancellationToken: cancellationToken);
+
+                if (recentAttempts >= maxAttemptsPerHour)
+                    return;
+            }
 
             IReadOnlyList<OneTimeToken> activeTokens = await oneTimeTokenRepository.GetActive(
                 userId: user.Id,

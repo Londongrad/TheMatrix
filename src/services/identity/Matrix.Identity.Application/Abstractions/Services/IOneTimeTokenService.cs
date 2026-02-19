@@ -15,5 +15,9 @@ namespace Matrix.Identity.Application.Abstractions.Services
         string HashToken(string rawToken);
 
         TimeSpan GetTtl(OneTimeTokenPurpose purpose);
+
+        TimeSpan GetDeliveryCooldown(OneTimeTokenPurpose purpose);
+
+        int GetMaxDeliveryAttemptsPerHour(OneTimeTokenPurpose purpose);
     }
 }
