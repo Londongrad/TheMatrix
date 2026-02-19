@@ -10,7 +10,7 @@ import {
 
 const languageOptions: Array<{value: Language; label: string}> = [
     {value: "en", label: "English (EN)"},
-    {value: "ru", label: "Russian (RU)"},
+    {value: "ru", label: "Русский (RU)"},
 ];
 
 const themeOptions: Array<{
@@ -52,11 +52,14 @@ const PreferencesCard = () => {
     const [isSavingPreferences, setIsSavingPreferences] = useState(false);
     const [preferencesSaved, setPreferencesSaved] = useState(false);
 
+    const activeTheme =
+        themeOptions.find(({value}) => value === storedPreferences.theme) ?? themeOptions[0];
+    const activeLanguage =
+        languageOptions.find(({value}) => value === storedPreferences.language) ??
+        languageOptions[0];
+
     const selectedTheme =
         themeOptions.find(({value}) => value === preferences.theme) ?? themeOptions[0];
-    const selectedLanguage =
-        languageOptions.find(({value}) => value === preferences.language) ??
-        languageOptions[0];
 
     const isDirty =
         preferences.language !== savedPreferences.language ||
@@ -107,9 +110,9 @@ const PreferencesCard = () => {
         <section className="settings-card settings-card--preferences">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">Console profile</h2>
+                    <h2 className="settings-card-title">App profile</h2>
                     <p className="settings-card-description">
-                        Choose how this workstation should look and speak during operator
+                        Choose how this application should look during your
                         sessions.
                     </p>
                 </div>
@@ -120,18 +123,18 @@ const PreferencesCard = () => {
                 <div className="preferences-spotlight__headline">
                     <div>
                         <h3 className="preferences-spotlight__title">
-                            {selectedTheme.label}
+                            {activeTheme.label}
                         </h3>
                         <p className="preferences-spotlight__description">
-                            {selectedTheme.description}
+                            {activeTheme.description}
                         </p>
                     </div>
-                    <span className="settings-pill">{selectedTheme.availability}</span>
+                    <span className="settings-pill">{activeTheme.availability}</span>
                 </div>
 
                 <div className="preferences-spotlight__meta">
                     <span className="preferences-spotlight__meta-item">
-                        Interface: {selectedLanguage.label}
+                        Interface: {activeLanguage.label}
                     </span>
                     <span className="preferences-spotlight__meta-item">
                         Scope: This device
@@ -192,11 +195,6 @@ const PreferencesCard = () => {
                         ))}
                     </select>
 
-                    <div className="preferences-theme-note">
-                        <strong>{selectedTheme.label}</strong>
-                        <span>{selectedTheme.description}</span>
-                    </div>
-
                     <p className="settings-hint">
                         Matrix keeps the animated shell. Dark and Light stay deliberately
                         plain and static, like classic application themes.
@@ -209,7 +207,7 @@ const PreferencesCard = () => {
                             Workspace defaults
                         </div>
                         <p className="preferences-actions__text">
-                            Save the draft locally so this console opens with your preferred
+                            Save the draft locally so this app opens with your preferred
                             language and theme preset next time.
                         </p>
                     </div>
