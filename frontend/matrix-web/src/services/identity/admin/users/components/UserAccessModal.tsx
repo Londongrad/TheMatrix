@@ -181,6 +181,7 @@ export default function UserAccessModal({
                                             ) : null}
                                             <Button
                                                 size="sm"
+                                                variant="success"
                                                 disabled={allowDisabled}
                                                 onClick={() =>
                                                     void updatePermission(permission.key, "Allow")

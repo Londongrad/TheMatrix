@@ -4,6 +4,11 @@ import {usePermissions} from "@shared/permissions/usePermissions";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import type {PermissionSection} from "../hooks/useAdminPermissions";
 
+type PermissionItem = {
+    key: string;
+    description: string;
+};
+
 export default function PermissionsMatrix({
                                               grouped,
                                               activeRole,
@@ -21,6 +26,54 @@ export default function PermissionsMatrix({
 }) {
     const {can} = usePermissions();
     const canUpdate = can(PermissionKeys.IdentityRolePermissionsUpdate);
+
+    const renderPermissionRow = (permission: PermissionItem) => {
+        const isAllowed = rolePermissions.has(permission.key);
+
+        return (
+            <label
+                key={permission.key}
+                className="mx-admin-perm__row"
+            >
+                <div className="mx-admin-perm__permKey">
+                    {permission.key}
+                </div>
+                <div className="mx-admin-perm__permDesc">
+                    {permission.description}
+                </div>
+
+                <div className="mx-admin-perm__toggle">
+                    <span
+                        className={`mx-admin-perm__toggleState ${
+                            isAllowed
+                                ? "mx-admin-perm__toggleState--allow"
+                                : "mx-admin-perm__toggleState--deny"
+                        }`}
+                    >
+                        {isAllowed ? "Allow" : "Deny"}
+                    </span>
+
+                    <span className="mx-admin-perm__toggleSwitch">
+                        <input
+                            type="checkbox"
+                            checked={isAllowed}
+                            disabled={
+                                !activeRole ||
+                                roleLoading ||
+                                loading ||
+                                !canUpdate
+                            }
+                            onChange={() => onToggle(permission.key)}
+                            title={
+                                canUpdate ? undefined : "Недостаточно прав"
+                            }
+                        />
+                        <span/>
+                    </span>
+                </div>
+            </label>
+        );
+    };
 
     return (
         <div className="mx-admin-perm__matrix">
@@ -53,37 +106,7 @@ export default function PermissionsMatrix({
                                     return (
                                         <div key={group.title} className="mx-admin-perm__groupBody">
                                             <div className="mx-admin-perm__rows">
-                                                {group.items.map((permission) => (
-                                                    <label
-                                                        key={permission.key}
-                                                        className="mx-admin-perm__row"
-                                                    >
-                                                        <div className="mx-admin-perm__permKey">
-                                                            {permission.key}
-                                                        </div>
-                                                        <div className="mx-admin-perm__permDesc">
-                                                            {permission.description}
-                                                        </div>
-
-                                                        <div className="mx-admin-perm__toggle">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={rolePermissions.has(permission.key)}
-                                                                disabled={
-                                                                    !activeRole ||
-                                                                    roleLoading ||
-                                                                    loading ||
-                                                                    !canUpdate
-                                                                }
-                                                                onChange={() => onToggle(permission.key)}
-                                                                title={
-                                                                    canUpdate ? undefined : "Недостаточно прав"
-                                                                }
-                                                            />
-                                                            <span/>
-                                                        </div>
-                                                    </label>
-                                                ))}
+                                                {group.items.map(renderPermissionRow)}
                                             </div>
                                         </div>
                                     );
@@ -99,37 +122,7 @@ export default function PermissionsMatrix({
                                             {group.title}
                                         </summary>
                                         <div className="mx-admin-perm__rows">
-                                            {group.items.map((permission) => (
-                                                <label
-                                                    key={permission.key}
-                                                    className="mx-admin-perm__row"
-                                                >
-                                                    <div className="mx-admin-perm__permKey">
-                                                        {permission.key}
-                                                    </div>
-                                                    <div className="mx-admin-perm__permDesc">
-                                                        {permission.description}
-                                                    </div>
-
-                                                    <div className="mx-admin-perm__toggle">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={rolePermissions.has(permission.key)}
-                                                            disabled={
-                                                                !activeRole ||
-                                                                roleLoading ||
-                                                                loading ||
-                                                                !canUpdate
-                                                            }
-                                                            onChange={() => onToggle(permission.key)}
-                                                            title={
-                                                                canUpdate ? undefined : "Недостаточно прав"
-                                                            }
-                                                        />
-                                                        <span/>
-                                                    </div>
-                                                </label>
-                                            ))}
+                                            {group.items.map(renderPermissionRow)}
                                         </div>
                                     </details>
                                 );

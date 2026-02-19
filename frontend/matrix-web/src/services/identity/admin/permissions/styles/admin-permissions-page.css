@@ -175,7 +175,7 @@
 
 .mx-admin-perm__row {
     display: grid;
-    grid-template-columns: 1.6fr 2.2fr 70px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 2.2fr) auto;
     gap: 12px;
     align-items: center;
     padding: 10px 10px;
@@ -207,48 +207,92 @@
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
+    gap: 0.55rem;
 }
 
-.mx-admin-perm__toggle input {
+.mx-admin-perm__toggleState {
+    min-width: 54px;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.mx-admin-perm__toggleState--allow {
+    border-color: var(--status-success-border);
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
+}
+
+.mx-admin-perm__toggleState--deny {
+    border-color: var(--status-danger-border);
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+}
+
+.mx-admin-perm__toggleSwitch {
+    position: relative;
+    display: inline-flex;
+}
+
+.mx-admin-perm__toggleSwitch input {
     position: absolute;
     opacity: 0;
     pointer-events: none;
 }
 
-.mx-admin-perm__toggle span {
+.mx-admin-perm__toggleSwitch > span {
     width: 44px;
     height: 24px;
     border-radius: 999px;
-    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
-    background: color-mix(in srgb, var(--settings-card-bg) 84%, black 16%);
+    border: 1px solid var(--status-danger-border);
+    background: color-mix(in srgb, var(--status-danger-bg) 82%, transparent);
     position: relative;
-    transition: background 0.14s ease, border-color 0.14s ease;
+    transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
 }
 
-.mx-admin-perm__toggle span::after {
+.mx-admin-perm__toggleSwitch > span::after {
     content: "";
     width: 18px;
     height: 18px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--app-text) 88%, white 12%);
+    background: var(--status-danger-fill);
     position: absolute;
     top: 2px;
     left: 3px;
     transition: transform 0.14s ease, background 0.14s ease;
 }
 
-.mx-admin-perm__toggle input:checked + span {
-    background: rgba(var(--shell-accent-rgb), 0.14);
-    border-color: rgba(var(--shell-accent-rgb), 0.32);
+.mx-admin-perm__toggleSwitch input:checked + span {
+    background: color-mix(in srgb, var(--status-success-bg) 82%, transparent);
+    border-color: var(--status-success-border);
 }
 
-.mx-admin-perm__toggle input:checked + span::after {
+.mx-admin-perm__toggleSwitch input:checked + span::after {
     transform: translateX(18px);
-    background: rgba(var(--shell-accent-rgb), 0.92);
+    background: var(--status-success-fill);
+}
+
+.mx-admin-perm__toggleSwitch input:focus-visible + span {
+    box-shadow: 0 0 0 3px rgba(var(--shell-accent-rgb), 0.18);
 }
 
 @media (max-width: 1060px) {
     .mx-admin-perm__layout {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .mx-admin-perm__row {
+        grid-template-columns: 1fr;
+    }
+
+    .mx-admin-perm__toggle {
+        justify-content: flex-start;
     }
 }
