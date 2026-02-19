@@ -1,9 +1,13 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Infrastructure.Exceptions;
+using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 {
@@ -12,10 +16,18 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         ISecurityStateChangeProcessor securityStateChangeProcessor) : IUnitOfWork
     {
         private const string UnitOfWorkErrorCode = "Infrastructure.UnitOfWorkFailed";
+        private const string RolesNormalizedNameConstraint = "ux_roles_normalized_name";
 
-        public Task SaveChangesAsync(CancellationToken cancellationToken)
+        public async Task SaveChangesAsync(CancellationToken cancellationToken)
         {
-            return dbContext.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex) when (TryTranslateKnownDbException(ex, out MatrixApplicationException? translated))
+            {
+                throw translated;
+            }
         }
 
         public Task ExecuteInTransactionAsync(
@@ -49,7 +61,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                     {
                         T result = await action(cancellationToken);
 
-                        await dbContext.SaveChangesAsync(cancellationToken);
+                        await SaveChangesAsync(cancellationToken);
 
                         return result;
                     }
@@ -61,9 +73,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 
                     T result2 = await action(cancellationToken);
 
-                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await SaveChangesAsync(cancellationToken);
                     await securityStateChangeProcessor.ProcessAsync(cancellationToken);
-                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await SaveChangesAsync(cancellationToken);
 
                     await tx.CommitAsync(cancellationToken);
                     return result2;
@@ -74,6 +86,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                 // Cancellation is not an infrastructure failure.
                 throw;
             }
+            catch (MatrixApplicationException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new MatrixInfrastructureException(
@@ -81,6 +97,34 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                     message: "Unit of work execution failed.",
                     innerException: ex);
             }
+        }
+
+        private bool TryTranslateKnownDbException(
+            DbUpdateException exception,
+            out MatrixApplicationException? translated)
+        {
+            if (exception.InnerException is PostgresException
+                {
+                    SqlState: PostgresErrorCodes.UniqueViolation,
+                    ConstraintName: RolesNormalizedNameConstraint
+                })
+            {
+                translated = ApplicationErrorsFactory.RoleNameAlreadyInUse(
+                    GetTrackedRoleName() ?? "specified role name");
+                return true;
+            }
+
+            translated = null;
+            return false;
+        }
+
+        private string? GetTrackedRoleName()
+        {
+            return dbContext.ChangeTracker
+               .Entries<Role>()
+               .Where(entry => entry.State is EntityState.Added or EntityState.Modified)
+               .Select(entry => entry.Entity.Name)
+               .FirstOrDefault(name => !string.IsNullOrWhiteSpace(name));
         }
     }
 }
