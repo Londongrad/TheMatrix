@@ -35,7 +35,7 @@ const SecurityCard = ({
     const [isSendingConfirmation, setIsSendingConfirmation] = useState(false);
     const [confirmationNotice, setConfirmationNotice] = useState<string | null>(
         emailConfirmationRequested && !isEmailConfirmed
-            ? "Verification email requested. Check your inbox and spam folder."
+            ? "If your email still needs confirmation, use the latest message in your inbox or spam folder."
             : null,
     );
     const [confirmationError, setConfirmationError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ const SecurityCard = ({
 
             await sendEmailConfirmationEmail({email});
             setConfirmationNotice(
-                "Verification email sent. Check your inbox and spam folder.",
+                "If this email can receive a confirmation link, use the latest message in your inbox or spam folder.",
             );
         } catch (err: any) {
             setConfirmationError(

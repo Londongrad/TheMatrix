@@ -20,7 +20,7 @@ export const ForgotPasswordPage = () => {
         try {
             await forgotPassword({email});
             setNotice(
-                "If an account exists for this email, a reset link will appear in your inbox shortly.",
+                "If an account exists for this email, use the latest reset link that appears in your inbox shortly.",
             );
         } catch (err: any) {
             setError(err?.message || "Failed to send reset email. Please try again.");
