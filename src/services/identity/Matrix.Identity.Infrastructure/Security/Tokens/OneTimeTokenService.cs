@@ -41,5 +41,31 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
                 _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unsupported token purpose.")
             };
         }
+
+        public TimeSpan GetDeliveryCooldown(OneTimeTokenPurpose purpose)
+        {
+            OneTimeTokenOptions oneTimeTokenOptions = options.Value;
+
+            return purpose switch
+            {
+                OneTimeTokenPurpose.EmailConfirmation => TimeSpan.FromSeconds(
+                    oneTimeTokenOptions.EmailConfirmationCooldownSeconds),
+                OneTimeTokenPurpose.PasswordReset => TimeSpan.FromSeconds(
+                    oneTimeTokenOptions.PasswordResetCooldownSeconds),
+                _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unsupported token purpose.")
+            };
+        }
+
+        public int GetMaxDeliveryAttemptsPerHour(OneTimeTokenPurpose purpose)
+        {
+            OneTimeTokenOptions oneTimeTokenOptions = options.Value;
+
+            return purpose switch
+            {
+                OneTimeTokenPurpose.EmailConfirmation => oneTimeTokenOptions.EmailConfirmationMaxDeliveryAttemptsPerHour,
+                OneTimeTokenPurpose.PasswordReset => oneTimeTokenOptions.PasswordResetMaxDeliveryAttemptsPerHour,
+                _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unsupported token purpose.")
+            };
+        }
     }
 }

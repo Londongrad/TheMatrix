@@ -140,9 +140,25 @@ namespace Matrix.Identity.Infrastructure
                     failureMessage:
                     $"{OneTimeTokenOptions.SectionName}:EmailConfirmationLifetimeMinutes must be greater than 0.")
                .Validate(
+                    validation: o => o.EmailConfirmationCooldownSeconds >= 0,
+                    failureMessage:
+                    $"{OneTimeTokenOptions.SectionName}:EmailConfirmationCooldownSeconds must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.EmailConfirmationMaxDeliveryAttemptsPerHour >= 0,
+                    failureMessage:
+                    $"{OneTimeTokenOptions.SectionName}:EmailConfirmationMaxDeliveryAttemptsPerHour must be greater than or equal to 0.")
+               .Validate(
                     validation: o => o.PasswordResetLifetimeMinutes > 0,
                     failureMessage:
                     $"{OneTimeTokenOptions.SectionName}:PasswordResetLifetimeMinutes must be greater than 0.")
+               .Validate(
+                    validation: o => o.PasswordResetCooldownSeconds >= 0,
+                    failureMessage:
+                    $"{OneTimeTokenOptions.SectionName}:PasswordResetCooldownSeconds must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.PasswordResetMaxDeliveryAttemptsPerHour >= 0,
+                    failureMessage:
+                    $"{OneTimeTokenOptions.SectionName}:PasswordResetMaxDeliveryAttemptsPerHour must be greater than or equal to 0.")
                .ValidateOnStart();
             services.TryAddSingleton(TimeProvider.System);
             services.AddScoped<RefreshTokenCleaner>();

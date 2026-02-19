@@ -47,5 +47,31 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                .OrderByDescending(token => token.CreatedAtUtc)
                .ToListAsync(cancellationToken);
         }
+
+        public async Task<DateTime?> GetLatestCreatedAtUtc(
+            Guid userId,
+            OneTimeTokenPurpose purpose,
+            CancellationToken cancellationToken)
+        {
+            return await Tokens
+               .Where(token => token.UserId == userId)
+               .Where(token => token.Purpose == purpose)
+               .OrderByDescending(token => token.CreatedAtUtc)
+               .Select(token => (DateTime?)token.CreatedAtUtc)
+               .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<int> CountCreatedSinceUtc(
+            Guid userId,
+            OneTimeTokenPurpose purpose,
+            DateTime sinceUtc,
+            CancellationToken cancellationToken)
+        {
+            return await Tokens
+               .Where(token => token.UserId == userId)
+               .Where(token => token.Purpose == purpose)
+               .Where(token => token.CreatedAtUtc >= sinceUtc)
+               .CountAsync(cancellationToken);
+        }
     }
 }
