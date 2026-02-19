@@ -1,6 +1,12 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.CityCore.Application.Authorization.Permissions;
 using MediatR;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts
 {
-    public sealed record GetCityDistrictsQuery(Guid CityId) : IRequest<IReadOnlyList<DistrictDto>>;
+    public sealed record GetCityDistrictsQuery(Guid CityId)
+        : IRequest<IReadOnlyList<DistrictDto>>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.CityCoreClassicCityRead;
+    }
 }

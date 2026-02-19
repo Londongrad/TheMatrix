@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.CityCore.Application.Authorization.Permissions;
 using MediatR;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity
@@ -13,5 +15,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
         string? UrbanDensity,
         string? DevelopmentLevel,
         DateTimeOffset StartSimTimeUtc,
-        decimal SpeedMultiplier = 1.0m) : IRequest<CityCreatedDto>;
+        decimal SpeedMultiplier = 1.0m) : IRequest<CityCreatedDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.CityCoreClassicCityCreate;
+    }
 }
