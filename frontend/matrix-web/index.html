@@ -5,6 +5,39 @@
     <link href="/vite.svg" rel="icon" type="image/svg+xml"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>matrix-web</title>
+    <script>
+        (() => {
+            const storageKey = "matrix.identity.preferences";
+            let theme = "matrix";
+            let language = "en";
+
+            try {
+                const raw = window.localStorage.getItem(storageKey);
+
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+
+                    if (
+                        parsed?.theme === "dark" ||
+                        parsed?.theme === "light" ||
+                        parsed?.theme === "matrix"
+                    ) {
+                        theme = parsed.theme;
+                    }
+
+                    if (parsed?.language === "ru" || parsed?.language === "en") {
+                        language = parsed.language;
+                    }
+                }
+            } catch {
+                // Ignore malformed local settings and keep defaults.
+            }
+
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.lang = language;
+            document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
+        })();
+    </script>
 </head>
 <body>
 <div id="root"></div>
