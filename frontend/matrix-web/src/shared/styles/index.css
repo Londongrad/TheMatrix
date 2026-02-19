@@ -58,14 +58,14 @@
     --settings-pill-bg: rgba(87, 255, 170, 0.12);
     --settings-pill-border: rgba(87, 255, 170, 0.55);
     --settings-pill-text: rgba(187, 247, 208, 0.95);
-    --settings-button-gradient: linear-gradient(135deg, #57ffaa, #12b886);
-    --settings-button-text: #04120c;
+    --settings-button-gradient: linear-gradient(135deg, #1d5a45, #0f3f31);
+    --settings-button-text: #dffbef;
     --settings-button-shadow:
-        0 12px 32px rgba(8, 47, 34, 0.75),
-        0 0 0 1px rgba(15, 23, 42, 0.95);
+        0 12px 32px rgba(4, 24, 18, 0.72),
+        0 0 0 1px rgba(26, 94, 71, 0.34);
     --settings-button-shadow-hover:
-        0 16px 45px rgba(8, 47, 34, 0.9),
-        0 0 0 1px rgba(15, 23, 42, 1);
+        0 16px 45px rgba(4, 24, 18, 0.88),
+        0 0 0 1px rgba(38, 122, 92, 0.42);
     --status-danger-bg: rgba(255, 80, 135, 0.1);
     --status-danger-border: rgba(255, 80, 135, 0.35);
     --status-danger-border-strong: rgba(255, 80, 135, 0.65);
@@ -74,14 +74,14 @@
     --status-danger-fill: #ef4444;
     --status-danger-fill-strong: #b91c1c;
     --status-danger-on-fill: #fff1f2;
-    --status-success-bg: rgba(22, 163, 74, 0.2);
-    --status-success-border: rgba(87, 255, 170, 0.45);
-    --status-success-border-strong: rgba(87, 255, 170, 0.65);
-    --status-success-text: #bbf7d0;
-    --status-success-shadow: 0 0 22px rgba(87, 255, 170, 0.18);
-    --status-success-fill: #12b886;
-    --status-success-fill-strong: #0f9c72;
-    --status-success-on-fill: #04120c;
+    --status-success-bg: rgba(15, 63, 49, 0.36);
+    --status-success-border: rgba(38, 122, 92, 0.46);
+    --status-success-border-strong: rgba(62, 158, 120, 0.62);
+    --status-success-text: #b7ead2;
+    --status-success-shadow: 0 0 22px rgba(15, 63, 49, 0.26);
+    --status-success-fill: #1d5a45;
+    --status-success-fill-strong: #0f3f31;
+    --status-success-on-fill: #e6fbf2;
     --status-warning-bg: rgba(245, 158, 11, 0.18);
     --status-warning-border: rgba(245, 158, 11, 0.42);
     --status-warning-border-strong: rgba(251, 191, 36, 0.56);

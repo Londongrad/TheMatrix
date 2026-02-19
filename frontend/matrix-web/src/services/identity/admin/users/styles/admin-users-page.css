@@ -124,8 +124,9 @@
 }
 
 .mx-admin-users__badge.ok {
-    background: rgba(40, 180, 99, 0.18);
-    color: #58d68d;
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
+    border: 1px solid var(--status-success-border);
 }
 
 .mx-admin-users__badge.warn {
