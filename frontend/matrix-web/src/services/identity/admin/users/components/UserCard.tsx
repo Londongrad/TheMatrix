@@ -81,14 +81,14 @@ export default function UserCard({
                         PermissionKeys.IdentityUserRolesRead,
                         PermissionKeys.IdentityUserPermissionsRead,
                     ]}
-                    mode="disable"
-                    match="any"
+                    displayMode="disable"
+                    permissionMatchMode="any"
                 >
                     <Button size="sm" onClick={() => onOpenAccess(user.id)}>
                         <IconOpen/> Open access
                     </Button>
                 </RequirePermissions>
-                <RequirePermission perm={togglePermission} mode="disable">
+                <RequirePermission perm={togglePermission} displayMode="disable">
                     <IconButton
                         variant={user.isLocked ? "default" : "danger"}
                         title={toggleTitle}

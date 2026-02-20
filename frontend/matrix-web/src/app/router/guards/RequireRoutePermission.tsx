@@ -3,16 +3,17 @@ import type {ReactElement} from "react";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import {LoadingScreen} from "@services/identity/self/auth/components/LoadingScreen";
 import {usePermissions} from "@shared/permissions/usePermissions";
+import type {PermissionMatchMode} from "@shared/permissions/permissionMatchMode";
 
 type RequireRoutePermissionProps = {
     permissions: string[];
-    mode?: "any" | "all";
+    permissionMatchMode?: PermissionMatchMode;
     children: ReactElement;
 };
 
 export const RequireRoutePermission = ({
                                            permissions,
-                                           mode = "any",
+                                           permissionMatchMode = "any",
                                            children,
                                        }: RequireRoutePermissionProps) => {
     const {isLoading, user} = useAuth();
@@ -27,7 +28,9 @@ export const RequireRoutePermission = ({
         return <Navigate to="/login" state={{from: location}} replace/>;
     }
 
-    const allowed = mode === "all" ? canAll(permissions) : canAny(permissions);
+    const allowed = permissionMatchMode === "all"
+        ? canAll(permissions)
+        : canAny(permissions);
 
     if (!allowed) {
         return <Navigate to="/forbidden" replace state={{from: location}}/>;

@@ -97,7 +97,7 @@ const App = () => {
                                             PermissionKeys.IdentityRolesList,
                                             PermissionKeys.IdentityPermissionsCatalogRead,
                                         ]}
-                                        mode="any"
+                                        permissionMatchMode="any"
                                     >
                                         <AdminLayout/>
                                     </RequireRoutePermission>

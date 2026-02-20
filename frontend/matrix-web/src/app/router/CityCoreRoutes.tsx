@@ -46,7 +46,7 @@ export const cityCoreRoutes = (
                         PermissionKeys.CityCoreClassicCityRead,
                         PermissionKeys.CityCoreSimulationRead,
                     ]}
-                    mode="all"
+                    permissionMatchMode="all"
                 >
                     <CityDetailsPage/>
                 </RequireRoutePermission>
