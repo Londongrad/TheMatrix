@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.CityCore.Application.Authorization.Permissions;
+using AppPermissionKeys = Matrix.CityCore.Application.Authorization.Permissions.PermissionKeys;
 using MediatR;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment
@@ -8,8 +8,14 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Upda
         Guid CityId,
         string ClimateZone,
         string Hemisphere,
-        int UtcOffsetMinutes) : IRequest<bool>, IRequirePermission
+        int UtcOffsetMinutes) : IRequest<bool>, IRequirePermissions
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityUpdate;
+        public IReadOnlyCollection<string> PermissionKeys =>
+        [
+            AppPermissionKeys.CityCoreClassicCityRead,
+            AppPermissionKeys.CityCoreClassicCityUpdate
+        ];
+
+        public PermissionMatchMode PermissionMatchMode => PermissionMatchMode.All;
     }
 }

@@ -1,12 +1,18 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.CityCore.Application.Authorization.Permissions;
+using AppPermissionKeys = Matrix.CityCore.Application.Authorization.Permissions.PermissionKeys;
 using MediatR;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSimulationKinds
 {
     public sealed record GetSimulationKindsQuery
-        : IRequest<IReadOnlyList<SimulationKindCatalogItemDto>>, IRequirePermission
+        : IRequest<IReadOnlyList<SimulationKindCatalogItemDto>>, IRequirePermissions
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityCreate;
+        public IReadOnlyCollection<string> PermissionKeys =>
+        [
+            AppPermissionKeys.CityCoreScenariosCatalogRead,
+            AppPermissionKeys.CityCoreClassicCityCreate
+        ];
+
+        public PermissionMatchMode PermissionMatchMode => PermissionMatchMode.Any;
     }
 }
