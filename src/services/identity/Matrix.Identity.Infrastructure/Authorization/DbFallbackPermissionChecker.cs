@@ -30,5 +30,53 @@ namespace Matrix.Identity.Infrastructure.Authorization
                 value: permissionKey,
                 comparer: StringComparer.Ordinal);
         }
+
+        public async Task<bool> HasAnyAsync(
+            Guid userId,
+            IReadOnlyCollection<string> permissionKeys,
+            CancellationToken ct)
+        {
+            if (permissionKeys.Count == 0)
+                return false;
+
+            if (await claimsChecker.HasAnyAsync(
+                    userId: userId,
+                    permissionKeys: permissionKeys,
+                    cancellationToken: ct))
+                return true;
+
+            AuthorizationContext ctx = await effectivePermissions.GetAuthContextAsync(
+                userId: userId,
+                cancellationToken: ct);
+
+            return permissionKeys.Any(
+                permissionKey => ctx.Permissions.Contains(
+                    value: permissionKey,
+                    comparer: StringComparer.Ordinal));
+        }
+
+        public async Task<bool> HasAllAsync(
+            Guid userId,
+            IReadOnlyCollection<string> permissionKeys,
+            CancellationToken ct)
+        {
+            if (permissionKeys.Count == 0)
+                return false;
+
+            if (await claimsChecker.HasAllAsync(
+                    userId: userId,
+                    permissionKeys: permissionKeys,
+                    cancellationToken: ct))
+                return true;
+
+            AuthorizationContext ctx = await effectivePermissions.GetAuthContextAsync(
+                userId: userId,
+                cancellationToken: ct);
+
+            return permissionKeys.All(
+                permissionKey => ctx.Permissions.Contains(
+                    value: permissionKey,
+                    comparer: StringComparer.Ordinal));
+        }
     }
 }

@@ -23,6 +23,32 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.Claims
             return Task.FromResult(permissions.Contains(permissionKey));
         }
 
+        public Task<bool> HasAnyAsync(
+            Guid userId,
+            IReadOnlyCollection<string> permissionKeys,
+            CancellationToken cancellationToken)
+        {
+            if (permissionKeys.Count == 0)
+                return Task.FromResult(false);
+
+            HashSet<string> permissions = GetPermissions(userId);
+
+            return Task.FromResult(permissionKeys.Any(permissions.Contains));
+        }
+
+        public Task<bool> HasAllAsync(
+            Guid userId,
+            IReadOnlyCollection<string> permissionKeys,
+            CancellationToken cancellationToken)
+        {
+            if (permissionKeys.Count == 0)
+                return Task.FromResult(false);
+
+            HashSet<string> permissions = GetPermissions(userId);
+
+            return Task.FromResult(permissionKeys.All(permissions.Contains));
+        }
+
         private HashSet<string> GetPermissions(Guid userId)
         {
             if (_cachedPermissions is not null && _cachedUserId == userId)
