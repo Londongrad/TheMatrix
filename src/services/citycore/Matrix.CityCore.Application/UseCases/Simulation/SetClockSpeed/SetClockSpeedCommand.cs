@@ -1,13 +1,19 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using Matrix.CityCore.Application.Authorization.Permissions;
+using AppPermissionKeys = Matrix.CityCore.Application.Authorization.Permissions.PermissionKeys;
 using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.SetClockSpeed
 {
     public sealed record SetClockSpeedCommand(
         Guid SimulationId,
-        decimal Multiplier) : IRequest<bool>, IRequirePermission
+        decimal Multiplier) : IRequest<bool>, IRequirePermissions
     {
-        public string PermissionKey => PermissionKeys.CityCoreSimulationControl;
+        public IReadOnlyCollection<string> PermissionKeys =>
+        [
+            AppPermissionKeys.CityCoreSimulationRead,
+            AppPermissionKeys.CityCoreSimulationControl
+        ];
+
+        public PermissionMatchMode PermissionMatchMode => PermissionMatchMode.All;
     }
 }
