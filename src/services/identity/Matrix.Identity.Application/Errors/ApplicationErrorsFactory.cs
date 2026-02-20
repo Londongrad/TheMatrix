@@ -13,6 +13,14 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Unauthorized);
         }
 
+        public static MatrixApplicationException TooManyAuthenticationAttempts()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Auth.TooManyAttempts",
+                message: "Too many authentication attempts. Please try again in a few minutes.",
+                errorType: ApplicationErrorType.TooManyRequests);
+        }
+
         public static MatrixApplicationException UserBlocked()
         {
             return new MatrixApplicationException(

@@ -220,6 +220,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 ApplicationErrorType.Forbidden => HttpStatusCode.Forbidden,
                 ApplicationErrorType.Conflict => HttpStatusCode.Conflict,
                 ApplicationErrorType.BusinessRule => HttpStatusCode.BadRequest,
+                ApplicationErrorType.TooManyRequests => HttpStatusCode.TooManyRequests,
                 _ => HttpStatusCode.InternalServerError
             };
         }

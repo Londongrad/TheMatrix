@@ -35,6 +35,11 @@ namespace Matrix.BuildingBlocks.Application.Enums
         /// <summary>
         ///     Бизнес-правило на уровне Application (не Domain).
         /// </summary>
-        BusinessRule
+        BusinessRule,
+
+        /// <summary>
+        ///     Слишком много однотипных запросов за короткий промежуток времени.
+        /// </summary>
+        TooManyRequests
     }
 }
