@@ -99,7 +99,7 @@ const ProfileCard = ({
             <div className="settings-avatar-row">
                 <RequirePermission
                     perm={PermissionKeys.IdentityMeAvatarChange}
-                    mode="disable"
+                    displayMode="disable"
                 >
                     <button
                         type="button"

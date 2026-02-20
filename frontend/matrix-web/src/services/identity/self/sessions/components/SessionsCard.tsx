@@ -62,7 +62,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                     {isSessionsOpen && (
                         <RequirePermission
                             perm={PermissionKeys.IdentityMeSessionsRead}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <button
                                 type="button"
@@ -188,7 +188,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                         <div className="settings-session-actions">
                                             <RequirePermission
                                                 perm={PermissionKeys.IdentityMeSessionsRevoke}
-                                                mode="disable"
+                                                displayMode="disable"
                                             >
                                                 <button
                                                     type="button"
@@ -215,7 +215,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                     <div className="settings-actions-row settings-actions-row--sessions">
                         <RequirePermission
                             perm={PermissionKeys.IdentityMeSessionsRevokeAll}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <button
                                 type="button"

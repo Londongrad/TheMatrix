@@ -34,7 +34,7 @@ export default function AdminUsersPage() {
                     <div className="mx-admin-users__headerRight">
                         <RequirePermission
                             perm={PermissionKeys.IdentityUsersRead}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <Button onClick={refresh} disabled={isLoading}>
                                 <IconRefresh/> Refresh
@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
                         </RequirePermission>
                         <RequirePermission
                             perm={PermissionKeys.IdentityUsersRead}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <Button variant="primary" type="button" disabled>
                                 + Add user

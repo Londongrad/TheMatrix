@@ -183,7 +183,7 @@ const SecurityCard = ({
                     {securitySaved && <span className="settings-save-badge">Saved</span>}
                     <RequirePermission
                         perm={PermissionKeys.IdentityMePasswordChange}
-                        mode="disable"
+                        displayMode="disable"
                     >
                         <button
                             type="submit"

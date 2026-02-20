@@ -38,7 +38,7 @@ export default function RoleCard({
             <div className="mx-admin-roles__actions">
                 <RequirePermission
                     perm={PermissionKeys.IdentityRoleMembersRead}
-                    mode="disable"
+                    displayMode="disable"
                 >
                     <Button type="button" onClick={() => onMembers(role)}>
                         Members
@@ -46,7 +46,7 @@ export default function RoleCard({
                 </RequirePermission>
                 <RequirePermission
                     perm={PermissionKeys.IdentityRolePermissionsRead}
-                    mode="disable"
+                    displayMode="disable"
                 >
                     <Button type="button" onClick={() => onPermissions(role)}>
                         Permissions
@@ -54,7 +54,7 @@ export default function RoleCard({
                 </RequirePermission>
                 <RequirePermission
                     perm={PermissionKeys.IdentityRolesRename}
-                    mode="disable"
+                    displayMode="disable"
                 >
                     <Button
                         type="button"
@@ -66,7 +66,7 @@ export default function RoleCard({
                 </RequirePermission>
                 <RequirePermission
                     perm={PermissionKeys.IdentityRolesDelete}
-                    mode="disable"
+                    displayMode="disable"
                 >
                     <Button
                         type="button"

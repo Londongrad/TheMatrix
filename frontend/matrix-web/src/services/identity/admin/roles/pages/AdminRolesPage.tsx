@@ -60,7 +60,7 @@ export default function AdminRolesPage() {
                     <div className="mx-admin-roles__headerRight">
                         <RequirePermission
                             perm={PermissionKeys.IdentityRolesList}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <Button onClick={() => void load()} disabled={loading}>
                                 Refresh
@@ -68,7 +68,7 @@ export default function AdminRolesPage() {
                         </RequirePermission>
                         <RequirePermission
                             perm={PermissionKeys.IdentityRolesCreate}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <Button
                                 variant="primary"

@@ -36,7 +36,7 @@ export default function AdminPermissionsPage() {
                     <div className="mx-admin-perm__headerRight">
                         <RequirePermission
                             perm={PermissionKeys.IdentityPermissionsCatalogRead}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <Button onClick={() => void load()} disabled={loading}>
                                 Refresh
@@ -44,7 +44,7 @@ export default function AdminPermissionsPage() {
                         </RequirePermission>
                         <RequirePermission
                             perm={PermissionKeys.IdentityRolePermissionsUpdate}
-                            mode="disable"
+                            displayMode="disable"
                         >
                             <Button
                                 variant="primary"
