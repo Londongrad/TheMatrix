@@ -2,7 +2,6 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
 {
     public static class PermissionKeys
     {
-        public const string IdentityAdminAccess = "identity.admin.access";
         public const string IdentityUsersRead = "identity.admin.users.read";
 
         public const string IdentityUsersLock = "identity.admin.users.lock";

@@ -2,6 +2,7 @@ using Matrix.Identity.Contracts.Authorization.Permissions;
 using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using CityCorePermissionKeys = Matrix.CityCore.Contracts.Authorization.Permissions.PermissionKeys;
 using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Seed
@@ -175,6 +176,15 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 PermissionKeys.IdentityMeSessionsRead,
                 PermissionKeys.IdentityMeSessionsRevoke,
                 PermissionKeys.IdentityMeSessionsRevokeAll,
+                CityCorePermissionKeys.CityCoreScenariosCatalogRead,
+                CityCorePermissionKeys.CityCoreClassicCityRead,
+                CityCorePermissionKeys.CityCoreClassicCityCreate,
+                CityCorePermissionKeys.CityCoreClassicCityUpdate,
+                CityCorePermissionKeys.CityCoreClassicCityArchive,
+                CityCorePermissionKeys.CityCoreClassicCityDelete,
+                CityCorePermissionKeys.CityCoreClassicCityPopulationBootstrapRetry,
+                CityCorePermissionKeys.CityCoreSimulationRead,
+                CityCorePermissionKeys.CityCoreSimulationControl,
                 PopulationPermissionKeys.PopulationPeopleRead
             };
         }

@@ -6,7 +6,6 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
     {
         private const string IdentityService = "Identity";
 
-        private const string AdminAccessGroup = "Admin / Access";
         private const string AdminUsersGroup = "Admin / Users";
         private const string AdminRolesGroup = "Admin / Roles";
         private const string AdminPermissionsGroup = "Admin / Permissions";
@@ -15,11 +14,6 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
         public static readonly IReadOnlyList<PermissionDefinition> All =
             new List<PermissionDefinition>
             {
-                new(
-                    Key: PermissionKeys.IdentityAdminAccess,
-                    Service: IdentityService,
-                    Group: AdminAccessGroup,
-                    Description: "Access admin management endpoints."),
                 new(
                     Key: PermissionKeys.IdentityUsersRead,
                     Service: IdentityService,
