@@ -7,8 +7,18 @@ import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 export const mainNavItems: NavItem[] = [
     {to: "/", label: "Dashboard", end: true},
-    {to: CITYCORE_SCENARIO_CATALOG_PATH, label: "Scenarios"},
-    {to: CLASSIC_CITY_LIST_PATH, label: "Classic City"},
+    {
+        to: CITYCORE_SCENARIO_CATALOG_PATH,
+        label: "Scenarios",
+        requiredPermissions: [PermissionKeys.CityCoreScenariosCatalogRead],
+        permissionDisplay: "disable",
+    },
+    {
+        to: CLASSIC_CITY_LIST_PATH,
+        label: "Classic City",
+        requiredPermissions: [PermissionKeys.CityCoreClassicCityRead],
+        permissionDisplay: "disable",
+    },
     {
         to: "/citizens",
         label: "Citizens",
@@ -21,7 +31,12 @@ export const mainNavItems: NavItem[] = [
         to: "/admin",
         label: "Admin panel",
         getState: (path) => ({from: path}),
-        requiredPermissions: [PermissionKeys.IdentityAdminAccess],
+        requiredPermissions: [
+            PermissionKeys.IdentityUsersRead,
+            PermissionKeys.IdentityRolesList,
+            PermissionKeys.IdentityPermissionsCatalogRead,
+        ],
+        requiredPermissionsMode: "any",
         permissionDisplay: "hide",
     },
 ];

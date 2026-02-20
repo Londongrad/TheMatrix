@@ -10,16 +10,24 @@ function getErrorMessage(error: unknown, fallback: string) {
         : fallback;
 }
 
-export function useSimulationKindsQuery() {
+export function useSimulationKindsQuery(enabled = true) {
     const abortRef = useRef<AbortController | null>(null);
 
     const [data, setData] = useState<SimulationKindCatalogItemView[]>(
-        () => simulationKindsCache ?? [],
+        () => enabled ? simulationKindsCache ?? [] : [],
     );
-    const [isLoading, setIsLoading] = useState(simulationKindsCache === null);
+    const [isLoading, setIsLoading] = useState(enabled && simulationKindsCache === null);
     const [error, setError] = useState<string | null>(null);
 
     const load = useCallback(async () => {
+        if (!enabled) {
+            abortRef.current?.abort();
+            setData([]);
+            setError(null);
+            setIsLoading(false);
+            return;
+        }
+
         abortRef.current?.abort();
 
         const abortController = new AbortController();
@@ -43,7 +51,7 @@ export function useSimulationKindsQuery() {
                 setIsLoading(false);
             }
         }
-    }, []);
+    }, [enabled]);
 
     useEffect(() => {
         void load();

@@ -14,6 +14,9 @@ type Props = {
     isLoading: boolean;
     isSubmitting: boolean;
     mutationError: string | null;
+    canRename: boolean;
+    canArchive: boolean;
+    canDelete: boolean;
     onClearMutationError?: () => void;
     onRename: (name: string) => Promise<void>;
     onArchive: () => Promise<void>;
@@ -39,6 +42,9 @@ export function CityOverviewCard({
                                      isLoading,
                                      isSubmitting,
                                      mutationError,
+                                     canRename,
+                                     canArchive,
+                                     canDelete,
                                      onClearMutationError,
                                      onRename,
                                      onArchive,
@@ -60,7 +66,7 @@ export function CityOverviewCard({
 
         const normalized = renameInput.trim();
 
-        if (!city || isArchived) {
+        if (!city || isArchived || !canRename) {
             return;
         }
 
@@ -85,7 +91,7 @@ export function CityOverviewCard({
     }
 
     async function handleArchive() {
-        if (!city || isArchived) {
+        if (!city || isArchived || !canArchive) {
             return;
         }
 
@@ -93,7 +99,7 @@ export function CityOverviewCard({
     }
 
     async function handleDelete() {
-        if (!city || !isArchived) {
+        if (!city || !isArchived || !canDelete) {
             return;
         }
 
@@ -153,6 +159,12 @@ export function CityOverviewCard({
                 </div>
             </div>
 
+            {!canRename && !canArchive && !canDelete ? (
+                <div className="citycore-error-banner" role="status">
+                    <span>You can review this city, but lifecycle mutations require classic city management permissions.</span>
+                </div>
+            ) : null}
+
             <form className="city-rename-form" onSubmit={handleRename}>
                 <div className="cities-field city-rename-form__field">
                     <label className="cities-label" htmlFor="city-rename-input">
@@ -169,14 +181,14 @@ export function CityOverviewCard({
                         }}
                         placeholder={effectiveNamePlaceholder}
                         maxLength={128}
-                        disabled={!city || isSubmitting || isArchived}
+                        disabled={!city || isSubmitting || isArchived || !canRename}
                     />
                 </div>
 
                 <Button
                     type="submit"
                     variant="primary"
-                    disabled={isSubmitting || !city || isArchived}
+                    disabled={isSubmitting || !city || isArchived || !canRename}
                 >
                     Rename
                 </Button>
@@ -197,7 +209,7 @@ export function CityOverviewCard({
             <div className="city-actions-row">
                 <Button
                     onClick={() => void handleArchive()}
-                    disabled={isSubmitting || !city || isArchived}
+                    disabled={isSubmitting || !city || isArchived || !canArchive}
                 >
                     Archive city
                 </Button>
@@ -205,7 +217,7 @@ export function CityOverviewCard({
                 <Button
                     variant="danger"
                     onClick={() => void handleDelete()}
-                    disabled={isSubmitting || !city || !isArchived}
+                    disabled={isSubmitting || !city || !isArchived || !canDelete}
                 >
                     Delete city
                 </Button>

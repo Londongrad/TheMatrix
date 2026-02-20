@@ -12,6 +12,7 @@ const TICK_INTERVAL_MS = 250;
 interface SimulationPanelProps {
     simulationId: string;
     isReadOnly?: boolean;
+    canControl?: boolean;
     readOnlyMessage?: string;
 }
 
@@ -41,6 +42,7 @@ function readClockValue(base: LocalClockBase, nowMs: number): number {
 const SimulationPanel = ({
                              simulationId,
                              isReadOnly = false,
+                             canControl = true,
                              readOnlyMessage,
                          }: SimulationPanelProps) => {
     const simulationQuery = useSimulationClock(simulationId, isReadOnly ? 0 : 5000);
@@ -56,6 +58,7 @@ const SimulationPanel = ({
 
     const clock = simulationQuery.data;
     const isRunning = !isReadOnly && clock?.state.toLowerCase() === "running";
+    const canMutateSimulation = !isReadOnly && canControl;
     const displayState = isReadOnly ? "Paused" : clock?.state;
     const modeLabel = isReadOnly ? "Archived snapshot" : isRunning ? "Live sync" : "Paused snapshot";
 
@@ -218,6 +221,15 @@ const SimulationPanel = ({
                     </div>
                 ) : null}
 
+                {!isReadOnly && !canControl ? (
+                    <div className="sim-panel__notice" role="status">
+                        <div className="sim-panel__notice-title">View-only simulation access</div>
+                        <div className="sim-panel__notice-text">
+                            You can monitor the simulation clock, but control actions require simulation control permission.
+                        </div>
+                    </div>
+                ) : null}
+
                 <div className="sim-panel__snapshot-grid">
                     <div className="sim-panel__snapshot-item">
                         <span className="sim-panel__snapshot-label">Mode</span>
@@ -237,7 +249,7 @@ const SimulationPanel = ({
                     state={displayState}
                 />
 
-                {!isReadOnly ? (
+                {canMutateSimulation ? (
                     <>
                         <div className="sim-panel__section">
                             <h3 className="sim-panel__section-title">Transport</h3>

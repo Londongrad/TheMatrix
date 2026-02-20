@@ -8,6 +8,8 @@ import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/
 import {useSimulationKindsQuery} from "@services/citycore/scenarios/classic-city/hooks/useSimulationKindsQuery";
 import {isArchivedCity} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import {getClassicCityDetailsPath} from "@services/citycore/scenarios/registry";
+import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {usePermissions} from "@shared/permissions/usePermissions";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/scenarios/classic-city/styles/cities.css";
 
@@ -17,12 +19,14 @@ function normalize(value: string): string {
 
 export default function CitiesPage() {
     const navigate = useNavigate();
+    const {can} = usePermissions();
 
     const [search, setSearch] = useState("");
     const [includeArchived, setIncludeArchived] = useState(false);
+    const canCreateCity = can(PermissionKeys.CityCoreClassicCityCreate);
 
     const citiesQuery = useCitiesQuery(includeArchived);
-    const simulationKindsQuery = useSimulationKindsQuery();
+    const simulationKindsQuery = useSimulationKindsQuery(canCreateCity);
     const cityMutations = useCityMutations();
 
     const filteredCities = useMemo(() => {
@@ -169,29 +173,31 @@ export default function CitiesPage() {
                     </div>
                 </div>
 
-                <aside className="cities-page__sidebar">
-                    <div className="cities-card cities-card--sticky">
-                        <div className="cities-card__header">
-                            <div>
-                                <h2 className="cities-card__title">Create city</h2>
-                                <p className="cities-card__subtitle">
-                                    Define the city identity and choose which simulation baseline should own the launch.
-                                </p>
+                {canCreateCity ? (
+                    <aside className="cities-page__sidebar">
+                        <div className="cities-card cities-card--sticky">
+                            <div className="cities-card__header">
+                                <div>
+                                    <h2 className="cities-card__title">Create city</h2>
+                                    <p className="cities-card__subtitle">
+                                        Define the city identity and choose which simulation baseline should own the launch.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
 
-                        <CreateCityForm
-                            isSubmitting={cityMutations.isSubmitting}
-                            submitError={cityMutations.error}
-                            simulationKinds={simulationKindsQuery.data}
-                            simulationKindsError={simulationKindsQuery.error}
-                            isSimulationKindsLoading={simulationKindsQuery.isLoading}
-                            onSubmit={cityMutations.create}
-                            onCreated={handleCreated}
-                            onClearSubmitError={cityMutations.clearError}
-                        />
-                    </div>
-                </aside>
+                            <CreateCityForm
+                                isSubmitting={cityMutations.isSubmitting}
+                                submitError={cityMutations.error}
+                                simulationKinds={simulationKindsQuery.data}
+                                simulationKindsError={simulationKindsQuery.error}
+                                isSimulationKindsLoading={simulationKindsQuery.isLoading}
+                                onSubmit={cityMutations.create}
+                                onCreated={handleCreated}
+                                onClearSubmitError={cityMutations.clearError}
+                            />
+                        </div>
+                    </aside>
+                ) : null}
             </div>
         </section>
     );

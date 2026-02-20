@@ -92,7 +92,12 @@ const App = () => {
                             element={
                                 <RequireAuth>
                                     <RequireRoutePermission
-                                        permissions={[PermissionKeys.IdentityAdminAccess]}
+                                        permissions={[
+                                            PermissionKeys.IdentityUsersRead,
+                                            PermissionKeys.IdentityRolesList,
+                                            PermissionKeys.IdentityPermissionsCatalogRead,
+                                        ]}
+                                        mode="any"
                                     >
                                         <AdminLayout/>
                                     </RequireRoutePermission>

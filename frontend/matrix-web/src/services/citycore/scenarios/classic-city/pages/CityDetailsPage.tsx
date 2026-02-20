@@ -6,6 +6,8 @@ import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/
 import {isArchivedCity} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import {CLASSIC_CITY_LIST_PATH} from "@services/citycore/scenarios/registry";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
+import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {usePermissions} from "@shared/permissions/usePermissions";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/scenarios/classic-city/styles/cities.css";
 import "@services/citycore/scenarios/classic-city/styles/city-details.css";
@@ -14,10 +16,15 @@ const CityDetailsPage = () => {
     const params = useParams<{ cityId: string }>();
     const cityId = params.cityId ?? "";
     const navigate = useNavigate();
+    const {can} = usePermissions();
 
     const cityQuery = useCityDetails(cityId);
     const cityMutations = useCityMutations();
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
+    const canRenameCity = can(PermissionKeys.CityCoreClassicCityUpdate);
+    const canArchiveCity = can(PermissionKeys.CityCoreClassicCityArchive);
+    const canDeleteCity = can(PermissionKeys.CityCoreClassicCityDelete);
+    const canControlSimulation = can(PermissionKeys.CityCoreSimulationControl);
 
     async function handleRename(name: string) {
         if (!cityId) {
@@ -85,6 +92,9 @@ const CityDetailsPage = () => {
                 isLoading={cityQuery.isLoading}
                 isSubmitting={cityMutations.isSubmitting}
                 mutationError={cityMutations.error}
+                canRename={canRenameCity}
+                canArchive={canArchiveCity}
+                canDelete={canDeleteCity}
                 onClearMutationError={cityMutations.clearError}
                 onRename={handleRename}
                 onArchive={handleArchive}
@@ -95,6 +105,7 @@ const CityDetailsPage = () => {
                 <SimulationPanel
                     simulationId={cityQuery.data.simulationId || cityQuery.data.cityId}
                     isReadOnly={isArchived}
+                    canControl={canControlSimulation}
                     readOnlyMessage="This city is archived. Simulation time is shown as a snapshot and control mutations are disabled."
                 />
             ) : null}
