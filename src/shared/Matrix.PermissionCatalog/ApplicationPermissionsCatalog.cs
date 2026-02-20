@@ -1,4 +1,5 @@
 using Matrix.PermissionCatalog.Abstractions;
+using CityCorePermissionsCatalog = Matrix.CityCore.Contracts.Authorization.Permissions.PermissionsCatalog;
 using IdentityPermissionsCatalog = Matrix.Identity.Contracts.Authorization.Permissions.PermissionsCatalog;
 using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
 
@@ -11,6 +12,10 @@ namespace Matrix.PermissionCatalog
         private static IReadOnlyList<PermissionDefinition> Build()
         {
             var permissionsByKey = new Dictionary<string, PermissionDefinition>(StringComparer.Ordinal);
+
+            AddRange(
+                permissionsByKey: permissionsByKey,
+                definitions: CityCorePermissionsCatalog.All);
 
             AddRange(
                 permissionsByKey: permissionsByKey,
