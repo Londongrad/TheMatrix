@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUsersPage;
 using Matrix.Identity.Domain.Entities;
-using Matrix.Identity.Infrastructure.Persistence.Projections;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
@@ -27,7 +26,20 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
             List<UserListItemResult> items = await query
                .Skip(pagination.Skip)
                .Take(pagination.PageSize)
-               .Select(UserProjections.ToListItem)
+               .Select(user => new UserListItemResult
+                {
+                    Id = user.Id,
+                    AvatarUrl = user.AvatarUrl,
+                    Email = user.Email.Value,
+                    Username = user.Username.Value,
+                    IsEmailConfirmed = user.IsEmailConfirmed,
+                    IsLocked = user.IsLocked,
+                    CreatedAtUtc = user.CreatedAtUtc,
+                    LastVisitedAtUtc = dbContext.UserSessions
+                       .Where(session => session.UserId == user.Id)
+                       .Select(session => (DateTime?)(session.LastUsedAtUtc ?? session.CreatedAtUtc))
+                       .Max()
+                })
                .ToListAsync(cancellationToken);
 
             return new PagedResult<UserListItemResult>(
@@ -51,7 +63,20 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
             List<UserListItemResult> items = await query
                .Skip(pagination.Skip)
                .Take(pagination.PageSize)
-               .Select(UserProjections.ToListItem)
+               .Select(user => new UserListItemResult
+                {
+                    Id = user.Id,
+                    AvatarUrl = user.AvatarUrl,
+                    Email = user.Email.Value,
+                    Username = user.Username.Value,
+                    IsEmailConfirmed = user.IsEmailConfirmed,
+                    IsLocked = user.IsLocked,
+                    CreatedAtUtc = user.CreatedAtUtc,
+                    LastVisitedAtUtc = dbContext.UserSessions
+                       .Where(session => session.UserId == user.Id)
+                       .Select(session => (DateTime?)(session.LastUsedAtUtc ?? session.CreatedAtUtc))
+                       .Max()
+                })
                .ToListAsync(cancellationToken);
 
             return new PagedResult<UserListItemResult>(

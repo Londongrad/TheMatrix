@@ -43,6 +43,16 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                .ToListAsync(cancellationToken);
         }
 
+        public async Task<DateTime?> GetLastVisitedAtUtcAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default)
+        {
+            return await Sessions
+               .Where(s => s.UserId == userId)
+               .Select(s => (DateTime?)(s.LastUsedAtUtc ?? s.CreatedAtUtc))
+               .MaxAsync(cancellationToken);
+        }
+
         public async Task<IReadOnlyCollection<UserSession>> ListByUserIdAndDeviceIdAsync(
             Guid userId,
             string deviceId,
