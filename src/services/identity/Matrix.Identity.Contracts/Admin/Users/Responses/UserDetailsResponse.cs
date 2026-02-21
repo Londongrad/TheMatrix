@@ -10,5 +10,6 @@ namespace Matrix.Identity.Contracts.Admin.Users.Responses
         public bool IsLocked { get; init; }
         public int PermissionsVersion { get; init; }
         public DateTime CreatedAtUtc { get; init; }
+        public DateTime? LastVisitedAtUtc { get; init; }
     }
 }

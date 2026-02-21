@@ -54,7 +54,8 @@ namespace Matrix.Identity.Api.Controllers.Admin
                         Username = u.Username,
                         IsEmailConfirmed = u.IsEmailConfirmed,
                         IsLocked = u.IsLocked,
-                        CreatedAtUtc = u.CreatedAtUtc
+                        CreatedAtUtc = u.CreatedAtUtc,
+                        LastVisitedAtUtc = u.LastVisitedAtUtc
                     })
                    .ToList(),
                 totalCount: result.TotalCount,
@@ -88,7 +89,8 @@ namespace Matrix.Identity.Api.Controllers.Admin
                 IsEmailConfirmed = result.IsEmailConfirmed,
                 IsLocked = result.IsLocked,
                 PermissionsVersion = result.PermissionsVersion,
-                CreatedAtUtc = result.CreatedAtUtc
+                CreatedAtUtc = result.CreatedAtUtc,
+                LastVisitedAtUtc = result.LastVisitedAtUtc
             };
 
             return Ok(response);
