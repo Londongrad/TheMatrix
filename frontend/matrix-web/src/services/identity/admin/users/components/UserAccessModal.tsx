@@ -1,18 +1,14 @@
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import Modal from "@shared/ui/components/Modal/Modal";
+import {
+    formatAdminUtc,
+    formatAdminVisitUtc,
+} from "@services/identity/admin/shared/utils/dateTime";
 import UserBadge from "./UserBadge";
 import {useUserAccess} from "../hooks/useUserAccess";
 
 const SUPER_ADMIN_ROLE_NAME = "SuperAdmin";
-
-function formatUtc(utc: string) {
-    return utc?.replace("T", " ").replace("Z", "");
-}
-
-function formatVisitUtc(utc?: string | null) {
-    return utc ? formatUtc(utc) : "Never";
-}
 
 export default function UserAccessModal({
                                             userId,
@@ -81,11 +77,11 @@ export default function UserAccessModal({
                             </div>
                             <div>
                                 <div className="mx-admin-users__muted">Created</div>
-                                <div>{formatUtc(details.createdAtUtc)}</div>
+                                <div>{formatAdminUtc(details.createdAtUtc)}</div>
                             </div>
                             <div>
                                 <div className="mx-admin-users__muted">Last visit</div>
-                                <div>{formatVisitUtc(details.lastVisitedAtUtc)}</div>
+                                <div>{formatAdminVisitUtc(details.lastVisitedAtUtc)}</div>
                             </div>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ import Pagination from "@shared/ui/components/Pagination/Pagination";
 import Button from "@shared/ui/controls/Button/Button";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
 import {getRoleMembersPage} from "@services/identity/api/admin/adminApi";
+import {formatAdminVisitUtc} from "@services/identity/admin/shared/utils/dateTime";
 import type {RoleResponse, UserListItemResponse,} from "@services/identity/api/admin/adminTypes";
 
 function RoleMemberCard({member}: { member: UserListItemResponse }) {
@@ -12,6 +13,9 @@ function RoleMemberCard({member}: { member: UserListItemResponse }) {
             <div className="mx-admin-roles__memberName">{member.username}</div>
             <div className="mx-admin-roles__memberEmail">{member.email}</div>
             <div className="mx-admin-roles__memberMeta">{member.id}</div>
+            <div className="mx-admin-roles__memberMeta">
+                Last visit: {formatAdminVisitUtc(member.lastVisitedAtUtc)}
+            </div>
         </div>
     );
 }

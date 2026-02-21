@@ -5,15 +5,11 @@ import type {UserListItemResponse} from "@services/identity/api/admin/adminTypes
 import {RequirePermission, RequirePermissions,} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {
+    formatAdminUtc,
+    formatAdminVisitUtc,
+} from "@services/identity/admin/shared/utils/dateTime";
 import UserBadge from "./UserBadge";
-
-function formatUtc(utc: string) {
-    return utc?.replace("T", " ").replace("Z", "");
-}
-
-function formatVisitUtc(utc?: string | null) {
-    return utc ? formatUtc(utc) : "Never";
-}
 
 export default function UserCard({
                                      user,
@@ -76,12 +72,12 @@ export default function UserCard({
 
             <div className="mx-admin-users__cardRow">
                 <span className="mx-admin-users__muted">Created</span>
-                <span>{formatUtc(user.createdAtUtc)}</span>
+                <span>{formatAdminUtc(user.createdAtUtc)}</span>
             </div>
 
             <div className="mx-admin-users__cardRow">
                 <span className="mx-admin-users__muted">Last visit</span>
-                <span>{formatVisitUtc(user.lastVisitedAtUtc)}</span>
+                <span>{formatAdminVisitUtc(user.lastVisitedAtUtc)}</span>
             </div>
 
             <div className="mx-admin-users__actions">
