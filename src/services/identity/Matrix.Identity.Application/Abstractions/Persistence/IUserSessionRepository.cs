@@ -18,6 +18,10 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             Guid userId,
             CancellationToken cancellationToken = default);
 
+        Task<DateTime?> GetLastVisitedAtUtcAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyCollection<UserSession>> ListByUserIdAndDeviceIdAsync(
             Guid userId,
             string deviceId,

@@ -5,7 +5,9 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails
 {
-    public sealed class GetUserDetailsQueryHandler(IUserRepository userRepository)
+    public sealed class GetUserDetailsQueryHandler(
+        IUserRepository userRepository,
+        IUserSessionRepository userSessionRepository)
         : IRequestHandler<GetUserDetailsQuery, UserDetailsResult>
     {
         public async Task<UserDetailsResult> Handle(
@@ -16,6 +18,9 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails
                             userId: request.UserId,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(request.UserId);
+            DateTime? lastVisitedAtUtc = await userSessionRepository.GetLastVisitedAtUtcAsync(
+                userId: request.UserId,
+                cancellationToken: cancellationToken);
 
             return new UserDetailsResult
             {
@@ -26,7 +31,8 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails
                 IsEmailConfirmed = user.IsEmailConfirmed,
                 IsLocked = user.IsLocked,
                 PermissionsVersion = user.PermissionsVersion,
-                CreatedAtUtc = user.CreatedAtUtc
+                CreatedAtUtc = user.CreatedAtUtc,
+                LastVisitedAtUtc = lastVisitedAtUtc
             };
         }
     }
