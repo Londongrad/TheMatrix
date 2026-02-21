@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence
@@ -12,6 +13,7 @@ namespace Matrix.Identity.Infrastructure.Persistence
         public DbSet<UserSession> UserSessions => Set<UserSession>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<OneTimeToken> OneTimeTokens => Set<OneTimeToken>();
+        public DbSet<SecurityAuditEventRecord> SecurityAuditEvents => Set<SecurityAuditEventRecord>();
 
         public DbSet<Permission> Permissions => Set<Permission>();
 

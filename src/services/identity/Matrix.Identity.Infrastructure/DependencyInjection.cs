@@ -7,6 +7,7 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
+using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Infrastructure.Authentication.ExternalJwt;
 using Matrix.Identity.Infrastructure.Authorization;
@@ -20,6 +21,7 @@ using Matrix.Identity.Infrastructure.Persistence.Repositories.Admin;
 using Matrix.Identity.Infrastructure.Persistence.Seed;
 using Matrix.Identity.Infrastructure.Security.PasswordHashing;
 using Matrix.Identity.Infrastructure.Security.Processor;
+using Matrix.Identity.Infrastructure.Security.Audit;
 using Matrix.Identity.Infrastructure.Security.Tokens;
 using Matrix.Identity.Infrastructure.Security.Tokens.Cleanup;
 using Matrix.Identity.Infrastructure.Storage;
@@ -114,6 +116,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IAccessTokenService, ExternalJwtAccessTokenService>();
             services.AddScoped<IRefreshTokenProvider, RefreshTokenProvider>();
             services.AddScoped<IOneTimeTokenService, OneTimeTokenService>();
+            services.AddScoped<ISecurityAuditService, SecurityAuditService>();
             services.AddOptions<RefreshTokenCleanupOptions>()
                .Bind(configuration.GetSection(RefreshTokenCleanupOptions.SectionName))
                .Validate(
@@ -159,6 +162,45 @@ namespace Matrix.Identity.Infrastructure
                     validation: o => o.PasswordResetMaxDeliveryAttemptsPerHour >= 0,
                     failureMessage:
                     $"{OneTimeTokenOptions.SectionName}:PasswordResetMaxDeliveryAttemptsPerHour must be greater than or equal to 0.")
+               .ValidateOnStart();
+            services.AddOptions<SecurityAuditOptions>()
+               .Bind(configuration.GetSection(SecurityAuditOptions.SectionName))
+               .Validate(
+                    validation: o => o.FailedLoginWindowMinutes > 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:FailedLoginWindowMinutes must be greater than 0.")
+               .Validate(
+                    validation: o => o.FailedLoginMaxAttemptsPerLogin >= 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:FailedLoginMaxAttemptsPerLogin must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.FailedLoginMaxAttemptsPerIp >= 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:FailedLoginMaxAttemptsPerIp must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.EmailConfirmationRequestWindowMinutes > 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:EmailConfirmationRequestWindowMinutes must be greater than 0.")
+               .Validate(
+                    validation: o => o.EmailConfirmationRequestMaxAttemptsPerEmail >= 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:EmailConfirmationRequestMaxAttemptsPerEmail must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.EmailConfirmationRequestMaxAttemptsPerIp >= 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:EmailConfirmationRequestMaxAttemptsPerIp must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.PasswordResetRequestWindowMinutes > 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:PasswordResetRequestWindowMinutes must be greater than 0.")
+               .Validate(
+                    validation: o => o.PasswordResetRequestMaxAttemptsPerEmail >= 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:PasswordResetRequestMaxAttemptsPerEmail must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.PasswordResetRequestMaxAttemptsPerIp >= 0,
+                    failureMessage:
+                    $"{SecurityAuditOptions.SectionName}:PasswordResetRequestMaxAttemptsPerIp must be greater than or equal to 0.")
                .ValidateOnStart();
             services.TryAddSingleton(TimeProvider.System);
             services.AddScoped<RefreshTokenCleaner>();
