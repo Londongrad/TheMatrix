@@ -22,6 +22,7 @@ using Matrix.Identity.Infrastructure.Persistence.Seed;
 using Matrix.Identity.Infrastructure.Security.PasswordHashing;
 using Matrix.Identity.Infrastructure.Security.Processor;
 using Matrix.Identity.Infrastructure.Security.Audit;
+using Matrix.Identity.Infrastructure.Security.Audit.Cleanup;
 using Matrix.Identity.Infrastructure.Security.Tokens;
 using Matrix.Identity.Infrastructure.Security.Tokens.Cleanup;
 using Matrix.Identity.Infrastructure.Storage;
@@ -86,6 +87,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IUserPermissionsRepository, UserPermissionsRepository>();
             services.AddScoped<IRolePermissionsRepository, RolePermissionsRepository>();
             services.AddScoped<IRefreshTokenBulkRepository, RefreshTokenBulkRepository>();
+            services.AddScoped<ISecurityAuditBulkRepository, SecurityAuditBulkRepository>();
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();
             services.AddScoped<IUserAdminReadRepository, UserAdminReadRepository>();
             services.AddScoped<IRoleMembersReadRepository, UserAdminReadRepository>();
@@ -202,9 +204,26 @@ namespace Matrix.Identity.Infrastructure
                     failureMessage:
                     $"{SecurityAuditOptions.SectionName}:PasswordResetRequestMaxAttemptsPerIp must be greater than or equal to 0.")
                .ValidateOnStart();
+            services.AddOptions<SecurityAuditCleanupOptions>()
+               .Bind(configuration.GetSection(SecurityAuditCleanupOptions.SectionName))
+               .Validate(
+                    validation: o => o.PollIntervalSeconds > 0,
+                    failureMessage:
+                    $"{SecurityAuditCleanupOptions.SectionName}:PollIntervalSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.BatchSize > 0,
+                    failureMessage:
+                    $"{SecurityAuditCleanupOptions.SectionName}:BatchSize must be greater than 0.")
+               .Validate(
+                    validation: o => o.RetentionDays >= 0,
+                    failureMessage:
+                    $"{SecurityAuditCleanupOptions.SectionName}:RetentionDays must be greater than or equal to 0.")
+               .ValidateOnStart();
             services.TryAddSingleton(TimeProvider.System);
             services.AddScoped<RefreshTokenCleaner>();
+            services.AddScoped<SecurityAuditCleaner>();
             services.AddHostedService<RefreshTokenCleanupHostedService>();
+            services.AddHostedService<SecurityAuditCleanupHostedService>();
 
             // Security state change processing
             services.AddScoped<ISecurityStateChangeProcessor, SecurityStateChangeProcessor>();
