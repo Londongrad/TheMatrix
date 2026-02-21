@@ -10,6 +10,10 @@ function formatUtc(utc: string) {
     return utc?.replace("T", " ").replace("Z", "");
 }
 
+function formatVisitUtc(utc?: string | null) {
+    return utc ? formatUtc(utc) : "Never";
+}
+
 export default function UserAccessModal({
                                             userId,
                                             onClose,
@@ -78,6 +82,10 @@ export default function UserAccessModal({
                             <div>
                                 <div className="mx-admin-users__muted">Created</div>
                                 <div>{formatUtc(details.createdAtUtc)}</div>
+                            </div>
+                            <div>
+                                <div className="mx-admin-users__muted">Last visit</div>
+                                <div>{formatVisitUtc(details.lastVisitedAtUtc)}</div>
                             </div>
                         </div>
                     </div>

@@ -11,6 +11,10 @@ function formatUtc(utc: string) {
     return utc?.replace("T", " ").replace("Z", "");
 }
 
+function formatVisitUtc(utc?: string | null) {
+    return utc ? formatUtc(utc) : "Never";
+}
+
 export default function UserCard({
                                      user,
                                      onOpenAccess,
@@ -73,6 +77,11 @@ export default function UserCard({
             <div className="mx-admin-users__cardRow">
                 <span className="mx-admin-users__muted">Created</span>
                 <span>{formatUtc(user.createdAtUtc)}</span>
+            </div>
+
+            <div className="mx-admin-users__cardRow">
+                <span className="mx-admin-users__muted">Last visit</span>
+                <span>{formatVisitUtc(user.lastVisitedAtUtc)}</span>
             </div>
 
             <div className="mx-admin-users__actions">

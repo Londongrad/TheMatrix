@@ -7,6 +7,7 @@ export interface UserListItemResponse {
     isEmailConfirmed: boolean;
     isLocked: boolean;
     createdAtUtc: string;
+    lastVisitedAtUtc?: string | null;
 }
 
 export interface UserDetailsResponse {
@@ -18,6 +19,7 @@ export interface UserDetailsResponse {
     isLocked: boolean;
     permissionsVersion: number;
     createdAtUtc: string;
+    lastVisitedAtUtc?: string | null;
 }
 
 export interface UserRoleResponse {
