@@ -13,6 +13,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmatio
         {
             await oneTimeTokenDeliveryService.SendEmailConfirmationAsync(
                 email: request.Email,
+                ipAddress: request.IpAddress,
+                userAgent: request.UserAgent,
                 cancellationToken: cancellationToken);
         }
     }

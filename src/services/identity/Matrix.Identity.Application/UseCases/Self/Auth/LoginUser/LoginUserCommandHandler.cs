@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
+using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.ValueObjects;
@@ -17,13 +18,33 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
         IRefreshTokenProvider refreshTokenProvider,
         IGeoLocationService geoLocationService,
         IUnitOfWork unitOfWork,
-        IEffectivePermissionsService permissionsService)
+        IEffectivePermissionsService permissionsService,
+        ISecurityAuditService securityAuditService)
         : IRequestHandler<LoginUserCommand, LoginUserResult>
     {
         public async Task<LoginUserResult> Handle(
             LoginUserCommand request,
             CancellationToken cancellationToken)
         {
+            string loginSubject = NormalizeLoginSubject(request.Login);
+
+            if (!await securityAuditService.IsLoginAllowedAsync(
+                    loginSubject: loginSubject,
+                    ipAddress: request.IpAddress,
+                    cancellationToken: cancellationToken))
+            {
+                await WriteLoginAuditAsync(
+                    request: request,
+                    isSuccessful: false,
+                    userId: null,
+                    sessionId: null,
+                    details: "RateLimitExceeded",
+                    loginSubject: loginSubject,
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                throw ApplicationErrorsFactory.TooManyAuthenticationAttempts();
+            }
+
             User? user;
 
             if (request.Login.Contains('@'))
@@ -42,18 +63,50 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             }
 
             if (user == null)
+            {
+                await WriteLoginAuditAsync(
+                    request: request,
+                    isSuccessful: false,
+                    userId: null,
+                    sessionId: null,
+                    details: "UserNotFound",
+                    loginSubject: loginSubject,
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 throw ApplicationErrorsFactory.InvalidCredentials();
+            }
 
-            bool passwordValid =
-                passwordHasher.Verify(
-                    passwordHash: user.PasswordHash,
-                    providedPassword: request.Password);
+            bool passwordValid = passwordHasher.Verify(
+                passwordHash: user.PasswordHash,
+                providedPassword: request.Password);
 
             if (!passwordValid)
+            {
+                await WriteLoginAuditAsync(
+                    request: request,
+                    isSuccessful: false,
+                    userId: user.Id,
+                    sessionId: null,
+                    details: "InvalidPassword",
+                    loginSubject: loginSubject,
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 throw ApplicationErrorsFactory.InvalidCredentials();
+            }
 
             if (!user.CanLogin())
+            {
+                await WriteLoginAuditAsync(
+                    request: request,
+                    isSuccessful: false,
+                    userId: user.Id,
+                    sessionId: null,
+                    details: "UserBlocked",
+                    loginSubject: loginSubject,
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 throw ApplicationErrorsFactory.UserBlocked();
+            }
 
             RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);
 
@@ -129,6 +182,15 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                 permissionsVersion: ctx.PermissionsVersion,
                 sessionId: session.Id);
 
+            await WriteLoginAuditAsync(
+                request: request,
+                isSuccessful: true,
+                userId: user.Id,
+                sessionId: session.Id,
+                details: null,
+                loginSubject: loginSubject,
+                cancellationToken: cancellationToken);
+
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new LoginUserResult
@@ -140,6 +202,38 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                 RefreshTokenExpiresAtUtc = refreshDescriptor.ExpiresAtUtc,
                 IsPersistent = request.RememberMe
             };
+        }
+
+        private Task WriteLoginAuditAsync(
+            LoginUserCommand request,
+            bool isSuccessful,
+            Guid? userId,
+            Guid? sessionId,
+            string? details,
+            string loginSubject,
+            CancellationToken cancellationToken)
+        {
+            return securityAuditService.WriteAsync(
+                entry: new SecurityAuditEntry(
+                    EventType: SecurityAuditEventType.Login,
+                    IsSuccessful: isSuccessful,
+                    UserId: userId,
+                    SessionId: sessionId,
+                    Subject: loginSubject,
+                    IpAddress: request.IpAddress,
+                    UserAgent: request.UserAgent,
+                    DeviceId: request.DeviceId,
+                    DeviceName: request.DeviceName,
+                    Details: details),
+                cancellationToken: cancellationToken);
+        }
+
+        private static string NormalizeLoginSubject(string login)
+        {
+            string trimmed = login.Trim();
+            return trimmed.Contains('@')
+                ? trimmed.ToLowerInvariant()
+                : trimmed;
         }
     }
 }

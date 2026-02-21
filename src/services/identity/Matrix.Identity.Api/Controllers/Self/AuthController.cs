@@ -18,13 +18,7 @@ namespace Matrix.Identity.Api.Controllers.Self
     [Route("api/[controller]")]
     public sealed class AuthController(ISender sender) : ControllerBase
     {
-        #region [ Fields ]
-
         private readonly ISender _sender = sender;
-
-        #endregion [ Fields ]
-
-        #region [ Register ]
 
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register(
@@ -50,34 +44,18 @@ namespace Matrix.Identity.Api.Controllers.Self
             return Ok(response);
         }
 
-        #endregion [ Register ]
-
-        #region [ Login ]
-
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login(
             [FromBody] LoginRequest request,
             CancellationToken cancellationToken)
         {
-            // берём user-agent и ip из HTTP-контекста
-            string userAgent = Request.Headers.UserAgent.ToString();
-
-            string? ipAddress = null;
-            if (Request.Headers.TryGetValue(
-                    key: "X-Real-IP",
-                    value: out StringValues realIpHeader))
-                ipAddress = realIpHeader.ToString();
-
-            // fallback на RemoteIpAddress, если что-то пошло не так
-            ipAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
-
             var command = new LoginUserCommand(
                 Login: request.Login,
                 Password: request.Password,
                 DeviceId: request.DeviceId,
                 DeviceName: request.DeviceName,
-                UserAgent: userAgent,
-                IpAddress: ipAddress,
+                UserAgent: GetUserAgent(),
+                IpAddress: GetIpAddress(),
                 RememberMe: request.RememberMe);
 
             LoginUserResult result = await _sender.Send(
@@ -97,31 +75,16 @@ namespace Matrix.Identity.Api.Controllers.Self
             return Ok(response);
         }
 
-        #endregion [ Login ]
-
-        #region [ Refresh ]
-
         [HttpPost("refresh")]
         public async Task<ActionResult<LoginResponse>> Refresh(
             [FromBody] RefreshRequest request,
             CancellationToken cancellationToken)
         {
-            string userAgent = Request.Headers.UserAgent.ToString();
-
-            string? ipAddress = null;
-            if (Request.Headers.TryGetValue(
-                    key: "X-Real-IP",
-                    value: out StringValues realIpHeader))
-                ipAddress = realIpHeader.ToString();
-
-            // fallback на RemoteIpAddress, если что-то пошло не так
-            ipAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
-
             var command = new RefreshTokenCommand(
                 RefreshToken: request.RefreshToken,
                 DeviceId: request.DeviceId,
-                UserAgent: userAgent,
-                IpAddress: ipAddress);
+                UserAgent: GetUserAgent(),
+                IpAddress: GetIpAddress());
 
             LoginUserResult result = await _sender.Send(
                 request: command,
@@ -140,32 +103,32 @@ namespace Matrix.Identity.Api.Controllers.Self
             return Ok(response);
         }
 
-        #endregion [ Refresh ]
-
-        #region [ Logout ]
-
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(
             [FromBody] LogoutRequest request,
             CancellationToken cancellationToken)
         {
-            var command = new RevokeRefreshTokenCommand(request.RefreshToken);
+            var command = new RevokeRefreshTokenCommand(
+                RefreshToken: request.RefreshToken,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
+
             await _sender.Send(
                 request: command,
                 cancellationToken: cancellationToken);
+
             return NoContent();
         }
-
-        #endregion [ Logout ]
-
-        #region [ Email confirmation & password reset ]
 
         [HttpPost("email-confirmation/send")]
         public async Task<IActionResult> SendEmailConfirmation(
             [FromBody] SendEmailConfirmationRequest request,
             CancellationToken cancellationToken)
         {
-            var command = new SendEmailConfirmationCommand(request.Email);
+            var command = new SendEmailConfirmationCommand(
+                Email: request.Email,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
 
             await _sender.Send(
                 request: command,
@@ -181,7 +144,9 @@ namespace Matrix.Identity.Api.Controllers.Self
         {
             var command = new ConfirmEmailCommand(
                 UserId: request.UserId,
-                Token: request.Token);
+                Token: request.Token,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
 
             await _sender.Send(
                 request: command,
@@ -195,7 +160,10 @@ namespace Matrix.Identity.Api.Controllers.Self
             [FromBody] ForgotPasswordRequest request,
             CancellationToken cancellationToken)
         {
-            var command = new SendPasswordResetCommand(request.Email);
+            var command = new SendPasswordResetCommand(
+                Email: request.Email,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
 
             await _sender.Send(
                 request: command,
@@ -212,7 +180,9 @@ namespace Matrix.Identity.Api.Controllers.Self
             var command = new ResetPasswordCommand(
                 UserId: request.UserId,
                 Token: request.Token,
-                NewPassword: request.NewPassword);
+                NewPassword: request.NewPassword,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
 
             await _sender.Send(
                 request: command,
@@ -221,6 +191,19 @@ namespace Matrix.Identity.Api.Controllers.Self
             return NoContent();
         }
 
-        #endregion [ Email confirmation & password reset ]
+        private string GetUserAgent()
+        {
+            return Request.Headers.UserAgent.ToString();
+        }
+
+        private string? GetIpAddress()
+        {
+            if (Request.Headers.TryGetValue(
+                    key: "X-Real-IP",
+                    value: out StringValues realIpHeader))
+                return realIpHeader.ToString();
+
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
     }
 }

@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using MediatR;
@@ -11,7 +12,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
         IRefreshTokenProvider refreshTokenProvider,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ISecurityAuditService securityAuditService)
         : IRequestHandler<RevokeRefreshTokenCommand>
     {
         public async Task Handle(
@@ -40,6 +42,19 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
                     cancellationToken: cancellationToken);
 
                 session?.Revoke(RefreshTokenRevocationReason.UserRevoked);
+
+                await securityAuditService.WriteAsync(
+                    entry: new SecurityAuditEntry(
+                        EventType: SecurityAuditEventType.Logout,
+                        IsSuccessful: true,
+                        UserId: user.Id,
+                        SessionId: token.SessionId,
+                        Subject: user.Email.Value,
+                        IpAddress: request.IpAddress,
+                        UserAgent: request.UserAgent,
+                        DeviceId: token.DeviceInfo.DeviceId,
+                        DeviceName: token.DeviceInfo.DeviceName),
+                    cancellationToken: cancellationToken);
 
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }

@@ -12,6 +12,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset
         {
             await oneTimeTokenDeliveryService.SendPasswordResetAsync(
                 email: request.Email,
+                ipAddress: request.IpAddress,
+                userAgent: request.UserAgent,
                 cancellationToken: cancellationToken);
         }
     }

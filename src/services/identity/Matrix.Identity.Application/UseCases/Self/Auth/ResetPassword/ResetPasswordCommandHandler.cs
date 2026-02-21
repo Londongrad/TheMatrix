@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.Errors;
@@ -15,7 +16,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
         IOneTimeTokenService oneTimeTokenService,
         IPasswordHasher passwordHasher,
         IClock clock,
-        IUnitOfWork unitOfWork) : IRequestHandler<ResetPasswordCommand>
+        IUnitOfWork unitOfWork,
+        ISecurityAuditService securityAuditService) : IRequestHandler<ResetPasswordCommand>
     {
         public async Task Handle(
             ResetPasswordCommand request,
@@ -26,7 +28,16 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
                 cancellationToken: cancellationToken);
 
             if (user is null)
+            {
+                await WriteAuditAsync(
+                    request: request,
+                    isSuccessful: false,
+                    userId: null,
+                    details: "UserNotFound",
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(request.UserId));
+            }
 
             string tokenHash = oneTimeTokenService.HashToken(request.Token);
 
@@ -37,7 +48,16 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
                 cancellationToken: cancellationToken);
 
             if (token is null)
+            {
+                await WriteAuditAsync(
+                    request: request,
+                    isSuccessful: false,
+                    userId: user.Id,
+                    details: "InvalidToken",
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(request.Token));
+            }
 
             DateTime nowUtc = clock.UtcNow;
 
@@ -63,7 +83,33 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
                     revokedAtUtc: nowUtc);
             }
 
+            await WriteAuditAsync(
+                request: request,
+                isSuccessful: true,
+                userId: user.Id,
+                details: null,
+                cancellationToken: cancellationToken);
+
             await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        private Task WriteAuditAsync(
+            ResetPasswordCommand request,
+            bool isSuccessful,
+            Guid? userId,
+            string? details,
+            CancellationToken cancellationToken)
+        {
+            return securityAuditService.WriteAsync(
+                entry: new SecurityAuditEntry(
+                    EventType: SecurityAuditEventType.PasswordResetCompleted,
+                    IsSuccessful: isSuccessful,
+                    UserId: userId,
+                    Subject: request.UserId.ToString(),
+                    IpAddress: request.IpAddress,
+                    UserAgent: request.UserAgent,
+                    Details: details),
+                cancellationToken: cancellationToken);
         }
     }
 }

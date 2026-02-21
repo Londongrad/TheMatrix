@@ -4,10 +4,14 @@ namespace Matrix.Identity.Application.Abstractions.Services
     {
         Task SendEmailConfirmationAsync(
             string email,
+            string? ipAddress,
+            string? userAgent,
             CancellationToken cancellationToken);
 
         Task SendPasswordResetAsync(
             string email,
+            string? ipAddress,
+            string? userAgent,
             CancellationToken cancellationToken);
     }
 }

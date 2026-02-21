@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
@@ -12,7 +13,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
         IUnitOfWork unitOfWork,
-        ICurrentUserContext currentUser)
+        ICurrentUserContext currentUser,
+        ISecurityAuditService securityAuditService)
         : IRequestHandler<RevokeMySessionCommand>
     {
         public async Task Handle(
@@ -37,6 +39,16 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
             user.RevokeActiveRefreshTokensBySession(
                 sessionId: request.SessionId,
                 reason: RefreshTokenRevocationReason.UserRevoked);
+
+            await securityAuditService.WriteAsync(
+                entry: new SecurityAuditEntry(
+                    EventType: SecurityAuditEventType.SessionRevoked,
+                    IsSuccessful: true,
+                    UserId: userId,
+                    SessionId: request.SessionId,
+                    Subject: user.Email.Value,
+                    Details: "UserRequested"),
+                cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }

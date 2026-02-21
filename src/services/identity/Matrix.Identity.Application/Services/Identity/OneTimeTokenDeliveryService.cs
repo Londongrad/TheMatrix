@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.ValueObjects;
@@ -14,14 +15,19 @@ namespace Matrix.Identity.Application.Services.Identity
         IEmailSender emailSender,
         IUnitOfWork unitOfWork,
         IFrontendLinkBuilder frontendLinkBuilder,
-        IClock clock) : IOneTimeTokenDeliveryService
+        IClock clock,
+        ISecurityAuditService securityAuditService) : IOneTimeTokenDeliveryService
     {
         public Task SendEmailConfirmationAsync(
             string email,
+            string? ipAddress,
+            string? userAgent,
             CancellationToken cancellationToken)
         {
             return SendAsync(
                 email: email,
+                ipAddress: ipAddress,
+                userAgent: userAgent,
                 purpose: OneTimeTokenPurpose.EmailConfirmation,
                 buildLink: frontendLinkBuilder.BuildConfirmEmailLink,
                 sendEmail: emailSender.SendEmailConfirmation,
@@ -31,10 +37,14 @@ namespace Matrix.Identity.Application.Services.Identity
 
         public Task SendPasswordResetAsync(
             string email,
+            string? ipAddress,
+            string? userAgent,
             CancellationToken cancellationToken)
         {
             return SendAsync(
                 email: email,
+                ipAddress: ipAddress,
+                userAgent: userAgent,
                 purpose: OneTimeTokenPurpose.PasswordReset,
                 buildLink: frontendLinkBuilder.BuildResetPasswordLink,
                 sendEmail: emailSender.SendPasswordReset,
@@ -44,6 +54,8 @@ namespace Matrix.Identity.Application.Services.Identity
 
         private async Task SendAsync(
             string email,
+            string? ipAddress,
+            string? userAgent,
             OneTimeTokenPurpose purpose,
             Func<Guid, string, string> buildLink,
             Func<string, string, CancellationToken, Task> sendEmail,
@@ -51,13 +63,51 @@ namespace Matrix.Identity.Application.Services.Identity
             CancellationToken cancellationToken)
         {
             var normalizedEmail = Email.Create(email);
+            string subject = normalizedEmail.Value;
+
+            bool requestAllowed = purpose == OneTimeTokenPurpose.EmailConfirmation
+                ? await securityAuditService.IsEmailConfirmationRequestAllowedAsync(
+                    normalizedEmail: subject,
+                    ipAddress: ipAddress,
+                    cancellationToken: cancellationToken)
+                : await securityAuditService.IsPasswordResetRequestAllowedAsync(
+                    normalizedEmail: subject,
+                    ipAddress: ipAddress,
+                    cancellationToken: cancellationToken);
+
+            if (!requestAllowed)
+            {
+                await WriteAuditAsync(
+                    purpose: purpose,
+                    isSuccessful: false,
+                    userId: null,
+                    subject: subject,
+                    ipAddress: ipAddress,
+                    userAgent: userAgent,
+                    details: "RateLimitExceeded",
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                return;
+            }
 
             User? user = await userRepository.GetByEmailAsync(
                 normalizedEmail: normalizedEmail.Value,
                 cancellationToken: cancellationToken);
 
             if (user is null || skipUser(user))
+            {
+                await WriteAuditAsync(
+                    purpose: purpose,
+                    isSuccessful: false,
+                    userId: user?.Id,
+                    subject: subject,
+                    ipAddress: ipAddress,
+                    userAgent: userAgent,
+                    details: user is null ? "UserNotFound" : "Skipped",
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 return;
+            }
 
             DateTime nowUtc = clock.UtcNow;
             TimeSpan cooldown = oneTimeTokenService.GetDeliveryCooldown(purpose);
@@ -72,7 +122,19 @@ namespace Matrix.Identity.Application.Services.Identity
 
                 if (latestCreatedAtUtc.HasValue &&
                     nowUtc - latestCreatedAtUtc.Value < cooldown)
+                {
+                    await WriteAuditAsync(
+                        purpose: purpose,
+                        isSuccessful: false,
+                        userId: user.Id,
+                        subject: subject,
+                        ipAddress: ipAddress,
+                        userAgent: userAgent,
+                        details: "CooldownActive",
+                        cancellationToken: cancellationToken);
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
                     return;
+                }
             }
 
             if (maxAttemptsPerHour > 0)
@@ -84,7 +146,19 @@ namespace Matrix.Identity.Application.Services.Identity
                     cancellationToken: cancellationToken);
 
                 if (recentAttempts >= maxAttemptsPerHour)
+                {
+                    await WriteAuditAsync(
+                        purpose: purpose,
+                        isSuccessful: false,
+                        userId: user.Id,
+                        subject: subject,
+                        ipAddress: ipAddress,
+                        userAgent: userAgent,
+                        details: "HourlyLimitExceeded",
+                        cancellationToken: cancellationToken);
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
                     return;
+                }
             }
 
             IReadOnlyList<OneTimeToken> activeTokens = await oneTimeTokenRepository.GetActive(
@@ -113,14 +187,71 @@ namespace Matrix.Identity.Application.Services.Identity
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            string link = buildLink(
-                user.Id,
-                rawToken);
+            try
+            {
+                string link = buildLink(
+                    user.Id,
+                    rawToken);
 
-            await sendEmail(
-                user.Email.Value,
-                link,
-                cancellationToken);
+                await sendEmail(
+                    user.Email.Value,
+                    link,
+                    cancellationToken);
+
+                await WriteAuditAsync(
+                    purpose: purpose,
+                    isSuccessful: true,
+                    userId: user.Id,
+                    subject: subject,
+                    ipAddress: ipAddress,
+                    userAgent: userAgent,
+                    details: null,
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch
+            {
+                await WriteAuditAsync(
+                    purpose: purpose,
+                    isSuccessful: false,
+                    userId: user.Id,
+                    subject: subject,
+                    ipAddress: ipAddress,
+                    userAgent: userAgent,
+                    details: "EmailDeliveryFailed",
+                    cancellationToken: cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                throw;
+            }
+        }
+
+        private Task WriteAuditAsync(
+            OneTimeTokenPurpose purpose,
+            bool isSuccessful,
+            Guid? userId,
+            string subject,
+            string? ipAddress,
+            string? userAgent,
+            string? details,
+            CancellationToken cancellationToken)
+        {
+            SecurityAuditEventType eventType = purpose switch
+            {
+                OneTimeTokenPurpose.EmailConfirmation => SecurityAuditEventType.EmailConfirmationRequested,
+                OneTimeTokenPurpose.PasswordReset => SecurityAuditEventType.PasswordResetRequested,
+                _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null)
+            };
+
+            return securityAuditService.WriteAsync(
+                entry: new SecurityAuditEntry(
+                    EventType: eventType,
+                    IsSuccessful: isSuccessful,
+                    UserId: userId,
+                    Subject: subject,
+                    IpAddress: ipAddress,
+                    UserAgent: userAgent,
+                    Details: details),
+                cancellationToken: cancellationToken);
         }
     }
 }
