@@ -6,6 +6,7 @@ import {RequirePermission, RequirePermissions,} from "@shared/permissions/Requir
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import {
+    formatAdminRelativeVisit,
     formatAdminUtc,
     formatAdminVisitUtc,
 } from "@services/identity/admin/shared/utils/dateTime";
@@ -77,7 +78,19 @@ export default function UserCard({
 
             <div className="mx-admin-users__cardRow">
                 <span className="mx-admin-users__muted">Last visit</span>
-                <span>{formatAdminVisitUtc(user.lastVisitedAtUtc)}</span>
+                <span
+                    className="mx-admin-users__time"
+                    title={formatAdminVisitUtc(user.lastVisitedAtUtc)}
+                >
+                    <span className="mx-admin-users__timePrimary">
+                        {formatAdminRelativeVisit(user.lastVisitedAtUtc)}
+                    </span>
+                    {user.lastVisitedAtUtc ? (
+                        <span className="mx-admin-users__timeSecondary">
+                            {formatAdminVisitUtc(user.lastVisitedAtUtc)}
+                        </span>
+                    ) : null}
+                </span>
             </div>
 
             <div className="mx-admin-users__actions">

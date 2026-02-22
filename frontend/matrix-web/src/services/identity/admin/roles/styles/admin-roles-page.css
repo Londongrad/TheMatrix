@@ -111,6 +111,20 @@
     color: var(--app-text-muted);
 }
 
+.mx-admin-roles__memberTime {
+    margin-top: 6px;
+}
+
+.mx-admin-roles__memberTimePrimary {
+    font-size: 12px;
+    color: var(--app-text-strong);
+}
+
+.mx-admin-roles__memberTimeSecondary {
+    font-size: 12px;
+    color: var(--app-text-muted);
+}
+
 .mx-admin-roles__membersPager {
     margin-top: 16px;
     display: flex;

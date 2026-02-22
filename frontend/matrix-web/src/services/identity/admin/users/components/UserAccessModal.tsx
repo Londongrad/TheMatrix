@@ -2,6 +2,7 @@ import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import Modal from "@shared/ui/components/Modal/Modal";
 import {
+    formatAdminRelativeVisit,
     formatAdminUtc,
     formatAdminVisitUtc,
 } from "@services/identity/admin/shared/utils/dateTime";
@@ -81,7 +82,19 @@ export default function UserAccessModal({
                             </div>
                             <div>
                                 <div className="mx-admin-users__muted">Last visit</div>
-                                <div>{formatAdminVisitUtc(details.lastVisitedAtUtc)}</div>
+                                <div
+                                    className="mx-admin-users__time"
+                                    title={formatAdminVisitUtc(details.lastVisitedAtUtc)}
+                                >
+                                    <span className="mx-admin-users__timePrimary">
+                                        {formatAdminRelativeVisit(details.lastVisitedAtUtc)}
+                                    </span>
+                                    {details.lastVisitedAtUtc ? (
+                                        <span className="mx-admin-users__timeSecondary">
+                                            {formatAdminVisitUtc(details.lastVisitedAtUtc)}
+                                        </span>
+                                    ) : null}
+                                </div>
                             </div>
                         </div>
                     </div>
