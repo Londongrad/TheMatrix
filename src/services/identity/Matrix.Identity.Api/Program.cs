@@ -9,6 +9,7 @@ WebApplication app = builder.Build();
 
 app.ConfigureApplicationMiddleware();
 
+await app.MigrateIdentityDatabaseAsync();
 await app.SeedIdentityPermissionsAsync();
 
 app.Run();

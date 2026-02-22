@@ -3,14 +3,17 @@ using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Matrix.Identity.Infrastructure.Security.Audit
 {
     public sealed class SecurityAuditService(
         IdentityDbContext dbContext,
         IClock clock,
-        IOptions<SecurityAuditOptions> options) : ISecurityAuditService
+        IOptions<SecurityAuditOptions> options,
+        ILogger<SecurityAuditService> logger) : ISecurityAuditService
     {
         private readonly SecurityAuditOptions _options = options.Value;
 
@@ -160,7 +163,23 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             if (!string.IsNullOrWhiteSpace(ipAddress))
                 query = query.Where(x => x.IpAddress == ipAddress);
 
-            return await query.CountAsync(cancellationToken);
+            try
+            {
+                return await query.CountAsync(cancellationToken);
+            }
+            catch (PostgresException ex) when (IsMissingSecurityAuditTable(ex))
+            {
+                logger.LogWarning(
+                    ex,
+                    "Security audit table is missing. Rate-limit checks will be skipped until migrations are applied.");
+                return 0;
+            }
+        }
+
+        private static bool IsMissingSecurityAuditTable(PostgresException exception)
+        {
+            return exception.SqlState == PostgresErrorCodes.UndefinedTable &&
+                   exception.MessageText.Contains("SecurityAuditEvents", StringComparison.Ordinal);
         }
     }
 }

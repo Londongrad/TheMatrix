@@ -2,18 +2,22 @@ using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Infrastructure.Exceptions;
+using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
-using Matrix.Identity.Application.Abstractions.Services.SecurityState;
+using Matrix.Identity.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 {
     public sealed class UnitOfWork(
         IdentityDbContext dbContext,
-        ISecurityStateChangeProcessor securityStateChangeProcessor) : IUnitOfWork
+        ISecurityStateChangeProcessor securityStateChangeProcessor,
+        ILogger<UnitOfWork> logger) : IUnitOfWork
     {
         private const string UnitOfWorkErrorCode = "Infrastructure.UnitOfWorkFailed";
         private const string RolesNormalizedNameConstraint = "ux_roles_normalized_name";
@@ -22,6 +26,14 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         {
             try
             {
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex) when (TryRecoverFromMissingSecurityAuditTable(ex))
+            {
+                logger.LogWarning(
+                    ex,
+                    "Security audit table is missing. Pending audit entries were dropped so the main transaction could continue.");
+
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
             catch (DbUpdateException ex) when (TryTranslateKnownDbException(ex, out MatrixApplicationException? translated))
@@ -116,6 +128,32 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 
             translated = null;
             return false;
+        }
+
+        private bool TryRecoverFromMissingSecurityAuditTable(DbUpdateException exception)
+        {
+            if (!IsMissingSecurityAuditTable(exception))
+                return false;
+
+            bool detachedAny = false;
+
+            foreach (EntityEntry<SecurityAuditEventRecord> entry in dbContext.ChangeTracker.Entries<SecurityAuditEventRecord>())
+            {
+                if (entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                    continue;
+
+                entry.State = EntityState.Detached;
+                detachedAny = true;
+            }
+
+            return detachedAny;
+        }
+
+        private static bool IsMissingSecurityAuditTable(DbUpdateException exception)
+        {
+            return exception.InnerException is PostgresException postgresException &&
+                   postgresException.SqlState == PostgresErrorCodes.UndefinedTable &&
+                   postgresException.MessageText.Contains("SecurityAuditEvents", StringComparison.Ordinal);
         }
 
         private string? GetTrackedRoleName()

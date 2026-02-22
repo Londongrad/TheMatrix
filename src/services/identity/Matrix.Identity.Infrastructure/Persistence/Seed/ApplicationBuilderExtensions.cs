@@ -1,3 +1,5 @@
+using Matrix.Identity.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,6 +7,16 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
 {
     public static class ApplicationBuilderExtensions
     {
+        public static async Task MigrateIdentityDatabaseAsync(
+            this IApplicationBuilder app,
+            CancellationToken cancellationToken = default)
+        {
+            await using AsyncServiceScope scope = app.ApplicationServices.CreateAsyncScope();
+
+            IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+            await dbContext.Database.MigrateAsync(cancellationToken);
+        }
+
         public static async Task SeedIdentityPermissionsAsync(
             this IApplicationBuilder app,
             CancellationToken cancellationToken = default)
