@@ -26,7 +26,7 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
                .Where(clock => clock.State == ClockState.Running)
                .Join(
                     inner: dbContext.Cities.AsNoTracking()
-                       .Where(city => city.Status == CityStatus.Active),
+                       .Where(city => city.Status != CityStatus.Archived),
                     outerKeySelector: clock => clock.Id,
                     innerKeySelector: city => city.Id,
                     resultSelector: (

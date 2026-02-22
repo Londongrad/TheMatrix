@@ -31,7 +31,7 @@ namespace Matrix.CityCore.Application.UseCases.Simulation.GetClock
                 : ClockDto.FromDomain(
                     clock: clock,
                     host: host,
-                    forcePaused: !host.IsActive);
+                    forcePaused: host.IsArchived);
         }
     }
 }

@@ -38,14 +38,10 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                     if (host is null)
                         return false;
 
-                    if (!host.IsActive && !allowArchivedHost)
+                    if (host.IsArchived && !allowArchivedHost)
                         throw new MatrixApplicationException(
-                            code: host.IsArchived
-                                ? "CityCore.Simulation.ArchivedHost"
-                                : "CityCore.Simulation.HostNotActive",
-                            message: host.IsArchived
-                                ? "Archived simulation hosts are read-only. Simulation controls are unavailable."
-                                : "Only active simulation hosts can be controlled. Provisioning hosts stay paused until bootstrap finishes.",
+                            code: "CityCore.Simulation.ArchivedHost",
+                            message: "Archived simulation hosts are read-only. Simulation controls are unavailable.",
                             errorType: ApplicationErrorType.Conflict);
 
                     CityId cityId = new(host.HostId.Value);
