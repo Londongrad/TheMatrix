@@ -1,6 +1,7 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {CityOverviewCard} from "@services/citycore/scenarios/classic-city/components/CityOverviewCard";
+import {CityPopulationSummaryCard} from "@services/citycore/scenarios/classic-city/components/CityPopulationSummaryCard";
 import {CityWeatherCard} from "@services/citycore/scenarios/classic-city/components/CityWeatherCard";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityMutations";
@@ -101,6 +102,14 @@ const CityDetailsPage = () => {
                 onArchive={handleArchive}
                 onDelete={handleDelete}
             />
+
+            {cityQuery.data ? (
+                <CityPopulationSummaryCard
+                    cityId={cityQuery.data.cityId}
+                    cityName={cityQuery.data.name}
+                    isArchived={isArchived}
+                />
+            ) : null}
 
             {cityQuery.data ? (
                 <CityWeatherCard
