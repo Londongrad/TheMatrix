@@ -30,6 +30,19 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return Ok(profile);
         }
 
+        [HttpGet("security-activity")]
+        public async Task<ActionResult<IReadOnlyCollection<SecurityActivityItemResponse>>> GetSecurityActivity(
+            [FromQuery] int limit = 12,
+            CancellationToken cancellationToken = default)
+        {
+            IReadOnlyCollection<SecurityActivityItemResponse> activity =
+                await _identityAccountClient.GetSecurityActivityAsync(
+                    limit: limit,
+                    cancellationToken: cancellationToken);
+
+            return Ok(activity);
+        }
+
         [HttpPut("avatar")]
         [RequestSizeLimit(2 * 1024 * 1024)]
         [Consumes("multipart/form-data")]

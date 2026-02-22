@@ -1,6 +1,7 @@
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
+using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 using MediatR;
@@ -37,6 +38,34 @@ namespace Matrix.Identity.Api.Controllers.Self
                 EffectivePermissions = result.EffectivePermissions.ToArray(),
                 PermissionsVersion = result.PermissionsVersion
             };
+
+            return Ok(response);
+        }
+
+        [HttpGet("security-activity")]
+        public async Task<ActionResult<IReadOnlyCollection<SecurityActivityItemResponse>>> GetSecurityActivity(
+            [FromQuery] int limit = 12,
+            CancellationToken cancellationToken = default)
+        {
+            var query = new GetMySecurityActivityQuery(limit);
+
+            IReadOnlyCollection<SecurityActivityItemResult> result = await _sender.Send(
+                request: query,
+                cancellationToken: cancellationToken);
+
+            var response = result
+               .Select(item => new SecurityActivityItemResponse
+                {
+                    EventType = item.EventType.ToString(),
+                    IsSuccessful = item.IsSuccessful,
+                    OccurredAtUtc = item.OccurredAtUtc,
+                    IpAddress = item.IpAddress,
+                    UserAgent = item.UserAgent,
+                    DeviceId = item.DeviceId,
+                    DeviceName = item.DeviceName,
+                    Details = item.Details
+                })
+               .ToList();
 
             return Ok(response);
         }

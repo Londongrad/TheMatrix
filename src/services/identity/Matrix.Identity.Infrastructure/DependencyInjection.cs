@@ -88,6 +88,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IRolePermissionsRepository, RolePermissionsRepository>();
             services.AddScoped<IRefreshTokenBulkRepository, RefreshTokenBulkRepository>();
             services.AddScoped<ISecurityAuditBulkRepository, SecurityAuditBulkRepository>();
+            services.AddScoped<ISecurityAuditReadRepository, SecurityAuditReadRepository>();
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();
             services.AddScoped<IUserAdminReadRepository, UserAdminReadRepository>();
             services.AddScoped<IRoleMembersReadRepository, UserAdminReadRepository>();

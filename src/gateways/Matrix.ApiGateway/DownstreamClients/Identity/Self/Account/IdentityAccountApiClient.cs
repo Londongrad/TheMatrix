@@ -2,6 +2,7 @@ using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
 {
@@ -57,6 +58,27 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
                 cancellationToken: cancellationToken);
         }
 
+        public async Task<IReadOnlyCollection<SecurityActivityItemResponse>> GetSecurityActivityAsync(
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            string url = QueryHelpers.AddQueryString(
+                uri: SecurityActivityEndpoint,
+                queryString: new Dictionary<string, string?>
+                {
+                    ["limit"] = limit.ToString()
+                });
+
+            using HttpResponseMessage response = await _httpClient.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<IReadOnlyCollection<SecurityActivityItemResponse>>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         #endregion [ Methods ]
 
         #region [ Constants ]
@@ -65,6 +87,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
         private const string AccountBaseEndpoint = "/api/account";
 
         private const string ProfileEndpoint = AccountBaseEndpoint + "/profile";
+        private const string SecurityActivityEndpoint = AccountBaseEndpoint + "/security-activity";
         private const string AvatarEndpoint = AccountBaseEndpoint + "/avatar";
         private const string PasswordEndpoint = AccountBaseEndpoint + "/password";
 

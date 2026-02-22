@@ -14,5 +14,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
             CancellationToken cancellationToken = default);
 
         Task<UserProfileResponse> GetProfileAsync(CancellationToken cancellationToken);
+
+        Task<IReadOnlyCollection<SecurityActivityItemResponse>> GetSecurityActivityAsync(
+            int limit,
+            CancellationToken cancellationToken);
     }
 }
