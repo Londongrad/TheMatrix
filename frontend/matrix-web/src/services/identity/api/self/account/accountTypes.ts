@@ -18,3 +18,14 @@ export interface ProfileResponse {
     effectivePermissions: string[];
     permissionsVersion: number;
 }
+
+export interface SecurityActivityItem {
+    eventType: string;
+    isSuccessful: boolean;
+    occurredAtUtc: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    deviceId?: string | null;
+    deviceName?: string | null;
+    details?: string | null;
+}

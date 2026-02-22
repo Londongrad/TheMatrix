@@ -2,6 +2,7 @@ import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import {useLocation} from "react-router-dom";
 import UserSettingsSection from "../../shared/components/UserSettingsSection";
 import SecurityCard from "../components/SecurityCard";
+import SecurityActivityCard from "../components/SecurityActivityCard";
 
 const UserSettingsSecurityPage = () => {
     const {token, user} = useAuth();
@@ -22,6 +23,7 @@ const UserSettingsSecurityPage = () => {
                 isEmailConfirmed={user?.isEmailConfirmed ?? false}
                 emailConfirmationRequested={emailConfirmationRequested}
             />
+            <SecurityActivityCard token={token}/>
         </UserSettingsSection>
     );
 };

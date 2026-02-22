@@ -1,12 +1,28 @@
 // src/services/identity/api/account/accountApi.ts
 import {API_ACCOUNT_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
-import type {ChangeAvatarResponse, ChangePasswordRequest, ProfileResponse,} from "./accountTypes";
+import type {
+    ChangeAvatarResponse,
+    ChangePasswordRequest,
+    ProfileResponse,
+    SecurityActivityItem,
+} from "./accountTypes";
 
 export async function fetchProfile(): Promise<ProfileResponse> {
     return await apiRequest<ProfileResponse>(`${API_ACCOUNT_URL}/profile`, {
         method: "GET",
     });
+}
+
+export async function fetchSecurityActivity(
+    limit = 12,
+): Promise<SecurityActivityItem[]> {
+    return await apiRequest<SecurityActivityItem[]>(
+        `${API_ACCOUNT_URL}/security-activity?limit=${limit}`,
+        {
+            method: "GET",
+        },
+    );
 }
 
 export async function changePassword(
