@@ -1,6 +1,7 @@
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Topology.Views;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Weather.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities
 {
@@ -22,6 +23,10 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cit
             CancellationToken cancellationToken = default);
 
         Task<CityProvisioningStatusView> GetProvisioningStatusAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
+        Task<CityWeatherView> GetWeatherAsync(
             Guid cityId,
             CancellationToken cancellationToken = default);
 

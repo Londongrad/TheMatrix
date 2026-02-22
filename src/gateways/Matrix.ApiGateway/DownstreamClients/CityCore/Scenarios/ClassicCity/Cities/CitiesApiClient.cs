@@ -3,6 +3,7 @@ using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Topology.Views;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Weather.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities
 {
@@ -86,6 +87,22 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cit
                 cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<CityProvisioningStatusView>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task<CityWeatherView> GetWeatherAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/weather";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityWeatherView>(
                 serviceName: DownstreamServiceNames.CityCore,
                 cancellationToken: cancellationToken,
                 requestUrl: url);

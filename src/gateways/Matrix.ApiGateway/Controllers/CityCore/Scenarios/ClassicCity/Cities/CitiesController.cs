@@ -5,6 +5,7 @@ using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Weather.Views;
 using Matrix.CityCore.Contracts.Simulation.Views;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -104,6 +105,18 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 cancellationToken: cancellationToken);
 
             return Ok(provisioning);
+        }
+
+        [HttpGet("{cityId:guid}/weather")]
+        public async Task<ActionResult<CityWeatherView>> GetWeather(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityWeatherView weather = await _citiesClient.GetWeatherAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(weather);
         }
 
         [HttpPost("{cityId:guid}/population-bootstrap/retry")]
