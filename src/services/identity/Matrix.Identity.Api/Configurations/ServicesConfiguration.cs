@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
@@ -13,6 +14,8 @@ namespace Matrix.Identity.Api.Configurations
         {
             IServiceCollection services = builder.Services;
             ConfigurationManager configuration = builder.Configuration;
+
+            builder.AddErrorFileLogging();
 
             services
                .AddPresentationLayer() // Controllers + Swagger

@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.Population.Application;
@@ -12,6 +13,8 @@ namespace Matrix.Population.Api.Configurations
         {
             IServiceCollection services = builder.Services;
             ConfigurationManager configuration = builder.Configuration;
+
+            builder.AddErrorFileLogging();
 
             builder.Services.AddControllers();
 

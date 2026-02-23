@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.Configurations.DependencyInjection;
+using Matrix.BuildingBlocks.Api.Logging;
 
 namespace Matrix.ApiGateway.Configurations
 {
@@ -6,6 +7,8 @@ namespace Matrix.ApiGateway.Configurations
     {
         public static void ConfigureApplicationServices(this WebApplicationBuilder builder)
         {
+            builder.AddErrorFileLogging();
+
             builder.Services
                .AddGatewayCore()
                .AddGatewayAuth(builder.Configuration)

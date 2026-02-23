@@ -1,6 +1,7 @@
 using Matrix.Economy.Application;
 using Matrix.Economy.Infrastructure;
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 
 namespace Matrix.Economy.Api.Configurations
@@ -11,6 +12,8 @@ namespace Matrix.Economy.Api.Configurations
         {
             var services = builder.Services;
             var configuration = builder.Configuration;
+
+            builder.AddErrorFileLogging();
 
             builder.Services.AddControllers();
 
