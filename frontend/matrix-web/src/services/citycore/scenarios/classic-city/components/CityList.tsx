@@ -3,7 +3,7 @@ import type {CityListItemView} from "@services/citycore/scenarios/classic-city/c
 
 interface CityListProps {
     cities: CityListItemView[];
-    onOpen: (cityId: string) => void;
+    onOpen: (city: CityListItemView) => void;
 }
 
 const CityList = ({cities, onOpen}: CityListProps) => {

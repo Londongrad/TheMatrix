@@ -3,6 +3,7 @@ import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import type {CityView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 import {
+    describeCityLifecycle,
     formatCityStatusLabel,
     formatSimulationKindLabel,
     getCityStatusTone,
@@ -56,6 +57,15 @@ export function CityOverviewCard({
     const isArchived = isArchivedCity(city?.status, city?.archivedAtUtc);
     const statusTone = getCityStatusTone(city?.status, city?.archivedAtUtc);
     const statusLabel = formatCityStatusLabel(city?.status, city?.archivedAtUtc);
+    const bannerTitle = statusTone === "archived"
+        ? "Archived city"
+        : statusTone === "provisioning"
+            ? "Provisioning in progress"
+            : statusTone === "failed"
+                ? "Provisioning failed"
+                : statusTone === "unknown"
+                    ? "Unknown lifecycle state"
+                    : "Ready city";
 
     const effectiveNamePlaceholder = useMemo(() => {
         return city?.name ?? "New city name";
@@ -149,13 +159,9 @@ export function CityOverviewCard({
             ) : null}
 
             <div className={`city-state-banner city-state-banner--${statusTone}`}>
-                <div className="city-state-banner__title">
-                    {isArchived ? "Archived city" : "Active city"}
-                </div>
+                <div className="city-state-banner__title">{bannerTitle}</div>
                 <div className="city-state-banner__text">
-                    {isArchived
-                        ? "Simulation controls are disabled. The city remains visible for audit and can still be deleted as a cleanup action."
-                        : "Archiving will freeze simulation activity and lock further control mutations for this city."}
+                    {describeCityLifecycle(city?.status, city?.archivedAtUtc, "workspace")}
                 </div>
             </div>
 

@@ -1,6 +1,7 @@
 import Button from "@shared/ui/controls/Button/Button";
 import type {CityListItemView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 import {
+    describeCityLifecycle,
     formatCityShortId,
     formatCityStatusLabel,
     formatSimulationKindLabel,
@@ -9,12 +10,19 @@ import {
 
 interface CityCardProps {
     city: CityListItemView;
-    onOpen: (cityId: string) => void;
+    onOpen: (city: CityListItemView) => void;
 }
 
 const CityCard = ({city, onOpen}: CityCardProps) => {
     const statusTone = getCityStatusTone(city.status);
     const statusLabel = formatCityStatusLabel(city.status);
+    const actionLabel = statusTone === "provisioning"
+        ? "Open handoff"
+        : statusTone === "failed"
+            ? "Resolve handoff"
+            : statusTone === "archived"
+                ? "Review record"
+                : "Open monitoring";
 
     return (
         <article className={`city-card city-card--${statusTone}`}>
@@ -30,9 +38,7 @@ const CityCard = ({city, onOpen}: CityCardProps) => {
             <div className="city-card__body">
                 <h3 className="city-card__name">{city.name}</h3>
                 <p className="city-card__description">
-                    {statusTone === "archived"
-                        ? "Read-only record. Simulation controls stay locked while the city remains archived."
-                        : "Live city workspace with active simulation controls and timeline management."}
+                    {describeCityLifecycle(city.status)}
                 </p>
                 <p className="city-card__description">
                     Simulation type: {formatSimulationKindLabel(city.simulationKind)}
@@ -47,10 +53,10 @@ const CityCard = ({city, onOpen}: CityCardProps) => {
 
                 <Button
                     size="sm"
-                    variant={statusTone === "archived" ? "default" : "primary"}
-                    onClick={() => onOpen(city.cityId)}
+                    variant={statusTone === "archived" || statusTone === "unknown" ? "default" : "primary"}
+                    onClick={() => onOpen(city)}
                 >
-                    Open city
+                    {actionLabel}
                 </Button>
             </div>
         </article>

@@ -1,12 +1,18 @@
-import {useNavigate, useParams} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {CityOverviewCard} from "@services/citycore/scenarios/classic-city/components/CityOverviewCard";
 import {CityPopulationSummaryCard} from "@services/citycore/scenarios/classic-city/components/CityPopulationSummaryCard";
 import {CityWeatherCard} from "@services/citycore/scenarios/classic-city/components/CityWeatherCard";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
-import {useCityMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityMutations";
-import {isArchivedCity} from "@services/citycore/scenarios/classic-city/utils/presentation";
-import {CLASSIC_CITY_LIST_PATH} from "@services/citycore/scenarios/registry";
+import {useCityLifecycleMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityLifecycleMutations";
+import {
+    getCityStatusTone,
+    isArchivedCity,
+} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {
+    CLASSIC_CITY_LIST_PATH,
+    getClassicCityProvisioningPath,
+} from "@services/citycore/scenarios/registry";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
@@ -21,12 +27,17 @@ const CityDetailsPage = () => {
     const {can} = usePermissions();
 
     const cityQuery = useCityDetails(cityId);
-    const cityMutations = useCityMutations();
+    const cityMutations = useCityLifecycleMutations();
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
+    const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const canRenameCity = can(PermissionKeys.CityCoreClassicCityUpdate);
     const canArchiveCity = can(PermissionKeys.CityCoreClassicCityArchive);
     const canDeleteCity = can(PermissionKeys.CityCoreClassicCityDelete);
     const canControlSimulation = can(PermissionKeys.CityCoreSimulationControl);
+
+    if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
+        return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
+    }
 
     async function handleRename(name: string) {
         if (!cityId) {

@@ -1,6 +1,7 @@
 import {Link} from "react-router-dom";
 import {CLASSIC_CITY_LIST_PATH} from "@services/citycore/scenarios/registry";
 import {
+    describeCityLifecycle,
     formatCityShortId,
     formatCityStatusLabel,
     formatSimulationKindLabel,
@@ -39,9 +40,7 @@ export function CityDetailsHeader({title, cityId, simulationKind, status, archiv
                         {formatSimulationKindLabel(simulationKind)}
                     </span>
                     <span className="city-hero__caption">
-                        {statusTone === "archived"
-                            ? "Archived cities remain visible but all simulation mutations are locked."
-                            : "Active city workspace with lifecycle controls and simulation management."}
+                        {describeCityLifecycle(status, archivedAtUtc, "workspace")}
                     </span>
                 </div>
             </div>

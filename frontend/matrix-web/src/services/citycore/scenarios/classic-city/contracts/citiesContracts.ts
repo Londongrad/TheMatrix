@@ -11,12 +11,48 @@ export interface CreateCityRequest {
     startSimTimeUtc: string;
     speedMultiplier: number;
     simulationKind?: string;
+    climateZone?: string;
+    hemisphere?: string;
+    utcOffsetMinutes?: number;
+    generationSeed?: string | null;
+    sizeTier?: string | null;
+    urbanDensity?: string | null;
+    developmentLevel?: string | null;
 }
 
-export interface CityCreatedView {
+export interface CityPopulationBootstrapSummaryView {
     cityId: string;
-    populationBootstrapOperationId: string;
+    requestedPeopleCount: number;
+    generatedPeopleCount: number;
+    householdCount: number;
+    housedHouseholdCount: number;
+    homelessHouseholdCount: number;
+    housedPeopleCount: number;
+    homelessPeopleCount: number;
+}
+
+export interface CityPopulationBootstrapView {
+    operationId: string;
+    status: string;
+    plannedPeopleCount?: number | null;
+    residentialCapacity?: number | null;
+    summary?: CityPopulationBootstrapSummaryView | null;
+    failureCode?: string | null;
+}
+
+export interface CityProvisioningView {
+    cityId: string;
     simulationKind: string;
+    populationBootstrap: CityPopulationBootstrapView;
+}
+
+export interface CityProvisioningStatusView {
+    cityId: string;
+    status: string;
+    populationBootstrapOperationId: string;
+    populationBootstrapFailureCode?: string | null;
+    populationBootstrapCompletedAtUtc?: string | null;
+    populationBootstrapFailedAtUtc?: string | null;
 }
 
 export interface CityView {
@@ -38,12 +74,4 @@ export interface CityView {
 
 export interface RenameCityRequest {
     name: string;
-}
-
-export interface SimulationKindCatalogItemView {
-    kind: string;
-    displayName: string;
-    description: string;
-    supportsAutomaticPopulationBootstrap: boolean;
-    isDefault: boolean;
 }

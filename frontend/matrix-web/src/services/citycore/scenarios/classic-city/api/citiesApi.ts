@@ -1,20 +1,13 @@
 import {apiRequest} from "@shared/api/http";
 import type {
-    CityCreatedView,
     CityListItemView,
+    CityProvisioningStatusView,
+    CityProvisioningView,
     CityView,
     CreateCityRequest,
     RenameCityRequest,
-    SimulationKindCatalogItemView,
 } from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 import {API_CITY_URL} from "@shared/api/config";
-
-export function getSimulationKinds(signal?: AbortSignal) {
-    return apiRequest<SimulationKindCatalogItemView[]>(
-        `${API_CITY_URL}/simulation-kinds`,
-        {method: "GET", signal},
-    );
-}
 
 export function getCities(includeArchived: boolean, signal?: AbortSignal) {
     return apiRequest<CityListItemView[]>(
@@ -24,7 +17,7 @@ export function getCities(includeArchived: boolean, signal?: AbortSignal) {
 }
 
 export function createCity(request: CreateCityRequest) {
-    return apiRequest<CityCreatedView>(API_CITY_URL, {
+    return apiRequest<CityProvisioningView>(API_CITY_URL, {
         method: "POST",
         body: JSON.stringify(request),
     });
@@ -41,6 +34,19 @@ export function renameCity(cityId: string, request: RenameCityRequest) {
     return apiRequest<void>(`${API_CITY_URL}/${cityId}/name`, {
         method: "PUT",
         body: JSON.stringify(request),
+    });
+}
+
+export function getCityProvisioning(cityId: string, signal?: AbortSignal) {
+    return apiRequest<CityProvisioningStatusView>(`${API_CITY_URL}/${cityId}/provisioning`, {
+        method: "GET",
+        signal,
+    });
+}
+
+export function retryPopulationBootstrap(cityId: string) {
+    return apiRequest<CityProvisioningView>(`${API_CITY_URL}/${cityId}/population-bootstrap/retry`, {
+        method: "POST",
     });
 }
 

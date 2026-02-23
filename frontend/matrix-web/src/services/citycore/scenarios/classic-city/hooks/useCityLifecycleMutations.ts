@@ -1,14 +1,9 @@
 import {useState} from "react";
 import {
     archiveCity,
-    createCity,
     deleteCity,
     renameCity,
 } from "@services/citycore/scenarios/classic-city/api/citiesApi";
-import type {
-    CityCreatedView,
-    CreateCityRequest,
-} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0
@@ -16,7 +11,7 @@ function getErrorMessage(error: unknown, fallback: string) {
         : fallback;
 }
 
-export function useCityMutations() {
+export function useCityLifecycleMutations() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -40,9 +35,6 @@ export function useCityMutations() {
         isSubmitting,
         error,
         clearError: () => setError(null),
-
-        create: async (request: CreateCityRequest): Promise<CityCreatedView | null> =>
-            run(() => createCity(request), "Failed to create city."),
 
         rename: async (cityId: string, name: string): Promise<boolean> => {
             const result = await run(
