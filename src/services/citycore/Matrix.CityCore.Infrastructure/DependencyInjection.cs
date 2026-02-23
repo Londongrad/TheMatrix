@@ -53,6 +53,7 @@ namespace Matrix.CityCore.Infrastructure
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<CityCoreDbContext>>();
+            services.AddScoped<ISimulationBatchAdvanceExecutor, SimulationBatchAdvanceExecutor>();
             services.AddScoped<ISimulationClockMutationExecutor, SimulationClockMutationExecutor>();
             services.AddPermissionCheckingFromClaims();
 
