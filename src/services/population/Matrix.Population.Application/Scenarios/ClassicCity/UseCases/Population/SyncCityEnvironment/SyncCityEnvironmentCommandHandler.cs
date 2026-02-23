@@ -86,11 +86,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             input: input,
                             createdAtUtc: syncedAtUtc);
 
-                        await cityPopulationEnvironmentRepository.AddAsync(
+                        bool applied = await cityPopulationEnvironmentRepository.UpsertAsync(
                             environment: newEnvironment,
                             cancellationToken: ct);
 
-                        await unitOfWork.SaveChangesAsync(ct);
+                        if (!applied)
+                            return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Stale);
 
                         return new SyncCityEnvironmentResult(SyncCityEnvironmentStatus.Applied);
                     }

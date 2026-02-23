@@ -13,6 +13,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             CityPopulationEnvironment environment,
             CancellationToken cancellationToken = default);
 
+        Task<bool> UpsertAsync(
+            CityPopulationEnvironment environment,
+            CancellationToken cancellationToken = default);
+
         Task DeleteByCityAsync(
             CityId cityId,
             CancellationToken cancellationToken = default);

@@ -63,26 +63,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 action: async ct =>
                 {
                     DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
-                    CityPopulationEnvironment? environment = await cityPopulationEnvironmentRepository.GetByCityAsync(
-                        cityId: cityId,
+                    CityPopulationEnvironment environment = CityPopulationEnvironmentMapper.Create(
+                        cityId: request.CityId,
+                        input: environmentInput,
+                        createdAtUtc: updatedAtUtc);
+
+                    await cityPopulationEnvironmentRepository.UpsertAsync(
+                        environment: environment,
                         cancellationToken: ct);
-
-                    if (environment is null)
-                    {
-                        CityPopulationEnvironment newEnvironment = CityPopulationEnvironmentMapper.Create(
-                            cityId: request.CityId,
-                            input: environmentInput,
-                            createdAtUtc: updatedAtUtc);
-
-                        await cityPopulationEnvironmentRepository.AddAsync(
-                            environment: newEnvironment,
-                            cancellationToken: ct);
-                    }
-                    else
-                        CityPopulationEnvironmentMapper.Sync(
-                            environment: environment,
-                            input: environmentInput,
-                            updatedAtUtc: updatedAtUtc);
 
                     await householdWriteRepository.DeleteByCityAsync(
                         cityId: cityId,

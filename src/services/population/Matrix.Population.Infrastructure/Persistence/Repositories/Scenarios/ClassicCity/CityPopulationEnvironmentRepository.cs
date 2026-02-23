@@ -28,6 +28,31 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 cancellationToken: cancellationToken);
         }
 
+        public async Task<bool> UpsertAsync(
+            CityPopulationEnvironment environment,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(environment);
+
+            int affectedRows = await _dbContext.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                  INSERT INTO "CityPopulationEnvironments"
+                      ("CityId", "ClimateZone", "Hemisphere", "UtcOffsetMinutes", "CreatedAtUtc", "UpdatedAtUtc")
+                  VALUES
+                      ({environment.CityId.Value}, {(int)environment.ClimateZone}, {(int)environment.Hemisphere}, {environment.UtcOffsetMinutes}, {environment.CreatedAtUtc}, {environment.UpdatedAtUtc})
+                  ON CONFLICT ("CityId") DO UPDATE
+                  SET
+                      "ClimateZone" = EXCLUDED."ClimateZone",
+                      "Hemisphere" = EXCLUDED."Hemisphere",
+                      "UtcOffsetMinutes" = EXCLUDED."UtcOffsetMinutes",
+                      "UpdatedAtUtc" = EXCLUDED."UpdatedAtUtc"
+                  WHERE "CityPopulationEnvironments"."UpdatedAtUtc" <= EXCLUDED."UpdatedAtUtc";
+                  """,
+                cancellationToken: cancellationToken);
+
+            return affectedRows > 0;
+        }
+
         public async Task DeleteByCityAsync(
             CityId cityId,
             CancellationToken cancellationToken = default)
