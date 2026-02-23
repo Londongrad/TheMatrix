@@ -1,11 +1,9 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
-using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
@@ -150,13 +148,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             DateOnly currentDate,
             CancellationToken cancellationToken)
         {
-            string aliveStatus = LifeStatus.Alive.ToString();
-            string deceasedStatus = LifeStatus.Deceased.ToString();
-            string employedStatus = EmploymentStatus.Employed.ToString();
-            string studentStatus = EmploymentStatus.Student.ToString();
-            string unemployedStatus = EmploymentStatus.Unemployed.ToString();
-            string retiredStatus = EmploymentStatus.Retired.ToString();
-
             var childBoundary = currentDate.AddYears(-7)
                .ToDateTime(TimeOnly.MinValue);
             var youthBoundary = currentDate.AddYears(-17)
@@ -164,78 +155,71 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             var seniorBoundary = currentDate.AddYears(-66)
                .ToDateTime(TimeOnly.MinValue);
 
-            var residentsQuery =
-                from person in _dbContext.Persons.AsNoTracking()
-                join householdPlacement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
-                       .Where(x => x.CityId == cityId)
-                    on person.HouseholdId equals householdPlacement.HouseholdId
-                let life = person.Life
-                let lifeSpan = life.Span
-                let employment = person.Employment
-                select new
+            var householdPlacements = await _dbContext
+               .ClassicCityHouseholdPlacements
+               .AsNoTracking()
+               .Where(x => x.CityId == cityId)
+               .Select(x => new
                 {
-                    LifeStatus = EF.Property<string>(
-                        life,
-                        nameof(LifeState.Status)),
-                    EmploymentStatus = EF.Property<string>(
-                        employment,
-                        nameof(EmploymentInfo.Status)),
-                    BirthDate = EF.Property<DateTime>(
-                        lifeSpan,
-                        nameof(LifeSpan.BirthDate)),
-                    Health = EF.Property<int>(
-                        life,
-                        nameof(LifeState.Health)),
-                    Happiness = EF.Property<int>(
-                        person,
-                        nameof(Person.Happiness)),
-                    Energy = EF.Property<int>(
-                        person,
-                        nameof(Person.Energy)),
-                    Stress = EF.Property<int>(
-                        person,
-                        nameof(Person.Stress)),
-                    SocialNeed = EF.Property<int>(
-                        person,
-                        nameof(Person.SocialNeed)),
-                    householdPlacement.HousingStatus
-                };
+                    HouseholdId = x.HouseholdId.Value,
+                    x.HousingStatus
+                })
+               .ToListAsync(cancellationToken);
 
-            return await residentsQuery
-               .GroupBy(_ => 1)
-               .Select(g => new ResidentAggregate(
-                    g.Count(x => x.LifeStatus == aliveStatus),
-                    g.Count(x => x.LifeStatus == deceasedStatus),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Housed),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.HousingStatus == HousingStatus.Homeless),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.BirthDate > childBoundary),
-                    g.Count(x => x.LifeStatus == aliveStatus &&
-                                 x.BirthDate <= childBoundary &&
-                                 x.BirthDate > youthBoundary),
-                    g.Count(x => x.LifeStatus == aliveStatus &&
-                                 x.BirthDate <= youthBoundary &&
-                                 x.BirthDate > seniorBoundary),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.BirthDate <= seniorBoundary),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == employedStatus),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == studentStatus),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == unemployedStatus),
-                    g.Count(x => x.LifeStatus == aliveStatus && x.EmploymentStatus == retiredStatus),
-                    g.Where(x => x.LifeStatus == aliveStatus)
-                       .Select(x => (decimal?)x.Health)
-                       .Average(),
-                    g.Where(x => x.LifeStatus == aliveStatus)
-                       .Select(x => (decimal?)x.Happiness)
-                       .Average(),
-                    g.Where(x => x.LifeStatus == aliveStatus)
-                       .Select(x => (decimal?)x.Energy)
-                       .Average(),
-                    g.Where(x => x.LifeStatus == aliveStatus)
-                       .Select(x => (decimal?)x.Stress)
-                       .Average(),
-                    g.Where(x => x.LifeStatus == aliveStatus)
-                       .Select(x => (decimal?)x.SocialNeed)
-                       .Average()))
-               .SingleOrDefaultAsync(cancellationToken);
+            if (householdPlacements.Count == 0)
+                return null;
+
+            HashSet<Guid> householdIds = householdPlacements
+               .Select(x => x.HouseholdId)
+               .ToHashSet();
+
+            var residents = await _dbContext
+               .Persons
+               .AsNoTracking()
+               .Where(x => householdIds.Contains(x.HouseholdId.Value))
+               .ToListAsync(cancellationToken);
+
+            if (residents.Count == 0)
+                return null;
+
+            Dictionary<Guid, HousingStatus> housingByHouseholdId = householdPlacements
+               .GroupBy(x => x.HouseholdId)
+               .ToDictionary(g => g.Key, g => g.First().HousingStatus);
+
+            var residentsWithHousing = residents
+               .Select(person => new
+                {
+                    Person = person,
+                    HousingStatus = housingByHouseholdId.GetValueOrDefault(person.HouseholdId.Value, HousingStatus.Homeless)
+                })
+               .ToArray();
+
+            var aliveResidents = residentsWithHousing
+               .Where(x => x.Person.IsAlive)
+               .ToArray();
+
+            return new ResidentAggregate(
+                ResidentCount: aliveResidents.Length,
+                DeceasedCount: residentsWithHousing.Count(x => x.Person.Life.Status == LifeStatus.Deceased),
+                HousedResidentCount: aliveResidents.Count(x => x.HousingStatus == HousingStatus.Housed),
+                HomelessResidentCount: aliveResidents.Count(x => x.HousingStatus == HousingStatus.Homeless),
+                ChildCount: aliveResidents.Count(x => x.Person.BirthDate.ToDateTime(TimeOnly.MinValue) > childBoundary),
+                YouthCount: aliveResidents.Count(x =>
+                    x.Person.BirthDate.ToDateTime(TimeOnly.MinValue) <= childBoundary &&
+                    x.Person.BirthDate.ToDateTime(TimeOnly.MinValue) > youthBoundary),
+                AdultCount: aliveResidents.Count(x =>
+                    x.Person.BirthDate.ToDateTime(TimeOnly.MinValue) <= youthBoundary &&
+                    x.Person.BirthDate.ToDateTime(TimeOnly.MinValue) > seniorBoundary),
+                SeniorCount: aliveResidents.Count(x => x.Person.BirthDate.ToDateTime(TimeOnly.MinValue) <= seniorBoundary),
+                EmployedCount: aliveResidents.Count(x => x.Person.Employment.Status == EmploymentStatus.Employed),
+                StudentCount: aliveResidents.Count(x => x.Person.Employment.Status == EmploymentStatus.Student),
+                UnemployedCount: aliveResidents.Count(x => x.Person.Employment.Status == EmploymentStatus.Unemployed),
+                RetiredCount: aliveResidents.Count(x => x.Person.Employment.Status == EmploymentStatus.Retired),
+                AverageHealth: aliveResidents.Select(x => (decimal?)x.Person.Health.Value).Average(),
+                AverageHappiness: aliveResidents.Select(x => (decimal?)x.Person.Happiness.Value).Average(),
+                AverageEnergy: aliveResidents.Select(x => (decimal?)x.Person.Energy.Value).Average(),
+                AverageStress: aliveResidents.Select(x => (decimal?)x.Person.Stress.Value).Average(),
+                AverageSocialNeed: aliveResidents.Select(x => (decimal?)x.Person.SocialNeed.Value).Average());
         }
 
         private sealed record HouseholdAggregate(
