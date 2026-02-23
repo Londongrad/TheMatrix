@@ -14,7 +14,7 @@ namespace Matrix.Population.Api.Configurations
             IServiceCollection services = builder.Services;
             ConfigurationManager configuration = builder.Configuration;
 
-            builder.AddErrorFileLogging();
+            builder.AddSerilogLogging();
 
             builder.Services.AddControllers();
 

@@ -15,7 +15,7 @@ namespace Matrix.Identity.Api.Configurations
             IServiceCollection services = builder.Services;
             ConfigurationManager configuration = builder.Configuration;
 
-            builder.AddErrorFileLogging();
+            builder.AddSerilogLogging();
 
             services
                .AddPresentationLayer() // Controllers + Swagger

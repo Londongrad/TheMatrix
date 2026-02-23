@@ -7,7 +7,7 @@ namespace Matrix.ApiGateway.Configurations
     {
         public static void ConfigureApplicationServices(this WebApplicationBuilder builder)
         {
-            builder.AddErrorFileLogging();
+            builder.AddSerilogLogging();
 
             builder.Services
                .AddGatewayCore()

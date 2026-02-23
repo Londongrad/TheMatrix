@@ -1,12 +1,16 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 
 namespace Matrix.BuildingBlocks.Api.Logging
 {
-    public static class ErrorFileLoggingExtensions
+    public static class SerilogLoggingExtensions
     {
-        public static WebApplicationBuilder AddErrorFileLogging(this WebApplicationBuilder builder)
+        private const string DefaultOutputTemplate =
+            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}";
+
+        public static WebApplicationBuilder AddSerilogLogging(this WebApplicationBuilder builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
 
@@ -15,28 +19,73 @@ namespace Matrix.BuildingBlocks.Api.Logging
                .GetSection(ErrorFileLoggingOptions.SectionName)
                .Bind(options);
 
-            if (!options.Enabled)
-                return builder;
+            builder.Services.AddSerilog((
+                services,
+                loggerConfiguration) =>
+            {
+                loggerConfiguration
+                   .ReadFrom.Configuration(builder.Configuration)
+                   .ReadFrom.Services(services)
+                   .Enrich.FromLogContext()
+                   .Enrich.WithProperty("Application", builder.Environment.ApplicationName)
+                   .Enrich.WithProperty("EnvironmentName", builder.Environment.EnvironmentName);
 
-            string logsRootDirectory = ResolveLogsRootDirectory(
-                builder: builder,
-                options: options);
-            string fileNamePrefix = string.IsNullOrWhiteSpace(options.FileNamePrefix)
-                ? "errors"
-                : SanitizePathSegment(options.FileNamePrefix);
-            string applicationDirectoryName = SanitizePathSegment(builder.Environment.ApplicationName);
-            string logDirectory = Path.Combine(
-                logsRootDirectory,
-                applicationDirectoryName);
+                if (!options.Enabled)
+                    return;
 
-            builder.Logging.AddProvider(
-                new ErrorFileLoggerProvider(
-                    applicationName: builder.Environment.ApplicationName,
-                    logDirectory: logDirectory,
-                    fileNamePrefix: fileNamePrefix,
-                    retentionDays: options.RetentionDays));
+                string logsRootDirectory = ResolveLogsRootDirectory(
+                    builder: builder,
+                    options: options);
+                string fileNamePrefix = string.IsNullOrWhiteSpace(options.FileNamePrefix)
+                    ? "errors"
+                    : SanitizePathSegment(options.FileNamePrefix);
+                string applicationDirectoryName = SanitizePathSegment(builder.Environment.ApplicationName);
+                string logDirectory = Path.Combine(
+                    logsRootDirectory,
+                    applicationDirectoryName);
+
+                Directory.CreateDirectory(logDirectory);
+
+                loggerConfiguration.WriteTo.File(
+                    path: Path.Combine(logDirectory, $"{fileNamePrefix}-.log"),
+                    restrictedToMinimumLevel: ParseLogEventLevel(options.RestrictedToMinimumLevel),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: GetRetainedFileCountLimit(options),
+                    outputTemplate: string.IsNullOrWhiteSpace(options.OutputTemplate)
+                        ? DefaultOutputTemplate
+                        : options.OutputTemplate,
+                    shared: options.Shared,
+                    buffered: options.Buffered,
+                    rollOnFileSizeLimit: options.RollOnFileSizeLimit,
+                    fileSizeLimitBytes: options.FileSizeLimitBytes > 0
+                        ? options.FileSizeLimitBytes
+                        : null,
+                    flushToDiskInterval: options.FlushToDiskIntervalSeconds > 0
+                        ? TimeSpan.FromSeconds(options.FlushToDiskIntervalSeconds)
+                        : null);
+            });
 
             return builder;
+        }
+
+        private static int? GetRetainedFileCountLimit(ErrorFileLoggingOptions options)
+        {
+            if (options.RetainedFileCountLimit is > 0)
+                return options.RetainedFileCountLimit.Value;
+
+            return options.RetentionDays > 0
+                ? options.RetentionDays
+                : null;
+        }
+
+        private static LogEventLevel ParseLogEventLevel(string value)
+        {
+            return Enum.TryParse<LogEventLevel>(
+                value: value,
+                ignoreCase: true,
+                result: out LogEventLevel parsed)
+                ? parsed
+                : LogEventLevel.Error;
         }
 
         private static string ResolveLogsRootDirectory(

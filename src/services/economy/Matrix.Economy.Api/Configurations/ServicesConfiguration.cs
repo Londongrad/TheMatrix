@@ -13,7 +13,7 @@ namespace Matrix.Economy.Api.Configurations
             var services = builder.Services;
             var configuration = builder.Configuration;
 
-            builder.AddErrorFileLogging();
+            builder.AddSerilogLogging();
 
             builder.Services.AddControllers();
 
