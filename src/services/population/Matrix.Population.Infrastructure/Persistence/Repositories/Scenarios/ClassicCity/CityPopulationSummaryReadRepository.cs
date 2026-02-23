@@ -1,9 +1,11 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
@@ -167,32 +169,35 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 join householdPlacement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
                        .Where(x => x.CityId == cityId)
                     on person.HouseholdId equals householdPlacement.HouseholdId
+                let life = person.Life
+                let lifeSpan = life.Span
+                let employment = person.Employment
                 select new
                 {
                     LifeStatus = EF.Property<string>(
-                        person,
-                        "LifeStatus"),
+                        life,
+                        nameof(LifeState.Status)),
                     EmploymentStatus = EF.Property<string>(
-                        person,
-                        "EmploymentStatus"),
+                        employment,
+                        nameof(EmploymentInfo.Status)),
                     BirthDate = EF.Property<DateTime>(
-                        person,
-                        "BirthDate"),
+                        lifeSpan,
+                        nameof(LifeSpan.BirthDate)),
                     Health = EF.Property<int>(
-                        person,
-                        "Health"),
+                        life,
+                        nameof(LifeState.Health)),
                     Happiness = EF.Property<int>(
                         person,
-                        "Happiness"),
+                        nameof(Person.Happiness)),
                     Energy = EF.Property<int>(
                         person,
-                        "Energy"),
+                        nameof(Person.Energy)),
                     Stress = EF.Property<int>(
                         person,
-                        "Stress"),
+                        nameof(Person.Stress)),
                     SocialNeed = EF.Property<int>(
                         person,
-                        "SocialNeed"),
+                        nameof(Person.SocialNeed)),
                     householdPlacement.HousingStatus
                 };
 
