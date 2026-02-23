@@ -14,17 +14,20 @@ namespace Matrix.BuildingBlocks.Api.Logging
         {
             ArgumentNullException.ThrowIfNull(builder);
 
+            IConfiguration loggingConfiguration = BuildLoggingConfiguration(builder);
+
             var options = new ErrorFileLoggingOptions();
-            builder.Configuration
+            loggingConfiguration
                .GetSection(ErrorFileLoggingOptions.SectionName)
                .Bind(options);
 
-            builder.Services.AddSerilog((
+            builder.Host.UseSerilog((
+                _,
                 services,
                 loggerConfiguration) =>
             {
                 loggerConfiguration
-                   .ReadFrom.Configuration(builder.Configuration)
+                   .ReadFrom.Configuration(loggingConfiguration)
                    .ReadFrom.Services(services)
                    .Enrich.FromLogContext()
                    .Enrich.WithProperty("Application", builder.Environment.ApplicationName)
@@ -66,6 +69,51 @@ namespace Matrix.BuildingBlocks.Api.Logging
             });
 
             return builder;
+        }
+
+        private static IConfiguration BuildLoggingConfiguration(WebApplicationBuilder builder)
+        {
+            string? repositoryRoot = FindRepositoryRoot(builder.Environment.ContentRootPath);
+
+            var sharedConfigurationBuilder = new ConfigurationBuilder();
+
+            if (!string.IsNullOrWhiteSpace(repositoryRoot) &&
+                !string.Equals(
+                    builder.Environment.ContentRootPath,
+                    repositoryRoot,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                sharedConfigurationBuilder.AddJsonFile(
+                    path: Path.Combine(repositoryRoot, "appsettings.logging.json"),
+                    optional: true,
+                    reloadOnChange: true);
+
+                sharedConfigurationBuilder.AddJsonFile(
+                    path: Path.Combine(
+                        repositoryRoot,
+                        $"appsettings.logging.{builder.Environment.EnvironmentName}.json"),
+                    optional: true,
+                    reloadOnChange: true);
+            }
+
+            sharedConfigurationBuilder.SetBasePath(builder.Environment.ContentRootPath);
+
+            sharedConfigurationBuilder.AddJsonFile(
+                path: "appsettings.logging.json",
+                optional: true,
+                reloadOnChange: true);
+
+            sharedConfigurationBuilder.AddJsonFile(
+                path: $"appsettings.logging.{builder.Environment.EnvironmentName}.json",
+                optional: true,
+                reloadOnChange: true);
+
+            IConfiguration sharedConfiguration = sharedConfigurationBuilder.Build();
+
+            return new ConfigurationBuilder()
+               .AddConfiguration(sharedConfiguration)
+               .AddConfiguration(builder.Configuration)
+               .Build();
         }
 
         private static int? GetRetainedFileCountLimit(ErrorFileLoggingOptions options)
