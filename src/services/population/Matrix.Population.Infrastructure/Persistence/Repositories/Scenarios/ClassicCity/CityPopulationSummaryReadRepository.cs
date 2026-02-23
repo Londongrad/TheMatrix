@@ -155,44 +155,19 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             var seniorBoundary = currentDate.AddYears(-66)
                .ToDateTime(TimeOnly.MinValue);
 
-            var householdPlacements = await _dbContext
-               .ClassicCityHouseholdPlacements
-               .AsNoTracking()
-               .Where(x => x.CityId == cityId)
-               .Select(x => new
-                {
-                    HouseholdId = x.HouseholdId.Value,
-                    x.HousingStatus
-                })
-               .ToListAsync(cancellationToken);
-
-            if (householdPlacements.Count == 0)
-                return null;
-
-            HashSet<Guid> householdIds = householdPlacements
-               .Select(x => x.HouseholdId)
-               .ToHashSet();
-
-            var residents = await _dbContext
-               .Persons
-               .AsNoTracking()
-               .Where(x => householdIds.Contains(x.HouseholdId.Value))
-               .ToListAsync(cancellationToken);
-
-            if (residents.Count == 0)
-                return null;
-
-            Dictionary<Guid, HousingStatus> housingByHouseholdId = householdPlacements
-               .GroupBy(x => x.HouseholdId)
-               .ToDictionary(g => g.Key, g => g.First().HousingStatus);
-
-            var residentsWithHousing = residents
-               .Select(person => new
+            var residentsWithHousing = await (
+                from person in _dbContext.Persons.AsNoTracking()
+                join householdPlacement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                       .Where(x => x.CityId == cityId)
+                    on person.HouseholdId equals householdPlacement.HouseholdId
+                select new
                 {
                     Person = person,
-                    HousingStatus = housingByHouseholdId.GetValueOrDefault(person.HouseholdId.Value, HousingStatus.Homeless)
-                })
-               .ToArray();
+                    householdPlacement.HousingStatus
+                }).ToArrayAsync(cancellationToken);
+
+            if (residentsWithHousing.Length == 0)
+                return null;
 
             var aliveResidents = residentsWithHousing
                .Where(x => x.Person.IsAlive)
