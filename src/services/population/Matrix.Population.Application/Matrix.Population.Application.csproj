@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Scenarios\ClassicCity\Services\Generation\Content\*.json">
-      <LogicalName>Matrix.Population.Application.Services.Generation.Content.%(Filename)%(Extension)</LogicalName>
+      <LogicalName>Matrix.Population.Application.Scenarios.ClassicCity.Services.Generation.Content.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

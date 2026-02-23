@@ -128,8 +128,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Generatio
                 errorFactory: ApplicationErrorsFactory.Required);
 
             Assembly assembly = typeof(PopulationGenerationContentCatalog).Assembly;
-            string resourceName =
+            string expectedResourceName =
                 $"{typeof(PopulationGenerationContentCatalog).Namespace}.Content.{fileName}";
+            string? resourceName = ResolveResourceName(
+                assembly: assembly,
+                expectedResourceName: expectedResourceName,
+                fileName: fileName);
 
             using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream is null)
@@ -146,6 +150,37 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Generatio
                     reason: $"Embedded resource '{resourceName}' is empty or invalid.");
 
             return value;
+        }
+
+        private static string ResolveResourceName(
+            Assembly assembly,
+            string expectedResourceName,
+            string fileName)
+        {
+            string[] resourceNames = assembly.GetManifestResourceNames();
+
+            string? exactMatch = resourceNames.SingleOrDefault(x =>
+                string.Equals(
+                    a: x,
+                    b: expectedResourceName,
+                    comparisonType: StringComparison.Ordinal));
+
+            if (exactMatch is not null)
+                return exactMatch;
+
+            string suffix = $".Content.{fileName}";
+            string[] suffixMatches = resourceNames
+               .Where(x => x.EndsWith(
+                    value: suffix,
+                    comparisonType: StringComparison.Ordinal))
+               .ToArray();
+
+            if (suffixMatches.Length == 1)
+                return suffixMatches[0];
+
+            throw ApplicationErrorsFactory.InvalidGenerationContent(
+                catalogName: fileName,
+                reason: $"Embedded resource '{expectedResourceName}' was not found.");
         }
     }
 }
