@@ -32,7 +32,24 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            CityCreatedView created = await citiesApiClient.CreateCityAsync(
+            CityCreatedView created = await CreateCitySkeletonAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            return await ProvisionCreatedCityAsync(
+                cityId: created.CityId,
+                simulationKind: created.SimulationKind,
+                operationId: created.PopulationBootstrapOperationId,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<CityCreatedView> CreateCitySkeletonAsync(
+            CreateCityRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            return await citiesApiClient.CreateCityAsync(
                 request: new CreateCityRequest(
                     Name: request.Name,
                     SimulationKind: request.SimulationKind,
@@ -46,12 +63,6 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     StartSimTimeUtc: request.StartSimTimeUtc,
                     SpeedMultiplier: request.SpeedMultiplier),
                 cancellationToken: cancellationToken);
-
-            return await ProvisionCityPopulationAsync(
-                cityId: created.CityId,
-                simulationKind: created.SimulationKind,
-                operationId: created.PopulationBootstrapOperationId,
-                cancellationToken: cancellationToken);
         }
 
         public async Task<CityProvisioningView> RetryPopulationBootstrapAsync(
@@ -62,14 +73,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 cityId: cityId,
                 cancellationToken: cancellationToken);
 
-            return await ProvisionCityPopulationAsync(
+            return await ProvisionCreatedCityAsync(
                 cityId: restarted.CityId,
                 simulationKind: restarted.SimulationKind,
                 operationId: restarted.PopulationBootstrapOperationId,
                 cancellationToken: cancellationToken);
         }
 
-        private async Task<CityProvisioningView> ProvisionCityPopulationAsync(
+        public async Task<CityProvisioningView> ProvisionCreatedCityAsync(
             Guid cityId,
             string simulationKind,
             Guid operationId,
