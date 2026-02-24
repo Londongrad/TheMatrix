@@ -2,6 +2,9 @@ import {useCallback, useEffect, useState} from "react";
 import {Link, useLocation, useNavigate, useParams} from "react-router-dom";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import Button from "@shared/ui/controls/Button/Button";
+import ProvisioningTimeline, {
+    type ProvisioningTimelineItem,
+} from "@services/citycore/scenarios/classic-city/components/ProvisioningTimeline";
 import {
     getCity,
     getCityProvisioning,
@@ -37,6 +40,133 @@ type ProvisioningLocationState = {
     launchedFromSetup?: boolean;
 };
 
+function getProvisioningTone(
+    bootstrapOutcome: ReturnType<typeof getBootstrapOutcome>,
+    cityStatusTone?: string,
+): "running" | "ready" | "failed" {
+    if (bootstrapOutcome === "completed" || cityStatusTone === "active") {
+        return "ready";
+    }
+
+    if (bootstrapOutcome === "failed" || cityStatusTone === "failed") {
+        return "failed";
+    }
+
+    return "running";
+}
+
+function getResultTitle(
+    bootstrapOutcome: ReturnType<typeof getBootstrapOutcome>,
+    cityStatusTone?: string,
+): string {
+    if (bootstrapOutcome === "completed" || cityStatusTone === "active") {
+        return "City is ready for monitoring";
+    }
+
+    if (bootstrapOutcome === "failed") {
+        return "Population bootstrap failed";
+    }
+
+    if (bootstrapOutcome === "skipped") {
+        return "City launched without population bootstrap";
+    }
+
+    return "Provisioning is still settling";
+}
+
+function getResultCopy(
+    bootstrapOutcome: ReturnType<typeof getBootstrapOutcome>,
+    cityStatusTone?: string,
+): string {
+    if (bootstrapOutcome === "completed" || cityStatusTone === "active") {
+        return "The launch contract completed successfully, and the city can move into live monitoring.";
+    }
+
+    if (bootstrapOutcome === "failed") {
+        return "City creation succeeded, but downstream population bootstrap needs operator review before the handoff is considered complete.";
+    }
+
+    if (bootstrapOutcome === "skipped") {
+        return "CityCore finished the launch without a population bootstrap stage. Monitoring can continue from the host itself.";
+    }
+
+    return "This page keeps provisioning explicit while the city settles, instead of hiding launch state behind the live workspace.";
+}
+
+function getTimelineItems(args: {
+    city: CityView | null;
+    provisioning: CityProvisioningStatusView | null;
+    bootstrapResult: CityPopulationBootstrapView | null;
+    bootstrapOutcome: ReturnType<typeof getBootstrapOutcome>;
+    failureCode?: string | null;
+    cityStatusTone?: string;
+}): ProvisioningTimelineItem[] {
+    const {
+        city,
+        provisioning,
+        bootstrapResult,
+        bootstrapOutcome,
+        failureCode,
+        cityStatusTone,
+    } = args;
+    const isReady = bootstrapOutcome === "completed" || cityStatusTone === "active";
+    const isFailed = bootstrapOutcome === "failed";
+
+    return [
+        {
+            id: "creating-city",
+            title: "Creating city",
+            description: city
+                ? `${city.name} is registered in CityCore with topology, clock, and environment state.`
+                : "Loading city host state from CityCore.",
+            status: city ? "complete" : "current",
+            meta: city?.createdAtUtc
+                ? `Created ${formatProvisioningDateTime(city.createdAtUtc)}`
+                : undefined,
+        },
+        {
+            id: "bootstrapping-population",
+            title: "Bootstrapping population",
+            description: bootstrapOutcome === "failed"
+                ? "Population bootstrap failed and requires retry or operator review."
+                : bootstrapOutcome === "completed"
+                    ? "Population bootstrap completed successfully."
+                    : bootstrapOutcome === "skipped"
+                        ? "Population bootstrap was skipped for this launch."
+                        : "Population service is still initializing residents and households.",
+            status: isFailed
+                ? "failed"
+                : isReady || bootstrapOutcome === "skipped"
+                    ? "complete"
+                    : "current",
+            meta: bootstrapResult?.operationId ?? provisioning?.populationBootstrapOperationId
+                ? `Operation ${bootstrapResult?.operationId ?? provisioning?.populationBootstrapOperationId}`
+                : undefined,
+        },
+        {
+            id: "handoff-result",
+            title: isReady ? "Ready for monitoring" : "Provisioning outcome",
+            description: isReady
+                ? "Provisioning finished successfully. Operators can hand off into the live city workspace."
+                : isFailed
+                    ? "The handoff is blocked on a failed bootstrap stage."
+                    : "Final handoff remains pending until the provisioning stages report a terminal outcome.",
+            status: isReady
+                ? "complete"
+                : isFailed
+                    ? "failed"
+                    : "current",
+            meta: isReady
+                ? `Completed ${formatProvisioningDateTime(provisioning?.populationBootstrapCompletedAtUtc)}`
+                : failureCode
+                    ? `Failure ${formatProvisioningFailureCode(failureCode)}`
+                    : provisioning?.populationBootstrapFailedAtUtc
+                        ? `Failed ${formatProvisioningDateTime(provisioning.populationBootstrapFailedAtUtc)}`
+                        : undefined,
+        },
+    ];
+}
+
 export default function ClassicCityProvisioningPage() {
     const params = useParams<{ cityId: string }>();
     const cityId = params.cityId ?? "";
@@ -59,6 +189,17 @@ export default function ClassicCityProvisioningPage() {
     const bootstrapOutcome = getBootstrapOutcome(bootstrapResult, provisioning);
     const failureCode = bootstrapResult?.failureCode ?? provisioning?.populationBootstrapFailureCode;
     const summary = bootstrapResult?.summary ?? null;
+    const provisioningTone = getProvisioningTone(bootstrapOutcome, cityStatusTone);
+    const resultTitle = getResultTitle(bootstrapOutcome, cityStatusTone);
+    const resultCopy = getResultCopy(bootstrapOutcome, cityStatusTone);
+    const timelineItems = getTimelineItems({
+        city,
+        provisioning,
+        bootstrapResult,
+        bootstrapOutcome,
+        failureCode,
+        cityStatusTone,
+    });
 
     const refreshProvisioningState = useCallback(async (
         options?: {
@@ -184,13 +325,23 @@ export default function ClassicCityProvisioningPage() {
                 <div className="scenario-setup__eyebrow">Provisioning handoff</div>
                 <div className="scenario-setup__hero-grid">
                     <div className="scenario-setup__hero-copy">
+                        <div className="scenario-setup__status-row">
+                            <span className={`scenario-setup__status-chip scenario-setup__status-chip--${provisioningTone}`}>
+                                {cityStatusLabel}
+                            </span>
+                            {cityId ? (
+                                <span className="scenario-setup__status-meta">
+                                    City {cityId.slice(0, 8)}
+                                </span>
+                            ) : null}
+                        </div>
+
                         <h1 className="scenario-setup__title">
                             {city?.name ?? "Classic City provisioning"}
                         </h1>
                         <p className="scenario-setup__subtitle">
-                            Launch outcome is handled as an explicit handoff stage. This screen keeps provisioning
-                            visible, lets operators retry failed bootstrap paths, and only then hands off to the live
-                            city workspace.
+                            This provisioning route now speaks the same visual language as setup-session handoff, so
+                            launch state stays readable whether you arrive from the wizard or from the provisioning queue.
                         </p>
                     </div>
 
@@ -213,21 +364,17 @@ export default function ClassicCityProvisioningPage() {
                     <div className="scenario-setup__panel">
                         <div className="scenario-setup__panel-header">
                             <div>
-                                <div className="scenario-setup__panel-eyebrow">Launch result</div>
-                                <h2 className="scenario-setup__panel-title">
-                                    {bootstrapOutcome === "completed"
-                                        ? "City is ready for monitoring"
-                                        : bootstrapOutcome === "failed"
-                                            ? "Population bootstrap failed"
-                                            : bootstrapOutcome === "skipped"
-                                                ? "City launched without population bootstrap"
-                                                : "Provisioning is still settling"}
-                                </h2>
+                                <div className="scenario-setup__panel-eyebrow">Provisioning timeline</div>
+                                <h2 className="scenario-setup__panel-title">{resultTitle}</h2>
                             </div>
 
                             <Link className="scenario-setup__ghost-link" to={CLASSIC_CITY_LIST_PATH}>
                                 Back to registry
                             </Link>
+                        </div>
+
+                        <div className="scenario-setup__note">
+                            {resultCopy}
                         </div>
 
                         {pageError ? (
@@ -241,6 +388,8 @@ export default function ClassicCityProvisioningPage() {
                                 {provisioningMutations.error}
                             </div>
                         ) : null}
+
+                        <ProvisioningTimeline items={timelineItems}/>
 
                         <div className="scenario-setup__review-grid">
                             <article className="scenario-setup__review-card">
@@ -349,7 +498,7 @@ export default function ClassicCityProvisioningPage() {
                     </div>
 
                     <aside className="scenario-setup__aside">
-                        <div className={`scenario-setup__aside-card scenario-setup__aside-card--status-${cityStatusTone}`}>
+                        <div className={`scenario-setup__aside-card scenario-setup__aside-card--status-${provisioningTone}`}>
                             <div className="scenario-setup__aside-label">Provisioning state</div>
                             <div className="scenario-setup__aside-value">{cityStatusLabel}</div>
                             <div className="scenario-setup__aside-list">
@@ -368,19 +517,42 @@ export default function ClassicCityProvisioningPage() {
                                             ? "Ready for monitoring"
                                             : bootstrapOutcome === "failed"
                                                 ? "Needs retry"
-                                                : "Waiting for outcome"}
+                                                : bootstrapOutcome === "skipped"
+                                                    ? "Completed without bootstrap"
+                                                    : "Waiting for outcome"}
                                     </strong>
                                 </div>
                             </div>
                         </div>
 
                         <div className="scenario-setup__aside-card scenario-setup__aside-card--accent">
-                            <div className="scenario-setup__aside-label">Why this screen exists</div>
+                            <div className="scenario-setup__aside-label">Lifecycle timestamps</div>
+                            <div className="scenario-setup__aside-list">
+                                <div className="scenario-setup__aside-item">
+                                    <span>City created</span>
+                                    <strong>{formatProvisioningDateTime(city?.createdAtUtc)}</strong>
+                                </div>
+                                <div className="scenario-setup__aside-item">
+                                    <span>Bootstrap completed</span>
+                                    <strong>{formatProvisioningDateTime(provisioning?.populationBootstrapCompletedAtUtc)}</strong>
+                                </div>
+                                <div className="scenario-setup__aside-item">
+                                    <span>Bootstrap failed</span>
+                                    <strong>{formatProvisioningDateTime(provisioning?.populationBootstrapFailedAtUtc)}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="scenario-setup__aside-card">
+                            <div className="scenario-setup__aside-label">Operational note</div>
                             <p className="scenario-setup__aside-copy">
-                                The registry and live city workspace should not be the only place where launch failures
-                                surface. Provisioning stays explicit here so operators can see what happened before they
-                                move into monitoring.
+                                The provisioning queue and setup-session handoff now use the same progress model, so
+                                operators do not need to mentally translate between two different launch UIs.
                             </p>
+
+                            {(bootstrapOutcome === "pending" || cityStatusTone === "provisioning") ? (
+                                <LoadingIndicator label="Refreshing provisioning timeline..."/>
+                            ) : null}
                         </div>
                     </aside>
                 </div>
