@@ -1,8 +1,18 @@
-import {useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {useEffect, useRef, useState} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import Button from "@shared/ui/controls/Button/Button";
-import {useCityProvisioning} from "@services/citycore/scenarios/classic-city/hooks/useCityProvisioning";
+import {
+    createClassicCitySetupSession,
+    getClassicCitySetupSession,
+    launchClassicCitySetupSession,
+    updateClassicCitySetupSession,
+} from "@services/citycore/scenarios/classic-city/api/setupSessionsApi";
+import type {
+    ClassicCitySetupDraftView,
+    ClassicCitySetupSessionView,
+    ClassicCitySetupStepId,
+} from "@services/citycore/scenarios/classic-city/contracts/setupSessionContracts";
 import {
     CLASSIC_CITY_CLIMATE_OPTIONS,
     CLASSIC_CITY_DEVELOPMENT_OPTIONS,
@@ -19,10 +29,9 @@ import {
     CITYCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_SCENARIO,
     getClassicCityProvisioningPath,
+    getClassicCitySetupSessionPath,
 } from "@services/citycore/scenarios/registry";
 import "@services/citycore/scenarios/styles/scenario-setup.css";
-
-type SetupStepId = "scenario" | "profile" | "environment" | "launch";
 
 type ValidationErrors = {
     name?: string;
@@ -31,17 +40,11 @@ type ValidationErrors = {
     utcOffsetMinutes?: string;
 };
 
-type SetupDraft = {
-    name: string;
-    startSimTimeLocal: string;
-    speedMultiplier: string;
-    climateZone: string;
-    hemisphere: string;
-    utcOffsetMinutes: string;
-    generationSeed: string;
-    sizeTier: string;
-    urbanDensity: string;
-    developmentLevel: string;
+type SetupDraft = ClassicCitySetupDraftView;
+
+type SessionSnapshot = {
+    currentStepId: ClassicCitySetupStepId;
+    draft: SetupDraft;
 };
 
 type OptionGridProps = {
@@ -49,9 +52,10 @@ type OptionGridProps = {
     options: SetupOption[];
     selectedValue: string;
     onSelect: (value: string) => void;
+    disabled?: boolean;
 };
 
-const setupSteps: { id: SetupStepId; title: string; description: string }[] = [
+const setupSteps: { id: ClassicCitySetupStepId; title: string; description: string }[] = [
     {
         id: "scenario",
         title: "Scenario",
@@ -74,10 +78,16 @@ const setupSteps: { id: SetupStepId; title: string; description: string }[] = [
     },
 ];
 
+const mutableSessionStatuses = new Set(["Draft", "LaunchFailed"]);
+const runningSessionStatuses = new Set(["LaunchQueued", "CreatingCity", "BootstrappingPopulation"]);
+
 function createDefaultDraft(): SetupDraft {
+    const startSimTimeLocal = getNowLocalDateTimeInputValue();
+
     return {
         name: "",
-        startSimTimeLocal: getNowLocalDateTimeInputValue(),
+        startSimTimeLocal,
+        startSimTimeUtc: localDateTimeToUtcIso(startSimTimeLocal),
         speedMultiplier: "1",
         climateZone: "Temperate",
         hemisphere: "Northern",
@@ -87,6 +97,26 @@ function createDefaultDraft(): SetupDraft {
         urbanDensity: "Balanced",
         developmentLevel: "Balanced",
     };
+}
+
+function normalizeDraft(draft: SetupDraft): SetupDraft {
+    return {
+        ...draft,
+        startSimTimeUtc: draft.startSimTimeUtc ?? localDateTimeToUtcIso(draft.startSimTimeLocal),
+    };
+}
+
+function createSnapshotSignature(snapshot: SessionSnapshot): string {
+    return JSON.stringify({
+        currentStepId: snapshot.currentStepId,
+        draft: normalizeDraft(snapshot.draft),
+    });
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error && error.message.trim().length > 0
+        ? error.message
+        : fallback;
 }
 
 function validateProfile(draft: SetupDraft): ValidationErrors {
@@ -133,29 +163,8 @@ function mergeErrors(...items: ValidationErrors[]): ValidationErrors {
     return Object.assign({}, ...items);
 }
 
-function OptionGrid({legend, options, selectedValue, onSelect}: OptionGridProps) {
-    return (
-        <div className="scenario-setup__field">
-            <div className="scenario-setup__label">{legend}</div>
-            <div className="scenario-setup__option-grid">
-                {options.map((option) => {
-                    const isSelected = option.value === selectedValue;
-
-                    return (
-                        <button
-                            key={option.value}
-                            type="button"
-                            className={`scenario-setup__option-card ${isSelected ? "scenario-setup__option-card--selected" : ""}`}
-                            onClick={() => onSelect(option.value)}
-                        >
-                            <span className="scenario-setup__option-title">{option.label}</span>
-                            <span className="scenario-setup__option-text">{option.description}</span>
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
-    );
+function getStepIndex(stepId: ClassicCitySetupStepId): number {
+    return Math.max(0, setupSteps.findIndex((step) => step.id === stepId));
 }
 
 function formatUtcOffset(minutesText: string): string {
@@ -176,17 +185,250 @@ function formatUtcOffset(minutesText: string): string {
     return `UTC ${sign}${hours}:${mins}`;
 }
 
-export default function ClassicCitySetupPage() {
-    const navigate = useNavigate();
-    const provisioning = useCityProvisioning();
-    const [draft, setDraft] = useState<SetupDraft>(createDefaultDraft);
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+function formatDateTime(value?: string | null): string {
+    if (!value) {
+        return "--";
+    }
 
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+
+    return parsed.toLocaleString();
+}
+
+function formatSessionStatusLabel(status?: string | null): string {
+    switch (status) {
+        case "Draft":
+            return "Draft";
+        case "LaunchQueued":
+            return "Launch queued";
+        case "CreatingCity":
+            return "Creating city";
+        case "BootstrappingPopulation":
+            return "Bootstrapping population";
+        case "Ready":
+            return "Ready";
+        case "ProvisioningFailed":
+            return "Provisioning failed";
+        case "LaunchFailed":
+            return "Launch failed";
+        default:
+            return "Preparing session";
+    }
+}
+
+function getSessionStatusTone(status?: string | null): "draft" | "running" | "ready" | "failed" {
+    if (status === "Ready") {
+        return "ready";
+    }
+
+    if (status === "LaunchFailed" || status === "ProvisioningFailed") {
+        return "failed";
+    }
+
+    if (status && runningSessionStatuses.has(status)) {
+        return "running";
+    }
+
+    return "draft";
+}
+
+function isMutableSessionStatus(status?: string | null): boolean {
+    return status ? mutableSessionStatuses.has(status) : false;
+}
+
+function isRunningSessionStatus(status?: string | null): boolean {
+    return status ? runningSessionStatuses.has(status) : false;
+}
+
+function getSessionStatusDescription(session: ClassicCitySetupSessionView | null): string {
+    switch (session?.status) {
+        case "LaunchQueued":
+            return "The launch request is queued in Gateway and will survive page refresh or tab closure.";
+        case "CreatingCity":
+            return "CityCore is creating topology, clock, and initial environment for the requested launch contract.";
+        case "BootstrappingPopulation":
+            return "Population bootstrap is running downstream. The city will hand off to provisioning as soon as a host id is available.";
+        case "LaunchFailed":
+            return session.failureMessage ?? "Launch orchestration failed before the city host was created.";
+        case "ProvisioningFailed":
+            return session.failureMessage ?? "Population bootstrap failed after city creation and requires operator review.";
+        case "Ready":
+            return "The setup session completed successfully and is ready to hand off to monitoring.";
+        default:
+            return "Draft changes are saved to a backend setup session so the wizard can be resumed after refresh.";
+    }
+}
+
+function OptionGrid({legend, options, selectedValue, onSelect, disabled = false}: OptionGridProps) {
+    return (
+        <div className="scenario-setup__field">
+            <div className="scenario-setup__label">{legend}</div>
+            <div className="scenario-setup__option-grid">
+                {options.map((option) => {
+                    const isSelected = option.value === selectedValue;
+
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            className={`scenario-setup__option-card ${isSelected ? "scenario-setup__option-card--selected" : ""}`}
+                            onClick={() => onSelect(option.value)}
+                            disabled={disabled}
+                        >
+                            <span className="scenario-setup__option-title">{option.label}</span>
+                            <span className="scenario-setup__option-text">{option.description}</span>
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+export default function ClassicCitySetupPage() {
+    const params = useParams<{ sessionId?: string }>();
+    const routeSessionId = params.sessionId ?? null;
+    const navigate = useNavigate();
+    const [session, setSession] = useState<ClassicCitySetupSessionView | null>(null);
+    const [draft, setDraft] = useState<SetupDraft>(createDefaultDraft);
+    const [currentStepId, setCurrentStepId] = useState<ClassicCitySetupStepId>("scenario");
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+    const [isInitializing, setIsInitializing] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isLaunching, setIsLaunching] = useState(false);
+    const [pageError, setPageError] = useState<string | null>(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [lastSavedAtUtc, setLastSavedAtUtc] = useState<string | null>(null);
+    const saveTimeoutRef = useRef<number | null>(null);
+    const saveAbortRef = useRef<AbortController | null>(null);
+    const lastSyncedSignatureRef = useRef<string | null>(null);
+    const latestSnapshotRef = useRef<SessionSnapshot>({
+        currentStepId: "scenario",
+        draft: createDefaultDraft(),
+    });
+
+    latestSnapshotRef.current = {
+        currentStepId,
+        draft,
+    };
+
+    const currentStepIndex = getStepIndex(currentStepId);
     const currentStep = setupSteps[currentStepIndex];
+    const sessionStatusLabel = formatSessionStatusLabel(session?.status);
+    const sessionStatusTone = getSessionStatusTone(session?.status);
+    const canEditSession = isMutableSessionStatus(session?.status);
+    const isLaunchRunning = isRunningSessionStatus(session?.status);
+    const isBusy = isInitializing || isLaunching;
+
+    function adoptSession(nextSession: ClassicCitySetupSessionView, syncLocalState = true) {
+        const normalizedDraft = normalizeDraft(nextSession.draft);
+
+        setSession(nextSession);
+        setLastSavedAtUtc(nextSession.updatedAtUtc);
+        lastSyncedSignatureRef.current = createSnapshotSignature({
+            currentStepId: nextSession.currentStepId,
+            draft: normalizedDraft,
+        });
+
+        if (syncLocalState) {
+            setDraft(normalizedDraft);
+            setCurrentStepId(nextSession.currentStepId);
+        }
+    }
+
+    function clearPendingAutosave() {
+        if (saveTimeoutRef.current) {
+            window.clearTimeout(saveTimeoutRef.current);
+            saveTimeoutRef.current = null;
+        }
+    }
+
+    async function persistDraftNow(force = false): Promise<ClassicCitySetupSessionView | null> {
+        if (!session?.sessionId || !canEditSession) {
+            return session;
+        }
+
+        const snapshot = latestSnapshotRef.current;
+        const signature = createSnapshotSignature(snapshot);
+
+        if (!force && signature === lastSyncedSignatureRef.current) {
+            return session;
+        }
+
+        clearPendingAutosave();
+        saveAbortRef.current?.abort();
+
+        const abortController = new AbortController();
+        saveAbortRef.current = abortController;
+
+        try {
+            setIsSaving(true);
+            setSaveError(null);
+
+            const updatedSession = await updateClassicCitySetupSession(
+                session.sessionId,
+                {
+                    currentStepId: snapshot.currentStepId,
+                    draft: snapshot.draft,
+                },
+                abortController.signal,
+            );
+
+            if (abortController.signal.aborted) {
+                return null;
+            }
+
+            const normalizedDraft = normalizeDraft(updatedSession.draft);
+            const liveSignature = createSnapshotSignature(latestSnapshotRef.current);
+
+            setSession(updatedSession);
+            setLastSavedAtUtc(updatedSession.updatedAtUtc);
+            lastSyncedSignatureRef.current = createSnapshotSignature({
+                currentStepId: updatedSession.currentStepId,
+                draft: normalizedDraft,
+            });
+
+            if (liveSignature === signature) {
+                setDraft(normalizedDraft);
+                setCurrentStepId(updatedSession.currentStepId);
+            }
+
+            return updatedSession;
+        } catch (error: unknown) {
+            if (abortController.signal.aborted) {
+                return null;
+            }
+
+            setSaveError(getErrorMessage(error, "Failed to save setup session."));
+            return null;
+        } finally {
+            if (!abortController.signal.aborted) {
+                setIsSaving(false);
+            }
+
+            if (saveAbortRef.current === abortController) {
+                saveAbortRef.current = null;
+            }
+        }
+    }
 
     function updateDraft<K extends keyof SetupDraft>(key: K, value: SetupDraft[K]) {
-        setDraft((current) => ({...current, [key]: value}));
+        setDraft((current) => {
+            const next = {
+                ...current,
+                [key]: value,
+            };
+
+            if (key === "startSimTimeLocal") {
+                next.startSimTimeUtc = localDateTimeToUtcIso(String(value));
+            }
+
+            return next;
+        });
+
         setValidationErrors((current) => {
             if (!(key in current)) {
                 return current;
@@ -196,7 +438,14 @@ export default function ClassicCitySetupPage() {
             delete next[key as keyof ValidationErrors];
             return next;
         });
-        provisioning.clearError();
+        setPageError(null);
+        setSaveError(null);
+    }
+
+    function moveToStep(stepId: ClassicCitySetupStepId) {
+        setCurrentStepId(stepId);
+        setPageError(null);
+        setSaveError(null);
     }
 
     function goNext() {
@@ -216,11 +465,11 @@ export default function ClassicCitySetupPage() {
             }
         }
 
-        setCurrentStepIndex((index) => Math.min(index + 1, setupSteps.length - 1));
+        moveToStep(setupSteps[Math.min(currentStepIndex + 1, setupSteps.length - 1)].id);
     }
 
     function goBack() {
-        setCurrentStepIndex((index) => Math.max(index - 1, 0));
+        moveToStep(setupSteps[Math.max(currentStepIndex - 1, 0)].id);
     }
 
     async function handleLaunch() {
@@ -234,39 +483,155 @@ export default function ClassicCitySetupPage() {
             return;
         }
 
-        const startSimTimeUtc = localDateTimeToUtcIso(draft.startSimTimeLocal);
-        if (!startSimTimeUtc) {
-            setValidationErrors((current) => ({
-                ...current,
-                startSimTimeLocal: "Invalid date/time value.",
-            }));
+        if (!session?.sessionId) {
+            setPageError("Setup session is still being prepared. Please try again.");
             return;
         }
 
-        const result = await provisioning.launch({
-            name: draft.name.trim(),
-            simulationKind: CLASSIC_CITY_SCENARIO.kind,
-            startSimTimeUtc,
-            speedMultiplier: Number(draft.speedMultiplier),
-            climateZone: draft.climateZone,
-            hemisphere: draft.hemisphere,
-            utcOffsetMinutes: Number(draft.utcOffsetMinutes),
-            generationSeed: draft.generationSeed.trim() || null,
-            sizeTier: draft.sizeTier,
-            urbanDensity: draft.urbanDensity,
-            developmentLevel: draft.developmentLevel,
-        });
+        setPageError(null);
+        setSaveError(null);
+        setIsLaunching(true);
 
-        if (!result) {
+        try {
+            const persisted = await persistDraftNow(true);
+            if (!persisted) {
+                return;
+            }
+
+            const launchedSession = await launchClassicCitySetupSession(session.sessionId);
+            adoptSession(launchedSession);
+        } catch (error: unknown) {
+            setPageError(getErrorMessage(error, "Failed to queue Classic City launch."));
+        } finally {
+            setIsLaunching(false);
+        }
+    }
+
+    useEffect(() => {
+        let isDisposed = false;
+        const abortController = new AbortController();
+
+        async function initialize() {
+            if (routeSessionId && session?.sessionId === routeSessionId) {
+                setIsInitializing(false);
+                return;
+            }
+
+            setIsInitializing(true);
+            setPageError(null);
+
+            try {
+                if (routeSessionId) {
+                    const loadedSession = await getClassicCitySetupSession(routeSessionId, abortController.signal);
+                    if (isDisposed || abortController.signal.aborted) {
+                        return;
+                    }
+
+                    adoptSession(loadedSession);
+                    return;
+                }
+
+                const initialDraft = createDefaultDraft();
+                const createdSession = await createClassicCitySetupSession({
+                    currentStepId: "scenario",
+                    draft: initialDraft,
+                });
+
+                if (isDisposed) {
+                    return;
+                }
+
+                adoptSession(createdSession);
+                navigate(getClassicCitySetupSessionPath(createdSession.sessionId), {replace: true});
+            } catch (error: unknown) {
+                if (abortController.signal.aborted || isDisposed) {
+                    return;
+                }
+
+                setPageError(getErrorMessage(error, "Failed to prepare Classic City setup session."));
+            } finally {
+                if (!isDisposed) {
+                    setIsInitializing(false);
+                }
+            }
+        }
+
+        void initialize();
+
+        return () => {
+            isDisposed = true;
+            abortController.abort();
+        };
+    }, [navigate, routeSessionId, session?.sessionId]);
+
+    useEffect(() => {
+        if (!session?.sessionId || !canEditSession || isInitializing || isLaunching) {
             return;
         }
 
-        navigate(getClassicCityProvisioningPath(result.cityId), {
+        const signature = createSnapshotSignature(latestSnapshotRef.current);
+        if (signature === lastSyncedSignatureRef.current) {
+            return;
+        }
+
+        clearPendingAutosave();
+        saveTimeoutRef.current = window.setTimeout(() => {
+            void persistDraftNow();
+        }, 700);
+
+        return () => {
+            clearPendingAutosave();
+        };
+    }, [canEditSession, currentStepId, draft, isInitializing, isLaunching, session?.sessionId]);
+
+    useEffect(() => {
+        if (!session?.sessionId || !isLaunchRunning) {
+            return;
+        }
+
+        const timer = window.setTimeout(async () => {
+            try {
+                const refreshedSession = await getClassicCitySetupSession(session.sessionId);
+                adoptSession(refreshedSession, true);
+            } catch (error: unknown) {
+                setPageError(getErrorMessage(error, "Failed to refresh setup session status."));
+            }
+        }, 2500);
+
+        return () => {
+            window.clearTimeout(timer);
+        };
+    }, [isLaunchRunning, session?.sessionId, session?.status]);
+
+    useEffect(() => {
+        if (!session?.cityId) {
+            return;
+        }
+
+        navigate(getClassicCityProvisioningPath(session.cityId), {
+            replace: true,
             state: {
-                provisioning: result,
+                provisioning: session.provisioning ?? undefined,
                 launchedFromSetup: true,
             },
         });
+    }, [navigate, session?.cityId, session?.provisioning]);
+
+    useEffect(() => {
+        return () => {
+            clearPendingAutosave();
+            saveAbortRef.current?.abort();
+        };
+    }, []);
+
+    if (isInitializing && !session) {
+        return (
+            <section className="scenario-setup">
+                <div className="scenario-setup__panel">
+                    <LoadingIndicator label="Preparing Classic City setup session..."/>
+                </div>
+            </section>
+        );
     }
 
     return (
@@ -275,11 +640,21 @@ export default function ClassicCitySetupPage() {
                 <div className="scenario-setup__eyebrow">Compose scenario</div>
                 <div className="scenario-setup__hero-grid">
                     <div className="scenario-setup__hero-copy">
+                        <div className="scenario-setup__status-row">
+                            <span className={`scenario-setup__status-chip scenario-setup__status-chip--${sessionStatusTone}`}>
+                                {sessionStatusLabel}
+                            </span>
+                            {session?.sessionId ? (
+                                <span className="scenario-setup__status-meta">
+                                    Session {session.sessionId.slice(0, 8)}
+                                </span>
+                            ) : null}
+                        </div>
+
                         <h1 className="scenario-setup__title">Classic City setup</h1>
                         <p className="scenario-setup__subtitle">
-                            Build the launch contract in steps, validate the world profile before provisioning, and
-                            hand off the finished city to monitoring instead of dropping operators into a half-built
-                            workspace.
+                            Build the launch contract in steps, keep the draft in a backend setup session, and hand
+                            the city off to provisioning only after the orchestration flow has actually started.
                         </p>
                     </div>
 
@@ -324,6 +699,24 @@ export default function ClassicCitySetupPage() {
                         </Link>
                     </div>
 
+                    {pageError ? (
+                        <div className="scenario-setup__error-banner" role="alert">
+                            {pageError}
+                        </div>
+                    ) : null}
+
+                    {saveError ? (
+                        <div className="scenario-setup__error-banner" role="alert">
+                            {saveError}
+                        </div>
+                    ) : null}
+
+                    {session?.failureMessage && session.status === "LaunchFailed" ? (
+                        <div className="scenario-setup__error-banner" role="alert">
+                            {session.failureMessage}
+                        </div>
+                    ) : null}
+
                     {currentStep.id === "scenario" ? (
                         <div className="scenario-setup__stack">
                             <article className="scenario-setup__scenario-card">
@@ -348,9 +741,8 @@ export default function ClassicCitySetupPage() {
                             </article>
 
                             <div className="scenario-setup__note">
-                                CityCore remains the owner of topology, weather, and clock state. Population bootstrap
-                                stays downstream and is reported back as launch outcome instead of being hidden behind
-                                a silent redirect.
+                                The launch contract now lives in a real setup session resource. You can refresh,
+                                navigate away, and come back without losing the authoring state or launch lifecycle.
                             </div>
                         </div>
                     ) : null}
@@ -369,6 +761,7 @@ export default function ClassicCitySetupPage() {
                                         maxLength={128}
                                         placeholder="New Amsterdam"
                                         onChange={(event) => updateDraft("name", event.target.value)}
+                                        disabled={!canEditSession}
                                     />
                                     {validationErrors.name ? (
                                         <div className="scenario-setup__error">{validationErrors.name}</div>
@@ -385,6 +778,7 @@ export default function ClassicCitySetupPage() {
                                         type="datetime-local"
                                         value={draft.startSimTimeLocal}
                                         onChange={(event) => updateDraft("startSimTimeLocal", event.target.value)}
+                                        disabled={!canEditSession}
                                     />
                                     {validationErrors.startSimTimeLocal ? (
                                         <div className="scenario-setup__error">{validationErrors.startSimTimeLocal}</div>
@@ -403,6 +797,7 @@ export default function ClassicCitySetupPage() {
                                         step="0.1"
                                         value={draft.speedMultiplier}
                                         onChange={(event) => updateDraft("speedMultiplier", event.target.value)}
+                                        disabled={!canEditSession}
                                     />
                                     {validationErrors.speedMultiplier ? (
                                         <div className="scenario-setup__error">{validationErrors.speedMultiplier}</div>
@@ -419,6 +814,7 @@ export default function ClassicCitySetupPage() {
                                         value={draft.generationSeed}
                                         placeholder="Leave empty to derive a deterministic seed from launch inputs"
                                         onChange={(event) => updateDraft("generationSeed", event.target.value)}
+                                        disabled={!canEditSession}
                                     />
                                     <div className="scenario-setup__hint">
                                         Leaving this empty keeps the launch deterministic while still deriving the seed
@@ -432,6 +828,7 @@ export default function ClassicCitySetupPage() {
                                 options={CLASSIC_CITY_SIZE_TIER_OPTIONS}
                                 selectedValue={draft.sizeTier}
                                 onSelect={(value) => updateDraft("sizeTier", value)}
+                                disabled={!canEditSession}
                             />
 
                             <OptionGrid
@@ -439,6 +836,7 @@ export default function ClassicCitySetupPage() {
                                 options={CLASSIC_CITY_DENSITY_OPTIONS}
                                 selectedValue={draft.urbanDensity}
                                 onSelect={(value) => updateDraft("urbanDensity", value)}
+                                disabled={!canEditSession}
                             />
 
                             <OptionGrid
@@ -446,6 +844,7 @@ export default function ClassicCitySetupPage() {
                                 options={CLASSIC_CITY_DEVELOPMENT_OPTIONS}
                                 selectedValue={draft.developmentLevel}
                                 onSelect={(value) => updateDraft("developmentLevel", value)}
+                                disabled={!canEditSession}
                             />
                         </div>
                     ) : null}
@@ -457,6 +856,7 @@ export default function ClassicCitySetupPage() {
                                 options={CLASSIC_CITY_CLIMATE_OPTIONS}
                                 selectedValue={draft.climateZone}
                                 onSelect={(value) => updateDraft("climateZone", value)}
+                                disabled={!canEditSession}
                             />
 
                             <OptionGrid
@@ -464,6 +864,7 @@ export default function ClassicCitySetupPage() {
                                 options={CLASSIC_CITY_HEMISPHERE_OPTIONS}
                                 selectedValue={draft.hemisphere}
                                 onSelect={(value) => updateDraft("hemisphere", value)}
+                                disabled={!canEditSession}
                             />
 
                             <div className="scenario-setup__form-grid">
@@ -478,6 +879,7 @@ export default function ClassicCitySetupPage() {
                                         step="15"
                                         value={draft.utcOffsetMinutes}
                                         onChange={(event) => updateDraft("utcOffsetMinutes", event.target.value)}
+                                        disabled={!canEditSession}
                                     />
                                     {validationErrors.utcOffsetMinutes ? (
                                         <div className="scenario-setup__error">{validationErrors.utcOffsetMinutes}</div>
@@ -490,7 +892,7 @@ export default function ClassicCitySetupPage() {
                                         <strong>Automatic from climate profile</strong>
                                         <span>
                                             Initial weather is still generated by CityCore from the climate setup and
-                                            start simulation time. Manual weather tuning is the next follow-up slice,
+                                            start simulation time. Manual weather tuning remains a follow-up slice,
                                             not a fake frontend-only field.
                                         </span>
                                     </div>
@@ -514,7 +916,7 @@ export default function ClassicCitySetupPage() {
                                     <span className="scenario-setup__review-label">Timeline</span>
                                     <strong className="scenario-setup__review-value">{draft.startSimTimeLocal || "--"}</strong>
                                     <span className="scenario-setup__review-text">
-                                        Local launch input converted to UTC before the request leaves the browser.
+                                        Local launch input is persisted in the setup session together with the derived UTC timestamp.
                                     </span>
                                 </article>
 
@@ -539,16 +941,10 @@ export default function ClassicCitySetupPage() {
                             </div>
 
                             <div className="scenario-setup__note">
-                                Launch result is handled as provisioning outcome, not as an implicit redirect. If
-                                Population bootstrap fails, the handoff page will show that explicitly and offer retry
-                                instead of dumping you into a confusing half-ready city.
+                                Launch is queued against the setup session and processed asynchronously by Gateway. If
+                                anything fails before a city exists, the wizard stays resumable. If the city exists,
+                                handoff moves to provisioning instead of pretending the launch was instantly complete.
                             </div>
-
-                            {provisioning.error ? (
-                                <div className="scenario-setup__error-banner" role="alert">
-                                    {provisioning.error}
-                                </div>
-                            ) : null}
                         </div>
                     ) : null}
 
@@ -562,7 +958,7 @@ export default function ClassicCitySetupPage() {
                                 type="button"
                                 variant="default"
                                 onClick={goBack}
-                                disabled={provisioning.isSubmitting}
+                                disabled={isBusy || !canEditSession}
                             >
                                 Back
                             </Button>
@@ -573,7 +969,7 @@ export default function ClassicCitySetupPage() {
                                 type="button"
                                 variant="primary"
                                 onClick={goNext}
-                                disabled={provisioning.isSubmitting}
+                                disabled={isBusy || !canEditSession}
                             >
                                 Continue
                             </Button>
@@ -582,19 +978,23 @@ export default function ClassicCitySetupPage() {
                                 type="button"
                                 variant="success"
                                 onClick={() => void handleLaunch()}
-                                disabled={provisioning.isSubmitting}
+                                disabled={isBusy || !canEditSession}
                             >
-                                {provisioning.isSubmitting ? "Launching..." : "Launch Classic City"}
+                                {isLaunching ? "Queueing launch..." : "Launch Classic City"}
                             </Button>
                         )}
                     </div>
                 </div>
 
                 <aside className="scenario-setup__aside">
-                    <div className="scenario-setup__aside-card">
-                        <div className="scenario-setup__aside-label">Launch summary</div>
-                        <div className="scenario-setup__aside-value">{draft.name || "Classic City launch"}</div>
+                    <div className={`scenario-setup__aside-card scenario-setup__aside-card--status-${sessionStatusTone}`}>
+                        <div className="scenario-setup__aside-label">Setup session</div>
+                        <div className="scenario-setup__aside-value">{sessionStatusLabel}</div>
                         <div className="scenario-setup__aside-list">
+                            <div className="scenario-setup__aside-item">
+                                <span>Draft</span>
+                                <strong>{draft.name || "Classic City launch"}</strong>
+                            </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Profile</span>
                                 <strong>{draft.sizeTier} / {draft.urbanDensity} / {draft.developmentLevel}</strong>
@@ -607,23 +1007,55 @@ export default function ClassicCitySetupPage() {
                                 <span>Clock</span>
                                 <strong>{draft.speedMultiplier}x at {formatUtcOffset(draft.utcOffsetMinutes)}</strong>
                             </div>
-                            <div className="scenario-setup__aside-item">
-                                <span>Population</span>
-                                <strong>Auto-bootstrap after city creation</strong>
-                            </div>
                         </div>
                     </div>
 
                     <div className="scenario-setup__aside-card scenario-setup__aside-card--accent">
-                        <div className="scenario-setup__aside-label">Operational note</div>
+                        <div className="scenario-setup__aside-label">Persistence</div>
                         <p className="scenario-setup__aside-copy">
-                            This flow deliberately separates authoring, provisioning, and monitoring. The city is
-                            launched as a backend setup operation first and handed off to the live workspace only after
-                            the provisioning outcome is known.
+                            {isInitializing
+                                ? "Preparing setup session..."
+                                : isLaunching
+                                    ? "Queueing launch request..."
+                                    : isSaving
+                                        ? "Saving draft to backend session..."
+                                        : saveError
+                                            ? "Autosave needs attention before launch can proceed cleanly."
+                                            : lastSavedAtUtc
+                                                ? `Last saved ${formatDateTime(lastSavedAtUtc)}`
+                                                : "Draft has not been saved yet."}
                         </p>
 
-                        {provisioning.isSubmitting ? (
-                            <LoadingIndicator label="Provisioning city and population bootstrap..."/>
+                        {session?.launchQueuedAtUtc ? (
+                            <div className="scenario-setup__aside-item">
+                                <span>Launch queued</span>
+                                <strong>{formatDateTime(session.launchQueuedAtUtc)}</strong>
+                            </div>
+                        ) : null}
+
+                        {session?.startedAtUtc ? (
+                            <div className="scenario-setup__aside-item">
+                                <span>Provisioning started</span>
+                                <strong>{formatDateTime(session.startedAtUtc)}</strong>
+                            </div>
+                        ) : null}
+
+                        {session?.completedAtUtc ? (
+                            <div className="scenario-setup__aside-item">
+                                <span>Last completion</span>
+                                <strong>{formatDateTime(session.completedAtUtc)}</strong>
+                            </div>
+                        ) : null}
+                    </div>
+
+                    <div className="scenario-setup__aside-card">
+                        <div className="scenario-setup__aside-label">Operational note</div>
+                        <p className="scenario-setup__aside-copy">
+                            {getSessionStatusDescription(session)}
+                        </p>
+
+                        {isLaunchRunning ? (
+                            <LoadingIndicator label="Refreshing setup session status..."/>
                         ) : null}
                     </div>
                 </aside>

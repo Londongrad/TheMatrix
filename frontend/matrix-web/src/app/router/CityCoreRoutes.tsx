@@ -13,6 +13,7 @@ import {
     CLASSIC_CITY_LIST_PATH,
     CLASSIC_CITY_PROVISIONING_PATH_PATTERN,
     CLASSIC_CITY_SETUP_PATH,
+    CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN,
 } from "@services/citycore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
@@ -34,6 +35,16 @@ export const cityCoreRoutes = (
         />
         <Route
             path={CLASSIC_CITY_SETUP_PATH}
+            element={
+                <RequireRoutePermission
+                    permissions={[PermissionKeys.CityCoreClassicCityCreate]}
+                >
+                    <ClassicCitySetupPage/>
+                </RequireRoutePermission>
+            }
+        />
+        <Route
+            path={CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN}
             element={
                 <RequireRoutePermission
                     permissions={[PermissionKeys.CityCoreClassicCityCreate]}
