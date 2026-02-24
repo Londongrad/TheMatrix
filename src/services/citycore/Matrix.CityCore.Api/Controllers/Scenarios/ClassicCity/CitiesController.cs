@@ -48,7 +48,8 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                     UrbanDensity: request.UrbanDensity,
                     DevelopmentLevel: request.DevelopmentLevel,
                     StartSimTimeUtc: request.StartSimTimeUtc,
-                    SpeedMultiplier: request.SpeedMultiplier),
+                    SpeedMultiplier: request.SpeedMultiplier,
+                    PlannedPeopleCount: request.PlannedPeopleCount),
                 cancellationToken: cancellationToken);
 
             return Results.Created(
@@ -372,7 +373,8 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                 UrbanDensity: dto.UrbanDensity,
                 DevelopmentLevel: dto.DevelopmentLevel,
                 CreatedAtUtc: dto.CreatedAtUtc,
-                ArchivedAtUtc: dto.ArchivedAtUtc);
+                ArchivedAtUtc: dto.ArchivedAtUtc,
+                PlannedPeopleCount: dto.PlannedPeopleCount);
         }
 
         private static CityProvisioningStatusView MapToProvisioningStatusView(CityDto dto)

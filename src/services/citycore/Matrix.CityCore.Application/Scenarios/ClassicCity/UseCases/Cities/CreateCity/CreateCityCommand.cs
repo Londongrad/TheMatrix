@@ -15,7 +15,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
         string? UrbanDensity,
         string? DevelopmentLevel,
         DateTimeOffset StartSimTimeUtc,
-        decimal SpeedMultiplier = 1.0m) : IRequest<CityCreatedDto>, IRequirePermission
+        decimal SpeedMultiplier = 1.0m,
+        int? PlannedPeopleCount = null) : IRequest<CityCreatedDto>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.CityCoreClassicCityCreate;
     }

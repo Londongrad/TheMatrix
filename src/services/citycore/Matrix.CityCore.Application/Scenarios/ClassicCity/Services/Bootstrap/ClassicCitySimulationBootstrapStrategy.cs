@@ -56,7 +56,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
             var generationProfile = CityGenerationProfile.Create(
                 sizeTier: sizeTier,
                 urbanDensity: urbanDensity,
-                developmentLevel: developmentLevel);
+                developmentLevel: developmentLevel,
+                plannedPeopleCount: request.PlannedPeopleCount);
 
             string effectiveSeed = string.IsNullOrWhiteSpace(request.GenerationSeed)
                 ? BuildDefaultGenerationSeed(

@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
@@ -8,26 +9,32 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
     /// </summary>
     public sealed record class CityGenerationProfile
     {
+        public const int MaxPlannedPeopleCount = 1_000_000;
+
         private CityGenerationProfile() { }
 
         private CityGenerationProfile(
             CitySizeTier sizeTier,
             UrbanDensity urbanDensity,
-            CityDevelopmentLevel developmentLevel)
+            CityDevelopmentLevel developmentLevel,
+            int? plannedPeopleCount)
         {
             SizeTier = sizeTier;
             UrbanDensity = urbanDensity;
             DevelopmentLevel = developmentLevel;
+            PlannedPeopleCount = plannedPeopleCount;
         }
 
         public CitySizeTier SizeTier { get; private set; }
         public UrbanDensity UrbanDensity { get; private set; }
         public CityDevelopmentLevel DevelopmentLevel { get; private set; }
+        public int? PlannedPeopleCount { get; private set; }
 
         public static CityGenerationProfile Create(
             CitySizeTier sizeTier,
             UrbanDensity urbanDensity,
-            CityDevelopmentLevel developmentLevel)
+            CityDevelopmentLevel developmentLevel,
+            int? plannedPeopleCount = null)
         {
             GuardHelper.AgainstInvalidEnum(
                 value: sizeTier,
@@ -41,10 +48,17 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 value: developmentLevel,
                 propertyName: nameof(DevelopmentLevel));
 
+            if (plannedPeopleCount is < 0 or > MaxPlannedPeopleCount)
+                throw ClassicCityDomainErrorsFactory.InvalidCityGenerationProfile(
+                    reason:
+                    $"Planned people count must stay between 0 and {MaxPlannedPeopleCount}.",
+                    propertyName: nameof(PlannedPeopleCount));
+
             return new CityGenerationProfile(
                 sizeTier: sizeTier,
                 urbanDensity: urbanDensity,
-                developmentLevel: developmentLevel);
+                developmentLevel: developmentLevel,
+                plannedPeopleCount: plannedPeopleCount);
         }
     }
 }

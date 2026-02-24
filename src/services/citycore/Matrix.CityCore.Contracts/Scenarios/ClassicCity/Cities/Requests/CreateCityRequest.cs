@@ -11,5 +11,6 @@ namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests
         string? UrbanDensity,
         string? DevelopmentLevel,
         DateTimeOffset StartSimTimeUtc,
-        decimal SpeedMultiplier = 1.0m);
+        decimal SpeedMultiplier = 1.0m,
+        int? PlannedPeopleCount = null);
 }

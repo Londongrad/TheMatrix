@@ -79,6 +79,10 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                        .HasConversion<int>()
                        .HasColumnName("GenerationDevelopmentLevel")
                        .IsRequired();
+
+                    profile.Property(x => x.PlannedPeopleCount)
+                       .HasColumnName("GenerationPlannedPeopleCount")
+                       .IsRequired(false);
                 });
 
             builder.Navigation(x => x.GenerationProfile)

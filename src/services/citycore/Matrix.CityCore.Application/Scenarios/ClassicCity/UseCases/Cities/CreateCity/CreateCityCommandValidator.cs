@@ -62,6 +62,14 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                .InclusiveBetween(
                     from: SimSpeed.Min,
                     to: SimSpeed.Max);
+
+            RuleFor(x => x.PlannedPeopleCount)
+               .InclusiveBetween(
+                    from: 0,
+                    to: CityGenerationProfile.MaxPlannedPeopleCount)
+               .When(x => x.PlannedPeopleCount.HasValue)
+               .WithMessage(
+                    $"PlannedPeopleCount must stay between 0 and {CityGenerationProfile.MaxPlannedPeopleCount}.");
         }
 
         private static bool BeValidClimateZone(string value)
