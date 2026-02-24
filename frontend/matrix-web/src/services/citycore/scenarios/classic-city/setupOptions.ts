@@ -103,3 +103,16 @@ export const CLASSIC_CITY_HEMISPHERE_OPTIONS: SetupOption[] = [
         description: "Season planner mirrors weather progression for the southern hemisphere.",
     },
 ];
+
+export const CLASSIC_CITY_POPULATION_MODE_OPTIONS: SetupOption[] = [
+    {
+        value: "automatic",
+        label: "Automatic bootstrap",
+        description: "Gateway derives the initial resident target from generated residential capacity and city profile.",
+    },
+    {
+        value: "manual",
+        label: "Manual target",
+        description: "Pin an explicit starting headcount that survives setup-session refresh and population bootstrap retry.",
+    },
+];

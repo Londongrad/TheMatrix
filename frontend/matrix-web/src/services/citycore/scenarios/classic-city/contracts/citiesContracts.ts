@@ -18,6 +18,7 @@ export interface CreateCityRequest {
     sizeTier?: string | null;
     urbanDensity?: string | null;
     developmentLevel?: string | null;
+    plannedPeopleCount?: number | null;
 }
 
 export interface CityPopulationBootstrapSummaryView {
@@ -70,6 +71,7 @@ export interface CityView {
     developmentLevel: string;
     createdAtUtc: string;
     archivedAtUtc?: string | null;
+    plannedPeopleCount?: number | null;
 }
 
 export interface RenameCityRequest {

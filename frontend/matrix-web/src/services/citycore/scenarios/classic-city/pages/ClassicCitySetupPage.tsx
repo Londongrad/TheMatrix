@@ -9,6 +9,7 @@ import {
     updateClassicCitySetupSession,
 } from "@services/citycore/scenarios/classic-city/api/setupSessionsApi";
 import type {
+    ClassicCityPopulationMode,
     ClassicCitySetupDraftView,
     ClassicCitySetupSessionView,
     ClassicCitySetupStepId,
@@ -18,6 +19,7 @@ import {
     CLASSIC_CITY_DEVELOPMENT_OPTIONS,
     CLASSIC_CITY_DENSITY_OPTIONS,
     CLASSIC_CITY_HEMISPHERE_OPTIONS,
+    CLASSIC_CITY_POPULATION_MODE_OPTIONS,
     CLASSIC_CITY_SIZE_TIER_OPTIONS,
     type SetupOption,
 } from "@services/citycore/scenarios/classic-city/setupOptions";
@@ -38,6 +40,7 @@ type ValidationErrors = {
     startSimTimeLocal?: string;
     speedMultiplier?: string;
     utcOffsetMinutes?: string;
+    plannedPeopleCount?: string;
 };
 
 type SetupDraft = ClassicCitySetupDraftView;
@@ -72,6 +75,11 @@ const setupSteps: { id: ClassicCitySetupStepId; title: string; description: stri
         description: "Set the climate context that will drive weather planning and downstream bootstrap.",
     },
     {
+        id: "population",
+        title: "Population",
+        description: "Choose whether bootstrap should derive population automatically or launch against a fixed resident target.",
+    },
+    {
         id: "launch",
         title: "Launch review",
         description: "Verify the launch contract before handing the setup off to backend provisioning.",
@@ -80,6 +88,7 @@ const setupSteps: { id: ClassicCitySetupStepId; title: string; description: stri
 
 const mutableSessionStatuses = new Set(["Draft", "LaunchFailed"]);
 const runningSessionStatuses = new Set(["LaunchQueued", "CreatingCity", "BootstrappingPopulation"]);
+const MAX_PLANNED_PEOPLE_COUNT = 1_000_000;
 
 function createDefaultDraft(): SetupDraft {
     const startSimTimeLocal = getNowLocalDateTimeInputValue();
@@ -96,6 +105,8 @@ function createDefaultDraft(): SetupDraft {
         sizeTier: "Medium",
         urbanDensity: "Balanced",
         developmentLevel: "Balanced",
+        populationMode: "automatic",
+        plannedPeopleCount: "",
     };
 }
 
@@ -103,6 +114,8 @@ function normalizeDraft(draft: SetupDraft): SetupDraft {
     return {
         ...draft,
         startSimTimeUtc: draft.startSimTimeUtc ?? localDateTimeToUtcIso(draft.startSimTimeLocal),
+        populationMode: draft.populationMode === "manual" ? "manual" : "automatic",
+        plannedPeopleCount: draft.plannedPeopleCount?.trim() ?? "",
     };
 }
 
@@ -159,6 +172,28 @@ function validateEnvironment(draft: SetupDraft): ValidationErrors {
     return errors;
 }
 
+function validatePopulation(draft: SetupDraft): ValidationErrors {
+    const errors: ValidationErrors = {};
+
+    if (draft.populationMode !== "manual") {
+        return errors;
+    }
+
+    const plannedPeopleCount = Number(draft.plannedPeopleCount);
+
+    if (!draft.plannedPeopleCount.trim()) {
+        errors.plannedPeopleCount = "Planned people count is required for manual bootstrap.";
+    } else if (!Number.isInteger(plannedPeopleCount)) {
+        errors.plannedPeopleCount = "Planned people count must be a whole number.";
+    } else if (plannedPeopleCount < 0) {
+        errors.plannedPeopleCount = "Planned people count cannot be negative.";
+    } else if (plannedPeopleCount > MAX_PLANNED_PEOPLE_COUNT) {
+        errors.plannedPeopleCount = `Planned people count must stay below ${MAX_PLANNED_PEOPLE_COUNT.toLocaleString()}.`;
+    }
+
+    return errors;
+}
+
 function mergeErrors(...items: ValidationErrors[]): ValidationErrors {
     return Object.assign({}, ...items);
 }
@@ -196,6 +231,29 @@ function formatDateTime(value?: string | null): string {
     }
 
     return parsed.toLocaleString();
+}
+
+function formatPeopleCount(value: string): string {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        return value;
+    }
+
+    return parsed.toLocaleString();
+}
+
+function getPopulationPlanLabel(mode: ClassicCityPopulationMode): string {
+    return mode === "manual" ? "Manual target" : "Automatic bootstrap";
+}
+
+function getPopulationPlanDescription(draft: SetupDraft): string {
+    if (draft.populationMode === "manual") {
+        return draft.plannedPeopleCount.trim().length > 0
+            ? `${formatPeopleCount(draft.plannedPeopleCount)} residents requested before provisioning starts.`
+            : "Manual bootstrap requires an explicit resident target.";
+    }
+
+    return "Gateway derives the opening headcount from the generated residential capacity and city profile.";
 }
 
 function formatSessionStatusLabel(status?: string | null): string {
@@ -430,6 +488,16 @@ export default function ClassicCitySetupPage() {
         });
 
         setValidationErrors((current) => {
+            if (key === "populationMode" && value === "automatic") {
+                if (!current.plannedPeopleCount) {
+                    return current;
+                }
+
+                const next = {...current};
+                delete next.plannedPeopleCount;
+                return next;
+            }
+
             if (!(key in current)) {
                 return current;
             }
@@ -465,6 +533,14 @@ export default function ClassicCitySetupPage() {
             }
         }
 
+        if (currentStep.id === "population") {
+            const errors = validatePopulation(draft);
+            setValidationErrors(errors);
+            if (Object.keys(errors).length > 0) {
+                return;
+            }
+        }
+
         moveToStep(setupSteps[Math.min(currentStepIndex + 1, setupSteps.length - 1)].id);
     }
 
@@ -476,6 +552,7 @@ export default function ClassicCitySetupPage() {
         const errors = mergeErrors(
             validateProfile(draft),
             validateEnvironment(draft),
+            validatePopulation(draft),
         );
         setValidationErrors(errors);
 
@@ -901,6 +978,67 @@ export default function ClassicCitySetupPage() {
                         </div>
                     ) : null}
 
+                    {currentStep.id === "population" ? (
+                        <div className="scenario-setup__stack">
+                            <OptionGrid
+                                legend="Population bootstrap mode"
+                                options={CLASSIC_CITY_POPULATION_MODE_OPTIONS}
+                                selectedValue={draft.populationMode}
+                                onSelect={(value) => updateDraft("populationMode", value as ClassicCityPopulationMode)}
+                                disabled={!canEditSession}
+                            />
+
+                            {draft.populationMode === "manual" ? (
+                                <div className="scenario-setup__form-grid">
+                                    <div className="scenario-setup__field">
+                                        <label className="scenario-setup__label" htmlFor="classic-city-planned-people-count">
+                                            Planned people count
+                                        </label>
+                                        <input
+                                            id="classic-city-planned-people-count"
+                                            className="scenario-setup__input"
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            value={draft.plannedPeopleCount}
+                                            onChange={(event) => updateDraft("plannedPeopleCount", event.target.value)}
+                                            disabled={!canEditSession}
+                                        />
+                                        {validationErrors.plannedPeopleCount ? (
+                                            <div className="scenario-setup__error">{validationErrors.plannedPeopleCount}</div>
+                                        ) : null}
+                                        <div className="scenario-setup__hint">
+                                            This value is persisted into the setup session and CityCore generation profile, so
+                                            bootstrap retry keeps the same resident target instead of silently falling back to
+                                            automatic sizing.
+                                        </div>
+                                    </div>
+
+                                    <div className="scenario-setup__field">
+                                        <div className="scenario-setup__label">Capacity note</div>
+                                        <div className="scenario-setup__fact-card">
+                                            <strong>Manual target still respects generated housing capacity</strong>
+                                            <span>
+                                                Classic City topology is generated before population bootstrap. If the requested
+                                                resident target exceeds the generated residential capacity, provisioning will cap
+                                                the applied bootstrap count instead of overfilling the city.
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="scenario-setup__fact-card">
+                                    <strong>Automatic population sizing</strong>
+                                    <span>
+                                        Gateway will derive the initial resident target from the generated residential
+                                        buildings, density profile, development level, and deterministic launch seed after the
+                                        city skeleton is created.
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    ) : null}
+
                     {currentStep.id === "launch" ? (
                         <div className="scenario-setup__stack">
                             <div className="scenario-setup__review-grid">
@@ -932,10 +1070,9 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Population bootstrap</span>
-                                    <strong className="scenario-setup__review-value">Automatic</strong>
+                                    <strong className="scenario-setup__review-value">{getPopulationPlanLabel(draft.populationMode)}</strong>
                                     <span className="scenario-setup__review-text">
-                                        Population is initialized downstream after CityCore creates topology, weather,
-                                        and simulation clock state.
+                                        {getPopulationPlanDescription(draft)}
                                     </span>
                                 </article>
                             </div>
@@ -1002,6 +1139,11 @@ export default function ClassicCitySetupPage() {
                             <div className="scenario-setup__aside-item">
                                 <span>Environment</span>
                                 <strong>{draft.climateZone} / {draft.hemisphere}</strong>
+                            </div>
+                            <div className="scenario-setup__aside-item">
+                                <span>Population</span>
+                                <strong>{getPopulationPlanLabel(draft.populationMode)}</strong>
+                                <span>{getPopulationPlanDescription(draft)}</span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Clock</span>
