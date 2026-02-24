@@ -18,6 +18,9 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cit
             bool includeArchived,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyList<CityListItemView>> ListProvisioningCitiesAsync(
+            CancellationToken cancellationToken = default);
+
         Task<CityView> GetCityAsync(
             Guid cityId,
             CancellationToken cancellationToken = default);

@@ -12,6 +12,9 @@ namespace Matrix.CityCore.Application.Abstractions.Persistence
             bool includeArchived,
             CancellationToken cancellationToken);
 
+        Task<IReadOnlyList<City>> ListProvisioningAsync(
+            CancellationToken cancellationToken);
+
         Task AddAsync(
             City city,
             CancellationToken cancellationToken);

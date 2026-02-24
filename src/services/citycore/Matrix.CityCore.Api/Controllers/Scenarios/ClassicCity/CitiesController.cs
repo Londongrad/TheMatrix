@@ -9,6 +9,7 @@ using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetGener
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSimulationKinds;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetSuggestedCityNames;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.ListCities;
+using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.ListProvisioningCities;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.RenameCity;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment;
@@ -116,6 +117,21 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
         {
             IReadOnlyList<CityDto> cities = await mediator.Send(
                 request: new ListCitiesQuery(IncludeArchived: includeArchived),
+                cancellationToken: cancellationToken);
+
+            CityListItemView[] views = cities
+               .Select(MapToListItemView)
+               .ToArray();
+
+            return Results.Ok(views);
+        }
+
+        [HttpGet("provisioning")]
+        public async Task<IResult> ListProvisioning(
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<CityDto> cities = await mediator.Send(
+                request: new ListProvisioningCitiesQuery(),
                 cancellationToken: cancellationToken);
 
             CityListItemView[] views = cities

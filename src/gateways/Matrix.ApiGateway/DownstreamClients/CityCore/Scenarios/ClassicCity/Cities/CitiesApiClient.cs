@@ -60,6 +60,21 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cit
                 requestUrl: url);
         }
 
+        public async Task<IReadOnlyList<CityListItemView>> ListProvisioningCitiesAsync(
+            CancellationToken cancellationToken = default)
+        {
+            const string url = $"{CitiesEndpoint}/provisioning";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<IReadOnlyList<CityListItemView>>(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<CityView> GetCityAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)

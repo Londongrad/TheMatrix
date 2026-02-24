@@ -22,11 +22,23 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
         {
             IQueryable<City> query = dbContext.Cities.AsNoTracking();
 
-            if (!includeArchived)
-                query = query.Where(x => x.Status != CityStatus.Archived);
+            query = includeArchived
+                ? query.Where(x => x.Status == CityStatus.Active || x.Status == CityStatus.Archived)
+                : query.Where(x => x.Status == CityStatus.Active);
 
             return await query
                .OrderBy(x => x.CreatedAtUtc)
+               .ToListAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<City>> ListProvisioningAsync(
+            CancellationToken cancellationToken)
+        {
+            return await dbContext.Cities
+               .AsNoTracking()
+               .Where(x => x.Status == CityStatus.Provisioning || x.Status == CityStatus.ProvisioningFailed)
+               .OrderByDescending(x => x.Status == CityStatus.ProvisioningFailed)
+               .ThenByDescending(x => x.CreatedAtUtc)
                .ToListAsync(cancellationToken);
         }
 

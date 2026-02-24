@@ -64,6 +64,16 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             return Ok(cities);
         }
 
+        [HttpGet("provisioning")]
+        public async Task<ActionResult<IReadOnlyList<CityListItemView>>> ListProvisioning(
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<CityListItemView> cities = await _citiesClient.ListProvisioningCitiesAsync(
+                cancellationToken: cancellationToken);
+
+            return Ok(cities);
+        }
+
         [HttpGet("{cityId:guid}")]
         public async Task<ActionResult<CityView>> Get(
             [FromRoute] Guid cityId,
