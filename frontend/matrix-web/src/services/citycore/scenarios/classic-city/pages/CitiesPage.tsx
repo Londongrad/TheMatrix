@@ -4,6 +4,7 @@ import CityList from "@services/citycore/scenarios/classic-city/components/CityL
 import {CitiesToolbar} from "@services/citycore/scenarios/classic-city/components/CitiesToolbar";
 import type {CityListItemView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 import {useCitiesQuery} from "@services/citycore/scenarios/classic-city/hooks/useCitiesQuery";
+import {useProvisioningCitiesQuery} from "@services/citycore/scenarios/classic-city/hooks/useProvisioningCitiesQuery";
 import {getCityStatusTone} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import {
     CITYCORE_SCENARIO_CATALOG_PATH,
@@ -45,6 +46,7 @@ export default function CitiesPage() {
     const canCreateCity = can(PermissionKeys.CityCoreClassicCityCreate);
 
     const citiesQuery = useCitiesQuery(includeArchived);
+    const provisioningQuery = useProvisioningCitiesQuery();
 
     const filteredCities = useMemo(() => {
         const query = normalize(search);
@@ -78,13 +80,9 @@ export default function CitiesPage() {
     }, [filteredCities]);
 
     const stats = useMemo(() => {
-        const allCities = citiesQuery.data;
-        const readyCount = allCities.filter((city) => getCityStatusTone(city.status) === "active").length;
-        const archivedCount = allCities.filter((city) => getCityStatusTone(city.status) === "archived").length;
-        const provisioningCount = allCities.filter((city) => {
-            const tone = getCityStatusTone(city.status);
-            return tone === "provisioning" || tone === "failed";
-        }).length;
+        const readyCount = citiesQuery.data.filter((city) => getCityStatusTone(city.status) === "active").length;
+        const archivedCount = citiesQuery.data.filter((city) => getCityStatusTone(city.status) === "archived").length;
+        const provisioningCount = provisioningQuery.data.length;
 
         return {
             visible: orderedCities.length,
@@ -92,7 +90,7 @@ export default function CitiesPage() {
             provisioning: provisioningCount,
             archived: archivedCount,
         };
-    }, [citiesQuery.data, orderedCities.length]);
+    }, [citiesQuery.data, orderedCities.length, provisioningQuery.data]);
 
     function handleOpen(city: CityListItemView) {
         const tone = getCityStatusTone(city.status);
@@ -159,11 +157,75 @@ export default function CitiesPage() {
             <div className="cities-card cities-card--registry">
                 <div className="cities-card__header">
                     <div>
+                        <h2 className="cities-card__title">Provisioning handoff queue</h2>
+                        <p className="cities-card__subtitle">
+                            New launches and failed bootstrap attempts stay here until they are either handed off to
+                            monitoring or explicitly resolved.
+                        </p>
+                    </div>
+
+                    <Button
+                        type="button"
+                        variant="default"
+                        onClick={() => {
+                            void provisioningQuery.refetch();
+                        }}
+                        disabled={provisioningQuery.isLoading}
+                    >
+                        {provisioningQuery.isLoading ? "Refreshing..." : "Refresh queue"}
+                    </Button>
+                </div>
+
+                {provisioningQuery.error ? (
+                    <div className="cities-error-banner" role="alert">
+                        <div className="cities-error-banner__content">
+                            <div className="cities-error-banner__title">Failed to load provisioning queue</div>
+                            <div>{provisioningQuery.error}</div>
+                        </div>
+
+                        <Button
+                            type="button"
+                            variant="primary"
+                            onClick={() => {
+                                void provisioningQuery.refetch();
+                            }}
+                        >
+                            Retry
+                        </Button>
+                    </div>
+                ) : null}
+
+                {!provisioningQuery.error && provisioningQuery.isLoading && provisioningQuery.data.length === 0 ? (
+                    <div className="cities-empty-state">
+                        <div className="cities-empty-state__title">Loading provisioning queue</div>
+                        <div className="cities-empty-state__text">
+                            Fetching in-flight launches and failed handoffs that still need operator attention.
+                        </div>
+                    </div>
+                ) : null}
+
+                {!provisioningQuery.error && !provisioningQuery.isLoading && provisioningQuery.data.length === 0 ? (
+                    <div className="cities-empty-state">
+                        <div className="cities-empty-state__title">Provisioning queue is clear</div>
+                        <div className="cities-empty-state__text">
+                            There are no in-flight or failed launches right now. New scenario launches will appear here
+                            until they are ready for live monitoring.
+                        </div>
+                    </div>
+                ) : null}
+
+                {!provisioningQuery.error && provisioningQuery.data.length > 0 ? (
+                    <CityList cities={provisioningQuery.data} onOpen={handleOpen}/>
+                ) : null}
+            </div>
+
+            <div className="cities-card cities-card--registry">
+                <div className="cities-card__header">
+                    <div>
                         <h2 className="cities-card__title">City registry</h2>
                         <p className="cities-card__subtitle">
-                            Failed and provisioning launches stay visible instead of pretending to be ready cities.
-                            Opening those records routes into the provisioning handoff, while ready cities continue into
-                            live monitoring.
+                            Only ready cities and archived records live here. Provisioning hosts are surfaced in the
+                            dedicated handoff queue instead of mixing unfinished launches into the main registry.
                         </p>
                     </div>
                 </div>

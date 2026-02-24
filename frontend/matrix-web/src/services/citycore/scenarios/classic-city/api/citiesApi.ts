@@ -16,6 +16,13 @@ export function getCities(includeArchived: boolean, signal?: AbortSignal) {
     );
 }
 
+export function getProvisioningCities(signal?: AbortSignal) {
+    return apiRequest<CityListItemView[]>(`${API_CITY_URL}/provisioning`, {
+        method: "GET",
+        signal,
+    });
+}
+
 export function createCity(request: CreateCityRequest) {
     return apiRequest<CityProvisioningView>(API_CITY_URL, {
         method: "POST",
