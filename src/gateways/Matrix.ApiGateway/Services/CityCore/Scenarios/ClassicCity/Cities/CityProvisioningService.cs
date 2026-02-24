@@ -61,7 +61,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     UrbanDensity: request.UrbanDensity,
                     DevelopmentLevel: request.DevelopmentLevel,
                     StartSimTimeUtc: request.StartSimTimeUtc,
-                    SpeedMultiplier: request.SpeedMultiplier),
+                    SpeedMultiplier: request.SpeedMultiplier,
+                    PlannedPeopleCount: request.PlannedPeopleCount),
                 cancellationToken: cancellationToken);
         }
 
@@ -150,7 +151,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 IReadOnlyList<ResidentialBuildingView> buildings = await buildingsTask;
 
                 residentialCapacity = buildings.Sum(x => x.ResidentCapacity);
-                plannedPeopleCount = CalculatePeopleCount(
+                plannedPeopleCount = ResolvePlannedPeopleCount(
                     city: city,
                     buildings: buildings);
 
@@ -249,7 +250,26 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             }
         }
 
-        private static int CalculatePeopleCount(
+        private static int ResolvePlannedPeopleCount(
+            CityView city,
+            IReadOnlyCollection<ResidentialBuildingView> buildings)
+        {
+            int totalCapacity = buildings.Sum(x => x.ResidentCapacity);
+
+            if (city.PlannedPeopleCount.HasValue)
+            {
+                return Math.Clamp(
+                    value: city.PlannedPeopleCount.Value,
+                    min: 0,
+                    max: totalCapacity);
+            }
+
+            return CalculateAutomaticPeopleCount(
+                city: city,
+                buildings: buildings);
+        }
+
+        private static int CalculateAutomaticPeopleCount(
             CityView city,
             IReadOnlyCollection<ResidentialBuildingView> buildings)
         {

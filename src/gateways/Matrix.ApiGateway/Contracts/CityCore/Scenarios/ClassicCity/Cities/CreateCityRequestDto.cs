@@ -11,5 +11,6 @@
         string? GenerationSeed = null,
         string? SizeTier = null,
         string? UrbanDensity = null,
-        string? DevelopmentLevel = null);
+        string? DevelopmentLevel = null,
+        int? PlannedPeopleCount = null);
 }

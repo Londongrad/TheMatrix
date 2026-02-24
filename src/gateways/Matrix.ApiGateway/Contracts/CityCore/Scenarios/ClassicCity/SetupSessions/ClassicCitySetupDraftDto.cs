@@ -11,5 +11,7 @@ namespace Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.SetupSessio
         string GenerationSeed,
         string SizeTier,
         string UrbanDensity,
-        string DevelopmentLevel);
+        string DevelopmentLevel,
+        string PopulationMode = "automatic",
+        string PlannedPeopleCount = "");
 }

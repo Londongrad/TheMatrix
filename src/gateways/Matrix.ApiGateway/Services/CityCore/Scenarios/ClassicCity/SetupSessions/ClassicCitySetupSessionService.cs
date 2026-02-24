@@ -15,6 +15,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         ILogger<ClassicCitySetupSessionService> logger)
         : IClassicCitySetupSessionService
     {
+        private const string PopulationModeAutomatic = "automatic";
+        private const string PopulationModeManual = "manual";
+        private const int MaxPlannedPeopleCount = 1_000_000;
+
         private static readonly string[] MutableStatuses =
         [
             ClassicCitySetupSessionStatuses.Draft,
@@ -211,7 +215,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             session.Status = ClassicCitySetupSessionStatuses.BootstrappingPopulation;
             session.CityId = created.CityId;
             session.SimulationKind = created.SimulationKind;
-            session.Provisioning = BuildPendingProvisioning(created);
+            session.Provisioning = BuildPendingProvisioning(
+                created: created,
+                plannedPeopleCount: session.LaunchRequest.PlannedPeopleCount);
             session.UpdatedAtUtc = provisioningStartedAtUtc;
 
             await sessionStore.SaveAsync(
@@ -274,7 +280,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 GenerationSeed = draft.GenerationSeed?.Trim() ?? string.Empty,
                 SizeTier = string.IsNullOrWhiteSpace(draft.SizeTier) ? "Medium" : draft.SizeTier.Trim(),
                 UrbanDensity = string.IsNullOrWhiteSpace(draft.UrbanDensity) ? "Balanced" : draft.UrbanDensity.Trim(),
-                DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel) ? "Balanced" : draft.DevelopmentLevel.Trim()
+                DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel) ? "Balanced" : draft.DevelopmentLevel.Trim(),
+                PopulationMode = NormalizePopulationMode(draft.PopulationMode),
+                PlannedPeopleCount = draft.PlannedPeopleCount?.Trim() ?? string.Empty
             };
         }
 
@@ -329,6 +337,26 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 return false;
             }
 
+            int? plannedPeopleCount = null;
+
+            if (string.Equals(draft.PopulationMode, PopulationModeManual, StringComparison.Ordinal))
+            {
+                if (!int.TryParse(
+                        s: draft.PlannedPeopleCount,
+                        style: System.Globalization.NumberStyles.Integer,
+                        provider: System.Globalization.CultureInfo.InvariantCulture,
+                        result: out int parsedPeopleCount) ||
+                    parsedPeopleCount < 0 ||
+                    parsedPeopleCount > MaxPlannedPeopleCount)
+                {
+                    errorMessage =
+                        $"Planned people count must be a whole number between 0 and {MaxPlannedPeopleCount}.";
+                    return false;
+                }
+
+                plannedPeopleCount = parsedPeopleCount;
+            }
+
             launchRequest = new CreateCityRequestDto(
                 Name: draft.Name,
                 StartSimTimeUtc: draft.StartSimTimeUtc.Value,
@@ -340,12 +368,22 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 GenerationSeed: string.IsNullOrWhiteSpace(draft.GenerationSeed) ? null : draft.GenerationSeed,
                 SizeTier: draft.SizeTier,
                 UrbanDensity: draft.UrbanDensity,
-                DevelopmentLevel: draft.DevelopmentLevel);
+                DevelopmentLevel: draft.DevelopmentLevel,
+                PlannedPeopleCount: plannedPeopleCount);
 
             return true;
         }
 
-        private static CityProvisioningView BuildPendingProvisioning(CityCreatedView created)
+        private static string NormalizePopulationMode(string? value)
+        {
+            return string.Equals(value?.Trim(), PopulationModeManual, StringComparison.OrdinalIgnoreCase)
+                ? PopulationModeManual
+                : PopulationModeAutomatic;
+        }
+
+        private static CityProvisioningView BuildPendingProvisioning(
+            CityCreatedView created,
+            int? plannedPeopleCount)
         {
             return new CityProvisioningView(
                 CityId: created.CityId,
@@ -353,7 +391,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 PopulationBootstrap: new CityPopulationBootstrapView(
                     OperationId: created.PopulationBootstrapOperationId,
                     Status: "Pending",
-                    PlannedPeopleCount: null,
+                    PlannedPeopleCount: plannedPeopleCount,
                     ResidentialCapacity: null,
                     Summary: null,
                     FailureCode: null));
