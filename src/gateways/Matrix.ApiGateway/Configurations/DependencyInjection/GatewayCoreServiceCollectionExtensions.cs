@@ -1,4 +1,5 @@
-﻿using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             services
                .AddScoped<ICityProvisioningService, CityProvisioningService>()
+               .AddScoped<IClassicCitySetupSessionStore, RedisClassicCitySetupSessionStore>()
+               .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()
                .AddGatewayControllers()
                .AddGatewayCors();
 

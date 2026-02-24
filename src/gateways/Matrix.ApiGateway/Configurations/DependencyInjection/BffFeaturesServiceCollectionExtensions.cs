@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Matrix.ApiGateway.Authorization.AuthContext;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion;
@@ -19,6 +19,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             services.AddPermissionsVersionOptions(configuration);
             services.AddRabbitMqOptions(configuration);
+            services.AddClassicCitySetupSessionOptions(configuration);
             services.AddGatewayRedisCache(configuration);
             services.AddIdentityInternalUsersClient();
             services.AddGatewayMessaging();
@@ -54,6 +55,20 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => o.CacheTtlSeconds > 0,
                     failureMessage: "PermissionsVersion:CacheTtlSeconds must be greater than 0.")
+               .ValidateOnStart();
+
+            return services;
+        }
+
+        private static IServiceCollection AddClassicCitySetupSessionOptions(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            services.AddOptions<ClassicCitySetupSessionOptions>()
+               .Bind(configuration.GetSection(ClassicCitySetupSessionOptions.SectionName))
+               .Validate(
+                    validation: o => o.CacheTtlHours > 0,
+                    failureMessage: "ClassicCitySetupSessions:CacheTtlHours must be greater than 0.")
                .ValidateOnStart();
 
             return services;
@@ -120,6 +135,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddConsumer<ClassicCitySetupLaunchRequestedConsumer>();
                 x.AddConsumer<UserSecurityStateChangedConsumer>();
 
                 x.UsingRabbitMq((

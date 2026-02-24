@@ -1,0 +1,13 @@
+namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions
+{
+    internal static class ClassicCitySetupSessionFailureCodes
+    {
+        public const string InvalidLaunchState = "Gateway.ClassicCitySetup.InvalidLaunchState";
+        public const string LaunchRequestMissing = "Gateway.ClassicCitySetup.LaunchRequestMissing";
+        public const string CityCreateValidationFailed = "Gateway.ClassicCitySetup.CityCreateValidationFailed";
+        public const string CityCreateConflict = "Gateway.ClassicCitySetup.CityCreateConflict";
+        public const string CityCreateTransportError = "Gateway.ClassicCitySetup.CityCreateTransportError";
+        public const string CityCreateUnexpectedError = "Gateway.ClassicCitySetup.CityCreateUnexpectedError";
+        public const string ProvisioningUnexpectedError = "Gateway.ClassicCitySetup.ProvisioningUnexpectedError";
+    }
+}
