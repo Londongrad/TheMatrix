@@ -256,6 +256,18 @@
     border-color: rgba(var(--shell-accent-rgb), 0.24);
 }
 
+.scenario-setup__aside-card--status-draft {
+    border-color: rgba(var(--shell-accent-rgb), 0.16);
+}
+
+.scenario-setup__aside-card--status-running {
+    border-color: rgba(255, 214, 102, 0.26);
+}
+
+.scenario-setup__aside-card--status-ready {
+    border-color: rgba(var(--shell-accent-rgb), 0.28);
+}
+
 .scenario-setup__aside-card--status-active {
     border-color: rgba(var(--shell-accent-rgb), 0.28);
 }
@@ -451,6 +463,142 @@
 .scenario-setup__aside-value,
 .scenario-setup__stat-value {
     color: var(--app-text-strong);
+}
+
+.scenario-setup__timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.scenario-setup__timeline-step {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 16px;
+}
+
+.scenario-setup__timeline-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.scenario-setup__timeline-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.24);
+    background: rgba(var(--shell-accent-rgb), 0.1);
+}
+
+.scenario-setup__timeline-line {
+    width: 1px;
+    flex: 1 1 auto;
+    min-height: 64px;
+    background: linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.22), transparent);
+}
+
+.scenario-setup__timeline-step:last-child .scenario-setup__timeline-line {
+    display: none;
+}
+
+.scenario-setup__timeline-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+    border-radius: 22px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.scenario-setup__timeline-step--current .scenario-setup__timeline-card {
+    border-color: rgba(255, 214, 102, 0.22);
+    background: rgba(255, 214, 102, 0.08);
+}
+
+.scenario-setup__timeline-step--complete .scenario-setup__timeline-card {
+    border-color: rgba(var(--shell-accent-rgb), 0.2);
+}
+
+.scenario-setup__timeline-step--failed .scenario-setup__timeline-card {
+    border-color: rgba(255, 118, 118, 0.24);
+    background: rgba(61, 12, 12, 0.3);
+}
+
+.scenario-setup__timeline-step--current .scenario-setup__timeline-dot {
+    border-color: rgba(255, 214, 102, 0.32);
+    background: rgba(255, 214, 102, 0.42);
+}
+
+.scenario-setup__timeline-step--complete .scenario-setup__timeline-dot {
+    border-color: rgba(var(--shell-accent-rgb), 0.28);
+    background: rgba(var(--shell-accent-rgb), 0.42);
+}
+
+.scenario-setup__timeline-step--failed .scenario-setup__timeline-dot {
+    border-color: rgba(255, 118, 118, 0.32);
+    background: rgba(255, 118, 118, 0.42);
+}
+
+.scenario-setup__timeline-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.scenario-setup__timeline-title {
+    color: var(--app-text-strong);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.scenario-setup__timeline-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.16);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.scenario-setup__timeline-status--pending {
+    color: var(--app-text-muted);
+}
+
+.scenario-setup__timeline-status--current {
+    border-color: rgba(255, 214, 102, 0.24);
+    background: rgba(255, 214, 102, 0.12);
+    color: #ffe08f;
+}
+
+.scenario-setup__timeline-status--complete {
+    border-color: rgba(var(--shell-accent-rgb), 0.24);
+    background: rgba(var(--shell-accent-rgb), 0.12);
+    color: color-mix(in srgb, var(--shell-accent) 64%, var(--app-text));
+}
+
+.scenario-setup__timeline-status--failed {
+    border-color: rgba(255, 118, 118, 0.24);
+    background: rgba(61, 12, 12, 0.52);
+    color: #ffd6d6;
+}
+
+.scenario-setup__timeline-description,
+.scenario-setup__timeline-meta {
+    color: color-mix(in srgb, var(--app-text) 78%, transparent);
+    line-height: 1.6;
+}
+
+.scenario-setup__timeline-meta {
+    font-size: 13px;
 }
 
 .scenario-setup__option-title {

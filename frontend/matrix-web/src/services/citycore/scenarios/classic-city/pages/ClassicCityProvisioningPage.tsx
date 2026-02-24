@@ -20,6 +20,10 @@ import {
     getCityStatusTone,
 } from "@services/citycore/scenarios/classic-city/utils/presentation";
 import {
+    formatProvisioningDateTime,
+    getBootstrapOutcome,
+} from "@services/citycore/scenarios/classic-city/utils/provisioning";
+import {
     CITYCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_LIST_PATH,
     getClassicCityDetailsPath,
@@ -32,41 +36,6 @@ type ProvisioningLocationState = {
     provisioning?: CityProvisioningView;
     launchedFromSetup?: boolean;
 };
-
-function formatDateTime(value?: string | null): string {
-    if (!value) {
-        return "--";
-    }
-
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-        return value;
-    }
-
-    return parsed.toLocaleString();
-}
-
-function getBootstrapOutcome(
-    bootstrap?: CityPopulationBootstrapView | null,
-    provisioning?: CityProvisioningStatusView | null,
-) {
-    const bootstrapStatus = bootstrap?.status?.toLowerCase();
-    const cityStatus = provisioning?.status?.toLowerCase();
-
-    if (bootstrapStatus === "completed" || cityStatus === "active") {
-        return "completed";
-    }
-
-    if (bootstrapStatus === "failed" || cityStatus === "provisioningfailed") {
-        return "failed";
-    }
-
-    if (bootstrapStatus === "skipped") {
-        return "skipped";
-    }
-
-    return "pending";
-}
 
 export default function ClassicCityProvisioningPage() {
     const params = useParams<{ cityId: string }>();
@@ -301,10 +270,10 @@ export default function ClassicCityProvisioningPage() {
                             <article className="scenario-setup__review-card">
                                 <span className="scenario-setup__review-label">Completed at</span>
                                 <strong className="scenario-setup__review-value">
-                                    {formatDateTime(provisioning?.populationBootstrapCompletedAtUtc)}
+                                    {formatProvisioningDateTime(provisioning?.populationBootstrapCompletedAtUtc)}
                                 </strong>
                                 <span className="scenario-setup__review-text">
-                                    Failed at {formatDateTime(provisioning?.populationBootstrapFailedAtUtc)}
+                                    Failed at {formatProvisioningDateTime(provisioning?.populationBootstrapFailedAtUtc)}
                                 </span>
                             </article>
 

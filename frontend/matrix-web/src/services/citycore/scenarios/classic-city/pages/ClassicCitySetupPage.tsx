@@ -28,7 +28,7 @@ import {
 import {
     CITYCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_SCENARIO,
-    getClassicCityProvisioningPath,
+    getClassicCitySetupProvisioningPath,
     getClassicCitySetupSessionPath,
 } from "@services/citycore/scenarios/registry";
 import "@services/citycore/scenarios/styles/scenario-setup.css";
@@ -500,6 +500,12 @@ export default function ClassicCitySetupPage() {
 
             const launchedSession = await launchClassicCitySetupSession(session.sessionId);
             adoptSession(launchedSession);
+            navigate(getClassicCitySetupProvisioningPath(launchedSession.sessionId), {
+                replace: true,
+                state: {
+                    session: launchedSession,
+                },
+            });
         } catch (error: unknown) {
             setPageError(getErrorMessage(error, "Failed to queue Classic City launch."));
         } finally {
@@ -604,18 +610,12 @@ export default function ClassicCitySetupPage() {
     }, [isLaunchRunning, session?.sessionId, session?.status]);
 
     useEffect(() => {
-        if (!session?.cityId) {
+        if (!session?.sessionId || canEditSession) {
             return;
         }
 
-        navigate(getClassicCityProvisioningPath(session.cityId), {
-            replace: true,
-            state: {
-                provisioning: session.provisioning ?? undefined,
-                launchedFromSetup: true,
-            },
-        });
-    }, [navigate, session?.cityId, session?.provisioning]);
+        navigate(getClassicCitySetupProvisioningPath(session.sessionId), {replace: true});
+    }, [canEditSession, navigate, session?.sessionId]);
 
     useEffect(() => {
         return () => {

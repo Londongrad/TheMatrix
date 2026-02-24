@@ -18,6 +18,7 @@ export const CLASSIC_CITY_LIST_PATH = "/cities";
 export const CLASSIC_CITY_DETAILS_PATH_PATTERN = "/cities/:cityId";
 export const CLASSIC_CITY_SETUP_PATH = "/scenarios/classic-city/setup";
 export const CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN = "/scenarios/classic-city/setup/:sessionId";
+export const CLASSIC_CITY_SETUP_PROVISIONING_PATH_PATTERN = "/scenarios/classic-city/setup/:sessionId/provisioning";
 export const CLASSIC_CITY_PROVISIONING_PATH_PATTERN = "/cities/:cityId/provisioning";
 
 export function getClassicCityDetailsPath(cityId: string): string {
@@ -30,6 +31,10 @@ export function getClassicCitySetupPath(): string {
 
 export function getClassicCitySetupSessionPath(sessionId: string): string {
     return `/scenarios/classic-city/setup/${sessionId}`;
+}
+
+export function getClassicCitySetupProvisioningPath(sessionId: string): string {
+    return `/scenarios/classic-city/setup/${sessionId}/provisioning`;
 }
 
 export function getClassicCityProvisioningPath(cityId: string): string {
