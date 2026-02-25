@@ -48,6 +48,10 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 value: request.DevelopmentLevel,
                 defaultValue: CityDevelopmentLevel.Balanced);
 
+            PopulationOccupancyProfile populationOccupancyProfile = ParseOrDefault(
+                value: request.PopulationOccupancyProfile,
+                defaultValue: PopulationOccupancyProfile.Balanced);
+
             var environment = CityEnvironment.Create(
                 climateZone: climateZone,
                 hemisphere: hemisphere,
@@ -57,6 +61,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 sizeTier: sizeTier,
                 urbanDensity: urbanDensity,
                 developmentLevel: developmentLevel,
+                populationOccupancyProfile: populationOccupancyProfile,
                 plannedPeopleCount: request.PlannedPeopleCount);
 
             string effectiveSeed = string.IsNullOrWhiteSpace(request.GenerationSeed)

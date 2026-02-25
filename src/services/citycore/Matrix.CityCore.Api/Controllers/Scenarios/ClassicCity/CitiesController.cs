@@ -47,6 +47,7 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                     SizeTier: request.SizeTier,
                     UrbanDensity: request.UrbanDensity,
                     DevelopmentLevel: request.DevelopmentLevel,
+                    PopulationOccupancyProfile: request.PopulationOccupancyProfile,
                     StartSimTimeUtc: request.StartSimTimeUtc,
                     SpeedMultiplier: request.SpeedMultiplier,
                     PlannedPeopleCount: request.PlannedPeopleCount),
@@ -372,6 +373,7 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                 SizeTier: dto.SizeTier,
                 UrbanDensity: dto.UrbanDensity,
                 DevelopmentLevel: dto.DevelopmentLevel,
+                PopulationOccupancyProfile: dto.PopulationOccupancyProfile,
                 CreatedAtUtc: dto.CreatedAtUtc,
                 ArchivedAtUtc: dto.ArchivedAtUtc,
                 PlannedPeopleCount: dto.PlannedPeopleCount);

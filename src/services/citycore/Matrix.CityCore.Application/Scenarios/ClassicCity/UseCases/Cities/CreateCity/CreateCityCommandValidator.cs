@@ -54,6 +54,11 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                .When(x => !string.IsNullOrWhiteSpace(x.DevelopmentLevel))
                .WithMessage("DevelopmentLevel is invalid.");
 
+            RuleFor(x => x.PopulationOccupancyProfile)
+               .Must(BeValidPopulationOccupancyProfile)
+               .When(x => !string.IsNullOrWhiteSpace(x.PopulationOccupancyProfile))
+               .WithMessage("PopulationOccupancyProfile is invalid.");
+
             RuleFor(x => x.StartSimTimeUtc)
                .Must(x => x.Offset == TimeSpan.Zero)
                .WithMessage("StartSimTimeUtc must be UTC (Offset=00:00).");
@@ -124,6 +129,15 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                        ignoreCase: true,
                        result: out CityDevelopmentLevel developmentLevel) &&
                    Enum.IsDefined(developmentLevel);
+        }
+
+        private static bool BeValidPopulationOccupancyProfile(string? value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out PopulationOccupancyProfile occupancyProfile) &&
+                   Enum.IsDefined(occupancyProfile);
         }
 
         private static bool BeAlignedToOffsetStep(int value)

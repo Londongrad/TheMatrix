@@ -17,23 +17,27 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CitySizeTier sizeTier,
             UrbanDensity urbanDensity,
             CityDevelopmentLevel developmentLevel,
+            PopulationOccupancyProfile populationOccupancyProfile,
             int? plannedPeopleCount)
         {
             SizeTier = sizeTier;
             UrbanDensity = urbanDensity;
             DevelopmentLevel = developmentLevel;
+            PopulationOccupancyProfile = populationOccupancyProfile;
             PlannedPeopleCount = plannedPeopleCount;
         }
 
         public CitySizeTier SizeTier { get; private set; }
         public UrbanDensity UrbanDensity { get; private set; }
         public CityDevelopmentLevel DevelopmentLevel { get; private set; }
+        public PopulationOccupancyProfile PopulationOccupancyProfile { get; private set; }
         public int? PlannedPeopleCount { get; private set; }
 
         public static CityGenerationProfile Create(
             CitySizeTier sizeTier,
             UrbanDensity urbanDensity,
             CityDevelopmentLevel developmentLevel,
+            PopulationOccupancyProfile populationOccupancyProfile,
             int? plannedPeopleCount = null)
         {
             GuardHelper.AgainstInvalidEnum(
@@ -48,6 +52,10 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 value: developmentLevel,
                 propertyName: nameof(DevelopmentLevel));
 
+            GuardHelper.AgainstInvalidEnum(
+                value: populationOccupancyProfile,
+                propertyName: nameof(PopulationOccupancyProfile));
+
             if (plannedPeopleCount is < 0 or > MaxPlannedPeopleCount)
                 throw ClassicCityDomainErrorsFactory.InvalidCityGenerationProfile(
                     reason:
@@ -58,6 +66,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 sizeTier: sizeTier,
                 urbanDensity: urbanDensity,
                 developmentLevel: developmentLevel,
+                populationOccupancyProfile: populationOccupancyProfile,
                 plannedPeopleCount: plannedPeopleCount);
         }
     }

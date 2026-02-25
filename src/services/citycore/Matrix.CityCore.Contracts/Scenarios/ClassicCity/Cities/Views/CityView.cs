@@ -13,6 +13,7 @@ namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views
         string SizeTier,
         string UrbanDensity,
         string DevelopmentLevel,
+        string PopulationOccupancyProfile,
         DateTimeOffset CreatedAtUtc,
         DateTimeOffset? ArchivedAtUtc,
         int? PlannedPeopleCount = null);
