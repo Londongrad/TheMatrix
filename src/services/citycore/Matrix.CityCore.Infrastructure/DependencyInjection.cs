@@ -32,7 +32,22 @@ namespace Matrix.CityCore.Infrastructure
                 throw new InvalidOperationException(
                     "Connection string 'CityCoreDb' is not configured.");
 
-            services.AddDbContext<CityCoreDbContext>(options => { options.UseNpgsql(connectionString); });
+            services.AddPostgresResilienceOptions(configuration);
+
+            services.AddDbContext<CityCoreDbContext>((
+                sp,
+                options) =>
+            {
+                PostgresResilienceOptions resilience = sp.GetRequiredService<IOptions<PostgresResilienceOptions>>()
+                   .Value;
+
+                options.UseNpgsql(
+                    connectionString,
+                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: resilience.MaxRetryCount,
+                        maxRetryDelay: TimeSpan.FromSeconds(resilience.MaxRetryDelaySeconds),
+                        errorCodesToAdd: null));
+            });
 
             services.AddOptions<SimulationTickOptions>()
                .Bind(configuration.GetSection(SimulationTickOptions.SectionName));

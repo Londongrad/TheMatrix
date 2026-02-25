@@ -28,7 +28,22 @@ namespace Matrix.Population.Infrastructure
                 throw new InvalidOperationException(
                     "Connection string 'PopulationDb' is not configured.");
 
-            services.AddDbContext<PopulationDbContext>(options => { options.UseNpgsql(connectionString); });
+            services.AddPostgresResilienceOptions(configuration);
+
+            services.AddDbContext<PopulationDbContext>((
+                sp,
+                options) =>
+            {
+                PostgresResilienceOptions resilience = sp.GetRequiredService<IOptions<PostgresResilienceOptions>>()
+                   .Value;
+
+                options.UseNpgsql(
+                    connectionString,
+                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: resilience.MaxRetryCount,
+                        maxRetryDelay: TimeSpan.FromSeconds(resilience.MaxRetryDelaySeconds),
+                        errorCodesToAdd: null));
+            });
 
             services.AddOptions<RabbitMqOptions>()
                .Bind(configuration.GetSection(RabbitMqOptions.SectionName))

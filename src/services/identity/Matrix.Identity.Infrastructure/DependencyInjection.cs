@@ -4,6 +4,7 @@ using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
+using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
@@ -48,7 +49,22 @@ namespace Matrix.Identity.Infrastructure
                 throw new InvalidOperationException(
                     "Connection string 'IdentityDb' is not configured.");
 
-            services.AddDbContext<IdentityDbContext>(options => { options.UseNpgsql(connectionString); });
+            services.AddPostgresResilienceOptions(configuration);
+
+            services.AddDbContext<IdentityDbContext>((
+                sp,
+                options) =>
+            {
+                PostgresResilienceOptions resilience = sp.GetRequiredService<IOptions<PostgresResilienceOptions>>()
+                   .Value;
+
+                options.UseNpgsql(
+                    connectionString,
+                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: resilience.MaxRetryCount,
+                        maxRetryDelay: TimeSpan.FromSeconds(resilience.MaxRetryDelaySeconds),
+                        errorCodesToAdd: null));
+            });
 
             // Jwt options
             services.AddOptions<ExternalJwtOptions>()
