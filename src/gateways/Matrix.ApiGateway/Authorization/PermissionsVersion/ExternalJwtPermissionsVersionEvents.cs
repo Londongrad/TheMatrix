@@ -58,9 +58,23 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             IPermissionsVersionStore store = context.HttpContext.RequestServices
                .GetRequiredService<IPermissionsVersionStore>();
 
-            int currentVersion = await store.GetCurrentAsync(
-                userId: userId,
-                cancellationToken: context.HttpContext.RequestAborted);
+            int currentVersion;
+
+            try
+            {
+                currentVersion = await store.GetCurrentAsync(
+                    userId: userId,
+                    cancellationToken: context.HttpContext.RequestAborted);
+            }
+            catch (PermissionsVersionUnavailableException ex)
+            {
+                MarkUnavailable(
+                    context: context,
+                    logger: logger,
+                    userId: userId,
+                    exception: ex);
+                return;
+            }
 
             if (tokenVersion != currentVersion)
                 MarkTokenStale(
@@ -73,6 +87,28 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
 
         public static async Task HandleChallenge(JwtBearerChallengeContext context)
         {
+            if (context.HttpContext.Items.TryGetValue(
+                    key: PermissionsVersionValidationDefaults.UnavailableItemKey,
+                    value: out object? unavailableFlag) &&
+                unavailableFlag is true)
+            {
+                context.HandleResponse();
+
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                context.Response.ContentType = "application/json";
+
+                var unavailablePayload = new
+                {
+                    code = PermissionsVersionValidationDefaults.UnavailableErrorCode,
+                    message = PermissionsVersionValidationDefaults.UnavailableMessage
+                };
+
+                await context.Response.WriteAsJsonAsync(
+                    value: unavailablePayload,
+                    cancellationToken: context.HttpContext.RequestAborted);
+                return;
+            }
+
             if (!context.HttpContext.Items.TryGetValue(
                     key: PermissionsVersionValidationDefaults.StaleTokenItemKey,
                     value: out object? flag) ||
@@ -124,6 +160,27 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             context.Fail(FailReasons.TokenStale);
         }
 
+        private static void MarkUnavailable(
+            TokenValidatedContext context,
+            ILogger logger,
+            Guid userId,
+            PermissionsVersionUnavailableException exception)
+        {
+            if (LogRateLimiter.ShouldLog(
+                    key: LogKeys.Unavailable,
+                    period: RateLimit.Period))
+                logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Permissions version validation is temporarily unavailable. UserId={UserId} TraceId={TraceId} Path={Path}",
+                    userId,
+                    context.HttpContext.TraceIdentifier,
+                    context.HttpContext.Request.Path.Value);
+
+            context.HttpContext.Items[PermissionsVersionValidationDefaults.UnavailableItemKey] = true;
+            context.Fail(FailReasons.Unavailable);
+        }
+
         private static class RateLimit
         {
             internal static readonly TimeSpan Period = TimeSpan.FromSeconds(15);
@@ -134,12 +191,14 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
             internal const string InvalidUserId = "pv.jwt.invalid.userId";
             internal const string InvalidPv = "pv.jwt.invalid.pv";
             internal const string StaleToken = "pv.jwt.stale";
+            internal const string Unavailable = "pv.jwt.unavailable";
         }
 
         private static class FailReasons
         {
             internal const string InvalidToken = "invalid_token";
             internal const string TokenStale = "token_stale";
+            internal const string Unavailable = "permissions_version_unavailable";
         }
     }
 }

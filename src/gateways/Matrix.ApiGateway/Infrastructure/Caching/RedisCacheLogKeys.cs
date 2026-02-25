@@ -3,6 +3,7 @@
     internal static class RedisCacheLogKeys
     {
         internal const string PvCacheTtlInvalid = "pv.cache.ttl.invalid";
+        internal const string PvStaleCacheTtlInvalid = "pv.cache.stale.ttl.invalid";
         internal const string PvRedisReadSlow = "pv.redis.read.slow";
         internal const string PvRedisReadInvalid = "pv.redis.read.invalid";
         internal const string PvRedisReadFail = "pv.redis.read.fail";

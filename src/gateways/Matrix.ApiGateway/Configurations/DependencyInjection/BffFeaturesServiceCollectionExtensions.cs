@@ -48,6 +48,9 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => !string.IsNullOrWhiteSpace(o.ApiKey),
                     failureMessage: "IdentityInternal:ApiKey is required.")
+               .Validate(
+                    validation: o => o.RequestTimeoutSeconds > 0,
+                    failureMessage: "IdentityInternal:RequestTimeoutSeconds must be greater than 0.")
                .ValidateOnStart();
 
             services.AddOptions<PermissionsVersionOptions>()
@@ -55,6 +58,12 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => o.CacheTtlSeconds > 0,
                     failureMessage: "PermissionsVersion:CacheTtlSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.StaleCacheTtlSeconds > 0,
+                    failureMessage: "PermissionsVersion:StaleCacheTtlSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.StaleCacheTtlSeconds >= o.CacheTtlSeconds,
+                    failureMessage: "PermissionsVersion:StaleCacheTtlSeconds must be greater than or equal to CacheTtlSeconds.")
                .ValidateOnStart();
 
             return services;
@@ -119,7 +128,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 client.BaseAddress = new Uri(
                     uriString: options.BaseUrl,
                     uriKind: UriKind.Absolute);
-                client.Timeout = TimeSpan.FromSeconds(3);
+                client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
 
                 client.DefaultRequestHeaders.Remove("X-Internal-Key");
                 client.DefaultRequestHeaders.Add(

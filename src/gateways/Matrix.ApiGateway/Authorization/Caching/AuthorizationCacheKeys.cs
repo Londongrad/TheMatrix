@@ -7,6 +7,11 @@
             return $"pv:{userId:N}";
         }
 
+        public static string PermissionsVersionStale(Guid userId)
+        {
+            return $"pv:stale:{userId:N}";
+        }
+
         public static string AuthContext(
             Guid userId,
             int permissionsVersion)

@@ -1,8 +1,6 @@
-using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
 using Matrix.Identity.Contracts.Internal.Responses;
-using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion
 {
@@ -14,9 +12,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersi
 
         private readonly HttpClient _httpClient;
 
-        public IdentityInternalUsersClient(
-            HttpClient httpClient,
-            IOptions<IdentityInternalOptions> options)
+        public IdentityInternalUsersClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }

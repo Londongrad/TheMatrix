@@ -7,5 +7,7 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion.Options
         public string BaseUrl { get; init; } = string.Empty;
 
         public string ApiKey { get; init; } = string.Empty;
+
+        public int RequestTimeoutSeconds { get; init; } = 10;
     }
 }
