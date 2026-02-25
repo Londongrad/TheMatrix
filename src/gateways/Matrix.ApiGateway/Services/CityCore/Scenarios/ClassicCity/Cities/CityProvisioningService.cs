@@ -60,6 +60,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     SizeTier: request.SizeTier,
                     UrbanDensity: request.UrbanDensity,
                     DevelopmentLevel: request.DevelopmentLevel,
+                    PopulationOccupancyProfile: request.PopulationOccupancyProfile,
                     StartSimTimeUtc: request.StartSimTimeUtc,
                     SpeedMultiplier: request.SpeedMultiplier,
                     PlannedPeopleCount: request.PlannedPeopleCount),
@@ -278,14 +279,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 return 0;
 
             // Keep the bootstrap population comfortably below hard capacity.
-            decimal occupancyRate = GetBaseOccupancy(city.UrbanDensity) +
+            decimal occupancyRate = GetBaseOccupancy(city.PopulationOccupancyProfile) +
+                                    GetDensityAdjustment(city.UrbanDensity) +
                                     GetDevelopmentAdjustment(city.DevelopmentLevel) +
-                                    GetSizeAdjustment(city.SizeTier) +
                                     GetSeedJitter(city.GenerationSeed);
 
             occupancyRate = Math.Clamp(
                 value: occupancyRate,
-                min: 0.35m,
+                min: 0.30m,
                 max: 0.95m);
 
             int minimumPopulation = Math.Min(
@@ -304,13 +305,23 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 max: totalCapacity);
         }
 
-        private static decimal GetBaseOccupancy(string urbanDensity)
+        private static decimal GetBaseOccupancy(string occupancyProfile)
+        {
+            return occupancyProfile switch
+            {
+                "Light" => 0.44m,
+                "High" => 0.82m,
+                _ => 0.63m
+            };
+        }
+
+        private static decimal GetDensityAdjustment(string urbanDensity)
         {
             return urbanDensity switch
             {
-                "Sparse" => 0.48m,
-                "Dense" => 0.84m,
-                _ => 0.66m
+                "Sparse" => -0.06m,
+                "Dense" => 0.06m,
+                _ => 0.0m
             };
         }
 
@@ -318,18 +329,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
         {
             return developmentLevel switch
             {
-                "Struggling" => -0.08m,
-                "Advanced" => 0.05m,
-                _ => 0.0m
-            };
-        }
-
-        private static decimal GetSizeAdjustment(string sizeTier)
-        {
-            return sizeTier switch
-            {
-                "Small" => -0.03m,
-                "Large" => 0.04m,
+                "Struggling" => -0.05m,
+                "Advanced" => 0.04m,
                 _ => 0.0m
             };
         }

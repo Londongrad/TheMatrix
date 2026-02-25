@@ -12,5 +12,6 @@
         string? SizeTier = null,
         string? UrbanDensity = null,
         string? DevelopmentLevel = null,
+        string? PopulationOccupancyProfile = null,
         int? PlannedPeopleCount = null);
 }

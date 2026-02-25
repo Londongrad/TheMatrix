@@ -15,9 +15,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         ILogger<ClassicCitySetupSessionService> logger)
         : IClassicCitySetupSessionService
     {
-        private const string PopulationModeAutomatic = "automatic";
-        private const string PopulationModeManual = "manual";
         private const int MaxPlannedPeopleCount = 1_000_000;
+        private const string PopulationOccupancyProfileLight = "Light";
+        private const string PopulationOccupancyProfileBalanced = "Balanced";
+        private const string PopulationOccupancyProfileHigh = "High";
 
         private static readonly string[] MutableStatuses =
         [
@@ -281,7 +282,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 SizeTier = string.IsNullOrWhiteSpace(draft.SizeTier) ? "Medium" : draft.SizeTier.Trim(),
                 UrbanDensity = string.IsNullOrWhiteSpace(draft.UrbanDensity) ? "Balanced" : draft.UrbanDensity.Trim(),
                 DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel) ? "Balanced" : draft.DevelopmentLevel.Trim(),
-                PopulationMode = NormalizePopulationMode(draft.PopulationMode),
+                PopulationOccupancyProfile = NormalizePopulationOccupancyProfile(draft.PopulationOccupancyProfile),
+                UsePopulationOverride = draft.UsePopulationOverride,
                 PlannedPeopleCount = draft.PlannedPeopleCount?.Trim() ?? string.Empty
             };
         }
@@ -339,7 +341,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             int? plannedPeopleCount = null;
 
-            if (string.Equals(draft.PopulationMode, PopulationModeManual, StringComparison.Ordinal))
+            if (draft.UsePopulationOverride)
             {
                 if (!int.TryParse(
                         s: draft.PlannedPeopleCount,
@@ -369,16 +371,20 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 SizeTier: draft.SizeTier,
                 UrbanDensity: draft.UrbanDensity,
                 DevelopmentLevel: draft.DevelopmentLevel,
+                PopulationOccupancyProfile: draft.PopulationOccupancyProfile,
                 PlannedPeopleCount: plannedPeopleCount);
 
             return true;
         }
 
-        private static string NormalizePopulationMode(string? value)
+        private static string NormalizePopulationOccupancyProfile(string? value)
         {
-            return string.Equals(value?.Trim(), PopulationModeManual, StringComparison.OrdinalIgnoreCase)
-                ? PopulationModeManual
-                : PopulationModeAutomatic;
+            return value?.Trim() switch
+            {
+                PopulationOccupancyProfileLight => PopulationOccupancyProfileLight,
+                PopulationOccupancyProfileHigh => PopulationOccupancyProfileHigh,
+                _ => PopulationOccupancyProfileBalanced
+            };
         }
 
         private static CityProvisioningView BuildPendingProvisioning(
