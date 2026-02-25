@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application;
@@ -16,6 +17,7 @@ namespace Matrix.Identity.Api.Configurations
             ConfigurationManager configuration = builder.Configuration;
 
             builder.AddSerilogLogging();
+            services.AddOperationalHealthChecks(configuration);
 
             services
                .AddPresentationLayer() // Controllers + Swagger

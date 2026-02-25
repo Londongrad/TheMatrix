@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Middleware;
 
 namespace Matrix.Population.Api.Configurations
@@ -20,6 +21,7 @@ namespace Matrix.Population.Api.Configurations
 
         private static void ConfigureControllers(this WebApplication app)
         {
+            app.MapOperationalHealthChecks();
             app.MapControllers();
         }
     }

@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Middleware;
 using Matrix.Identity.Api.Authorization.Internal;
 
@@ -27,6 +28,7 @@ namespace Matrix.Identity.Api.Configurations
 
         private static void ConfigureControllers(this WebApplication app)
         {
+            app.MapOperationalHealthChecks();
             app.MapControllers();
         }
 

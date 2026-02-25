@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.Configurations.DependencyInjection;
+using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 
 namespace Matrix.ApiGateway.Configurations
@@ -10,6 +11,7 @@ namespace Matrix.ApiGateway.Configurations
             builder.AddSerilogLogging();
 
             builder.Services
+               .AddOperationalHealthChecks(builder.Configuration)
                .AddGatewayCore()
                .AddGatewayAuth(builder.Configuration)
                .AddDownstreamServices(builder.Configuration)
