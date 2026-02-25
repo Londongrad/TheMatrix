@@ -1,4 +1,6 @@
-﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Diagnostics;
+using Matrix.BuildingBlocks.Infrastructure.Logging;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -30,7 +32,10 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
                 cancellationToken: cancellationToken);
 
             if (batch.Count > 0)
-                foreach (LeasedOutboxMessage msg in batch)
+                for (int index = 0; index < batch.Count; index++)
+                {
+                    LeasedOutboxMessage msg = batch[index];
+
                     try
                     {
                         await publisher.PublishAsync(
@@ -44,7 +49,7 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
                             processedOnUtc: nowUtc,
                             cancellationToken: cancellationToken);
 
-                        logger.LogInformation(
+                        logger.LogDebug(
                             message: "Outbox message {MessageId} published.",
                             msg.Id);
                     }
@@ -58,12 +63,29 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
                             nextAttemptOnUtc: nextAttempt,
                             cancellationToken: cancellationToken);
 
+                        if (TransientInfrastructureFailureDetector.IsTransient(ex))
+                        {
+                            if (InfrastructureLogRateLimiter.ShouldLog(
+                                    key: LogKeys.BatchTransientFailure,
+                                    period: TimeSpan.FromSeconds(GetTransientLogPeriodSeconds())))
+                                logger.LogWarning(
+                                    exception: ex,
+                                    message:
+                                    "Outbox transport is temporarily unavailable while publishing message {MessageId}. Remaining leased messages in the current batch will be retried later. RemainingCount={RemainingCount} NextAttemptUtc={NextAttemptUtc}",
+                                    msg.Id,
+                                    Math.Max(0, batch.Count - index - 1),
+                                    nextAttempt);
+
+                            break;
+                        }
+
                         logger.LogWarning(
                             exception: ex,
                             message: "Outbox message {MessageId} failed; next attempt at {NextAttemptUtc}.",
                             msg.Id,
                             nextAttempt);
                     }
+                }
 
             await CleanupProcessedMessagesAsync(
                 nowUtc: nowUtc,
@@ -81,6 +103,13 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
             return (int)Math.Min(
                 val1: _options.FailureBackoffMaxSeconds,
                 val2: seconds);
+        }
+
+        private int GetTransientLogPeriodSeconds()
+        {
+            return Math.Max(
+                30,
+                _options.PollIntervalSeconds * 10);
         }
 
         private async Task CleanupProcessedMessagesAsync(
@@ -104,6 +133,11 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
                     message: "Deleted {DeletedCount} processed outbox messages older than {ProcessedBeforeUtc}.",
                     deletedCount,
                     processedBeforeUtc);
+        }
+
+        private static class LogKeys
+        {
+            internal const string BatchTransientFailure = "outbox.dispatch.transient";
         }
     }
 }

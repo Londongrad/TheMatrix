@@ -1,4 +1,6 @@
-﻿using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Diagnostics;
+using Matrix.BuildingBlocks.Infrastructure.Logging;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -52,6 +54,19 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
                     }
                     catch (Exception ex)
                     {
+                        if (TransientInfrastructureFailureDetector.IsTransient(ex))
+                        {
+                            if (InfrastructureLogRateLimiter.ShouldLog(
+                                    key: LogKeys.TransientLoopFailure,
+                                    period: TimeSpan.FromSeconds(GetTransientLogPeriodSeconds())))
+                                logger.LogWarning(
+                                    exception: ex,
+                                    message:
+                                    "Outbox publishing loop is temporarily degraded due to infrastructure connectivity. It will retry automatically on the next poll.");
+
+                            continue;
+                        }
+
                         logger.LogError(
                             exception: ex,
                             message: "Outbox publishing loop failed.");
@@ -61,6 +76,18 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
             {
                 // graceful shutdown
             }
+        }
+
+        private int GetTransientLogPeriodSeconds()
+        {
+            return Math.Max(
+                30,
+                _options.PollIntervalSeconds * 10);
+        }
+
+        private static class LogKeys
+        {
+            internal const string TransientLoopFailure = "outbox.loop.transient";
         }
     }
 }
