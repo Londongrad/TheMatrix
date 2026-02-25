@@ -28,6 +28,11 @@ import {
     localDateTimeToUtcIso,
 } from "@services/citycore/simulation/utils/dateTime";
 import {
+    buildPopulationPlanningEstimate,
+    formatOccupancyRateRange,
+    formatRange,
+} from "@services/citycore/scenarios/classic-city/utils/populationPlanning";
+import {
     CITYCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_SCENARIO,
     getClassicCitySetupProvisioningPath,
@@ -405,6 +410,7 @@ export default function ClassicCitySetupPage() {
 
     const currentStepIndex = getStepIndex(currentStepId);
     const currentStep = setupSteps[currentStepIndex];
+    const populationPlanningEstimate = buildPopulationPlanningEstimate(draft);
     const sessionStatusLabel = formatSessionStatusLabel(session?.status);
     const sessionStatusTone = getSessionStatusTone(session?.status);
     const canEditSession = isMutableSessionStatus(session?.status);
@@ -1027,6 +1033,42 @@ export default function ClassicCitySetupPage() {
                                 </span>
                             </div>
 
+                            <div className="scenario-setup__stats-grid">
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Estimated districts</span>
+                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.districtRange)}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Includes the central district and profile-driven expansion around it.
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Residential buildings</span>
+                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.residentialBuildingRange)}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Estimated from size, density, development level, and central-district weighting.
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Housing capacity</span>
+                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.capacityRange)}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Pre-launch estimate from topology rules. Final capacity is locked only after CityCore creates the city skeleton.
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Opening population</span>
+                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.openingPopulationRange)}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        {populationPlanningEstimate.usesExactOverride
+                                            ? "Exact override will be capped by the final generated housing capacity."
+                                            : `${formatOccupancyRateRange(populationPlanningEstimate.occupancyRateRange)} expected occupancy after topology generation.`}
+                                    </span>
+                                </article>
+                            </div>
+
                             <div className="scenario-setup__form-grid">
                                 <div className="scenario-setup__field">
                                     <div className="scenario-setup__label">Advanced override</div>
@@ -1124,6 +1166,14 @@ export default function ClassicCitySetupPage() {
                                     <strong className="scenario-setup__review-value">{getPopulationPlanLabel(draft)}</strong>
                                     <span className="scenario-setup__review-text">
                                         {getPopulationPlanDescription(draft)}
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__review-card">
+                                    <span className="scenario-setup__review-label">Estimated opening</span>
+                                    <strong className="scenario-setup__review-value">{formatRange(populationPlanningEstimate.openingPopulationRange)} residents</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Capacity preview: {formatRange(populationPlanningEstimate.capacityRange)} residents across {formatRange(populationPlanningEstimate.residentialBuildingRange)} residential buildings.
                                     </span>
                                 </article>
                             </div>
