@@ -104,15 +104,20 @@ export const CLASSIC_CITY_HEMISPHERE_OPTIONS: SetupOption[] = [
     },
 ];
 
-export const CLASSIC_CITY_POPULATION_MODE_OPTIONS: SetupOption[] = [
+export const CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS: SetupOption[] = [
     {
-        value: "automatic",
-        label: "Automatic bootstrap",
-        description: "Gateway derives the initial resident target from generated residential capacity and city profile.",
+        value: "Light",
+        label: "Light occupancy",
+        description: "Opens the city with a lighter share of its generated housing capacity and more visible headroom.",
     },
     {
-        value: "manual",
-        label: "Manual target",
-        description: "Pin an explicit starting headcount that survives setup-session refresh and population bootstrap retry.",
+        value: "Balanced",
+        label: "Balanced occupancy",
+        description: "Targets a steady day-one population using the city’s final residential capacity as the anchor.",
+    },
+    {
+        value: "High",
+        label: "High occupancy",
+        description: "Pushes the initial bootstrap closer to the city’s generated housing capacity for a busier opening state.",
     },
 ];

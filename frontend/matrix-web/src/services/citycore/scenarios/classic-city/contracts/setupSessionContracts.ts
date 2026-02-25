@@ -1,7 +1,7 @@
 import type {CityProvisioningView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 
 export type ClassicCitySetupStepId = "scenario" | "profile" | "environment" | "population" | "launch";
-export type ClassicCityPopulationMode = "automatic" | "manual";
+export type ClassicCityPopulationOccupancyProfile = "Light" | "Balanced" | "High";
 
 export interface ClassicCitySetupDraftView {
     name: string;
@@ -15,7 +15,8 @@ export interface ClassicCitySetupDraftView {
     sizeTier: string;
     urbanDensity: string;
     developmentLevel: string;
-    populationMode: ClassicCityPopulationMode;
+    populationOccupancyProfile: ClassicCityPopulationOccupancyProfile;
+    usePopulationOverride: boolean;
     plannedPeopleCount: string;
 }
 
