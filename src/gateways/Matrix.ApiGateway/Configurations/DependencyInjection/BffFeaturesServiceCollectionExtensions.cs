@@ -8,6 +8,7 @@ using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
@@ -78,6 +79,18 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => o.CacheTtlHours > 0,
                     failureMessage: "ClassicCitySetupSessions:CacheTtlHours must be greater than 0.")
+               .Validate(
+                    validation: o => o.MutationLockLeaseSeconds > 0,
+                    failureMessage: "ClassicCitySetupSessions:MutationLockLeaseSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.MutationLockAcquireTimeoutMilliseconds > 0,
+                    failureMessage: "ClassicCitySetupSessions:MutationLockAcquireTimeoutMilliseconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.MutationLockRetryDelayMilliseconds > 0,
+                    failureMessage: "ClassicCitySetupSessions:MutationLockRetryDelayMilliseconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.MutationLockAcquireTimeoutMilliseconds >= o.MutationLockRetryDelayMilliseconds,
+                    failureMessage: "ClassicCitySetupSessions:MutationLockAcquireTimeoutMilliseconds must be greater than or equal to MutationLockRetryDelayMilliseconds.")
                .ValidateOnStart();
 
             return services;
@@ -111,6 +124,19 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             {
                 o.Configuration = configuration["Redis:ConnectionString"];
                 o.InstanceName = configuration["Redis:InstanceName"];
+            });
+
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                string? connectionString = configuration["Redis:ConnectionString"];
+
+                if (string.IsNullOrWhiteSpace(connectionString))
+                    throw new InvalidOperationException("Redis:ConnectionString is required for gateway session orchestration.");
+
+                ConfigurationOptions options = ConfigurationOptions.Parse(connectionString);
+                options.AbortOnConnectFail = false;
+
+                return ConnectionMultiplexer.Connect(options);
             });
 
             return services;

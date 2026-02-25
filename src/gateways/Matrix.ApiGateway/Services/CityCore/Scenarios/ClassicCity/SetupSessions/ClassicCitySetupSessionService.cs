@@ -72,196 +72,255 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+            return await ExecuteMutationAsync(
                 sessionId: sessionId,
+                unavailableFallbackMessage: "Setup session is temporarily unavailable for editing.",
+                action: async () =>
+                {
+                    ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+                        sessionId: sessionId,
+                        cancellationToken: cancellationToken);
+
+                    if (session is null)
+                        return NotFound();
+
+                    if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
+                        return Conflict(
+                            session,
+                            code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
+                            message: "This setup session can no longer be edited because launch orchestration is already in progress or completed.");
+
+                    session.CurrentStepId = NormalizeStepId(request.CurrentStepId);
+                    session.Draft = NormalizeDraft(request.Draft);
+                    session.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+                    await sessionStore.SaveAsync(
+                        session: session,
+                        cancellationToken: cancellationToken);
+
+                    return Updated(session);
+                },
                 cancellationToken: cancellationToken);
-
-            if (session is null)
-                return NotFound();
-
-            if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
-                return Conflict(
-                    session,
-                    code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
-                    message: "This setup session can no longer be edited because launch orchestration is already in progress or completed.");
-
-            session.CurrentStepId = NormalizeStepId(request.CurrentStepId);
-            session.Draft = NormalizeDraft(request.Draft);
-            session.UpdatedAtUtc = DateTimeOffset.UtcNow;
-
-            await sessionStore.SaveAsync(
-                session: session,
-                cancellationToken: cancellationToken);
-
-            return Updated(session);
         }
 
         public async Task<ClassicCitySetupSessionMutationResult> QueueLaunchAsync(
             Guid sessionId,
             CancellationToken cancellationToken = default)
         {
-            ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+            return await ExecuteMutationAsync(
                 sessionId: sessionId,
+                unavailableFallbackMessage: "Setup session is temporarily unavailable for launch orchestration.",
+                action: async () =>
+                {
+                    ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+                        sessionId: sessionId,
+                        cancellationToken: cancellationToken);
+
+                    if (session is null)
+                        return NotFound();
+
+                    if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
+                        return Conflict(
+                            session,
+                            code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
+                            message: "This setup session is already queued, running, or attached to a launched city.");
+
+                    ClassicCitySetupDraftDto draft = NormalizeDraft(session.Draft);
+
+                    if (!TryBuildLaunchRequest(
+                            draft: draft,
+                            launchRequest: out CreateCityRequestDto? launchRequest,
+                            errorMessage: out string? errorMessage))
+                    {
+                        session.Draft = draft;
+                        session.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+                        await sessionStore.SaveAsync(
+                            session: session,
+                            cancellationToken: cancellationToken);
+
+                        return Invalid(
+                            session,
+                            code: "Gateway.ClassicCitySetup.ValidationFailed",
+                            message: errorMessage ?? "Setup draft is incomplete.");
+                    }
+
+                    DateTimeOffset now = DateTimeOffset.UtcNow;
+                    session.Status = ClassicCitySetupSessionStatuses.LaunchQueued;
+                    session.CurrentStepId = ClassicCitySetupSteps.Launch;
+                    session.Draft = draft;
+                    session.LaunchRequest = launchRequest;
+                    session.FailureCode = null;
+                    session.FailureMessage = null;
+                    session.CityId = null;
+                    session.SimulationKind = null;
+                    session.Provisioning = null;
+                    session.LaunchQueuedAtUtc = now;
+                    session.StartedAtUtc = null;
+                    session.CompletedAtUtc = null;
+                    session.UpdatedAtUtc = now;
+
+                    await sessionStore.SaveAsync(
+                        session: session,
+                        cancellationToken: cancellationToken);
+
+                    try
+                    {
+                        await publishEndpoint.Publish(
+                            message: new ClassicCitySetupLaunchRequested(session.SessionId),
+                            cancellationToken: cancellationToken);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                    {
+                        logger.LogWarning(
+                            exception: ex,
+                            message: "Classic City setup launch could not be queued for sessionId={SessionId}.",
+                            session.SessionId);
+
+                        await FailLaunchAsync(
+                            session: session,
+                            failureCode: ClassicCitySetupSessionFailureCodes.LaunchQueueUnavailable,
+                            failureMessage: BuildSafeFailureMessage(
+                                exception: ex,
+                                fallback: "Launch request could not be queued. Retry when gateway messaging is healthy."),
+                            cancellationToken: cancellationToken);
+
+                        return Unavailable(
+                            session,
+                            code: ClassicCitySetupSessionFailureCodes.LaunchQueueUnavailable,
+                            message: session.FailureMessage ?? "Launch request could not be queued.");
+                    }
+
+                    return Updated(session);
+                },
                 cancellationToken: cancellationToken);
-
-            if (session is null)
-                return NotFound();
-
-            if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
-                return Conflict(
-                    session,
-                    code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
-                    message: "This setup session is already queued, running, or attached to a launched city.");
-
-            ClassicCitySetupDraftDto draft = NormalizeDraft(session.Draft);
-
-            if (!TryBuildLaunchRequest(
-                    draft: draft,
-                    launchRequest: out CreateCityRequestDto? launchRequest,
-                    errorMessage: out string? errorMessage))
-            {
-                session.Draft = draft;
-                session.UpdatedAtUtc = DateTimeOffset.UtcNow;
-
-                await sessionStore.SaveAsync(
-                    session: session,
-                    cancellationToken: cancellationToken);
-
-                return Invalid(
-                    session,
-                    code: "Gateway.ClassicCitySetup.ValidationFailed",
-                    message: errorMessage ?? "Setup draft is incomplete.");
-            }
-
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            session.Status = ClassicCitySetupSessionStatuses.LaunchQueued;
-            session.CurrentStepId = ClassicCitySetupSteps.Launch;
-            session.Draft = draft;
-            session.LaunchRequest = launchRequest;
-            session.FailureCode = null;
-            session.FailureMessage = null;
-            session.CityId = null;
-            session.SimulationKind = null;
-            session.Provisioning = null;
-            session.LaunchQueuedAtUtc = now;
-            session.StartedAtUtc = null;
-            session.CompletedAtUtc = null;
-            session.UpdatedAtUtc = now;
-
-            await sessionStore.SaveAsync(
-                session: session,
-                cancellationToken: cancellationToken);
-
-            await publishEndpoint.Publish(
-                message: new ClassicCitySetupLaunchRequested(session.SessionId),
-                cancellationToken: cancellationToken);
-
-            return Updated(session);
         }
 
         public async Task ProcessLaunchAsync(
             Guid sessionId,
             CancellationToken cancellationToken = default)
         {
-            ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+            ClassicCitySetupSessionLockHandle? lockHandle = await sessionStore.TryAcquireLockAsync(
                 sessionId: sessionId,
                 cancellationToken: cancellationToken);
 
-            if (session is null || !string.Equals(session.Status, ClassicCitySetupSessionStatuses.LaunchQueued, StringComparison.Ordinal))
-                return;
-
-            if (session.LaunchRequest is null)
+            if (lockHandle is null)
             {
-                await FailLaunchAsync(
-                    session: session,
-                    failureCode: ClassicCitySetupSessionFailureCodes.LaunchRequestMissing,
-                    failureMessage: "Setup session cannot start because the queued launch payload is missing.",
-                    cancellationToken: cancellationToken);
+                logger.LogDebug(
+                    message: "Classic City setup launch is already being processed for sessionId={SessionId}.",
+                    sessionId);
                 return;
             }
-
-            DateTimeOffset startedAtUtc = DateTimeOffset.UtcNow;
-            session.Status = ClassicCitySetupSessionStatuses.CreatingCity;
-            session.StartedAtUtc = startedAtUtc;
-            session.UpdatedAtUtc = startedAtUtc;
-
-            await sessionStore.SaveAsync(
-                session: session,
-                cancellationToken: cancellationToken);
-
-            CityCreatedView? created = null;
 
             try
             {
-                created = await provisioningService.CreateCitySkeletonAsync(
-                    request: session.LaunchRequest,
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
-            {
-                logger.LogWarning(
-                    exception: ex,
-                    message: "Classic City setup launch failed during city creation for sessionId={SessionId}.",
-                    session.SessionId);
-
-                await FailLaunchAsync(
-                    session: session,
-                    failureCode: DetermineCityCreateFailureCode(ex),
-                    failureMessage: BuildSafeFailureMessage(ex, "City creation failed before provisioning could start."),
-                    cancellationToken: cancellationToken);
-                return;
-            }
-
-            DateTimeOffset provisioningStartedAtUtc = DateTimeOffset.UtcNow;
-            session.Status = ClassicCitySetupSessionStatuses.BootstrappingPopulation;
-            session.CityId = created.CityId;
-            session.SimulationKind = created.SimulationKind;
-            session.Provisioning = BuildPendingProvisioning(
-                created: created,
-                plannedPeopleCount: session.LaunchRequest.PlannedPeopleCount);
-            session.UpdatedAtUtc = provisioningStartedAtUtc;
-
-            await sessionStore.SaveAsync(
-                session: session,
-                cancellationToken: cancellationToken);
-
-            try
-            {
-                CityProvisioningView provisioning = await provisioningService.ProvisionCreatedCityAsync(
-                    cityId: created.CityId,
-                    simulationKind: created.SimulationKind,
-                    operationId: created.PopulationBootstrapOperationId,
+                ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+                    sessionId: sessionId,
                     cancellationToken: cancellationToken);
 
-                FinalizeFromProvisioning(session, provisioning);
+                if (session is null || !string.Equals(session.Status, ClassicCitySetupSessionStatuses.LaunchQueued, StringComparison.Ordinal))
+                    return;
+
+                if (session.LaunchRequest is null)
+                {
+                    await FailLaunchAsync(
+                        session: session,
+                        failureCode: ClassicCitySetupSessionFailureCodes.LaunchRequestMissing,
+                        failureMessage: "Setup session cannot start because the queued launch payload is missing.",
+                        cancellationToken: cancellationToken);
+                    return;
+                }
+
+                DateTimeOffset startedAtUtc = DateTimeOffset.UtcNow;
+                session.Status = ClassicCitySetupSessionStatuses.CreatingCity;
+                session.StartedAtUtc = startedAtUtc;
+                session.UpdatedAtUtc = startedAtUtc;
 
                 await sessionStore.SaveAsync(
                     session: session,
                     cancellationToken: cancellationToken);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
-            {
-                logger.LogWarning(
-                    exception: ex,
-                    message: "Classic City setup launch failed after city creation for sessionId={SessionId} cityId={CityId}.",
-                    session.SessionId,
-                    created.CityId);
 
-                session.Status = ClassicCitySetupSessionStatuses.ProvisioningFailed;
-                session.Provisioning = BuildFailedProvisioningFromPending(
-                    cityId: created.CityId,
-                    simulationKind: created.SimulationKind,
-                    operationId: created.PopulationBootstrapOperationId,
-                    failureCode: ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError);
-                session.FailureCode = ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError;
-                session.FailureMessage = BuildSafeFailureMessage(
-                    exception: ex,
-                    fallback: "Population bootstrap finished with an unexpected orchestration error.");
-                session.CompletedAtUtc = DateTimeOffset.UtcNow;
-                session.UpdatedAtUtc = session.CompletedAtUtc.Value;
+                CityCreatedView? created = null;
+
+                try
+                {
+                    created = await provisioningService.CreateCitySkeletonAsync(
+                        request: session.LaunchRequest,
+                        cancellationToken: cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                {
+                    logger.LogWarning(
+                        exception: ex,
+                        message: "Classic City setup launch failed during city creation for sessionId={SessionId}.",
+                        session.SessionId);
+
+                    await FailLaunchAsync(
+                        session: session,
+                        failureCode: DetermineCityCreateFailureCode(ex),
+                        failureMessage: BuildSafeFailureMessage(ex, "City creation failed before provisioning could start."),
+                        cancellationToken: cancellationToken);
+                    return;
+                }
+
+                DateTimeOffset provisioningStartedAtUtc = DateTimeOffset.UtcNow;
+                session.Status = ClassicCitySetupSessionStatuses.BootstrappingPopulation;
+                session.CityId = created.CityId;
+                session.SimulationKind = created.SimulationKind;
+                session.Provisioning = BuildPendingProvisioning(
+                    created: created,
+                    plannedPeopleCount: session.LaunchRequest.PlannedPeopleCount);
+                session.UpdatedAtUtc = provisioningStartedAtUtc;
 
                 await sessionStore.SaveAsync(
                     session: session,
+                    cancellationToken: cancellationToken);
+
+                try
+                {
+                    CityProvisioningView provisioning = await provisioningService.ProvisionCreatedCityAsync(
+                        cityId: created.CityId,
+                        simulationKind: created.SimulationKind,
+                        operationId: created.PopulationBootstrapOperationId,
+                        cancellationToken: cancellationToken);
+
+                    FinalizeFromProvisioning(session, provisioning);
+
+                    await sessionStore.SaveAsync(
+                        session: session,
+                        cancellationToken: cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                {
+                    logger.LogWarning(
+                        exception: ex,
+                        message: "Classic City setup launch failed after city creation for sessionId={SessionId} cityId={CityId}.",
+                        session.SessionId,
+                        created.CityId);
+
+                    session.Status = ClassicCitySetupSessionStatuses.ProvisioningFailed;
+                    session.Provisioning = BuildFailedProvisioningFromPending(
+                        cityId: created.CityId,
+                        simulationKind: created.SimulationKind,
+                        operationId: created.PopulationBootstrapOperationId,
+                        failureCode: ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError);
+                    session.FailureCode = ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError;
+                    session.FailureMessage = BuildSafeFailureMessage(
+                        exception: ex,
+                        fallback: "Population bootstrap finished with an unexpected orchestration error.");
+                    session.CompletedAtUtc = DateTimeOffset.UtcNow;
+                    session.UpdatedAtUtc = session.CompletedAtUtc.Value;
+
+                    await sessionStore.SaveAsync(
+                        session: session,
+                        cancellationToken: cancellationToken);
+                }
+            }
+            finally
+            {
+                await TryReleaseSessionLockAsync(
+                    sessionId: sessionId,
+                    lockHandle: lockHandle,
                     cancellationToken: cancellationToken);
             }
         }
@@ -541,6 +600,18 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 ErrorMessage: message);
         }
 
+        private static ClassicCitySetupSessionMutationResult Unavailable(
+            ClassicCitySetupSessionState session,
+            string code,
+            string message)
+        {
+            return new ClassicCitySetupSessionMutationResult(
+                Status: ClassicCitySetupSessionMutationStatus.Unavailable,
+                Session: MapToView(session),
+                ErrorCode: code,
+                ErrorMessage: message);
+        }
+
         private static ClassicCitySetupSessionMutationResult Invalid(
             ClassicCitySetupSessionState session,
             string code,
@@ -560,6 +631,87 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 Session: null,
                 ErrorCode: null,
                 ErrorMessage: null);
+        }
+
+        private async Task<ClassicCitySetupSessionMutationResult> ExecuteMutationAsync(
+            Guid sessionId,
+            string unavailableFallbackMessage,
+            Func<Task<ClassicCitySetupSessionMutationResult>> action,
+            CancellationToken cancellationToken)
+        {
+            ClassicCitySetupSessionLockHandle? lockHandle;
+
+            try
+            {
+                lockHandle = await sessionStore.TryAcquireLockAsync(
+                    sessionId: sessionId,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Classic City setup session lock acquisition failed for sessionId={SessionId}.",
+                    sessionId);
+
+                ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+                    sessionId: sessionId,
+                    cancellationToken: cancellationToken);
+
+                return session is null
+                    ? NotFound()
+                    : Unavailable(
+                        session,
+                        code: ClassicCitySetupSessionFailureCodes.SessionLockUnavailable,
+                        message: unavailableFallbackMessage);
+            }
+
+            if (lockHandle is null)
+            {
+                ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+                    sessionId: sessionId,
+                    cancellationToken: cancellationToken);
+
+                return session is null
+                    ? NotFound()
+                    : Conflict(
+                        session,
+                        code: ClassicCitySetupSessionFailureCodes.SessionBusy,
+                        message: "This setup session is already being modified by another request. Retry in a moment.");
+            }
+
+            try
+            {
+                return await action();
+            }
+            finally
+            {
+                await TryReleaseSessionLockAsync(
+                    sessionId: sessionId,
+                    lockHandle: lockHandle,
+                    cancellationToken: cancellationToken);
+            }
+        }
+
+        private async Task TryReleaseSessionLockAsync(
+            Guid sessionId,
+            ClassicCitySetupSessionLockHandle lockHandle,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await sessionStore.ReleaseLockAsync(
+                    sessionId: sessionId,
+                    lockHandle: lockHandle,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Classic City setup session lock release failed for sessionId={SessionId}.",
+                    sessionId);
+            }
         }
     }
 }

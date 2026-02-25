@@ -7,7 +7,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         Updated = 1,
         NotFound = 2,
         Conflict = 3,
-        Invalid = 4
+        Invalid = 4,
+        Unavailable = 5
     }
 
     public sealed record ClassicCitySetupSessionMutationResult(

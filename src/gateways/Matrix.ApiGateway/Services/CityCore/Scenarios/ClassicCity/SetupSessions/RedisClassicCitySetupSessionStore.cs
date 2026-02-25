@@ -2,16 +2,19 @@ using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Matrix.ApiGateway.Configurations.Options;
+using StackExchange.Redis;
 
 namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions
 {
     public sealed class RedisClassicCitySetupSessionStore(
         IDistributedCache distributedCache,
+        IConnectionMultiplexer connectionMultiplexer,
         IOptions<ClassicCitySetupSessionOptions> options)
         : IClassicCitySetupSessionStore
     {
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
         private readonly IDistributedCache _distributedCache = distributedCache;
+        private readonly IConnectionMultiplexer _connectionMultiplexer = connectionMultiplexer;
         private readonly ClassicCitySetupSessionOptions _options = options.Value;
 
         public async Task<ClassicCitySetupSessionState?> GetAsync(
@@ -43,9 +46,59 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 token: cancellationToken);
         }
 
+        public async Task<ClassicCitySetupSessionLockHandle?> TryAcquireLockAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            string lockKey = BuildLockKey(sessionId);
+            string token = Guid.NewGuid()
+               .ToString("N");
+            TimeSpan lease = TimeSpan.FromSeconds(_options.MutationLockLeaseSeconds);
+            DateTimeOffset deadline = DateTimeOffset.UtcNow.AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
+
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                bool acquired = await database.LockTakeAsync(
+                    key: lockKey,
+                    value: token,
+                    expiry: lease);
+
+                if (acquired)
+                    return new ClassicCitySetupSessionLockHandle(token);
+
+                if (DateTimeOffset.UtcNow >= deadline)
+                    return null;
+
+                await Task.Delay(
+                    millisecondsDelay: _options.MutationLockRetryDelayMilliseconds,
+                    cancellationToken: cancellationToken);
+            }
+        }
+
+        public async Task ReleaseLockAsync(
+            Guid sessionId,
+            ClassicCitySetupSessionLockHandle lockHandle,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            await database.LockReleaseAsync(
+                key: BuildLockKey(sessionId),
+                value: lockHandle.Token);
+        }
+
         private static string BuildCacheKey(Guid sessionId)
         {
             return $"citycore:classic-city:setup-session:{sessionId:D}";
+        }
+
+        private static string BuildLockKey(Guid sessionId)
+        {
+            return $"citycore:classic-city:setup-session-lock:{sessionId:D}";
         }
     }
 }

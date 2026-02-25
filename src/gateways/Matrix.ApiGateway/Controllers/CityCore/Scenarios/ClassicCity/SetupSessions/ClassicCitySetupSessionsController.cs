@@ -59,6 +59,11 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.SetupSess
                     code = result.ErrorCode,
                     message = result.ErrorMessage
                 }),
+                ClassicCitySetupSessionMutationStatus.Unavailable => StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    code = result.ErrorCode,
+                    message = result.ErrorMessage
+                }),
                 ClassicCitySetupSessionMutationStatus.Invalid => BadRequest(new
                 {
                     code = result.ErrorCode,
@@ -82,6 +87,11 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.SetupSess
                 ClassicCitySetupSessionMutationStatus.Updated => Accepted(result.Session),
                 ClassicCitySetupSessionMutationStatus.NotFound => NotFound(),
                 ClassicCitySetupSessionMutationStatus.Conflict => Conflict(new
+                {
+                    code = result.ErrorCode,
+                    message = result.ErrorMessage
+                }),
+                ClassicCitySetupSessionMutationStatus.Unavailable => StatusCode(StatusCodes.Status503ServiceUnavailable, new
                 {
                     code = result.ErrorCode,
                     message = result.ErrorMessage
