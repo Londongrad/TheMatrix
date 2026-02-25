@@ -24,5 +24,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         Task ProcessLaunchAsync(
             Guid sessionId,
             CancellationToken cancellationToken = default);
+
+        Task ReconcileAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default);
     }
 }

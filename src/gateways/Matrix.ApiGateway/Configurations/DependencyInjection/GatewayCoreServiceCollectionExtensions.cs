@@ -13,6 +13,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .AddScoped<ICityProvisioningService, CityProvisioningService>()
                .AddScoped<IClassicCitySetupSessionStore, RedisClassicCitySetupSessionStore>()
                .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()
+               .AddHostedService<ClassicCitySetupSessionRecoveryHostedService>()
                .AddGatewayControllers()
                .AddGatewayCors();
 

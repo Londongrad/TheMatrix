@@ -91,6 +91,12 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => o.MutationLockAcquireTimeoutMilliseconds >= o.MutationLockRetryDelayMilliseconds,
                     failureMessage: "ClassicCitySetupSessions:MutationLockAcquireTimeoutMilliseconds must be greater than or equal to MutationLockRetryDelayMilliseconds.")
+               .Validate(
+                    validation: o => o.ReconciliationIntervalSeconds > 0,
+                    failureMessage: "ClassicCitySetupSessions:ReconciliationIntervalSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.LaunchQueueRecoveryDelaySeconds > 0,
+                    failureMessage: "ClassicCitySetupSessions:LaunchQueueRecoveryDelaySeconds must be greater than 0.")
                .ValidateOnStart();
 
             return services;

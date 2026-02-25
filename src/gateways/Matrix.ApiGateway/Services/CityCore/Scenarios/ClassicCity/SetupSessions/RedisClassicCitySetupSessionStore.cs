@@ -13,6 +13,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         : IClassicCitySetupSessionStore
     {
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+        private const string RecoveryIndexKey = "citycore:classic-city:setup-session:recovery";
         private readonly IDistributedCache _distributedCache = distributedCache;
         private readonly IConnectionMultiplexer _connectionMultiplexer = connectionMultiplexer;
         private readonly ClassicCitySetupSessionOptions _options = options.Value;
@@ -36,14 +37,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         {
             string payload = JsonSerializer.Serialize(session, JsonOptions);
 
-            return _distributedCache.SetStringAsync(
-                key: BuildCacheKey(session.SessionId),
-                value: payload,
-                options: new DistributedCacheEntryOptions
-                {
-                    SlidingExpiration = TimeSpan.FromHours(_options.CacheTtlHours)
-                },
-                token: cancellationToken);
+            return SaveCoreAsync(
+                session: session,
+                payload: payload,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<ClassicCitySetupSessionLockHandle?> TryAcquireLockAsync(
@@ -89,6 +86,69 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             await database.LockReleaseAsync(
                 key: BuildLockKey(sessionId),
                 value: lockHandle.Token);
+        }
+
+        public async Task<IReadOnlyList<Guid>> ListTrackedSessionIdsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            RedisValue[] values = await database.SetMembersAsync(RecoveryIndexKey);
+
+            return values
+               .Select(value => Guid.TryParse(value, out Guid sessionId)
+                    ? sessionId
+                    : Guid.Empty)
+               .Where(sessionId => sessionId != Guid.Empty)
+               .ToArray();
+        }
+
+        public async Task UntrackAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            await database.SetRemoveAsync(
+                key: RecoveryIndexKey,
+                value: sessionId.ToString("D"));
+        }
+
+        private async Task SaveCoreAsync(
+            ClassicCitySetupSessionState session,
+            string payload,
+            CancellationToken cancellationToken)
+        {
+            await _distributedCache.SetStringAsync(
+                key: BuildCacheKey(session.SessionId),
+                value: payload,
+                options: new DistributedCacheEntryOptions
+                {
+                    SlidingExpiration = TimeSpan.FromHours(_options.CacheTtlHours)
+                },
+                token: cancellationToken);
+
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            string value = session.SessionId.ToString("D");
+
+            if (ShouldTrackForRecovery(session.Status))
+                await database.SetAddAsync(
+                    key: RecoveryIndexKey,
+                    value: value);
+            else
+                await database.SetRemoveAsync(
+                    key: RecoveryIndexKey,
+                    value: value);
+        }
+
+        private static bool ShouldTrackForRecovery(string status)
+        {
+            return status is ClassicCitySetupSessionStatuses.LaunchQueued or
+                ClassicCitySetupSessionStatuses.CreatingCity or
+                ClassicCitySetupSessionStatuses.BootstrappingPopulation or
+                ClassicCitySetupSessionStatuses.ProvisioningFailed;
         }
 
         private static string BuildCacheKey(Guid sessionId)

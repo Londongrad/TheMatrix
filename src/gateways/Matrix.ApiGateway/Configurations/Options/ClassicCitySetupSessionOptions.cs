@@ -11,5 +11,11 @@ namespace Matrix.ApiGateway.Configurations.Options
         public int MutationLockAcquireTimeoutMilliseconds { get; init; } = 1500;
 
         public int MutationLockRetryDelayMilliseconds { get; init; } = 100;
+
+        public bool ReconciliationEnabled { get; init; } = true;
+
+        public int ReconciliationIntervalSeconds { get; init; } = 15;
+
+        public int LaunchQueueRecoveryDelaySeconds { get; init; } = 20;
     }
 }

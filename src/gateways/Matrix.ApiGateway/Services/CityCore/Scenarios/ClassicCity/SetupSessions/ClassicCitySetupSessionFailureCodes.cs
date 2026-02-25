@@ -11,6 +11,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         public const string CityCreateConflict = "Gateway.ClassicCitySetup.CityCreateConflict";
         public const string CityCreateTransportError = "Gateway.ClassicCitySetup.CityCreateTransportError";
         public const string CityCreateUnexpectedError = "Gateway.ClassicCitySetup.CityCreateUnexpectedError";
+        public const string ReconciliationCityNotFound = "Gateway.ClassicCitySetup.ReconciliationCityNotFound";
         public const string ProvisioningUnexpectedError = "Gateway.ClassicCitySetup.ProvisioningUnexpectedError";
     }
 }
