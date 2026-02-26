@@ -63,7 +63,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     PopulationOccupancyProfile: request.PopulationOccupancyProfile,
                     StartSimTimeUtc: request.StartSimTimeUtc,
                     SpeedMultiplier: request.SpeedMultiplier,
-                    PlannedPeopleCount: request.PlannedPeopleCount),
+                    PlannedPeopleCount: request.PlannedPeopleCount,
+                    ProvisioningCorrelationId: request.ProvisioningCorrelationId),
                 cancellationToken: cancellationToken);
         }
 

@@ -13,5 +13,6 @@
         string? UrbanDensity = null,
         string? DevelopmentLevel = null,
         string? PopulationOccupancyProfile = null,
-        int? PlannedPeopleCount = null);
+        int? PlannedPeopleCount = null,
+        Guid? ProvisioningCorrelationId = null);
 }

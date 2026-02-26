@@ -154,6 +154,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                             message: errorMessage ?? "Setup draft is incomplete.");
                     }
 
+                    launchRequest = launchRequest! with
+                    {
+                        ProvisioningCorrelationId = session.SessionId
+                    };
+
                     DateTimeOffset now = DateTimeOffset.UtcNow;
                     session.Status = ClassicCitySetupSessionStatuses.LaunchQueued;
                     session.CurrentStepId = ClassicCitySetupSteps.Launch;
@@ -267,13 +272,21 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                         return;
                     }
 
+                    if (ShouldRecoverCreatingCity(session))
+                    {
+                        logger.LogInformation(
+                            message: "Classic City setup session recovery is replaying city creation for stale sessionId={SessionId}.",
+                            session.SessionId);
+
+                        await ProcessLaunchCoreAsync(
+                            session: session,
+                            cancellationToken: cancellationToken);
+                        return;
+                    }
+
                     if (!session.CityId.HasValue)
                     {
-                        if (string.Equals(
-                                session.Status,
-                                ClassicCitySetupSessionStatuses.CreatingCity,
-                                StringComparison.Ordinal) &&
-                            IsCreatingCityWithoutCorrelationStale(session))
+                        if (IsCreatingCityWithoutCorrelationStale(session))
                         {
                             logger.LogWarning(
                                 message:
@@ -709,6 +722,21 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             TimeSpan age = DateTimeOffset.UtcNow - referenceTimestamp;
 
             return age >= TimeSpan.FromSeconds(_options.LaunchQueueRecoveryDelaySeconds);
+        }
+
+        private bool ShouldRecoverCreatingCity(ClassicCitySetupSessionState session)
+        {
+            if (!string.Equals(
+                    session.Status,
+                    ClassicCitySetupSessionStatuses.CreatingCity,
+                    StringComparison.Ordinal) ||
+                session.CityId.HasValue ||
+                session.LaunchRequest?.ProvisioningCorrelationId is null)
+            {
+                return false;
+            }
+
+            return IsCreatingCityWithoutCorrelationStale(session);
         }
 
         private static void FinalizeFromProvisioning(
