@@ -83,6 +83,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 environment: environment,
                 generationSeed: generationSeed,
                 generationProfile: generationProfile,
+                provisioningCorrelationId: request.ProvisioningCorrelationId,
                 requiresPopulationBootstrap: true,
                 createdAtUtc: DateTimeOffset.UtcNow);
 

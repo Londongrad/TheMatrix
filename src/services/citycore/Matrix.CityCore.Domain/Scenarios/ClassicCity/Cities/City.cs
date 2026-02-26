@@ -21,6 +21,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             CityGenerationProfile generationProfile,
+            Guid? provisioningCorrelationId,
             CityStatus status,
             DateTimeOffset createdAtUtc,
             Guid populationBootstrapOperationId,
@@ -45,6 +46,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             Environment = environment;
             GenerationSeed = generationSeed;
             GenerationProfile = generationProfile;
+            ProvisioningCorrelationId = provisioningCorrelationId;
             Status = status;
             CreatedAtUtc = createdAtUtc;
             PopulationBootstrapOperationId = populationBootstrapOperationId;
@@ -69,6 +71,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         public CityEnvironment Environment { get; private set; }
         public CityGenerationSeed GenerationSeed { get; }
         public CityGenerationProfile GenerationProfile { get; }
+        public Guid? ProvisioningCorrelationId { get; }
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
         public Guid PopulationBootstrapOperationId { get; private set; }
@@ -88,6 +91,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             CityGenerationProfile generationProfile,
+            Guid? provisioningCorrelationId,
             bool requiresPopulationBootstrap,
             DateTimeOffset createdAtUtc)
         {
@@ -113,6 +117,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 environment: environment,
                 generationSeed: generationSeed,
                 generationProfile: generationProfile,
+                provisioningCorrelationId: provisioningCorrelationId,
                 status: requiresPopulationBootstrap
                     ? CityStatus.Provisioning
                     : CityStatus.Active,

@@ -50,7 +50,8 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                     PopulationOccupancyProfile: request.PopulationOccupancyProfile,
                     StartSimTimeUtc: request.StartSimTimeUtc,
                     SpeedMultiplier: request.SpeedMultiplier,
-                    PlannedPeopleCount: request.PlannedPeopleCount),
+                    PlannedPeopleCount: request.PlannedPeopleCount,
+                    ProvisioningCorrelationId: request.ProvisioningCorrelationId),
                 cancellationToken: cancellationToken);
 
             return Results.Created(

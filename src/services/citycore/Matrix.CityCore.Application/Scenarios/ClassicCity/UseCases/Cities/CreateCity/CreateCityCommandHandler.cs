@@ -24,6 +24,16 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
             CreateCityCommand request,
             CancellationToken cancellationToken)
         {
+            if (request.ProvisioningCorrelationId.HasValue)
+            {
+                CityCreatedDto? existing = await TryGetExistingByProvisioningCorrelationAsync(
+                    provisioningCorrelationId: request.ProvisioningCorrelationId.Value,
+                    cancellationToken: cancellationToken);
+
+                if (existing is not null)
+                    return existing;
+            }
+
             SimulationKind simulationKind = ParseSimulationKind(request.SimulationKind);
             ICitySimulationBootstrapStrategy bootstrapStrategy = ResolveBootstrapStrategy(
                 simulationBootstrapStrategies: simulationBootstrapStrategies,
@@ -34,43 +44,54 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
             CityTopologySeed topology = bootstrapPlan.Topology;
             SimulationClock clock = bootstrapPlan.Clock;
 
-            await unitOfWork.ExecuteInTransactionAsync(
-                action: async ct =>
-                {
-                    await cityRepository.AddAsync(
-                        city: city,
-                        cancellationToken: ct);
-                    await districtRepository.AddRangeAsync(
-                        districts: topology.Districts,
-                        cancellationToken: ct);
-                    await residentialBuildingRepository.AddRangeAsync(
-                        buildings: topology.ResidentialBuildings,
-                        cancellationToken: ct);
-                    if (bootstrapPlan.Weather is not null)
-                        await cityWeatherRepository.AddAsync(
-                            cityWeather: bootstrapPlan.Weather,
+            try
+            {
+                await unitOfWork.ExecuteInTransactionAsync(
+                    action: async ct =>
+                    {
+                        await cityRepository.AddAsync(
+                            city: city,
                             cancellationToken: ct);
-                    await clockRepository.AddAsync(
-                        clock: clock,
-                        cancellationToken: ct);
-                    await outboxWriter.AddCityEventsAsync(
-                        domainEvents: city.DomainEvents,
-                        cancellationToken: ct);
-                    if (bootstrapPlan.Weather is not null)
-                        await outboxWriter.AddWeatherEventsAsync(
-                            domainEvents: bootstrapPlan.Weather.DomainEvents,
+                        await districtRepository.AddRangeAsync(
+                            districts: topology.Districts,
                             cancellationToken: ct);
+                        await residentialBuildingRepository.AddRangeAsync(
+                            buildings: topology.ResidentialBuildings,
+                            cancellationToken: ct);
+                        if (bootstrapPlan.Weather is not null)
+                            await cityWeatherRepository.AddAsync(
+                                cityWeather: bootstrapPlan.Weather,
+                                cancellationToken: ct);
+                        await clockRepository.AddAsync(
+                            clock: clock,
+                            cancellationToken: ct);
+                        await outboxWriter.AddCityEventsAsync(
+                            domainEvents: city.DomainEvents,
+                            cancellationToken: ct);
+                        if (bootstrapPlan.Weather is not null)
+                            await outboxWriter.AddWeatherEventsAsync(
+                                domainEvents: bootstrapPlan.Weather.DomainEvents,
+                                cancellationToken: ct);
 
-                    city.ClearDomainEvents();
-                    bootstrapPlan.Weather?.ClearDomainEvents();
-                    await unitOfWork.SaveChangesAsync(ct);
-                },
-                cancellationToken: cancellationToken);
+                        city.ClearDomainEvents();
+                        bootstrapPlan.Weather?.ClearDomainEvents();
+                        await unitOfWork.SaveChangesAsync(ct);
+                    },
+                    cancellationToken: cancellationToken);
+            }
+            catch when (request.ProvisioningCorrelationId.HasValue)
+            {
+                CityCreatedDto? existing = await TryGetExistingByProvisioningCorrelationAsync(
+                    provisioningCorrelationId: request.ProvisioningCorrelationId.Value,
+                    cancellationToken: cancellationToken);
 
-            return new CityCreatedDto(
-                CityId: city.Id.Value,
-                PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
-                SimulationKind: city.SimulationKind.ToString());
+                if (existing is not null)
+                    return existing;
+
+                throw;
+            }
+
+            return MapToCreatedDto(city);
         }
 
         private static SimulationKind ParseSimulationKind(string? value)
@@ -92,6 +113,27 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
             return strategy ??
                    throw new InvalidOperationException(
                        $"City simulation bootstrap strategy is not registered for kind '{simulationKind}'.");
+        }
+
+        private async Task<CityCreatedDto?> TryGetExistingByProvisioningCorrelationAsync(
+            Guid provisioningCorrelationId,
+            CancellationToken cancellationToken)
+        {
+            City? existing = await cityRepository.GetByProvisioningCorrelationIdAsync(
+                provisioningCorrelationId: provisioningCorrelationId,
+                cancellationToken: cancellationToken);
+
+            return existing is null
+                ? null
+                : MapToCreatedDto(existing);
+        }
+
+        private static CityCreatedDto MapToCreatedDto(City city)
+        {
+            return new CityCreatedDto(
+                CityId: city.Id.Value,
+                PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
+                SimulationKind: city.SimulationKind.ToString());
         }
     }
 }

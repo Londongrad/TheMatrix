@@ -16,6 +16,17 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
                 cancellationToken: cancellationToken);
         }
 
+        public Task<City?> GetByProvisioningCorrelationIdAsync(
+            Guid provisioningCorrelationId,
+            CancellationToken cancellationToken)
+        {
+            return dbContext.Cities
+               .AsNoTracking()
+               .SingleOrDefaultAsync(
+                    predicate: x => x.ProvisioningCorrelationId == provisioningCorrelationId,
+                    cancellationToken: cancellationToken);
+        }
+
         public async Task<IReadOnlyList<City>> ListAsync(
             bool includeArchived,
             CancellationToken cancellationToken)

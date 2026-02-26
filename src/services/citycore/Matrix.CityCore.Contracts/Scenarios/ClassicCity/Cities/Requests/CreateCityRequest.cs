@@ -13,5 +13,6 @@ namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests
         string? PopulationOccupancyProfile,
         DateTimeOffset StartSimTimeUtc,
         decimal SpeedMultiplier = 1.0m,
-        int? PlannedPeopleCount = null);
+        int? PlannedPeopleCount = null,
+        Guid? ProvisioningCorrelationId = null);
 }

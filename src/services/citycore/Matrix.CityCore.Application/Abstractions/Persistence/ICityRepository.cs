@@ -8,6 +8,10 @@ namespace Matrix.CityCore.Application.Abstractions.Persistence
             CityId cityId,
             CancellationToken cancellationToken);
 
+        Task<City?> GetByProvisioningCorrelationIdAsync(
+            Guid provisioningCorrelationId,
+            CancellationToken cancellationToken);
+
         Task<IReadOnlyList<City>> ListAsync(
             bool includeArchived,
             CancellationToken cancellationToken);

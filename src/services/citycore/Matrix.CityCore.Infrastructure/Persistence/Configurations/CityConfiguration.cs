@@ -100,6 +100,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
             builder.Property(x => x.CreatedAtUtc)
                .IsRequired();
 
+            builder.Property(x => x.ProvisioningCorrelationId)
+               .IsRequired(false);
+
             builder.Property(x => x.PopulationBootstrapOperationId)
                .IsRequired();
 
@@ -121,6 +124,9 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
             // Optimizations for common queries
             builder.HasIndex(x => x.Status);
             builder.HasIndex(x => x.CreatedAtUtc);
+            builder.HasIndex(x => x.ProvisioningCorrelationId)
+               .IsUnique()
+               .HasFilter("\"ProvisioningCorrelationId\" IS NOT NULL");
 
             // Postgres optimistic concurrency
             builder.Property<uint>("xmin")
