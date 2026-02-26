@@ -145,7 +145,11 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 "|",
                 generationProfile.UrbanDensity,
                 "|",
-                generationProfile.DevelopmentLevel);
+                generationProfile.DevelopmentLevel,
+                "|",
+                generationProfile.PopulationOccupancyProfile,
+                "|",
+                generationProfile.PlannedPeopleCount?.ToString() ?? "auto");
         }
     }
 }

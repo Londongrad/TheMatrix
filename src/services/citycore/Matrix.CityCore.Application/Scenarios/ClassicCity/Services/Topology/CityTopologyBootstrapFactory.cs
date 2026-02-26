@@ -20,33 +20,58 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             ArgumentNullException.ThrowIfNull(city);
 
             var random = new DeterministicRandom(BuildSeed(city));
+            GenerationPlan plan = BuildGenerationPlan(
+                profile: city.GenerationProfile,
+                random: random);
             DateTimeOffset createdAtUtc = city.CreatedAtUtc;
 
             List<District> districts = CreateDistricts(
                 city: city,
                 createdAtUtc: createdAtUtc,
-                random: random);
+                random: random,
+                plan: plan);
 
             List<ResidentialBuilding> buildings = CreateResidentialBuildings(
                 city: city,
                 districts: districts,
                 createdAtUtc: createdAtUtc,
-                random: random);
+                random: random,
+                plan: plan);
 
             return new CityTopologySeed(
                 Districts: districts,
                 ResidentialBuildings: buildings);
         }
 
+        private GenerationPlan BuildGenerationPlan(
+            CityGenerationProfile profile,
+            DeterministicRandom random)
+        {
+            int targetPopulation = ResolveTargetPopulation(profile);
+            int topologyPopulationBasis = Math.Max(
+                targetPopulation,
+                GetTopologyPopulationFloor(profile.SizeTier));
+            int targetResidentialCapacity = ResolveResidentialCapacityTarget(
+                profile: profile,
+                topologyPopulationBasis: topologyPopulationBasis,
+                random: random);
+            int districtCount = ResolveDistrictCount(
+                profile: profile,
+                targetResidentialCapacity: targetResidentialCapacity);
+
+            return new GenerationPlan(
+                TargetPopulation: targetPopulation,
+                TopologyPopulationBasis: topologyPopulationBasis,
+                TargetResidentialCapacity: targetResidentialCapacity,
+                DistrictCount: districtCount);
+        }
+
         private List<District> CreateDistricts(
             City city,
             DateTimeOffset createdAtUtc,
-            DeterministicRandom random)
+            DeterministicRandom random,
+            GenerationPlan plan)
         {
-            int districtCount = GetDistrictCount(
-                profile: city.GenerationProfile,
-                random: random);
-
             var availableNames = generationContentCatalog.DistrictNamePresets
                .Where(x => !string.Equals(
                     a: x,
@@ -65,7 +90,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     createdAtUtc: createdAtUtc)
             };
 
-            for (int i = 1; i < districtCount; i++)
+            for (int i = 1; i < plan.DistrictCount; i++)
             {
                 string districtName = i - 1 < availableNames.Count
                     ? availableNames[i - 1]
@@ -85,18 +110,22 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             City city,
             IReadOnlyList<District> districts,
             DateTimeOffset createdAtUtc,
-            DeterministicRandom random)
+            DeterministicRandom random,
+            GenerationPlan plan)
         {
             var buildings = new List<ResidentialBuilding>();
+            int[] districtCapacityTargets = BuildDistrictCapacityTargets(
+                profile: city.GenerationProfile,
+                totalCapacityTarget: plan.TargetResidentialCapacity,
+                districtCount: districts.Count,
+                random: random);
 
             for (int districtIndex = 0; districtIndex < districts.Count; districtIndex++)
             {
                 District district = districts[districtIndex];
                 bool isCentral = districtIndex == 0;
-                int buildingCount = GetBuildingCount(
-                    profile: city.GenerationProfile,
-                    isCentral: isCentral,
-                    random: random);
+                int districtCapacityTarget = districtCapacityTargets[districtIndex];
+                int districtCapacityBuilt = 0;
 
                 string districtLabel = district.Name.Value.Replace(
                     oldValue: " District",
@@ -104,7 +133,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     comparisonType: StringComparison.Ordinal);
                 var typeCounters = new Dictionary<ResidentialBuildingType, int>();
 
-                for (int buildingIndex = 0; buildingIndex < buildingCount; buildingIndex++)
+                while (districtCapacityBuilt < districtCapacityTarget || districtCapacityBuilt == 0)
                 {
                     ResidentialBuildingType type = GetBuildingType(
                         profile: city.GenerationProfile,
@@ -121,6 +150,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     int residentCapacity = GetResidentCapacity(
                         type: type,
                         profile: city.GenerationProfile,
+                        topologyPopulationBasis: plan.TopologyPopulationBasis,
                         isCentral: isCentral,
                         random: random);
 
@@ -136,79 +166,219 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                             type: type,
                             residentCapacity: ResidentCapacity.From(residentCapacity),
                             createdAtUtc: createdAtUtc));
+
+                    districtCapacityBuilt += residentCapacity;
                 }
             }
 
             return buildings;
         }
 
-        private static int GetDistrictCount(
-            CityGenerationProfile profile,
-            DeterministicRandom random)
+        private static int ResolveTargetPopulation(CityGenerationProfile profile)
         {
-            int baseCount = profile.SizeTier switch
-            {
-                CitySizeTier.Small => 3,
-                CitySizeTier.Medium => 5,
-                CitySizeTier.Large => 7,
-                _ => 5
-            };
-
-            int densityBonus = profile.UrbanDensity switch
-            {
-                UrbanDensity.Sparse => 0,
-                UrbanDensity.Balanced => 1,
-                UrbanDensity.Dense => 2,
-                _ => 1
-            };
-
-            int developmentBonus = profile.DevelopmentLevel == CityDevelopmentLevel.Advanced
-                ? 1
-                : 0;
-
-            int randomBonus = random.NextInt(
-                minInclusive: 0,
-                maxExclusive: densityBonus + 1);
-
-            return Math.Min(
-                val1: 10,
-                val2: baseCount + developmentBonus + randomBonus);
+            return profile.PlannedPeopleCount ?? GetFallbackPopulationTarget(profile);
         }
 
-        private static int GetBuildingCount(
+        private static int GetFallbackPopulationTarget(CityGenerationProfile profile)
+        {
+            int basePopulation = profile.SizeTier switch
+            {
+                CitySizeTier.Small => 1_000,
+                CitySizeTier.Medium => 10_000,
+                CitySizeTier.Large => 35_000,
+                _ => 10_000
+            };
+
+            decimal densityFactor = profile.UrbanDensity switch
+            {
+                UrbanDensity.Sparse => 0.85m,
+                UrbanDensity.Dense => 1.25m,
+                _ => 1.0m
+            };
+
+            decimal developmentFactor = profile.DevelopmentLevel switch
+            {
+                CityDevelopmentLevel.Struggling => 0.90m,
+                CityDevelopmentLevel.Advanced => 1.10m,
+                _ => 1.0m
+            };
+
+            return Math.Max(
+                100,
+                (int)Math.Round(
+                    d: basePopulation * densityFactor * developmentFactor,
+                    mode: MidpointRounding.AwayFromZero));
+        }
+
+        private static int GetTopologyPopulationFloor(CitySizeTier sizeTier)
+        {
+            return sizeTier switch
+            {
+                CitySizeTier.Small => 350,
+                CitySizeTier.Medium => 800,
+                CitySizeTier.Large => 1_600,
+                _ => 800
+            };
+        }
+
+        private static int ResolveResidentialCapacityTarget(
             CityGenerationProfile profile,
-            bool isCentral,
+            int topologyPopulationBasis,
             DeterministicRandom random)
         {
-            int baseCount = profile.UrbanDensity switch
+            decimal ratio = GetBaseHousingRatio(profile.PopulationOccupancyProfile) +
+                            GetDensityHousingModifier(profile.UrbanDensity) +
+                            GetDevelopmentHousingModifier(profile.DevelopmentLevel) +
+                            GetFootprintHousingModifier(profile.SizeTier) +
+                            random.NextDecimal(
+                                minInclusive: -0.08m,
+                                maxInclusive: 0.08m);
+
+            ratio = Math.Clamp(
+                value: ratio,
+                min: 0.75m,
+                max: 1.45m);
+
+            return Math.Max(
+                40,
+                (int)Math.Round(
+                    d: topologyPopulationBasis * ratio,
+                    mode: MidpointRounding.AwayFromZero));
+        }
+
+        private static decimal GetBaseHousingRatio(PopulationOccupancyProfile occupancyProfile)
+        {
+            return occupancyProfile switch
             {
-                UrbanDensity.Sparse => 2,
-                UrbanDensity.Balanced => 3,
-                UrbanDensity.Dense => 4,
-                _ => 3
+                PopulationOccupancyProfile.Light => 1.28m,
+                PopulationOccupancyProfile.High => 0.92m,
+                _ => 1.08m
+            };
+        }
+
+        private static decimal GetDensityHousingModifier(UrbanDensity urbanDensity)
+        {
+            return urbanDensity switch
+            {
+                UrbanDensity.Sparse => 0.08m,
+                UrbanDensity.Dense => -0.05m,
+                _ => 0.0m
+            };
+        }
+
+        private static decimal GetDevelopmentHousingModifier(CityDevelopmentLevel developmentLevel)
+        {
+            return developmentLevel switch
+            {
+                CityDevelopmentLevel.Struggling => -0.07m,
+                CityDevelopmentLevel.Advanced => 0.05m,
+                _ => 0.0m
+            };
+        }
+
+        private static decimal GetFootprintHousingModifier(CitySizeTier sizeTier)
+        {
+            return sizeTier switch
+            {
+                CitySizeTier.Small => -0.03m,
+                CitySizeTier.Large => 0.04m,
+                _ => 0.0m
+            };
+        }
+
+        private static int ResolveDistrictCount(
+            CityGenerationProfile profile,
+            int targetResidentialCapacity)
+        {
+            int minimumDistricts = profile.SizeTier switch
+            {
+                CitySizeTier.Small => 3,
+                CitySizeTier.Medium => 4,
+                CitySizeTier.Large => 5,
+                _ => 4
             };
 
-            int sizeBonus = profile.SizeTier switch
+            decimal baseCapacityPerDistrict = profile.SizeTier switch
             {
-                CitySizeTier.Small => 0,
-                CitySizeTier.Medium => 1,
-                CitySizeTier.Large => 2,
-                _ => 1
+                CitySizeTier.Small => 1_200m,
+                CitySizeTier.Medium => 2_500m,
+                CitySizeTier.Large => 4_500m,
+                _ => 2_500m
             };
 
-            int centralBonus = isCentral
-                ? 2
-                : 0;
-            int developmentBonus = profile.DevelopmentLevel == CityDevelopmentLevel.Advanced
-                ? 1
-                : 0;
-            int randomBonus = random.NextInt(
-                minInclusive: 0,
-                maxExclusive: 2);
+            decimal densityFactor = profile.UrbanDensity switch
+            {
+                UrbanDensity.Sparse => 0.75m,
+                UrbanDensity.Dense => 1.35m,
+                _ => 1.0m
+            };
 
-            return Math.Min(
-                val1: 9,
-                val2: baseCount + sizeBonus + centralBonus + developmentBonus + randomBonus);
+            decimal developmentFactor = profile.DevelopmentLevel switch
+            {
+                CityDevelopmentLevel.Struggling => 0.90m,
+                CityDevelopmentLevel.Advanced => 1.10m,
+                _ => 1.0m
+            };
+
+            int districtCount = (int)Math.Ceiling(
+                d: targetResidentialCapacity / (baseCapacityPerDistrict * densityFactor * developmentFactor));
+
+            return Math.Clamp(
+                value: districtCount,
+                min: minimumDistricts,
+                max: 36);
+        }
+
+        private static int[] BuildDistrictCapacityTargets(
+            CityGenerationProfile profile,
+            int totalCapacityTarget,
+            int districtCount,
+            DeterministicRandom random)
+        {
+            var weights = new decimal[districtCount];
+            decimal weightTotal = 0.0m;
+
+            for (int i = 0; i < districtCount; i++)
+            {
+                decimal weight = i == 0
+                    ? profile.UrbanDensity == UrbanDensity.Dense
+                        ? 1.45m
+                        : 1.25m
+                    : random.NextDecimal(
+                        minInclusive: 0.80m,
+                        maxInclusive: 1.30m);
+
+                if (profile.SizeTier == CitySizeTier.Large && i > 0)
+                    weight += 0.05m;
+
+                weights[i] = weight;
+                weightTotal += weight;
+            }
+
+            var capacities = new int[districtCount];
+            int allocated = 0;
+
+            for (int i = 0; i < districtCount; i++)
+            {
+                decimal ratio = weights[i] / weightTotal;
+                int minimumDistrictCapacity = i == 0
+                    ? 250
+                    : 120;
+                capacities[i] = Math.Max(
+                    minimumDistrictCapacity,
+                    (int)Math.Round(
+                        d: totalCapacityTarget * ratio,
+                        mode: MidpointRounding.AwayFromZero));
+                allocated += capacities[i];
+            }
+
+            int delta = totalCapacityTarget - allocated;
+            if (delta != 0)
+                capacities[^1] = Math.Max(
+                    60,
+                    capacities[^1] + delta);
+
+            return capacities;
         }
 
         private static ResidentialBuildingType GetBuildingType(
@@ -259,14 +429,13 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     val1: 2,
                     val2: towerWeight - 10);
             }
-            else
-                if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
-                {
-                    towerWeight += 10;
-                    houseWeight = Math.Max(
-                        val1: 2,
-                        val2: houseWeight - 5);
-                }
+            else if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
+            {
+                towerWeight += 10;
+                houseWeight = Math.Max(
+                    val1: 2,
+                    val2: houseWeight - 5);
+            }
 
             if (profile.SizeTier == CitySizeTier.Small && !isCentral)
                 towerWeight = Math.Max(
@@ -294,6 +463,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
         private static int GetResidentCapacity(
             ResidentialBuildingType type,
             CityGenerationProfile profile,
+            int topologyPopulationBasis,
             bool isCentral,
             DeterministicRandom random)
         {
@@ -339,16 +509,52 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             decimal centralFactor = isCentral
                 ? 1.1m
                 : 1.0m;
+            decimal populationScale = GetPopulationCapacityScale(
+                profile: profile,
+                topologyPopulationBasis: topologyPopulationBasis);
             int rawCapacity = random.NextInt(
                 minInclusive: minCapacity,
                 maxExclusive: maxCapacity + 1);
-            decimal adjustedCapacity = rawCapacity * densityFactor * developmentFactor * centralFactor;
+            decimal adjustedCapacity = rawCapacity * densityFactor * developmentFactor * centralFactor * populationScale;
 
             return Math.Max(
                 val1: ResidentCapacity.Min,
                 val2: (int)Math.Round(
                     d: adjustedCapacity,
                     mode: MidpointRounding.AwayFromZero));
+        }
+
+        private static decimal GetPopulationCapacityScale(
+            CityGenerationProfile profile,
+            int topologyPopulationBasis)
+        {
+            decimal scale = topologyPopulationBasis switch
+            {
+                >= 100_000 => 1.35m,
+                >= 10_000 => 1.18m,
+                >= 1_000 => 1.05m,
+                _ => 1.0m
+            };
+
+            if (profile.UrbanDensity == UrbanDensity.Dense)
+                scale += 0.10m;
+            else if (profile.UrbanDensity == UrbanDensity.Sparse)
+                scale -= 0.05m;
+
+            if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
+                scale += 0.08m;
+            else if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling)
+                scale -= 0.05m;
+
+            if (profile.SizeTier == CitySizeTier.Large)
+                scale += 0.06m;
+            else if (profile.SizeTier == CitySizeTier.Small)
+                scale -= 0.03m;
+
+            return Math.Clamp(
+                value: scale,
+                min: 0.85m,
+                max: 1.80m);
         }
 
         private static string CreateBuildingName(
@@ -379,6 +585,10 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                 "|",
                 city.GenerationProfile.DevelopmentLevel,
                 "|",
+                city.GenerationProfile.PopulationOccupancyProfile,
+                "|",
+                city.GenerationProfile.PlannedPeopleCount?.ToString() ?? "auto",
+                "|",
                 city.Environment.ClimateZone,
                 "|",
                 city.Environment.Hemisphere,
@@ -406,6 +616,12 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             }
         }
 
+        private sealed record GenerationPlan(
+            int TargetPopulation,
+            int TopologyPopulationBasis,
+            int TargetResidentialCapacity,
+            int DistrictCount);
+
         private sealed class DeterministicRandom
         {
             private ulong _state;
@@ -427,6 +643,21 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                 ulong range = (ulong)(maxExclusive - minInclusive);
                 ulong sample = NextUInt64() % range;
                 return minInclusive + (int)sample;
+            }
+
+            public decimal NextDecimal(
+                decimal minInclusive,
+                decimal maxInclusive)
+            {
+                if (maxInclusive <= minInclusive)
+                    return minInclusive;
+
+                const decimal denominator = 1_000_000m;
+                decimal normalized = NextInt(
+                    minInclusive: 0,
+                    maxExclusive: 1_000_001) / denominator;
+
+                return minInclusive + ((maxInclusive - minInclusive) * normalized);
             }
 
             private ulong NextUInt64()
