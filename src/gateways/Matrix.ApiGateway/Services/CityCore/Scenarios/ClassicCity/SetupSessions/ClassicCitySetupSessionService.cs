@@ -49,10 +49,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 ScenarioKind = "ClassicCity",
                 Status = ClassicCitySetupSessionStatuses.Draft,
                 CurrentStepId = NormalizeStepId(request.CurrentStepId),
-                Draft = NormalizeDraft(request.Draft),
                 CreatedAtUtc = now,
                 UpdatedAtUtc = now
             };
+            session.Draft = NormalizeDraft(
+                draft: request.Draft,
+                fallbackSeed: BuildDefaultGenerationSeed(session.SessionId));
 
             await sessionStore.SaveAsync(
                 session: session,
@@ -100,7 +102,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                             message: "This setup session can no longer be edited because launch orchestration is already in progress or completed.");
 
                     session.CurrentStepId = NormalizeStepId(request.CurrentStepId);
-                    session.Draft = NormalizeDraft(request.Draft);
+                    session.Draft = NormalizeDraft(
+                        draft: request.Draft,
+                        fallbackSeed: ResolveGenerationSeedFallback(session));
                     session.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
                     await sessionStore.SaveAsync(
@@ -134,7 +138,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                             code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
                             message: "This setup session is already queued, running, or attached to a launched city.");
 
-                    ClassicCitySetupDraftDto draft = NormalizeDraft(session.Draft);
+                    ClassicCitySetupDraftDto draft = NormalizeDraft(
+                        draft: session.Draft,
+                        fallbackSeed: ResolveGenerationSeedFallback(session));
 
                     if (!TryBuildLaunchRequest(
                             draft: draft,
@@ -304,9 +310,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 cancellationToken: cancellationToken);
         }
 
-        private static ClassicCitySetupDraftDto NormalizeDraft(ClassicCitySetupDraftDto draft)
+        private static ClassicCitySetupDraftDto NormalizeDraft(
+            ClassicCitySetupDraftDto draft,
+            string fallbackSeed)
         {
             ArgumentNullException.ThrowIfNull(draft);
+            ArgumentException.ThrowIfNullOrWhiteSpace(fallbackSeed);
 
             return draft with
             {
@@ -316,7 +325,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 ClimateZone = string.IsNullOrWhiteSpace(draft.ClimateZone) ? "Temperate" : draft.ClimateZone.Trim(),
                 Hemisphere = string.IsNullOrWhiteSpace(draft.Hemisphere) ? "Northern" : draft.Hemisphere.Trim(),
                 UtcOffsetMinutes = draft.UtcOffsetMinutes?.Trim() ?? string.Empty,
-                GenerationSeed = draft.GenerationSeed?.Trim() ?? string.Empty,
+                GenerationSeed = string.IsNullOrWhiteSpace(draft.GenerationSeed)
+                    ? fallbackSeed
+                    : draft.GenerationSeed.Trim(),
                 SizeTier = string.IsNullOrWhiteSpace(draft.SizeTier) ? "Medium" : draft.SizeTier.Trim(),
                 UrbanDensity = string.IsNullOrWhiteSpace(draft.UrbanDensity) ? "Balanced" : draft.UrbanDensity.Trim(),
                 DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel) ? "Balanced" : draft.DevelopmentLevel.Trim(),
@@ -324,6 +335,18 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 UsePopulationOverride = draft.UsePopulationOverride,
                 PlannedPeopleCount = draft.PlannedPeopleCount?.Trim() ?? string.Empty
             };
+        }
+
+        private static string ResolveGenerationSeedFallback(ClassicCitySetupSessionState session)
+        {
+            return !string.IsNullOrWhiteSpace(session.Draft.GenerationSeed)
+                ? session.Draft.GenerationSeed
+                : BuildDefaultGenerationSeed(session.SessionId);
+        }
+
+        private static string BuildDefaultGenerationSeed(Guid sessionId)
+        {
+            return $"classic-city-{sessionId:N}";
         }
 
         private static string NormalizeStepId(string? currentStepId)
