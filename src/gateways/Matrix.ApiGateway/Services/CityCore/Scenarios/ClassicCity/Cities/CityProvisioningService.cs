@@ -298,10 +298,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 
             if (city.PlannedPeopleCount.HasValue)
             {
-                return Math.Clamp(
-                    value: city.PlannedPeopleCount.Value,
-                    min: 0,
-                    max: totalCapacity);
+                return Math.Max(
+                    0,
+                    city.PlannedPeopleCount.Value);
             }
 
             return CalculateAutomaticPeopleCount(
@@ -377,12 +376,6 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             if (summary.GeneratedPeopleCount > summary.RequestedPeopleCount)
             {
                 failureReason = "Population summary generated more people than requested.";
-                return false;
-            }
-
-            if (summary.GeneratedPeopleCount > residentialCapacity)
-            {
-                failureReason = "Population summary exceeds available residential capacity.";
                 return false;
             }
 

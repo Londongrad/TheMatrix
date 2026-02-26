@@ -24,6 +24,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private const string PopulationOccupancyProfileLight = "Light";
         private const string PopulationOccupancyProfileBalanced = "Balanced";
         private const string PopulationOccupancyProfileHigh = "High";
+        private const string PopulationTargetModeRandom = "Random";
+        private const string PopulationTargetModePreset1K = "Preset1K";
+        private const string PopulationTargetModePreset10K = "Preset10K";
+        private const string PopulationTargetModePreset100K = "Preset100K";
+        private const string PopulationTargetModeManual = "Manual";
+        private const int PopulationTargetPreset1K = 1_000;
+        private const int PopulationTargetPreset10K = 10_000;
+        private const int PopulationTargetPreset100K = 100_000;
         private const string PopulationBootstrapStatusPending = "Pending";
         private const string PopulationBootstrapStatusCompleted = "Completed";
         private const string PopulationBootstrapStatusFailed = "Failed";
@@ -328,11 +336,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 GenerationSeed = string.IsNullOrWhiteSpace(draft.GenerationSeed)
                     ? fallbackSeed
                     : draft.GenerationSeed.Trim(),
+                PopulationTargetMode = NormalizePopulationTargetMode(
+                    value: draft.PopulationTargetMode,
+                    plannedPeopleCount: draft.PlannedPeopleCount,
+                    sizeTier: draft.SizeTier),
                 SizeTier = string.IsNullOrWhiteSpace(draft.SizeTier) ? "Medium" : draft.SizeTier.Trim(),
                 UrbanDensity = string.IsNullOrWhiteSpace(draft.UrbanDensity) ? "Balanced" : draft.UrbanDensity.Trim(),
                 DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel) ? "Balanced" : draft.DevelopmentLevel.Trim(),
                 PopulationOccupancyProfile = NormalizePopulationOccupancyProfile(draft.PopulationOccupancyProfile),
-                UsePopulationOverride = draft.UsePopulationOverride,
                 PlannedPeopleCount = draft.PlannedPeopleCount?.Trim() ?? string.Empty
             };
         }
@@ -402,22 +413,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             int? plannedPeopleCount = null;
 
-            if (draft.UsePopulationOverride)
+            if (!TryResolvePlannedPeopleCount(
+                    draft: draft,
+                    plannedPeopleCount: out plannedPeopleCount,
+                    errorMessage: out errorMessage))
             {
-                if (!int.TryParse(
-                        s: draft.PlannedPeopleCount,
-                        style: System.Globalization.NumberStyles.Integer,
-                        provider: System.Globalization.CultureInfo.InvariantCulture,
-                        result: out int parsedPeopleCount) ||
-                    parsedPeopleCount < 0 ||
-                    parsedPeopleCount > MaxPlannedPeopleCount)
-                {
-                    errorMessage =
-                        $"Planned people count must be a whole number between 0 and {MaxPlannedPeopleCount}.";
-                    return false;
-                }
-
-                plannedPeopleCount = parsedPeopleCount;
+                return false;
             }
 
             launchRequest = new CreateCityRequestDto(
@@ -446,6 +447,126 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 PopulationOccupancyProfileHigh => PopulationOccupancyProfileHigh,
                 _ => PopulationOccupancyProfileBalanced
             };
+        }
+
+        private static string NormalizePopulationTargetMode(
+            string? value,
+            string? plannedPeopleCount,
+            string? sizeTier)
+        {
+            return value?.Trim() switch
+            {
+                PopulationTargetModeRandom => PopulationTargetModeRandom,
+                PopulationTargetModePreset1K => PopulationTargetModePreset1K,
+                PopulationTargetModePreset10K => PopulationTargetModePreset10K,
+                PopulationTargetModePreset100K => PopulationTargetModePreset100K,
+                PopulationTargetModeManual => PopulationTargetModeManual,
+                _ when !string.IsNullOrWhiteSpace(plannedPeopleCount) => PopulationTargetModeManual,
+                _ => sizeTier?.Trim() switch
+                {
+                    "Small" => PopulationTargetModePreset1K,
+                    "Large" => PopulationTargetModePreset100K,
+                    _ => PopulationTargetModePreset10K
+                }
+            };
+        }
+
+        private static bool TryResolvePlannedPeopleCount(
+            ClassicCitySetupDraftDto draft,
+            out int? plannedPeopleCount,
+            out string? errorMessage)
+        {
+            plannedPeopleCount = draft.PopulationTargetMode switch
+            {
+                PopulationTargetModePreset1K => PopulationTargetPreset1K,
+                PopulationTargetModePreset10K => PopulationTargetPreset10K,
+                PopulationTargetModePreset100K => PopulationTargetPreset100K,
+                PopulationTargetModeRandom => ResolveDeterministicRandomTarget(draft.GenerationSeed),
+                _ => null
+            };
+            errorMessage = null;
+
+            if (string.Equals(
+                    draft.PopulationTargetMode,
+                    PopulationTargetModeManual,
+                    StringComparison.Ordinal))
+            {
+                if (!int.TryParse(
+                        s: draft.PlannedPeopleCount,
+                        style: System.Globalization.NumberStyles.Integer,
+                        provider: System.Globalization.CultureInfo.InvariantCulture,
+                        result: out int parsedPeopleCount) ||
+                    parsedPeopleCount < 0 ||
+                    parsedPeopleCount > MaxPlannedPeopleCount)
+                {
+                    errorMessage =
+                        $"Planned people count must be a whole number between 0 and {MaxPlannedPeopleCount}.";
+                    return false;
+                }
+
+                plannedPeopleCount = parsedPeopleCount;
+            }
+
+            return true;
+        }
+
+        private static int ResolveDeterministicRandomTarget(string generationSeed)
+        {
+            uint hash = ComputeFnv1A32($"{generationSeed.Trim()}|classic-city|population-target");
+            int[] anchors =
+            [
+                PopulationTargetPreset1K,
+                PopulationTargetPreset10K,
+                PopulationTargetPreset100K
+            ];
+            int anchor = anchors[(int)(hash % (uint)anchors.Length)];
+            int jitterBasis = (int)((hash / (uint)anchors.Length) % 41U);
+            decimal jitterPercent = (jitterBasis - 20) / 100.0m;
+            int rawTarget = Math.Max(
+                100,
+                (int)Math.Round(
+                    d: anchor * (1.0m + jitterPercent),
+                    mode: MidpointRounding.AwayFromZero));
+
+            if (rawTarget >= PopulationTargetPreset100K)
+                return RoundToStep(
+                    value: rawTarget,
+                    step: 1_000);
+
+            if (rawTarget >= PopulationTargetPreset10K)
+                return RoundToStep(
+                    value: rawTarget,
+                    step: 100);
+
+            return RoundToStep(
+                value: rawTarget,
+                step: 10);
+        }
+
+        private static uint ComputeFnv1A32(string value)
+        {
+            const uint offsetBasis = 2166136261;
+            const uint prime = 16777619;
+            uint hash = offsetBasis;
+
+            foreach (byte b in System.Text.Encoding.UTF8.GetBytes(value))
+            {
+                hash ^= b;
+                hash *= prime;
+            }
+
+            return hash;
+        }
+
+        private static int RoundToStep(
+            int value,
+            int step)
+        {
+            return Math.Max(
+                step,
+                (int)Math.Round(
+                    d: value / (decimal)step,
+                    mode: MidpointRounding.AwayFromZero)) * step;
         }
 
         private static CityProvisioningView BuildPendingProvisioning(

@@ -9,10 +9,10 @@ namespace Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.SetupSessio
         string Hemisphere,
         string UtcOffsetMinutes,
         string GenerationSeed,
-        string SizeTier,
-        string UrbanDensity,
-        string DevelopmentLevel,
+        string PopulationTargetMode = "Preset10K",
+        string SizeTier = "Medium",
+        string UrbanDensity = "Balanced",
+        string DevelopmentLevel = "Balanced",
         string PopulationOccupancyProfile = "Balanced",
-        bool UsePopulationOverride = false,
         string PlannedPeopleCount = "");
 }
