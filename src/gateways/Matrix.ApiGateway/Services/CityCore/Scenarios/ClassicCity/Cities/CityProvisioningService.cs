@@ -157,6 +157,22 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     city: city,
                     buildings: buildings);
 
+                if (residentialCapacity <= 0)
+                {
+                    logger.LogWarning(
+                        message:
+                        "Automatic population bootstrap aborted for cityId={CityId} because generated topology has no residential capacity.",
+                        cityId);
+
+                    return new CityPopulationBootstrapView(
+                        OperationId: operationId,
+                        Status: PopulationBootstrapStatuses.Failed,
+                        PlannedPeopleCount: plannedPeopleCount,
+                        ResidentialCapacity: residentialCapacity,
+                        Summary: null,
+                        FailureCode: PopulationBootstrapFailureCodes.PopulationResidentialCapacityMissing);
+                }
+
                 var populationRequest = new InitializeCityPopulationRequest(
                     CityId: cityId,
                     CurrentDate: DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime),
@@ -177,6 +193,28 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     await populationApiClient.InitializeCityPopulationAsync(
                         request: populationRequest,
                         cancellationToken: cancellationToken);
+
+                if (!TryValidateBootstrapSummary(
+                        cityId: cityId,
+                        summary: summary,
+                        plannedPeopleCount: plannedPeopleCount.Value,
+                        residentialCapacity: residentialCapacity.Value,
+                        failureReason: out string? failureReason))
+                {
+                    logger.LogWarning(
+                        message:
+                        "Automatic population bootstrap returned an inconsistent summary for cityId={CityId}. Reason: {FailureReason}",
+                        cityId,
+                        failureReason);
+
+                    return new CityPopulationBootstrapView(
+                        OperationId: operationId,
+                        Status: PopulationBootstrapStatuses.Failed,
+                        PlannedPeopleCount: plannedPeopleCount,
+                        ResidentialCapacity: residentialCapacity,
+                        Summary: null,
+                        FailureCode: PopulationBootstrapFailureCodes.PopulationSummaryInconsistent);
+                }
 
                 return new CityPopulationBootstrapView(
                     OperationId: operationId,
@@ -304,6 +342,84 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 value: plannedPeopleCount,
                 min: minimumPopulation,
                 max: totalCapacity);
+        }
+
+        private static bool TryValidateBootstrapSummary(
+            Guid cityId,
+            CityPopulationBootstrapSummaryDto summary,
+            int plannedPeopleCount,
+            int residentialCapacity,
+            out string? failureReason)
+        {
+            if (summary.CityId != cityId)
+            {
+                failureReason = "Population summary returned a different city id.";
+                return false;
+            }
+
+            if (summary.RequestedPeopleCount != plannedPeopleCount)
+            {
+                failureReason = "Population summary requested count does not match the launch request.";
+                return false;
+            }
+
+            if (summary.GeneratedPeopleCount < 0 ||
+                summary.HouseholdCount < 0 ||
+                summary.HousedHouseholdCount < 0 ||
+                summary.HomelessHouseholdCount < 0 ||
+                summary.HousedPeopleCount < 0 ||
+                summary.HomelessPeopleCount < 0)
+            {
+                failureReason = "Population summary contains negative counters.";
+                return false;
+            }
+
+            if (summary.GeneratedPeopleCount > summary.RequestedPeopleCount)
+            {
+                failureReason = "Population summary generated more people than requested.";
+                return false;
+            }
+
+            if (summary.GeneratedPeopleCount > residentialCapacity)
+            {
+                failureReason = "Population summary exceeds available residential capacity.";
+                return false;
+            }
+
+            if (summary.GeneratedPeopleCount > 0 && summary.HouseholdCount <= 0)
+            {
+                failureReason = "Population summary generated residents without any households.";
+                return false;
+            }
+
+            long peopleBreakdown = (long)summary.HousedPeopleCount + summary.HomelessPeopleCount;
+            if (peopleBreakdown != summary.GeneratedPeopleCount)
+            {
+                failureReason = "Population summary people breakdown is inconsistent.";
+                return false;
+            }
+
+            long householdBreakdown = (long)summary.HousedHouseholdCount + summary.HomelessHouseholdCount;
+            if (householdBreakdown != summary.HouseholdCount)
+            {
+                failureReason = "Population summary household breakdown is inconsistent.";
+                return false;
+            }
+
+            if (summary.HousedPeopleCount > residentialCapacity)
+            {
+                failureReason = "Population summary reports more housed people than capacity allows.";
+                return false;
+            }
+
+            if (summary.GeneratedPeopleCount == 0 && plannedPeopleCount > 0)
+            {
+                failureReason = "Population summary generated zero residents despite a non-zero plan.";
+                return false;
+            }
+
+            failureReason = null;
+            return true;
         }
 
         private static decimal GetBaseOccupancy(string occupancyProfile)
