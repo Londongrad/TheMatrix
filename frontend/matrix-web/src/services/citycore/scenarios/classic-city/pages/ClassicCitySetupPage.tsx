@@ -95,6 +95,13 @@ const mutableSessionStatuses = new Set(["Draft", "LaunchFailed"]);
 const runningSessionStatuses = new Set(["LaunchQueued", "CreatingCity", "BootstrappingPopulation"]);
 const MAX_PLANNED_PEOPLE_COUNT = 1_000_000;
 
+function createRandomGenerationSeed(): string {
+    const raw = globalThis.crypto?.randomUUID?.().replace(/-/g, "")
+        ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
+
+    return `classic-city-${raw.slice(0, 32)}`;
+}
+
 function createDefaultDraft(): SetupDraft {
     const startSimTimeLocal = getNowLocalDateTimeInputValue();
 
@@ -106,7 +113,7 @@ function createDefaultDraft(): SetupDraft {
         climateZone: "Temperate",
         hemisphere: "Northern",
         utcOffsetMinutes: String(-new Date().getTimezoneOffset()),
-        generationSeed: "",
+        generationSeed: createRandomGenerationSeed(),
         sizeTier: "Medium",
         urbanDensity: "Balanced",
         developmentLevel: "Balanced",
@@ -925,14 +932,22 @@ export default function ClassicCitySetupPage() {
                                         id="classic-city-seed"
                                         className="scenario-setup__input"
                                         value={draft.generationSeed}
-                                        placeholder="Leave empty to derive a deterministic seed from launch inputs"
                                         onChange={(event) => updateDraft("generationSeed", event.target.value)}
                                         disabled={!canEditSession}
                                     />
                                     <div className="scenario-setup__hint">
-                                        Leaving this empty keeps the launch deterministic while still deriving the seed
-                                        from the configured city profile.
+                                        Setup sessions now persist an explicit seed. Reusing the same seed together with
+                                        the same launch contract reproduces the same topology, population bootstrap, and
+                                        initial weather snapshot.
                                     </div>
+                                    <Button
+                                        type="button"
+                                        variant="default"
+                                        onClick={() => updateDraft("generationSeed", createRandomGenerationSeed())}
+                                        disabled={!canEditSession}
+                                    >
+                                        Regenerate seed
+                                    </Button>
                                 </div>
                             </div>
 
@@ -1166,6 +1181,15 @@ export default function ClassicCitySetupPage() {
                                     <strong className="scenario-setup__review-value">{getPopulationPlanLabel(draft)}</strong>
                                     <span className="scenario-setup__review-text">
                                         {getPopulationPlanDescription(draft)}
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__review-card">
+                                    <span className="scenario-setup__review-label">Generation seed</span>
+                                    <strong className="scenario-setup__review-value">{draft.generationSeed}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Share this together with the launch settings if you want another operator to
+                                        reproduce the same starting world.
                                     </span>
                                 </article>
 
