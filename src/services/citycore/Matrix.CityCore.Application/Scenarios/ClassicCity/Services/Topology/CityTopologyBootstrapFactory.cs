@@ -114,16 +114,22 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             GenerationPlan plan)
         {
             var buildings = new List<ResidentialBuilding>();
+            DistrictArchetype[] districtArchetypes = BuildDistrictArchetypes(
+                profile: city.GenerationProfile,
+                districtCount: districts.Count,
+                random: random);
             int[] districtCapacityTargets = BuildDistrictCapacityTargets(
                 profile: city.GenerationProfile,
                 totalCapacityTarget: plan.TargetResidentialCapacity,
                 districtCount: districts.Count,
+                districtArchetypes: districtArchetypes,
                 random: random);
 
             for (int districtIndex = 0; districtIndex < districts.Count; districtIndex++)
             {
                 District district = districts[districtIndex];
                 bool isCentral = districtIndex == 0;
+                DistrictArchetype districtArchetype = districtArchetypes[districtIndex];
                 int districtCapacityTarget = districtCapacityTargets[districtIndex];
                 int districtCapacityBuilt = 0;
 
@@ -138,6 +144,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     ResidentialBuildingType type = GetBuildingType(
                         profile: city.GenerationProfile,
                         isCentral: isCentral,
+                        archetype: districtArchetype,
                         random: random);
 
                     int sequence = typeCounters.TryGetValue(
@@ -152,6 +159,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                         profile: city.GenerationProfile,
                         topologyPopulationBasis: plan.TopologyPopulationBasis,
                         isCentral: isCentral,
+                        archetype: districtArchetype,
                         random: random);
 
                     buildings.Add(
@@ -329,10 +337,90 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                 max: 36);
         }
 
+        private static DistrictArchetype[] BuildDistrictArchetypes(
+            CityGenerationProfile profile,
+            int districtCount,
+            DeterministicRandom random)
+        {
+            var archetypes = new DistrictArchetype[districtCount];
+
+            for (int i = 0; i < districtCount; i++)
+            {
+                bool isCentral = i == 0;
+                archetypes[i] = GetDistrictArchetype(
+                    profile: profile,
+                    isCentral: isCentral,
+                    random: random);
+            }
+
+            return archetypes;
+        }
+
+        private static DistrictArchetype GetDistrictArchetype(
+            CityGenerationProfile profile,
+            bool isCentral,
+            DeterministicRandom random)
+        {
+            if (isCentral)
+            {
+                if (profile.UrbanDensity == UrbanDensity.Dense)
+                    return random.NextInt(
+                        minInclusive: 0,
+                        maxExclusive: 100) < 60
+                        ? DistrictArchetype.VerticalCore
+                        : DistrictArchetype.CivicCore;
+
+                return random.NextInt(
+                    minInclusive: 0,
+                    maxExclusive: 100) < 75
+                    ? DistrictArchetype.CivicCore
+                    : DistrictArchetype.MixedBlocks;
+            }
+
+            if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling &&
+                profile.UrbanDensity == UrbanDensity.Dense)
+            {
+                return random.NextInt(
+                    minInclusive: 0,
+                    maxExclusive: 100) < 55
+                    ? DistrictArchetype.DormitoryBelt
+                    : DistrictArchetype.MixedBlocks;
+            }
+
+            if (profile.UrbanDensity == UrbanDensity.Sparse)
+            {
+                return random.NextInt(
+                    minInclusive: 0,
+                    maxExclusive: 100) < 70
+                    ? DistrictArchetype.CottageRing
+                    : DistrictArchetype.MixedBlocks;
+            }
+
+            if (profile.UrbanDensity == UrbanDensity.Dense)
+            {
+                return random.NextInt(
+                    minInclusive: 0,
+                    maxExclusive: 100) < 35
+                    ? DistrictArchetype.VerticalCore
+                    : random.NextInt(
+                        minInclusive: 0,
+                        maxExclusive: 100) < 50
+                        ? DistrictArchetype.DormitoryBelt
+                        : DistrictArchetype.MixedBlocks;
+            }
+
+            return random.NextInt(
+                minInclusive: 0,
+                maxExclusive: 100) < 65
+                ? DistrictArchetype.MixedBlocks
+                : DistrictArchetype.CottageRing;
+        }
+
         private static int[] BuildDistrictCapacityTargets(
             CityGenerationProfile profile,
             int totalCapacityTarget,
             int districtCount,
+            DistrictArchetype[] districtArchetypes,
             DeterministicRandom random)
         {
             var weights = new decimal[districtCount];
@@ -347,6 +435,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     : random.NextDecimal(
                         minInclusive: 0.80m,
                         maxInclusive: 1.30m);
+
+                weight *= GetDistrictCapacityWeight(districtArchetypes[i]);
 
                 if (profile.SizeTier == CitySizeTier.Large && i > 0)
                     weight += 0.05m;
@@ -381,9 +471,22 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             return capacities;
         }
 
+        private static decimal GetDistrictCapacityWeight(DistrictArchetype archetype)
+        {
+            return archetype switch
+            {
+                DistrictArchetype.CivicCore => 1.18m,
+                DistrictArchetype.VerticalCore => 1.32m,
+                DistrictArchetype.DormitoryBelt => 1.14m,
+                DistrictArchetype.CottageRing => 0.86m,
+                _ => 1.0m
+            };
+        }
+
         private static ResidentialBuildingType GetBuildingType(
             CityGenerationProfile profile,
             bool isCentral,
+            DistrictArchetype archetype,
             DeterministicRandom random)
         {
             int houseWeight;
@@ -391,19 +494,31 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             int towerWeight;
             int dormitoryWeight;
 
-            switch (profile.UrbanDensity)
+            switch (archetype)
             {
-                case UrbanDensity.Sparse:
-                    houseWeight = 60;
-                    apartmentWeight = 30;
-                    towerWeight = 5;
-                    dormitoryWeight = 5;
-                    break;
-                case UrbanDensity.Dense:
-                    houseWeight = 10;
-                    apartmentWeight = 45;
-                    towerWeight = 35;
+                case DistrictArchetype.CivicCore:
+                    houseWeight = 6;
+                    apartmentWeight = 42;
+                    towerWeight = 42;
                     dormitoryWeight = 10;
+                    break;
+                case DistrictArchetype.VerticalCore:
+                    houseWeight = 2;
+                    apartmentWeight = 28;
+                    towerWeight = 58;
+                    dormitoryWeight = 12;
+                    break;
+                case DistrictArchetype.CottageRing:
+                    houseWeight = 72;
+                    apartmentWeight = 22;
+                    towerWeight = 2;
+                    dormitoryWeight = 4;
+                    break;
+                case DistrictArchetype.DormitoryBelt:
+                    houseWeight = 4;
+                    apartmentWeight = 30;
+                    towerWeight = 18;
+                    dormitoryWeight = 48;
                     break;
                 default:
                     houseWeight = 25;
@@ -465,6 +580,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             CityGenerationProfile profile,
             int topologyPopulationBasis,
             bool isCentral,
+            DistrictArchetype archetype,
             DeterministicRandom random)
         {
             int minCapacity;
@@ -509,13 +625,21 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             decimal centralFactor = isCentral
                 ? 1.1m
                 : 1.0m;
+            decimal archetypeFactor = archetype switch
+            {
+                DistrictArchetype.CivicCore => 1.10m,
+                DistrictArchetype.VerticalCore => 1.18m,
+                DistrictArchetype.DormitoryBelt => 1.12m,
+                DistrictArchetype.CottageRing => 0.78m,
+                _ => 1.0m
+            };
             decimal populationScale = GetPopulationCapacityScale(
                 profile: profile,
                 topologyPopulationBasis: topologyPopulationBasis);
             int rawCapacity = random.NextInt(
                 minInclusive: minCapacity,
                 maxExclusive: maxCapacity + 1);
-            decimal adjustedCapacity = rawCapacity * densityFactor * developmentFactor * centralFactor * populationScale;
+            decimal adjustedCapacity = rawCapacity * densityFactor * developmentFactor * centralFactor * archetypeFactor * populationScale;
 
             return Math.Max(
                 val1: ResidentCapacity.Min,
@@ -621,6 +745,15 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             int TopologyPopulationBasis,
             int TargetResidentialCapacity,
             int DistrictCount);
+
+        private enum DistrictArchetype
+        {
+            CivicCore,
+            MixedBlocks,
+            VerticalCore,
+            CottageRing,
+            DormitoryBelt
+        }
 
         private sealed class DeterministicRandom
         {
