@@ -22,6 +22,34 @@ export const CLASSIC_CITY_SIZE_TIER_OPTIONS: SetupOption[] = [
     },
 ];
 
+export const CLASSIC_CITY_FORM_PRESET_OPTIONS: SetupOption[] = [
+    {
+        value: "CompactGrid",
+        label: "Compact grid",
+        description: "Smaller footprint with balanced density. Good for readable launches where people stay close to the center.",
+    },
+    {
+        value: "BalancedDistricts",
+        label: "Balanced districts",
+        description: "General-purpose city form with room for both central activity and outer neighborhood growth.",
+    },
+    {
+        value: "VerticalCore",
+        label: "Vertical core",
+        description: "Denser, more advanced launch shape that leans into towers and stronger central concentration.",
+    },
+    {
+        value: "SprawlingSuburbs",
+        label: "Sprawling suburbs",
+        description: "Broader footprint with sparser housing distribution and more outer-ring residential character.",
+    },
+    {
+        value: "PressureCooker",
+        label: "Pressure cooker",
+        description: "Tighter, rougher launch form with strong housing pressure and less comfortable headroom around the same population.",
+    },
+];
+
 export const CLASSIC_CITY_DENSITY_OPTIONS: SetupOption[] = [
     {
         value: "Sparse",

@@ -19,6 +19,7 @@ import {
     CLASSIC_CITY_CLIMATE_OPTIONS,
     CLASSIC_CITY_DEVELOPMENT_OPTIONS,
     CLASSIC_CITY_DENSITY_OPTIONS,
+    CLASSIC_CITY_FORM_PRESET_OPTIONS,
     CLASSIC_CITY_HEMISPHERE_OPTIONS,
     CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS,
     CLASSIC_CITY_POPULATION_TARGET_OPTIONS,
@@ -53,6 +54,7 @@ type ValidationErrors = {
 };
 
 type SetupDraft = ClassicCitySetupDraftView;
+type CityFormPresetValue = "CompactGrid" | "BalancedDistricts" | "VerticalCore" | "SprawlingSuburbs" | "PressureCooker" | "Custom";
 
 type SessionSnapshot = {
     currentStepId: ClassicCitySetupStepId;
@@ -306,6 +308,103 @@ function getPopulationPlanDescription(
     return `${getPopulationPressureLabel(draft.populationOccupancyProfile)} will shape how much housing slack or launch pressure the generated city keeps around ${targetPopulation?.toLocaleString() ?? "--"} residents.`;
 }
 
+function inferCityFormPreset(draft: SetupDraft): CityFormPresetValue {
+    if (draft.sizeTier === "Small" && draft.urbanDensity === "Balanced" && draft.developmentLevel === "Balanced") {
+        return "CompactGrid";
+    }
+
+    if (draft.sizeTier === "Medium" && draft.urbanDensity === "Balanced" && draft.developmentLevel === "Balanced") {
+        return "BalancedDistricts";
+    }
+
+    if (draft.sizeTier === "Medium" && draft.urbanDensity === "Dense" && draft.developmentLevel === "Advanced") {
+        return "VerticalCore";
+    }
+
+    if (draft.sizeTier === "Large" && draft.urbanDensity === "Sparse" && draft.developmentLevel === "Balanced") {
+        return "SprawlingSuburbs";
+    }
+
+    if (draft.sizeTier === "Medium" && draft.urbanDensity === "Dense" && draft.developmentLevel === "Struggling") {
+        return "PressureCooker";
+    }
+
+    return "Custom";
+}
+
+function applyCityFormPreset(
+    draft: SetupDraft,
+    preset: CityFormPresetValue,
+): SetupDraft {
+    switch (preset) {
+        case "CompactGrid":
+            return {
+                ...draft,
+                sizeTier: "Small",
+                urbanDensity: "Balanced",
+                developmentLevel: "Balanced",
+            };
+        case "BalancedDistricts":
+            return {
+                ...draft,
+                sizeTier: "Medium",
+                urbanDensity: "Balanced",
+                developmentLevel: "Balanced",
+            };
+        case "VerticalCore":
+            return {
+                ...draft,
+                sizeTier: "Medium",
+                urbanDensity: "Dense",
+                developmentLevel: "Advanced",
+            };
+        case "SprawlingSuburbs":
+            return {
+                ...draft,
+                sizeTier: "Large",
+                urbanDensity: "Sparse",
+                developmentLevel: "Balanced",
+            };
+        case "PressureCooker":
+            return {
+                ...draft,
+                sizeTier: "Medium",
+                urbanDensity: "Dense",
+                developmentLevel: "Struggling",
+            };
+        default:
+            return draft;
+    }
+}
+
+function getCityFormPresetLabel(preset: CityFormPresetValue): string {
+    switch (preset) {
+        case "CompactGrid":
+            return "Compact grid";
+        case "BalancedDistricts":
+            return "Balanced districts";
+        case "VerticalCore":
+            return "Vertical core";
+        case "SprawlingSuburbs":
+            return "Sprawling suburbs";
+        case "PressureCooker":
+            return "Pressure cooker";
+        default:
+            return "Custom city form";
+    }
+}
+
+function getCityFormDescription(draft: SetupDraft): string {
+    const preset = inferCityFormPreset(draft);
+    const presetOption = CLASSIC_CITY_FORM_PRESET_OPTIONS.find((option) => option.value === preset);
+
+    if (presetOption) {
+        return presetOption.description;
+    }
+
+    return `${draft.sizeTier} footprint with ${draft.urbanDensity.toLowerCase()} density and ${draft.developmentLevel.toLowerCase()} development.`;
+}
+
 function formatSessionStatusLabel(status?: string | null): string {
     switch (status) {
         case "Draft":
@@ -407,6 +506,7 @@ export default function ClassicCitySetupPage() {
     const [isInitializing, setIsInitializing] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isLaunching, setIsLaunching] = useState(false);
+    const [isAdvancedProfileOpen, setIsAdvancedProfileOpen] = useState(false);
     const [pageError, setPageError] = useState<string | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [lastSavedAtUtc, setLastSavedAtUtc] = useState<string | null>(null);
@@ -427,6 +527,8 @@ export default function ClassicCitySetupPage() {
     const currentStep = setupSteps[currentStepIndex];
     const populationPlanningEstimate = buildPopulationPlanningEstimate(draft);
     const resolvedPopulationTarget = populationPlanningEstimate.targetPopulation;
+    const cityFormPreset = inferCityFormPreset(draft);
+    const showAdvancedProfile = isAdvancedProfileOpen || cityFormPreset === "Custom";
     const sessionStatusLabel = formatSessionStatusLabel(session?.status);
     const sessionStatusTone = getSessionStatusTone(session?.status);
     const canEditSession = isMutableSessionStatus(session?.status);
@@ -558,6 +660,13 @@ export default function ClassicCitySetupPage() {
             delete next[key as keyof ValidationErrors];
             return next;
         });
+        setPageError(null);
+        setSaveError(null);
+    }
+
+    function updateCityFormPreset(preset: CityFormPresetValue) {
+        setDraft((current) => applyCityFormPreset(current, preset));
+        setIsAdvancedProfileOpen(false);
         setPageError(null);
         setSaveError(null);
     }
@@ -961,28 +1070,62 @@ export default function ClassicCitySetupPage() {
                             </div>
 
                             <OptionGrid
-                                legend="City size"
-                                options={CLASSIC_CITY_SIZE_TIER_OPTIONS}
-                                selectedValue={draft.sizeTier}
-                                onSelect={(value) => updateDraft("sizeTier", value)}
+                                legend="City form preset"
+                                options={CLASSIC_CITY_FORM_PRESET_OPTIONS}
+                                selectedValue={cityFormPreset === "Custom" ? "" : cityFormPreset}
+                                onSelect={(value) => updateCityFormPreset(value as CityFormPresetValue)}
                                 disabled={!canEditSession}
                             />
 
-                            <OptionGrid
-                                legend="Urban density"
-                                options={CLASSIC_CITY_DENSITY_OPTIONS}
-                                selectedValue={draft.urbanDensity}
-                                onSelect={(value) => updateDraft("urbanDensity", value)}
-                                disabled={!canEditSession}
-                            />
+                            <div className="scenario-setup__fact-card">
+                                <strong>{getCityFormPresetLabel(cityFormPreset)}</strong>
+                                <span>
+                                    {getCityFormDescription(draft)}
+                                </span>
+                                <span>
+                                    Current topology shape: {draft.sizeTier.toLowerCase()} footprint, {draft.urbanDensity.toLowerCase()} density, {draft.developmentLevel.toLowerCase()} development.
+                                </span>
+                                <Button
+                                    type="button"
+                                    variant={showAdvancedProfile ? "danger" : "default"}
+                                    onClick={() => setIsAdvancedProfileOpen((current) => !current)}
+                                    disabled={!canEditSession}
+                                >
+                                    {showAdvancedProfile ? "Hide advanced tuning" : "Fine-tune city form"}
+                                </Button>
+                            </div>
 
-                            <OptionGrid
-                                legend="Development level"
-                                options={CLASSIC_CITY_DEVELOPMENT_OPTIONS}
-                                selectedValue={draft.developmentLevel}
-                                onSelect={(value) => updateDraft("developmentLevel", value)}
-                                disabled={!canEditSession}
-                            />
+                            {showAdvancedProfile ? (
+                                <div className="scenario-setup__stack">
+                                    <div className="scenario-setup__note">
+                                        Advanced tuning stays available when you want to move beyond presets. If the combination no longer matches a named preset, the launch review will label it as a custom city form.
+                                    </div>
+
+                                    <OptionGrid
+                                        legend="City size"
+                                        options={CLASSIC_CITY_SIZE_TIER_OPTIONS}
+                                        selectedValue={draft.sizeTier}
+                                        onSelect={(value) => updateDraft("sizeTier", value)}
+                                        disabled={!canEditSession}
+                                    />
+
+                                    <OptionGrid
+                                        legend="Urban density"
+                                        options={CLASSIC_CITY_DENSITY_OPTIONS}
+                                        selectedValue={draft.urbanDensity}
+                                        onSelect={(value) => updateDraft("urbanDensity", value)}
+                                        disabled={!canEditSession}
+                                    />
+
+                                    <OptionGrid
+                                        legend="Development level"
+                                        options={CLASSIC_CITY_DEVELOPMENT_OPTIONS}
+                                        selectedValue={draft.developmentLevel}
+                                        onSelect={(value) => updateDraft("developmentLevel", value)}
+                                        disabled={!canEditSession}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                     ) : null}
 
@@ -1138,9 +1281,12 @@ export default function ClassicCitySetupPage() {
                                 <div className="scenario-setup__field">
                                     <div className="scenario-setup__label">City footprint</div>
                                     <div className="scenario-setup__fact-card">
-                                        <strong>{draft.sizeTier} / {draft.urbanDensity} / {draft.developmentLevel}</strong>
+                                        <strong>{getCityFormPresetLabel(cityFormPreset)}</strong>
                                         <span>
-                                            Population now sets the scale first. The city profile step controls whether that population is packed into a compact footprint, spread across more districts, or launched under stronger or weaker development pressure.
+                                            {getCityFormDescription(draft)}
+                                        </span>
+                                        <span>
+                                            Under the hood: {draft.sizeTier.toLowerCase()} footprint, {draft.urbanDensity.toLowerCase()} density, {draft.developmentLevel.toLowerCase()} development.
                                         </span>
                                     </div>
                                 </div>
@@ -1165,7 +1311,7 @@ export default function ClassicCitySetupPage() {
                                     <span className="scenario-setup__review-label">City identity</span>
                                     <strong className="scenario-setup__review-value">{draft.name || "Unnamed city"}</strong>
                                     <span className="scenario-setup__review-text">
-                                        {draft.sizeTier} city, {draft.urbanDensity.toLowerCase()} density, {draft.developmentLevel.toLowerCase()} development.
+                                        {getCityFormPresetLabel(cityFormPreset)}. {getCityFormDescription(draft)}
                                     </span>
                                 </article>
 
@@ -1272,7 +1418,8 @@ export default function ClassicCitySetupPage() {
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Profile</span>
-                                <strong>{draft.sizeTier} / {draft.urbanDensity} / {draft.developmentLevel}</strong>
+                                <strong>{getCityFormPresetLabel(cityFormPreset)}</strong>
+                                <span>{getCityFormDescription(draft)}</span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Environment</span>
