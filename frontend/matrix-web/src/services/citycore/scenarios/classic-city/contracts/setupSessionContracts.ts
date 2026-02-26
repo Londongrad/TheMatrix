@@ -2,6 +2,7 @@ import type {CityProvisioningView} from "@services/citycore/scenarios/classic-ci
 
 export type ClassicCitySetupStepId = "scenario" | "profile" | "environment" | "population" | "launch";
 export type ClassicCityPopulationOccupancyProfile = "Light" | "Balanced" | "High";
+export type ClassicCityPopulationTargetMode = "Random" | "Preset1K" | "Preset10K" | "Preset100K" | "Manual";
 
 export interface ClassicCitySetupDraftView {
     name: string;
@@ -12,11 +13,11 @@ export interface ClassicCitySetupDraftView {
     hemisphere: string;
     utcOffsetMinutes: string;
     generationSeed: string;
+    populationTargetMode: ClassicCityPopulationTargetMode;
     sizeTier: string;
     urbanDensity: string;
     developmentLevel: string;
     populationOccupancyProfile: ClassicCityPopulationOccupancyProfile;
-    usePopulationOverride: boolean;
     plannedPeopleCount: string;
 }
 

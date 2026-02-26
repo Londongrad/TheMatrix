@@ -8,17 +8,17 @@ export const CLASSIC_CITY_SIZE_TIER_OPTIONS: SetupOption[] = [
     {
         value: "Small",
         label: "Small footprint",
-        description: "Compact seed with fewer districts and a faster path to a readable simulation snapshot.",
+        description: "Compact morphology with tighter district planning around the requested launch population.",
     },
     {
         value: "Medium",
         label: "Balanced footprint",
-        description: "General-purpose launch profile with room for population bootstrap and monitoring without oversized startup cost.",
+        description: "General-purpose city form that balances district spread, building count, and bootstrap readability.",
     },
     {
         value: "Large",
         label: "Large footprint",
-        description: "Broader district layout with more residential capacity and a heavier bootstrap pass.",
+        description: "Broader urban footprint with more districts and looser distribution for the same population target.",
     },
 ];
 
@@ -26,17 +26,17 @@ export const CLASSIC_CITY_DENSITY_OPTIONS: SetupOption[] = [
     {
         value: "Sparse",
         label: "Sparse",
-        description: "Lower density and softer occupancy assumptions for a more spread-out city seed.",
+        description: "Lower-rise residential mix with more spread-out neighborhood planning and softer housing pressure.",
     },
     {
         value: "Balanced",
         label: "Balanced",
-        description: "Middle-ground density profile tuned for the current default Classic City flow.",
+        description: "Middle-ground urban form for a readable launch without extreme housing slack or compression.",
     },
     {
         value: "Dense",
         label: "Dense",
-        description: "Higher residential pressure, tighter district planning, and a stronger bootstrap population target.",
+        description: "Denser residential mix with taller housing stock and stronger launch pressure around the target headcount.",
     },
 ];
 
@@ -44,17 +44,45 @@ export const CLASSIC_CITY_DEVELOPMENT_OPTIONS: SetupOption[] = [
     {
         value: "Struggling",
         label: "Struggling",
-        description: "Leans toward weaker city infrastructure and more constrained launch capacity.",
+        description: "Leans toward rougher launch conditions, tighter housing coverage, and more bootstrap pressure.",
     },
     {
         value: "Balanced",
         label: "Balanced",
-        description: "Neutral development baseline for day-one simulation monitoring.",
+        description: "Neutral development baseline for a stable day-one city bootstrap.",
     },
     {
         value: "Advanced",
         label: "Advanced",
-        description: "Favors stronger topology generation and a more capable starting environment.",
+        description: "Favors stronger housing stock, more efficient topology generation, and more launch headroom.",
+    },
+];
+
+export const CLASSIC_CITY_POPULATION_TARGET_OPTIONS: SetupOption[] = [
+    {
+        value: "Random",
+        label: "Randomized",
+        description: "Use the generation seed to pick a deterministic launch headcount, so the same seed reproduces the same opening scale.",
+    },
+    {
+        value: "Preset1K",
+        label: "1,000 residents",
+        description: "Small opening town with a fast bootstrap and a compact early-world snapshot.",
+    },
+    {
+        value: "Preset10K",
+        label: "10,000 residents",
+        description: "Balanced default launch with enough citizens to show housing, employment, and wellbeing dynamics immediately.",
+    },
+    {
+        value: "Preset100K",
+        label: "100,000 residents",
+        description: "Heavy launch aimed at a genuinely large city opening with broad topology generation and a dense bootstrap pass.",
+    },
+    {
+        value: "Manual",
+        label: "Manual target",
+        description: "Enter an exact opening headcount when you want the launch contract to pin a specific population number.",
     },
 ];
 
@@ -107,17 +135,17 @@ export const CLASSIC_CITY_HEMISPHERE_OPTIONS: SetupOption[] = [
 export const CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS: SetupOption[] = [
     {
         value: "Light",
-        label: "Light occupancy",
-        description: "Opens the city with a lighter share of its generated housing capacity and more visible headroom.",
+        label: "Room to grow",
+        description: "Builds extra housing headroom around the opening population so the city starts with visible spare capacity.",
     },
     {
         value: "Balanced",
-        label: "Balanced occupancy",
-        description: "Targets a steady day-one population using the city’s final residential capacity as the anchor.",
+        label: "Balanced housing",
+        description: "Keeps launch population and housing stock close enough for a lively start without immediate saturation.",
     },
     {
         value: "High",
-        label: "High occupancy",
-        description: "Pushes the initial bootstrap closer to the city’s generated housing capacity for a busier opening state.",
+        label: "Tight housing",
+        description: "Builds a tighter city around the same headcount, increasing launch pressure and the odds of homelessness emerging immediately.",
     },
 ];

@@ -10,6 +10,7 @@ import {
 } from "@services/citycore/scenarios/classic-city/api/setupSessionsApi";
 import type {
     ClassicCityPopulationOccupancyProfile,
+    ClassicCityPopulationTargetMode,
     ClassicCitySetupDraftView,
     ClassicCitySetupSessionView,
     ClassicCitySetupStepId,
@@ -20,6 +21,7 @@ import {
     CLASSIC_CITY_DENSITY_OPTIONS,
     CLASSIC_CITY_HEMISPHERE_OPTIONS,
     CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS,
+    CLASSIC_CITY_POPULATION_TARGET_OPTIONS,
     CLASSIC_CITY_SIZE_TIER_OPTIONS,
     type SetupOption,
 } from "@services/citycore/scenarios/classic-city/setupOptions";
@@ -31,6 +33,8 @@ import {
     buildPopulationPlanningEstimate,
     formatOccupancyRateRange,
     formatRange,
+    getPopulationPressureLabel,
+    getPopulationTargetModeLabel,
 } from "@services/citycore/scenarios/classic-city/utils/populationPlanning";
 import {
     CITYCORE_SCENARIO_CATALOG_PATH,
@@ -70,19 +74,19 @@ const setupSteps: { id: ClassicCitySetupStepId; title: string; description: stri
         description: "Choose the simulation baseline and what the launch flow will provision.",
     },
     {
+        id: "population",
+        title: "Population",
+        description: "Pick the opening headcount first, then let CityCore build a city form around that launch target.",
+    },
+    {
         id: "profile",
         title: "City profile",
-        description: "Define the city identity, timeline, and generation profile.",
+        description: "Shape how the city should feel once topology is generated around the requested launch population.",
     },
     {
         id: "environment",
         title: "Environment",
         description: "Set the climate context that will drive weather planning and downstream bootstrap.",
-    },
-    {
-        id: "population",
-        title: "Population",
-        description: "Choose how full the city should feel on day one, then optionally pin an exact resident target.",
     },
     {
         id: "launch",
@@ -114,11 +118,11 @@ function createDefaultDraft(): SetupDraft {
         hemisphere: "Northern",
         utcOffsetMinutes: String(-new Date().getTimezoneOffset()),
         generationSeed: createRandomGenerationSeed(),
+        populationTargetMode: "Preset10K",
         sizeTier: "Medium",
         urbanDensity: "Balanced",
         developmentLevel: "Balanced",
         populationOccupancyProfile: "Balanced",
-        usePopulationOverride: false,
         plannedPeopleCount: "",
     };
 }
@@ -127,8 +131,8 @@ function normalizeDraft(draft: SetupDraft): SetupDraft {
     return {
         ...draft,
         startSimTimeUtc: draft.startSimTimeUtc ?? localDateTimeToUtcIso(draft.startSimTimeLocal),
+        populationTargetMode: normalizePopulationTargetMode(draft.populationTargetMode, draft.plannedPeopleCount, draft.sizeTier),
         populationOccupancyProfile: normalizePopulationOccupancyProfile(draft.populationOccupancyProfile),
-        usePopulationOverride: Boolean(draft.usePopulationOverride),
         plannedPeopleCount: draft.plannedPeopleCount?.trim() ?? "",
     };
 }
@@ -189,7 +193,7 @@ function validateEnvironment(draft: SetupDraft): ValidationErrors {
 function validatePopulation(draft: SetupDraft): ValidationErrors {
     const errors: ValidationErrors = {};
 
-    if (!draft.usePopulationOverride) {
+    if (draft.populationTargetMode !== "Manual") {
         return errors;
     }
 
@@ -247,55 +251,59 @@ function formatDateTime(value?: string | null): string {
     return parsed.toLocaleString();
 }
 
-function formatPeopleCount(value: string): string {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) {
-        return value;
-    }
-
-    return parsed.toLocaleString();
-}
-
 function normalizePopulationOccupancyProfile(value?: string): ClassicCityPopulationOccupancyProfile {
     return value === "Light" || value === "High" ? value : "Balanced";
 }
 
-function getPopulationOccupancyLabel(profile: ClassicCityPopulationOccupancyProfile): string {
-    switch (profile) {
-        case "Light":
-            return "Light occupancy";
-        case "High":
-            return "High occupancy";
+function normalizePopulationTargetMode(
+    value: string | undefined,
+    plannedPeopleCount: string | undefined,
+    sizeTier: string | undefined,
+): ClassicCityPopulationTargetMode {
+    switch (value) {
+        case "Random":
+        case "Preset1K":
+        case "Preset10K":
+        case "Preset100K":
+        case "Manual":
+            return value;
         default:
-            return "Balanced occupancy";
+            if ((plannedPeopleCount?.trim().length ?? 0) > 0) {
+                return "Manual";
+            }
+
+            return sizeTier === "Small"
+                ? "Preset1K"
+                : sizeTier === "Large"
+                    ? "Preset100K"
+                    : "Preset10K";
     }
 }
 
-function getPopulationCapacityTone(sizeTier: string): string {
-    switch (sizeTier) {
-        case "Small":
-            return "compact residential capacity";
-        case "Large":
-            return "broad residential capacity";
-        default:
-            return "balanced residential capacity";
-    }
+function getPopulationPlanLabel(
+    draft: SetupDraft,
+    targetPopulation: number | null,
+): string {
+    return getPopulationTargetModeLabel(draft.populationTargetMode, targetPopulation);
 }
 
-function getPopulationPlanLabel(draft: SetupDraft): string {
-    return draft.usePopulationOverride
-        ? "Exact resident target"
-        : getPopulationOccupancyLabel(draft.populationOccupancyProfile);
-}
-
-function getPopulationPlanDescription(draft: SetupDraft): string {
-    if (draft.usePopulationOverride) {
-        return draft.plannedPeopleCount.trim().length > 0
-            ? `${formatPeopleCount(draft.plannedPeopleCount)} residents requested before provisioning starts, capped by final housing capacity.`
-            : "Exact resident target requires a whole-number override.";
+function getPopulationPlanDescription(
+    draft: SetupDraft,
+    targetPopulation: number | null,
+): string {
+    if (draft.populationTargetMode === "Manual") {
+        return targetPopulation === null
+            ? "Manual resident target requires a whole-number headcount."
+            : `${targetPopulation.toLocaleString()} residents requested explicitly before topology generation starts.`;
     }
 
-    return `${getPopulationOccupancyLabel(draft.populationOccupancyProfile)} for a ${draft.sizeTier.toLowerCase()} city. Bootstrap will derive the final resident count from the city's ${getPopulationCapacityTone(draft.sizeTier)} after topology generation.`;
+    if (draft.populationTargetMode === "Random") {
+        return targetPopulation === null
+            ? "Randomized launch target will be derived from the current generation seed."
+            : `The current generation seed resolves this launch to ${targetPopulation.toLocaleString()} residents before the city form is generated around that headcount.`;
+    }
+
+    return `${getPopulationPressureLabel(draft.populationOccupancyProfile)} will shape how much housing slack or launch pressure the generated city keeps around ${targetPopulation?.toLocaleString() ?? "--"} residents.`;
 }
 
 function formatSessionStatusLabel(status?: string | null): string {
@@ -418,6 +426,7 @@ export default function ClassicCitySetupPage() {
     const currentStepIndex = getStepIndex(currentStepId);
     const currentStep = setupSteps[currentStepIndex];
     const populationPlanningEstimate = buildPopulationPlanningEstimate(draft);
+    const resolvedPopulationTarget = populationPlanningEstimate.targetPopulation;
     const sessionStatusLabel = formatSessionStatusLabel(session?.status);
     const sessionStatusTone = getSessionStatusTone(session?.status);
     const canEditSession = isMutableSessionStatus(session?.status);
@@ -531,7 +540,7 @@ export default function ClassicCitySetupPage() {
         });
 
         setValidationErrors((current) => {
-            if (key === "usePopulationOverride" && value === false) {
+            if (key === "populationTargetMode" && value !== "Manual") {
                 if (!current.plannedPeopleCount) {
                     return current;
                 }
@@ -1032,93 +1041,23 @@ export default function ClassicCitySetupPage() {
                     {currentStep.id === "population" ? (
                         <div className="scenario-setup__stack">
                             <OptionGrid
-                                legend="Starting occupancy"
-                                options={CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS}
-                                selectedValue={draft.populationOccupancyProfile}
-                                onSelect={(value) => updateDraft("populationOccupancyProfile", value as ClassicCityPopulationOccupancyProfile)}
+                                legend="Opening headcount"
+                                options={CLASSIC_CITY_POPULATION_TARGET_OPTIONS}
+                                selectedValue={draft.populationTargetMode}
+                                onSelect={(value) => updateDraft("populationTargetMode", value as ClassicCityPopulationTargetMode)}
                                 disabled={!canEditSession}
                             />
 
                             <div className="scenario-setup__fact-card">
-                                <strong>{getPopulationOccupancyLabel(draft.populationOccupancyProfile)} anchored to city capacity</strong>
+                                <strong>{getPopulationPlanLabel(draft, resolvedPopulationTarget)}</strong>
                                 <span>
-                                    The selected {draft.sizeTier.toLowerCase()} city size influences how much residential
-                                    capacity topology generation can produce. Population bootstrap then applies the chosen
-                                    occupancy profile against that actual capacity instead of guessing a fixed number up front.
+                                    {draft.populationTargetMode === "Random"
+                                        ? "The current generation seed resolves a deterministic launch headcount. Share the same seed and launch settings, and another operator will get the same opening population target."
+                                        : "CityCore will generate topology around this launch headcount first, then Population will bootstrap households and residents against the resulting housing stock."}
                                 </span>
                             </div>
 
-                            <div className="scenario-setup__stats-grid">
-                                <article className="scenario-setup__stat-card">
-                                    <span className="scenario-setup__review-label">Estimated districts</span>
-                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.districtRange)}</strong>
-                                    <span className="scenario-setup__review-text">
-                                        Includes the central district and profile-driven expansion around it.
-                                    </span>
-                                </article>
-
-                                <article className="scenario-setup__stat-card">
-                                    <span className="scenario-setup__review-label">Residential buildings</span>
-                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.residentialBuildingRange)}</strong>
-                                    <span className="scenario-setup__review-text">
-                                        Estimated from size, density, development level, and central-district weighting.
-                                    </span>
-                                </article>
-
-                                <article className="scenario-setup__stat-card">
-                                    <span className="scenario-setup__review-label">Housing capacity</span>
-                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.capacityRange)}</strong>
-                                    <span className="scenario-setup__review-text">
-                                        Pre-launch estimate from topology rules. Final capacity is locked only after CityCore creates the city skeleton.
-                                    </span>
-                                </article>
-
-                                <article className="scenario-setup__stat-card">
-                                    <span className="scenario-setup__review-label">Opening population</span>
-                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.openingPopulationRange)}</strong>
-                                    <span className="scenario-setup__review-text">
-                                        {populationPlanningEstimate.usesExactOverride
-                                            ? "Exact override will be capped by the final generated housing capacity."
-                                            : `${formatOccupancyRateRange(populationPlanningEstimate.occupancyRateRange)} expected occupancy after topology generation.`}
-                                    </span>
-                                </article>
-                            </div>
-
-                            <div className="scenario-setup__form-grid">
-                                <div className="scenario-setup__field">
-                                    <div className="scenario-setup__label">Advanced override</div>
-                                    <div className="scenario-setup__fact-card">
-                                        <strong>Need an exact resident target?</strong>
-                                        <span>
-                                            Use an exact override only when you explicitly want a fixed headcount. Otherwise the
-                                            occupancy profile remains the source of truth and scales naturally with generated city
-                                            capacity.
-                                        </span>
-                                        <Button
-                                            type="button"
-                                            variant={draft.usePopulationOverride ? "danger" : "default"}
-                                            onClick={() => updateDraft("usePopulationOverride", !draft.usePopulationOverride)}
-                                            disabled={!canEditSession}
-                                        >
-                                            {draft.usePopulationOverride ? "Disable exact override" : "Use exact resident target"}
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <div className="scenario-setup__field">
-                                    <div className="scenario-setup__label">Capacity behavior</div>
-                                    <div className="scenario-setup__fact-card">
-                                        <strong>Final bootstrap count is always capacity-aware</strong>
-                                        <span>
-                                            Even with an exact override, provisioning respects the generated residential
-                                            capacity. The city will not be overfilled past the housing topology that CityCore
-                                            actually created.
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {draft.usePopulationOverride ? (
+                            {draft.populationTargetMode === "Manual" ? (
                                 <div className="scenario-setup__form-grid">
                                     <div className="scenario-setup__field">
                                         <label className="scenario-setup__label" htmlFor="classic-city-planned-people-count">
@@ -1138,12 +1077,84 @@ export default function ClassicCitySetupPage() {
                                             <div className="scenario-setup__error">{validationErrors.plannedPeopleCount}</div>
                                         ) : null}
                                         <div className="scenario-setup__hint">
-                                            This value is persisted into the setup session and CityCore generation profile, so retry
-                                            keeps the same target instead of silently changing the opening population plan.
+                                            This headcount is persisted in the setup session and becomes part of the launch contract, so retries keep the same opening population target.
                                         </div>
                                     </div>
                                 </div>
                             ) : null}
+
+                            <OptionGrid
+                                legend="Housing pressure"
+                                options={CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS}
+                                selectedValue={draft.populationOccupancyProfile}
+                                onSelect={(value) => updateDraft("populationOccupancyProfile", value as ClassicCityPopulationOccupancyProfile)}
+                                disabled={!canEditSession}
+                            />
+
+                            <div className="scenario-setup__fact-card">
+                                <strong>{getPopulationPressureLabel(draft.populationOccupancyProfile)}</strong>
+                                <span>
+                                    This does not change the requested headcount. It changes how much housing slack or pressure CityCore will build around that same target, which is what later drives housed versus homeless outcomes.
+                                </span>
+                            </div>
+
+                            <div className="scenario-setup__stats-grid">
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Target population</span>
+                                    <strong className="scenario-setup__stat-value">{resolvedPopulationTarget?.toLocaleString() ?? "--"}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        {draft.populationTargetMode === "Random"
+                                            ? "Deterministic from the current seed."
+                                            : "This is the opening population CityCore and Population will provision against."}
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Estimated districts</span>
+                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.districtRange)}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Includes the central district and profile-driven expansion around the requested headcount.
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Residential buildings</span>
+                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.residentialBuildingRange)}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Estimated from the population target plus the chosen city footprint, density, and development profile.
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__stat-card">
+                                    <span className="scenario-setup__review-label">Housing capacity</span>
+                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.capacityRange)}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        Expected housing coverage: {formatOccupancyRateRange(populationPlanningEstimate.housingCoverageRange)} of launch target once topology is generated.
+                                    </span>
+                                </article>
+                            </div>
+
+                            <div className="scenario-setup__form-grid">
+                                <div className="scenario-setup__field">
+                                    <div className="scenario-setup__label">City footprint</div>
+                                    <div className="scenario-setup__fact-card">
+                                        <strong>{draft.sizeTier} / {draft.urbanDensity} / {draft.developmentLevel}</strong>
+                                        <span>
+                                            Population now sets the scale first. The city profile step controls whether that population is packed into a compact footprint, spread across more districts, or launched under stronger or weaker development pressure.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="scenario-setup__field">
+                                    <div className="scenario-setup__label">Launch behavior</div>
+                                    <div className="scenario-setup__fact-card">
+                                        <strong>Population comes before topology</strong>
+                                        <span>
+                                            This launch flow now plans people first and generates housing second. Homelessness can emerge naturally if housing pressure is tight enough, but the city no longer starts from an arbitrary empty shell.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : null}
 
@@ -1178,9 +1189,9 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Population bootstrap</span>
-                                    <strong className="scenario-setup__review-value">{getPopulationPlanLabel(draft)}</strong>
+                                    <strong className="scenario-setup__review-value">{getPopulationPlanLabel(draft, resolvedPopulationTarget)}</strong>
                                     <span className="scenario-setup__review-text">
-                                        {getPopulationPlanDescription(draft)}
+                                        {getPopulationPlanDescription(draft, resolvedPopulationTarget)}
                                     </span>
                                 </article>
 
@@ -1195,9 +1206,11 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Estimated opening</span>
-                                    <strong className="scenario-setup__review-value">{formatRange(populationPlanningEstimate.openingPopulationRange)} residents</strong>
+                                    <strong className="scenario-setup__review-value">
+                                        {resolvedPopulationTarget?.toLocaleString() ?? "--"} residents
+                                    </strong>
                                     <span className="scenario-setup__review-text">
-                                        Capacity preview: {formatRange(populationPlanningEstimate.capacityRange)} residents across {formatRange(populationPlanningEstimate.residentialBuildingRange)} residential buildings.
+                                        Capacity preview: {formatRange(populationPlanningEstimate.capacityRange)} residents across {formatRange(populationPlanningEstimate.residentialBuildingRange)} residential buildings and {formatRange(populationPlanningEstimate.districtRange)} districts.
                                     </span>
                                 </article>
                             </div>
@@ -1267,8 +1280,8 @@ export default function ClassicCitySetupPage() {
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Population</span>
-                                <strong>{getPopulationPlanLabel(draft)}</strong>
-                                <span>{getPopulationPlanDescription(draft)}</span>
+                                <strong>{getPopulationPlanLabel(draft, resolvedPopulationTarget)}</strong>
+                                <span>{getPopulationPlanDescription(draft, resolvedPopulationTarget)}</span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Clock</span>

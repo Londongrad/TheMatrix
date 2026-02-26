@@ -1,5 +1,6 @@
 import type {
     ClassicCityPopulationOccupancyProfile,
+    ClassicCityPopulationTargetMode,
     ClassicCitySetupDraftView,
 } from "@services/citycore/scenarios/classic-city/contracts/setupSessionContracts";
 
@@ -13,17 +14,24 @@ type BuildingType = "house" | "apartment" | "tower" | "dormitory";
 type BuildingWeights = Record<BuildingType, number>;
 
 export type PopulationPlanningEstimate = {
+    targetPopulation: number | null;
     districtRange: Range;
     residentialBuildingRange: Range;
     capacityRange: Range;
-    openingPopulationRange: Range;
-    occupancyRateRange: Range;
-    usesExactOverride: boolean;
+    housingCoverageRange: Range;
+    usesManualTarget: boolean;
+    usesDeterministicRandomTarget: boolean;
 };
 
 type PopulationPlanningInput = Pick<
     ClassicCitySetupDraftView,
-    "sizeTier" | "urbanDensity" | "developmentLevel" | "populationOccupancyProfile" | "usePopulationOverride" | "plannedPeopleCount"
+    | "generationSeed"
+    | "populationTargetMode"
+    | "plannedPeopleCount"
+    | "sizeTier"
+    | "urbanDensity"
+    | "developmentLevel"
+    | "populationOccupancyProfile"
 >;
 
 const BUILDING_CAPACITY_RANGES: Record<BuildingType, Range> = {
@@ -33,66 +41,110 @@ const BUILDING_CAPACITY_RANGES: Record<BuildingType, Range> = {
     dormitory: {min: 120, max: 260},
 };
 
+const POPULATION_TARGET_PRESET_COUNTS: Record<Exclude<ClassicCityPopulationTargetMode, "Random" | "Manual">, number> = {
+    Preset1K: 1_000,
+    Preset10K: 10_000,
+    Preset100K: 100_000,
+};
+
 export function buildPopulationPlanningEstimate(input: PopulationPlanningInput): PopulationPlanningEstimate {
-    const districtRange = getDistrictCountRange(input);
-    const buildingRange = getResidentialBuildingRange(input, districtRange);
-    const capacityRange = getCapacityRange(input, districtRange);
-
-    if (input.usePopulationOverride) {
-        const requestedPeopleCount = parseWholeNumber(input.plannedPeopleCount);
-
-        if (requestedPeopleCount === null) {
-            return {
-                districtRange,
-                residentialBuildingRange: buildingRange,
-                capacityRange,
-                openingPopulationRange: {min: 0, max: 0},
-                occupancyRateRange: {min: 0, max: 0},
-                usesExactOverride: true,
-            };
-        }
-
-        return {
-            districtRange,
-            residentialBuildingRange: buildingRange,
-            capacityRange,
-            openingPopulationRange: {
-                min: Math.min(requestedPeopleCount, capacityRange.min),
-                max: Math.min(requestedPeopleCount, capacityRange.max),
-            },
-            occupancyRateRange: {min: 0, max: 0},
-            usesExactOverride: true,
-        };
-    }
-
-    const occupancyRateRange = getOccupancyRateRange(input);
-    const openingPopulationRange = {
-        min: Math.max(
-            buildingRange.min,
-            Math.round(capacityRange.min * occupancyRateRange.min),
-        ),
-        max: Math.max(
-            buildingRange.max,
-            Math.round(capacityRange.max * occupancyRateRange.max),
-        ),
-    };
+    const targetPopulation = resolvePopulationTarget(input);
+    const topologyPopulationBasis = getTopologyPopulationBasis(input, targetPopulation);
+    const capacityRange = getCapacityTargetRange(input, topologyPopulationBasis);
+    const districtRange = getDistrictCountRange(input, capacityRange);
+    const residentialBuildingRange = getResidentialBuildingRange(input, targetPopulation, capacityRange, districtRange);
+    const housingCoverageRange = getHousingCoverageRange(targetPopulation, capacityRange);
 
     return {
+        targetPopulation,
         districtRange,
-        residentialBuildingRange: buildingRange,
+        residentialBuildingRange,
         capacityRange,
-        openingPopulationRange,
-        occupancyRateRange,
-        usesExactOverride: false,
+        housingCoverageRange,
+        usesManualTarget: input.populationTargetMode === "Manual",
+        usesDeterministicRandomTarget: input.populationTargetMode === "Random",
     };
 }
 
+export function resolvePopulationTarget(input: PopulationPlanningInput): number | null {
+    switch (input.populationTargetMode) {
+        case "Preset1K":
+            return POPULATION_TARGET_PRESET_COUNTS.Preset1K;
+        case "Preset10K":
+            return POPULATION_TARGET_PRESET_COUNTS.Preset10K;
+        case "Preset100K":
+            return POPULATION_TARGET_PRESET_COUNTS.Preset100K;
+        case "Random":
+            return resolveDeterministicRandomTarget(input.generationSeed);
+        case "Manual":
+            return parseWholeNumber(input.plannedPeopleCount);
+        default:
+            return POPULATION_TARGET_PRESET_COUNTS.Preset10K;
+    }
+}
+
+export function getPopulationTargetModeLabel(
+    mode: ClassicCityPopulationTargetMode,
+    targetPopulation: number | null,
+): string {
+    switch (mode) {
+        case "Random":
+            return targetPopulation === null
+                ? "Randomized opening"
+                : `Randomized opening (${targetPopulation.toLocaleString()} residents)`;
+        case "Preset1K":
+            return "1,000 residents";
+        case "Preset10K":
+            return "10,000 residents";
+        case "Preset100K":
+            return "100,000 residents";
+        case "Manual":
+            return targetPopulation === null
+                ? "Manual resident target"
+                : `Manual target (${targetPopulation.toLocaleString()} residents)`;
+        default:
+            return "Population target";
+    }
+}
+
+export function getPopulationPressureLabel(profile: ClassicCityPopulationOccupancyProfile): string {
+    switch (profile) {
+        case "Light":
+            return "Room to grow";
+        case "High":
+            return "Tight housing";
+        default:
+            return "Balanced housing";
+    }
+}
+
 export function formatRange(range: Range): string {
+    if (range.min === range.max) {
+        return range.min.toLocaleString();
+    }
+
     return `${range.min.toLocaleString()} - ${range.max.toLocaleString()}`;
 }
 
 export function formatOccupancyRateRange(range: Range): string {
+    if (range.min === range.max) {
+        return `${Math.round(range.min * 100)}%`;
+    }
+
     return `${Math.round(range.min * 100)}% - ${Math.round(range.max * 100)}%`;
+}
+
+function getTopologyPopulationBasis(
+    input: PopulationPlanningInput,
+    targetPopulation: number | null,
+): number {
+    const fallbackFloor = input.sizeTier === "Small"
+        ? 350
+        : input.sizeTier === "Large"
+            ? 1_600
+            : 800;
+
+    return Math.max(targetPopulation ?? 0, fallbackFloor);
 }
 
 function parseWholeNumber(value: string): number | null {
@@ -106,109 +158,115 @@ function parseWholeNumber(value: string): number | null {
         : null;
 }
 
-function getDistrictCountRange(input: PopulationPlanningInput): Range {
-    const baseCount = input.sizeTier === "Small"
-        ? 3
-        : input.sizeTier === "Large"
-            ? 7
-            : 5;
+function getCapacityTargetRange(
+    input: PopulationPlanningInput,
+    populationBasis: number,
+): Range {
+    if (populationBasis <= 0) {
+        return {min: 0, max: 0};
+    }
 
-    const densityBonus = input.urbanDensity === "Sparse"
-        ? 0
-        : input.urbanDensity === "Dense"
-            ? 2
-            : 1;
+    const ratioCenter = clamp(
+        getBaseHousingRatio(input.populationOccupancyProfile) +
+        getDensityHousingModifier(input.urbanDensity) +
+        getDevelopmentHousingModifier(input.developmentLevel) +
+        getFootprintHousingModifier(input.sizeTier),
+        0.75,
+        1.45,
+    );
 
-    const developmentBonus = input.developmentLevel === "Advanced" ? 1 : 0;
+    const jitter = 0.08;
+    const minRatio = clamp(ratioCenter - jitter, 0.75, 1.45);
+    const maxRatio = clamp(ratioCenter + jitter, 0.75, 1.45);
 
     return {
-        min: Math.min(10, baseCount + developmentBonus),
-        max: Math.min(10, baseCount + developmentBonus + densityBonus),
+        min: Math.max(1, Math.round(populationBasis * minRatio)),
+        max: Math.max(1, Math.round(populationBasis * maxRatio)),
+    };
+}
+
+function getDistrictCountRange(
+    input: PopulationPlanningInput,
+    capacityRange: Range,
+): Range {
+    const minDistricts = input.sizeTier === "Small"
+        ? 3
+        : input.sizeTier === "Large"
+            ? 5
+            : 4;
+
+    const baseCapacityPerDistrict = input.sizeTier === "Small"
+        ? 1_200
+        : input.sizeTier === "Large"
+            ? 4_500
+            : 2_500;
+
+    const densityFactor = input.urbanDensity === "Sparse"
+        ? 0.75
+        : input.urbanDensity === "Dense"
+            ? 1.35
+            : 1.0;
+    const developmentFactor = input.developmentLevel === "Struggling"
+        ? 0.9
+        : input.developmentLevel === "Advanced"
+            ? 1.1
+            : 1.0;
+    const perDistrictBaseline = baseCapacityPerDistrict * densityFactor * developmentFactor;
+    const minCapacityPerDistrict = Math.max(250, Math.round(perDistrictBaseline * 0.9));
+    const maxCapacityPerDistrict = Math.max(300, Math.round(perDistrictBaseline * 1.1));
+
+    return {
+        min: clamp(Math.ceil(capacityRange.min / maxCapacityPerDistrict), minDistricts, 36),
+        max: clamp(Math.ceil(capacityRange.max / minCapacityPerDistrict), minDistricts, 36),
     };
 }
 
 function getResidentialBuildingRange(
     input: PopulationPlanningInput,
+    targetPopulation: number | null,
+    capacityRange: Range,
     districtRange: Range,
 ): Range {
-    const centralRange = getBuildingCountPerDistrictRange(input, true);
-    const outerRange = getBuildingCountPerDistrictRange(input, false);
-
-    return {
-        min: centralRange.min + outerRange.min * Math.max(0, districtRange.min - 1),
-        max: centralRange.max + outerRange.max * Math.max(0, districtRange.max - 1),
-    };
-}
-
-function getCapacityRange(
-    input: PopulationPlanningInput,
-    districtRange: Range,
-): Range {
-    const centralBuildingRange = getBuildingCountPerDistrictRange(input, true);
-    const outerBuildingRange = getBuildingCountPerDistrictRange(input, false);
-    const centralCapacityAverageRange = getAverageCapacityPerBuildingRange(input, true);
-    const outerCapacityAverageRange = getAverageCapacityPerBuildingRange(input, false);
-
-    const minimumCapacity = Math.round(
-        centralBuildingRange.min * centralCapacityAverageRange.min +
-        Math.max(0, districtRange.min - 1) * outerBuildingRange.min * outerCapacityAverageRange.min,
+    const averageBuildingCapacityRange = getAverageBuildingCapacityRange(input, targetPopulation);
+    const minBuildings = Math.max(
+        districtRange.min,
+        Math.ceil(capacityRange.min / Math.max(1, averageBuildingCapacityRange.max)),
     );
-    const maximumCapacity = Math.round(
-        centralBuildingRange.max * centralCapacityAverageRange.max +
-        Math.max(0, districtRange.max - 1) * outerBuildingRange.max * outerCapacityAverageRange.max,
+    const maxBuildings = Math.max(
+        districtRange.max,
+        Math.ceil(capacityRange.max / Math.max(1, averageBuildingCapacityRange.min)),
     );
 
     return {
-        min: minimumCapacity,
-        max: maximumCapacity,
+        min: minBuildings,
+        max: maxBuildings,
     };
 }
 
-function getBuildingCountPerDistrictRange(
+function getAverageBuildingCapacityRange(
     input: PopulationPlanningInput,
-    isCentral: boolean,
+    targetPopulation: number | null,
 ): Range {
-    const baseCount = input.urbanDensity === "Sparse"
-        ? 2
-        : input.urbanDensity === "Dense"
-            ? 4
-            : 3;
+    const targetForScale = targetPopulation ?? getTopologyPopulationBasis(input, targetPopulation);
+    const centralWeights = getBuildingTypeWeights(input, true);
+    const outerWeights = getBuildingTypeWeights(input, false);
+    const centralAverage = getWeightedAverageCapacity(centralWeights);
+    const outerAverage = getWeightedAverageCapacity(outerWeights);
+    const baseAverage = {
+        min: Math.round((centralAverage.min + outerAverage.min * 3) / 4),
+        max: Math.round((centralAverage.max + outerAverage.max * 3) / 4),
+    };
 
-    const sizeBonus = input.sizeTier === "Small"
-        ? 0
-        : input.sizeTier === "Large"
-            ? 2
-            : 1;
-
-    const centralBonus = isCentral ? 2 : 0;
-    const developmentBonus = input.developmentLevel === "Advanced" ? 1 : 0;
-    const minimum = Math.min(9, baseCount + sizeBonus + centralBonus + developmentBonus);
+    const scaleCenter = getResidentCapacityScaleCenter(input, targetForScale);
 
     return {
-        min: minimum,
-        max: Math.min(9, minimum + 1),
+        min: Math.max(1, Math.round(baseAverage.min * clamp(scaleCenter - 0.08, 0.85, 1.8))),
+        max: Math.max(1, Math.round(baseAverage.max * clamp(scaleCenter + 0.08, 0.85, 1.8))),
     };
 }
 
-function getAverageCapacityPerBuildingRange(
-    input: PopulationPlanningInput,
-    isCentral: boolean,
-): Range {
-    const weights = getBuildingTypeWeights(input, isCentral);
+function getWeightedAverageCapacity(weights: BuildingWeights): Range {
     const weightTotal = Object.values(weights).reduce((total, value) => total + value, 0);
-    const densityFactor = input.urbanDensity === "Sparse"
-        ? 0.85
-        : input.urbanDensity === "Dense"
-            ? 1.2
-            : 1.0;
-    const developmentFactor = input.developmentLevel === "Struggling"
-        ? 0.9
-        : input.developmentLevel === "Advanced"
-            ? 1.15
-            : 1.0;
-    const centralFactor = isCentral ? 1.1 : 1.0;
-    const factor = densityFactor * developmentFactor * centralFactor;
-
     let minimumAverage = 0;
     let maximumAverage = 0;
 
@@ -218,9 +276,102 @@ function getAverageCapacityPerBuildingRange(
     });
 
     return {
-        min: Math.round((minimumAverage / weightTotal) * factor),
-        max: Math.round((maximumAverage / weightTotal) * factor),
+        min: Math.round(minimumAverage / weightTotal),
+        max: Math.round(maximumAverage / weightTotal),
     };
+}
+
+function getHousingCoverageRange(
+    targetPopulation: number | null,
+    capacityRange: Range,
+): Range {
+    if (targetPopulation === null || targetPopulation <= 0 || capacityRange.max <= 0) {
+        return {min: 0, max: 0};
+    }
+
+    return {
+        min: roundRatio(targetPopulation / capacityRange.max),
+        max: roundRatio(targetPopulation / Math.max(1, capacityRange.min)),
+    };
+}
+
+function getBaseHousingRatio(profile: ClassicCityPopulationOccupancyProfile): number {
+    switch (profile) {
+        case "Light":
+            return 1.28;
+        case "High":
+            return 0.92;
+        default:
+            return 1.08;
+    }
+}
+
+function getDensityHousingModifier(urbanDensity: string): number {
+    switch (urbanDensity) {
+        case "Sparse":
+            return 0.08;
+        case "Dense":
+            return -0.05;
+        default:
+            return 0.0;
+    }
+}
+
+function getDevelopmentHousingModifier(developmentLevel: string): number {
+    switch (developmentLevel) {
+        case "Struggling":
+            return -0.07;
+        case "Advanced":
+            return 0.05;
+        default:
+            return 0.0;
+    }
+}
+
+function getFootprintHousingModifier(sizeTier: string): number {
+    switch (sizeTier) {
+        case "Small":
+            return -0.03;
+        case "Large":
+            return 0.04;
+        default:
+            return 0.0;
+    }
+}
+
+function getResidentCapacityScaleCenter(
+    input: PopulationPlanningInput,
+    targetPopulation: number,
+): number {
+    let scale = 1.0;
+
+    if (targetPopulation >= 100_000) {
+        scale += 0.35;
+    } else if (targetPopulation >= 10_000) {
+        scale += 0.18;
+    } else if (targetPopulation >= 1_000) {
+        scale += 0.05;
+    }
+
+    if (input.urbanDensity === "Dense") {
+        scale += 0.10;
+    } else if (input.urbanDensity === "Sparse") {
+        scale -= 0.05;
+    }
+
+    if (input.developmentLevel === "Advanced") {
+        scale += 0.08;
+    } else if (input.developmentLevel === "Struggling") {
+        scale -= 0.05;
+    }
+
+    if (input.sizeTier === "Large") {
+        scale += 0.06;
+    } else if (input.sizeTier === "Small") {
+        scale -= 0.03;
+    }
+
+    return clamp(scale, 0.85, 1.8);
 }
 
 function getBuildingTypeWeights(
@@ -279,36 +430,42 @@ function getBuildingTypeWeights(
     };
 }
 
-function getOccupancyRateRange(input: PopulationPlanningInput): Range {
-    const baseOccupancy = getBaseOccupancy(input.populationOccupancyProfile);
-    const densityAdjustment = input.urbanDensity === "Sparse"
-        ? -0.06
-        : input.urbanDensity === "Dense"
-            ? 0.06
-            : 0.0;
-    const developmentAdjustment = input.developmentLevel === "Struggling"
-        ? -0.05
-        : input.developmentLevel === "Advanced"
-            ? 0.04
-            : 0.0;
+function resolveDeterministicRandomTarget(generationSeed: string): number {
+    const hash = fnv1a32(`${generationSeed.trim()}|classic-city|population-target`);
+    const anchors = [1_000, 10_000, 100_000] as const;
+    const anchor = anchors[hash % anchors.length];
+    const jitterPercent = ((Math.floor(hash / anchors.length) % 41) - 20) / 100;
+    const rawTarget = Math.max(100, Math.round(anchor * (1 + jitterPercent)));
 
-    const baseline = baseOccupancy + densityAdjustment + developmentAdjustment;
+    if (rawTarget >= 100_000) {
+        return roundTo(rawTarget, 1_000);
+    }
 
-    return {
-        min: clamp(baseline - 0.04, 0.30, 0.95),
-        max: clamp(baseline + 0.04, 0.30, 0.95),
-    };
+    if (rawTarget >= 10_000) {
+        return roundTo(rawTarget, 100);
+    }
+
+    return roundTo(rawTarget, 10);
 }
 
-function getBaseOccupancy(profile: ClassicCityPopulationOccupancyProfile): number {
-    switch (profile) {
-        case "Light":
-            return 0.44;
-        case "High":
-            return 0.82;
-        default:
-            return 0.63;
-    }
+function fnv1a32(value: string): number {
+    const bytes = new TextEncoder().encode(value);
+    let hash = 0x811c9dc5;
+
+    bytes.forEach((byte) => {
+        hash ^= byte;
+        hash = Math.imul(hash, 0x01000193) >>> 0;
+    });
+
+    return hash >>> 0;
+}
+
+function roundTo(value: number, step: number): number {
+    return Math.max(step, Math.round(value / step) * step);
+}
+
+function roundRatio(value: number): number {
+    return Math.round(value * 100) / 100;
 }
 
 function clamp(value: number, min: number, max: number): number {
