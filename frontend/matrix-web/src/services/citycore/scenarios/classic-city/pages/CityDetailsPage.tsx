@@ -12,6 +12,7 @@ import {
 import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityProvisioningPath,
+    getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
@@ -34,6 +35,7 @@ const CityDetailsPage = () => {
     const canArchiveCity = can(PermissionKeys.CityCoreClassicCityArchive);
     const canDeleteCity = can(PermissionKeys.CityCoreClassicCityDelete);
     const canControlSimulation = can(PermissionKeys.CityCoreSimulationControl);
+    const canReadResidents = can(PermissionKeys.PopulationPeopleRead);
 
     if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
         return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
@@ -83,6 +85,12 @@ const CityDetailsPage = () => {
                 simulationKind={cityQuery.data?.simulationKind}
                 status={cityQuery.data?.status}
                 archivedAtUtc={cityQuery.data?.archivedAtUtc}
+                links={[
+                    ...(cityQuery.data && canReadResidents
+                        ? [{to: getClassicCityResidentsPath(cityQuery.data.cityId), label: "Residents"}]
+                        : []),
+                    {to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"},
+                ]}
             />
 
             {cityQuery.error ? (

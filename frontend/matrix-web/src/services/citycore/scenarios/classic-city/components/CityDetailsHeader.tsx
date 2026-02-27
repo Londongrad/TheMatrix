@@ -14,11 +14,18 @@ type Props = {
     simulationKind?: string;
     status?: string;
     archivedAtUtc?: string | null;
+    links?: ReadonlyArray<{
+        to: string;
+        label: string;
+    }>;
 };
 
-export function CityDetailsHeader({title, cityId, simulationKind, status, archivedAtUtc}: Props) {
+export function CityDetailsHeader({title, cityId, simulationKind, status, archivedAtUtc, links}: Props) {
     const statusTone = getCityStatusTone(status, archivedAtUtc);
     const statusLabel = formatCityStatusLabel(status, archivedAtUtc);
+    const headerLinks = links?.length
+        ? links
+        : [{to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"}];
 
     return (
         <header className="city-hero">
@@ -45,9 +52,13 @@ export function CityDetailsHeader({title, cityId, simulationKind, status, archiv
                 </div>
             </div>
 
-            <Link className="city-link" to={CLASSIC_CITY_LIST_PATH}>
-                Back to cities
-            </Link>
+            <div className="city-hero__actions">
+                {headerLinks.map((link) => (
+                    <Link key={`${link.to}:${link.label}`} className="city-link" to={link.to}>
+                        {link.label}
+                    </Link>
+                ))}
+            </div>
         </header>
     );
 }

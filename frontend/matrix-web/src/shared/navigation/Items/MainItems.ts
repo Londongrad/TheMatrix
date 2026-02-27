@@ -19,13 +19,6 @@ export const mainNavItems: NavItem[] = [
         requiredPermissions: [PermissionKeys.CityCoreClassicCityRead],
         permissionDisplay: "disable",
     },
-    {
-        to: "/citizens",
-        label: "Citizens",
-        requiredPermissions: [PermissionKeys.PopulationPeopleRead],
-        permissionDisplay: "disable",
-    },
-
     // важное: сохраняем "откуда пришёл" при входе в /admin
     {
         to: "/admin",

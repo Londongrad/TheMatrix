@@ -9,6 +9,13 @@
     gap: 20px;
 }
 
+.city-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
 .city-hero__content {
     display: flex;
     flex-direction: column;

@@ -1,6 +1,5 @@
 import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 
-import CitizensPage from "@services/population/people/pages/CitizensPage";
 import DashboardPage from "@services/citycore/dashboard/pages/DashboardPage";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 
@@ -54,16 +53,6 @@ const App = () => {
                         >
                             <Route path="/" element={<DashboardPage/>}/>
                             {cityCoreRoutes}
-                            <Route
-                                path="/citizens"
-                                element={
-                                    <RequireRoutePermission
-                                        permissions={[PermissionKeys.PopulationPeopleRead]}
-                                    >
-                                        <CitizensPage/>
-                                    </RequireRoutePermission>
-                                }
-                            />
                         </Route>
 
                         {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ user settings СЃС‚СЂР°РЅРёС†С‹ - СЃ UserSettingsLayout */}

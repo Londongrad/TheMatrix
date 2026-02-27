@@ -1,4 +1,3 @@
-// src/services/population/person/components/CitizenCard.tsx
 import React from "react";
 import type {PersonDto} from "@services/population/person/api/personTypes";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
@@ -6,13 +5,13 @@ import "@services/population/person/styles/citizen-card.css";
 
 interface CitizenCardProps {
     person: PersonDto;
-    onEdit?: (id: string) => void;
+    onOpen?: (person: PersonDto) => void;
 }
 
-const CitizenCard = ({person, onEdit}: CitizenCardProps) => {
+const CitizenCard = ({person, onOpen}: CitizenCardProps) => {
     const handleOpenEditor = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
-        onEdit?.(person.id);
+        onOpen?.(person);
     };
 
     const isDeceased = person.lifeStatus === "Deceased";
@@ -31,25 +30,25 @@ const CitizenCard = ({person, onEdit}: CitizenCardProps) => {
                         {person.sex}, {person.age} y.o. ({person.ageGroup})
                         {isDeceased ? (
                             <span className="citizen-card-sub-status citizen-card-sub-status--deceased">
-                DECEASED {person.deathDate}
-              </span>
+                                DECEASED {person.deathDate}
+                            </span>
                         ) : (
                             <span className="citizen-card-sub-status citizen-card-sub-status--alive">
-                {person.lifeStatus}
-              </span>
+                                {person.lifeStatus}
+                            </span>
                         )}
                     </p>
                 </div>
 
-                {onEdit && (
+                {onOpen ? (
                     <IconButton
                         size="sm"
-                        aria-label="Open citizen details"
+                        aria-label="Open resident details"
                         onClick={handleOpenEditor}
                     >
-                        ⋯
+                        в‹Ї
                     </IconButton>
-                )}
+                ) : null}
             </header>
 
             <section className="citizen-card-body">
@@ -64,7 +63,10 @@ const CitizenCard = ({person, onEdit}: CitizenCardProps) => {
                     {person.jobTitle ? ` (${person.jobTitle})` : ""}
                 </p>
                 <p>
-                    <strong>Happiness:</strong> {person.happiness}
+                    <strong>Health / Happiness:</strong> {person.health} / {person.happiness}
+                </p>
+                <p>
+                    <strong>Energy / Stress:</strong> {person.energy} / {person.stress}
                 </p>
                 <p>
                     <strong>Birth date:</strong> {person.birthDate}

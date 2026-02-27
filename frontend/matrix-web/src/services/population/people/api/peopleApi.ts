@@ -1,13 +1,10 @@
-import type {PersonDto} from "@services/population/person/api/personTypes";
 import {API_POPULATION_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
-import {type PagedResult} from "@shared/lib/paging/pagingTypes";
 
-// Инициализация населения
 export async function initializePopulation(
     peopleCount: number,
     token: string,
-    randomSeed?: number
+    randomSeed?: number,
 ): Promise<void> {
     const params = new URLSearchParams({
         peopleCount: peopleCount.toString(),
@@ -23,21 +20,4 @@ export async function initializePopulation(
             Authorization: `Bearer ${token}`,
         },
     });
-}
-
-// Получение страницы граждан
-export async function getCitizensPage(
-    page: number,
-    pageSize: number,
-    token: string
-): Promise<PagedResult<PersonDto>> {
-    return await apiRequest<PagedResult<PersonDto>>(
-        `${API_POPULATION_URL}/citizens?pageNumber=${page}&pageSize=${pageSize}`,
-        {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }
-    );
 }

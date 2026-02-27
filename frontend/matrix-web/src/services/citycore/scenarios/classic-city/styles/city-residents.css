@@ -1,0 +1,36 @@
+.city-residents-page {
+    gap: 22px;
+}
+
+.city-residents-page__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.city-residents-page__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    min-height: 24px;
+}
+
+.city-residents-page__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.25rem;
+}
+
+@media (max-width: 720px) {
+    .city-residents-page__toolbar {
+        align-items: stretch;
+    }
+
+    .city-residents-page__summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

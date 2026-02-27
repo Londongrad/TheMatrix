@@ -16,6 +16,7 @@ export const CITYCORE_SCENARIO_CATALOG_PATH = "/scenarios";
 export const CITYCORE_NEW_SIMULATION_PATH = "/simulations/new";
 export const CLASSIC_CITY_LIST_PATH = "/cities";
 export const CLASSIC_CITY_DETAILS_PATH_PATTERN = "/cities/:cityId";
+export const CLASSIC_CITY_RESIDENTS_PATH_PATTERN = "/cities/:cityId/residents";
 export const CLASSIC_CITY_SETUP_PATH = "/scenarios/classic-city/setup";
 export const CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN = "/scenarios/classic-city/setup/:sessionId";
 export const CLASSIC_CITY_SETUP_PROVISIONING_PATH_PATTERN = "/scenarios/classic-city/setup/:sessionId/provisioning";
@@ -23,6 +24,10 @@ export const CLASSIC_CITY_PROVISIONING_PATH_PATTERN = "/cities/:cityId/provision
 
 export function getClassicCityDetailsPath(cityId: string): string {
     return `/cities/${cityId}`;
+}
+
+export function getClassicCityResidentsPath(cityId: string): string {
+    return `/cities/${cityId}/residents`;
 }
 
 export function getClassicCitySetupPath(): string {
