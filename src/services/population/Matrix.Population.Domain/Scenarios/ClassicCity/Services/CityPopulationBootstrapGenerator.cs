@@ -2,6 +2,7 @@ using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -43,7 +44,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     CreateSingleResident(
                         random: random,
                         householdId: householdId,
-                        currentDate: currentDate));
+                        currentDate: currentDate,
+                        tuning: BootstrapTuningModel.Default(),
+                        housingStatus: HousingStatus.Housed));
             }
 
             return new PopulationBootstrapResult(
@@ -58,6 +61,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int peopleCount,
             DateOnly currentDate,
             DateTimeOffset createdAtUtc,
+            CityPopulationBootstrapTuning tuning,
             int? randomSeed = null)
         {
             if (peopleCount <= 0)
@@ -67,6 +71,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     Persons: Array.Empty<Person>());
 
             Random random = CreateRandom(randomSeed);
+            BootstrapTuningModel bootstrapTuning = BootstrapTuningModel.From(tuning);
             var households = new List<Household>();
             var householdPlacements = new List<ClassicCityHouseholdPlacement>();
             var persons = new List<Person>(peopleCount);
@@ -82,7 +87,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 int householdSizeValue = NextHouseholdSize(
                     random: random,
-                    remainingPeople: remainingPeople);
+                    remainingPeople: remainingPeople,
+                    tuning: bootstrapTuning);
                 var householdSize = HouseholdSize.From(householdSizeValue);
                 var householdId = HouseholdId.New();
                 Household household = Household.Create(
@@ -103,7 +109,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         random: random,
                         householdId: household.Id,
                         householdSizeValue: householdSizeValue,
-                        currentDate: currentDate));
+                        currentDate: currentDate,
+                        tuning: bootstrapTuning,
+                        housingStatus: householdPlacement.HousingStatus));
 
                 remainingPeople -= householdSizeValue;
             }
@@ -118,7 +126,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             if (householdSizeValue <= 0)
                 return Array.Empty<Person>();
@@ -129,12 +139,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     CreateSingleResident(
                         random: random,
                         householdId: householdId,
-                        currentDate: currentDate)
+                        currentDate: currentDate,
+                        tuning: tuning,
+                        housingStatus: housingStatus)
                 };
 
             HouseholdComposition composition = PickHouseholdComposition(
                 random: random,
-                householdSizeValue: householdSizeValue);
+                householdSizeValue: householdSizeValue,
+                tuning: tuning);
 
             return composition switch
             {
@@ -142,47 +155,55 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     random: random,
                     householdId: householdId,
                     householdSizeValue: householdSizeValue,
-                    currentDate: currentDate),
+                    currentDate: currentDate,
+                    tuning: tuning,
+                    housingStatus: housingStatus),
                 HouseholdComposition.SingleParentFamily => CreateSingleParentFamily(
                     random: random,
                     householdId: householdId,
                     householdSizeValue: householdSizeValue,
-                    currentDate: currentDate),
+                    currentDate: currentDate,
+                    tuning: tuning,
+                    housingStatus: housingStatus),
                 _ => CreateAdultOnlyHousehold(
                     random: random,
                     householdId: householdId,
                     householdSizeValue: householdSizeValue,
-                    currentDate: currentDate)
+                    currentDate: currentDate,
+                    tuning: tuning,
+                    housingStatus: housingStatus)
             };
         }
 
         private static HouseholdComposition PickHouseholdComposition(
             Random random,
-            int householdSizeValue)
+            int householdSizeValue,
+            BootstrapTuningModel tuning)
         {
-            if (householdSizeValue == 2)
-            {
-                double roll = random.NextDouble();
-                if (roll < 0.65)
-                    return HouseholdComposition.MarriedFamily;
-                if (roll < 0.85)
-                    return HouseholdComposition.SingleParentFamily;
-                return HouseholdComposition.AdultOnly;
-            }
+            double familyFactor = tuning.FamilyFormationFactor;
+            double pressureFactor = tuning.HousingPressureFactor;
+            double volatilityFactor = tuning.SocialVolatilityFactor;
 
-            double familyRoll = random.NextDouble();
-            if (familyRoll < 0.70)
-                return HouseholdComposition.MarriedFamily;
-            if (familyRoll < 0.92)
-                return HouseholdComposition.SingleParentFamily;
-            return HouseholdComposition.AdultOnly;
+            return householdSizeValue == 2
+                ? PickWeighted(
+                    random: random,
+                    (HouseholdComposition.MarriedFamily, Math.Max(0.10, 2.60 + (familyFactor * 1.40) - (pressureFactor * 0.80))),
+                    (HouseholdComposition.SingleParentFamily, Math.Max(0.10, 0.80 + (pressureFactor * 0.70) + (volatilityFactor * 0.30))),
+                    (HouseholdComposition.AdultOnly, Math.Max(0.10, 0.90 + (pressureFactor * 1.00) + (volatilityFactor * 0.25) - (familyFactor * 0.35))))
+                : PickWeighted(
+                    random: random,
+                    (HouseholdComposition.MarriedFamily, Math.Max(0.10, 2.20 + (familyFactor * 1.80) - (pressureFactor * 0.60))),
+                    (HouseholdComposition.SingleParentFamily, Math.Max(0.10, 1.00 + (pressureFactor * 0.90) + (volatilityFactor * 0.50))),
+                    (HouseholdComposition.AdultOnly, Math.Max(0.10, 1.10 + (pressureFactor * 1.10) + (volatilityFactor * 0.35) - (familyFactor * 0.45))));
         }
 
         private IReadOnlyCollection<Person> CreateMarriedFamily(
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             var persons = new List<Person>(householdSizeValue);
 
@@ -207,7 +228,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     ageYears: firstSpouseAgeYears,
                     maritalStatus: MaritalStatus.Married,
                     spouseId: secondSpouseId,
-                    familySurname: familySurname));
+                    familySurname: familySurname,
+                    tuning: tuning,
+                    housingStatus: housingStatus));
 
             persons.Add(
                 CreateGeneratedPerson(
@@ -219,7 +242,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     ageYears: secondSpouseAgeYears,
                     maritalStatus: MaritalStatus.Married,
                     spouseId: firstSpouseId,
-                    familySurname: familySurname));
+                    familySurname: familySurname,
+                    tuning: tuning,
+                    housingStatus: housingStatus));
 
             int remainingMembers = householdSizeValue - 2;
             int youngestParentAgeYears = Math.Min(
@@ -237,7 +262,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 childCount: childCount,
                 youngestCaregiverAgeYears: youngestParentAgeYears,
-                familySurname: familySurname);
+                familySurname: familySurname,
+                tuning: tuning,
+                housingStatus: housingStatus);
 
             AddAdultRelatives(
                 persons: persons,
@@ -245,7 +272,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 householdId: householdId,
                 currentDate: currentDate,
                 count: remainingMembers - childCount,
-                familySurname: familySurname);
+                familySurname: familySurname,
+                tuning: tuning,
+                housingStatus: housingStatus);
 
             return persons;
         }
@@ -254,7 +283,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             var persons = new List<Person>(householdSizeValue);
 
@@ -274,7 +305,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     ageYears: parentAgeYears,
                     maritalStatus: parentMaritalStatus,
                     spouseId: null,
-                    familySurname: familySurname));
+                    familySurname: familySurname,
+                    tuning: tuning,
+                    housingStatus: housingStatus));
 
             int remainingMembers = householdSizeValue - 1;
             int childCount = DetermineChildCountForSingleParentFamily(
@@ -288,7 +321,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 childCount: childCount,
                 youngestCaregiverAgeYears: parentAgeYears,
-                familySurname: familySurname);
+                familySurname: familySurname,
+                tuning: tuning,
+                housingStatus: housingStatus);
 
             AddAdultRelatives(
                 persons: persons,
@@ -296,7 +331,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 householdId: householdId,
                 currentDate: currentDate,
                 count: remainingMembers - childCount,
-                familySurname: familySurname);
+                familySurname: familySurname,
+                tuning: tuning,
+                housingStatus: housingStatus);
 
             return persons;
         }
@@ -305,7 +342,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Random random,
             HouseholdId householdId,
             int householdSizeValue,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             var persons = new List<Person>(householdSizeValue);
 
@@ -328,7 +367,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             random: random,
                             ageYears: ageYears),
                         spouseId: null,
-                        familySurname: sharedFamilySurname));
+                        familySurname: sharedFamilySurname,
+                        tuning: tuning,
+                        housingStatus: housingStatus));
             }
 
             return persons;
@@ -341,7 +382,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             int childCount,
             int youngestCaregiverAgeYears,
-            PopulationFamilySurnameCatalogItem familySurname)
+            PopulationFamilySurnameCatalogItem familySurname,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             for (int i = 0; i < childCount; i++)
                 persons.Add(
@@ -356,7 +399,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             youngestCaregiverAgeYears: youngestCaregiverAgeYears),
                         maritalStatus: MaritalStatus.Single,
                         spouseId: null,
-                        familySurname: familySurname));
+                        familySurname: familySurname,
+                        tuning: tuning,
+                        housingStatus: housingStatus));
         }
 
         private void AddAdultRelatives(
@@ -365,7 +410,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             HouseholdId householdId,
             DateOnly currentDate,
             int count,
-            PopulationFamilySurnameCatalogItem familySurname)
+            PopulationFamilySurnameCatalogItem familySurname,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             for (int i = 0; i < count; i++)
             {
@@ -382,14 +429,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             random: random,
                             ageYears: ageYears),
                         spouseId: null,
-                        familySurname: familySurname));
+                        familySurname: familySurname,
+                        tuning: tuning,
+                        housingStatus: housingStatus));
             }
         }
 
         private Person CreateSingleResident(
             Random random,
             HouseholdId householdId,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             int ageYears = CreateRandomIndependentAdultAgeYears(random);
             PopulationFamilySurnameCatalogItem familySurname = CreateRandomFamilySurname(random);
@@ -405,7 +456,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     random: random,
                     ageYears: ageYears),
                 spouseId: null,
-                familySurname: familySurname);
+                familySurname: familySurname,
+                tuning: tuning,
+                housingStatus: housingStatus);
         }
 
         private Person CreateGeneratedPerson(
@@ -417,7 +470,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int ageYears,
             MaritalStatus maritalStatus,
             PersonId? spouseId,
-            PopulationFamilySurnameCatalogItem? familySurname)
+            PopulationFamilySurnameCatalogItem? familySurname,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             PersonName name = CreateRandomName(
                 random: random,
@@ -426,17 +481,27 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly birthDate = currentDate.AddYears(-ageYears);
             var age = Age.FromYears(ageYears);
             AgeGroup ageGroup = AgeGroupRules.GetAgeGroup(age);
+            PersonalityArchetype personalityArchetype = CreateRandomPersonalityArchetype(
+                random: random,
+                tuning: tuning,
+                housingStatus: housingStatus,
+                maritalStatus: maritalStatus);
+            var personality = Personality.CreateRandom(
+                random: random,
+                archetype: personalityArchetype);
             HealthLevel health = CreateRandomHealth(
                 random: random,
-                ageYears: ageYears);
+                ageYears: ageYears,
+                tuning: tuning,
+                housingStatus: housingStatus);
             BodyWeight weight = CreateRandomWeight(
                 random: random,
                 sex: sex,
                 ageYears: ageYears);
-            var personality = Personality.CreateRandom(random);
             EmploymentStatus employmentStatus = CreateRandomEmploymentStatus(
                 random: random,
-                ageGroup: ageGroup);
+                ageGroup: ageGroup,
+                tuning: tuning);
             Job? job = employmentStatus == EmploymentStatus.Employed
                 ? CreateRandomJob(random)
                 : null;
@@ -444,20 +509,32 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 random: random,
                 ageGroup: ageGroup,
                 employmentStatus: employmentStatus,
-                maritalStatus: maritalStatus);
+                maritalStatus: maritalStatus,
+                personality: personality,
+                tuning: tuning,
+                housingStatus: housingStatus);
             EnergyLevel energy = CreateInitialEnergy(
                 random: random,
                 ageGroup: ageGroup,
-                employmentStatus: employmentStatus);
+                employmentStatus: employmentStatus,
+                personality: personality,
+                tuning: tuning,
+                housingStatus: housingStatus);
             StressLevel stress = CreateInitialStress(
                 random: random,
                 ageGroup: ageGroup,
-                employmentStatus: employmentStatus);
+                employmentStatus: employmentStatus,
+                personality: personality,
+                tuning: tuning,
+                housingStatus: housingStatus);
             SocialNeedLevel socialNeed = CreateInitialSocialNeed(
                 random: random,
                 ageGroup: ageGroup,
                 employmentStatus: employmentStatus,
-                maritalStatus: maritalStatus);
+                maritalStatus: maritalStatus,
+                personality: personality,
+                tuning: tuning,
+                housingStatus: housingStatus);
             EducationLevel educationLevel = CreateRandomEducationLevel(
                 random: random,
                 ageYears: ageYears);
@@ -512,22 +589,20 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static int NextHouseholdSize(
             Random random,
-            int remainingPeople)
+            int remainingPeople,
+            BootstrapTuningModel tuning)
         {
-            int[] weightedSizes =
-            {
-                1,
-                1,
-                2,
-                2,
-                2,
-                3,
-                3,
-                4,
-                4,
-                5
-            };
-            int selected = weightedSizes[random.Next(weightedSizes.Length)];
+            double pressureFactor = tuning.HousingPressureFactor;
+            double familyFactor = tuning.FamilyFormationFactor;
+            double volatilityFactor = tuning.SocialVolatilityFactor;
+
+            int selected = PickWeighted(
+                random: random,
+                (1, Math.Max(0.10, 1.40 + (pressureFactor * 1.50) - (familyFactor * 0.60) + (volatilityFactor * 0.20))),
+                (2, Math.Max(0.10, 2.30 + (pressureFactor * 0.40) + (familyFactor * 0.20))),
+                (3, Math.Max(0.10, 1.70 + (familyFactor * 1.00) - (pressureFactor * 0.40))),
+                (4, Math.Max(0.10, 1.00 + (familyFactor * 1.20) - (pressureFactor * 0.70))),
+                (5, Math.Max(0.10, 0.35 + (familyFactor * 0.90) - (pressureFactor * 0.80))));
             return Math.Min(
                 val1: selected,
                 val2: remainingPeople);
@@ -796,7 +871,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static HealthLevel CreateRandomHealth(
             Random random,
-            int ageYears)
+            int ageYears,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             int value = ageYears switch
             {
@@ -831,6 +908,23 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                          extraPenalty;
             }
 
+            value += ScaleFromNeutral(
+                percent: tuning.EconomicStabilityPercent,
+                maxMagnitude: 10);
+            value -= ScaleFromNeutral(
+                percent: tuning.HousingPressurePercent,
+                maxMagnitude: 8);
+
+            if (housingStatus == HousingStatus.Homeless)
+                value -= random.Next(
+                    minValue: 6,
+                    maxValue: 16);
+
+            value += GetVolatilityJitter(
+                random: random,
+                tuning: tuning,
+                maxAbsMagnitude: 6);
+
             value = Math.Clamp(
                 value: value,
                 min: 0,
@@ -842,7 +936,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Random random,
             AgeGroup ageGroup,
             EmploymentStatus employmentStatus,
-            MaritalStatus maritalStatus)
+            MaritalStatus maritalStatus,
+            Personality personality,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             int value = random.Next(
                 minValue: 40,
@@ -877,6 +974,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0
             };
 
+            value += ScaleFromNeutral(
+                percent: tuning.EconomicStabilityPercent,
+                maxMagnitude: 12);
+            value -= ScaleFromNeutral(
+                percent: tuning.HousingPressurePercent,
+                maxMagnitude: 10);
+            value += ScaleFromNeutral(
+                percent: personality.Optimism,
+                maxMagnitude: 10);
+            value += ScaleFromNeutral(
+                percent: personality.Sociability,
+                maxMagnitude: 4);
+
+            if (housingStatus == HousingStatus.Homeless)
+                value -= random.Next(
+                    minValue: 12,
+                    maxValue: 25);
+
+            value += GetVolatilityJitter(
+                random: random,
+                tuning: tuning,
+                maxAbsMagnitude: 8);
+
             value = Math.Clamp(
                 value: value,
                 min: 0,
@@ -886,37 +1006,45 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static EmploymentStatus CreateRandomEmploymentStatus(
             Random random,
-            AgeGroup ageGroup)
+            AgeGroup ageGroup,
+            BootstrapTuningModel tuning)
         {
             return ageGroup switch
             {
-                AgeGroup.Child => random.NextDouble() < 0.95
-                    ? EmploymentStatus.Student
-                    : EmploymentStatus.Unemployed,
-                AgeGroup.Youth => random.NextDouble() < 0.90
-                    ? EmploymentStatus.Student
-                    : EmploymentStatus.Unemployed,
-                AgeGroup.Adult => CreateRandomAdultEmploymentStatus(random),
+                AgeGroup.Child => PickWeighted(
+                    random: random,
+                    (EmploymentStatus.Student, Math.Max(0.10, 6.00 + (tuning.EconomicStabilityFactor * 0.60) - (tuning.HousingPressureFactor * 0.40))),
+                    (EmploymentStatus.Unemployed, Math.Max(0.10, 0.20 + (tuning.HousingPressureFactor * 0.50)))),
+                AgeGroup.Youth => PickWeighted(
+                    random: random,
+                    (EmploymentStatus.Student, Math.Max(0.10, 4.60 + (tuning.EconomicStabilityFactor * 1.00) - (tuning.HousingPressureFactor * 0.80))),
+                    (EmploymentStatus.Unemployed, Math.Max(0.10, 0.60 + (tuning.HousingPressureFactor * 1.10) + (tuning.SocialVolatilityFactor * 0.20)))),
+                AgeGroup.Adult => CreateRandomAdultEmploymentStatus(
+                    random: random,
+                    tuning: tuning),
                 AgeGroup.Senior => EmploymentStatus.Retired,
                 _ => EmploymentStatus.Unemployed
             };
         }
 
-        private static EmploymentStatus CreateRandomAdultEmploymentStatus(Random random)
+        private static EmploymentStatus CreateRandomAdultEmploymentStatus(
+            Random random,
+            BootstrapTuningModel tuning)
         {
-            double roll = random.NextDouble();
-
-            if (roll < 0.70)
-                return EmploymentStatus.Employed;
-            if (roll < 0.85)
-                return EmploymentStatus.Unemployed;
-            return EmploymentStatus.Student;
+            return PickWeighted(
+                random: random,
+                (EmploymentStatus.Employed, Math.Max(0.10, 4.80 + (tuning.EconomicStabilityFactor * 2.20) - (tuning.HousingPressureFactor * 1.60))),
+                (EmploymentStatus.Unemployed, Math.Max(0.10, 1.60 + (tuning.HousingPressureFactor * 2.10) - (tuning.EconomicStabilityFactor * 1.10))),
+                (EmploymentStatus.Student, Math.Max(0.10, 0.70 + (tuning.EconomicStabilityFactor * 0.60) + (tuning.SocialVolatilityFactor * 0.40))));
         }
 
         private static EnergyLevel CreateInitialEnergy(
             Random random,
             AgeGroup ageGroup,
-            EmploymentStatus employmentStatus)
+            EmploymentStatus employmentStatus,
+            Personality personality,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             int baseValue = ageGroup switch
             {
@@ -945,6 +1073,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0
             };
 
+            baseValue += ScaleFromNeutral(
+                percent: tuning.EconomicStabilityPercent,
+                maxMagnitude: 8);
+            baseValue -= ScaleFromNeutral(
+                percent: tuning.HousingPressurePercent,
+                maxMagnitude: 6);
+            baseValue += ScaleFromNeutral(
+                percent: personality.Discipline,
+                maxMagnitude: 6);
+
+            if (housingStatus == HousingStatus.Homeless)
+                baseValue -= random.Next(
+                    minValue: 10,
+                    maxValue: 21);
+
+            baseValue += GetVolatilityJitter(
+                random: random,
+                tuning: tuning,
+                maxAbsMagnitude: 5);
+
             return EnergyLevel.From(
                 Math.Clamp(
                     value: baseValue,
@@ -955,7 +1103,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static StressLevel CreateInitialStress(
             Random random,
             AgeGroup ageGroup,
-            EmploymentStatus employmentStatus)
+            EmploymentStatus employmentStatus,
+            Personality personality,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             int baseValue = ageGroup switch
             {
@@ -985,6 +1136,27 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0
             };
 
+            baseValue += ScaleFromNeutral(
+                percent: tuning.HousingPressurePercent,
+                maxMagnitude: 14);
+            baseValue -= ScaleFromNeutral(
+                percent: tuning.EconomicStabilityPercent,
+                maxMagnitude: 8);
+            baseValue += ScaleFromNeutral(
+                percent: tuning.SocialVolatilityPercent,
+                maxMagnitude: 10);
+            baseValue -= ScaleFromNeutral(
+                percent: personality.Optimism,
+                maxMagnitude: 6);
+            baseValue -= ScaleFromNeutral(
+                percent: personality.Discipline,
+                maxMagnitude: 4);
+
+            if (housingStatus == HousingStatus.Homeless)
+                baseValue += random.Next(
+                    minValue: 18,
+                    maxValue: 31);
+
             return StressLevel.From(
                 Math.Clamp(
                     value: baseValue,
@@ -996,7 +1168,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Random random,
             AgeGroup ageGroup,
             EmploymentStatus employmentStatus,
-            MaritalStatus maritalStatus)
+            MaritalStatus maritalStatus,
+            Personality personality,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus)
         {
             int baseValue = ageGroup switch
             {
@@ -1033,6 +1208,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 MaritalStatus.Widowed => +12,
                 _ => 0
             };
+
+            baseValue += ScaleFromNeutral(
+                percent: personality.Sociability,
+                maxMagnitude: 12);
+            baseValue += ScaleFromNeutral(
+                percent: tuning.SocialVolatilityPercent,
+                maxMagnitude: 6);
+            baseValue += ScaleFromNeutral(
+                percent: tuning.HousingPressurePercent,
+                maxMagnitude: 5);
+            baseValue -= ScaleFromNeutral(
+                percent: tuning.FamilyFormationPercent,
+                maxMagnitude: 4);
+
+            if (housingStatus == HousingStatus.Homeless)
+                baseValue += random.Next(
+                    minValue: 8,
+                    maxValue: 18);
+
+            baseValue += GetVolatilityJitter(
+                random: random,
+                tuning: tuning,
+                maxAbsMagnitude: 4);
 
             return SocialNeedLevel.From(
                 Math.Clamp(
@@ -1154,6 +1352,83 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return items[^1].level;
         }
 
+        private static PersonalityArchetype CreateRandomPersonalityArchetype(
+            Random random,
+            BootstrapTuningModel tuning,
+            HousingStatus housingStatus,
+            MaritalStatus maritalStatus)
+        {
+            double homelessBias = housingStatus == HousingStatus.Homeless
+                ? 1.0
+                : 0.0;
+            double housedBias = housingStatus == HousingStatus.Housed
+                ? 0.6
+                : 0.0;
+            double marriedBias = maritalStatus == MaritalStatus.Married
+                ? 0.4
+                : 0.0;
+
+            return PickWeighted(
+                random: random,
+                (PersonalityArchetype.Balanced, Math.Max(0.10, 2.80 - (tuning.SocialVolatilityFactor * 0.80))),
+                (PersonalityArchetype.Optimist, Math.Max(0.10, 1.10 + (tuning.EconomicStabilityFactor * 1.40) + housedBias + marriedBias - (tuning.HousingPressureFactor * 0.60))),
+                (PersonalityArchetype.Pessimist, Math.Max(0.10, 0.70 + (tuning.HousingPressureFactor * 1.60) + (tuning.SocialVolatilityFactor * 0.50) + homelessBias)),
+                (PersonalityArchetype.RiskTaker, Math.Max(0.10, 0.80 + (tuning.SocialVolatilityFactor * 1.30) - (tuning.HousingPressureFactor * 0.20))),
+                (PersonalityArchetype.Cautious, Math.Max(0.10, 0.90 + (tuning.HousingPressureFactor * 1.40) + (homelessBias * 0.80))),
+                (PersonalityArchetype.Workaholic, Math.Max(0.10, 0.80 + (tuning.EconomicStabilityFactor * 0.80) + (tuning.HousingPressureFactor * 0.40))),
+                (PersonalityArchetype.SocialButterfly, Math.Max(0.10, 0.90 + (tuning.FamilyFormationFactor * 1.10) + housedBias + marriedBias - (homelessBias * 0.30))));
+        }
+
+        private static T PickWeighted<T>(
+            Random random,
+            params (T item, double weight)[] items)
+        {
+            double total = 0;
+            for (int i = 0; i < items.Length; i++)
+                total += Math.Max(0.0, items[i].weight);
+
+            if (total <= 0)
+                return items[^1].item;
+
+            double roll = random.NextDouble() * total;
+            double accumulated = 0;
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                accumulated += Math.Max(0.0, items[i].weight);
+                if (roll < accumulated)
+                    return items[i].item;
+            }
+
+            return items[^1].item;
+        }
+
+        private static int ScaleFromNeutral(
+            int percent,
+            int maxMagnitude)
+        {
+            decimal normalized = (percent - 50) / 50m;
+            return (int)Math.Round(
+                d: normalized * maxMagnitude,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static int GetVolatilityJitter(
+            Random random,
+            BootstrapTuningModel tuning,
+            int maxAbsMagnitude)
+        {
+            int adjustedMagnitude = Math.Max(
+                1,
+                (int)Math.Round(
+                    d: maxAbsMagnitude * (0.35m + (decimal)tuning.SocialVolatilityFactor),
+                    mode: MidpointRounding.AwayFromZero));
+
+            return random.Next(
+                minValue: -adjustedMagnitude,
+                maxValue: adjustedMagnitude + 1);
+        }
+
         private enum HouseholdComposition
         {
             MarriedFamily = 1,
@@ -1169,6 +1444,34 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             public ResidentialBuildingId BuildingId { get; } = buildingId;
             public DistrictId DistrictId { get; } = districtId;
             public int RemainingCapacity { get; set; } = remainingCapacity;
+        }
+
+        private sealed class BootstrapTuningModel(
+            int housingPressurePercent,
+            int economicStabilityPercent,
+            int socialVolatilityPercent,
+            int familyFormationPercent)
+        {
+            public int HousingPressurePercent { get; } = Math.Clamp(housingPressurePercent, 0, 100);
+            public int EconomicStabilityPercent { get; } = Math.Clamp(economicStabilityPercent, 0, 100);
+            public int SocialVolatilityPercent { get; } = Math.Clamp(socialVolatilityPercent, 0, 100);
+            public int FamilyFormationPercent { get; } = Math.Clamp(familyFormationPercent, 0, 100);
+
+            public double HousingPressureFactor => HousingPressurePercent / 100d;
+            public double EconomicStabilityFactor => EconomicStabilityPercent / 100d;
+            public double SocialVolatilityFactor => SocialVolatilityPercent / 100d;
+            public double FamilyFormationFactor => FamilyFormationPercent / 100d;
+
+            public static BootstrapTuningModel From(CityPopulationBootstrapTuning tuning)
+            {
+                return new BootstrapTuningModel(
+                    housingPressurePercent: tuning.HousingPressurePercent,
+                    economicStabilityPercent: tuning.EconomicStabilityPercent,
+                    socialVolatilityPercent: tuning.SocialVolatilityPercent,
+                    familyFormationPercent: tuning.FamilyFormationPercent);
+            }
+
+            public static BootstrapTuningModel Default() => From(CityPopulationBootstrapTuning.Default());
         }
     }
 }

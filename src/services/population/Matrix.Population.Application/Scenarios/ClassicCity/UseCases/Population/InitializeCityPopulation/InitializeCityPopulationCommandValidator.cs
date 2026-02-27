@@ -17,6 +17,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                .NotNull()
                .SetValidator(new CityPopulationEnvironmentInputValidator());
 
+            RuleFor(x => x.Tuning)
+               .NotNull()
+               .SetValidator(new CityPopulationBootstrapTuningInputValidator());
+
             RuleFor(x => x.ResidentialBuildings)
                .NotNull();
 

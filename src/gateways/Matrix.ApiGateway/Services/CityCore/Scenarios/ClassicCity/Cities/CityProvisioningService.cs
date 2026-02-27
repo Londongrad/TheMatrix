@@ -182,6 +182,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                         ClimateZone: city.ClimateZone,
                         Hemisphere: city.Hemisphere,
                         UtcOffsetMinutes: city.UtcOffsetMinutes),
+                    Tuning: BuildBootstrapTuning(
+                        city: city,
+                        plannedPeopleCount: plannedPeopleCount.Value,
+                        residentialCapacity: residentialCapacity.Value),
                     ResidentialBuildings: buildings
                        .Select(x => new ResidentialBuildingSeedDto(
                             ResidentialBuildingId: x.ResidentialBuildingId,
@@ -343,6 +347,201 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 max: totalCapacity);
         }
 
+        private static CityPopulationBootstrapTuningDto BuildBootstrapTuning(
+            CityView city,
+            int plannedPeopleCount,
+            int residentialCapacity)
+        {
+            int housingPressurePercent = CalculateHousingPressurePercent(
+                city: city,
+                plannedPeopleCount: plannedPeopleCount,
+                residentialCapacity: residentialCapacity);
+            int economicStabilityPercent = CalculateEconomicStabilityPercent(
+                city: city,
+                housingPressurePercent: housingPressurePercent);
+            int socialVolatilityPercent = CalculateSocialVolatilityPercent(
+                city: city,
+                housingPressurePercent: housingPressurePercent);
+            int familyFormationPercent = CalculateFamilyFormationPercent(
+                city: city,
+                housingPressurePercent: housingPressurePercent);
+
+            return new CityPopulationBootstrapTuningDto(
+                HousingPressurePercent: housingPressurePercent,
+                EconomicStabilityPercent: economicStabilityPercent,
+                SocialVolatilityPercent: socialVolatilityPercent,
+                FamilyFormationPercent: familyFormationPercent);
+        }
+
+        private static int CalculateHousingPressurePercent(
+            CityView city,
+            int plannedPeopleCount,
+            int residentialCapacity)
+        {
+            decimal occupancyRatio = residentialCapacity <= 0
+                ? 1.20m
+                : plannedPeopleCount / (decimal)residentialCapacity;
+
+            int pressure = 45 + (int)Math.Round((occupancyRatio - 0.70m) * 110m);
+
+            pressure += city.UrbanDensity switch
+            {
+                "Sparse" => -10,
+                "Dense" => +12,
+                _ => 0
+            };
+
+            pressure += city.DevelopmentLevel switch
+            {
+                "Struggling" => +10,
+                "Advanced" => -8,
+                _ => 0
+            };
+
+            pressure += city.PopulationOccupancyProfile switch
+            {
+                "Light" => -8,
+                "High" => +10,
+                _ => 0
+            };
+
+            pressure += city.SizeTier switch
+            {
+                "Small" => +4,
+                "Large" => -3,
+                _ => 0
+            };
+
+            pressure += GetSeedJitterPoints(
+                generationSeed: city.GenerationSeed,
+                salt: "population-housing-pressure",
+                maxAbsPoints: 5);
+
+            return Math.Clamp(pressure, 0, 100);
+        }
+
+        private static int CalculateEconomicStabilityPercent(
+            CityView city,
+            int housingPressurePercent)
+        {
+            int stability = 52;
+
+            stability += city.DevelopmentLevel switch
+            {
+                "Struggling" => -18,
+                "Advanced" => +16,
+                _ => 0
+            };
+
+            stability += city.UrbanDensity switch
+            {
+                "Sparse" => -4,
+                "Dense" => +4,
+                _ => 0
+            };
+
+            stability += city.SizeTier switch
+            {
+                "Small" => -4,
+                "Large" => +6,
+                _ => 0
+            };
+
+            stability += city.PopulationOccupancyProfile switch
+            {
+                "Light" => +4,
+                "High" => -6,
+                _ => 0
+            };
+
+            stability -= (int)Math.Round(Math.Max(0, housingPressurePercent - 50) * 0.40m);
+            stability += GetSeedJitterPoints(
+                generationSeed: city.GenerationSeed,
+                salt: "population-economic-stability",
+                maxAbsPoints: 6);
+
+            return Math.Clamp(stability, 0, 100);
+        }
+
+        private static int CalculateSocialVolatilityPercent(
+            CityView city,
+            int housingPressurePercent)
+        {
+            int volatility = 40;
+
+            volatility += city.UrbanDensity switch
+            {
+                "Sparse" => -8,
+                "Dense" => +14,
+                _ => 0
+            };
+
+            volatility += city.DevelopmentLevel switch
+            {
+                "Struggling" => +12,
+                "Advanced" => -6,
+                _ => 0
+            };
+
+            volatility += city.PopulationOccupancyProfile switch
+            {
+                "Light" => -6,
+                "High" => +10,
+                _ => 0
+            };
+
+            volatility += (int)Math.Round(Math.Max(0, housingPressurePercent - 45) * 0.35m);
+            volatility += GetSeedJitterPoints(
+                generationSeed: city.GenerationSeed,
+                salt: "population-social-volatility",
+                maxAbsPoints: 8);
+
+            return Math.Clamp(volatility, 0, 100);
+        }
+
+        private static int CalculateFamilyFormationPercent(
+            CityView city,
+            int housingPressurePercent)
+        {
+            int familyFormation = 50;
+
+            familyFormation += city.SizeTier switch
+            {
+                "Small" => -6,
+                "Large" => +10,
+                _ => 0
+            };
+
+            familyFormation += city.UrbanDensity switch
+            {
+                "Sparse" => +10,
+                "Dense" => -12,
+                _ => 0
+            };
+
+            familyFormation += city.DevelopmentLevel switch
+            {
+                "Struggling" => -6,
+                "Advanced" => +6,
+                _ => 0
+            };
+
+            familyFormation += city.PopulationOccupancyProfile switch
+            {
+                "Light" => +6,
+                "High" => -8,
+                _ => 0
+            };
+
+            familyFormation -= (int)Math.Round(Math.Max(0, housingPressurePercent - 50) * 0.45m);
+            familyFormation += GetSeedJitterPoints(
+                generationSeed: city.GenerationSeed,
+                salt: "population-family-formation",
+                maxAbsPoints: 5);
+
+            return Math.Clamp(familyFormation, 0, 100);
+        }
+
         private static bool TryValidateBootstrapSummary(
             Guid cityId,
             CityPopulationBootstrapSummaryDto summary,
@@ -464,6 +663,26 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             return BitConverter.ToInt32(
                 value: hash,
                 startIndex: 0);
+        }
+
+        private static int GetSeedJitterPoints(
+            string generationSeed,
+            string salt,
+            int maxAbsPoints)
+        {
+            if (maxAbsPoints <= 0)
+                return 0;
+
+            byte[] hash = SHA256.HashData(source: Encoding.UTF8.GetBytes($"{generationSeed}|{salt}"));
+            int sample = BitConverter.ToInt32(
+                             value: hash,
+                             startIndex: 0) &
+                         int.MaxValue;
+
+            decimal normalized = sample / (decimal)int.MaxValue;
+            decimal centered = (normalized - 0.5m) * 2m;
+
+            return (int)Math.Round(centered * maxAbsPoints, MidpointRounding.AwayFromZero);
         }
 
         private static string DetermineFailureCode(Exception exception)

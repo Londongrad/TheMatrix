@@ -57,6 +57,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 peopleCount: request.PeopleCount,
                 currentDate: request.CurrentDate,
                 createdAtUtc: DateTimeOffset.UtcNow,
+                tuning: new CityPopulationBootstrapTuning(
+                    HousingPressurePercent: request.Tuning.HousingPressurePercent,
+                    EconomicStabilityPercent: request.Tuning.EconomicStabilityPercent,
+                    SocialVolatilityPercent: request.Tuning.SocialVolatilityPercent,
+                    FamilyFormationPercent: request.Tuning.FamilyFormationPercent),
                 randomSeed: request.RandomSeed);
 
             await unitOfWork.ExecuteInTransactionAsync(

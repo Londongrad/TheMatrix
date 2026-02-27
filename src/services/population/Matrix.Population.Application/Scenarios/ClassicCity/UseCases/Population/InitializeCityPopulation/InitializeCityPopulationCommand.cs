@@ -12,6 +12,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         int PeopleCount,
         int? RandomSeed,
         CityPopulationEnvironmentInput Environment,
+        CityPopulationBootstrapTuningInput Tuning,
         IReadOnlyCollection<ResidentialBuildingSeedItem> ResidentialBuildings)
         : IRequest<CityPopulationBootstrapSummaryDto>, IRequirePermission
     {

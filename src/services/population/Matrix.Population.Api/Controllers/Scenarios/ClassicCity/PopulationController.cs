@@ -26,6 +26,7 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Environment);
+            ArgumentNullException.ThrowIfNull(request.Tuning);
 
             IReadOnlyCollection<ResidentialBuildingSeedItem> residentialBuildings =
                 (request.ResidentialBuildings ?? Array.Empty<ResidentialBuildingSeedDto>())
@@ -45,6 +46,11 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                         ClimateZone: request.Environment.ClimateZone,
                         Hemisphere: request.Environment.Hemisphere,
                         UtcOffsetMinutes: request.Environment.UtcOffsetMinutes),
+                    Tuning: new CityPopulationBootstrapTuningInput(
+                        HousingPressurePercent: request.Tuning.HousingPressurePercent,
+                        EconomicStabilityPercent: request.Tuning.EconomicStabilityPercent,
+                        SocialVolatilityPercent: request.Tuning.SocialVolatilityPercent,
+                        FamilyFormationPercent: request.Tuning.FamilyFormationPercent),
                     ResidentialBuildings: residentialBuildings),
                 cancellationToken: cancellationToken);
 

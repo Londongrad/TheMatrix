@@ -6,5 +6,6 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         int PeopleCount,
         int? RandomSeed,
         CityPopulationEnvironmentDto Environment,
+        CityPopulationBootstrapTuningDto Tuning,
         IReadOnlyCollection<ResidentialBuildingSeedDto>? ResidentialBuildings);
 }
