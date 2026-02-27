@@ -56,6 +56,34 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
                 requestUrl: url);
         }
 
+        public async Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
+            Guid cityId,
+            DateOnly currentDate,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            string currentDateValue = Uri.EscapeDataString(
+                stringToEscape: currentDate.ToString(
+                    format: "yyyy-MM-dd",
+                    provider: CultureInfo.InvariantCulture));
+            string url =
+                $"{PopulationBaseEndpoint}/cities/{cityId}/residents?currentDate={currentDateValue}&pageNumber={pageNumber}&pageSize={pageSize}";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+
+            PagedResult<PersonDto>? result = await response.Content
+               .ReadFromJsonAsync<PagedResult<PersonDto>>(cancellationToken: cancellationToken);
+
+            return result ?? throw new InvalidOperationException("Empty response from Population API.");
+        }
+
         public async Task<PagedResult<PersonDto>> GetCitizensPageAsync(
             int pageNumber,
             int pageSize,

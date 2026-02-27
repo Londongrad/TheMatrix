@@ -15,6 +15,13 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             DateOnly currentDate,
             CancellationToken cancellationToken = default);
 
+        Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
+            Guid cityId,
+            DateOnly currentDate,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+
         Task<PagedResult<PersonDto>> GetCitizensPageAsync(
             int pageNumber,
             int pageSize,

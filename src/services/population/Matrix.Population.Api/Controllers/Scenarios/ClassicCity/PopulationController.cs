@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment;
@@ -91,6 +92,28 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
             return result is null
                 ? NotFound()
                 : Ok(result);
+        }
+
+        [HttpGet("cities/{cityId:guid}/residents")]
+        public async Task<ActionResult<PagedResult<PersonDto>>> GetCityResidentsPage(
+            [FromRoute] Guid cityId,
+            [FromQuery] DateOnly currentDate,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 100,
+            CancellationToken cancellationToken = default)
+        {
+            var pagination = new Pagination(
+                pageNumber: pageNumber,
+                pageSize: pageSize);
+
+            PagedResult<PersonDto> result = await _sender.Send(
+                request: new GetCityResidentsPageQuery(
+                    CityId: cityId,
+                    CurrentDate: currentDate,
+                    Pagination: pagination),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
         }
 
         [HttpGet("citizens")]

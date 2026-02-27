@@ -2,6 +2,7 @@ using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
@@ -103,6 +104,29 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 cancellationToken: cancellationToken);
 
             return Ok(summary);
+        }
+
+        [HttpGet("{cityId:guid}/residents")]
+        public async Task<ActionResult<PagedResult<PersonDto>>> GetResidentsPage(
+            [FromRoute] Guid cityId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 100,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            PagedResult<PersonDto> residents = await _populationClient.GetCityResidentsPageAsync(
+                cityId: cityId,
+                currentDate: currentDate,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+            return Ok(residents);
         }
 
         [HttpGet("{cityId:guid}/provisioning")]
