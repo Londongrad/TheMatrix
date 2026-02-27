@@ -23,6 +23,11 @@ namespace Matrix.Population.Contracts.Authorization.Permissions
                     Group: PeopleGroup,
                     Description: "Initialize population."),
                 new(
+                    Key: PermissionKeys.PopulationPersonUpdate,
+                    Service: PopulationService,
+                    Group: PersonGroup,
+                    Description: "Update person operator-managed characteristics."),
+                new(
                     Key: PermissionKeys.PopulationPersonKill,
                     Service: PopulationService,
                     Group: PersonGroup,

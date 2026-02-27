@@ -25,6 +25,24 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.Person
 
         #region [ Methods ]
 
+        public async Task<PersonDto> UpdateAsync(
+            Guid personId,
+            UpdatePersonRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _client.PutAsJsonAsync(
+                requestUri: $"{Base}/{personId}",
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+
+            PersonDto? dto = await response.Content.ReadFromJsonAsync<PersonDto>(cancellationToken: cancellationToken);
+            return dto ?? throw new InvalidOperationException("Population API returned empty body for Update.");
+        }
+
         public async Task<PersonDto> KillAsync(
             Guid personId,
             CancellationToken cancellationToken = default)

@@ -7,6 +7,7 @@ namespace Matrix.Population.Application.Authorization.Permissions
         public const string PopulationPeopleInitialize = ContractPermissionKeys.PopulationPeopleInitialize;
         public const string PopulationPeopleRead = ContractPermissionKeys.PopulationPeopleRead;
 
+        public const string PopulationPersonUpdate = ContractPermissionKeys.PopulationPersonUpdate;
         public const string PopulationPersonResurrect = ContractPermissionKeys.PopulationPersonResurrect;
         public const string PopulationPersonKill = ContractPermissionKeys.PopulationPersonKill;
     }
