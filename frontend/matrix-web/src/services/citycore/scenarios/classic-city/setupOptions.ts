@@ -160,6 +160,95 @@ export const CLASSIC_CITY_HEMISPHERE_OPTIONS: SetupOption[] = [
     },
 ];
 
+export const CLASSIC_CITY_INITIAL_WEATHER_MODE_OPTIONS: SetupOption[] = [
+    {
+        value: "Random",
+        label: "Seeded random",
+        description: "CityCore derives a deterministic starting weather state from the launch seed, climate setup, and start time.",
+    },
+    {
+        value: "Manual",
+        label: "Manual opening",
+        description: "Pin the very first weather state yourself, then let normal weather simulation continue from there.",
+    },
+];
+
+export const CLASSIC_CITY_INITIAL_WEATHER_TYPE_OPTIONS: SetupOption[] = [
+    {
+        value: "Clear",
+        label: "Clear",
+        description: "Dry opening with open sky and minimal cloud cover.",
+    },
+    {
+        value: "Overcast",
+        label: "Overcast",
+        description: "Heavy cloud cover without active precipitation.",
+    },
+    {
+        value: "Rain",
+        label: "Rain",
+        description: "Wet opening with drizzle or steady rainfall depending on severity.",
+    },
+    {
+        value: "Snow",
+        label: "Snow",
+        description: "Cold opening with snow or sleet depending on temperature.",
+    },
+    {
+        value: "Storm",
+        label: "Storm",
+        description: "Aggressive opening with stronger wind and severe precipitation.",
+    },
+    {
+        value: "Fog",
+        label: "Fog",
+        description: "Low-visibility opening with saturated air and muted wind.",
+    },
+    {
+        value: "Windy",
+        label: "Windy",
+        description: "Dryer opening driven by stronger surface wind.",
+    },
+    {
+        value: "Heatwave",
+        label: "Heatwave",
+        description: "Hot opening biased toward high temperature and low cloud cover.",
+    },
+    {
+        value: "ColdSnap",
+        label: "Cold snap",
+        description: "Cold opening with pressure and temperature shifted downward.",
+    },
+];
+
+export const CLASSIC_CITY_INITIAL_WEATHER_SEVERITY_OPTIONS: SetupOption[] = [
+    {
+        value: "Calm",
+        label: "Calm",
+        description: "Softest opening state with minimal force behind the selected weather type.",
+    },
+    {
+        value: "Mild",
+        label: "Mild",
+        description: "Default readable launch condition without pushing extremes too hard.",
+    },
+    {
+        value: "Moderate",
+        label: "Moderate",
+        description: "Stronger opening with more visible impact on wind, clouds, and precipitation.",
+    },
+    {
+        value: "Severe",
+        label: "Severe",
+        description: "Harsh opening intended for difficult or dramatic scenario starts.",
+    },
+    {
+        value: "Extreme",
+        label: "Extreme",
+        description: "Maximum opening intensity when you want day one to begin under real stress.",
+    },
+];
+
 export const CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS: SetupOption[] = [
     {
         value: "Light",

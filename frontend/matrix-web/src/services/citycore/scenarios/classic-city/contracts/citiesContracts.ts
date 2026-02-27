@@ -19,6 +19,10 @@ export interface CreateCityRequest {
     urbanDensity?: string | null;
     developmentLevel?: string | null;
     populationOccupancyProfile?: string | null;
+    initialWeatherMode?: string | null;
+    initialWeatherType?: string | null;
+    initialWeatherSeverity?: string | null;
+    initialWeatherTemperatureC?: number | null;
     plannedPeopleCount?: number | null;
 }
 

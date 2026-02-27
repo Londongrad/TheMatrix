@@ -3,6 +3,18 @@ import type {CityProvisioningView} from "@services/citycore/scenarios/classic-ci
 export type ClassicCitySetupStepId = "scenario" | "profile" | "environment" | "population" | "launch";
 export type ClassicCityPopulationOccupancyProfile = "Light" | "Balanced" | "High";
 export type ClassicCityPopulationTargetMode = "Random" | "Preset1K" | "Preset10K" | "Preset100K" | "Manual";
+export type ClassicCityInitialWeatherMode = "Random" | "Manual";
+export type ClassicCityInitialWeatherType =
+    | "Clear"
+    | "Overcast"
+    | "Rain"
+    | "Snow"
+    | "Storm"
+    | "Fog"
+    | "Windy"
+    | "Heatwave"
+    | "ColdSnap";
+export type ClassicCityInitialWeatherSeverity = "Calm" | "Mild" | "Moderate" | "Severe" | "Extreme";
 
 export interface ClassicCitySetupDraftView {
     name: string;
@@ -13,6 +25,10 @@ export interface ClassicCitySetupDraftView {
     hemisphere: string;
     utcOffsetMinutes: string;
     generationSeed: string;
+    initialWeatherMode: ClassicCityInitialWeatherMode;
+    initialWeatherType: ClassicCityInitialWeatherType;
+    initialWeatherSeverity: ClassicCityInitialWeatherSeverity;
+    initialWeatherTemperatureC: string;
     populationTargetMode: ClassicCityPopulationTargetMode;
     sizeTier: string;
     urbanDensity: string;

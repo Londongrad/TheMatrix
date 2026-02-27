@@ -9,6 +9,9 @@ import {
     updateClassicCitySetupSession,
 } from "@services/citycore/scenarios/classic-city/api/setupSessionsApi";
 import type {
+    ClassicCityInitialWeatherMode,
+    ClassicCityInitialWeatherSeverity,
+    ClassicCityInitialWeatherType,
     ClassicCityPopulationOccupancyProfile,
     ClassicCityPopulationTargetMode,
     ClassicCitySetupDraftView,
@@ -21,6 +24,9 @@ import {
     CLASSIC_CITY_DENSITY_OPTIONS,
     CLASSIC_CITY_FORM_PRESET_OPTIONS,
     CLASSIC_CITY_HEMISPHERE_OPTIONS,
+    CLASSIC_CITY_INITIAL_WEATHER_MODE_OPTIONS,
+    CLASSIC_CITY_INITIAL_WEATHER_SEVERITY_OPTIONS,
+    CLASSIC_CITY_INITIAL_WEATHER_TYPE_OPTIONS,
     CLASSIC_CITY_POPULATION_OCCUPANCY_OPTIONS,
     CLASSIC_CITY_POPULATION_TARGET_OPTIONS,
     CLASSIC_CITY_SIZE_TIER_OPTIONS,
@@ -50,6 +56,7 @@ type ValidationErrors = {
     startSimTimeLocal?: string;
     speedMultiplier?: string;
     utcOffsetMinutes?: string;
+    initialWeatherTemperatureC?: string;
     plannedPeopleCount?: string;
 };
 
@@ -100,6 +107,14 @@ const setupSteps: { id: ClassicCitySetupStepId; title: string; description: stri
 const mutableSessionStatuses = new Set(["Draft", "LaunchFailed"]);
 const runningSessionStatuses = new Set(["LaunchQueued", "CreatingCity", "BootstrappingPopulation"]);
 const MAX_PLANNED_PEOPLE_COUNT = 1_000_000;
+const MANUAL_WEATHER_TEMPERATURE_BY_CLIMATE: Record<string, string> = {
+    Tropical: "28",
+    Temperate: "12",
+    Continental: "10",
+    Arid: "22",
+    Mountain: "6",
+    Polar: "-12",
+};
 
 function createRandomGenerationSeed(): string {
     const raw = globalThis.crypto?.randomUUID?.().replace(/-/g, "")
@@ -120,6 +135,10 @@ function createDefaultDraft(): SetupDraft {
         hemisphere: "Northern",
         utcOffsetMinutes: String(-new Date().getTimezoneOffset()),
         generationSeed: createRandomGenerationSeed(),
+        initialWeatherMode: "Random",
+        initialWeatherType: "Clear",
+        initialWeatherSeverity: "Mild",
+        initialWeatherTemperatureC: getSuggestedManualWeatherTemperature("Temperate"),
         populationTargetMode: "Preset10K",
         sizeTier: "Medium",
         urbanDensity: "Balanced",
@@ -133,6 +152,10 @@ function normalizeDraft(draft: SetupDraft): SetupDraft {
     return {
         ...draft,
         startSimTimeUtc: draft.startSimTimeUtc ?? localDateTimeToUtcIso(draft.startSimTimeLocal),
+        initialWeatherMode: normalizeInitialWeatherMode(draft.initialWeatherMode),
+        initialWeatherType: normalizeInitialWeatherType(draft.initialWeatherType),
+        initialWeatherSeverity: normalizeInitialWeatherSeverity(draft.initialWeatherSeverity),
+        initialWeatherTemperatureC: draft.initialWeatherTemperatureC?.trim() ?? "",
         populationTargetMode: normalizePopulationTargetMode(draft.populationTargetMode, draft.plannedPeopleCount, draft.sizeTier),
         populationOccupancyProfile: normalizePopulationOccupancyProfile(draft.populationOccupancyProfile),
         plannedPeopleCount: draft.plannedPeopleCount?.trim() ?? "",
@@ -187,6 +210,16 @@ function validateEnvironment(draft: SetupDraft): ValidationErrors {
         errors.utcOffsetMinutes = "UTC offset must be a whole number of minutes.";
     } else if (utcOffsetMinutes < -14 * 60 || utcOffsetMinutes > 14 * 60) {
         errors.utcOffsetMinutes = "UTC offset must stay between -840 and 840 minutes.";
+    }
+
+    if (draft.initialWeatherMode === "Manual" && draft.initialWeatherTemperatureC.trim()) {
+        const initialWeatherTemperatureC = Number(draft.initialWeatherTemperatureC);
+
+        if (!Number.isFinite(initialWeatherTemperatureC)) {
+            errors.initialWeatherTemperatureC = "Initial weather temperature must be a number.";
+        } else if (initialWeatherTemperatureC < -100 || initialWeatherTemperatureC > 80) {
+            errors.initialWeatherTemperatureC = "Initial weather temperature must stay between -100 and 80 Celsius.";
+        }
     }
 
     return errors;
@@ -257,6 +290,42 @@ function normalizePopulationOccupancyProfile(value?: string): ClassicCityPopulat
     return value === "Light" || value === "High" ? value : "Balanced";
 }
 
+function normalizeInitialWeatherMode(value?: string): ClassicCityInitialWeatherMode {
+    return value === "Manual" ? "Manual" : "Random";
+}
+
+function normalizeInitialWeatherType(value?: string): ClassicCityInitialWeatherType {
+    switch (value) {
+        case "Overcast":
+        case "Rain":
+        case "Snow":
+        case "Storm":
+        case "Fog":
+        case "Windy":
+        case "Heatwave":
+        case "ColdSnap":
+            return value;
+        default:
+            return "Clear";
+    }
+}
+
+function normalizeInitialWeatherSeverity(value?: string): ClassicCityInitialWeatherSeverity {
+    switch (value) {
+        case "Calm":
+        case "Moderate":
+        case "Severe":
+        case "Extreme":
+            return value;
+        default:
+            return "Mild";
+    }
+}
+
+function getSuggestedManualWeatherTemperature(climateZone: string): string {
+    return MANUAL_WEATHER_TEMPERATURE_BY_CLIMATE[climateZone] ?? MANUAL_WEATHER_TEMPERATURE_BY_CLIMATE.Temperate;
+}
+
 function normalizePopulationTargetMode(
     value: string | undefined,
     plannedPeopleCount: string | undefined,
@@ -306,6 +375,28 @@ function getPopulationPlanDescription(
     }
 
     return `${getPopulationPressureLabel(draft.populationOccupancyProfile)} will shape how much housing slack or launch pressure the generated city keeps around ${targetPopulation?.toLocaleString() ?? "--"} residents.`;
+}
+
+function getInitialWeatherPlanLabel(draft: SetupDraft): string {
+    if (draft.initialWeatherMode === "Random") {
+        return "Seeded random opening weather";
+    }
+
+    const temperature = draft.initialWeatherTemperatureC.trim();
+    return temperature
+        ? `${draft.initialWeatherType} / ${draft.initialWeatherSeverity} / ${temperature}C`
+        : `${draft.initialWeatherType} / ${draft.initialWeatherSeverity}`;
+}
+
+function getInitialWeatherPlanDescription(draft: SetupDraft): string {
+    if (draft.initialWeatherMode === "Random") {
+        return "CityCore derives the first weather block from the launch seed, climate zone, hemisphere, and start time, so the same seed plus the same launch contract reproduces the same opening weather.";
+    }
+
+    const temperature = draft.initialWeatherTemperatureC.trim();
+    return temperature
+        ? `CityCore will start the city under a manually pinned ${draft.initialWeatherType.toLowerCase()} state at ${temperature}C before normal weather simulation takes over.`
+        : `CityCore will start the city under a manually pinned ${draft.initialWeatherType.toLowerCase()} state. If no temperature is supplied, it will derive one from the current climate profile.`;
 }
 
 function inferCityFormPreset(draft: SetupDraft): CityFormPresetValue {
@@ -638,17 +729,34 @@ export default function ClassicCitySetupPage() {
                 next.startSimTimeUtc = localDateTimeToUtcIso(String(value));
             }
 
+            if (key === "climateZone" &&
+                next.initialWeatherMode === "Manual" &&
+                !next.initialWeatherTemperatureC.trim()) {
+                next.initialWeatherTemperatureC = getSuggestedManualWeatherTemperature(String(value));
+            }
+
+            if (key === "initialWeatherMode" &&
+                value === "Manual" &&
+                !next.initialWeatherTemperatureC.trim()) {
+                next.initialWeatherTemperatureC = getSuggestedManualWeatherTemperature(next.climateZone);
+            }
+
             return next;
         });
 
         setValidationErrors((current) => {
-            if (key === "populationTargetMode" && value !== "Manual") {
-                if (!current.plannedPeopleCount) {
-                    return current;
+            if ((key === "populationTargetMode" && value !== "Manual") ||
+                (key === "initialWeatherMode" && value !== "Manual")) {
+                const next = {...current};
+
+                if (key === "populationTargetMode") {
+                    delete next.plannedPeopleCount;
                 }
 
-                const next = {...current};
-                delete next.plannedPeopleCount;
+                if (key === "initialWeatherMode") {
+                    delete next.initialWeatherTemperatureC;
+                }
+
                 return next;
             }
 
@@ -1147,6 +1255,14 @@ export default function ClassicCitySetupPage() {
                                 disabled={!canEditSession}
                             />
 
+                            <OptionGrid
+                                legend="Opening weather"
+                                options={CLASSIC_CITY_INITIAL_WEATHER_MODE_OPTIONS}
+                                selectedValue={draft.initialWeatherMode}
+                                onSelect={(value) => updateDraft("initialWeatherMode", value as ClassicCityInitialWeatherMode)}
+                                disabled={!canEditSession}
+                            />
+
                             <div className="scenario-setup__form-grid">
                                 <div className="scenario-setup__field">
                                     <label className="scenario-setup__label" htmlFor="classic-city-utc-offset">
@@ -1169,15 +1285,66 @@ export default function ClassicCitySetupPage() {
                                 <div className="scenario-setup__field">
                                     <div className="scenario-setup__label">Weather bootstrap</div>
                                     <div className="scenario-setup__fact-card">
-                                        <strong>Automatic from climate profile</strong>
+                                        <strong>{getInitialWeatherPlanLabel(draft)}</strong>
                                         <span>
-                                            Initial weather is still generated by CityCore from the climate setup and
-                                            start simulation time. Manual weather tuning remains a follow-up slice,
-                                            not a fake frontend-only field.
+                                            {getInitialWeatherPlanDescription(draft)}
                                         </span>
                                     </div>
                                 </div>
                             </div>
+
+                            {draft.initialWeatherMode === "Manual" ? (
+                                <div className="scenario-setup__stack">
+                                    <OptionGrid
+                                        legend="Manual weather type"
+                                        options={CLASSIC_CITY_INITIAL_WEATHER_TYPE_OPTIONS}
+                                        selectedValue={draft.initialWeatherType}
+                                        onSelect={(value) => updateDraft("initialWeatherType", value as ClassicCityInitialWeatherType)}
+                                        disabled={!canEditSession}
+                                    />
+
+                                    <OptionGrid
+                                        legend="Manual severity"
+                                        options={CLASSIC_CITY_INITIAL_WEATHER_SEVERITY_OPTIONS}
+                                        selectedValue={draft.initialWeatherSeverity}
+                                        onSelect={(value) => updateDraft("initialWeatherSeverity", value as ClassicCityInitialWeatherSeverity)}
+                                        disabled={!canEditSession}
+                                    />
+
+                                    <div className="scenario-setup__form-grid">
+                                        <div className="scenario-setup__field">
+                                            <label className="scenario-setup__label" htmlFor="classic-city-initial-weather-temperature">
+                                                Manual temperature (C)
+                                            </label>
+                                            <input
+                                                id="classic-city-initial-weather-temperature"
+                                                className="scenario-setup__input"
+                                                type="number"
+                                                step="0.1"
+                                                value={draft.initialWeatherTemperatureC}
+                                                onChange={(event) => updateDraft("initialWeatherTemperatureC", event.target.value)}
+                                                disabled={!canEditSession}
+                                            />
+                                            {validationErrors.initialWeatherTemperatureC ? (
+                                                <div className="scenario-setup__error">{validationErrors.initialWeatherTemperatureC}</div>
+                                            ) : null}
+                                            <div className="scenario-setup__hint">
+                                                Leave the suggested value or override it. This temperature becomes part of the launch contract and stays stable across retries.
+                                            </div>
+                                        </div>
+
+                                        <div className="scenario-setup__field">
+                                            <div className="scenario-setup__label">Manual weather note</div>
+                                            <div className="scenario-setup__fact-card">
+                                                <strong>{draft.initialWeatherType} / {draft.initialWeatherSeverity}</strong>
+                                                <span>
+                                                    CityCore will derive cloud cover, wind, pressure, and precipitation coherently from this manual opening state instead of asking you to fill every low-level weather scalar by hand.
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     ) : null}
 
@@ -1329,7 +1496,7 @@ export default function ClassicCitySetupPage() {
                                         {draft.climateZone} / {draft.hemisphere}
                                     </strong>
                                     <span className="scenario-setup__review-text">
-                                        {formatUtcOffset(draft.utcOffsetMinutes)}
+                                        {formatUtcOffset(draft.utcOffsetMinutes)}. {getInitialWeatherPlanDescription(draft)}
                                     </span>
                                 </article>
 
@@ -1424,6 +1591,7 @@ export default function ClassicCitySetupPage() {
                             <div className="scenario-setup__aside-item">
                                 <span>Environment</span>
                                 <strong>{draft.climateZone} / {draft.hemisphere}</strong>
+                                <span>{getInitialWeatherPlanLabel(draft)}</span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Population</span>
