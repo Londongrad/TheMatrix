@@ -8,7 +8,6 @@ namespace Matrix.Population.Application.UseCases.Person.UpdatePerson
     public sealed record UpdatePersonCommand(
         Guid Id,
         string? FullName,
-        string? EducationLevel,
         int? Health,
         int? Happiness,
         int? Energy,

@@ -3,7 +3,6 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Contracts.Models;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 
@@ -30,11 +29,6 @@ namespace Matrix.Population.Application.UseCases.Person.UpdatePerson
                 person.ChangeName(PersonName.FromFullName(request.FullName.Trim()));
             }
 
-            if (!string.IsNullOrWhiteSpace(request.EducationLevel))
-            {
-                person.SetEducationLevel(ParseEducationLevel(request.EducationLevel));
-            }
-
             DateOnly currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
 
             ApplyAbsoluteMetric(request.Health, person.Health.Value, delta => person.ChangeHealth(delta, currentDate));
@@ -50,19 +44,6 @@ namespace Matrix.Population.Application.UseCases.Person.UpdatePerson
 
             return person.ToDto();
         }
-
-        private static EducationLevel ParseEducationLevel(string value)
-        {
-            if (!Enum.TryParse<EducationLevel>(value, ignoreCase: true, out EducationLevel educationLevel))
-            {
-                throw ApplicationErrorsFactory.InvalidEnumValue(
-                    propertyName: nameof(UpdatePersonCommand.EducationLevel),
-                    value: value);
-            }
-
-            return educationLevel;
-        }
-
         private static void ApplyAbsoluteMetric(
             int? requestedValue,
             int currentValue,

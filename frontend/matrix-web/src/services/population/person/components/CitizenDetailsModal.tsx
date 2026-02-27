@@ -23,7 +23,6 @@ interface CitizenDetailsModalProps {
 
 type PersonFormState = {
     fullName: string;
-    educationLevel: string;
     health: string;
     happiness: string;
     energy: string;
@@ -33,21 +32,9 @@ type PersonFormState = {
 
 type FormErrors = Partial<Record<keyof PersonFormState, string>>;
 
-const EDUCATION_LEVEL_OPTIONS = [
-    "None",
-    "Preschool",
-    "Primary",
-    "LowerSecondary",
-    "UpperSecondary",
-    "Vocational",
-    "Higher",
-    "Postgraduate",
-] as const;
-
 function createFormState(person: PersonDto): PersonFormState {
     return {
         fullName: person.fullName,
-        educationLevel: person.educationLevel,
         health: String(person.health),
         happiness: String(person.happiness),
         energy: String(person.energy),
@@ -85,11 +72,6 @@ function validateForm(form: PersonFormState): FormErrors {
     } else if (form.fullName.trim().length > 200) {
         errors.fullName = "Full name must stay within 200 characters.";
     }
-
-    if (!EDUCATION_LEVEL_OPTIONS.includes(form.educationLevel as typeof EDUCATION_LEVEL_OPTIONS[number])) {
-        errors.educationLevel = "Education level must stay within the supported population enum.";
-    }
-
     const metricFields: Array<keyof Pick<PersonFormState, "health" | "happiness" | "energy" | "stress" | "socialNeed">> = [
         "health",
         "happiness",
@@ -202,7 +184,6 @@ const CitizenDetailsModal = ({
                 resident.id,
                 {
                     fullName: residentForm.fullName.trim(),
-                    educationLevel: residentForm.educationLevel,
                     health: parseMetricField(residentForm.health) ?? resident.health,
                     happiness: parseMetricField(residentForm.happiness) ?? resident.happiness,
                     energy: parseMetricField(residentForm.energy) ?? resident.energy,
@@ -325,6 +306,15 @@ const CitizenDetailsModal = ({
                         </div>
                     ) : null}
 
+                    {isEditing ? (
+                        <div className="citycore-error-banner" role="status">
+                            <span>
+                                Relationship, education, and employment transitions stay read-only here until they move
+                                to dedicated business commands with downstream reactions.
+                            </span>
+                        </div>
+                    ) : null}
+
                     <div className="citizens-page-modal-grid">
                         <div>
                             <h3 className="citizens-page-modal-section-title">Identity</h3>
@@ -341,27 +331,7 @@ const CitizenDetailsModal = ({
 
                             <div className="citizens-page-modal-field">
                                 <div className="citizens-page-modal-field-label">Education</div>
-                                {isEditing ? (
-                                    <>
-                                        <select
-                                            className="citizens-page-modal-select"
-                                            value={residentForm.educationLevel}
-                                            onChange={(event) => updateFormValue("educationLevel", event.target.value)}
-                                            disabled={isBusy}
-                                        >
-                                            {EDUCATION_LEVEL_OPTIONS.map((option) => (
-                                                <option key={option} value={option}>
-                                                    {option}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {formErrors.educationLevel ? (
-                                            <div className="citizens-page-modal-error">{formErrors.educationLevel}</div>
-                                        ) : null}
-                                    </>
-                                ) : (
-                                    <div>{resident.educationLevel}</div>
-                                )}
+                                <div>{resident.educationLevel}</div>
                             </div>
                         </div>
 

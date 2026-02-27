@@ -49,7 +49,6 @@ namespace Matrix.Population.Api.Controllers
                 request: new UpdatePersonCommand(
                     Id: personId,
                     FullName: request.FullName,
-                    EducationLevel: request.EducationLevel,
                     Health: request.Health,
                     Happiness: request.Happiness,
                     Energy: request.Energy,

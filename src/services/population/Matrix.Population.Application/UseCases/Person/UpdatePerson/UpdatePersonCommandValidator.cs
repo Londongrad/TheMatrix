@@ -1,5 +1,4 @@
 using FluentValidation;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Application.UseCases.Person.UpdatePerson
@@ -34,10 +33,6 @@ namespace Matrix.Population.Application.UseCases.Person.UpdatePerson
             RuleFor(x => x.SocialNeed)
                .InclusiveBetween(SocialNeedLevel.MinSocialNeed, SocialNeedLevel.MaxSocialNeed)
                .When(x => x.SocialNeed.HasValue);
-
-            RuleFor(x => x.EducationLevel)
-               .Must(value => value is null || Enum.TryParse<EducationLevel>(value, ignoreCase: true, out _))
-               .WithMessage("EducationLevel must be a valid population education level.");
         }
     }
 }

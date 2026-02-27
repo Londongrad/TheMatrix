@@ -20,7 +20,6 @@ export interface PersonDto {
 
 export interface UpdatePersonRequest {
     fullName?: string;
-    educationLevel?: string;
     health?: number;
     happiness?: number;
     energy?: number;

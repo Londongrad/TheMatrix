@@ -101,14 +101,5 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
-        public static MatrixApplicationException InvalidEnumValue(
-            string propertyName,
-            string value)
-        {
-            return new MatrixApplicationException(
-                code: "Population.Argument.Enum.Invalid",
-                message: $"{propertyName} value '{value}' is invalid.",
-                errorType: ApplicationErrorType.Validation);
-        }
     }
 }
