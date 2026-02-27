@@ -13,6 +13,10 @@
         string? UrbanDensity = null,
         string? DevelopmentLevel = null,
         string? PopulationOccupancyProfile = null,
+        string? InitialWeatherMode = null,
+        string? InitialWeatherType = null,
+        string? InitialWeatherSeverity = null,
+        decimal? InitialWeatherTemperatureC = null,
         int? PlannedPeopleCount = null,
         Guid? ProvisioningCorrelationId = null);
 }

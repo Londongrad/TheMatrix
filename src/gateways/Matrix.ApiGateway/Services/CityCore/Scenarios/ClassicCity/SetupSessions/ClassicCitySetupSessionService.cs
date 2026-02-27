@@ -29,6 +29,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private const string PopulationTargetModePreset10K = "Preset10K";
         private const string PopulationTargetModePreset100K = "Preset100K";
         private const string PopulationTargetModeManual = "Manual";
+        private const string InitialWeatherModeRandom = "Random";
+        private const string InitialWeatherModeManual = "Manual";
         private const int PopulationTargetPreset1K = 1_000;
         private const int PopulationTargetPreset10K = 10_000;
         private const int PopulationTargetPreset100K = 100_000;
@@ -336,6 +338,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 GenerationSeed = string.IsNullOrWhiteSpace(draft.GenerationSeed)
                     ? fallbackSeed
                     : draft.GenerationSeed.Trim(),
+                InitialWeatherMode = NormalizeInitialWeatherMode(draft.InitialWeatherMode),
+                InitialWeatherType = NormalizeInitialWeatherType(draft.InitialWeatherType),
+                InitialWeatherSeverity = NormalizeInitialWeatherSeverity(draft.InitialWeatherSeverity),
+                InitialWeatherTemperatureC = draft.InitialWeatherTemperatureC?.Trim() ?? string.Empty,
                 PopulationTargetMode = NormalizePopulationTargetMode(
                     value: draft.PopulationTargetMode,
                     plannedPeopleCount: draft.PlannedPeopleCount,
@@ -412,10 +418,19 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             }
 
             int? plannedPeopleCount = null;
+            decimal? initialWeatherTemperatureC = null;
 
             if (!TryResolvePlannedPeopleCount(
                     draft: draft,
                     plannedPeopleCount: out plannedPeopleCount,
+                    errorMessage: out errorMessage))
+            {
+                return false;
+            }
+
+            if (!TryResolveInitialWeatherTemperature(
+                    draft: draft,
+                    initialWeatherTemperatureC: out initialWeatherTemperatureC,
                     errorMessage: out errorMessage))
             {
                 return false;
@@ -434,6 +449,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 UrbanDensity: draft.UrbanDensity,
                 DevelopmentLevel: draft.DevelopmentLevel,
                 PopulationOccupancyProfile: draft.PopulationOccupancyProfile,
+                InitialWeatherMode: draft.InitialWeatherMode,
+                InitialWeatherType: draft.InitialWeatherType,
+                InitialWeatherSeverity: draft.InitialWeatherSeverity,
+                InitialWeatherTemperatureC: initialWeatherTemperatureC,
                 PlannedPeopleCount: plannedPeopleCount);
 
             return true;
@@ -446,6 +465,43 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 PopulationOccupancyProfileLight => PopulationOccupancyProfileLight,
                 PopulationOccupancyProfileHigh => PopulationOccupancyProfileHigh,
                 _ => PopulationOccupancyProfileBalanced
+            };
+        }
+
+        private static string NormalizeInitialWeatherMode(string? value)
+        {
+            return value?.Trim() switch
+            {
+                InitialWeatherModeManual => InitialWeatherModeManual,
+                _ => InitialWeatherModeRandom
+            };
+        }
+
+        private static string NormalizeInitialWeatherType(string? value)
+        {
+            return value?.Trim() switch
+            {
+                "Overcast" => "Overcast",
+                "Rain" => "Rain",
+                "Snow" => "Snow",
+                "Storm" => "Storm",
+                "Fog" => "Fog",
+                "Windy" => "Windy",
+                "Heatwave" => "Heatwave",
+                "ColdSnap" => "ColdSnap",
+                _ => "Clear"
+            };
+        }
+
+        private static string NormalizeInitialWeatherSeverity(string? value)
+        {
+            return value?.Trim() switch
+            {
+                "Calm" => "Calm",
+                "Moderate" => "Moderate",
+                "Severe" => "Severe",
+                "Extreme" => "Extreme",
+                _ => "Mild"
             };
         }
 
@@ -507,6 +563,57 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 plannedPeopleCount = parsedPeopleCount;
             }
 
+            return true;
+        }
+
+        private static bool TryResolveInitialWeatherTemperature(
+            ClassicCitySetupDraftDto draft,
+            out decimal? initialWeatherTemperatureC,
+            out string? errorMessage)
+        {
+            initialWeatherTemperatureC = null;
+            errorMessage = null;
+
+            if (!string.Equals(
+                    draft.InitialWeatherMode,
+                    InitialWeatherModeManual,
+                    StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(draft.InitialWeatherType))
+            {
+                errorMessage = "Initial weather type is required for manual weather mode.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(draft.InitialWeatherSeverity))
+            {
+                errorMessage = "Initial weather severity is required for manual weather mode.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(draft.InitialWeatherTemperatureC))
+                return true;
+
+            if (!decimal.TryParse(
+                    s: draft.InitialWeatherTemperatureC,
+                    style: System.Globalization.NumberStyles.Number,
+                    provider: System.Globalization.CultureInfo.InvariantCulture,
+                    result: out decimal parsedTemperature))
+            {
+                errorMessage = "Initial weather temperature must be a valid number.";
+                return false;
+            }
+
+            if (parsedTemperature is < -100m or > 80m)
+            {
+                errorMessage = "Initial weather temperature must stay between -100 and 80 Celsius.";
+                return false;
+            }
+
+            initialWeatherTemperatureC = parsedTemperature;
             return true;
         }
 
