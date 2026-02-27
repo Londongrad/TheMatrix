@@ -21,6 +21,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             CityGenerationProfile generationProfile,
+            CityInitialWeatherProfile initialWeatherProfile,
             Guid? provisioningCorrelationId,
             CityStatus status,
             DateTimeOffset createdAtUtc,
@@ -46,6 +47,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             Environment = environment;
             GenerationSeed = generationSeed;
             GenerationProfile = generationProfile;
+            InitialWeatherProfile = initialWeatherProfile;
             ProvisioningCorrelationId = provisioningCorrelationId;
             Status = status;
             CreatedAtUtc = createdAtUtc;
@@ -64,6 +66,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             Environment = null!;
             GenerationSeed = default(CityGenerationSeed);
             GenerationProfile = null!;
+            InitialWeatherProfile = null!;
         }
 
         public CityName Name { get; private set; }
@@ -71,6 +74,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         public CityEnvironment Environment { get; private set; }
         public CityGenerationSeed GenerationSeed { get; }
         public CityGenerationProfile GenerationProfile { get; }
+        public CityInitialWeatherProfile InitialWeatherProfile { get; }
         public Guid? ProvisioningCorrelationId { get; }
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
@@ -91,6 +95,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
             CityGenerationProfile generationProfile,
+            CityInitialWeatherProfile initialWeatherProfile,
             Guid? provisioningCorrelationId,
             bool requiresPopulationBootstrap,
             DateTimeOffset createdAtUtc)
@@ -110,6 +115,11 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                     reason: "City generation profile is required.",
                     propertyName: nameof(generationProfile));
 
+            if (initialWeatherProfile is null)
+                throw ClassicCityDomainErrorsFactory.InvalidCityEnvironment(
+                    reason: "City initial weather profile is required.",
+                    propertyName: nameof(initialWeatherProfile));
+
             var city = new City(
                 id: CityId.New(),
                 name: name,
@@ -117,6 +127,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 environment: environment,
                 generationSeed: generationSeed,
                 generationProfile: generationProfile,
+                initialWeatherProfile: initialWeatherProfile,
                 provisioningCorrelationId: provisioningCorrelationId,
                 status: requiresPopulationBootstrap
                     ? CityStatus.Provisioning

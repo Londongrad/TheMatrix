@@ -93,6 +93,40 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
             builder.Navigation(x => x.GenerationProfile)
                .IsRequired();
 
+            builder.OwnsOne(
+                navigationExpression: x => x.InitialWeatherProfile,
+                buildAction: weather =>
+                {
+                    weather.Property(x => x.Mode)
+                       .HasConversion<int>()
+                       .HasColumnName("InitialWeatherMode")
+                       .IsRequired();
+
+                    weather.Property(x => x.ManualType)
+                       .HasConversion<int?>()
+                       .HasColumnName("InitialWeatherManualType")
+                       .IsRequired(false);
+
+                    weather.Property(x => x.ManualSeverity)
+                       .HasConversion<int?>()
+                       .HasColumnName("InitialWeatherManualSeverity")
+                       .IsRequired(false);
+
+                    weather.Property(x => x.ManualTemperature)
+                       .HasConversion(
+                            convertToProviderExpression: x => x.HasValue
+                                ? x.Value.Value
+                                : (decimal?)null,
+                            convertFromProviderExpression: x => x.HasValue
+                                ? Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects.TemperatureC.From(x.Value)
+                                : null)
+                       .HasColumnName("InitialWeatherManualTemperatureC")
+                       .IsRequired(false);
+                });
+
+            builder.Navigation(x => x.InitialWeatherProfile)
+               .IsRequired();
+
             builder.Property(x => x.Status)
                .HasConversion<int>()
                .IsRequired();

@@ -1,6 +1,8 @@
 using FluentValidation;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity
@@ -58,6 +60,31 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                .Must(BeValidPopulationOccupancyProfile)
                .When(x => !string.IsNullOrWhiteSpace(x.PopulationOccupancyProfile))
                .WithMessage("PopulationOccupancyProfile is invalid.");
+
+            RuleFor(x => x.InitialWeatherMode)
+               .Must(BeValidInitialWeatherMode)
+               .When(x => !string.IsNullOrWhiteSpace(x.InitialWeatherMode))
+               .WithMessage("InitialWeatherMode is invalid.");
+
+            RuleFor(x => x.InitialWeatherType)
+               .NotEmpty()
+               .Must(BeValidWeatherType)
+               .When(IsManualInitialWeatherMode)
+               .WithMessage("InitialWeatherType is invalid.");
+
+            RuleFor(x => x.InitialWeatherSeverity)
+               .NotEmpty()
+               .Must(BeValidWeatherSeverity)
+               .When(IsManualInitialWeatherMode)
+               .WithMessage("InitialWeatherSeverity is invalid.");
+
+            RuleFor(x => x.InitialWeatherTemperatureC)
+               .InclusiveBetween(
+                    from: TemperatureC.Min,
+                    to: TemperatureC.Max)
+               .When(x => x.InitialWeatherTemperatureC.HasValue)
+               .WithMessage(
+                    $"InitialWeatherTemperatureC must stay between {TemperatureC.Min} and {TemperatureC.Max}.");
 
             RuleFor(x => x.StartSimTimeUtc)
                .Must(x => x.Offset == TimeSpan.Zero)
@@ -138,6 +165,41 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                        ignoreCase: true,
                        result: out PopulationOccupancyProfile occupancyProfile) &&
                    Enum.IsDefined(occupancyProfile);
+        }
+
+        private static bool BeValidInitialWeatherMode(string? value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out InitialWeatherMode mode) &&
+                   Enum.IsDefined(mode);
+        }
+
+        private static bool BeValidWeatherType(string? value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out WeatherType weatherType) &&
+                   Enum.IsDefined(weatherType);
+        }
+
+        private static bool BeValidWeatherSeverity(string? value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out WeatherSeverity weatherSeverity) &&
+                   Enum.IsDefined(weatherSeverity);
+        }
+
+        private static bool IsManualInitialWeatherMode(CreateCityCommand command)
+        {
+            return string.Equals(
+                a: command.InitialWeatherMode,
+                b: nameof(InitialWeatherMode.Manual),
+                comparisonType: StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool BeAlignedToOffsetStep(int value)

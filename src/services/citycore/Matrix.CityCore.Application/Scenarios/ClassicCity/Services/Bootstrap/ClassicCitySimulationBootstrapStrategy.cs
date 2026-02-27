@@ -1,3 +1,4 @@
+using System.Globalization;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology.Abstractions;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
@@ -7,6 +8,8 @@ using Matrix.CityCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.Enums;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
@@ -52,6 +55,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 value: request.PopulationOccupancyProfile,
                 defaultValue: PopulationOccupancyProfile.Balanced);
 
+            CityInitialWeatherProfile initialWeatherProfile = BuildInitialWeatherProfile(request);
+
             var environment = CityEnvironment.Create(
                 climateZone: climateZone,
                 hemisphere: hemisphere,
@@ -71,6 +76,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                     hemisphere: hemisphere,
                     utcOffsetMinutes: request.UtcOffsetMinutes,
                     generationProfile: generationProfile,
+                    initialWeatherProfile: initialWeatherProfile,
                     simulationKind: Kind)
                 : request.GenerationSeed;
 
@@ -83,6 +89,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 environment: environment,
                 generationSeed: generationSeed,
                 generationProfile: generationProfile,
+                initialWeatherProfile: initialWeatherProfile,
                 provisioningCorrelationId: request.ProvisioningCorrelationId,
                 requiresPopulationBootstrap: true,
                 createdAtUtc: DateTimeOffset.UtcNow);
@@ -128,6 +135,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
             Hemisphere hemisphere,
             int utcOffsetMinutes,
             CityGenerationProfile generationProfile,
+            CityInitialWeatherProfile initialWeatherProfile,
             SimulationKind simulationKind)
         {
             return string.Concat(
@@ -149,7 +157,42 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 "|",
                 generationProfile.PopulationOccupancyProfile,
                 "|",
-                generationProfile.PlannedPeopleCount?.ToString() ?? "auto");
+                generationProfile.PlannedPeopleCount?.ToString() ?? "auto",
+                "|",
+                initialWeatherProfile.Mode,
+                "|",
+                initialWeatherProfile.ManualType?.ToString() ?? "auto",
+                "|",
+                initialWeatherProfile.ManualSeverity?.ToString() ?? "auto",
+                "|",
+                initialWeatherProfile.ManualTemperature?.Value.ToString(CultureInfo.InvariantCulture) ?? "auto");
+        }
+
+        private static CityInitialWeatherProfile BuildInitialWeatherProfile(CreateCityCommand request)
+        {
+            InitialWeatherMode mode = ParseOrDefault(
+                value: request.InitialWeatherMode,
+                defaultValue: InitialWeatherMode.Random);
+
+            if (mode == InitialWeatherMode.Random)
+                return CityInitialWeatherProfile.CreateRandom();
+
+            WeatherType weatherType = Enum.Parse<WeatherType>(
+                value: request.InitialWeatherType ?? nameof(WeatherType.Clear),
+                ignoreCase: true);
+
+            WeatherSeverity weatherSeverity = Enum.Parse<WeatherSeverity>(
+                value: request.InitialWeatherSeverity ?? nameof(WeatherSeverity.Mild),
+                ignoreCase: true);
+
+            TemperatureC? manualTemperature = request.InitialWeatherTemperatureC.HasValue
+                ? TemperatureC.From(request.InitialWeatherTemperatureC.Value)
+                : null;
+
+            return CityInitialWeatherProfile.CreateManual(
+                manualType: weatherType,
+                manualSeverity: weatherSeverity,
+                manualTemperature: manualTemperature);
         }
     }
 }
