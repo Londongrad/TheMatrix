@@ -36,14 +36,19 @@ namespace Matrix.BuildingBlocks.Infrastructure.Persistence
             if (dbContext.Database.CurrentTransaction is not null)
                 return await action(cancellationToken);
 
-            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(
-                isolationLevel: isolationLevel,
-                cancellationToken: cancellationToken);
+            IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
 
-            T result = await action(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(
+                    isolationLevel: isolationLevel,
+                    cancellationToken: cancellationToken);
 
-            return result;
+                T result = await action(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return result;
+            });
         }
     }
 }
