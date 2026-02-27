@@ -47,6 +47,7 @@ const CityResidentsPage = () => {
 
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
+    const canUpdate = can(PermissionKeys.PopulationPersonUpdate) && !isArchived;
     const canKill = can(PermissionKeys.PopulationPersonKill) && !isArchived;
     const canResurrect = can(PermissionKeys.PopulationPersonResurrect) && !isArchived;
 
@@ -181,6 +182,7 @@ const CityResidentsPage = () => {
                 person={selectedPerson}
                 isOpen={selectedPerson !== null}
                 onClose={() => setSelectedPerson(null)}
+                canUpdate={canUpdate}
                 canKill={canKill}
                 canResurrect={canResurrect}
                 readOnlyMessage={

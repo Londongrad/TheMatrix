@@ -1,8 +1,21 @@
 import {API_PERSON_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
-import type {PersonDto} from "./personTypes";
+import type {PersonDto, UpdatePersonRequest} from "./personTypes";
 
-// Убить гражданина
+export async function updateCitizen(
+    id: string,
+    request: UpdatePersonRequest,
+    token: string
+): Promise<PersonDto> {
+    return await apiRequest<PersonDto>(`${API_PERSON_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(request),
+    });
+}
+
 export async function killCitizen(
     id: string,
     token: string
@@ -15,7 +28,6 @@ export async function killCitizen(
     });
 }
 
-// Воскрешение гражданина
 export async function resurrectCitizen(
     id: string,
     token: string
