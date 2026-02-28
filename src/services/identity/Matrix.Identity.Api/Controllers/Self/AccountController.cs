@@ -1,5 +1,6 @@
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
+using Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
 using Matrix.Identity.Contracts.Self.Account.Requests;
@@ -97,6 +98,21 @@ namespace Matrix.Identity.Api.Controllers.Self
             {
                 AvatarUrl = newAvatarPath
             };
+            return Ok(response);
+        }
+
+        [HttpDelete("avatar")]
+        public async Task<ActionResult<ChangeAvatarResponse>> ClearAvatar(CancellationToken cancellationToken)
+        {
+            await _sender.Send(
+                request: new ClearAvatarCommand(),
+                cancellationToken: cancellationToken);
+
+            var response = new ChangeAvatarResponse
+            {
+                AvatarUrl = null
+            };
+
             return Ok(response);
         }
 
