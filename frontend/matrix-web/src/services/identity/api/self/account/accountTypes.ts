@@ -9,6 +9,14 @@ export interface ChangeAvatarResponse {
     avatarUrl: string | null;
 }
 
+export interface ChangeUsernameRequest {
+    username: string;
+}
+
+export interface ChangeUsernameResponse {
+    username: string;
+}
+
 export interface ProfileResponse {
     userId: string;
     email: string;

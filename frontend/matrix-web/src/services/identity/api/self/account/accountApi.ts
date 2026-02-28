@@ -4,6 +4,8 @@ import {apiRequest} from "@shared/api/http";
 import type {
     ChangeAvatarResponse,
     ChangePasswordRequest,
+    ChangeUsernameRequest,
+    ChangeUsernameResponse,
     ProfileResponse,
     SecurityActivityItem,
 } from "./accountTypes";
@@ -47,5 +49,14 @@ export async function updateAvatar(file: File): Promise<ChangeAvatarResponse> {
 export async function clearAvatar(): Promise<ChangeAvatarResponse> {
     return await apiRequest<ChangeAvatarResponse>(`${API_ACCOUNT_URL}/avatar`, {
         method: "DELETE",
+    });
+}
+
+export async function changeUsername(
+    payload: ChangeUsernameRequest,
+): Promise<ChangeUsernameResponse> {
+    return await apiRequest<ChangeUsernameResponse>(`${API_ACCOUNT_URL}/username`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
     });
 }

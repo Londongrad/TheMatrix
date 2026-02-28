@@ -19,6 +19,7 @@ export const PermissionKeys = {
     IdentityRoleMembersRead: "identity.admin.roles.members.read",
     IdentityPermissionsCatalogRead: "identity.admin.permissions.catalog.read",
     IdentityMeProfileRead: "identity.me.profile.read",
+    IdentityMeUsernameChange: "identity.me.username.change",
     IdentityMePasswordChange: "identity.me.password.change",
     IdentityMeAvatarChange: "identity.me.avatar.change",
     IdentityMeSessionsRead: "identity.me.sessions.read",

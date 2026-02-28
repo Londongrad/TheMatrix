@@ -3,7 +3,7 @@ import UserSettingsSection from "../../shared/components/UserSettingsSection";
 import AccountCard from "../components/AccountCard";
 
 const UserSettingsAccountPage = () => {
-    const {user} = useAuth();
+    const {user, patchUser} = useAuth();
 
     return (
         <UserSettingsSection
@@ -14,6 +14,7 @@ const UserSettingsAccountPage = () => {
                 username={user?.username ?? ""}
                 email={user?.email ?? ""}
                 isEmailConfirmed={user?.isEmailConfirmed ?? false}
+                patchUser={patchUser}
             />
         </UserSettingsSection>
     );
