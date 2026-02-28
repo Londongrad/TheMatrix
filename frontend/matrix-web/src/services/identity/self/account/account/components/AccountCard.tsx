@@ -151,8 +151,8 @@ const AccountCard = ({
 
             <div className="settings-account-note">
                 Username changes require your current password and are limited to once every 30
-                days. Email stays read-only for now and should move through a dedicated
-                confirmation flow instead of a direct overwrite form.
+                days. Email changes stay in the Security section so they can move through a
+                dedicated confirmation flow instead of a direct overwrite form.
             </div>
         </section>
     );

@@ -18,9 +18,19 @@ export interface ChangeUsernameResponse {
     username: string;
 }
 
+export interface ChangeEmailRequest {
+    newEmail: string;
+    currentPassword: string;
+}
+
+export interface ChangeEmailResponse {
+    pendingEmail: string;
+}
+
 export interface ProfileResponse {
     userId: string;
     email: string;
+    pendingEmail: string | null;
     username: string;
     avatarUrl: string | null;
     isEmailConfirmed: boolean;

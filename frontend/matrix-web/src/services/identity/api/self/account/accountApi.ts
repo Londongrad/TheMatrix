@@ -3,6 +3,8 @@ import {API_ACCOUNT_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
 import type {
     ChangeAvatarResponse,
+    ChangeEmailRequest,
+    ChangeEmailResponse,
     ChangePasswordRequest,
     ChangeUsernameRequest,
     ChangeUsernameResponse,
@@ -56,6 +58,15 @@ export async function changeUsername(
     payload: ChangeUsernameRequest,
 ): Promise<ChangeUsernameResponse> {
     return await apiRequest<ChangeUsernameResponse>(`${API_ACCOUNT_URL}/username`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function changeEmail(
+    payload: ChangeEmailRequest,
+): Promise<ChangeEmailResponse> {
+    return await apiRequest<ChangeEmailResponse>(`${API_ACCOUNT_URL}/email`, {
         method: "PUT",
         body: JSON.stringify(payload),
     });

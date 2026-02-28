@@ -20,6 +20,11 @@ export interface ConfirmEmailRequest {
     token: string;
 }
 
+export interface ConfirmEmailChangeRequest {
+    userId: string;
+    token: string;
+}
+
 export interface ForgotPasswordRequest {
     email: string;
 }

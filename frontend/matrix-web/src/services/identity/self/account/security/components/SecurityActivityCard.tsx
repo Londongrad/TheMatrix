@@ -137,6 +137,30 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
                     description: "A username change attempt did not pass the current security rules.",
                     tone: "warning",
                 };
+        case "EmailChangeRequested":
+            return item.isSuccessful
+                ? {
+                    title: "New email confirmation sent",
+                    description: "A confirmation link was sent to the next email address for this account.",
+                    tone: "success",
+                }
+                : {
+                    title: "Email change request blocked",
+                    description: "A request to replace the account email did not pass the current rules.",
+                    tone: "warning",
+                };
+        case "EmailChanged":
+            return item.isSuccessful
+                ? {
+                    title: "Email changed",
+                    description: "The account email was replaced after confirmation.",
+                    tone: "warning",
+                }
+                : {
+                    title: "Email change confirmation failed",
+                    description: "A pending email change could not be confirmed.",
+                    tone: "danger",
+                };
         default:
             return {
                 title: item.eventType,

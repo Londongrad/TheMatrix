@@ -19,6 +19,7 @@ import {RequireAuth} from "@services/identity/api/self/auth/RequireAuth";
 import {LoginPage} from "@services/identity/self/auth/pages/LoginPage";
 import {RegisterPage} from "@services/identity/self/auth/pages/RegisterPage";
 import {ConfirmEmailPage} from "@services/identity/self/auth/pages/ConfirmEmailPage";
+import {ConfirmEmailChangePage} from "@services/identity/self/auth/pages/ConfirmEmailChangePage";
 import {ForgotPasswordPage} from "@services/identity/self/auth/pages/ForgotPasswordPage";
 import {ResetPasswordPage} from "@services/identity/self/auth/pages/ResetPasswordPage";
 import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
@@ -40,6 +41,7 @@ const App = () => {
                         <Route path="/login" element={<LoginPage/>}/>
                         <Route path="/register" element={<RegisterPage/>}/>
                         <Route path="/confirm-email" element={<ConfirmEmailPage/>}/>
+                        <Route path="/confirm-email-change" element={<ConfirmEmailChangePage/>}/>
                         <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
                         <Route path="/reset-password" element={<ResetPasswordPage/>}/>
                         <Route path="/forbidden" element={<ForbiddenPage/>}/>

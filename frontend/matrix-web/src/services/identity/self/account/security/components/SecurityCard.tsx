@@ -1,6 +1,8 @@
 // src/services/identity/self/account/security/components/SecurityCard.tsx
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {sendEmailConfirmationEmail} from "@services/identity/api/self/auth/authApi";
+import {changeEmail} from "@services/identity/api/self/account/accountApi";
+import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {usePasswordChange} from "../hooks/usePasswordChange";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
@@ -9,19 +11,23 @@ import "@services/identity/self/account/security/styles/security-card.css";
 type Props = {
     token: string | null;
     email: string;
+    pendingEmail: string | null;
     isEmailConfirmed: boolean;
     emailConfirmationRequested: boolean;
+    patchUser: (patch: Partial<ProfileResponse>) => void;
 };
 
 const SecurityCard = ({
     token,
     email,
+    pendingEmail,
     isEmailConfirmed,
     emailConfirmationRequested,
+    patchUser,
 }: Props) => {
     const {
-        currentPassword,
-        setCurrentPassword,
+        currentPassword: passwordCurrentPassword,
+        setCurrentPassword: setPasswordCurrentPassword,
         newPassword,
         setNewPassword,
         confirmNewPassword,
@@ -32,6 +38,11 @@ const SecurityCard = ({
         submit,
     } = usePasswordChange(token);
 
+    const [nextEmail, setNextEmail] = useState("");
+    const [emailChangePassword, setEmailChangePassword] = useState("");
+    const [isSavingEmailChange, setIsSavingEmailChange] = useState(false);
+    const [emailChangeNotice, setEmailChangeNotice] = useState<string | null>(null);
+    const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
     const [isSendingConfirmation, setIsSendingConfirmation] = useState(false);
     const [confirmationNotice, setConfirmationNotice] = useState<string | null>(
         emailConfirmationRequested && !isEmailConfirmed
@@ -39,6 +50,19 @@ const SecurityCard = ({
             : null,
     );
     const [confirmationError, setConfirmationError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!pendingEmail) {
+            return;
+        }
+
+        setNextEmail("");
+        setEmailChangePassword("");
+        setEmailChangeError(null);
+        setEmailChangeNotice(
+            `A confirmation link was sent to ${pendingEmail}. Your current email stays active until that link is used.`,
+        );
+    }, [pendingEmail]);
 
     const resendConfirmation = async () => {
         if (!email || isEmailConfirmed) return;
@@ -60,13 +84,46 @@ const SecurityCard = ({
         }
     };
 
+    const submitEmailChange = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const normalizedNextEmail = nextEmail.trim();
+        if (!normalizedNextEmail || !emailChangePassword) {
+            return;
+        }
+
+        try {
+            setEmailChangeError(null);
+            setEmailChangeNotice(null);
+            setIsSavingEmailChange(true);
+
+            const result = await changeEmail({
+                newEmail: normalizedNextEmail,
+                currentPassword: emailChangePassword,
+            });
+
+            patchUser({pendingEmail: result.pendingEmail});
+            setNextEmail("");
+            setEmailChangePassword("");
+            setEmailChangeNotice(
+                `Confirmation was sent to ${result.pendingEmail}. The current email will stay active until confirmation.`,
+            );
+        } catch (err: any) {
+            setEmailChangeError(
+                err?.message || "Failed to start the email change flow. Please try again.",
+            );
+        } finally {
+            setIsSavingEmailChange(false);
+        }
+    };
+
     return (
         <section className="settings-card settings-card--security">
             <div className="settings-card-header">
                 <div>
                     <h2 className="settings-card-title">Security</h2>
                     <p className="settings-card-description">
-                        Change your password to keep your simulation safe from intruders.
+                        Keep login, recovery, and sensitive self-service flows under tighter control.
                     </p>
                 </div>
             </div>
@@ -81,8 +138,7 @@ const SecurityCard = ({
                             Confirm your email
                         </h3>
                         <p className="settings-email-warning__text">
-                            Confirm <strong>{email || "your email address"}</strong> to
-                            keep password recovery and account security flows available.
+                            Confirm <strong>{email || "your email address"}</strong> to keep password recovery and account security flows available.
                         </p>
 
                         {confirmationNotice && (
@@ -105,9 +161,7 @@ const SecurityCard = ({
                                 void resendConfirmation();
                             }}
                         >
-                            {isSendingConfirmation
-                                ? "Sending..."
-                                : "Send verification email"}
+                            {isSendingConfirmation ? "Sending..." : "Send verification email"}
                         </button>
                     </div>
                 </div>
@@ -118,83 +172,191 @@ const SecurityCard = ({
                             Email verification
                         </div>
                         <p className="settings-email-status__text">
-                            {email || "Your email"} is confirmed and ready for recovery
-                            flows.
+                            {email || "Your email"} is confirmed and ready for recovery flows.
                         </p>
                     </div>
                     <span className="settings-pill">Confirmed</span>
                 </div>
             )}
 
-            <form className="settings-form" onSubmit={submit}>
-                <div className="settings-field">
-                    <div className="settings-label-row">
-                        <label className="settings-label" htmlFor="currentPassword">
-                            Current password
-                        </label>
+            {pendingEmail && (
+                <div className="settings-email-warning" role="status">
+                    <div className="settings-email-warning__content">
+                        <div className="settings-email-warning__eyebrow">
+                            Pending email change
+                        </div>
+                        <h3 className="settings-email-warning__title">
+                            New email is waiting for confirmation
+                        </h3>
+                        <p className="settings-email-warning__text">
+                            <strong>{pendingEmail}</strong> still needs confirmation. Until then, <strong>{email || "your current email"}</strong> remains active for login recovery and notifications.
+                        </p>
                     </div>
-                    <input
-                        id="currentPassword"
-                        className="settings-input"
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="••••••••"
-                    />
+
+                    <div className="settings-email-warning__actions">
+                        <span className="settings-pill">Pending</span>
+                    </div>
+                </div>
+            )}
+
+            <div className="settings-security-section">
+                <div className="settings-security-section__header">
+                    <div>
+                        <h3 className="settings-security-section__title">Email change</h3>
+                        <p className="settings-security-section__description">
+                            Replace the recovery email through a confirmation link sent to the next address.
+                        </p>
+                    </div>
                 </div>
 
-                <div className="settings-field">
-                    <div className="settings-label-row">
-                        <label className="settings-label" htmlFor="newPassword">
-                            New password
-                        </label>
+                <form className="settings-form" onSubmit={submitEmailChange}>
+                    <div className="settings-field">
+                        <div className="settings-label-row">
+                            <label className="settings-label" htmlFor="nextEmail">
+                                New email
+                            </label>
+                            <span>Current email stays active until confirmation</span>
+                        </div>
+                        <input
+                            id="nextEmail"
+                            className="settings-input"
+                            type="email"
+                            value={nextEmail}
+                            onChange={(event) => {
+                                setNextEmail(event.target.value);
+                                setEmailChangeError(null);
+                            }}
+                            autoComplete="email"
+                            placeholder="operator@matrix.example"
+                        />
                     </div>
-                    <input
-                        id="newPassword"
-                        className="settings-input"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="••••••••"
-                    />
-                </div>
 
-                <div className="settings-field">
-                    <div className="settings-label-row">
-                        <label className="settings-label" htmlFor="confirmNewPassword">
-                            Confirm new password
-                        </label>
+                    <div className="settings-field">
+                        <div className="settings-label-row">
+                            <label className="settings-label" htmlFor="emailChangePassword">
+                                Current password
+                            </label>
+                            <span>Required to authorize the request</span>
+                        </div>
+                        <input
+                            id="emailChangePassword"
+                            className="settings-input"
+                            type="password"
+                            value={emailChangePassword}
+                            onChange={(event) => {
+                                setEmailChangePassword(event.target.value);
+                                setEmailChangeError(null);
+                            }}
+                            autoComplete="current-password"
+                            placeholder="********"
+                        />
                     </div>
-                    <input
-                        id="confirmNewPassword"
-                        className="settings-input"
-                        type="password"
-                        value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        placeholder="••••••••"
-                    />
-                </div>
 
-                {securityError && (
-                    <p className="settings-error-text">{securityError}</p>
-                )}
+                    {emailChangeNotice && (
+                        <p className="settings-hint">{emailChangeNotice}</p>
+                    )}
 
-                <div className="settings-actions-row">
-                    {securitySaved && <span className="settings-save-badge">Saved</span>}
-                    <RequirePermission
-                        perm={PermissionKeys.IdentityMePasswordChange}
-                        displayMode="disable"
-                    >
-                        <button
-                            type="submit"
-                            className="settings-button"
-                            disabled={isSavingSecurity}
+                    {emailChangeError && (
+                        <p className="settings-error-text">{emailChangeError}</p>
+                    )}
+
+                    <div className="settings-actions-row settings-actions-row--start">
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeEmailChange}
+                            displayMode="disable"
                         >
-                            {isSavingSecurity ? "Updating..." : "Update password"}
-                        </button>
-                    </RequirePermission>
+                            <button
+                                type="submit"
+                                className="settings-button"
+                                disabled={!nextEmail.trim() || !emailChangePassword || isSavingEmailChange}
+                            >
+                                {isSavingEmailChange ? "Sending..." : "Send email change link"}
+                            </button>
+                        </RequirePermission>
+                    </div>
+                </form>
+            </div>
+
+            <div className="settings-security-section">
+                <div className="settings-security-section__header">
+                    <div>
+                        <h3 className="settings-security-section__title">Password</h3>
+                        <p className="settings-security-section__description">
+                            Change the account password used for sign-in and sensitive self-service actions.
+                        </p>
+                    </div>
                 </div>
-            </form>
+
+                <form className="settings-form" onSubmit={submit}>
+                    <div className="settings-field">
+                        <div className="settings-label-row">
+                            <label className="settings-label" htmlFor="currentPassword">
+                                Current password
+                            </label>
+                        </div>
+                        <input
+                            id="currentPassword"
+                            className="settings-input"
+                            type="password"
+                            value={passwordCurrentPassword}
+                            onChange={(e) => setPasswordCurrentPassword(e.target.value)}
+                            placeholder="********"
+                        />
+                    </div>
+
+                    <div className="settings-field">
+                        <div className="settings-label-row">
+                            <label className="settings-label" htmlFor="newPassword">
+                                New password
+                            </label>
+                        </div>
+                        <input
+                            id="newPassword"
+                            className="settings-input"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="********"
+                        />
+                    </div>
+
+                    <div className="settings-field">
+                        <div className="settings-label-row">
+                            <label className="settings-label" htmlFor="confirmNewPassword">
+                                Confirm new password
+                            </label>
+                        </div>
+                        <input
+                            id="confirmNewPassword"
+                            className="settings-input"
+                            type="password"
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            placeholder="********"
+                        />
+                    </div>
+
+                    {securityError && (
+                        <p className="settings-error-text">{securityError}</p>
+                    )}
+
+                    <div className="settings-actions-row">
+                        {securitySaved && <span className="settings-save-badge">Saved</span>}
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMePasswordChange}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="submit"
+                                className="settings-button"
+                                disabled={isSavingSecurity}
+                            >
+                                {isSavingSecurity ? "Updating..." : "Update password"}
+                            </button>
+                        </RequirePermission>
+                    </div>
+                </form>
+            </div>
         </section>
     );
 };

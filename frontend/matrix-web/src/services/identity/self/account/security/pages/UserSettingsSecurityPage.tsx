@@ -5,7 +5,7 @@ import SecurityCard from "../components/SecurityCard";
 import SecurityActivityCard from "../components/SecurityActivityCard";
 
 const UserSettingsSecurityPage = () => {
-    const {token, user} = useAuth();
+    const {token, user, patchUser} = useAuth();
     const location = useLocation();
     const emailConfirmationRequested = Boolean(
         (location.state as { emailConfirmationRequested?: boolean } | null)
@@ -20,8 +20,10 @@ const UserSettingsSecurityPage = () => {
             <SecurityCard
                 token={token}
                 email={user?.email ?? ""}
+                pendingEmail={user?.pendingEmail ?? null}
                 isEmailConfirmed={user?.isEmailConfirmed ?? false}
                 emailConfirmationRequested={emailConfirmationRequested}
+                patchUser={patchUser}
             />
             <SecurityActivityCard token={token}/>
         </UserSettingsSection>

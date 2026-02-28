@@ -3,6 +3,7 @@ import {API_AUTH_URL} from "@shared/api/config";
 import {request} from "@shared/api/http";
 import type {
     ConfirmEmailRequest,
+    ConfirmEmailChangeRequest,
     ForgotPasswordRequest,
     LoginRequest,
     LoginResponse,
@@ -66,6 +67,15 @@ export async function confirmEmail(
     payload: ConfirmEmailRequest,
 ): Promise<void> {
     await request<void>(`${API_AUTH_URL}/email-confirmation/confirm`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function confirmEmailChange(
+    payload: ConfirmEmailChangeRequest,
+): Promise<void> {
+    await request<void>(`${API_AUTH_URL}/email-change/confirm`, {
         method: "POST",
         body: JSON.stringify(payload),
     });
