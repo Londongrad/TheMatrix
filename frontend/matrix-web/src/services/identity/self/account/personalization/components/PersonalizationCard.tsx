@@ -1,5 +1,8 @@
 import React, {useRef, useState} from "react";
-import {updateAvatar} from "@services/identity/api/self/account/accountApi";
+import {
+    clearAvatar,
+    updateAvatar,
+} from "@services/identity/api/self/account/accountApi";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
@@ -22,6 +25,7 @@ const PersonalizationCard = ({
 }: Props) => {
     const [avatarError, setAvatarError] = useState<string | null>(null);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+    const [isClearingAvatar, setIsClearingAvatar] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const initial = (username || email || "O").charAt(0).toUpperCase();
@@ -65,6 +69,31 @@ const PersonalizationCard = ({
         }
     };
 
+    const handleClearAvatar = async () => {
+        if (!token) {
+            setAvatarError("You are not authenticated.");
+            return;
+        }
+
+        if (!avatarUrl) {
+            return;
+        }
+
+        try {
+            setAvatarError(null);
+            setIsClearingAvatar(true);
+            const result = await clearAvatar();
+            patchUser({avatarUrl: result.avatarUrl});
+        } catch (clearError: any) {
+            console.error(clearError);
+            setAvatarError(
+                clearError?.message || "Failed to clear avatar. Please try again.",
+            );
+        } finally {
+            setIsClearingAvatar(false);
+        }
+    };
+
     return (
         <section className="settings-card settings-card--personalization">
             <div className="settings-card-header">
@@ -85,7 +114,7 @@ const PersonalizationCard = ({
                         type="button"
                         className="settings-avatar"
                         onClick={handleAvatarClick}
-                        disabled={isUploadingAvatar}
+                        disabled={isUploadingAvatar || isClearingAvatar}
                     >
                         {avatarUrl ? (
                             <img
@@ -114,7 +143,9 @@ const PersonalizationCard = ({
                     <div className="settings-avatar-meta">
                         {isUploadingAvatar
                             ? "Uploading avatar..."
-                            : "Choose a JPG, PNG, or WebP image up to 2 MB."}
+                            : isClearingAvatar
+                                ? "Clearing avatar..."
+                                : "Choose a JPG, PNG, or WebP image up to 2 MB."}
                     </div>
                 </div>
             </div>
@@ -130,16 +161,31 @@ const PersonalizationCard = ({
                         type="button"
                         className="settings-button"
                         onClick={handleAvatarClick}
-                        disabled={isUploadingAvatar}
+                        disabled={isUploadingAvatar || isClearingAvatar}
                     >
                         {isUploadingAvatar ? "Uploading..." : "Upload new avatar"}
+                    </button>
+                </RequirePermission>
+
+                <RequirePermission
+                    perm={PermissionKeys.IdentityMeAvatarChange}
+                    displayMode="disable"
+                >
+                    <button
+                        type="button"
+                        className="settings-button settings-button--secondary"
+                        onClick={() => {
+                            void handleClearAvatar();
+                        }}
+                        disabled={!avatarUrl || isUploadingAvatar || isClearingAvatar}
+                    >
+                        {isClearingAvatar ? "Clearing..." : "Clear avatar"}
                     </button>
                 </RequirePermission>
             </div>
 
             <p className="settings-hint">
-                Avatar removal will fit better as a dedicated account command, so this first slice keeps
-                personalization honest and avoids a fake clear action.
+                Avatar changes now support both upload and explicit clearing through the same account command boundary.
             </p>
         </section>
     );

@@ -6,7 +6,7 @@ export interface ChangePasswordRequest {
 }
 
 export interface ChangeAvatarResponse {
-    avatarUrl: string;
+    avatarUrl: string | null;
 }
 
 export interface ProfileResponse {

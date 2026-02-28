@@ -43,3 +43,9 @@ export async function updateAvatar(file: File): Promise<ChangeAvatarResponse> {
         body: formData,
     });
 }
+
+export async function clearAvatar(): Promise<ChangeAvatarResponse> {
+    return await apiRequest<ChangeAvatarResponse>(`${API_ACCOUNT_URL}/avatar`, {
+        method: "DELETE",
+    });
+}
