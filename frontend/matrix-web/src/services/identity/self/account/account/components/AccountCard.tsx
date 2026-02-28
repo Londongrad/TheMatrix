@@ -19,6 +19,7 @@ const AccountCard = ({
     patchUser,
 }: Props) => {
     const [draftUsername, setDraftUsername] = useState(username);
+    const [currentPassword, setCurrentPassword] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
@@ -42,9 +43,13 @@ const AccountCard = ({
             setSaved(false);
             setIsSaving(true);
 
-            const result = await changeUsername({username: normalizedDraft});
+            const result = await changeUsername({
+                username: normalizedDraft,
+                currentPassword,
+            });
             patchUser({username: result.username});
             setDraftUsername(result.username);
+            setCurrentPassword("");
             setSaved(true);
         } catch (error: any) {
             setSaveError(
@@ -92,6 +97,27 @@ const AccountCard = ({
                     />
                 </div>
 
+                <div className="settings-field">
+                    <div className="settings-label-row">
+                        <label className="settings-label" htmlFor="accountCurrentPassword">
+                            Current password
+                        </label>
+                        <span>Required to confirm the change</span>
+                    </div>
+                    <input
+                        id="accountCurrentPassword"
+                        className="settings-input"
+                        type="password"
+                        value={currentPassword}
+                        onChange={(event) => {
+                            setCurrentPassword(event.target.value);
+                            setSaved(false);
+                        }}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                    />
+                </div>
+
                 {saveError && <p className="settings-error-text">{saveError}</p>}
 
                 <div className="settings-actions-row settings-actions-row--start">
@@ -103,7 +129,7 @@ const AccountCard = ({
                         <button
                             type="submit"
                             className="settings-button"
-                            disabled={!hasUsernameChanged || isSaving}
+                            disabled={!hasUsernameChanged || !currentPassword || isSaving}
                         >
                             {isSaving ? "Updating..." : "Update username"}
                         </button>
@@ -124,8 +150,9 @@ const AccountCard = ({
             </div>
 
             <div className="settings-account-note">
-                Email stays read-only for now. It should move through a dedicated confirmation
-                flow instead of a direct overwrite form.
+                Username changes require your current password and are limited to once every 30
+                days. Email stays read-only for now and should move through a dedicated
+                confirmation flow instead of a direct overwrite form.
             </div>
         </section>
     );

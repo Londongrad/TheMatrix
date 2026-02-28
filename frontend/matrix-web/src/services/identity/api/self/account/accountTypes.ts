@@ -11,6 +11,7 @@ export interface ChangeAvatarResponse {
 
 export interface ChangeUsernameRequest {
     username: string;
+    currentPassword: string;
 }
 
 export interface ChangeUsernameResponse {

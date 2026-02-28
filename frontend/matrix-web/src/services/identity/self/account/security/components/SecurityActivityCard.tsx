@@ -125,6 +125,18 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
                 description: "All active sessions were revoked for this account.",
                 tone: item.isSuccessful ? "neutral" : "warning",
             };
+        case "UsernameChanged":
+            return item.isSuccessful
+                ? {
+                    title: "Username changed",
+                    description: "The primary login alias for this account was updated.",
+                    tone: "warning",
+                }
+                : {
+                    title: "Username change blocked",
+                    description: "A username change attempt did not pass the current security rules.",
+                    tone: "warning",
+                };
         default:
             return {
                 title: item.eventType,
