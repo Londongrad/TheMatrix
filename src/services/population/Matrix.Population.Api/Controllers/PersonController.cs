@@ -1,6 +1,5 @@
 using Matrix.Population.Application.UseCases.Person.KillPerson;
 using Matrix.Population.Application.UseCases.Person.ResurrectPerson;
-using Matrix.Population.Application.UseCases.Person.UpdatePerson;
 using Matrix.Population.Contracts.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -39,24 +38,5 @@ namespace Matrix.Population.Api.Controllers
             return Ok(person);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdatePerson(
-            [FromRoute] Guid personId,
-            [FromBody] UpdatePersonRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            PersonDto person = await _sender.Send(
-                request: new UpdatePersonCommand(
-                    Id: personId,
-                    FullName: request.FullName,
-                    Health: request.Health,
-                    Happiness: request.Happiness,
-                    Energy: request.Energy,
-                    Stress: request.Stress,
-                    SocialNeed: request.SocialNeed),
-                cancellationToken: cancellationToken);
-
-            return Ok(person);
-        }
     }
 }

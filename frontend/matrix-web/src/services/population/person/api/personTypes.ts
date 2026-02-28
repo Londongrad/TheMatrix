@@ -17,12 +17,3 @@ export interface PersonDto {
     employmentStatus: string;
     jobTitle?: string | null;
 }
-
-export interface UpdatePersonRequest {
-    fullName?: string;
-    health?: number;
-    happiness?: number;
-    energy?: number;
-    stress?: number;
-    socialNeed?: number;
-}

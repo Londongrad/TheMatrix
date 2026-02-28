@@ -12,20 +12,6 @@ namespace Matrix.ApiGateway.Controllers.Population
     {
         private readonly IPersonApiClient _personApiClient = personApiClient;
 
-        [HttpPut]
-        public async Task<IActionResult> UpdatePerson(
-            Guid id,
-            [FromBody] UpdatePersonRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            PersonDto person = await _personApiClient.UpdateAsync(
-                personId: id,
-                request: request,
-                cancellationToken: cancellationToken);
-
-            return Ok(person);
-        }
-
         [HttpPost("kill")]
         public async Task<IActionResult> KillPerson(
             Guid id,
