@@ -51,6 +51,28 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
                 cancellationToken: cancellationToken);
         }
 
+        public Task SendUsernameChanged(
+            string toEmail,
+            string previousUsername,
+            string newUsername,
+            CancellationToken cancellationToken)
+        {
+            return SendAsync(
+                toEmail: toEmail,
+                subject: "Your username was changed",
+                htmlBody:
+                $"""
+                 <p>Your Matrix account username was changed.</p>
+                 <p><strong>Previous username:</strong> {WebUtility.HtmlEncode(previousUsername)}</p>
+                 <p><strong>New username:</strong> {WebUtility.HtmlEncode(newUsername)}</p>
+                 <p>If you did not make this change, review your account security immediately.</p>
+                 """,
+                plainBody:
+                $"Your Matrix account username was changed.{Environment.NewLine}Previous username: {previousUsername}{Environment.NewLine}New username: {newUsername}{Environment.NewLine}{Environment.NewLine}If you did not make this change, review your account security immediately.",
+                linkForLogging: $"username:{previousUsername}->{newUsername}",
+                cancellationToken: cancellationToken);
+        }
+
         private async Task SendAsync(
             string toEmail,
             string subject,

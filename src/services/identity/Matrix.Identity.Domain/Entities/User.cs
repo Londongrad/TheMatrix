@@ -44,6 +44,7 @@ namespace Matrix.Identity.Domain.Entities
         public string PasswordHash { get; private set; } = null!;
 
         public bool IsEmailConfirmed { get; private set; }
+        public DateTime? LastUsernameChangedAtUtc { get; private set; }
 
         public bool IsLocked { get; private set; }
 
@@ -91,9 +92,12 @@ namespace Matrix.Identity.Domain.Entities
             AvatarUrl = avatarUrl;
         }
 
-        public void ChangeUsername(Username username)
+        public void ChangeUsername(
+            Username username,
+            DateTime changedAtUtc)
         {
             Username = username ?? throw new ArgumentNullException(nameof(username));
+            LastUsernameChangedAtUtc = changedAtUtc;
         }
 
         public void ChangePasswordHash(string newPasswordHash)

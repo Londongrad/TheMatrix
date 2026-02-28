@@ -82,7 +82,9 @@ namespace Matrix.Identity.Api.Controllers.Self
             CancellationToken cancellationToken)
         {
             string username = await _sender.Send(
-                request: new ChangeUsernameCommand(request.Username),
+                request: new ChangeUsernameCommand(
+                    request.Username,
+                    request.CurrentPassword),
                 cancellationToken: cancellationToken);
 
             var response = new ChangeUsernameResponse

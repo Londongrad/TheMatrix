@@ -9,6 +9,7 @@ namespace Matrix.Identity.Application.Abstractions.Services.Security
         PasswordResetCompleted = 5,
         Logout = 6,
         SessionRevoked = 7,
-        AllSessionsRevoked = 8
+        AllSessionsRevoked = 8,
+        UsernameChanged = 9
     }
 }

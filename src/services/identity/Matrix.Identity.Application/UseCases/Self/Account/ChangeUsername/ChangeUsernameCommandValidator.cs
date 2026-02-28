@@ -7,6 +7,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername
     {
         public ChangeUsernameCommandValidator()
         {
+            RuleFor(x => x.CurrentPassword)
+               .NotEmpty()
+               .WithMessage("Current password is required.");
+
             RuleFor(x => x.Username)
                .NotEmpty()
                .WithMessage("Username is required.")

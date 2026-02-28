@@ -52,6 +52,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.Property(u => u.CreatedAtUtc)
                .IsRequired();
 
+            builder.Property(u => u.LastUsernameChangedAtUtc)
+               .IsRequired(false);
+
             builder.Property(u => u.IsEmailConfirmed)
                .IsRequired();
 

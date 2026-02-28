@@ -4,7 +4,9 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername
 {
-    public sealed record ChangeUsernameCommand(string Username) : IRequest<string>, IRequirePermission
+    public sealed record ChangeUsernameCommand(
+        string Username,
+        string CurrentPassword) : IRequest<string>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.IdentityMeUsernameChange;
     }

@@ -53,6 +53,14 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Conflict);
         }
 
+        public static MatrixApplicationException UsernameChangeCooldown(DateTime nextAllowedAtUtc)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.UsernameChangeCooldown",
+                message: $"Username can be changed again after {nextAllowedAtUtc:yyyy-MM-dd HH:mm} UTC.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
         public static MatrixApplicationException UserNotFound(Guid id)
         {
             return new MatrixApplicationException(
