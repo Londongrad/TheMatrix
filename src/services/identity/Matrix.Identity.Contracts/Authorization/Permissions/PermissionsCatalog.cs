@@ -115,6 +115,11 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
                     Group: MeGroup,
                     Description: "View own profile."),
                 new(
+                    Key: PermissionKeys.IdentityMeUsernameChange,
+                    Service: IdentityService,
+                    Group: MeGroup,
+                    Description: "Change own username."),
+                new(
                     Key: PermissionKeys.IdentityMePasswordChange,
                     Service: IdentityService,
                     Group: MeGroup,

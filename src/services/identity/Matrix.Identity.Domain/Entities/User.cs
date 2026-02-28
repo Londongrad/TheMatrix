@@ -91,6 +91,11 @@ namespace Matrix.Identity.Domain.Entities
             AvatarUrl = avatarUrl;
         }
 
+        public void ChangeUsername(Username username)
+        {
+            Username = username ?? throw new ArgumentNullException(nameof(username));
+        }
+
         public void ChangePasswordHash(string newPasswordHash)
         {
             if (string.IsNullOrWhiteSpace(newPasswordHash))

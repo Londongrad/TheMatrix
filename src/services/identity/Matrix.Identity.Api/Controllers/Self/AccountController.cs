@@ -1,5 +1,6 @@
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
+using Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername;
 using Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
@@ -74,6 +75,23 @@ namespace Matrix.Identity.Api.Controllers.Self
         #endregion [ Profile ]
 
         #region [ Avatar & Password ]
+
+        [HttpPut("username")]
+        public async Task<ActionResult<ChangeUsernameResponse>> ChangeUsername(
+            [FromBody] ChangeUsernameRequest request,
+            CancellationToken cancellationToken)
+        {
+            string username = await _sender.Send(
+                request: new ChangeUsernameCommand(request.Username),
+                cancellationToken: cancellationToken);
+
+            var response = new ChangeUsernameResponse
+            {
+                Username = username
+            };
+
+            return Ok(response);
+        }
 
         [HttpPut("avatar")]
         public async Task<ActionResult<ChangeAvatarResponse>> ChangeAvatar(
