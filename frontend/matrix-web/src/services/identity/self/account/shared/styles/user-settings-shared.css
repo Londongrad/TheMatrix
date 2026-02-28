@@ -114,6 +114,10 @@
     justify-content: flex-end;
 }
 
+.settings-actions-row--start {
+    justify-content: flex-start;
+}
+
 .settings-actions-row--sessions {
     justify-content: flex-start;
     margin-top: 0.2rem;

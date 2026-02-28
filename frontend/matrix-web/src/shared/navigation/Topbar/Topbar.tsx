@@ -37,7 +37,7 @@ export default function MatrixTopbar({title, subtitle}: Props) {
 
     const handleGoToSettings = () => {
         setIsOpen(false);
-        navigate("/userSettings/profile", {state: {from: settingsReturnPath}});
+        navigate("/userSettings/account", {state: {from: settingsReturnPath}});
     };
 
     useEffect(() => {

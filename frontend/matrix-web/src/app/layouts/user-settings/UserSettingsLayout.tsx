@@ -7,9 +7,14 @@ import "./user-settings-layout.css";
 
 const routeMetadata = [
     {
-        match: "/userSettings/profile",
-        title: "Profile",
-        subtitle: "Review the identity card and public-facing details of this operator.",
+        match: "/userSettings/account",
+        title: "Account",
+        subtitle: "Review the core identity record for this operator without mixing it with personalization or device-local settings.",
+    },
+    {
+        match: "/userSettings/personalization",
+        title: "Personalization",
+        subtitle: "Manage avatar and other appearance choices that represent this account across the console.",
     },
     {
         match: "/userSettings/security",
@@ -22,8 +27,8 @@ const routeMetadata = [
         subtitle: "Track active devices, revoke stale sessions and audit operator access.",
     },
     {
-        match: "/userSettings/preferences",
-        title: "Workspace setup",
+        match: "/userSettings/workspace",
+        title: "Workspace",
         subtitle: "Shape language, theme presets and console defaults for this device.",
     },
     {
@@ -55,7 +60,7 @@ export default function UserSettingsLayout() {
     const topbarTitle = currentRouteMetadata?.title ?? "User settings";
     const topbarSubtitle =
         currentRouteMetadata?.subtitle ??
-        "Review the profile, security posture, sessions and device defaults for this account.";
+        "Review account identity, personalization, security posture, sessions and device defaults.";
 
     return (
         <ShellLayout

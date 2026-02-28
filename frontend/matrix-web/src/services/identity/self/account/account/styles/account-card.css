@@ -1,0 +1,34 @@
+.settings-card--account {
+    border-color: var(--settings-card-border);
+}
+
+.settings-account-grid {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.settings-account-panel {
+    border-radius: 1rem;
+    border: 1px solid color-mix(in srgb, var(--shell-border) 86%, transparent);
+    background: color-mix(in srgb, var(--shell-surface-soft) 88%, transparent);
+    padding: 0.95rem 1rem;
+}
+
+.settings-account-value {
+    margin-top: 0.4rem;
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: var(--app-text-strong);
+    word-break: break-word;
+}
+
+.settings-account-note {
+    margin-top: 0.9rem;
+    border-radius: 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--shell-border) 90%, transparent);
+    background: color-mix(in srgb, var(--shell-surface-soft) 82%, transparent);
+    padding: 0.85rem 0.95rem;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: var(--app-text-muted);
+}

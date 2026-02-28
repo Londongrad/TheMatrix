@@ -7,10 +7,11 @@ import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage"
 import AdminRolesPage from "@services/identity/admin/roles/pages/AdminRolesPage";
 import AdminPermissionsPage from "@services/identity/admin/permissions/pages/AdminPermissionsPage";
 
-import UserSettingsProfilePage from "@services/identity/self/account/profile/pages/UserSettingsProfilePage";
+import UserSettingsAccountPage from "@services/identity/self/account/account/pages/UserSettingsAccountPage";
+import UserSettingsPersonalizationPage from "@services/identity/self/account/personalization/pages/UserSettingsPersonalizationPage";
 import UserSettingsSecurityPage from "@services/identity/self/account/security/pages/UserSettingsSecurityPage";
 import UserSettingsSessionsPage from "@services/identity/self/account/sessions/pages/UserSettingsSessionsPage";
-import UserSettingsPreferencesPage from "@services/identity/self/account/preferences/pages/UserSettingsPreferencesPage";
+import UserSettingsWorkspacePage from "@services/identity/self/account/workspace/pages/UserSettingsWorkspacePage";
 import UserSettingsDangerPage from "@services/identity/self/account/danger/pages/UserSettingsDangerPage";
 
 import {AuthProvider} from "@services/identity/api/self/auth/AuthContext";
@@ -64,14 +65,17 @@ const App = () => {
                                 </RequireAuth>
                             }
                         >
-                            <Route index element={<Navigate to="profile" replace/>}/>
-                            <Route path="profile" element={<UserSettingsProfilePage/>}/>
+                            <Route index element={<Navigate to="account" replace/>}/>
+                            <Route path="profile" element={<Navigate to="/userSettings/account" replace/>}/>
+                            <Route path="preferences" element={<Navigate to="/userSettings/workspace" replace/>}/>
+                            <Route path="account" element={<UserSettingsAccountPage/>}/>
+                            <Route
+                                path="personalization"
+                                element={<UserSettingsPersonalizationPage/>}
+                            />
                             <Route path="security" element={<UserSettingsSecurityPage/>}/>
                             <Route path="sessions" element={<UserSettingsSessionsPage/>}/>
-                            <Route
-                                path="preferences"
-                                element={<UserSettingsPreferencesPage/>}
-                            />
+                            <Route path="workspace" element={<UserSettingsWorkspacePage/>}/>
                             <Route path="danger" element={<UserSettingsDangerPage/>}/>
                         </Route>
 
