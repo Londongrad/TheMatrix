@@ -34,6 +34,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
             {
                 UserId = user.Id,
                 Email = user.Email.Value,
+                PendingEmail = user.PendingEmail,
                 Username = user.Username.Value,
                 AvatarUrl = user.AvatarUrl,
                 IsEmailConfirmed = user.IsEmailConfirmed,

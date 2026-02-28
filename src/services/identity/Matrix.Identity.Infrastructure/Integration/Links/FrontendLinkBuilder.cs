@@ -16,6 +16,16 @@ namespace Matrix.Identity.Infrastructure.Integration.Links
                 rawToken: rawToken);
         }
 
+        public string BuildConfirmEmailChangeLink(
+            Guid userId,
+            string rawToken)
+        {
+            return BuildLink(
+                path: options.Value.ConfirmEmailChangePath,
+                userId: userId,
+                rawToken: rawToken);
+        }
+
         public string BuildResetPasswordLink(
             Guid userId,
             string rawToken)

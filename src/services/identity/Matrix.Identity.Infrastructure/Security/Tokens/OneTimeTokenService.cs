@@ -36,6 +36,8 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
             {
                 OneTimeTokenPurpose.EmailConfirmation => TimeSpan.FromMinutes(
                     oneTimeTokenOptions.EmailConfirmationLifetimeMinutes),
+                OneTimeTokenPurpose.EmailChange => TimeSpan.FromMinutes(
+                    oneTimeTokenOptions.EmailChangeLifetimeMinutes),
                 OneTimeTokenPurpose.PasswordReset => TimeSpan.FromMinutes(
                     oneTimeTokenOptions.PasswordResetLifetimeMinutes),
                 _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unsupported token purpose.")
@@ -50,6 +52,8 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
             {
                 OneTimeTokenPurpose.EmailConfirmation => TimeSpan.FromSeconds(
                     oneTimeTokenOptions.EmailConfirmationCooldownSeconds),
+                OneTimeTokenPurpose.EmailChange => TimeSpan.FromSeconds(
+                    oneTimeTokenOptions.EmailChangeCooldownSeconds),
                 OneTimeTokenPurpose.PasswordReset => TimeSpan.FromSeconds(
                     oneTimeTokenOptions.PasswordResetCooldownSeconds),
                 _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unsupported token purpose.")
@@ -63,6 +67,7 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
             return purpose switch
             {
                 OneTimeTokenPurpose.EmailConfirmation => oneTimeTokenOptions.EmailConfirmationMaxDeliveryAttemptsPerHour,
+                OneTimeTokenPurpose.EmailChange => oneTimeTokenOptions.EmailChangeMaxDeliveryAttemptsPerHour,
                 OneTimeTokenPurpose.PasswordReset => oneTimeTokenOptions.PasswordResetMaxDeliveryAttemptsPerHour,
                 _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unsupported token purpose.")
             };

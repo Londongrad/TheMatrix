@@ -120,6 +120,11 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
                     Group: MeGroup,
                     Description: "Change own username."),
                 new(
+                    Key: PermissionKeys.IdentityMeEmailChange,
+                    Service: IdentityService,
+                    Group: MeGroup,
+                    Description: "Request an own email change."),
+                new(
                     Key: PermissionKeys.IdentityMePasswordChange,
                     Service: IdentityService,
                     Group: MeGroup,

@@ -4,6 +4,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
     {
         public Guid UserId { get; init; }
         public string Email { get; init; } = null!;
+        public string? PendingEmail { get; init; }
         public string Username { get; init; } = null!;
         public string? AvatarUrl { get; init; }
         public bool IsEmailConfirmed { get; init; }

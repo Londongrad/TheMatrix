@@ -45,6 +45,38 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Conflict);
         }
 
+        public static MatrixApplicationException PendingEmailAlreadyInUse(string email)
+        {
+            return new MatrixApplicationException(
+                code: "Identity.PendingEmailAlreadyInUse",
+                message: $"Email '{email}' is already reserved by another pending confirmation flow.",
+                errorType: ApplicationErrorType.Conflict);
+        }
+
+        public static MatrixApplicationException EmailChangeRequiresDifferentAddress()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.EmailChange.RequiresDifferentAddress",
+                message: "New email must be different from the current email.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
+        public static MatrixApplicationException EmailChangePendingEmailMissing()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.EmailChange.PendingEmailMissing",
+                message: "There is no pending email change to confirm.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
+        public static MatrixApplicationException EmailChangeRequestThrottled()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.EmailChange.RequestThrottled",
+                message: "Too many email change requests. Please try again in a few minutes.",
+                errorType: ApplicationErrorType.TooManyRequests);
+        }
+
         public static MatrixApplicationException UsernameAlreadyInUse(string username)
         {
             return new MatrixApplicationException(

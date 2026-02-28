@@ -6,6 +6,7 @@ namespace Matrix.Identity.Infrastructure.Integration.Links
 
         public string BaseUrl { get; init; } = "http://localhost:5173";
         public string ConfirmEmailPath { get; init; } = "/confirm-email";
+        public string ConfirmEmailChangePath { get; init; } = "/confirm-email-change";
         public string ResetPasswordPath { get; init; } = "/reset-password";
     }
 }

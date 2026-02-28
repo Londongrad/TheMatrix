@@ -8,6 +8,10 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
         public int EmailConfirmationCooldownSeconds { get; init; } = 60;
         public int EmailConfirmationMaxDeliveryAttemptsPerHour { get; init; } = 5;
 
+        public int EmailChangeLifetimeMinutes { get; init; } = 60 * 24;
+        public int EmailChangeCooldownSeconds { get; init; } = 60;
+        public int EmailChangeMaxDeliveryAttemptsPerHour { get; init; } = 5;
+
         public int PasswordResetLifetimeMinutes { get; init; } = 60;
         public int PasswordResetCooldownSeconds { get; init; } = 60;
         public int PasswordResetMaxDeliveryAttemptsPerHour { get; init; } = 5;

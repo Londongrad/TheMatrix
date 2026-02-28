@@ -29,6 +29,7 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
 
         public const string IdentityMeProfileRead = "identity.me.profile.read";
         public const string IdentityMeUsernameChange = "identity.me.username.change";
+        public const string IdentityMeEmailChange = "identity.me.email.change";
         public const string IdentityMePasswordChange = "identity.me.password.change";
         public const string IdentityMeAvatarChange = "identity.me.avatar.change";
 

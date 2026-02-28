@@ -73,6 +73,29 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
                 cancellationToken: cancellationToken);
         }
 
+        public Task SendEmailChangeConfirmation(
+            string toEmail,
+            string currentEmail,
+            string confirmationLink,
+            CancellationToken cancellationToken)
+        {
+            return SendAsync(
+                toEmail: toEmail,
+                subject: "Confirm your new email",
+                htmlBody:
+                $"""
+                 <p>We received a request to replace the email on your Matrix account.</p>
+                 <p><strong>Current email:</strong> {WebUtility.HtmlEncode(currentEmail)}</p>
+                 <p><strong>New email:</strong> {WebUtility.HtmlEncode(toEmail)}</p>
+                 <p><a href="{confirmationLink}">Confirm new email</a></p>
+                 <p>If you did not request this change, you can ignore this message.</p>
+                 """,
+                plainBody:
+                $"We received a request to replace the email on your Matrix account.{Environment.NewLine}Current email: {currentEmail}{Environment.NewLine}New email: {toEmail}{Environment.NewLine}{Environment.NewLine}Confirm the new email by opening this link: {confirmationLink}{Environment.NewLine}{Environment.NewLine}If you did not request this change, you can ignore this message.",
+                linkForLogging: confirmationLink,
+                cancellationToken: cancellationToken);
+        }
+
         private async Task SendAsync(
             string toEmail,
             string subject,

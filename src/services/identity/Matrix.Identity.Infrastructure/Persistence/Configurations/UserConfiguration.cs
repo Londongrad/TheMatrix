@@ -46,6 +46,13 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.Property(u => u.AvatarUrl)
                .HasMaxLength(512);
 
+            builder.Property(u => u.PendingEmail)
+               .HasMaxLength(256)
+               .IsRequired(false);
+
+            builder.HasIndex(u => u.PendingEmail)
+               .IsUnique();
+
             builder.Property(u => u.PasswordHash)
                .IsRequired();
 

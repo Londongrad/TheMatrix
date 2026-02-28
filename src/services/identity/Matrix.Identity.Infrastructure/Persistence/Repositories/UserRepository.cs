@@ -40,6 +40,17 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                     cancellationToken: cancellationToken);
         }
 
+        public async Task<User?> GetByPendingEmailAsync(
+            string email,
+            CancellationToken cancellationToken = default)
+        {
+            return await Users
+               .Include(u => u.RefreshTokens)
+               .FirstOrDefaultAsync(
+                    predicate: u => u.PendingEmail == email,
+                    cancellationToken: cancellationToken);
+        }
+
         public async Task<bool> IsEmailTakenAsync(
             string email,
             CancellationToken cancellationToken = default)

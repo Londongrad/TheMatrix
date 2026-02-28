@@ -37,6 +37,7 @@ namespace Matrix.Identity.Domain.Entities
         public string? AvatarUrl { get; private set; }
         public Username Username { get; private set; } = null!;
         public Email Email { get; private set; } = null!;
+        public string? PendingEmail { get; private set; }
 
         /// <summary>
         ///     Хэш пароля. Сам хэш вычисляется вне домена (в Application/Infrastructure).
@@ -84,6 +85,23 @@ namespace Matrix.Identity.Domain.Entities
             if (IsEmailConfirmed)
                 return;
 
+            IsEmailConfirmed = true;
+        }
+
+        public void RequestEmailChange(
+            Email newEmail,
+            DateTime requestedAtUtc)
+        {
+            PendingEmail = newEmail?.Value ?? throw new ArgumentNullException(nameof(newEmail));
+        }
+
+        public void ConfirmPendingEmailChange()
+        {
+            if (string.IsNullOrWhiteSpace(PendingEmail))
+                throw new InvalidOperationException("Pending email is not set.");
+
+            Email = ValueObjects.Email.Create(PendingEmail);
+            PendingEmail = null;
             IsEmailConfirmed = true;
         }
 

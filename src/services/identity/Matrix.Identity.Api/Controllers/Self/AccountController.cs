@@ -1,5 +1,6 @@
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
+using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername;
 using Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
@@ -9,6 +10,7 @@ using Matrix.Identity.Contracts.Self.Account.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace Matrix.Identity.Api.Controllers.Self
 {
@@ -34,6 +36,7 @@ namespace Matrix.Identity.Api.Controllers.Self
             {
                 UserId = result.UserId,
                 Email = result.Email,
+                PendingEmail = result.PendingEmail,
                 Username = result.Username,
                 AvatarUrl = result.AvatarUrl,
                 IsEmailConfirmed = result.IsEmailConfirmed,
@@ -74,7 +77,7 @@ namespace Matrix.Identity.Api.Controllers.Self
 
         #endregion [ Profile ]
 
-        #region [ Avatar & Password ]
+        #region [ Identity Updates ]
 
         [HttpPut("username")]
         public async Task<ActionResult<ChangeUsernameResponse>> ChangeUsername(
@@ -90,6 +93,27 @@ namespace Matrix.Identity.Api.Controllers.Self
             var response = new ChangeUsernameResponse
             {
                 Username = username
+            };
+
+            return Ok(response);
+        }
+
+        [HttpPut("email")]
+        public async Task<ActionResult<ChangeEmailResponse>> ChangeEmail(
+            [FromBody] ChangeEmailRequest request,
+            CancellationToken cancellationToken)
+        {
+            string pendingEmail = await _sender.Send(
+                request: new RequestEmailChangeCommand(
+                    NewEmail: request.NewEmail,
+                    CurrentPassword: request.CurrentPassword,
+                    IpAddress: GetIpAddress(),
+                    UserAgent: GetUserAgent()),
+                cancellationToken: cancellationToken);
+
+            var response = new ChangeEmailResponse
+            {
+                PendingEmail = pendingEmail
             };
 
             return Ok(response);
@@ -152,6 +176,21 @@ namespace Matrix.Identity.Api.Controllers.Self
             return NoContent();
         }
 
-        #endregion [ Avatar & Password ]
+        #endregion [ Identity Updates ]
+
+        private string GetUserAgent()
+        {
+            return Request.Headers.UserAgent.ToString();
+        }
+
+        private string? GetIpAddress()
+        {
+            if (Request.Headers.TryGetValue(
+                    key: "X-Real-IP",
+                    value: out StringValues realIpHeader))
+                return realIpHeader.ToString();
+
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
     }
 }

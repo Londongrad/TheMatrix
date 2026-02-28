@@ -16,6 +16,10 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             string normalizedEmail,
             CancellationToken cancellationToken = default);
 
+        Task<User?> GetByPendingEmailAsync(
+            string normalizedEmail,
+            CancellationToken cancellationToken = default);
+
         Task<User?> GetByUsernameAsync(
             string login,
             CancellationToken cancellationToken = default);

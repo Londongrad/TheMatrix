@@ -17,5 +17,11 @@ namespace Matrix.Identity.Application.Abstractions.Services
             string previousUsername,
             string newUsername,
             CancellationToken cancellationToken);
+
+        Task SendEmailChangeConfirmation(
+            string toEmail,
+            string currentEmail,
+            string confirmationLink,
+            CancellationToken cancellationToken);
     }
 }

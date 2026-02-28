@@ -5,6 +5,7 @@ using Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser;
 using Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken;
 using Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset;
 using Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail;
+using Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmation;
 using Matrix.Identity.Contracts.Self.Auth.Requests;
 using Matrix.Identity.Contracts.Self.Auth.Responses;
@@ -143,6 +144,24 @@ namespace Matrix.Identity.Api.Controllers.Self
             CancellationToken cancellationToken)
         {
             var command = new ConfirmEmailCommand(
+                UserId: request.UserId,
+                Token: request.Token,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("email-change/confirm")]
+        public async Task<IActionResult> ConfirmEmailChange(
+            [FromBody] ConfirmEmailChangeRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new ConfirmEmailChangeCommand(
                 UserId: request.UserId,
                 Token: request.Token,
                 IpAddress: GetIpAddress(),

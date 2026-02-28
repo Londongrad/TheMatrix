@@ -16,6 +16,11 @@ namespace Matrix.Identity.Application.Abstractions.Services.Security
             string? ipAddress,
             CancellationToken cancellationToken);
 
+        Task<bool> IsEmailChangeRequestAllowedAsync(
+            string normalizedEmail,
+            string? ipAddress,
+            CancellationToken cancellationToken);
+
         Task<bool> IsPasswordResetRequestAllowedAsync(
             string normalizedEmail,
             string? ipAddress,

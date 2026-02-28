@@ -84,6 +84,21 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
                 cancellationToken: cancellationToken);
         }
 
+        public Task<bool> IsEmailChangeRequestAllowedAsync(
+            string normalizedEmail,
+            string? ipAddress,
+            CancellationToken cancellationToken)
+        {
+            return IsRequestAllowedAsync(
+                eventType: SecurityAuditEventType.EmailChangeRequested,
+                subject: normalizedEmail,
+                ipAddress: ipAddress,
+                windowMinutes: _options.EmailChangeRequestWindowMinutes,
+                maxAttemptsPerSubject: _options.EmailChangeRequestMaxAttemptsPerEmail,
+                maxAttemptsPerIp: _options.EmailChangeRequestMaxAttemptsPerIp,
+                cancellationToken: cancellationToken);
+        }
+
         public Task<bool> IsPasswordResetRequestAllowedAsync(
             string normalizedEmail,
             string? ipAddress,
