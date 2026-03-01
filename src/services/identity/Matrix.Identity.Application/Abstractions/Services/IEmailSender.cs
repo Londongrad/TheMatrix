@@ -31,5 +31,10 @@ namespace Matrix.Identity.Application.Abstractions.Services
         Task SendAccountRestored(
             string toEmail,
             CancellationToken cancellationToken);
+
+        Task SendAccountRecovery(
+            string toEmail,
+            string recoveryLink,
+            CancellationToken cancellationToken);
     }
 }

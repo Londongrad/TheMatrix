@@ -8,5 +8,6 @@ namespace Matrix.Identity.Infrastructure.Integration.Links
         public string ConfirmEmailPath { get; init; } = "/confirm-email";
         public string ConfirmEmailChangePath { get; init; } = "/confirm-email-change";
         public string ResetPasswordPath { get; init; } = "/reset-password";
+        public string ConfirmAccountRecoveryPath { get; init; } = "/confirm-account-recovery";
     }
 }

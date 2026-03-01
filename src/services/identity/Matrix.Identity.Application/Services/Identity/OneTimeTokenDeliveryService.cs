@@ -48,7 +48,24 @@ namespace Matrix.Identity.Application.Services.Identity
                 purpose: OneTimeTokenPurpose.PasswordReset,
                 buildLink: frontendLinkBuilder.BuildResetPasswordLink,
                 sendEmail: emailSender.SendPasswordReset,
-                skipUser: _ => false,
+                skipUser: user => user.IsDeleted,
+                cancellationToken: cancellationToken);
+        }
+
+        public Task SendAccountRecoveryAsync(
+            string email,
+            string? ipAddress,
+            string? userAgent,
+            CancellationToken cancellationToken)
+        {
+            return SendAsync(
+                email: email,
+                ipAddress: ipAddress,
+                userAgent: userAgent,
+                purpose: OneTimeTokenPurpose.AccountRecovery,
+                buildLink: frontendLinkBuilder.BuildAccountRecoveryLink,
+                sendEmail: emailSender.SendAccountRecovery,
+                skipUser: user => !user.IsDeleted,
                 cancellationToken: cancellationToken);
         }
 
@@ -65,15 +82,22 @@ namespace Matrix.Identity.Application.Services.Identity
             var normalizedEmail = Email.Create(email);
             string subject = normalizedEmail.Value;
 
-            bool requestAllowed = purpose == OneTimeTokenPurpose.EmailConfirmation
-                ? await securityAuditService.IsEmailConfirmationRequestAllowedAsync(
+            bool requestAllowed = purpose switch
+            {
+                OneTimeTokenPurpose.EmailConfirmation => await securityAuditService.IsEmailConfirmationRequestAllowedAsync(
                     normalizedEmail: subject,
                     ipAddress: ipAddress,
-                    cancellationToken: cancellationToken)
-                : await securityAuditService.IsPasswordResetRequestAllowedAsync(
+                    cancellationToken: cancellationToken),
+                OneTimeTokenPurpose.PasswordReset => await securityAuditService.IsPasswordResetRequestAllowedAsync(
                     normalizedEmail: subject,
                     ipAddress: ipAddress,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken),
+                OneTimeTokenPurpose.AccountRecovery => await securityAuditService.IsAccountRecoveryRequestAllowedAsync(
+                    normalizedEmail: subject,
+                    ipAddress: ipAddress,
+                    cancellationToken: cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null)
+            };
 
             if (!requestAllowed)
             {
@@ -239,6 +263,7 @@ namespace Matrix.Identity.Application.Services.Identity
             {
                 OneTimeTokenPurpose.EmailConfirmation => SecurityAuditEventType.EmailConfirmationRequested,
                 OneTimeTokenPurpose.PasswordReset => SecurityAuditEventType.PasswordResetRequested,
+                OneTimeTokenPurpose.AccountRecovery => SecurityAuditEventType.AccountRecoveryRequested,
                 _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null)
             };
 

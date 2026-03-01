@@ -4,6 +4,7 @@ namespace Matrix.Identity.Domain.Enums
     {
         EmailConfirmation = 1,
         PasswordReset = 2,
-        EmailChange = 3
+        EmailChange = 3,
+        AccountRecovery = 4
     }
 }

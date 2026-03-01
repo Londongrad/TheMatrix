@@ -25,5 +25,10 @@ namespace Matrix.Identity.Application.Abstractions.Services.Security
             string normalizedEmail,
             string? ipAddress,
             CancellationToken cancellationToken);
+
+        Task<bool> IsAccountRecoveryRequestAllowedAsync(
+            string normalizedEmail,
+            string? ipAddress,
+            CancellationToken cancellationToken);
     }
 }

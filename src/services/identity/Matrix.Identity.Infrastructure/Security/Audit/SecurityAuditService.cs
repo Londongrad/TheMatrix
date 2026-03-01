@@ -114,6 +114,21 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
                 cancellationToken: cancellationToken);
         }
 
+        public Task<bool> IsAccountRecoveryRequestAllowedAsync(
+            string normalizedEmail,
+            string? ipAddress,
+            CancellationToken cancellationToken)
+        {
+            return IsRequestAllowedAsync(
+                eventType: SecurityAuditEventType.AccountRecoveryRequested,
+                subject: normalizedEmail,
+                ipAddress: ipAddress,
+                windowMinutes: _options.AccountRecoveryRequestWindowMinutes,
+                maxAttemptsPerSubject: _options.AccountRecoveryRequestMaxAttemptsPerEmail,
+                maxAttemptsPerIp: _options.AccountRecoveryRequestMaxAttemptsPerIp,
+                cancellationToken: cancellationToken);
+        }
+
         private async Task<bool> IsRequestAllowedAsync(
             SecurityAuditEventType eventType,
             string subject,

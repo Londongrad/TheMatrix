@@ -13,5 +13,11 @@ namespace Matrix.Identity.Application.Abstractions.Services
             string? ipAddress,
             string? userAgent,
             CancellationToken cancellationToken);
+
+        Task SendAccountRecoveryAsync(
+            string email,
+            string? ipAddress,
+            string? userAgent,
+            CancellationToken cancellationToken);
     }
 }

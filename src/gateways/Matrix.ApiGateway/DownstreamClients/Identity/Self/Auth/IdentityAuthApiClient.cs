@@ -102,6 +102,34 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
                 cancellationToken: cancellationToken);
         }
 
+        public async Task RequestAccountRecoveryAsync(
+            RequestAccountRecoveryRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
+                requestUri: RequestAccountRecoveryEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task ConfirmAccountRecoveryAsync(
+            ConfirmAccountRecoveryRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage resp = await _httpClient.PostAsJsonAsync(
+                requestUri: ConfirmAccountRecoveryEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task ResetPasswordAsync(
             ResetPasswordRequest request,
             CancellationToken cancellationToken = default)
@@ -146,6 +174,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth
         private const string SendEmailConfirmationEndpoint = AuthBaseUrl + "/email-confirmation/send";
         private const string ConfirmEmailEndpoint = AuthBaseUrl + "/email-confirmation/confirm";
         private const string ForgotPasswordEndpoint = AuthBaseUrl + "/password/forgot";
+        private const string RequestAccountRecoveryEndpoint = AuthBaseUrl + "/account-recovery/request";
+        private const string ConfirmAccountRecoveryEndpoint = AuthBaseUrl + "/account-recovery/confirm";
         private const string ResetPasswordEndpoint = AuthBaseUrl + "/password/reset";
 
         #endregion [ Constants ]

@@ -15,5 +15,9 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
         public int PasswordResetLifetimeMinutes { get; init; } = 60;
         public int PasswordResetCooldownSeconds { get; init; } = 60;
         public int PasswordResetMaxDeliveryAttemptsPerHour { get; init; } = 5;
+
+        public int AccountRecoveryLifetimeMinutes { get; init; } = 120;
+        public int AccountRecoveryCooldownSeconds { get; init; } = 60;
+        public int AccountRecoveryMaxDeliveryAttemptsPerHour { get; init; } = 5;
     }
 }

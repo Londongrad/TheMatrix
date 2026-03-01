@@ -4,27 +4,26 @@ using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
-using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.Errors;
+using Matrix.Identity.Domain.Enums;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
+namespace Matrix.Identity.Application.UseCases.Self.Auth.ConfirmAccountRecovery
 {
-    public sealed class ResetPasswordCommandHandler(
+    public sealed class ConfirmAccountRecoveryCommandHandler(
         IUserRepository userRepository,
-        IUserSessionRepository userSessionRepository,
         IOneTimeTokenRepository oneTimeTokenRepository,
         IOneTimeTokenService oneTimeTokenService,
-        IPasswordHasher passwordHasher,
         IClock clock,
         IUnitOfWork unitOfWork,
-        ISecurityAuditService securityAuditService) : IRequestHandler<ResetPasswordCommand>
+        ISecurityAuditService securityAuditService)
+        : IRequestHandler<ConfirmAccountRecoveryCommand>
     {
         public async Task Handle(
-            ResetPasswordCommand request,
+            ConfirmAccountRecoveryCommand request,
             CancellationToken cancellationToken)
         {
-            User? user = await userRepository.GetByIdWithRefreshTokensAsync(
+            User? user = await userRepository.GetByIdAsync(
                 userId: request.UserId,
                 cancellationToken: cancellationToken);
 
@@ -32,31 +31,20 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
             {
                 await WriteAuditAsync(
                     request: request,
-                    isSuccessful: false,
                     userId: null,
+                    subject: request.UserId.ToString(),
+                    isSuccessful: false,
                     details: "UserNotFound",
                     cancellationToken: cancellationToken);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(request.UserId));
             }
 
-            if (user.IsDeleted)
-            {
-                await WriteAuditAsync(
-                    request: request,
-                    isSuccessful: false,
-                    userId: user.Id,
-                    details: "AccountDeleted",
-                    cancellationToken: cancellationToken);
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-                throw ApplicationErrorsFactory.AccountDeleted();
-            }
-
             string tokenHash = oneTimeTokenService.HashToken(request.Token);
 
             OneTimeToken? token = await oneTimeTokenRepository.Find(
                 userId: user.Id,
-                purpose: OneTimeTokenPurpose.PasswordReset,
+                purpose: OneTimeTokenPurpose.AccountRecovery,
                 tokenHash: tokenHash,
                 cancellationToken: cancellationToken);
 
@@ -64,8 +52,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
             {
                 await WriteAuditAsync(
                     request: request,
-                    isSuccessful: false,
                     userId: user.Id,
+                    subject: user.Email.Value,
+                    isSuccessful: false,
                     details: "InvalidToken",
                     cancellationToken: cancellationToken);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -73,54 +62,49 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
             }
 
             DateTime nowUtc = clock.UtcNow;
-
             token.MarkUsed(nowUtc);
 
-            string newPasswordHash = passwordHasher.Hash(request.NewPassword);
-            user.ChangePasswordHash(newPasswordHash);
-            user.RevokeAllRefreshTokens(
-                reason: RefreshTokenRevocationReason.PasswordChanged,
-                revokedAtUtc: nowUtc);
+            string details = "AlreadyActive";
 
-            IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
-                userId: user.Id,
-                cancellationToken: cancellationToken);
-
-            foreach (UserSession session in sessions)
+            if (user.IsDeleted)
             {
-                if (!session.IsActive())
-                    continue;
-
-                session.Revoke(
-                    reason: RefreshTokenRevocationReason.PasswordChanged,
-                    revokedAtUtc: nowUtc);
+                user.Restore();
+                user.BumpPermissionsVersion();
+                details = user.IsLocked
+                    ? "RestoredButLocked"
+                    : "Restored";
             }
 
             await WriteAuditAsync(
                 request: request,
-                isSuccessful: true,
                 userId: user.Id,
-                details: null,
+                subject: user.Email.Value,
+                isSuccessful: true,
+                details: details,
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         private Task WriteAuditAsync(
-            ResetPasswordCommand request,
-            bool isSuccessful,
+            ConfirmAccountRecoveryCommand request,
             Guid? userId,
+            string subject,
+            bool isSuccessful,
             string? details,
             CancellationToken cancellationToken)
         {
             return securityAuditService.WriteAsync(
                 entry: new SecurityAuditEntry(
-                    EventType: SecurityAuditEventType.PasswordResetCompleted,
+                    EventType: SecurityAuditEventType.AccountRestored,
                     IsSuccessful: isSuccessful,
                     UserId: userId,
-                    Subject: request.UserId.ToString(),
+                    SessionId: null,
+                    Subject: subject,
                     IpAddress: request.IpAddress,
                     UserAgent: request.UserAgent,
+                    DeviceId: null,
+                    DeviceName: null,
                     Details: details),
                 cancellationToken: cancellationToken);
         }

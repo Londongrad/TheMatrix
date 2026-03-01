@@ -19,5 +19,9 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
         public int PasswordResetRequestWindowMinutes { get; init; } = 60;
         public int PasswordResetRequestMaxAttemptsPerEmail { get; init; } = 5;
         public int PasswordResetRequestMaxAttemptsPerIp { get; init; } = 20;
+
+        public int AccountRecoveryRequestWindowMinutes { get; init; } = 60;
+        public int AccountRecoveryRequestMaxAttemptsPerEmail { get; init; } = 5;
+        public int AccountRecoveryRequestMaxAttemptsPerIp { get; init; } = 20;
     }
 }

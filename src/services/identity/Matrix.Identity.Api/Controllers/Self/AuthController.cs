@@ -3,7 +3,9 @@ using Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword;
 using Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken;
 using Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser;
 using Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken;
+using Matrix.Identity.Application.UseCases.Self.Auth.RequestAccountRecovery;
 using Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset;
+using Matrix.Identity.Application.UseCases.Self.Auth.ConfirmAccountRecovery;
 using Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail;
 using Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmation;
@@ -181,6 +183,41 @@ namespace Matrix.Identity.Api.Controllers.Self
         {
             var command = new SendPasswordResetCommand(
                 Email: request.Email,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("account-recovery/request")]
+        public async Task<IActionResult> RequestAccountRecovery(
+            [FromBody] RequestAccountRecoveryRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new RequestAccountRecoveryCommand(
+                Email: request.Email,
+                IpAddress: GetIpAddress(),
+                UserAgent: GetUserAgent());
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("account-recovery/confirm")]
+        public async Task<IActionResult> ConfirmAccountRecovery(
+            [FromBody] ConfirmAccountRecoveryRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new ConfirmAccountRecoveryCommand(
+                UserId: request.UserId,
+                Token: request.Token,
                 IpAddress: GetIpAddress(),
                 UserAgent: GetUserAgent());
 

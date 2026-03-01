@@ -163,6 +163,30 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return NoContent();
         }
 
+        [HttpPost("account-recovery/request")]
+        public async Task<IActionResult> RequestAccountRecovery(
+            [FromBody] RequestAccountRecoveryRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _identityAuthClient.RequestAccountRecoveryAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("account-recovery/confirm")]
+        public async Task<IActionResult> ConfirmAccountRecovery(
+            [FromBody] ConfirmAccountRecoveryRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _identityAuthClient.ConfirmAccountRecoveryAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
         [HttpPost("password/reset")]
         public async Task<IActionResult> ResetPassword(
             [FromBody] ResetPasswordRequest request,

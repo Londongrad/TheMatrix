@@ -13,5 +13,9 @@ namespace Matrix.Identity.Application.Abstractions.Services
         string BuildResetPasswordLink(
             Guid userId,
             string rawToken);
+
+        string BuildAccountRecoveryLink(
+            Guid userId,
+            string rawToken);
     }
 }

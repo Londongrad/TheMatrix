@@ -133,6 +133,26 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
                 cancellationToken: cancellationToken);
         }
 
+        public Task SendAccountRecovery(
+            string toEmail,
+            string recoveryLink,
+            CancellationToken cancellationToken)
+        {
+            return SendAsync(
+                toEmail: toEmail,
+                subject: "Restore your account",
+                htmlBody:
+                $"""
+                 <p>We received a request to restore your soft-deleted Matrix account.</p>
+                 <p><a href="{recoveryLink}">Restore account</a></p>
+                 <p>If you did not request this, you can ignore this message.</p>
+                 """,
+                plainBody:
+                $"We received a request to restore your soft-deleted Matrix account.{Environment.NewLine}Restore the account by opening this link: {recoveryLink}{Environment.NewLine}{Environment.NewLine}If you did not request this, you can ignore this message.",
+                linkForLogging: recoveryLink,
+                cancellationToken: cancellationToken);
+        }
+
         private async Task SendAsync(
             string toEmail,
             string subject,

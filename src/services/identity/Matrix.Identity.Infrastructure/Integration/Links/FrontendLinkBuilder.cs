@@ -36,6 +36,16 @@ namespace Matrix.Identity.Infrastructure.Integration.Links
                 rawToken: rawToken);
         }
 
+        public string BuildAccountRecoveryLink(
+            Guid userId,
+            string rawToken)
+        {
+            return BuildLink(
+                path: options.Value.ConfirmAccountRecoveryPath,
+                userId: userId,
+                rawToken: rawToken);
+        }
+
         private string BuildLink(
             string path,
             Guid userId,
