@@ -58,6 +58,20 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
                 cancellationToken: cancellationToken);
         }
 
+        public async Task DeleteAccountAsync(
+            DeleteAccountRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _httpClient.PostAsJsonAsync(
+                requestUri: DeleteAccountEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task<IReadOnlyCollection<SecurityActivityItemResponse>> GetSecurityActivityAsync(
             int limit,
             CancellationToken cancellationToken)
@@ -90,6 +104,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
         private const string SecurityActivityEndpoint = AccountBaseEndpoint + "/security-activity";
         private const string AvatarEndpoint = AccountBaseEndpoint + "/avatar";
         private const string PasswordEndpoint = AccountBaseEndpoint + "/password";
+        private const string DeleteAccountEndpoint = AccountBaseEndpoint + "/delete";
 
         #endregion [ Constants ]
     }

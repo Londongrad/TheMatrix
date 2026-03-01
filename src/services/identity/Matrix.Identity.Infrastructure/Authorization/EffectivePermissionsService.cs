@@ -84,7 +84,7 @@ namespace Matrix.Identity.Infrastructure.Authorization
 
             int permissionsVersion = await _db.Users
                .AsNoTracking()
-               .Where(user => user.Id == userId)
+               .Where(user => user.Id == userId && !user.IsDeleted)
                .Select(user => user.PermissionsVersion)
                .SingleAsync(cancellationToken);
 

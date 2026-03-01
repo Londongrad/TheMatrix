@@ -96,6 +96,25 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
                 cancellationToken: cancellationToken);
         }
 
+        public Task SendAccountDeleted(
+            string toEmail,
+            CancellationToken cancellationToken)
+        {
+            return SendAsync(
+                toEmail: toEmail,
+                subject: "Your account was deleted",
+                htmlBody:
+                """
+                <p>Your Matrix account was soft-deleted.</p>
+                <p>Sign-in is now disabled and active sessions were revoked.</p>
+                <p>If you need the account restored later, contact support or an administrator.</p>
+                """,
+                plainBody:
+                $"Your Matrix account was soft-deleted.{Environment.NewLine}Sign-in is now disabled and active sessions were revoked.{Environment.NewLine}{Environment.NewLine}If you need the account restored later, contact support or an administrator.",
+                linkForLogging: "account-deleted",
+                cancellationToken: cancellationToken);
+        }
+
         private async Task SendAsync(
             string toEmail,
             string subject,

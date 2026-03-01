@@ -1,11 +1,15 @@
 using Matrix.ApiGateway.Common.Urls;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
+using Matrix.ApiGateway.Authorization.Caching;
 using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Matrix.ApiGateway.Controllers.Identity.Self
 {
@@ -14,10 +18,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
     [Route("api/[controller]")]
     public sealed class AccountController(
         IIdentityAccountClient identityAccountClient,
-        IIdentityAssetsClient identityAssetsClient) : ControllerBase
+        IIdentityAssetsClient identityAssetsClient,
+        IDistributedCache distributedCache) : ControllerBase
     {
         private readonly IIdentityAccountClient _identityAccountClient = identityAccountClient;
         private readonly IIdentityAssetsClient _identityAssetsClient = identityAssetsClient;
+        private readonly IDistributedCache _distributedCache = distributedCache;
 
         [HttpGet("profile")]
         public async Task<ActionResult<UserProfileResponse>> GetProfile(CancellationToken cancellationToken)
@@ -81,6 +87,29 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return NoContent();
         }
 
+        [HttpPost("delete")]
+        public async Task<IActionResult> DeleteAccount(
+            [FromBody] DeleteAccountRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _identityAccountClient.DeleteAccountAsync(
+                request: request,
+                cancellationToken: cancellationToken);
+
+            Guid? userId = TryGetCurrentUserId();
+            if (userId.HasValue)
+            {
+                await _distributedCache.RemoveAsync(
+                    key: AuthorizationCacheKeys.PermissionsVersion(userId.Value),
+                    token: cancellationToken);
+                await _distributedCache.RemoveAsync(
+                    key: AuthorizationCacheKeys.PermissionsVersionStale(userId.Value),
+                    token: cancellationToken);
+            }
+
+            return NoContent();
+        }
+
         [AllowAnonymous]
         [HttpGet("/avatars/{fileName}")]
         public async Task<IActionResult> GetAvatar(
@@ -106,6 +135,19 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return File(
                 fileContents: bytes,
                 contentType: contentType);
+        }
+
+        private Guid? TryGetCurrentUserId()
+        {
+            string? userIdValue =
+                User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return Guid.TryParse(
+                input: userIdValue,
+                result: out Guid userId)
+                ? userId
+                : null;
         }
     }
 }

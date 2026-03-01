@@ -29,6 +29,14 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Forbidden);
         }
 
+        public static MatrixApplicationException AccountDeleted()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.AccountDeleted",
+                message: "This account was deleted and cannot be used until it is restored.",
+                errorType: ApplicationErrorType.Forbidden);
+        }
+
         public static MatrixApplicationException InvalidRefreshToken()
         {
             return new MatrixApplicationException(
@@ -171,6 +179,14 @@ namespace Matrix.Identity.Application.Errors
                 code: "Identity.InvalidCurrentPassword",
                 message: "Current password is incorrect.",
                 errorType: ApplicationErrorType.Unauthorized);
+        }
+
+        public static MatrixApplicationException AccountDeletionRequiresPassword()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.AccountDeletionRequiresPassword",
+                message: "Current password is required to delete the account.",
+                errorType: ApplicationErrorType.Validation);
         }
 
         public static MatrixApplicationException PermissionNotFound(string key)

@@ -66,6 +66,7 @@ namespace Matrix.Identity.Domain.Enums
         AdminRevoked = 3,
         UserRevoked = 4,
         SessionReplaced = 5,
-        SecurityEvent = 6
+        SecurityEvent = 6,
+        AccountDeleted = 7
     }
 }

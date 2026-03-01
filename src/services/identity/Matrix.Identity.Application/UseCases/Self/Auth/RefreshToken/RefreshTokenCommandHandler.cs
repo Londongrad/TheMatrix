@@ -33,6 +33,23 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.InvalidRefreshToken();
 
+            if (!user.CanLogin())
+            {
+                DomainRefreshToken? activeToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash);
+                if (activeToken is not null && activeToken.IsActive())
+                    activeToken.Revoke(
+                        reason: user.IsDeleted
+                            ? RefreshTokenRevocationReason.AccountDeleted
+                            : RefreshTokenRevocationReason.UserLocked,
+                        revokedAtUtc: DateTime.UtcNow);
+
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                throw user.IsDeleted
+                    ? ApplicationErrorsFactory.AccountDeleted()
+                    : ApplicationErrorsFactory.UserBlocked();
+            }
+
             DomainRefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash) ??
                                               throw ApplicationErrorsFactory.InvalidRefreshToken();
 

@@ -13,6 +13,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
             ChangePasswordRequest request,
             CancellationToken cancellationToken = default);
 
+        Task DeleteAccountAsync(
+            DeleteAccountRequest request,
+            CancellationToken cancellationToken = default);
+
         Task<UserProfileResponse> GetProfileAsync(CancellationToken cancellationToken);
 
         Task<IReadOnlyCollection<SecurityActivityItemResponse>> GetSecurityActivityAsync(

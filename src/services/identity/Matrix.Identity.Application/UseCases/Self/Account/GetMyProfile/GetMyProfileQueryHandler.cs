@@ -25,6 +25,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);
 
+            if (user.IsDeleted)
+                throw ApplicationErrorsFactory.AccountDeleted();
+
             AuthorizationContext authContext =
                 await permissionsService.GetAuthContextAsync(
                     userId: userId,

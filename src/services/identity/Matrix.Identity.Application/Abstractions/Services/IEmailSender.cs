@@ -23,5 +23,9 @@ namespace Matrix.Identity.Application.Abstractions.Services
             string currentEmail,
             string confirmationLink,
             CancellationToken cancellationToken);
+
+        Task SendAccountDeleted(
+            string toEmail,
+            CancellationToken cancellationToken);
     }
 }

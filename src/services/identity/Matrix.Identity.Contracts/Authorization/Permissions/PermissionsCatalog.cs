@@ -125,6 +125,11 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
                     Group: MeGroup,
                     Description: "Request an own email change."),
                 new(
+                    Key: PermissionKeys.IdentityMeAccountDelete,
+                    Service: IdentityService,
+                    Group: MeGroup,
+                    Description: "Soft-delete own account."),
+                new(
                     Key: PermissionKeys.IdentityMePasswordChange,
                     Service: IdentityService,
                     Group: MeGroup,

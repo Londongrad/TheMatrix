@@ -3,6 +3,7 @@ using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
 using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername;
 using Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar;
+using Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
 using Matrix.Identity.Contracts.Self.Account.Requests;
@@ -171,6 +172,21 @@ namespace Matrix.Identity.Api.Controllers.Self
 
             await _sender.Send(
                 request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("delete")]
+        public async Task<IActionResult> DeleteAccount(
+            [FromBody] DeleteAccountRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _sender.Send(
+                request: new DeleteMyAccountCommand(
+                    CurrentPassword: request.CurrentPassword,
+                    IpAddress: GetIpAddress(),
+                    UserAgent: GetUserAgent()),
                 cancellationToken: cancellationToken);
 
             return NoContent();

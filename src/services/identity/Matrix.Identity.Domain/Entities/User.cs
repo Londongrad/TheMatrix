@@ -48,6 +48,8 @@ namespace Matrix.Identity.Domain.Entities
         public DateTime? LastUsernameChangedAtUtc { get; private set; }
 
         public bool IsLocked { get; private set; }
+        public bool IsDeleted { get; private set; }
+        public DateTime? DeletedAtUtc { get; private set; }
 
         public DateTime CreatedAtUtc { get; private set; }
 
@@ -72,6 +74,7 @@ namespace Matrix.Identity.Domain.Entities
             CreatedAtUtc = DateTime.UtcNow;
             IsEmailConfirmed = false;
             IsLocked = false;
+            IsDeleted = false;
 
             PermissionsVersion = 1;
         }
@@ -126,6 +129,22 @@ namespace Matrix.Identity.Domain.Entities
             PasswordHash = newPasswordHash;
         }
 
+        public void SoftDelete(DateTime deletedAtUtc)
+        {
+            if (IsDeleted)
+                return;
+
+            IsDeleted = true;
+            DeletedAtUtc = deletedAtUtc;
+            PendingEmail = null;
+        }
+
+        public void Restore()
+        {
+            IsDeleted = false;
+            DeletedAtUtc = null;
+        }
+
         public void Lock()
         {
             IsLocked = true;
@@ -138,7 +157,7 @@ namespace Matrix.Identity.Domain.Entities
 
         public bool CanLogin()
         {
-            return !IsLocked;
+            return !IsLocked && !IsDeleted;
         }
 
         /// <summary>

@@ -96,16 +96,20 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
 
             if (!user.CanLogin())
             {
+                bool isDeleted = user.IsDeleted;
+
                 await WriteLoginAuditAsync(
                     request: request,
                     isSuccessful: false,
                     userId: user.Id,
                     sessionId: null,
-                    details: "UserBlocked",
+                    details: isDeleted ? "AccountDeleted" : "UserBlocked",
                     loginSubject: loginSubject,
                     cancellationToken: cancellationToken);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
-                throw ApplicationErrorsFactory.UserBlocked();
+                throw isDeleted
+                    ? ApplicationErrorsFactory.AccountDeleted()
+                    : ApplicationErrorsFactory.UserBlocked();
             }
 
             RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);

@@ -134,7 +134,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         {
             return await Users
                .AsNoTracking()
-               .Where(u => u.Id == userId)
+               .Where(u => u.Id == userId && !u.IsDeleted)
                .Select(u => (int?)u.PermissionsVersion)
                .FirstOrDefaultAsync(cancellationToken);
         }
