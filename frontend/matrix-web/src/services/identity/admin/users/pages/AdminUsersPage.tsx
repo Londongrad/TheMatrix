@@ -23,6 +23,7 @@ export default function AdminUsersPage() {
         totalPages,
         refresh,
         toggleLock,
+        restore,
     } = useAdminUsers();
 
     return (
@@ -66,6 +67,7 @@ export default function AdminUsersPage() {
                             user={user}
                             onOpenAccess={setSelectedUserId}
                             onToggleLock={toggleLock}
+                            onRestore={restore}
                             isLoading={isLoading}
                         />
                     ))}

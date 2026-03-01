@@ -2,6 +2,7 @@ export const PermissionKeys = {
     IdentityUsersRead: "identity.admin.users.read",
     IdentityUsersLock: "identity.admin.users.lock",
     IdentityUsersUnlock: "identity.admin.users.unlock",
+    IdentityUsersRestore: "identity.admin.users.restore",
     IdentityUserRolesRead: "identity.admin.users.roles.read",
     IdentityUserRolesUpdate: "identity.admin.users.roles.update",
     IdentityUserPermissionsRead: "identity.admin.users.permissions.read",

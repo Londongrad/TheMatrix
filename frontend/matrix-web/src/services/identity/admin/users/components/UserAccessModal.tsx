@@ -33,6 +33,7 @@ export default function UserAccessModal({
         setSelectedRoleIds,
         saveRoles,
         updatePermission,
+        isDeletedUser,
         isAccessReadOnly,
         readOnlyReason,
     } = useUserAccess(userId);
@@ -77,9 +78,27 @@ export default function UserAccessModal({
                                 <div>{details.permissionsVersion}</div>
                             </div>
                             <div>
+                                <div className="mx-admin-users__muted">Status</div>
+                                <div>
+                                    {details.isDeleted ? (
+                                        <UserBadge kind="bad">Deleted</UserBadge>
+                                    ) : details.isLocked ? (
+                                        <UserBadge kind="warn">Locked</UserBadge>
+                                    ) : (
+                                        <UserBadge kind="ok">Active</UserBadge>
+                                    )}
+                                </div>
+                            </div>
+                            <div>
                                 <div className="mx-admin-users__muted">Created</div>
                                 <div>{formatAdminUtc(details.createdAtUtc)}</div>
                             </div>
+                            {details.deletedAtUtc ? (
+                                <div>
+                                    <div className="mx-admin-users__muted">Deleted at</div>
+                                    <div>{formatAdminUtc(details.deletedAtUtc)}</div>
+                                </div>
+                            ) : null}
                             <div>
                                 <div className="mx-admin-users__muted">Last visit</div>
                                 <div
@@ -96,6 +115,11 @@ export default function UserAccessModal({
                                     ) : null}
                                 </div>
                             </div>
+                            {isDeletedUser ? (
+                                <div className="mx-admin-users__muted">
+                                    Restore this account from the users list before changing roles or permission overrides.
+                                </div>
+                            ) : null}
                         </div>
                     </div>
 

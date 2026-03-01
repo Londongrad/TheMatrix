@@ -6,6 +6,7 @@ export interface UserListItemResponse {
     username: string;
     isEmailConfirmed: boolean;
     isLocked: boolean;
+    isDeleted: boolean;
     createdAtUtc: string;
     lastVisitedAtUtc?: string | null;
 }
@@ -17,6 +18,8 @@ export interface UserDetailsResponse {
     email: string;
     isEmailConfirmed: boolean;
     isLocked: boolean;
+    isDeleted: boolean;
+    deletedAtUtc?: string | null;
     permissionsVersion: number;
     createdAtUtc: string;
     lastVisitedAtUtc?: string | null;

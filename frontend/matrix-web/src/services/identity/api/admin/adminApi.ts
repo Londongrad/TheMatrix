@@ -43,6 +43,12 @@ export async function unlockUser(userId: string): Promise<void> {
     });
 }
 
+export async function restoreUser(userId: string): Promise<void> {
+    await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/restore`, {
+        method: "POST",
+    });
+}
+
 export async function getUserRoles(
     userId: string
 ): Promise<UserRoleResponse[]> {

@@ -1,6 +1,11 @@
 import {useState} from "react";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
-import {getUsersPage, lockUser, unlockUser,} from "@services/identity/api/admin/adminApi";
+import {
+    getUsersPage,
+    lockUser,
+    restoreUser,
+    unlockUser,
+} from "@services/identity/api/admin/adminApi";
 import type {UserListItemResponse} from "@services/identity/api/admin/adminTypes";
 
 const PAGE_SIZE = 10;
@@ -35,6 +40,15 @@ export function useAdminUsers() {
         }
     };
 
+    const restore = async (user: UserListItemResponse) => {
+        try {
+            await restoreUser(user.id);
+            refresh();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     return {
         data,
         items,
@@ -45,5 +59,6 @@ export function useAdminUsers() {
         totalPages,
         refresh,
         toggleLock,
+        restore,
     };
 }

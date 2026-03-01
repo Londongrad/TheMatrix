@@ -2,7 +2,7 @@ import Button from "@shared/ui/controls/Button/Button";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import {IconLock, IconOpen, IconUnlock} from "@shared/ui/icons/icons";
 import type {UserListItemResponse} from "@services/identity/api/admin/adminTypes";
-import {RequirePermission, RequirePermissions,} from "@shared/permissions/RequirePermission";
+import {RequirePermission, RequirePermissions} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import {
@@ -13,14 +13,16 @@ import {
 import UserBadge from "./UserBadge";
 
 export default function UserCard({
-                                     user,
-                                     onOpenAccess,
-                                     onToggleLock,
-                                     isLoading,
-                                 }: {
+    user,
+    onOpenAccess,
+    onToggleLock,
+    onRestore,
+    isLoading,
+}: {
     user: UserListItemResponse;
     onOpenAccess: (id: string) => void;
     onToggleLock: (user: UserListItemResponse) => void;
+    onRestore: (user: UserListItemResponse) => void;
     isLoading: boolean;
 }) {
     const {user: currentUser} = useAuth();
@@ -58,11 +60,12 @@ export default function UserCard({
                     <div className="mx-admin-users__id">{user.id}</div>
                 </div>
                 <div className="mx-admin-users__status">
-                    {user.isLocked ? (
-                        <UserBadge kind="bad">Locked</UserBadge>
+                    {user.isDeleted ? (
+                        <UserBadge kind="bad">Deleted</UserBadge>
                     ) : (
                         <UserBadge kind="ok">Active</UserBadge>
                     )}
+                    {user.isLocked ? <UserBadge kind="warn">Locked</UserBadge> : null}
                     {user.isEmailConfirmed ? (
                         <UserBadge kind="ok">Email confirmed</UserBadge>
                     ) : (
@@ -106,16 +109,33 @@ export default function UserCard({
                         <IconOpen/> Open access
                     </Button>
                 </RequirePermissions>
-                <RequirePermission perm={togglePermission} displayMode="disable">
-                    <IconButton
-                        variant={user.isLocked ? "default" : "danger"}
-                        title={toggleTitle}
-                        onClick={() => void onToggleLock(user)}
-                        disabled={isLoading || isCurrentUser}
+
+                {user.isDeleted ? (
+                    <RequirePermission
+                        perm={PermissionKeys.IdentityUsersRestore}
+                        displayMode="disable"
                     >
-                        {user.isLocked ? <IconUnlock/> : <IconLock/>}
-                    </IconButton>
-                </RequirePermission>
+                        <Button
+                            size="sm"
+                            variant="success"
+                            onClick={() => void onRestore(user)}
+                            disabled={isLoading || isCurrentUser}
+                        >
+                            Restore
+                        </Button>
+                    </RequirePermission>
+                ) : (
+                    <RequirePermission perm={togglePermission} displayMode="disable">
+                        <IconButton
+                            variant={user.isLocked ? "default" : "danger"}
+                            title={toggleTitle}
+                            onClick={() => void onToggleLock(user)}
+                            disabled={isLoading || isCurrentUser}
+                        >
+                            {user.isLocked ? <IconUnlock/> : <IconLock/>}
+                        </IconButton>
+                    </RequirePermission>
+                )}
             </div>
         </div>
     );

@@ -173,6 +173,18 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
                     description: "A request to delete this account did not pass the current security rules.",
                     tone: "warning",
                 };
+        case "AccountRestored":
+            return item.isSuccessful
+                ? {
+                    title: "Account restored",
+                    description: "An administrator restored sign-in access for this account.",
+                    tone: "warning",
+                }
+                : {
+                    title: "Account restore failed",
+                    description: "A restore attempt for this account did not complete successfully.",
+                    tone: "danger",
+                };
         default:
             return {
                 title: item.eventType,

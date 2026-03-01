@@ -102,6 +102,7 @@ export function useUserAccess(userId: string) {
     }, [userPermissions]);
 
     const isCurrentUser = details?.id === currentUser?.userId;
+    const isDeletedUser = details?.isDeleted ?? false;
     const isProtectedUser = useMemo(
         () =>
             userRoles.some(
@@ -109,9 +110,11 @@ export function useUserAccess(userId: string) {
             ),
         [userRoles]
     );
-    const isAccessReadOnly = isCurrentUser || isProtectedUser;
+    const isAccessReadOnly = isCurrentUser || isProtectedUser || isDeletedUser;
     const readOnlyReason = isCurrentUser
         ? "You cannot manage your own access from the admin panel."
+        : isDeletedUser
+            ? "Restore the account before editing roles or direct permission overrides."
         : isProtectedUser
             ? "SuperAdmin access is protected and can only be viewed here."
             : null;
@@ -191,6 +194,7 @@ export function useUserAccess(userId: string) {
         setSelectedRoleIds,
         saveRoles,
         updatePermission,
+        isDeletedUser,
         isCurrentUser,
         isProtectedUser,
         isAccessReadOnly,
