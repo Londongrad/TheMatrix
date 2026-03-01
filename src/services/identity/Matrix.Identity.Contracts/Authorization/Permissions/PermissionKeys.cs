@@ -6,6 +6,7 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
 
         public const string IdentityUsersLock = "identity.admin.users.lock";
         public const string IdentityUsersUnlock = "identity.admin.users.unlock";
+        public const string IdentityUsersRestore = "identity.admin.users.restore";
 
         public const string IdentityUserRolesRead = "identity.admin.users.roles.read";
         public const string IdentityUserRolesUpdate = "identity.admin.users.roles.update";

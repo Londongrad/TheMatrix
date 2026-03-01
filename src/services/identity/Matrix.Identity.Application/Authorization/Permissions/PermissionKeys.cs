@@ -8,6 +8,7 @@ namespace Matrix.Identity.Application.Authorization.Permissions
 
         public const string IdentityUsersLock = ContractPermissionKeys.IdentityUsersLock;
         public const string IdentityUsersUnlock = ContractPermissionKeys.IdentityUsersUnlock;
+        public const string IdentityUsersRestore = ContractPermissionKeys.IdentityUsersRestore;
 
         public const string IdentityUserRolesRead = ContractPermissionKeys.IdentityUserRolesRead;
         public const string IdentityUserRolesUpdate = ContractPermissionKeys.IdentityUserRolesUpdate;

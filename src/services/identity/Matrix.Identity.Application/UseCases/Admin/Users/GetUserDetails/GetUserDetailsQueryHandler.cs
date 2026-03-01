@@ -30,6 +30,8 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.GetUserDetails
                 Email = user.Email.Value,
                 IsEmailConfirmed = user.IsEmailConfirmed,
                 IsLocked = user.IsLocked,
+                IsDeleted = user.IsDeleted,
+                DeletedAtUtc = user.DeletedAtUtc,
                 PermissionsVersion = user.PermissionsVersion,
                 CreatedAtUtc = user.CreatedAtUtc,
                 LastVisitedAtUtc = lastVisitedAtUtc

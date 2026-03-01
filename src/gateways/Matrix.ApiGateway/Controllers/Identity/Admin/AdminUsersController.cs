@@ -1,8 +1,10 @@
 using Matrix.ApiGateway.Common.Urls;
+using Matrix.ApiGateway.Authorization.Caching;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Admin.Users.Requests;
 using Matrix.Identity.Contracts.Admin.Users.Responses;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +13,12 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
     [ApiController]
     [Route("api/admin/users")]
     [Authorize]
-    public sealed class AdminUsersController(IIdentityAdminUsersClient usersClient) : ControllerBase
+    public sealed class AdminUsersController(
+        IIdentityAdminUsersClient usersClient,
+        IDistributedCache distributedCache) : ControllerBase
     {
         private readonly IIdentityAdminUsersClient _usersClient = usersClient;
+        private readonly IDistributedCache _distributedCache = distributedCache;
 
         [HttpGet]
         public async Task<ActionResult<PagedResult<UserListItemResponse>>> GetUsersPage(
@@ -67,6 +72,25 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
             await _usersClient.UnlockUserAsync(
                 userId: userId,
                 cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("{userId:guid}/restore")]
+        public async Task<IActionResult> RestoreUser(
+            [FromRoute] Guid userId,
+            CancellationToken cancellationToken)
+        {
+            await _usersClient.RestoreUserAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
+
+            await _distributedCache.RemoveAsync(
+                key: AuthorizationCacheKeys.PermissionsVersion(userId),
+                token: cancellationToken);
+            await _distributedCache.RemoveAsync(
+                key: AuthorizationCacheKeys.PermissionsVersionStale(userId),
+                token: cancellationToken);
 
             return NoContent();
         }

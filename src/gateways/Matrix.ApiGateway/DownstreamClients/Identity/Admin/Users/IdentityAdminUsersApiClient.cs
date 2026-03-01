@@ -84,6 +84,22 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
                 cancellationToken: cancellationToken);
         }
 
+        public async Task RestoreUserAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            string url = $"{UsersEndpoint}/{userId:D}/restore";
+
+            using HttpResponseMessage resp = await _httpClient.PostAsync(
+                requestUri: url,
+                content: null,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task<IReadOnlyCollection<UserRoleResponse>> GetUserRolesAsync(
             Guid userId,
             CancellationToken cancellationToken)

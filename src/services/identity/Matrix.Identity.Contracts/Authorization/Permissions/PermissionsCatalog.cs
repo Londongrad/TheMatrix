@@ -30,6 +30,11 @@ namespace Matrix.Identity.Contracts.Authorization.Permissions
                     Group: AdminUsersGroup,
                     Description: "Unlock a user (enable login)."),
                 new(
+                    Key: PermissionKeys.IdentityUsersRestore,
+                    Service: IdentityService,
+                    Group: AdminUsersGroup,
+                    Description: "Restore a soft-deleted user account."),
+                new(
                     Key: PermissionKeys.IdentityUserRolesRead,
                     Service: IdentityService,
                     Group: AdminUsersGroup,

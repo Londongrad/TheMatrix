@@ -6,6 +6,7 @@ using Matrix.Identity.Application.UseCases.Admin.Users.GetUserRoles;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUsersPage;
 using Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission;
 using Matrix.Identity.Application.UseCases.Admin.Users.LockUser;
+using Matrix.Identity.Application.UseCases.Admin.Users.RestoreUser;
 using Matrix.Identity.Application.UseCases.Admin.Users.UnlockUser;
 using Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles;
 using Matrix.Identity.Contracts.Admin.Users.Requests;
@@ -54,6 +55,7 @@ namespace Matrix.Identity.Api.Controllers.Admin
                         Username = u.Username,
                         IsEmailConfirmed = u.IsEmailConfirmed,
                         IsLocked = u.IsLocked,
+                        IsDeleted = u.IsDeleted,
                         CreatedAtUtc = u.CreatedAtUtc,
                         LastVisitedAtUtc = u.LastVisitedAtUtc
                     })
@@ -88,6 +90,8 @@ namespace Matrix.Identity.Api.Controllers.Admin
                 Email = result.Email,
                 IsEmailConfirmed = result.IsEmailConfirmed,
                 IsLocked = result.IsLocked,
+                IsDeleted = result.IsDeleted,
+                DeletedAtUtc = result.DeletedAtUtc,
                 PermissionsVersion = result.PermissionsVersion,
                 CreatedAtUtc = result.CreatedAtUtc,
                 LastVisitedAtUtc = result.LastVisitedAtUtc
@@ -120,6 +124,20 @@ namespace Matrix.Identity.Api.Controllers.Admin
             CancellationToken cancellationToken = default)
         {
             var command = new UnlockUserCommand(userId);
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPost("{userId:guid}/restore")]
+        public async Task<IActionResult> RestoreUser(
+            [FromRoute] Guid userId,
+            CancellationToken cancellationToken = default)
+        {
+            var command = new RestoreUserCommand(userId);
 
             await _sender.Send(
                 request: command,

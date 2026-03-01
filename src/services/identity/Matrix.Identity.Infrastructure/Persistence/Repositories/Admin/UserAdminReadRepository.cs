@@ -34,6 +34,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                     Username = user.Username.Value,
                     IsEmailConfirmed = user.IsEmailConfirmed,
                     IsLocked = user.IsLocked,
+                    IsDeleted = user.IsDeleted,
                     CreatedAtUtc = user.CreatedAtUtc,
                     LastVisitedAtUtc = dbContext.UserSessions
                        .Where(session => session.UserId == user.Id)
@@ -71,6 +72,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
                     Username = user.Username.Value,
                     IsEmailConfirmed = user.IsEmailConfirmed,
                     IsLocked = user.IsLocked,
+                    IsDeleted = user.IsDeleted,
                     CreatedAtUtc = user.CreatedAtUtc,
                     LastVisitedAtUtc = dbContext.UserSessions
                        .Where(session => session.UserId == user.Id)

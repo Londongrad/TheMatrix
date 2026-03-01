@@ -115,6 +115,24 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
                 cancellationToken: cancellationToken);
         }
 
+        public Task SendAccountRestored(
+            string toEmail,
+            CancellationToken cancellationToken)
+        {
+            return SendAsync(
+                toEmail: toEmail,
+                subject: "Your account was restored",
+                htmlBody:
+                """
+                <p>Your Matrix account was restored by an administrator.</p>
+                <p>You can sign in again with your existing credentials unless the account remains separately locked for an administrative reason.</p>
+                """,
+                plainBody:
+                $"Your Matrix account was restored by an administrator.{Environment.NewLine}You can sign in again with your existing credentials unless the account remains separately locked for an administrative reason.",
+                linkForLogging: "account-restored",
+                cancellationToken: cancellationToken);
+        }
+
         private async Task SendAsync(
             string toEmail,
             string subject,

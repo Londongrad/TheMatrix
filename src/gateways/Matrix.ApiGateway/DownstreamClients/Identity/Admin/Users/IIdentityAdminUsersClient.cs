@@ -23,6 +23,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             Guid userId,
             CancellationToken cancellationToken);
 
+        Task RestoreUserAsync(
+            Guid userId,
+            CancellationToken cancellationToken);
+
         Task<IReadOnlyCollection<UserRoleResponse>> GetUserRolesAsync(
             Guid userId,
             CancellationToken cancellationToken);

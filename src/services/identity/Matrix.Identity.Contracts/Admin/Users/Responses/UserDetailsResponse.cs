@@ -8,6 +8,8 @@ namespace Matrix.Identity.Contracts.Admin.Users.Responses
         public string Email { get; init; } = string.Empty;
         public bool IsEmailConfirmed { get; init; }
         public bool IsLocked { get; init; }
+        public bool IsDeleted { get; init; }
+        public DateTime? DeletedAtUtc { get; init; }
         public int PermissionsVersion { get; init; }
         public DateTime CreatedAtUtc { get; init; }
         public DateTime? LastVisitedAtUtc { get; init; }
