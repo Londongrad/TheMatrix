@@ -44,7 +44,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
                     City = t.GeoLocation?.City,
                     CreatedAtUtc = t.CreatedAtUtc,
                     LastUsedAtUtc = t.LastUsedAtUtc,
-                    IsActive = t.IsActive()
+                    RefreshTokenExpiresAtUtc = t.RefreshTokenExpiresAtUtc,
+                    IsActive = t.IsActive(),
+                    IsPersistent = t.IsPersistent
                 })
                .ToArray();
         }

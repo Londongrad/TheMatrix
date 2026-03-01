@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions;
+using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeOtherMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
 using MediatR;
@@ -41,8 +42,10 @@ namespace Matrix.Identity.Api.Controllers.Self
                     City = s.City,
                     CreatedAtUtc = s.CreatedAtUtc,
                     LastUsedAtUtc = s.LastUsedAtUtc,
+                    RefreshTokenExpiresAtUtc = s.RefreshTokenExpiresAtUtc,
                     IsActive = s.IsActive,
-                    IsCurrent = currentSessionId.HasValue && s.Id == currentSessionId.Value
+                    IsCurrent = currentSessionId.HasValue && s.Id == currentSessionId.Value,
+                    IsPersistent = s.IsPersistent
                 })
                .ToList();
 
@@ -74,6 +77,18 @@ namespace Matrix.Identity.Api.Controllers.Self
                 cancellationToken: cancellationToken);
 
             // Idempotent: даже если все токены уже были отозваны, просто возвращаем 204
+            return NoContent();
+        }
+
+        [HttpDelete("others")]
+        public async Task<IActionResult> RevokeOtherSessions(CancellationToken cancellationToken)
+        {
+            var command = new RevokeOtherMySessionsCommand();
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
             return NoContent();
         }
 

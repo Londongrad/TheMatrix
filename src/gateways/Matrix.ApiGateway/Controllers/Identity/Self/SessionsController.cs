@@ -31,6 +31,13 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return NoContent();
         }
 
+        [HttpDelete("others")]
+        public async Task<IActionResult> RevokeOtherSessions(CancellationToken cancellationToken)
+        {
+            await _sessionsClient.RevokeOtherSessionsAsync(cancellationToken);
+            return NoContent();
+        }
+
         [HttpDelete]
         public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {

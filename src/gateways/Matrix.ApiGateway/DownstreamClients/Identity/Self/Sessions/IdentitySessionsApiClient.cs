@@ -47,6 +47,17 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
                 cancellationToken: cancellationToken);
         }
 
+        public async Task RevokeOtherSessionsAsync(CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage resp = await _httpClient.DeleteAsync(
+                requestUri: $"{Base}/others",
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task RevokeAllSessionsAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage resp = await _httpClient.DeleteAsync(

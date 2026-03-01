@@ -15,7 +15,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
 
         public DateTime CreatedAtUtc { get; init; }
         public DateTime? LastUsedAtUtc { get; init; }
+        public DateTime RefreshTokenExpiresAtUtc { get; init; }
 
         public bool IsActive { get; init; }
+        public bool IsPersistent { get; init; }
     }
 }

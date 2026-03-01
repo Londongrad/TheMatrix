@@ -10,6 +10,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
             Guid sessionId,
             CancellationToken cancellationToken = default);
 
+        Task RevokeOtherSessionsAsync(CancellationToken cancellationToken = default);
+
         Task RevokeAllSessionsAsync(CancellationToken cancellationToken = default);
     }
 }

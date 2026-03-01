@@ -4,5 +4,6 @@ namespace Matrix.BuildingBlocks.Application.Abstractions
     {
         bool IsAuthenticated { get; }
         Guid? UserId { get; }
+        Guid? SessionId { get; }
     }
 }

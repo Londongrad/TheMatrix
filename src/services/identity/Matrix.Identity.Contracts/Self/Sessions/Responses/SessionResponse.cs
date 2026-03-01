@@ -15,9 +15,11 @@ namespace Matrix.Identity.Contracts.Self.Sessions.Responses
 
         public DateTime CreatedAtUtc { get; init; }
         public DateTime? LastUsedAtUtc { get; init; }
+        public DateTime RefreshTokenExpiresAtUtc { get; init; }
 
         public bool IsActive { get; init; }
         public bool IsCurrent { get; init; }
+        public bool IsPersistent { get; init; }
 
         /// <summary>
         ///     Convenience-строка для фронта: "City, Region, Country" / null
