@@ -23,6 +23,7 @@ export const PermissionKeys = {
     IdentityMeEmailChange: "identity.me.email.change",
     IdentityMePasswordChange: "identity.me.password.change",
     IdentityMeAvatarChange: "identity.me.avatar.change",
+    IdentityMeAccountDelete: "identity.me.account.delete",
     IdentityMeSessionsRead: "identity.me.sessions.read",
     IdentityMeSessionsRevoke: "identity.me.sessions.revoke",
     IdentityMeSessionsRevokeAll: "identity.me.sessions.revoke.all",

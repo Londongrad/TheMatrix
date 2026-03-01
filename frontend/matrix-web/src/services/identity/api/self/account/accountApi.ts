@@ -8,6 +8,7 @@ import type {
     ChangePasswordRequest,
     ChangeUsernameRequest,
     ChangeUsernameResponse,
+    DeleteAccountRequest,
     ProfileResponse,
     SecurityActivityItem,
 } from "./accountTypes";
@@ -68,6 +69,15 @@ export async function changeEmail(
 ): Promise<ChangeEmailResponse> {
     return await apiRequest<ChangeEmailResponse>(`${API_ACCOUNT_URL}/email`, {
         method: "PUT",
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function deleteAccount(
+    payload: DeleteAccountRequest,
+): Promise<void> {
+    await apiRequest<void>(`${API_ACCOUNT_URL}/delete`, {
+        method: "POST",
         body: JSON.stringify(payload),
     });
 }

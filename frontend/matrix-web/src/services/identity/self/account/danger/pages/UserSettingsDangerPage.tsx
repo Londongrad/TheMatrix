@@ -8,7 +8,7 @@ const UserSettingsDangerPage = () => {
     return (
         <UserSettingsSection
             title="Danger zone"
-            subtitle="High-impact actions that can permanently change your account."
+            subtitle="High-impact actions that disable access or require deliberate recovery."
         >
             <DangerZoneCard token={token}/>
         </UserSettingsSection>

@@ -27,6 +27,10 @@ export interface ChangeEmailResponse {
     pendingEmail: string;
 }
 
+export interface DeleteAccountRequest {
+    currentPassword: string;
+}
+
 export interface ProfileResponse {
     userId: string;
     email: string;

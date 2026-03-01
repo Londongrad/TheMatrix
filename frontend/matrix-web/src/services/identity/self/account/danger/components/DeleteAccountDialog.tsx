@@ -47,11 +47,11 @@ const DeleteAccountDialog = ({
             >
                 <div className="confirm-dialog-header">
                     <h2 id="delete-account-title" className="confirm-dialog-title">
-                        DELETE ACCOUNT?
+                        SOFT DELETE ACCOUNT?
                     </h2>
                     <p className="confirm-dialog-description">
-                        This will permanently delete your Overseer identity and all
-                        associated simulations. This action cannot be undone.
+                        This will disable sign-in for this account, revoke active sessions,
+                        and keep the identity reserved for a possible recovery flow later.
                     </p>
                 </div>
 

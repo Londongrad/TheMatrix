@@ -161,6 +161,18 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
                     description: "A pending email change could not be confirmed.",
                     tone: "danger",
                 };
+        case "AccountDeleted":
+            return item.isSuccessful
+                ? {
+                    title: "Account soft-deleted",
+                    description: "This account was disabled and all active sessions were revoked.",
+                    tone: "danger",
+                }
+                : {
+                    title: "Account deletion blocked",
+                    description: "A request to delete this account did not pass the current security rules.",
+                    tone: "warning",
+                };
         default:
             return {
                 title: item.eventType,
