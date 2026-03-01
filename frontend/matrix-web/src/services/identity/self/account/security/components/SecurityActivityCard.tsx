@@ -161,6 +161,30 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
                     description: "A pending email change could not be confirmed.",
                     tone: "danger",
                 };
+        case "EmailChangeConfirmationResent":
+            return item.isSuccessful
+                ? {
+                    title: "Email change confirmation resent",
+                    description: "A fresh confirmation link was sent for the pending email change.",
+                    tone: "success",
+                }
+                : {
+                    title: "Email change resend blocked",
+                    description: "The pending email confirmation could not be resent under the current rules.",
+                    tone: "warning",
+                };
+        case "EmailChangeCancelled":
+            return item.isSuccessful
+                ? {
+                    title: "Pending email change cancelled",
+                    description: "The unconfirmed replacement email was discarded and the current address stayed active.",
+                    tone: "neutral",
+                }
+                : {
+                    title: "Email change cancellation failed",
+                    description: "There was no active pending email change to cancel or the request did not complete.",
+                    tone: "warning",
+                };
         case "AccountDeleted":
             return item.isSuccessful
                 ? {

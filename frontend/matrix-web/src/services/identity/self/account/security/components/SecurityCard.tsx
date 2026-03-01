@@ -1,7 +1,11 @@
 // src/services/identity/self/account/security/components/SecurityCard.tsx
 import {useEffect, useState} from "react";
 import {sendEmailConfirmationEmail} from "@services/identity/api/self/auth/authApi";
-import {changeEmail} from "@services/identity/api/self/account/accountApi";
+import {
+    cancelPendingEmailChange,
+    changeEmail,
+    resendPendingEmailChange,
+} from "@services/identity/api/self/account/accountApi";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {usePasswordChange} from "../hooks/usePasswordChange";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
@@ -41,6 +45,8 @@ const SecurityCard = ({
     const [nextEmail, setNextEmail] = useState("");
     const [emailChangePassword, setEmailChangePassword] = useState("");
     const [isSavingEmailChange, setIsSavingEmailChange] = useState(false);
+    const [isResendingPendingEmailChange, setIsResendingPendingEmailChange] = useState(false);
+    const [isCancellingPendingEmailChange, setIsCancellingPendingEmailChange] = useState(false);
     const [emailChangeNotice, setEmailChangeNotice] = useState<string | null>(null);
     const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
     const [isSendingConfirmation, setIsSendingConfirmation] = useState(false);
@@ -114,6 +120,55 @@ const SecurityCard = ({
             );
         } finally {
             setIsSavingEmailChange(false);
+        }
+    };
+
+    const resendPendingChange = async () => {
+        if (!pendingEmail) {
+            return;
+        }
+
+        try {
+            setEmailChangeError(null);
+            setEmailChangeNotice(null);
+            setIsResendingPendingEmailChange(true);
+
+            await resendPendingEmailChange();
+            setEmailChangeNotice(
+                `A fresh confirmation link was sent to ${pendingEmail}. Your current email stays active until confirmation.`,
+            );
+        } catch (err: any) {
+            setEmailChangeError(
+                err?.message || "Failed to resend the pending email confirmation.",
+            );
+        } finally {
+            setIsResendingPendingEmailChange(false);
+        }
+    };
+
+    const cancelPendingChange = async () => {
+        if (!pendingEmail) {
+            return;
+        }
+
+        try {
+            setEmailChangeError(null);
+            setEmailChangeNotice(null);
+            setIsCancellingPendingEmailChange(true);
+
+            await cancelPendingEmailChange();
+            patchUser({pendingEmail: null});
+            setNextEmail("");
+            setEmailChangePassword("");
+            setEmailChangeNotice(
+                "Pending email change was cancelled. Your current email remains active.",
+            );
+        } catch (err: any) {
+            setEmailChangeError(
+                err?.message || "Failed to cancel the pending email change.",
+            );
+        } finally {
+            setIsCancellingPendingEmailChange(false);
         }
     };
 
@@ -194,6 +249,36 @@ const SecurityCard = ({
                     </div>
 
                     <div className="settings-email-warning__actions">
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeEmailChange}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button settings-button--secondary"
+                                disabled={isResendingPendingEmailChange || isCancellingPendingEmailChange}
+                                onClick={() => {
+                                    void resendPendingChange();
+                                }}
+                            >
+                                {isResendingPendingEmailChange ? "Sending..." : "Resend confirmation"}
+                            </button>
+                        </RequirePermission>
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeEmailChange}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button settings-button--ghost"
+                                disabled={isCancellingPendingEmailChange || isResendingPendingEmailChange}
+                                onClick={() => {
+                                    void cancelPendingChange();
+                                }}
+                            >
+                                {isCancellingPendingEmailChange ? "Cancelling..." : "Cancel change"}
+                            </button>
+                        </RequirePermission>
                         <span className="settings-pill">Pending</span>
                     </div>
                 </div>
@@ -215,7 +300,11 @@ const SecurityCard = ({
                             <label className="settings-label" htmlFor="nextEmail">
                                 New email
                             </label>
-                            <span>Current email stays active until confirmation</span>
+                            <span>
+                                {pendingEmail
+                                    ? "Submitting a different email replaces the current pending confirmation."
+                                    : "Current email stays active until confirmation"}
+                            </span>
                         </div>
                         <input
                             id="nextEmail"
@@ -268,9 +357,19 @@ const SecurityCard = ({
                             <button
                                 type="submit"
                                 className="settings-button"
-                                disabled={!nextEmail.trim() || !emailChangePassword || isSavingEmailChange}
+                                disabled={
+                                    !nextEmail.trim() ||
+                                    !emailChangePassword ||
+                                    isSavingEmailChange ||
+                                    isResendingPendingEmailChange ||
+                                    isCancellingPendingEmailChange
+                                }
                             >
-                                {isSavingEmailChange ? "Sending..." : "Send email change link"}
+                                {isSavingEmailChange
+                                    ? "Sending..."
+                                    : pendingEmail
+                                        ? "Replace pending email"
+                                        : "Send email change link"}
                             </button>
                         </RequirePermission>
                     </div>

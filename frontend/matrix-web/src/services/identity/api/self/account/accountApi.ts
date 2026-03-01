@@ -73,6 +73,18 @@ export async function changeEmail(
     });
 }
 
+export async function resendPendingEmailChange(): Promise<void> {
+    await apiRequest<void>(`${API_ACCOUNT_URL}/email/pending/resend`, {
+        method: "POST",
+    });
+}
+
+export async function cancelPendingEmailChange(): Promise<void> {
+    await apiRequest<void>(`${API_ACCOUNT_URL}/email/pending`, {
+        method: "DELETE",
+    });
+}
+
 export async function deleteAccount(
     payload: DeleteAccountRequest,
 ): Promise<void> {
