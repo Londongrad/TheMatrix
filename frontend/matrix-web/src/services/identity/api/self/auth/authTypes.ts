@@ -29,6 +29,15 @@ export interface ForgotPasswordRequest {
     email: string;
 }
 
+export interface RequestAccountRecoveryRequest {
+    email: string;
+}
+
+export interface ConfirmAccountRecoveryRequest {
+    userId: string;
+    token: string;
+}
+
 export interface ResetPasswordRequest {
     userId: string;
     token: string;

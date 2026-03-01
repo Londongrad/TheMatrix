@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
 import {resetPassword} from "@services/identity/api/self/auth/authApi";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {HttpError} from "@shared/api/http";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
@@ -17,12 +18,14 @@ export const ResetPasswordPage = () => {
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [isDeletedAccountError, setIsDeletedAccountError] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
+        setIsDeletedAccountError(false);
 
         if (!userId || !resetToken) {
             setError("This reset link is incomplete or invalid.");
@@ -57,6 +60,15 @@ export const ResetPasswordPage = () => {
             setNewPassword("");
             setConfirmNewPassword("");
         } catch (err: any) {
+            const errorCode =
+                err instanceof HttpError &&
+                err.payload &&
+                typeof err.payload === "object" &&
+                "code" in err.payload
+                    ? String((err.payload as { code?: unknown }).code)
+                    : null;
+
+            setIsDeletedAccountError(errorCode === "Identity.AccountDeleted");
             setError(err?.message || "Failed to reset password.");
         } finally {
             setIsSubmitting(false);
@@ -119,7 +131,16 @@ export const ResetPasswordPage = () => {
                         />
                     </div>
 
-                    {error && <div className="auth-error">{error}</div>}
+                    {error && (
+                        <div className="auth-error">
+                            <div>{error}</div>
+                            {isDeletedAccountError ? (
+                                <div style={{marginTop: "0.45rem"}}>
+                                    <Link to="/recover-account">Recover account instead</Link>
+                                </div>
+                            ) : null}
+                        </div>
+                    )}
                     {success && <div className="auth-success">{success}</div>}
 
                     <button

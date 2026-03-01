@@ -2,6 +2,7 @@
 import React, {useState} from "react";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {HttpError} from "@shared/api/http";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
@@ -17,22 +18,37 @@ export const LoginPage = () => {
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isDeletedAccountError, setIsDeletedAccountError] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setIsDeletedAccountError(false);
         setIsSubmitting(true);
 
         try {
             await loginUser({login, password, rememberMe});
             navigate(from, {replace: true});
         } catch (err: any) {
+            const errorCode =
+                err instanceof HttpError &&
+                err.payload &&
+                typeof err.payload === "object" &&
+                "code" in err.payload
+                    ? String((err.payload as { code?: unknown }).code)
+                    : null;
+
+            setIsDeletedAccountError(errorCode === "Identity.AccountDeleted");
             setError(err.message || "Login failed");
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    const recoveryHref = login.includes("@")
+        ? `/recover-account?email=${encodeURIComponent(login.trim())}`
+        : "/recover-account";
 
     return (
         <AuthShell>
@@ -133,7 +149,16 @@ export const LoginPage = () => {
                         </Link>
                     </div>
 
-                    {error && <div className="auth-error">{error}</div>}
+                    {error && (
+                        <div className="auth-error">
+                            <div>{error}</div>
+                            {isDeletedAccountError ? (
+                                <div style={{marginTop: "0.45rem"}}>
+                                    <Link to={recoveryHref}>Restore this account</Link>
+                                </div>
+                            ) : null}
+                        </div>
+                    )}
 
                     <button className="auth-button" type="submit" disabled={isSubmitting}>
                         {isSubmitting && (

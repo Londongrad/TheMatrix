@@ -177,13 +177,25 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
             return item.isSuccessful
                 ? {
                     title: "Account restored",
-                    description: "An administrator restored sign-in access for this account.",
+                    description: "Sign-in access for this account was restored.",
                     tone: "warning",
                 }
                 : {
                     title: "Account restore failed",
                     description: "A restore attempt for this account did not complete successfully.",
                     tone: "danger",
+                };
+        case "AccountRecoveryRequested":
+            return item.isSuccessful
+                ? {
+                    title: "Account recovery email sent",
+                    description: "A recovery link was issued for a deleted account tied to this email.",
+                    tone: "warning",
+                }
+                : {
+                    title: "Account recovery request blocked",
+                    description: "A recovery request did not pass the current throttling or account state rules.",
+                    tone: "warning",
                 };
         default:
             return {

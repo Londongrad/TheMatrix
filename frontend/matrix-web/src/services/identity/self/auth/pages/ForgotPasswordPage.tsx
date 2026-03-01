@@ -72,6 +72,16 @@ export const ForgotPasswordPage = () => {
                     >
                         Back to login
                     </Link>
+                    . If the account was deleted, use{" "}
+                    <Link
+                        to="/recover-account"
+                        className={isSubmitting ? "auth-link--disabled" : ""}
+                        onClick={(e) => {
+                            if (isSubmitting) e.preventDefault();
+                        }}
+                    >
+                        account recovery
+                    </Link>
                     .
                 </p>
 

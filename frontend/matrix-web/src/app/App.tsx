@@ -20,8 +20,10 @@ import {LoginPage} from "@services/identity/self/auth/pages/LoginPage";
 import {RegisterPage} from "@services/identity/self/auth/pages/RegisterPage";
 import {ConfirmEmailPage} from "@services/identity/self/auth/pages/ConfirmEmailPage";
 import {ConfirmEmailChangePage} from "@services/identity/self/auth/pages/ConfirmEmailChangePage";
+import {ConfirmAccountRecoveryPage} from "@services/identity/self/auth/pages/ConfirmAccountRecoveryPage";
 import {ForgotPasswordPage} from "@services/identity/self/auth/pages/ForgotPasswordPage";
 import {ResetPasswordPage} from "@services/identity/self/auth/pages/ResetPasswordPage";
+import {RecoverAccountPage} from "@services/identity/self/auth/pages/RecoverAccountPage";
 import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
 import {cityCoreRoutes} from "@app/router/CityCoreRoutes";
@@ -43,6 +45,8 @@ const App = () => {
                         <Route path="/confirm-email" element={<ConfirmEmailPage/>}/>
                         <Route path="/confirm-email-change" element={<ConfirmEmailChangePage/>}/>
                         <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+                        <Route path="/recover-account" element={<RecoverAccountPage/>}/>
+                        <Route path="/confirm-account-recovery" element={<ConfirmAccountRecoveryPage/>}/>
                         <Route path="/reset-password" element={<ResetPasswordPage/>}/>
                         <Route path="/forbidden" element={<ForbiddenPage/>}/>
 

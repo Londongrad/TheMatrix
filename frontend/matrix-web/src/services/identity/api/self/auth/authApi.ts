@@ -3,10 +3,12 @@ import {API_AUTH_URL} from "@shared/api/config";
 import {request} from "@shared/api/http";
 import type {
     ConfirmEmailRequest,
+    ConfirmAccountRecoveryRequest,
     ConfirmEmailChangeRequest,
     ForgotPasswordRequest,
     LoginRequest,
     LoginResponse,
+    RequestAccountRecoveryRequest,
     RegisterRequest,
     ResetPasswordRequest,
     SendEmailConfirmationRequest,
@@ -85,6 +87,24 @@ export async function forgotPassword(
     payload: ForgotPasswordRequest,
 ): Promise<void> {
     await request<void>(`${API_AUTH_URL}/password/forgot`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function requestAccountRecovery(
+    payload: RequestAccountRecoveryRequest,
+): Promise<void> {
+    await request<void>(`${API_AUTH_URL}/account-recovery/request`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function confirmAccountRecovery(
+    payload: ConfirmAccountRecoveryRequest,
+): Promise<void> {
+    await request<void>(`${API_AUTH_URL}/account-recovery/confirm`, {
         method: "POST",
         body: JSON.stringify(payload),
     });
