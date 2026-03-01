@@ -77,6 +77,14 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Validation);
         }
 
+        public static MatrixApplicationException EmailChangePendingRequestMissing()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.EmailChange.PendingRequestMissing",
+                message: "There is no pending email change for this account.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
         public static MatrixApplicationException EmailChangeRequestThrottled()
         {
             return new MatrixApplicationException(

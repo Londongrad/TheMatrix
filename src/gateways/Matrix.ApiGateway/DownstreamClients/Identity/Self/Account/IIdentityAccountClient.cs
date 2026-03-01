@@ -9,8 +9,25 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
             IFormFile avatar,
             CancellationToken cancellationToken = default);
 
+        Task<ChangeUsernameResponse> ChangeUsernameAsync(
+            ChangeUsernameRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task<ChangeEmailResponse> ChangeEmailAsync(
+            ChangeEmailRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task<ChangeAvatarResponse> ClearAvatarAsync(
+            CancellationToken cancellationToken = default);
+
         Task ChangePasswordAsync(
             ChangePasswordRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task ResendPendingEmailChangeAsync(
+            CancellationToken cancellationToken = default);
+
+        Task CancelPendingEmailChangeAsync(
             CancellationToken cancellationToken = default);
 
         Task DeleteAccountAsync(

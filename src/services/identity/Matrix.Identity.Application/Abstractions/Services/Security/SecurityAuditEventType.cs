@@ -15,6 +15,8 @@ namespace Matrix.Identity.Application.Abstractions.Services.Security
         EmailChanged = 11,
         AccountDeleted = 12,
         AccountRestored = 13,
-        AccountRecoveryRequested = 14
+        AccountRecoveryRequested = 14,
+        EmailChangeConfirmationResent = 15,
+        EmailChangeCancelled = 16
     }
 }

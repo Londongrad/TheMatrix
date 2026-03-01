@@ -75,6 +75,60 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return Ok(dto);
         }
 
+        [HttpDelete("avatar")]
+        public async Task<ActionResult<ChangeAvatarResponse>> ClearAvatar(
+            CancellationToken cancellationToken)
+        {
+            ChangeAvatarResponse dto =
+                await _identityAccountClient.ClearAvatarAsync(cancellationToken);
+
+            dto.AvatarUrl = Request.ToPublicUrl(dto.AvatarUrl);
+
+            return Ok(dto);
+        }
+
+        [HttpPut("username")]
+        public async Task<ActionResult<ChangeUsernameResponse>> ChangeUsername(
+            [FromBody] ChangeUsernameRequest request,
+            CancellationToken cancellationToken)
+        {
+            ChangeUsernameResponse response =
+                await _identityAccountClient.ChangeUsernameAsync(
+                    request: request,
+                    cancellationToken: cancellationToken);
+
+            return Ok(response);
+        }
+
+        [HttpPut("email")]
+        public async Task<ActionResult<ChangeEmailResponse>> ChangeEmail(
+            [FromBody] ChangeEmailRequest request,
+            CancellationToken cancellationToken)
+        {
+            ChangeEmailResponse response =
+                await _identityAccountClient.ChangeEmailAsync(
+                    request: request,
+                    cancellationToken: cancellationToken);
+
+            return Ok(response);
+        }
+
+        [HttpPost("email/pending/resend")]
+        public async Task<IActionResult> ResendPendingEmailChange(
+            CancellationToken cancellationToken)
+        {
+            await _identityAccountClient.ResendPendingEmailChangeAsync(cancellationToken);
+            return NoContent();
+        }
+
+        [HttpDelete("email/pending")]
+        public async Task<IActionResult> CancelPendingEmailChange(
+            CancellationToken cancellationToken)
+        {
+            await _identityAccountClient.CancelPendingEmailChangeAsync(cancellationToken);
+            return NoContent();
+        }
+
         [HttpPut("password")]
         public async Task<IActionResult> ChangePassword(
             [FromBody] ChangePasswordRequest request,

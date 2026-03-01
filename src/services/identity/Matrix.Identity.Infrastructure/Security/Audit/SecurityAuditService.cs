@@ -40,7 +40,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             if (_options.FailedLoginMaxAttemptsPerLogin > 0)
             {
                 int failuresByLogin = await CountRecentAsync(
-                    eventType: SecurityAuditEventType.Login,
+                    eventTypes: [SecurityAuditEventType.Login],
                     isSuccessful: false,
                     subject: loginSubject,
                     ipAddress: null,
@@ -55,7 +55,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
                 _options.FailedLoginMaxAttemptsPerIp > 0)
             {
                 int failuresByIp = await CountRecentAsync(
-                    eventType: SecurityAuditEventType.Login,
+                    eventTypes: [SecurityAuditEventType.Login],
                     isSuccessful: false,
                     subject: null,
                     ipAddress: ipAddress,
@@ -75,7 +75,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             CancellationToken cancellationToken)
         {
             return IsRequestAllowedAsync(
-                eventType: SecurityAuditEventType.EmailConfirmationRequested,
+                eventTypes: [SecurityAuditEventType.EmailConfirmationRequested],
                 subject: normalizedEmail,
                 ipAddress: ipAddress,
                 windowMinutes: _options.EmailConfirmationRequestWindowMinutes,
@@ -90,7 +90,10 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             CancellationToken cancellationToken)
         {
             return IsRequestAllowedAsync(
-                eventType: SecurityAuditEventType.EmailChangeRequested,
+                eventTypes: [
+                    SecurityAuditEventType.EmailChangeRequested,
+                    SecurityAuditEventType.EmailChangeConfirmationResent
+                ],
                 subject: normalizedEmail,
                 ipAddress: ipAddress,
                 windowMinutes: _options.EmailChangeRequestWindowMinutes,
@@ -105,7 +108,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             CancellationToken cancellationToken)
         {
             return IsRequestAllowedAsync(
-                eventType: SecurityAuditEventType.PasswordResetRequested,
+                eventTypes: [SecurityAuditEventType.PasswordResetRequested],
                 subject: normalizedEmail,
                 ipAddress: ipAddress,
                 windowMinutes: _options.PasswordResetRequestWindowMinutes,
@@ -120,7 +123,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             CancellationToken cancellationToken)
         {
             return IsRequestAllowedAsync(
-                eventType: SecurityAuditEventType.AccountRecoveryRequested,
+                eventTypes: [SecurityAuditEventType.AccountRecoveryRequested],
                 subject: normalizedEmail,
                 ipAddress: ipAddress,
                 windowMinutes: _options.AccountRecoveryRequestWindowMinutes,
@@ -130,7 +133,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
         }
 
         private async Task<bool> IsRequestAllowedAsync(
-            SecurityAuditEventType eventType,
+            IReadOnlyCollection<SecurityAuditEventType> eventTypes,
             string subject,
             string? ipAddress,
             int windowMinutes,
@@ -143,7 +146,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             if (maxAttemptsPerSubject > 0)
             {
                 int attemptsBySubject = await CountRecentAsync(
-                    eventType: eventType,
+                    eventTypes: eventTypes,
                     isSuccessful: null,
                     subject: subject,
                     ipAddress: null,
@@ -157,7 +160,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             if (!string.IsNullOrWhiteSpace(ipAddress) && maxAttemptsPerIp > 0)
             {
                 int attemptsByIp = await CountRecentAsync(
-                    eventType: eventType,
+                    eventTypes: eventTypes,
                     isSuccessful: null,
                     subject: null,
                     ipAddress: ipAddress,
@@ -172,7 +175,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
         }
 
         private async Task<int> CountRecentAsync(
-            SecurityAuditEventType eventType,
+            IReadOnlyCollection<SecurityAuditEventType> eventTypes,
             bool? isSuccessful,
             string? subject,
             string? ipAddress,
@@ -181,7 +184,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
         {
             IQueryable<SecurityAuditEventRecord> query = dbContext.Set<SecurityAuditEventRecord>()
                 .AsNoTracking()
-                .Where(x => x.EventType == eventType)
+                .Where(x => eventTypes.Contains(x.EventType))
                 .Where(x => x.OccurredAtUtc >= sinceUtc);
 
             if (isSuccessful.HasValue)

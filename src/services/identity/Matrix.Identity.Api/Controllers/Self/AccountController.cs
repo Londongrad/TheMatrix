@@ -2,10 +2,12 @@ using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
 using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername;
+using Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar;
 using Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
+using Matrix.Identity.Application.UseCases.Self.Account.ResendPendingEmailChange;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 using MediatR;
@@ -118,6 +120,32 @@ namespace Matrix.Identity.Api.Controllers.Self
             };
 
             return Ok(response);
+        }
+
+        [HttpPost("email/pending/resend")]
+        public async Task<IActionResult> ResendPendingEmailChange(
+            CancellationToken cancellationToken)
+        {
+            await _sender.Send(
+                request: new ResendPendingEmailChangeCommand(
+                    IpAddress: GetIpAddress(),
+                    UserAgent: GetUserAgent()),
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpDelete("email/pending")]
+        public async Task<IActionResult> CancelPendingEmailChange(
+            CancellationToken cancellationToken)
+        {
+            await _sender.Send(
+                request: new CancelPendingEmailChangeCommand(
+                    IpAddress: GetIpAddress(),
+                    UserAgent: GetUserAgent()),
+                cancellationToken: cancellationToken);
+
+            return NoContent();
         }
 
         [HttpPut("avatar")]

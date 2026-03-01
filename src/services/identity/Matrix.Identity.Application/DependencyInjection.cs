@@ -33,6 +33,7 @@ namespace Matrix.Identity.Application
             // Admin guards
             services.AddScoped<IAdminUserGuard, AdminUserGuard>();
             services.AddScoped<IOneTimeTokenDeliveryService, OneTimeTokenDeliveryService>();
+            services.AddScoped<IPendingEmailChangeDeliveryService, PendingEmailChangeDeliveryService>();
 
             // Validators
             services.AddScoped<IRoleIdsValidator, RoleIdsValidator>();

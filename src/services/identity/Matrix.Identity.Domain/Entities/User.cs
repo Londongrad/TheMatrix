@@ -108,6 +108,11 @@ namespace Matrix.Identity.Domain.Entities
             IsEmailConfirmed = true;
         }
 
+        public void CancelPendingEmailChange()
+        {
+            PendingEmail = null;
+        }
+
         public void ChangeAvatar(string? avatarUrl)
         {
             AvatarUrl = avatarUrl;
