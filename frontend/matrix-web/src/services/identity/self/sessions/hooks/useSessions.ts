@@ -1,6 +1,11 @@
 import {useEffect, useMemo, useState} from "react";
 import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes.ts";
-import {getSessions, revokeAllSessions, revokeSession} from "@services/identity/api/self/sessions/sessionsApi";
+import {
+    getSessions,
+    revokeAllSessions,
+    revokeOtherSessions,
+    revokeSession,
+} from "@services/identity/api/self/sessions/sessionsApi";
 import {getOrCreateDeviceId} from "@services/identity/api/self/auth/deviceInfo";
 
 type ConfirmFn = (options: any) => Promise<boolean>;
@@ -20,6 +25,7 @@ export function useSessions(options: {
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
     const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
     const [isRevokingAll, setIsRevokingAll] = useState(false);
+    const [isRevokingOther, setIsRevokingOther] = useState(false);
 
     const safeConfirm = async (cfg: any): Promise<boolean> => {
         try {
@@ -184,6 +190,37 @@ export function useSessions(options: {
         }
     };
 
+    const revokeOthers = async () => {
+        if (!token) {
+            setSessionsError("You are not authenticated.");
+            return;
+        }
+
+        const confirmed = await safeConfirm({
+            title: "Revoke other sessions",
+            description:
+                "Every other signed-in device will be revoked, but this current session will stay active.",
+            confirmText: "Revoke others",
+            cancelText: "Cancel",
+            tone: "danger",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            setIsRevokingOther(true);
+            setSessionsError(null);
+
+            await revokeOtherSessions();
+            await loadSessions();
+        } catch (err: any) {
+            console.error(err);
+            setSessionsError(err?.message || "Failed to revoke other sessions.");
+        } finally {
+            setIsRevokingOther(false);
+        }
+    };
+
     return {
         isSessionsOpen,
         setIsSessionsOpen,
@@ -193,8 +230,10 @@ export function useSessions(options: {
         isLoadingSessions,
         revokingSessionId,
         isRevokingAll,
+        isRevokingOther,
         loadSessions,
         revokeOne,
+        revokeOthers,
         revokeAll,
         isCurrentSession,
     };

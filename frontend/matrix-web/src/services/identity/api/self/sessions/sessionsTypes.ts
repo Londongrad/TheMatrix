@@ -12,9 +12,11 @@ export interface SessionInfo {
 
     createdAtUtc: string;
     lastUsedAtUtc?: string | null;
+    refreshTokenExpiresAtUtc: string;
 
     isActive: boolean;
     isCurrent: boolean;
+    isPersistent: boolean;
 
     location?: string | null;
 }

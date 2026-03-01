@@ -15,6 +15,12 @@ export async function revokeSession(sessionId: string): Promise<void> {
     });
 }
 
+export async function revokeOtherSessions(): Promise<void> {
+    await apiRequest<void>(`${API_SESSIONS_URL}/others`, {
+        method: "DELETE",
+    });
+}
+
 export async function revokeAllSessions(): Promise<void> {
     await apiRequest<void>(`${API_SESSIONS_URL}`, {
         method: "DELETE",

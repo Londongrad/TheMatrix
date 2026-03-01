@@ -20,8 +20,10 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         isLoadingSessions,
         revokingSessionId,
         isRevokingAll,
+        isRevokingOther,
         loadSessions,
         revokeOne,
+        revokeOthers,
         revokeAll,
         isCurrentSession,
     } = useSessions({token, logout, confirm});
@@ -39,6 +41,11 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         const date = new Date(value);
         return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
     };
+
+    const activeSessionsCount = sessions.filter((session) => session.isActive).length;
+    const otherActiveSessionsCount = sessions.filter(
+        (session) => session.isActive && !isCurrentSession(session),
+    ).length;
 
     const getSessionStatus = (session: SessionInfo) => {
         if (isCurrentSession(session) && session.isActive) {
@@ -97,9 +104,21 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                             {sessionsError}
                         </div>
                     ) : (
-                        <p className="settings-muted">
-                            Sessions are hidden. Click <b>Show sessions</b> to load and manage them.
-                        </p>
+                        <div className="settings-sessions-summary">
+                            <p className="settings-muted">
+                                Sessions are hidden. Click <b>Show sessions</b> to load and manage them.
+                            </p>
+                            {sessions.length > 0 && (
+                                <div className="settings-session-meta">
+                                    <span className="settings-session-chip">
+                                        Active: {activeSessionsCount}
+                                    </span>
+                                    <span className="settings-session-chip">
+                                        Other active: {otherActiveSessionsCount}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             ) : (
@@ -164,9 +183,17 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                                 )}
 
                                                 <span className="settings-session-chip">
+                                                    {session.isPersistent ? "Persistent sign-in" : "Session sign-in"}
+                                                </span>
+
+                                                <span className="settings-session-chip">
                                                     {session.lastUsedAtUtc
                                                         ? `Last used: ${fmtUtc(session.lastUsedAtUtc)}`
                                                         : `Created: ${fmtUtc(session.createdAtUtc)}`}
+                                                </span>
+
+                                                <span className="settings-session-chip">
+                                                    Expires: {fmtUtc(session.refreshTokenExpiresAtUtc)}
                                                 </span>
 
                                                 {!session.isActive && (
@@ -219,9 +246,28 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                         >
                             <button
                                 type="button"
+                                className="settings-button settings-button--secondary"
+                                onClick={() => void revokeOthers()}
+                                disabled={
+                                    !token ||
+                                    isRevokingOther ||
+                                    isRevokingAll ||
+                                    isLoadingSessions ||
+                                    otherActiveSessionsCount === 0
+                                }
+                            >
+                                {isRevokingOther ? "Revoking..." : "Revoke other sessions"}
+                            </button>
+                        </RequirePermission>
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeSessionsRevokeAll}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
                                 className="settings-button settings-button--danger-outline"
                                 onClick={() => void revokeAll()}
-                                disabled={!token || isRevokingAll || isLoadingSessions}
+                                disabled={!token || isRevokingAll || isRevokingOther || isLoadingSessions}
                             >
                                 {isRevokingAll ? "Revoking..." : "Revoke all sessions"}
                             </button>

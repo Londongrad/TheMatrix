@@ -125,6 +125,12 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
                 description: "All active sessions were revoked for this account.",
                 tone: item.isSuccessful ? "neutral" : "warning",
             };
+        case "OtherSessionsRevoked":
+            return {
+                title: item.isSuccessful ? "Other sessions revoked" : "Other session revoke failed",
+                description: "Every other active session was revoked while the current session stayed active.",
+                tone: item.isSuccessful ? "neutral" : "warning",
+            };
         case "UsernameChanged":
             return item.isSuccessful
                 ? {
