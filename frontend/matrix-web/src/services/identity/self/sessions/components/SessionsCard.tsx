@@ -1,3 +1,4 @@
+import {useState} from "react";
 import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
@@ -11,6 +12,8 @@ type Props = {
 };
 
 const SessionsCard = ({token, logout, confirm}: Props) => {
+    const [isEndedHistoryOpen, setIsEndedHistoryOpen] = useState(false);
+
     const {
         isSessionsOpen,
         setIsSessionsOpen,
@@ -29,30 +32,144 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
     } = useSessions({token, logout, confirm});
 
     const buildLocation = (session: SessionInfo) => {
-        if (session.location) return session.location;
+        if (session.location) {
+            return session.location;
+        }
 
         const parts = [session.city, session.region, session.country].filter(Boolean) as string[];
         return parts.length ? parts.join(", ") : "";
     };
 
     const fmtUtc = (value?: string | null) => {
-        if (!value) return "";
+        if (!value) {
+            return "";
+        }
 
         const date = new Date(value);
         return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+    };
+
+    const formatIpAddress = (value?: string | null) => {
+        if (!value) {
+            return "";
+        }
+
+        const normalized = value.trim().toLowerCase();
+        if (
+            normalized === "127.0.0.1" ||
+            normalized === "::1" ||
+            normalized === "::ffff:127.0.0.1"
+        ) {
+            return "localhost";
+        }
+
+        return value;
     };
 
     const activeSessionsCount = sessions.filter((session) => session.isActive).length;
     const otherActiveSessionsCount = sessions.filter(
         (session) => session.isActive && !isCurrentSession(session),
     ).length;
+    const endedSessionsCount = sessions.length - activeSessionsCount;
 
-    const getSessionStatus = (session: SessionInfo) => {
-        if (isCurrentSession(session) && session.isActive) {
-            return "Current";
-        }
+    const activeSessions = sortedSessions.filter((session) => session.isActive);
+    const endedSessions = sortedSessions.filter((session) => !session.isActive);
 
-        return session.isActive ? "Active" : "Ended";
+    const renderSessionCard = (session: SessionInfo) => {
+        const location = buildLocation(session);
+        const current = isCurrentSession(session);
+        const ipAddress = formatIpAddress(session.ipAddress);
+
+        return (
+            <div
+                key={session.id}
+                className={`settings-session-item ${
+                    current ? "settings-session-item--current" : ""
+                } ${
+                    !session.isActive ? "settings-session-item--ended" : ""
+                }`}
+            >
+                <div className="settings-session-main">
+                    <div className="settings-session-title">
+                        <span className="settings-session-device">
+                            {session.deviceName}
+                        </span>
+
+                        {current ? (
+                            <span className="settings-pill">Current</span>
+                        ) : (
+                            <span className="settings-session-status">
+                                {session.isActive ? "Active" : "Ended"}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="settings-session-meta">
+                        {ipAddress && (
+                            <span className="settings-session-chip">
+                                IP: {ipAddress}
+                            </span>
+                        )}
+
+                        {location && (
+                            <span className="settings-session-chip">
+                                {location}
+                            </span>
+                        )}
+
+                        <span className="settings-session-chip">
+                            {session.isPersistent ? "Persistent sign-in" : "Session sign-in"}
+                        </span>
+
+                        <span className="settings-session-chip">
+                            {session.lastUsedAtUtc
+                                ? `Last used: ${fmtUtc(session.lastUsedAtUtc)}`
+                                : `Created: ${fmtUtc(session.createdAtUtc)}`}
+                        </span>
+
+                        <span className="settings-session-chip">
+                            Expires: {fmtUtc(session.refreshTokenExpiresAtUtc)}
+                        </span>
+
+                        {!session.isActive && (
+                            <span className="settings-session-chip">
+                                Session ended
+                            </span>
+                        )}
+                    </div>
+
+                    {current && (
+                        <div className="settings-session-current-note">
+                            You are using this session right now.
+                        </div>
+                    )}
+
+                    <div className="settings-session-ua">{session.userAgent}</div>
+                </div>
+
+                {session.isActive && (
+                    <div className="settings-session-actions">
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeSessionsRevoke}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button settings-button--ghost-danger"
+                                onClick={() => void revokeOne(session)}
+                                disabled={revokingSessionId === session.id || isRevokingAll}
+                            >
+                                {revokingSessionId === session.id
+                                    ? "Revoking..."
+                                    : current
+                                        ? "Log out"
+                                        : "Revoke"}
+                            </button>
+                        </RequirePermission>
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -61,7 +178,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                 <div>
                     <h2 className="settings-card-title">Sessions</h2>
                     <p className="settings-card-description">
-                        Review every signed-in device and revoke the ones you no longer trust.
+                        Review every signed-in device, keep the current session, and inspect old access history without losing it.
                     </p>
                 </div>
 
@@ -116,6 +233,9 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                     <span className="settings-session-chip">
                                         Other active: {otherActiveSessionsCount}
                                     </span>
+                                    <span className="settings-session-chip">
+                                        Ended history: {endedSessionsCount}
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -142,137 +262,115 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                     ) : sessions.length === 0 ? (
                         <p className="settings-muted">No sessions found.</p>
                     ) : (
-                        <div className="settings-session-list">
-                            {sortedSessions.map((session) => {
-                                const location = buildLocation(session);
-                                const current = isCurrentSession(session);
+                        <>
+                            <div className="settings-sessions-toolbar">
+                                <div className="settings-session-meta">
+                                    <span className="settings-session-chip">
+                                        Active: {activeSessionsCount}
+                                    </span>
+                                    <span className="settings-session-chip">
+                                        Other active: {otherActiveSessionsCount}
+                                    </span>
+                                    <span className="settings-session-chip">
+                                        Ended history: {endedSessionsCount}
+                                    </span>
+                                </div>
 
-                                return (
-                                    <div
-                                        key={session.id}
-                                        className={`settings-session-item ${
-                                            current ? "settings-session-item--current" : ""
-                                        }`}
+                                <div className="settings-actions-row settings-actions-row--sessions">
+                                    <RequirePermission
+                                        perm={PermissionKeys.IdentityMeSessionsRevokeAll}
+                                        displayMode="disable"
                                     >
-                                        <div className="settings-session-main">
-                                            <div className="settings-session-title">
-                                                <span className="settings-session-device">
-                                                    {session.deviceName}
-                                                </span>
+                                        <button
+                                            type="button"
+                                            className="settings-button settings-button--secondary"
+                                            onClick={() => void revokeOthers()}
+                                            disabled={
+                                                !token ||
+                                                isRevokingOther ||
+                                                isRevokingAll ||
+                                                isLoadingSessions ||
+                                                otherActiveSessionsCount === 0
+                                            }
+                                            title={
+                                                otherActiveSessionsCount === 0
+                                                    ? "There are no other active sessions to revoke."
+                                                    : undefined
+                                            }
+                                        >
+                                            {isRevokingOther ? "Revoking..." : "Revoke other active sessions"}
+                                        </button>
+                                    </RequirePermission>
 
-                                                {current ? (
-                                                    <span className="settings-pill">Current</span>
-                                                ) : (
-                                                    <span className="settings-session-status">
-                                                        {getSessionStatus(session)}
-                                                    </span>
-                                                )}
-                                            </div>
+                                    <RequirePermission
+                                        perm={PermissionKeys.IdentityMeSessionsRevokeAll}
+                                        displayMode="disable"
+                                    >
+                                        <button
+                                            type="button"
+                                            className="settings-button settings-button--danger-outline"
+                                            onClick={() => void revokeAll()}
+                                            disabled={!token || isRevokingAll || isRevokingOther || isLoadingSessions}
+                                        >
+                                            {isRevokingAll ? "Revoking..." : "Revoke all active sessions"}
+                                        </button>
+                                    </RequirePermission>
+                                </div>
+                            </div>
 
-                                            <div className="settings-session-meta">
-                                                {session.ipAddress && (
-                                                    <span className="settings-session-chip">
-                                                        IP: {session.ipAddress}
-                                                    </span>
-                                                )}
+                            {otherActiveSessionsCount === 0 && endedSessionsCount > 0 ? (
+                                <p className="settings-hint">
+                                    Other entries are already ended. They remain visible as access history, so
+                                    there is nothing left for <b>Revoke other active sessions</b> to revoke.
+                                </p>
+                            ) : null}
 
-                                                {location && (
-                                                    <span className="settings-session-chip">
-                                                        {location}
-                                                    </span>
-                                                )}
+                            <div className="settings-session-section">
+                                <div className="settings-session-section__header">
+                                    <h3 className="settings-session-section__title">Active sessions</h3>
+                                    <span className="settings-session-section__meta">
+                                        {activeSessionsCount}
+                                    </span>
+                                </div>
 
-                                                <span className="settings-session-chip">
-                                                    {session.isPersistent ? "Persistent sign-in" : "Session sign-in"}
-                                                </span>
+                                <div className="settings-session-list">
+                                    {activeSessions.map(renderSessionCard)}
+                                </div>
+                            </div>
 
-                                                <span className="settings-session-chip">
-                                                    {session.lastUsedAtUtc
-                                                        ? `Last used: ${fmtUtc(session.lastUsedAtUtc)}`
-                                                        : `Created: ${fmtUtc(session.createdAtUtc)}`}
-                                                </span>
-
-                                                <span className="settings-session-chip">
-                                                    Expires: {fmtUtc(session.refreshTokenExpiresAtUtc)}
-                                                </span>
-
-                                                {!session.isActive && (
-                                                    <span className="settings-session-chip">
-                                                        Session ended
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {current && (
-                                                <div className="settings-session-current-note">
-                                                    You are using this session right now.
-                                                </div>
-                                            )}
-
-                                            <div className="settings-session-ua">{session.userAgent}</div>
+                            {endedSessionsCount > 0 && (
+                                <div className="settings-session-section">
+                                    <div className="settings-session-section__header">
+                                        <div className="settings-session-section__titleRow">
+                                            <h3 className="settings-session-section__title">Ended session history</h3>
+                                            <span className="settings-session-section__meta">
+                                                {endedSessionsCount}
+                                            </span>
                                         </div>
 
-                                        <div className="settings-session-actions">
-                                            <RequirePermission
-                                                perm={PermissionKeys.IdentityMeSessionsRevoke}
-                                                displayMode="disable"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    className="settings-button settings-button--ghost-danger"
-                                                    onClick={() => void revokeOne(session)}
-                                                    disabled={
-                                                        revokingSessionId === session.id || isRevokingAll
-                                                    }
-                                                >
-                                                    {revokingSessionId === session.id
-                                                        ? "Revoking..."
-                                                        : current
-                                                            ? "Log out"
-                                                            : "Revoke"}
-                                                </button>
-                                            </RequirePermission>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            className="settings-button settings-button--secondary"
+                                            onClick={() => setIsEndedHistoryOpen((value) => !value)}
+                                        >
+                                            {isEndedHistoryOpen ? "Hide history" : "Show history"}
+                                        </button>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    )}
 
-                    <div className="settings-actions-row settings-actions-row--sessions">
-                        <RequirePermission
-                            perm={PermissionKeys.IdentityMeSessionsRevokeAll}
-                            displayMode="disable"
-                        >
-                            <button
-                                type="button"
-                                className="settings-button settings-button--secondary"
-                                onClick={() => void revokeOthers()}
-                                disabled={
-                                    !token ||
-                                    isRevokingOther ||
-                                    isRevokingAll ||
-                                    isLoadingSessions ||
-                                    otherActiveSessionsCount === 0
-                                }
-                            >
-                                {isRevokingOther ? "Revoking..." : "Revoke other sessions"}
-                            </button>
-                        </RequirePermission>
-                        <RequirePermission
-                            perm={PermissionKeys.IdentityMeSessionsRevokeAll}
-                            displayMode="disable"
-                        >
-                            <button
-                                type="button"
-                                className="settings-button settings-button--danger-outline"
-                                onClick={() => void revokeAll()}
-                                disabled={!token || isRevokingAll || isRevokingOther || isLoadingSessions}
-                            >
-                                {isRevokingAll ? "Revoking..." : "Revoke all sessions"}
-                            </button>
-                        </RequirePermission>
-                    </div>
+                                    {isEndedHistoryOpen ? (
+                                        <div className="settings-session-list">
+                                            {endedSessions.map(renderSessionCard)}
+                                        </div>
+                                    ) : (
+                                        <p className="settings-hint">
+                                            Ended sessions stay here as audit history. Expand this section only when
+                                            you need to inspect old devices or previous sign-ins.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             )}
         </section>

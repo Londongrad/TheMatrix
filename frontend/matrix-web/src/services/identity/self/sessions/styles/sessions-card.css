@@ -16,9 +16,53 @@
     gap: 0.85rem;
 }
 
+.settings-sessions-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+}
+
 .settings-session-list {
     display: grid;
     gap: 0.65rem;
+}
+
+.settings-session-section {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.settings-session-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.settings-session-section__titleRow {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.settings-session-section__title {
+    margin: 0;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--app-text-muted);
+}
+
+.settings-session-section__meta {
+    padding: 0.18rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid var(--settings-pill-border);
+    background: var(--settings-pill-bg);
+    color: var(--settings-pill-text);
+    font-size: 0.74rem;
 }
 
 .settings-session-item {
@@ -37,6 +81,10 @@
     box-shadow:
         0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
         0 12px 34px rgba(var(--shell-accent-rgb), 0.18);
+}
+
+.settings-session-item--ended {
+    opacity: 0.92;
 }
 
 .settings-session-main {
@@ -137,6 +185,11 @@ html[data-theme="matrix"] .settings-session-skeleton-line {
 }
 
 @media (max-width: 760px) {
+    .settings-sessions-toolbar,
+    .settings-session-section__header {
+        align-items: stretch;
+    }
+
     .settings-session-item {
         flex-direction: column;
         align-items: stretch;
