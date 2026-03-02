@@ -75,6 +75,19 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             return Ok(dto);
         }
 
+        [HttpPut("display-name")]
+        public async Task<ActionResult<ChangeDisplayNameResponse>> ChangeDisplayName(
+            [FromBody] ChangeDisplayNameRequest request,
+            CancellationToken cancellationToken)
+        {
+            ChangeDisplayNameResponse response =
+                await _identityAccountClient.ChangeDisplayNameAsync(
+                    request: request,
+                    cancellationToken: cancellationToken);
+
+            return Ok(response);
+        }
+
         [HttpDelete("avatar")]
         public async Task<ActionResult<ChangeAvatarResponse>> ClearAvatar(
             CancellationToken cancellationToken)

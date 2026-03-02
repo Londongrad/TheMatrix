@@ -44,6 +44,21 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
                 requestUrl: AvatarEndpoint);
         }
 
+        public async Task<ChangeDisplayNameResponse> ChangeDisplayNameAsync(
+            ChangeDisplayNameRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
+                requestUri: DisplayNameEndpoint,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<ChangeDisplayNameResponse>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: DisplayNameEndpoint);
+        }
+
         public async Task<ChangeUsernameResponse> ChangeUsernameAsync(
             ChangeUsernameRequest request,
             CancellationToken cancellationToken = default)
@@ -170,6 +185,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
 
         private const string ProfileEndpoint = AccountBaseEndpoint + "/profile";
         private const string SecurityActivityEndpoint = AccountBaseEndpoint + "/security-activity";
+        private const string DisplayNameEndpoint = AccountBaseEndpoint + "/display-name";
         private const string UsernameEndpoint = AccountBaseEndpoint + "/username";
         private const string EmailEndpoint = AccountBaseEndpoint + "/email";
         private const string PendingEmailEndpoint = AccountBaseEndpoint + "/email/pending";

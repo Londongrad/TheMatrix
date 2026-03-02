@@ -9,6 +9,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
             IFormFile avatar,
             CancellationToken cancellationToken = default);
 
+        Task<ChangeDisplayNameResponse> ChangeDisplayNameAsync(
+            ChangeDisplayNameRequest request,
+            CancellationToken cancellationToken = default);
+
         Task<ChangeUsernameResponse> ChangeUsernameAsync(
             ChangeUsernameRequest request,
             CancellationToken cancellationToken = default);
