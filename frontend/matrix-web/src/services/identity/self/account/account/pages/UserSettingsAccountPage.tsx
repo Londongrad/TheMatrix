@@ -8,11 +8,12 @@ const UserSettingsAccountPage = () => {
     return (
         <UserSettingsSection
             title="Account"
-            subtitle="Review username and email without mixing identity data with avatar personalization or device-local workspace preferences."
+            subtitle="Manage the core sign-in identity of this operator account without duplicating personalization or recovery-email workflows."
         >
             <AccountCard
+                userId={user?.userId ?? ""}
                 username={user?.username ?? ""}
-                email={user?.email ?? ""}
+                pendingEmail={user?.pendingEmail ?? null}
                 isEmailConfirmed={user?.isEmailConfirmed ?? false}
                 patchUser={patchUser}
             />

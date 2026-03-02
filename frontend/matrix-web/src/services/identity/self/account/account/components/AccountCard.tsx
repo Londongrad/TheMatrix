@@ -6,15 +6,17 @@ import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import "@services/identity/self/account/account/styles/account-card.css";
 
 type Props = {
+    userId: string;
     username: string;
-    email: string;
+    pendingEmail: string | null;
     isEmailConfirmed: boolean;
     patchUser: (patch: Partial<ProfileResponse>) => void;
 };
 
 const AccountCard = ({
+    userId,
     username,
-    email,
+    pendingEmail,
     isEmailConfirmed,
     patchUser,
 }: Props) => {
@@ -23,13 +25,49 @@ const AccountCard = ({
     const [isSaving, setIsSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
+    const [copiedAccountId, setCopiedAccountId] = useState(false);
 
     useEffect(() => {
         setDraftUsername(username);
     }, [username]);
 
+    useEffect(() => {
+        if (!copiedAccountId) {
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setCopiedAccountId(false);
+        }, 1800);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [copiedAccountId]);
+
     const normalizedDraft = useMemo(() => draftUsername.trim(), [draftUsername]);
     const hasUsernameChanged = normalizedDraft !== username;
+    const emailStateLabel = pendingEmail
+        ? "Pending change"
+        : isEmailConfirmed
+            ? "Confirmed"
+            : "Needs confirmation";
+    const emailStateDescription = pendingEmail
+        ? "A replacement email is waiting for confirmation in Security."
+        : isEmailConfirmed
+            ? "Email sign-in and recovery are active."
+            : "Email sign-in exists, but verification still needs attention in Security.";
+
+    const copyAccountId = async () => {
+        if (!userId || !navigator.clipboard?.writeText) {
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(userId);
+            setCopiedAccountId(true);
+        } catch {
+            setCopiedAccountId(false);
+        }
+    };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -66,11 +104,12 @@ const AccountCard = ({
                 <div>
                     <h2 className="settings-card-title">Account identity</h2>
                     <p className="settings-card-description">
-                        Core login and recovery identifiers for this operator account.
+                        Core sign-in identity for this operator account, without duplicating
+                        personalization or recovery-email workflows.
                     </p>
                 </div>
                 <span className="settings-pill">
-                    {isEmailConfirmed ? "Email confirmed" : "Email pending"}
+                    {isEmailConfirmed ? "Email confirmed" : "Email attention"}
                 </span>
             </div>
 
@@ -80,7 +119,7 @@ const AccountCard = ({
                         <label className="settings-label" htmlFor="accountUsername">
                             Username
                         </label>
-                        <span>Login alias</span>
+                        <span>Primary login alias</span>
                     </div>
                     <input
                         id="accountUsername"
@@ -114,7 +153,7 @@ const AccountCard = ({
                             setSaved(false);
                         }}
                         autoComplete="current-password"
-                        placeholder="••••••••"
+                        placeholder="********"
                     />
                 </div>
 
@@ -139,20 +178,64 @@ const AccountCard = ({
 
             <div className="settings-account-grid">
                 <article className="settings-account-panel">
-                    <div className="settings-label-row">
-                        <span className="settings-label">Email</span>
-                        <span>Recovery and verification</span>
+                    <div className="settings-account-panel__header">
+                        <div className="settings-label-row">
+                            <span className="settings-label">Account ID</span>
+                            <span>Stable support identifier</span>
+                        </div>
+                        <div className="settings-account-inline-actions">
+                            {copiedAccountId && (
+                                <span className="settings-save-badge">Copied</span>
+                            )}
+                            <button
+                                type="button"
+                                className="settings-button settings-button--secondary settings-button--small"
+                                onClick={() => {
+                                    void copyAccountId();
+                                }}
+                                disabled={!userId}
+                            >
+                                Copy ID
+                            </button>
+                        </div>
                     </div>
                     <div className="settings-account-value">
-                        {email || "--"}
+                        {userId || "--"}
+                    </div>
+                </article>
+
+                <article className="settings-account-panel">
+                    <div className="settings-label-row">
+                        <span className="settings-label">Sign-in model</span>
+                        <span>Identity policy</span>
+                    </div>
+                    <div className="settings-account-value">
+                        Username + email sign-in
+                    </div>
+                    <div className="settings-account-panel__meta">
+                        Username is managed here. Recovery email stays in Security because it
+                        follows a dedicated confirmation flow instead of a direct overwrite.
+                    </div>
+                </article>
+
+                <article className="settings-account-panel">
+                    <div className="settings-label-row">
+                        <span className="settings-label">Email state</span>
+                        <span>Managed in Security</span>
+                    </div>
+                    <div className="settings-account-value">
+                        {emailStateLabel}
+                    </div>
+                    <div className="settings-account-panel__meta">
+                        {emailStateDescription}
                     </div>
                 </article>
             </div>
 
             <div className="settings-account-note">
                 Username changes require your current password and are limited to once every 30
-                days. Email changes stay in the Security section so they can move through a
-                dedicated confirmation flow instead of a direct overwrite form.
+                days. This page stays focused on stable account identity, while Security owns
+                recovery email and other confirmation-based flows.
             </div>
         </section>
     );

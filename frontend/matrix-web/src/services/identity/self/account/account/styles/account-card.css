@@ -4,22 +4,45 @@
 
 .settings-account-grid {
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 0.9rem;
+    margin-top: 1rem;
 }
 
 .settings-account-panel {
+    display: grid;
+    gap: 0.55rem;
     border-radius: 1rem;
     border: 1px solid color-mix(in srgb, var(--shell-border) 86%, transparent);
     background: color-mix(in srgb, var(--shell-surface-soft) 88%, transparent);
     padding: 0.95rem 1rem;
 }
 
+.settings-account-panel__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.settings-account-inline-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
 .settings-account-value {
-    margin-top: 0.4rem;
     font-size: 0.96rem;
     font-weight: 600;
     color: var(--app-text-strong);
     word-break: break-word;
+}
+
+.settings-account-panel__meta {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--app-text-muted);
 }
 
 .settings-account-note {
@@ -31,4 +54,10 @@
     font-size: 0.84rem;
     line-height: 1.45;
     color: var(--app-text-muted);
+}
+
+.settings-button--small {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
 }
