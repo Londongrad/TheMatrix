@@ -13,6 +13,7 @@ const UserSettingsPersonalizationPage = () => {
             <PersonalizationCard
                 token={token}
                 avatarUrl={user?.avatarUrl ?? undefined}
+                displayName={user?.displayName ?? undefined}
                 username={user?.username ?? ""}
                 email={user?.email ?? ""}
                 patchUser={patchUser}

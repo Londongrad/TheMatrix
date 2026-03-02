@@ -17,7 +17,10 @@ export default function MatrixTopbar({title, subtitle}: Props) {
     const menuRef = useRef<HTMLDivElement | null>(null);
 
     const displayName =
-        (user?.username as string) || (user?.email as string) || "Overseer";
+        (user?.displayName as string) ||
+        (user?.username as string) ||
+        (user?.email as string) ||
+        "Overseer";
 
     const initial = displayName.charAt(0).toUpperCase();
 

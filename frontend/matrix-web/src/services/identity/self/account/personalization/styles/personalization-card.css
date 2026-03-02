@@ -92,6 +92,11 @@
     font-weight: 600;
 }
 
+.settings-avatar-handle {
+    font-size: 0.78rem;
+    color: var(--app-text-muted);
+}
+
 .settings-avatar-meta {
     font-size: 0.8rem;
     color: var(--app-text-muted);

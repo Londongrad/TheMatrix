@@ -9,6 +9,14 @@ export interface ChangeAvatarResponse {
     avatarUrl: string | null;
 }
 
+export interface ChangeDisplayNameRequest {
+    displayName: string | null;
+}
+
+export interface ChangeDisplayNameResponse {
+    displayName: string | null;
+}
+
 export interface ChangeUsernameRequest {
     username: string;
     currentPassword: string;
@@ -36,6 +44,7 @@ export interface ProfileResponse {
     email: string;
     pendingEmail: string | null;
     username: string;
+    displayName: string | null;
     avatarUrl: string | null;
     isEmailConfirmed: boolean;
     effectivePermissions: string[];

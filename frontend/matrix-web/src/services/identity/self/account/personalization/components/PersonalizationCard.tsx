@@ -1,16 +1,19 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {
+    changeDisplayName,
     clearAvatar,
     updateAvatar,
 } from "@services/identity/api/self/account/accountApi";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {usePermissions} from "@shared/permissions/usePermissions";
 import "@services/identity/self/account/personalization/styles/personalization-card.css";
 
 type Props = {
     token: string | null;
     avatarUrl?: string;
+    displayName?: string;
     username: string;
     email: string;
     patchUser: (patch: Partial<ProfileResponse>) => void;
@@ -19,10 +22,15 @@ type Props = {
 const PersonalizationCard = ({
     token,
     avatarUrl,
+    displayName,
     username,
     email,
     patchUser,
 }: Props) => {
+    const {can} = usePermissions();
+    const canChangeDisplayName = can(PermissionKeys.IdentityMeDisplayNameChange);
+    const canChangeAvatar = can(PermissionKeys.IdentityMeAvatarChange);
+
     const [avatarError, setAvatarError] = useState<string | null>(null);
     const [avatarNotice, setAvatarNotice] = useState<string | null>(null);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -30,10 +38,45 @@ const PersonalizationCard = ({
     const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+    const [draftDisplayName, setDraftDisplayName] = useState(displayName ?? "");
+    const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+    const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
+    const [displayNameSaved, setDisplayNameSaved] = useState(false);
+
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const initial = (username || email || "O").charAt(0).toUpperCase();
+
+    const resolvedDisplayName =
+        displayName?.trim() || username || email || "Overseer";
+    const currentDisplayName = displayName?.trim() || null;
+    const normalizedDraftDisplayName = useMemo(
+        () => draftDisplayName.trim(),
+        [draftDisplayName],
+    );
+    const effectiveDraftDisplayName =
+        normalizedDraftDisplayName.length > 0 ? normalizedDraftDisplayName : null;
+
+    const initial = resolvedDisplayName.charAt(0).toUpperCase();
     const activeAvatarUrl = previewUrl ?? avatarUrl;
     const hasPendingSelection = selectedAvatarFile !== null;
+    const hasDisplayNameChanged = effectiveDraftDisplayName !== currentDisplayName;
+
+    useEffect(() => {
+        setDraftDisplayName(displayName ?? "");
+    }, [displayName]);
+
+    useEffect(() => {
+        if (!displayNameSaved) {
+            return undefined;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setDisplayNameSaved(false);
+        }, 2200);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [displayNameSaved]);
 
     useEffect(() => {
         return () => {
@@ -104,12 +147,7 @@ const PersonalizationCard = ({
     };
 
     const handleApplyAvatar = async () => {
-        if (!token) {
-            setAvatarError("You are not authenticated.");
-            return;
-        }
-
-        if (!selectedAvatarFile) {
+        if (!token || !selectedAvatarFile) {
             return;
         }
 
@@ -132,12 +170,7 @@ const PersonalizationCard = ({
     };
 
     const handleClearAvatar = async () => {
-        if (!token) {
-            setAvatarError("You are not authenticated.");
-            return;
-        }
-
-        if (!avatarUrl) {
+        if (!token || !avatarUrl) {
             return;
         }
 
@@ -159,16 +192,140 @@ const PersonalizationCard = ({
         }
     };
 
+    const handleDisplayNameSubmit = async (
+        event: React.FormEvent<HTMLFormElement>,
+    ) => {
+        event.preventDefault();
+
+        if (!hasDisplayNameChanged) {
+            return;
+        }
+
+        try {
+            setDisplayNameError(null);
+            setDisplayNameSaved(false);
+            setIsSavingDisplayName(true);
+
+            const result = await changeDisplayName({
+                displayName: effectiveDraftDisplayName,
+            });
+
+            patchUser({displayName: result.displayName});
+            setDraftDisplayName(result.displayName ?? "");
+            setDisplayNameSaved(true);
+        } catch (error: any) {
+            setDisplayNameError(
+                error?.message || "Failed to update display name. Please try again.",
+            );
+        } finally {
+            setIsSavingDisplayName(false);
+        }
+    };
+
+    const handleClearDisplayName = async () => {
+        if (!currentDisplayName) {
+            setDraftDisplayName("");
+            setDisplayNameSaved(false);
+            setDisplayNameError(null);
+            return;
+        }
+
+        try {
+            setDisplayNameError(null);
+            setDisplayNameSaved(false);
+            setIsSavingDisplayName(true);
+
+            const result = await changeDisplayName({displayName: null});
+            patchUser({displayName: result.displayName});
+            setDraftDisplayName("");
+            setDisplayNameSaved(true);
+        } catch (error: any) {
+            setDisplayNameError(
+                error?.message || "Failed to clear display name. Please try again.",
+            );
+        } finally {
+            setIsSavingDisplayName(false);
+        }
+    };
+
     return (
         <section className="settings-card settings-card--personalization">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">Avatar</h2>
+                    <h2 className="settings-card-title">Identity presentation</h2>
                     <p className="settings-card-description">
-                        Update the image that represents this account in the topbar and across the console.
+                        Choose the public label and avatar shown across the console
+                        without touching your login credentials.
                     </p>
                 </div>
             </div>
+
+            <form className="settings-form" onSubmit={handleDisplayNameSubmit}>
+                <div className="settings-field">
+                    <div className="settings-label-row">
+                        <label className="settings-label" htmlFor="displayName">
+                            Display name
+                        </label>
+                        <span>Shown in the topbar and user menu</span>
+                    </div>
+                    <input
+                        id="displayName"
+                        className="settings-input"
+                        type="text"
+                        value={draftDisplayName}
+                        onChange={(event) => {
+                            setDraftDisplayName(event.target.value);
+                            setDisplayNameSaved(false);
+                        }}
+                        maxLength={64}
+                        placeholder="How the console should address you"
+                        disabled={!canChangeDisplayName || isSavingDisplayName}
+                    />
+                    <p className="settings-hint">
+                        Leave it empty to fall back to your username. This changes presentation
+                        only, not the login alias itself.
+                    </p>
+                </div>
+
+                {displayNameError ? (
+                    <p className="settings-error-text">{displayNameError}</p>
+                ) : null}
+
+                <div className="settings-actions-row settings-actions-row--start">
+                    {displayNameSaved ? (
+                        <span className="settings-save-badge">Saved</span>
+                    ) : null}
+
+                    <RequirePermission
+                        perm={PermissionKeys.IdentityMeDisplayNameChange}
+                        displayMode="disable"
+                    >
+                        <button
+                            type="submit"
+                            className="settings-button"
+                            disabled={!hasDisplayNameChanged || isSavingDisplayName}
+                        >
+                            {isSavingDisplayName ? "Saving..." : "Save display name"}
+                        </button>
+                    </RequirePermission>
+
+                    <RequirePermission
+                        perm={PermissionKeys.IdentityMeDisplayNameChange}
+                        displayMode="disable"
+                    >
+                        <button
+                            type="button"
+                            className="settings-button settings-button--secondary"
+                            onClick={() => {
+                                void handleClearDisplayName();
+                            }}
+                            disabled={!currentDisplayName || isSavingDisplayName}
+                        >
+                            {isSavingDisplayName ? "Clearing..." : "Use username fallback"}
+                        </button>
+                    </RequirePermission>
+                </div>
+            </form>
 
             <div className="settings-avatar-row">
                 <RequirePermission
@@ -179,12 +336,12 @@ const PersonalizationCard = ({
                         type="button"
                         className="settings-avatar"
                         onClick={handleAvatarClick}
-                        disabled={isUploadingAvatar || isClearingAvatar}
+                        disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
                     >
                         {activeAvatarUrl ? (
                             <img
                                 src={activeAvatarUrl}
-                                alt={username || email || "Avatar"}
+                                alt={resolvedDisplayName || "Avatar"}
                                 className="settings-avatar-image"
                             />
                         ) : (
@@ -202,8 +359,9 @@ const PersonalizationCard = ({
                 />
 
                 <div className="settings-avatar-text">
-                    <div className="settings-avatar-name">
-                        {username || "Overseer"}
+                    <div className="settings-avatar-name">{resolvedDisplayName}</div>
+                    <div className="settings-avatar-handle">
+                        {username ? `@${username}` : email}
                     </div>
                     <div className="settings-avatar-meta">
                         {isUploadingAvatar
@@ -214,7 +372,7 @@ const PersonalizationCard = ({
                                     ? "Preview is local until you apply it."
                                     : "Choose a JPG, PNG, or WebP image up to 2 MB."}
                     </div>
-                    {selectedAvatarFile && (
+                    {selectedAvatarFile ? (
                         <div className="settings-avatar-selection">
                             <span className="settings-pill settings-pill--accent">
                                 Preview
@@ -222,7 +380,7 @@ const PersonalizationCard = ({
                             <span>{selectedAvatarFile.name}</span>
                             <span>{formatFileSize(selectedAvatarFile.size)}</span>
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </div>
 
@@ -238,7 +396,7 @@ const PersonalizationCard = ({
                         type="button"
                         className="settings-button"
                         onClick={handleAvatarClick}
-                        disabled={isUploadingAvatar || isClearingAvatar}
+                        disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
                     >
                         {hasPendingSelection ? "Choose another image" : "Choose image"}
                     </button>
@@ -292,7 +450,8 @@ const PersonalizationCard = ({
             </div>
 
             <p className="settings-hint">
-                Personalization changes stay local until you apply them. Clearing the avatar falls back to your account initial.
+                Avatar changes stay local until you apply them. Clearing the avatar falls back to the
+                current display label initial.
             </p>
         </section>
     );
