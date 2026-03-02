@@ -21,6 +21,7 @@ export function useSessions(options: {
 
     const [isSessionsOpen, setIsSessionsOpen] = useState(false);
     const [sessions, setSessions] = useState<SessionInfo[]>([]);
+    const [sessionsVersion, setSessionsVersion] = useState(0);
     const [sessionsError, setSessionsError] = useState<string | null>(null);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
     const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export function useSessions(options: {
 
             const list = await getSessions();
             setSessions(list ?? []);
+            setSessionsVersion((value) => value + 1);
         } catch (err: any) {
             console.error(err);
             setSessionsError(err?.message || "Failed to load sessions.");
@@ -232,6 +234,7 @@ export function useSessions(options: {
         isRevokingAll,
         isRevokingOther,
         loadSessions,
+        sessionsVersion,
         revokeOne,
         revokeOthers,
         revokeAll,
