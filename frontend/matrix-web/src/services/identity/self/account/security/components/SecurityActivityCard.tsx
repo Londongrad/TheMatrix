@@ -1,4 +1,6 @@
+import {useState} from "react";
 import type {SecurityActivityItem} from "@services/identity/api/self/account/accountTypes";
+import {formatIpAddress} from "@services/identity/self/shared/utils/formatIpAddress";
 import {useSecurityActivity} from "../hooks/useSecurityActivity";
 import "@services/identity/self/account/security/styles/security-card.css";
 
@@ -239,14 +241,17 @@ function describeActivity(item: SecurityActivityItem): ActivityPresentation {
 function buildMeta(item: SecurityActivityItem) {
     const parts = [
         item.deviceName,
-        item.ipAddress ? `IP ${item.ipAddress}` : null,
+        item.ipAddress ? `IP ${formatIpAddress(item.ipAddress)}` : null,
     ].filter(Boolean) as string[];
 
     return parts;
 }
 
 export default function SecurityActivityCard({token}: Props) {
-    const {items, isLoading, error, reload} = useSecurityActivity(token);
+    const [isActivityOpen, setIsActivityOpen] = useState(false);
+    const {items, isLoading, error, hasLoaded, reload} = useSecurityActivity(token, {
+        enabled: isActivityOpen,
+    });
 
     return (
         <section className="settings-card settings-card--security-activity">
@@ -254,24 +259,50 @@ export default function SecurityActivityCard({token}: Props) {
                 <div>
                     <h2 className="settings-card-title">Recent security activity</h2>
                     <p className="settings-card-description">
-                        Review recent sign-ins, recovery flows, and session actions for your account.
+                        Review recent sign-ins, recovery flows, and session actions for your account without loading the audit feed until you need it.
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    className="settings-button settings-button--secondary"
-                    onClick={() => void reload()}
-                    disabled={!token || isLoading}
-                >
-                    {isLoading ? "Loading..." : "Refresh"}
-                </button>
+                <div className="settings-header-actions">
+                    {isActivityOpen && (
+                        <button
+                            type="button"
+                            className="settings-button settings-button--secondary"
+                            onClick={() => void reload()}
+                            disabled={!token || isLoading}
+                        >
+                            {isLoading ? "Loading..." : "Refresh"}
+                        </button>
+                    )}
+
+                    <button
+                        type="button"
+                        className="settings-button settings-button--secondary"
+                        onClick={() => setIsActivityOpen((value) => !value)}
+                        disabled={!token}
+                    >
+                        {isActivityOpen ? "Hide activity" : "Show activity"}
+                    </button>
+                </div>
             </div>
 
             {!token ? (
                 <p className="settings-muted">
                     Sign in to review security activity for this account.
                 </p>
+            ) : !isActivityOpen ? (
+                <div className="settings-security-activity__summary">
+                    <p className="settings-muted">
+                        Recent security activity stays collapsed until you open it. The latest 12 events are loaded on demand.
+                    </p>
+                    {hasLoaded && items.length > 0 && (
+                        <div className="settings-security-activity__meta">
+                            <span className="settings-security-activity__chip">
+                                Last loaded: {items.length} recent events
+                            </span>
+                        </div>
+                    )}
+                </div>
             ) : error ? (
                 <div className="settings-alert settings-alert--error">{error}</div>
             ) : isLoading ? (
@@ -285,64 +316,74 @@ export default function SecurityActivityCard({token}: Props) {
                     No security activity has been recorded yet.
                 </p>
             ) : (
-                <div className="settings-security-activity__list">
-                    {items.map((item, index) => {
-                        const presentation = describeActivity(item);
-                        const meta = buildMeta(item);
-                        const exactUtc = formatExactUtc(item.occurredAtUtc);
+                <>
+                    <div className="settings-security-activity__controls">
+                        <div className="settings-security-activity__meta">
+                            <span className="settings-security-activity__chip">
+                                Showing latest {items.length} events
+                            </span>
+                        </div>
+                    </div>
 
-                        return (
-                            <article
-                                key={`${item.eventType}-${item.occurredAtUtc}-${index}`}
-                                className={`settings-security-activity__item settings-security-activity__item--${presentation.tone}`}
-                            >
-                                <div className="settings-security-activity__itemTop">
-                                    <div>
-                                        <div className="settings-security-activity__title">
-                                            {presentation.title}
-                                        </div>
-                                        <div className="settings-security-activity__description">
-                                            {presentation.description}
-                                        </div>
-                                    </div>
+                    <div className="settings-security-activity__list">
+                        {items.map((item, index) => {
+                            const presentation = describeActivity(item);
+                            const meta = buildMeta(item);
+                            const exactUtc = formatExactUtc(item.occurredAtUtc);
 
-                                    <div
-                                        className="settings-security-activity__time"
-                                        title={exactUtc}
-                                    >
-                                        <div className="settings-security-activity__timePrimary">
-                                            {formatRelativeUtc(item.occurredAtUtc)}
+                            return (
+                                <article
+                                    key={`${item.eventType}-${item.occurredAtUtc}-${index}`}
+                                    className={`settings-security-activity__item settings-security-activity__item--${presentation.tone}`}
+                                >
+                                    <div className="settings-security-activity__itemTop">
+                                        <div>
+                                            <div className="settings-security-activity__title">
+                                                {presentation.title}
+                                            </div>
+                                            <div className="settings-security-activity__description">
+                                                {presentation.description}
+                                            </div>
                                         </div>
-                                        <div className="settings-security-activity__timeSecondary">
-                                            {exactUtc}
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div className="settings-security-activity__meta">
-                                    {meta.map((value) => (
-                                        <span
-                                            key={value}
-                                            className="settings-security-activity__chip"
+                                        <div
+                                            className="settings-security-activity__time"
+                                            title={exactUtc}
                                         >
-                                            {value}
-                                        </span>
-                                    ))}
-
-                                    <span className="settings-security-activity__chip">
-                                        {item.isSuccessful ? "Successful" : "Attention needed"}
-                                    </span>
-                                </div>
-
-                                {item.userAgent ? (
-                                    <div className="settings-security-activity__userAgent">
-                                        {item.userAgent}
+                                            <div className="settings-security-activity__timePrimary">
+                                                {formatRelativeUtc(item.occurredAtUtc)}
+                                            </div>
+                                            <div className="settings-security-activity__timeSecondary">
+                                                {exactUtc}
+                                            </div>
+                                        </div>
                                     </div>
-                                ) : null}
-                            </article>
-                        );
-                    })}
-                </div>
+
+                                    <div className="settings-security-activity__meta">
+                                        {meta.map((value) => (
+                                            <span
+                                                key={value}
+                                                className="settings-security-activity__chip"
+                                            >
+                                                {value}
+                                            </span>
+                                        ))}
+
+                                        <span className="settings-security-activity__chip">
+                                            {item.isSuccessful ? "Successful" : "Attention needed"}
+                                        </span>
+                                    </div>
+
+                                    {item.userAgent ? (
+                                        <div className="settings-security-activity__userAgent">
+                                            {item.userAgent}
+                                        </div>
+                                    ) : null}
+                                </article>
+                            );
+                        })}
+                    </div>
+                </>
             )}
         </section>
     );

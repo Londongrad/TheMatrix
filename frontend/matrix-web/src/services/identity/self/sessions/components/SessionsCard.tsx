@@ -6,6 +6,7 @@ import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {getPageRange} from "@shared/lib/paging/pageRange";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
+import {formatIpAddress} from "@services/identity/self/shared/utils/formatIpAddress";
 import {useSessions} from "../hooks/useSessions";
 import "@services/identity/self/sessions/styles/sessions-card.css";
 
@@ -70,23 +71,6 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
     };
 
-    const formatIpAddress = (value?: string | null) => {
-        if (!value) {
-            return "";
-        }
-
-        const normalized = value.trim().toLowerCase();
-        if (
-            normalized === "127.0.0.1" ||
-            normalized === "::1" ||
-            normalized === "::ffff:127.0.0.1"
-        ) {
-            return "localhost";
-        }
-
-        return value;
-    };
-
     const activeSessionsCount = sessions.filter((session) => session.isActive).length;
     const otherActiveSessionsCount = sessions.filter(
         (session) => session.isActive && !isCurrentSession(session),
@@ -103,6 +87,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
     const canShowAllEndedHistory =
         historyTotalCount > ENDED_HISTORY_PAGE_SIZE &&
         historyTotalCount <= ENDED_HISTORY_SHOW_ALL_LIMIT;
+    const shouldShowHistoryPagination = !showAllEndedHistory && historyTotalPages > 1;
 
     useEffect(() => {
         if (!isEndedHistoryOpen) {
@@ -229,6 +214,24 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         setShowAllEndedHistory(true);
         setHistoryPageSize(expandedPageSize);
         endedHistoryQuery.setPageNumber(1);
+    };
+
+    const renderHistoryPagination = (position: "top" | "bottom") => {
+        if (!shouldShowHistoryPagination) {
+            return null;
+        }
+
+        return (
+            <div
+                className={`settings-session-pagination settings-session-pagination--${position}`}
+            >
+                <Pagination
+                    page={historyPageNumber}
+                    totalPages={historyTotalPages}
+                    onChange={endedHistoryQuery.setPageNumber}
+                />
+            </div>
+        );
     };
 
     return (
@@ -460,17 +463,13 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                             )}
                                         </div>
 
+                                        {renderHistoryPagination("top")}
+
                                         <div className="settings-session-list">
                                             {endedHistoryItems.map(renderSessionCard)}
                                         </div>
 
-                                        {!showAllEndedHistory && historyTotalPages > 1 && (
-                                            <Pagination
-                                                page={historyPageNumber}
-                                                totalPages={historyTotalPages}
-                                                onChange={endedHistoryQuery.setPageNumber}
-                                            />
-                                        )}
+                                        {renderHistoryPagination("bottom")}
                                     </>
                                 )}
                             </div>

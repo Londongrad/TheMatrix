@@ -73,6 +73,18 @@
     flex-wrap: wrap;
 }
 
+.settings-session-pagination {
+    display: flex;
+}
+
+.settings-session-pagination--top {
+    justify-content: flex-end;
+}
+
+.settings-session-pagination--bottom {
+    justify-content: center;
+}
+
 .settings-session-item {
     display: flex;
     align-items: center;
@@ -195,7 +207,8 @@ html[data-theme="matrix"] .settings-session-skeleton-line {
 @media (max-width: 760px) {
     .settings-sessions-toolbar,
     .settings-session-section__header,
-    .settings-session-section__controls {
+    .settings-session-section__controls,
+    .settings-session-pagination {
         align-items: stretch;
     }
 

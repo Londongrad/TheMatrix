@@ -138,6 +138,20 @@
     border-color: var(--settings-card-border);
 }
 
+.settings-security-activity__summary {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.settings-security-activity__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
 .settings-security-activity__list {
     display: grid;
     gap: 0.75rem;
