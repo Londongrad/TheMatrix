@@ -65,6 +65,14 @@
     font-size: 0.74rem;
 }
 
+.settings-session-section__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+}
+
 .settings-session-item {
     display: flex;
     align-items: center;
@@ -186,7 +194,8 @@ html[data-theme="matrix"] .settings-session-skeleton-line {
 
 @media (max-width: 760px) {
     .settings-sessions-toolbar,
-    .settings-session-section__header {
+    .settings-session-section__header,
+    .settings-session-section__controls {
         align-items: stretch;
     }
 

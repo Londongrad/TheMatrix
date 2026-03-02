@@ -1,7 +1,9 @@
-import {useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {getPageRange} from "@shared/lib/paging/pageRange";
+import Pagination from "@shared/ui/components/Pagination/Pagination";
 import {useSessions} from "../hooks/useSessions";
 import "@services/identity/self/sessions/styles/sessions-card.css";
 
@@ -11,8 +13,12 @@ type Props = {
     confirm: (options: any) => Promise<boolean>;
 };
 
+const ENDED_HISTORY_PAGE_SIZE = 50;
+
 const SessionsCard = ({token, logout, confirm}: Props) => {
     const [isEndedHistoryOpen, setIsEndedHistoryOpen] = useState(false);
+    const [endedHistoryPage, setEndedHistoryPage] = useState(1);
+    const [showAllEndedHistory, setShowAllEndedHistory] = useState(false);
 
     const {
         isSessionsOpen,
@@ -74,6 +80,36 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
 
     const activeSessions = sortedSessions.filter((session) => session.isActive);
     const endedSessions = sortedSessions.filter((session) => !session.isActive);
+    const endedHistoryTotalPages = Math.max(
+        1,
+        Math.ceil(endedSessionsCount / ENDED_HISTORY_PAGE_SIZE),
+    );
+    const endedHistoryRange = getPageRange(
+        endedHistoryPage,
+        ENDED_HISTORY_PAGE_SIZE,
+        endedSessionsCount,
+    );
+
+    const visibleEndedSessions = useMemo(() => {
+        if (showAllEndedHistory) {
+            return endedSessions;
+        }
+
+        const startIndex = (endedHistoryPage - 1) * ENDED_HISTORY_PAGE_SIZE;
+        return endedSessions.slice(startIndex, startIndex + ENDED_HISTORY_PAGE_SIZE);
+    }, [endedHistoryPage, endedSessions, showAllEndedHistory]);
+
+    useEffect(() => {
+        if (endedHistoryPage > endedHistoryTotalPages) {
+            setEndedHistoryPage(endedHistoryTotalPages);
+        }
+    }, [endedHistoryPage, endedHistoryTotalPages]);
+
+    useEffect(() => {
+        if (showAllEndedHistory) {
+            setEndedHistoryPage(1);
+        }
+    }, [showAllEndedHistory]);
 
     const renderSessionCard = (session: SessionInfo) => {
         const location = buildLocation(session);
@@ -358,9 +394,41 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                     </div>
 
                                     {isEndedHistoryOpen ? (
-                                        <div className="settings-session-list">
-                                            {endedSessions.map(renderSessionCard)}
-                                        </div>
+                                        <>
+                                            <div className="settings-session-section__controls">
+                                                <div className="settings-session-meta">
+                                                    <span className="settings-session-chip">
+                                                        {showAllEndedHistory
+                                                            ? `Showing all ${endedSessionsCount} ended sessions`
+                                                            : `Showing ${endedHistoryRange.start}-${endedHistoryRange.end} of ${endedSessionsCount}`}
+                                                    </span>
+                                                </div>
+
+                                                {endedSessionsCount > ENDED_HISTORY_PAGE_SIZE && (
+                                                    <div className="settings-actions-row settings-actions-row--sessions">
+                                                        <button
+                                                            type="button"
+                                                            className="settings-button settings-button--secondary"
+                                                            onClick={() => setShowAllEndedHistory((value) => !value)}
+                                                        >
+                                                            {showAllEndedHistory ? "Paginate history" : "Show all"}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="settings-session-list">
+                                                {visibleEndedSessions.map(renderSessionCard)}
+                                            </div>
+
+                                            {!showAllEndedHistory && endedSessionsCount > ENDED_HISTORY_PAGE_SIZE && (
+                                                <Pagination
+                                                    page={endedHistoryPage}
+                                                    totalPages={endedHistoryTotalPages}
+                                                    onChange={setEndedHistoryPage}
+                                                />
+                                            )}
+                                        </>
                                     ) : (
                                         <p className="settings-hint">
                                             Ended sessions stay here as audit history. Expand this section only when
