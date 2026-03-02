@@ -31,6 +31,7 @@ namespace Matrix.Identity.Application.Authorization.Permissions
         public const string IdentityPermissionsCatalogRead = ContractPermissionKeys.IdentityPermissionsCatalogRead;
 
         public const string IdentityMeProfileRead = ContractPermissionKeys.IdentityMeProfileRead;
+        public const string IdentityMeDisplayNameChange = ContractPermissionKeys.IdentityMeDisplayNameChange;
         public const string IdentityMeUsernameChange = ContractPermissionKeys.IdentityMeUsernameChange;
         public const string IdentityMeEmailChange = ContractPermissionKeys.IdentityMeEmailChange;
         public const string IdentityMeAccountDelete = ContractPermissionKeys.IdentityMeAccountDelete;

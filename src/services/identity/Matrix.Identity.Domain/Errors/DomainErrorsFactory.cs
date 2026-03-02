@@ -76,6 +76,17 @@ namespace Matrix.Identity.Domain.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException InvalidDisplayNameLength(
+            int maxLength,
+            int actualLength,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Identity.User.DisplayName.InvalidLength",
+                message: $"Display name must be at most {maxLength} characters. Actual length {actualLength}.",
+                propertyName: propertyName);
+        }
+
         #endregion [ User - Credentials ]
 
         #region [ User - RefreshToken ]

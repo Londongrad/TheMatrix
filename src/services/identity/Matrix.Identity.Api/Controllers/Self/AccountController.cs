@@ -1,4 +1,5 @@
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
+using Matrix.Identity.Application.UseCases.Self.Account.ChangeDisplayName;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
 using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername;
@@ -41,6 +42,7 @@ namespace Matrix.Identity.Api.Controllers.Self
                 Email = result.Email,
                 PendingEmail = result.PendingEmail,
                 Username = result.Username,
+                DisplayName = result.DisplayName,
                 AvatarUrl = result.AvatarUrl,
                 IsEmailConfirmed = result.IsEmailConfirmed,
                 EffectivePermissions = result.EffectivePermissions.ToArray(),
@@ -81,6 +83,23 @@ namespace Matrix.Identity.Api.Controllers.Self
         #endregion [ Profile ]
 
         #region [ Identity Updates ]
+
+        [HttpPut("display-name")]
+        public async Task<ActionResult<ChangeDisplayNameResponse>> ChangeDisplayName(
+            [FromBody] ChangeDisplayNameRequest request,
+            CancellationToken cancellationToken)
+        {
+            string? displayName = await _sender.Send(
+                request: new ChangeDisplayNameCommand(request.DisplayName),
+                cancellationToken: cancellationToken);
+
+            var response = new ChangeDisplayNameResponse
+            {
+                DisplayName = displayName
+            };
+
+            return Ok(response);
+        }
 
         [HttpPut("username")]
         public async Task<ActionResult<ChangeUsernameResponse>> ChangeUsername(

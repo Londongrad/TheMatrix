@@ -6,6 +6,8 @@ namespace Matrix.Identity.Domain.Entities
 {
     public sealed class User
     {
+        public const int DisplayNameMaxLength = 64;
+
         #region [ Fields ]
 
         private readonly List<RefreshToken> _refreshTokens = new();
@@ -35,6 +37,7 @@ namespace Matrix.Identity.Domain.Entities
         public Guid Id { get; }
 
         public string? AvatarUrl { get; private set; }
+        public string? DisplayName { get; private set; }
         public Username Username { get; private set; } = null!;
         public Email Email { get; private set; } = null!;
         public string? PendingEmail { get; private set; }
@@ -116,6 +119,21 @@ namespace Matrix.Identity.Domain.Entities
         public void ChangeAvatar(string? avatarUrl)
         {
             AvatarUrl = avatarUrl;
+        }
+
+        public void ChangeDisplayName(string? displayName)
+        {
+            string? normalizedDisplayName = string.IsNullOrWhiteSpace(displayName)
+                ? null
+                : displayName.Trim();
+
+            if (normalizedDisplayName is not null && normalizedDisplayName.Length > DisplayNameMaxLength)
+                throw DomainErrorsFactory.InvalidDisplayNameLength(
+                    maxLength: DisplayNameMaxLength,
+                    actualLength: normalizedDisplayName.Length,
+                    propertyName: nameof(DisplayName));
+
+            DisplayName = normalizedDisplayName;
         }
 
         public void ChangeUsername(

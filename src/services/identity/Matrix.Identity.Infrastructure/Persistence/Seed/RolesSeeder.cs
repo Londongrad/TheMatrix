@@ -171,6 +171,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             return new List<string>
             {
                 PermissionKeys.IdentityMeProfileRead,
+                PermissionKeys.IdentityMeDisplayNameChange,
                 PermissionKeys.IdentityMePasswordChange,
                 PermissionKeys.IdentityMeAvatarChange,
                 PermissionKeys.IdentityMeSessionsRead,
