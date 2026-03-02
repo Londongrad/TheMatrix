@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
@@ -5,6 +6,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
     public interface IIdentitySessionsClient
     {
         Task<IReadOnlyCollection<SessionResponse>> GetSessionsAsync(CancellationToken cancellationToken = default);
+
+        Task<PagedResult<SessionResponse>> GetSessionHistoryPageAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default);
 
         Task RevokeSessionAsync(
             Guid sessionId,

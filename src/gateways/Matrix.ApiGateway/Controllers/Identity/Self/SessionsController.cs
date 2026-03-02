@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,19 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<SessionResponse> sessions = await _sessionsClient.GetSessionsAsync(cancellationToken);
+            return Ok(sessions);
+        }
+
+        [HttpGet("history")]
+        public async Task<ActionResult<PagedResult<SessionResponse>>> GetSessionHistoryPage(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 50,
+            CancellationToken cancellationToken = default)
+        {
+            PagedResult<SessionResponse> sessions = await _sessionsClient.GetSessionHistoryPageAsync(
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
             return Ok(sessions);
         }
 

@@ -1,6 +1,8 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
 {
@@ -32,6 +34,29 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: Base);
+        }
+
+        public async Task<PagedResult<SessionResponse>> GetSessionHistoryPageAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            string url = QueryHelpers.AddQueryString(
+                uri: $"{Base}/history",
+                queryString: new Dictionary<string, string?>
+                {
+                    ["pageNumber"] = pageNumber.ToString(),
+                    ["pageSize"] = pageSize.ToString()
+                });
+
+            using HttpResponseMessage resp = await _httpClient.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await resp.ReadJsonOrThrowDownstreamAsync<PagedResult<SessionResponse>>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
         }
 
         public async Task RevokeSessionAsync(
