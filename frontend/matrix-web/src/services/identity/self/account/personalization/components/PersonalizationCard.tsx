@@ -1,4 +1,4 @@
-import React, {useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {
     clearAvatar,
     updateAvatar,
@@ -24,13 +24,49 @@ const PersonalizationCard = ({
     patchUser,
 }: Props) => {
     const [avatarError, setAvatarError] = useState<string | null>(null);
+    const [avatarNotice, setAvatarNotice] = useState<string | null>(null);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [isClearingAvatar, setIsClearingAvatar] = useState(false);
+    const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const initial = (username || email || "O").charAt(0).toUpperCase();
+    const activeAvatarUrl = previewUrl ?? avatarUrl;
+    const hasPendingSelection = selectedAvatarFile !== null;
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl?.startsWith("blob:")) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     const handleAvatarClick = () => fileInputRef.current?.click();
+
+    const clearPendingSelection = () => {
+        setSelectedAvatarFile(null);
+        setPreviewUrl((currentPreviewUrl) => {
+            if (currentPreviewUrl?.startsWith("blob:")) {
+                URL.revokeObjectURL(currentPreviewUrl);
+            }
+
+            return null;
+        });
+    };
+
+    const formatFileSize = (value: number) => {
+        if (value < 1024) {
+            return `${value} B`;
+        }
+
+        if (value < 1024 * 1024) {
+            return `${(value / 1024).toFixed(1)} KB`;
+        }
+
+        return `${(value / (1024 * 1024)).toFixed(2)} MB`;
+    };
 
     const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -43,8 +79,9 @@ const PersonalizationCard = ({
             return;
         }
 
-        if (!file.type.startsWith("image/")) {
-            setAvatarError("Please select an image file.");
+        const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+        if (!allowedTypes.has(file.type)) {
+            setAvatarError("Use a JPG, PNG, or WebP image.");
             return;
         }
 
@@ -55,9 +92,35 @@ const PersonalizationCard = ({
 
         try {
             setAvatarError(null);
+            setAvatarNotice("Preview ready. Apply it when you are happy with the result.");
+            clearPendingSelection();
+
+            const objectUrl = URL.createObjectURL(file);
+            setSelectedAvatarFile(file);
+            setPreviewUrl(objectUrl);
+        } finally {
+            event.target.value = "";
+        }
+    };
+
+    const handleApplyAvatar = async () => {
+        if (!token) {
+            setAvatarError("You are not authenticated.");
+            return;
+        }
+
+        if (!selectedAvatarFile) {
+            return;
+        }
+
+        try {
+            setAvatarError(null);
+            setAvatarNotice(null);
             setIsUploadingAvatar(true);
-            const result = await updateAvatar(file);
+            const result = await updateAvatar(selectedAvatarFile);
             patchUser({avatarUrl: result.avatarUrl});
+            clearPendingSelection();
+            setAvatarNotice("Avatar updated. The new image is now active across the console.");
         } catch (uploadError: any) {
             console.error(uploadError);
             setAvatarError(
@@ -65,7 +128,6 @@ const PersonalizationCard = ({
             );
         } finally {
             setIsUploadingAvatar(false);
-            event.target.value = "";
         }
     };
 
@@ -81,9 +143,12 @@ const PersonalizationCard = ({
 
         try {
             setAvatarError(null);
+            setAvatarNotice(null);
             setIsClearingAvatar(true);
             const result = await clearAvatar();
             patchUser({avatarUrl: result.avatarUrl});
+            clearPendingSelection();
+            setAvatarNotice("Avatar cleared. Your fallback initial is active again.");
         } catch (clearError: any) {
             console.error(clearError);
             setAvatarError(
@@ -116,9 +181,9 @@ const PersonalizationCard = ({
                         onClick={handleAvatarClick}
                         disabled={isUploadingAvatar || isClearingAvatar}
                     >
-                        {avatarUrl ? (
+                        {activeAvatarUrl ? (
                             <img
-                                src={avatarUrl}
+                                src={activeAvatarUrl}
                                 alt={username || email || "Avatar"}
                                 className="settings-avatar-image"
                             />
@@ -145,11 +210,23 @@ const PersonalizationCard = ({
                             ? "Uploading avatar..."
                             : isClearingAvatar
                                 ? "Clearing avatar..."
-                                : "Choose a JPG, PNG, or WebP image up to 2 MB."}
+                                : hasPendingSelection
+                                    ? "Preview is local until you apply it."
+                                    : "Choose a JPG, PNG, or WebP image up to 2 MB."}
                     </div>
+                    {selectedAvatarFile && (
+                        <div className="settings-avatar-selection">
+                            <span className="settings-pill settings-pill--accent">
+                                Preview
+                            </span>
+                            <span>{selectedAvatarFile.name}</span>
+                            <span>{formatFileSize(selectedAvatarFile.size)}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
+            {avatarNotice ? <p className="settings-hint">{avatarNotice}</p> : null}
             {avatarError ? <p className="settings-error-text">{avatarError}</p> : null}
 
             <div className="settings-actions-row settings-actions-row--start">
@@ -163,7 +240,37 @@ const PersonalizationCard = ({
                         onClick={handleAvatarClick}
                         disabled={isUploadingAvatar || isClearingAvatar}
                     >
-                        {isUploadingAvatar ? "Uploading..." : "Upload new avatar"}
+                        {hasPendingSelection ? "Choose another image" : "Choose image"}
+                    </button>
+                </RequirePermission>
+
+                <RequirePermission
+                    perm={PermissionKeys.IdentityMeAvatarChange}
+                    displayMode="disable"
+                >
+                    <button
+                        type="button"
+                        className="settings-button settings-button--secondary"
+                        onClick={() => {
+                            void handleApplyAvatar();
+                        }}
+                        disabled={!hasPendingSelection || isUploadingAvatar || isClearingAvatar}
+                    >
+                        {isUploadingAvatar ? "Applying..." : "Apply avatar"}
+                    </button>
+                </RequirePermission>
+
+                <RequirePermission
+                    perm={PermissionKeys.IdentityMeAvatarChange}
+                    displayMode="disable"
+                >
+                    <button
+                        type="button"
+                        className="settings-button settings-button--secondary"
+                        onClick={clearPendingSelection}
+                        disabled={!hasPendingSelection || isUploadingAvatar || isClearingAvatar}
+                    >
+                        Discard preview
                     </button>
                 </RequirePermission>
 
@@ -177,7 +284,7 @@ const PersonalizationCard = ({
                         onClick={() => {
                             void handleClearAvatar();
                         }}
-                        disabled={!avatarUrl || isUploadingAvatar || isClearingAvatar}
+                        disabled={!avatarUrl || hasPendingSelection || isUploadingAvatar || isClearingAvatar}
                     >
                         {isClearingAvatar ? "Clearing..." : "Clear avatar"}
                     </button>
@@ -185,7 +292,7 @@ const PersonalizationCard = ({
             </div>
 
             <p className="settings-hint">
-                Avatar changes now support both upload and explicit clearing through the same account command boundary.
+                Personalization changes stay local until you apply them. Clearing the avatar falls back to your account initial.
             </p>
         </section>
     );
