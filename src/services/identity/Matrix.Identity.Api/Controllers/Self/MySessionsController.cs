@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistoryPage;
 using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeOtherMySessions;
@@ -50,6 +52,48 @@ namespace Matrix.Identity.Api.Controllers.Self
                .ToList();
 
             return Ok(response);
+        }
+
+        [HttpGet("history")]
+        public async Task<ActionResult<PagedResult<SessionResponse>>> GetSessionHistoryPage(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 50,
+            CancellationToken cancellationToken = default)
+        {
+            var pagination = new Pagination(
+                pageNumber: pageNumber,
+                pageSize: pageSize);
+
+            var query = new GetMySessionHistoryPageQuery(pagination);
+
+            PagedResult<MySessionResult> result = await _sender.Send(
+                request: query,
+                cancellationToken: cancellationToken);
+
+            var mapped = new PagedResult<SessionResponse>(
+                items: result.Items.Select(s => new SessionResponse
+                    {
+                        Id = s.Id,
+                        DeviceId = s.DeviceId,
+                        DeviceName = s.DeviceName,
+                        UserAgent = s.UserAgent,
+                        IpAddress = s.IpAddress,
+                        Country = s.Country,
+                        Region = s.Region,
+                        City = s.City,
+                        CreatedAtUtc = s.CreatedAtUtc,
+                        LastUsedAtUtc = s.LastUsedAtUtc,
+                        RefreshTokenExpiresAtUtc = s.RefreshTokenExpiresAtUtc,
+                        IsActive = false,
+                        IsCurrent = false,
+                        IsPersistent = s.IsPersistent
+                    })
+                   .ToList(),
+                totalCount: result.TotalCount,
+                pageNumber: result.PageNumber,
+                pageSize: result.PageSize);
+
+            return Ok(mapped);
         }
 
         [HttpDelete("{sessionId:guid}")]

@@ -1,22 +1,24 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
+using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
 
-namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
+namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistoryPage
 {
-    public sealed class GetUserSessionsQueryHandler(
+    public sealed class GetMySessionHistoryPageQueryHandler(
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
         IClock clock,
         ICurrentUserContext currentUser)
-        : IRequestHandler<GetMySessionsQuery, IReadOnlyCollection<MySessionResult>>
+        : IRequestHandler<GetMySessionHistoryPageQuery, PagedResult<MySessionResult>>
     {
-        public async Task<IReadOnlyCollection<MySessionResult>> Handle(
-            GetMySessionsQuery request,
+        public async Task<PagedResult<MySessionResult>> Handle(
+            GetMySessionHistoryPageQuery request,
             CancellationToken cancellationToken)
         {
             Guid userId = currentUser.GetUserIdOrThrow();
@@ -28,13 +30,14 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
             if (!userExists)
                 throw ApplicationErrorsFactory.UserNotFound(userId);
 
-            IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListActiveByUserIdAsync(
-                userId: userId,
-                utcNow: clock.UtcNow,
-                cancellationToken: cancellationToken);
+            (IReadOnlyCollection<UserSession> sessions, int totalCount) =
+                await userSessionRepository.GetEndedPageByUserIdAsync(
+                    userId: userId,
+                    utcNow: clock.UtcNow,
+                    pagination: request.Pagination,
+                    cancellationToken: cancellationToken);
 
-            return sessions
-               .OrderByDescending(t => t.LastUsedAtUtc ?? t.CreatedAtUtc)
+            IReadOnlyCollection<MySessionResult> items = sessions
                .Select(t => new MySessionResult
                 {
                     Id = t.Id,
@@ -48,10 +51,16 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
                     CreatedAtUtc = t.CreatedAtUtc,
                     LastUsedAtUtc = t.LastUsedAtUtc,
                     RefreshTokenExpiresAtUtc = t.RefreshTokenExpiresAtUtc,
-                    IsActive = t.IsActive(),
+                    IsActive = false,
                     IsPersistent = t.IsPersistent
                 })
                .ToArray();
+
+            return new PagedResult<MySessionResult>(
+                items: items,
+                totalCount: totalCount,
+                pageNumber: request.Pagination.PageNumber,
+                pageSize: request.Pagination.PageSize);
         }
     }
 }

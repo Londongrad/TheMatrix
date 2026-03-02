@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Domain.Entities;
 
 namespace Matrix.Identity.Application.Abstractions.Persistence
@@ -16,6 +17,17 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
 
         Task<IReadOnlyCollection<UserSession>> ListByUserIdAsync(
             Guid userId,
+            CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyCollection<UserSession>> ListActiveByUserIdAsync(
+            Guid userId,
+            DateTime utcNow,
+            CancellationToken cancellationToken = default);
+
+        Task<(IReadOnlyCollection<UserSession> Items, int TotalCount)> GetEndedPageByUserIdAsync(
+            Guid userId,
+            DateTime utcNow,
+            Pagination pagination,
             CancellationToken cancellationToken = default);
 
         Task<DateTime?> GetLastVisitedAtUtcAsync(
