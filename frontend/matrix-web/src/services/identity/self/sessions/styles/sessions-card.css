@@ -73,6 +73,19 @@
     flex-wrap: wrap;
 }
 
+.settings-session-section__controls--history {
+    align-items: center;
+}
+
+.settings-session-section__history-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
 .settings-session-pagination {
     display: flex;
 }
@@ -82,7 +95,7 @@
 }
 
 .settings-session-pagination--bottom {
-    justify-content: center;
+    justify-content: flex-end;
 }
 
 .settings-session-item {
@@ -208,7 +221,8 @@ html[data-theme="matrix"] .settings-session-skeleton-line {
     .settings-sessions-toolbar,
     .settings-session-section__header,
     .settings-session-section__controls,
-    .settings-session-pagination {
+    .settings-session-pagination,
+    .settings-session-section__history-actions {
         align-items: stretch;
     }
 

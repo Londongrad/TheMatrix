@@ -216,7 +216,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         endedHistoryQuery.setPageNumber(1);
     };
 
-    const renderHistoryPagination = (position: "top" | "bottom") => {
+    const renderHistoryPagination = (position: "bottom") => {
         if (!shouldShowHistoryPagination) {
             return null;
         }
@@ -441,7 +441,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                     </p>
                                 ) : (
                                     <>
-                                        <div className="settings-session-section__controls">
+                                        <div className="settings-session-section__controls settings-session-section__controls--history">
                                             <div className="settings-session-meta">
                                                 <span className="settings-session-chip">
                                                     {showAllEndedHistory
@@ -450,20 +450,30 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                                 </span>
                                             </div>
 
-                                            {canShowAllEndedHistory && (
-                                                <div className="settings-actions-row settings-actions-row--sessions">
-                                                    <button
-                                                        type="button"
-                                                        className="settings-button settings-button--secondary"
-                                                        onClick={handleToggleShowAll}
-                                                    >
-                                                        {showAllEndedHistory ? "Paginate history" : "Show all"}
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
+                                            <div className="settings-session-section__history-actions">
+                                                {canShowAllEndedHistory && (
+                                                    <div className="settings-actions-row settings-actions-row--sessions">
+                                                        <button
+                                                            type="button"
+                                                            className="settings-button settings-button--secondary"
+                                                            onClick={handleToggleShowAll}
+                                                        >
+                                                            {showAllEndedHistory ? "Paginate history" : "Show all"}
+                                                        </button>
+                                                    </div>
+                                                )}
 
-                                        {renderHistoryPagination("top")}
+                                                {shouldShowHistoryPagination && (
+                                                    <div className="settings-session-pagination settings-session-pagination--top">
+                                                        <Pagination
+                                                            page={historyPageNumber}
+                                                            totalPages={historyTotalPages}
+                                                            onChange={endedHistoryQuery.setPageNumber}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
 
                                         <div className="settings-session-list">
                                             {endedHistoryItems.map(renderSessionCard)}
