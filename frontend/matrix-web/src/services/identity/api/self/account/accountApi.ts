@@ -1,6 +1,7 @@
 // src/services/identity/api/account/accountApi.ts
 import {API_ACCOUNT_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
+import type {PagedResult} from "@shared/lib/paging/pagingTypes";
 import type {
     ChangeAvatarResponse,
     ChangeDisplayNameRequest,
@@ -12,7 +13,7 @@ import type {
     ChangeUsernameResponse,
     DeleteAccountRequest,
     ProfileResponse,
-    SecurityActivityItem,
+    SecurityActivityItem
 } from "./accountTypes";
 
 export async function fetchProfile(): Promise<ProfileResponse> {
@@ -21,11 +22,12 @@ export async function fetchProfile(): Promise<ProfileResponse> {
     });
 }
 
-export async function fetchSecurityActivity(
-    limit = 12,
-): Promise<SecurityActivityItem[]> {
-    return await apiRequest<SecurityActivityItem[]>(
-        `${API_ACCOUNT_URL}/security-activity?limit=${limit}`,
+export async function fetchSecurityActivityPage(
+    pageNumber = 1,
+    pageSize = 12,
+): Promise<PagedResult<SecurityActivityItem>> {
+    return await apiRequest<PagedResult<SecurityActivityItem>>(
+        `${API_ACCOUNT_URL}/security-activity?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         {
             method: "GET",
         },

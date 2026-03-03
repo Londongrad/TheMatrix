@@ -1,6 +1,8 @@
 import {useState} from "react";
 import type {SecurityActivityItem} from "@services/identity/api/self/account/accountTypes";
 import {formatIpAddress} from "@services/identity/self/shared/utils/formatIpAddress";
+import {getPageRange} from "@shared/lib/paging/pageRange";
+import Pagination from "@shared/ui/components/Pagination/Pagination";
 import {useSecurityActivity} from "../hooks/useSecurityActivity";
 import "@services/identity/self/account/security/styles/security-card.css";
 
@@ -249,9 +251,40 @@ function buildMeta(item: SecurityActivityItem) {
 
 export default function SecurityActivityCard({token}: Props) {
     const [isActivityOpen, setIsActivityOpen] = useState(false);
-    const {items, isLoading, error, hasLoaded, reload} = useSecurityActivity(token, {
+    const {
+        items,
+        totalCount,
+        totalPages,
+        pageNumber,
+        pageSize,
+        isLoading,
+        error,
+        hasLoaded,
+        reload,
+        setPageNumber,
+    } = useSecurityActivity(token, {
         enabled: isActivityOpen,
     });
+    const activityRange = getPageRange(pageNumber, pageSize, totalCount);
+    const shouldShowPagination = totalPages > 1;
+
+    const renderActivityPagination = (position: "top" | "bottom") => {
+        if (!shouldShowPagination) {
+            return null;
+        }
+
+        return (
+            <div
+                className={`settings-security-activity__pagination settings-security-activity__pagination--${position}`}
+            >
+                <Pagination
+                    page={pageNumber}
+                    totalPages={totalPages}
+                    onChange={setPageNumber}
+                />
+            </div>
+        );
+    };
 
     return (
         <section className="settings-card settings-card--security-activity">
@@ -293,7 +326,7 @@ export default function SecurityActivityCard({token}: Props) {
             ) : !isActivityOpen ? (
                 <div className="settings-security-activity__summary">
                     <p className="settings-muted">
-                        Recent security activity stays collapsed until you open it. The latest 12 events are loaded on demand.
+                        Recent security activity stays collapsed until you open it. Entries are fetched page by page only when you need them.
                     </p>
                     {hasLoaded && items.length > 0 && (
                         <div className="settings-security-activity__meta">
@@ -320,9 +353,11 @@ export default function SecurityActivityCard({token}: Props) {
                     <div className="settings-security-activity__controls">
                         <div className="settings-security-activity__meta">
                             <span className="settings-security-activity__chip">
-                                Showing latest {items.length} events
+                                Showing {activityRange.start}-{activityRange.end} of {totalCount}
                             </span>
                         </div>
+
+                        {renderActivityPagination("top")}
                     </div>
 
                     <div className="settings-security-activity__list">
@@ -383,6 +418,8 @@ export default function SecurityActivityCard({token}: Props) {
                             );
                         })}
                     </div>
+
+                    {renderActivityPagination("bottom")}
                 </>
             )}
         </section>
