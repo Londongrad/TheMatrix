@@ -166,3 +166,11 @@
     gap: 0.25rem;
     max-width: 420px;
 }
+
+.settings-avatar-preview__actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}

@@ -90,6 +90,13 @@ const PersonalizationCard = ({
 
     const handleChooseImageClick = () => fileInputRef.current?.click();
 
+    const handleChooseImageFromPreview = () => {
+        setIsAvatarPreviewOpen(false);
+        window.setTimeout(() => {
+            fileInputRef.current?.click();
+        }, 0);
+    };
+
     const handleAvatarPreviewOpen = () => {
         setIsAvatarPreviewOpen(true);
     };
@@ -459,6 +466,69 @@ const PersonalizationCard = ({
                 open={isAvatarPreviewOpen}
                 title="Avatar preview"
                 onClose={() => setIsAvatarPreviewOpen(false)}
+                footer={
+                    <div className="settings-avatar-preview__actions">
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeAvatarChange}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button settings-button--secondary"
+                                onClick={handleChooseImageFromPreview}
+                                disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
+                            >
+                                {hasPendingSelection ? "Choose another image" : "Choose image"}
+                            </button>
+                        </RequirePermission>
+
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeAvatarChange}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button settings-button--secondary"
+                                onClick={clearPendingSelection}
+                                disabled={!hasPendingSelection || isUploadingAvatar || isClearingAvatar}
+                            >
+                                Discard preview
+                            </button>
+                        </RequirePermission>
+
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeAvatarChange}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button settings-button--secondary"
+                                onClick={() => {
+                                    void handleClearAvatar();
+                                }}
+                                disabled={!avatarUrl || hasPendingSelection || isUploadingAvatar || isClearingAvatar}
+                            >
+                                {isClearingAvatar ? "Clearing..." : "Clear avatar"}
+                            </button>
+                        </RequirePermission>
+
+                        <RequirePermission
+                            perm={PermissionKeys.IdentityMeAvatarChange}
+                            displayMode="disable"
+                        >
+                            <button
+                                type="button"
+                                className="settings-button"
+                                onClick={() => {
+                                    void handleApplyAvatar();
+                                }}
+                                disabled={!hasPendingSelection || isUploadingAvatar || isClearingAvatar}
+                            >
+                                {isUploadingAvatar ? "Applying..." : "Apply avatar"}
+                            </button>
+                        </RequirePermission>
+                    </div>
+                }
             >
                 <div className="settings-avatar-preview">
                     <div className="settings-avatar-preview__frame">
