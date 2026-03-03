@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import {getSessionHistoryPage} from "@services/identity/api/self/sessions/sessionsApi";
 import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
@@ -17,12 +17,9 @@ type Props = {
 };
 
 const ENDED_HISTORY_PAGE_SIZE = 50;
-const ENDED_HISTORY_SHOW_ALL_LIMIT = 100;
 
 const SessionsCard = ({token, logout, confirm}: Props) => {
     const [isEndedHistoryOpen, setIsEndedHistoryOpen] = useState(false);
-    const [showAllEndedHistory, setShowAllEndedHistory] = useState(false);
-    const [historyPageSize, setHistoryPageSize] = useState(ENDED_HISTORY_PAGE_SIZE);
 
     const {
         isSessionsOpen,
@@ -44,8 +41,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
 
     const endedHistoryQuery = usePagedQuery<SessionInfo>(
         getSessionHistoryPage,
-        historyPageSize,
-        [sessionsVersion, showAllEndedHistory],
+        ENDED_HISTORY_PAGE_SIZE,
+        [sessionsVersion],
         {
             enabled: Boolean(token) && isSessionsOpen && isEndedHistoryOpen,
             initialPage: 1,
@@ -81,20 +78,10 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
     const historyPageNumber = endedHistoryQuery.data?.pageNumber ?? endedHistoryQuery.pageNumber;
     const historyRange = getPageRange(
         historyPageNumber,
-        historyPageSize,
+        ENDED_HISTORY_PAGE_SIZE,
         historyTotalCount,
     );
-    const canShowAllEndedHistory =
-        historyTotalCount > ENDED_HISTORY_PAGE_SIZE &&
-        historyTotalCount <= ENDED_HISTORY_SHOW_ALL_LIMIT;
-    const shouldShowHistoryPagination = !showAllEndedHistory && historyTotalPages > 1;
-
-    useEffect(() => {
-        if (!isEndedHistoryOpen) {
-            setShowAllEndedHistory(false);
-            setHistoryPageSize(ENDED_HISTORY_PAGE_SIZE);
-        }
-    }, [isEndedHistoryOpen]);
+    const shouldShowHistoryPagination = historyTotalPages > 1;
 
     const renderSessionCard = (session: SessionInfo) => {
         const location = buildLocation(session);
@@ -197,24 +184,6 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         () => endedHistoryQuery.data?.items ?? [],
         [endedHistoryQuery.data],
     );
-
-    const handleToggleShowAll = () => {
-        if (showAllEndedHistory) {
-            setShowAllEndedHistory(false);
-            setHistoryPageSize(ENDED_HISTORY_PAGE_SIZE);
-            endedHistoryQuery.setPageNumber(1);
-            return;
-        }
-
-        const expandedPageSize = Math.max(
-            ENDED_HISTORY_PAGE_SIZE,
-            endedHistoryQuery.data?.totalCount ?? ENDED_HISTORY_PAGE_SIZE,
-        );
-
-        setShowAllEndedHistory(true);
-        setHistoryPageSize(expandedPageSize);
-        endedHistoryQuery.setPageNumber(1);
-    };
 
     const renderHistoryPagination = (position: "bottom") => {
         if (!shouldShowHistoryPagination) {
@@ -444,25 +413,11 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                         <div className="settings-session-section__controls settings-session-section__controls--history">
                                             <div className="settings-session-meta">
                                                 <span className="settings-session-chip">
-                                                    {showAllEndedHistory
-                                                        ? `Showing all ${historyTotalCount} ended sessions`
-                                                        : `Showing ${historyRange.start}-${historyRange.end} of ${historyTotalCount}`}
+                                                    Showing {historyRange.start}-{historyRange.end} of {historyTotalCount}
                                                 </span>
                                             </div>
 
                                             <div className="settings-session-section__history-actions">
-                                                {canShowAllEndedHistory && (
-                                                    <div className="settings-actions-row settings-actions-row--sessions">
-                                                        <button
-                                                            type="button"
-                                                            className="settings-button settings-button--secondary"
-                                                            onClick={handleToggleShowAll}
-                                                        >
-                                                            {showAllEndedHistory ? "Paginate history" : "Show all"}
-                                                        </button>
-                                                    </div>
-                                                )}
-
                                                 {shouldShowHistoryPagination && (
                                                     <div className="settings-session-pagination settings-session-pagination--top">
                                                         <Pagination
