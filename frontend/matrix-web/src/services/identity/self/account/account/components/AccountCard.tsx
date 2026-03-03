@@ -10,6 +10,8 @@ type Props = {
     username: string;
     pendingEmail: string | null;
     isEmailConfirmed: boolean;
+    createdAtUtc: string;
+    emailConfirmedAtUtc: string | null;
     patchUser: (patch: Partial<ProfileResponse>) => void;
 };
 
@@ -18,6 +20,8 @@ const AccountCard = ({
     username,
     pendingEmail,
     isEmailConfirmed,
+    createdAtUtc,
+    emailConfirmedAtUtc,
     patchUser,
 }: Props) => {
     const [draftUsername, setDraftUsername] = useState(username);
@@ -52,9 +56,19 @@ const AccountCard = ({
             : "Needs confirmation";
     const emailStateDescription = pendingEmail
         ? "A replacement email is waiting for confirmation in Security."
-        : isEmailConfirmed
-            ? "Email sign-in and recovery are active."
-            : "Email sign-in exists, but verification still needs attention in Security.";
+            : isEmailConfirmed
+                ? "Email sign-in and recovery are active."
+                : "Email sign-in exists, but verification still needs attention in Security.";
+    const formatUtc = (value?: string | null) => {
+        if (!value) {
+            return "--";
+        }
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime())
+            ? value
+            : date.toLocaleString();
+    };
 
     const copyAccountId = async () => {
         if (!userId || !navigator.clipboard?.writeText) {
@@ -179,9 +193,9 @@ const AccountCard = ({
             <div className="settings-account-grid">
                 <article className="settings-account-panel">
                     <div className="settings-account-panel__header">
-                        <div className="settings-label-row">
+                        <div className="settings-account-panel__heading">
                             <span className="settings-label">Account ID</span>
-                            <span>Stable support identifier</span>
+                            <span className="settings-account-panel__caption">Stable support identifier</span>
                         </div>
                         <div className="settings-account-inline-actions">
                             {copiedAccountId && (
@@ -205,9 +219,9 @@ const AccountCard = ({
                 </article>
 
                 <article className="settings-account-panel">
-                    <div className="settings-label-row">
+                    <div className="settings-account-panel__heading">
                         <span className="settings-label">Sign-in model</span>
-                        <span>Identity policy</span>
+                        <span className="settings-account-panel__caption">Identity policy</span>
                     </div>
                     <div className="settings-account-value">
                         Username + email sign-in
@@ -219,15 +233,30 @@ const AccountCard = ({
                 </article>
 
                 <article className="settings-account-panel">
-                    <div className="settings-label-row">
-                        <span className="settings-label">Email state</span>
-                        <span>Managed in Security</span>
+                    <div className="settings-account-panel__heading">
+                        <span className="settings-label">Account created</span>
+                        <span className="settings-account-panel__caption">Lifecycle origin</span>
+                    </div>
+                    <div className="settings-account-value">
+                        {formatUtc(createdAtUtc)}
+                    </div>
+                    <div className="settings-account-panel__meta">
+                        The operator account was first created at this time and keeps the same stable identifier afterwards.
+                    </div>
+                </article>
+
+                <article className="settings-account-panel">
+                    <div className="settings-account-panel__heading">
+                        <span className="settings-label">Email verification</span>
+                        <span className="settings-account-panel__caption">Managed in Security</span>
                     </div>
                     <div className="settings-account-value">
                         {emailStateLabel}
                     </div>
                     <div className="settings-account-panel__meta">
-                        {emailStateDescription}
+                        {isEmailConfirmed && !pendingEmail
+                            ? `Verified at ${formatUtc(emailConfirmedAtUtc)}.`
+                            : emailStateDescription}
                     </div>
                 </article>
             </div>

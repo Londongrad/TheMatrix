@@ -15,6 +15,8 @@ const UserSettingsAccountPage = () => {
                 username={user?.username ?? ""}
                 pendingEmail={user?.pendingEmail ?? null}
                 isEmailConfirmed={user?.isEmailConfirmed ?? false}
+                createdAtUtc={user?.createdAtUtc ?? ""}
+                emailConfirmedAtUtc={user?.emailConfirmedAtUtc ?? null}
                 patchUser={patchUser}
             />
         </UserSettingsSection>

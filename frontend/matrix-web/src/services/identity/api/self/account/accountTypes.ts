@@ -47,6 +47,8 @@ export interface ProfileResponse {
     displayName: string | null;
     avatarUrl: string | null;
     isEmailConfirmed: boolean;
+    createdAtUtc: string;
+    emailConfirmedAtUtc: string | null;
     effectivePermissions: string[];
     permissionsVersion: number;
 }
