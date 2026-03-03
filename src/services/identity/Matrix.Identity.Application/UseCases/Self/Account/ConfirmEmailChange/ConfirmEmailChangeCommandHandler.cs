@@ -96,7 +96,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange
             string newEmail = user.PendingEmail;
 
             token.MarkUsed(nowUtc);
-            user.ConfirmPendingEmailChange();
+            user.ConfirmPendingEmailChange(nowUtc);
 
             await WriteAuditAsync(
                 request: request,

@@ -12,6 +12,8 @@ namespace Matrix.Identity.Contracts.Self.Account.Responses
 
         public string? AvatarUrl { get; set; }
         public bool IsEmailConfirmed { get; init; }
+        public DateTime CreatedAtUtc { get; init; }
+        public DateTime? EmailConfirmedAtUtc { get; init; }
 
         public required string[] EffectivePermissions { get; init; }
 

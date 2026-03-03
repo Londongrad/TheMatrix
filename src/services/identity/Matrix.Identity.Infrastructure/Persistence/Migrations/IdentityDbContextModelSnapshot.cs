@@ -205,6 +205,9 @@ namespace Matrix.Identity.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("EmailConfirmedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("DisplayName")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");

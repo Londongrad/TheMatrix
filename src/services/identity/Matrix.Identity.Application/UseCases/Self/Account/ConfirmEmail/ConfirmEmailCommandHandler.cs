@@ -73,7 +73,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail
             DateTime nowUtc = clock.UtcNow;
 
             token.MarkUsed(nowUtc);
-            user.ConfirmEmail();
+            user.ConfirmEmail(nowUtc);
 
             await WriteAuditAsync(
                 request: request,

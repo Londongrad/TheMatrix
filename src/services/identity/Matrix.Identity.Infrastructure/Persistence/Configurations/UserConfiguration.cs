@@ -76,6 +76,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.Property(u => u.IsEmailConfirmed)
                .IsRequired();
 
+            builder.Property(u => u.EmailConfirmedAtUtc)
+               .IsRequired(false);
+
             builder.Property(u => u.IsLocked)
                .IsRequired();
 

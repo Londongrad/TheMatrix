@@ -48,6 +48,7 @@ namespace Matrix.Identity.Domain.Entities
         public string PasswordHash { get; private set; } = null!;
 
         public bool IsEmailConfirmed { get; private set; }
+        public DateTime? EmailConfirmedAtUtc { get; private set; }
         public DateTime? LastUsernameChangedAtUtc { get; private set; }
 
         public bool IsLocked { get; private set; }
@@ -86,12 +87,13 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Methods ]
 
-        public void ConfirmEmail()
+        public void ConfirmEmail(DateTime confirmedAtUtc)
         {
             if (IsEmailConfirmed)
                 return;
 
             IsEmailConfirmed = true;
+            EmailConfirmedAtUtc = confirmedAtUtc;
         }
 
         public void RequestEmailChange(
@@ -101,7 +103,7 @@ namespace Matrix.Identity.Domain.Entities
             PendingEmail = newEmail?.Value ?? throw new ArgumentNullException(nameof(newEmail));
         }
 
-        public void ConfirmPendingEmailChange()
+        public void ConfirmPendingEmailChange(DateTime confirmedAtUtc)
         {
             if (string.IsNullOrWhiteSpace(PendingEmail))
                 throw new InvalidOperationException("Pending email is not set.");
@@ -109,6 +111,7 @@ namespace Matrix.Identity.Domain.Entities
             Email = ValueObjects.Email.Create(PendingEmail);
             PendingEmail = null;
             IsEmailConfirmed = true;
+            EmailConfirmedAtUtc = confirmedAtUtc;
         }
 
         public void CancelPendingEmailChange()

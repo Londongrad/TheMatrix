@@ -9,6 +9,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
         public string? DisplayName { get; init; }
         public string? AvatarUrl { get; init; }
         public bool IsEmailConfirmed { get; init; }
+        public DateTime CreatedAtUtc { get; init; }
+        public DateTime? EmailConfirmedAtUtc { get; init; }
 
         public IReadOnlyCollection<string> EffectivePermissions { get; init; } =
             Array.Empty<string>();

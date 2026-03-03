@@ -45,6 +45,8 @@ namespace Matrix.Identity.Api.Controllers.Self
                 DisplayName = result.DisplayName,
                 AvatarUrl = result.AvatarUrl,
                 IsEmailConfirmed = result.IsEmailConfirmed,
+                CreatedAtUtc = result.CreatedAtUtc,
+                EmailConfirmedAtUtc = result.EmailConfirmedAtUtc,
                 EffectivePermissions = result.EffectivePermissions.ToArray(),
                 PermissionsVersion = result.PermissionsVersion
             };

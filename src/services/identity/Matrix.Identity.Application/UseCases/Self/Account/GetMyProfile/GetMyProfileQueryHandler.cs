@@ -42,6 +42,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile
                 DisplayName = user.DisplayName,
                 AvatarUrl = user.AvatarUrl,
                 IsEmailConfirmed = user.IsEmailConfirmed,
+                CreatedAtUtc = user.CreatedAtUtc,
+                EmailConfirmedAtUtc = user.EmailConfirmedAtUtc,
                 EffectivePermissions = authContext.Permissions,
                 PermissionsVersion = authContext.PermissionsVersion
             };
