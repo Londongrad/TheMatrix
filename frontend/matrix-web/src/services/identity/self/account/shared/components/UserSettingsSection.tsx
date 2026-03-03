@@ -7,6 +7,7 @@ type Props = {
     subtitle: string;
     children: ReactNode;
     layout?: "single" | "grid";
+    showHeader?: boolean;
 };
 
 export default function UserSettingsSection({
@@ -14,15 +15,18 @@ export default function UserSettingsSection({
                                                 subtitle,
                                                 children,
                                                 layout = "single",
+                                                showHeader = false,
                                             }: Props) {
     return (
         <div className="user-settings-page">
-            <div className="user-settings-header">
-                <div>
-                    <h1 className="user-settings-title">{title}</h1>
-                    <p className="user-settings-subtitle">{subtitle}</p>
+            {showHeader ? (
+                <div className="user-settings-header">
+                    <div>
+                        <h1 className="user-settings-title">{title}</h1>
+                        <p className="user-settings-subtitle">{subtitle}</p>
+                    </div>
                 </div>
-            </div>
+            ) : null}
 
             <div
                 className={`user-settings-grid${

@@ -238,9 +238,9 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         <section className="settings-card settings-card--sessions settings-card--span-2">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">Sessions</h2>
+                    <h2 className="settings-card-title">Session access</h2>
                     <p className="settings-card-description">
-                        Review every signed-in device, keep the current session, and load old access history only when you need it.
+                        Review signed-in devices, keep the current session, and load old access history only when you need it.
                     </p>
                 </div>
 

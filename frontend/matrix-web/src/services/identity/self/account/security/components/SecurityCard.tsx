@@ -176,9 +176,9 @@ const SecurityCard = ({
         <section className="settings-card settings-card--security">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">Security</h2>
+                    <h2 className="settings-card-title">Verification and password</h2>
                     <p className="settings-card-description">
-                        Keep login, recovery, and sensitive self-service flows under tighter control.
+                        Protect sign-in, recovery, and sensitive self-service flows with stronger confirmation controls.
                     </p>
                 </div>
             </div>

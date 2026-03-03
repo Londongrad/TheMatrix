@@ -54,9 +54,9 @@ const DangerZoneCard = ({token}: Props) => {
         <section className="settings-card settings-card--danger">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">Danger zone</h2>
+                    <h2 className="settings-card-title">Account removal</h2>
                     <p className="settings-card-description">
-                        High-impact account actions that disable access and require recovery support.
+                        Disable this account and keep its identity reserved in case you need recovery later.
                     </p>
                 </div>
             </div>

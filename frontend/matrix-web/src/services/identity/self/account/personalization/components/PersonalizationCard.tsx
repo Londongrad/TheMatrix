@@ -171,7 +171,7 @@ const PersonalizationCard = ({
             const result = await updateAvatar(selectedAvatarFile);
             patchUser({avatarUrl: result.avatarUrl});
             clearPendingSelection();
-            setAvatarNotice("Avatar updated. The new image is now active across the console.");
+            setAvatarNotice("Avatar updated. The new image is now active across the application.");
         } catch (uploadError: any) {
             console.error(uploadError);
             setAvatarError(
@@ -265,9 +265,9 @@ const PersonalizationCard = ({
         <section className="settings-card settings-card--personalization">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">Identity presentation</h2>
+                    <h2 className="settings-card-title">Profile appearance</h2>
                     <p className="settings-card-description">
-                        Choose the public label and avatar shown across the console
+                        Choose the public label and avatar shown across the application
                         without touching your login credentials.
                     </p>
                 </div>
@@ -291,7 +291,7 @@ const PersonalizationCard = ({
                             setDisplayNameSaved(false);
                         }}
                         maxLength={64}
-                        placeholder="How the console should address you"
+                        placeholder="How the application should address you"
                         disabled={!canChangeDisplayName || isSavingDisplayName}
                     />
                     <p className="settings-hint">
@@ -552,9 +552,9 @@ const PersonalizationCard = ({
                         </div>
                         <div className="settings-avatar-meta">
                             {hasPendingSelection
-                                ? "This is the local preview. Apply it to make it active across the console."
+                                ? "This is the local preview. Apply it to make it active across the application."
                                 : activeAvatarUrl
-                                    ? "This is how the current avatar appears in the console."
+                                    ? "This is how the current avatar appears in the application."
                                     : "No uploaded avatar is active. The fallback initial is shown instead."}
                         </div>
                     </div>

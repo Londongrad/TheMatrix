@@ -110,10 +110,9 @@ const PreferencesCard = () => {
         <section className="settings-card settings-card--preferences">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">App profile</h2>
+                    <h2 className="settings-card-title">Device defaults</h2>
                     <p className="settings-card-description">
-                        Choose how this application should look during your
-                        sessions.
+                        Choose how this application should look and behave on this device.
                     </p>
                 </div>
             </div>

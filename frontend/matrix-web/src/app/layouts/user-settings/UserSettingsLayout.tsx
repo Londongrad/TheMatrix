@@ -14,7 +14,7 @@ const routeMetadata = [
     {
         match: "/userSettings/personalization",
         title: "Personalization",
-        subtitle: "Manage avatar and other appearance choices that represent this account across the console.",
+        subtitle: "Manage avatar and other appearance choices that represent this account across the application.",
     },
     {
         match: "/userSettings/security",
@@ -29,7 +29,7 @@ const routeMetadata = [
     {
         match: "/userSettings/workspace",
         title: "Workspace",
-        subtitle: "Shape language, theme presets and console defaults for this device.",
+        subtitle: "Shape language, theme presets and default behavior for this device.",
     },
     {
         match: "/userSettings/danger",

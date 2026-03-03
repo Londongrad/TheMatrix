@@ -116,7 +116,7 @@ const AccountCard = ({
         <section className="settings-card settings-card--account">
             <div className="settings-card-header">
                 <div>
-                    <h2 className="settings-card-title">Account identity</h2>
+                    <h2 className="settings-card-title">Sign-in identity</h2>
                     <p className="settings-card-description">
                         Core sign-in identity for this operator account, without duplicating
                         personalization or recovery-email workflows.
