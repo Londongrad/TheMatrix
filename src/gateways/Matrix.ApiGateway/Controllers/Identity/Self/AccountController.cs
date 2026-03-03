@@ -3,6 +3,7 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
 using Matrix.ApiGateway.Authorization.Caching;
 using Matrix.BuildingBlocks.Api.Errors;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 using Microsoft.Extensions.Caching.Distributed;
@@ -37,13 +38,15 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
         }
 
         [HttpGet("security-activity")]
-        public async Task<ActionResult<IReadOnlyCollection<SecurityActivityItemResponse>>> GetSecurityActivity(
-            [FromQuery] int limit = 12,
+        public async Task<ActionResult<PagedResult<SecurityActivityItemResponse>>> GetSecurityActivity(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
-            IReadOnlyCollection<SecurityActivityItemResponse> activity =
-                await _identityAccountClient.GetSecurityActivityAsync(
-                    limit: limit,
+            PagedResult<SecurityActivityItemResponse> activity =
+                await _identityAccountClient.GetSecurityActivityPageAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize,
                     cancellationToken: cancellationToken);
 
             return Ok(activity);

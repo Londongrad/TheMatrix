@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 
@@ -40,8 +41,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
 
         Task<UserProfileResponse> GetProfileAsync(CancellationToken cancellationToken);
 
-        Task<IReadOnlyCollection<SecurityActivityItemResponse>> GetSecurityActivityAsync(
-            int limit,
+        Task<PagedResult<SecurityActivityItemResponse>> GetSecurityActivityPageAsync(
+            int pageNumber,
+            int pageSize,
             CancellationToken cancellationToken);
     }
 }
