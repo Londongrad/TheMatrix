@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
 using Microsoft.EntityFrameworkCore;
@@ -10,18 +11,23 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         IdentityDbContext dbContext,
         ILogger<SecurityAuditReadRepository> logger) : ISecurityAuditReadRepository
     {
-        public async Task<IReadOnlyCollection<SecurityActivityItemResult>> GetRecentByUserIdAsync(
+        public async Task<(IReadOnlyCollection<SecurityActivityItemResult> Items, int TotalCount)> GetPageByUserIdAsync(
             Guid userId,
-            int limit,
+            Pagination pagination,
             CancellationToken cancellationToken)
         {
             try
             {
-                return await dbContext.SecurityAuditEvents
+                var query = dbContext.SecurityAuditEvents
                    .AsNoTracking()
                    .Where(x => x.UserId == userId)
-                   .OrderByDescending(x => x.OccurredAtUtc)
-                   .Take(limit)
+                   .OrderByDescending(x => x.OccurredAtUtc);
+
+                int totalCount = await query.CountAsync(cancellationToken);
+
+                List<SecurityActivityItemResult> items = await query
+                   .Skip(pagination.Skip)
+                   .Take(pagination.PageSize)
                    .Select(x => new SecurityActivityItemResult
                     {
                         EventType = x.EventType,
@@ -34,13 +40,15 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                         Details = x.Details
                     })
                    .ToListAsync(cancellationToken);
+
+                return (items, totalCount);
             }
             catch (PostgresException ex) when (IsMissingSecurityAuditTable(ex))
             {
                 logger.LogWarning(
                     ex,
                     "Security audit table is missing. Returning empty security activity history.");
-                return Array.Empty<SecurityActivityItemResult>();
+                return (Array.Empty<SecurityActivityItemResult>(), 0);
             }
         }
 
