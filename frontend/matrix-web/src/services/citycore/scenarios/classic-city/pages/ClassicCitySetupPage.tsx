@@ -603,7 +603,9 @@ export default function ClassicCitySetupPage() {
     const [lastSavedAtUtc, setLastSavedAtUtc] = useState<string | null>(null);
     const saveTimeoutRef = useRef<number | null>(null);
     const saveAbortRef = useRef<AbortController | null>(null);
+    const setupRootRef = useRef<HTMLElement | null>(null);
     const lastSyncedSignatureRef = useRef<string | null>(null);
+    const previousStepIdRef = useRef<ClassicCitySetupStepId>("scenario");
     const latestSnapshotRef = useRef<SessionSnapshot>({
         currentStepId: "scenario",
         draft: createDefaultDraft(),
@@ -970,9 +972,31 @@ export default function ClassicCitySetupPage() {
         };
     }, []);
 
+    useEffect(() => {
+        if (previousStepIdRef.current === currentStepId) {
+            return;
+        }
+
+        previousStepIdRef.current = currentStepId;
+
+        const scrollContainer = setupRootRef.current?.closest(".mx-shell__content");
+        if (scrollContainer instanceof HTMLElement) {
+            scrollContainer.scrollTo({
+                top: 0,
+                left: 0,
+            });
+            return;
+        }
+
+        window.scrollTo({
+            top: 0,
+            left: 0,
+        });
+    }, [currentStepId]);
+
     if (isInitializing && !session) {
         return (
-            <section className="scenario-setup">
+            <section className="scenario-setup" ref={setupRootRef}>
                 <div className="scenario-setup__panel">
                     <LoadingIndicator label="Preparing Classic City setup session..."/>
                 </div>
@@ -981,7 +1005,7 @@ export default function ClassicCitySetupPage() {
     }
 
     return (
-        <section className="scenario-setup">
+        <section className="scenario-setup" ref={setupRootRef}>
             <header className="scenario-setup__hero">
                 <div className="scenario-setup__eyebrow">Compose scenario</div>
                 <div className="scenario-setup__hero-grid">
