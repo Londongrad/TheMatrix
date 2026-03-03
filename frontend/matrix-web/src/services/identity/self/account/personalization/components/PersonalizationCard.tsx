@@ -8,6 +8,7 @@ import type {ProfileResponse} from "@services/identity/api/self/account/accountT
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
+import Modal from "@shared/ui/components/Modal/Modal";
 import "@services/identity/self/account/personalization/styles/personalization-card.css";
 
 type Props = {
@@ -35,6 +36,7 @@ const PersonalizationCard = ({
     const [avatarNotice, setAvatarNotice] = useState<string | null>(null);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [isClearingAvatar, setIsClearingAvatar] = useState(false);
+    const [isAvatarPreviewOpen, setIsAvatarPreviewOpen] = useState(false);
     const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -86,7 +88,11 @@ const PersonalizationCard = ({
         };
     }, [previewUrl]);
 
-    const handleAvatarClick = () => fileInputRef.current?.click();
+    const handleChooseImageClick = () => fileInputRef.current?.click();
+
+    const handleAvatarPreviewOpen = () => {
+        setIsAvatarPreviewOpen(true);
+    };
 
     const clearPendingSelection = () => {
         setSelectedAvatarFile(null);
@@ -328,27 +334,22 @@ const PersonalizationCard = ({
             </form>
 
             <div className="settings-avatar-row">
-                <RequirePermission
-                    perm={PermissionKeys.IdentityMeAvatarChange}
-                    displayMode="disable"
+                <button
+                    type="button"
+                    className="settings-avatar"
+                    onClick={handleAvatarPreviewOpen}
+                    aria-label="Preview avatar"
                 >
-                    <button
-                        type="button"
-                        className="settings-avatar"
-                        onClick={handleAvatarClick}
-                        disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
-                    >
-                        {activeAvatarUrl ? (
-                            <img
-                                src={activeAvatarUrl}
-                                alt={resolvedDisplayName || "Avatar"}
-                                className="settings-avatar-image"
-                            />
-                        ) : (
-                            <span className="settings-avatar-initial">{initial}</span>
-                        )}
-                    </button>
-                </RequirePermission>
+                    {activeAvatarUrl ? (
+                        <img
+                            src={activeAvatarUrl}
+                            alt={resolvedDisplayName || "Avatar"}
+                            className="settings-avatar-image"
+                        />
+                    ) : (
+                        <span className="settings-avatar-initial">{initial}</span>
+                    )}
+                </button>
 
                 <input
                     type="file"
@@ -370,7 +371,7 @@ const PersonalizationCard = ({
                                 ? "Clearing avatar..."
                                 : hasPendingSelection
                                     ? "Preview is local until you apply it."
-                                    : "Choose a JPG, PNG, or WebP image up to 2 MB."}
+                                    : "Choose a JPG, PNG, or WebP image up to 2 MB. Click the avatar to preview it larger."}
                     </div>
                     {selectedAvatarFile ? (
                         <div className="settings-avatar-selection">
@@ -392,13 +393,13 @@ const PersonalizationCard = ({
                     perm={PermissionKeys.IdentityMeAvatarChange}
                     displayMode="disable"
                 >
-                    <button
-                        type="button"
-                        className="settings-button"
-                        onClick={handleAvatarClick}
-                        disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
-                    >
-                        {hasPendingSelection ? "Choose another image" : "Choose image"}
+                        <button
+                            type="button"
+                            className="settings-button"
+                            onClick={handleChooseImageClick}
+                            disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
+                        >
+                            {hasPendingSelection ? "Choose another image" : "Choose image"}
                     </button>
                 </RequirePermission>
 
@@ -453,6 +454,42 @@ const PersonalizationCard = ({
                 Avatar changes stay local until you apply them. Clearing the avatar falls back to the
                 current display label initial.
             </p>
+
+            <Modal
+                open={isAvatarPreviewOpen}
+                title="Avatar preview"
+                onClose={() => setIsAvatarPreviewOpen(false)}
+            >
+                <div className="settings-avatar-preview">
+                    <div className="settings-avatar-preview__frame">
+                        {activeAvatarUrl ? (
+                            <img
+                                src={activeAvatarUrl}
+                                alt={resolvedDisplayName || "Avatar"}
+                                className="settings-avatar-preview__image"
+                            />
+                        ) : (
+                            <div className="settings-avatar-preview__fallback">
+                                <span className="settings-avatar-preview__initial">{initial}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="settings-avatar-preview__meta">
+                        <div className="settings-avatar-name">{resolvedDisplayName}</div>
+                        <div className="settings-avatar-handle">
+                            {username ? `@${username}` : email}
+                        </div>
+                        <div className="settings-avatar-meta">
+                            {hasPendingSelection
+                                ? "This is the local preview. Apply it to make it active across the console."
+                                : activeAvatarUrl
+                                    ? "This is how the current avatar appears in the console."
+                                    : "No uploaded avatar is active. The fallback initial is shown instead."}
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </section>
     );
 };
