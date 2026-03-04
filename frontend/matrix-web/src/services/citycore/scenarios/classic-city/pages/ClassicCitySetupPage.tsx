@@ -120,7 +120,17 @@ function createRandomGenerationSeed(): string {
     const raw = globalThis.crypto?.randomUUID?.().replace(/-/g, "")
         ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
 
-    return `classic-city-${raw.slice(0, 32)}`;
+    return `cc-${raw.slice(0, 16)}`;
+}
+
+function formatGenerationSeedPreview(generationSeed: string): string {
+    const normalized = generationSeed.trim();
+
+    if (normalized.length <= 22) {
+        return normalized;
+    }
+
+    return `${normalized.slice(0, 12)}...${normalized.slice(-8)}`;
 }
 
 function createDefaultDraft(): SetupDraft {
@@ -1534,10 +1544,15 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Generation seed</span>
-                                    <strong className="scenario-setup__review-value">{draft.generationSeed}</strong>
+                                    <strong
+                                        className="scenario-setup__review-value scenario-setup__review-value--seed"
+                                        title={draft.generationSeed}
+                                    >
+                                        {formatGenerationSeedPreview(draft.generationSeed)}
+                                    </strong>
                                     <span className="scenario-setup__review-text">
-                                        Share this together with the launch settings if you want another operator to
-                                        reproduce the same starting world.
+                                        The full seed is preserved for launch. Share it together with the launch
+                                        settings if you want another operator to reproduce the same starting world.
                                     </span>
                                 </article>
 

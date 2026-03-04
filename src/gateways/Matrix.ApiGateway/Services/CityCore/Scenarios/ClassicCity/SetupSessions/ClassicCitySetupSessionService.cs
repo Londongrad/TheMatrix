@@ -363,7 +363,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
         private static string BuildDefaultGenerationSeed(Guid sessionId)
         {
-            return $"classic-city-{sessionId:N}";
+            string compact = sessionId.ToString("N")[..16];
+            return $"cc-{compact}";
         }
 
         private static string NormalizeStepId(string? currentStepId)
