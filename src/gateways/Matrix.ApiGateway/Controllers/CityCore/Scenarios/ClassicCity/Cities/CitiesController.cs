@@ -129,6 +129,27 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             return Ok(residents);
         }
 
+        [HttpGet("{cityId:guid}/residents/{personId:guid}")]
+        public async Task<ActionResult<CityResidentDetailsDto>> GetResidentDetails(
+            [FromRoute] Guid cityId,
+            [FromRoute] Guid personId,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityResidentDetailsDto resident = await _populationClient.GetCityResidentDetailsAsync(
+                cityId: cityId,
+                personId: personId,
+                currentDate: currentDate,
+                cancellationToken: cancellationToken);
+
+            return Ok(resident);
+        }
+
         [HttpGet("{cityId:guid}/provisioning")]
         public async Task<ActionResult<CityProvisioningStatusView>> GetProvisioning(
             [FromRoute] Guid cityId,

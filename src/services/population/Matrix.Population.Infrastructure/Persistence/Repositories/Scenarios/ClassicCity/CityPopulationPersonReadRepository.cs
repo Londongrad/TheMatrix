@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
@@ -51,6 +52,25 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .ToListAsync(cancellationToken);
 
             return (items, totalCount);
+        }
+
+        public async Task<Person?> FindByCityAndPersonIdAsync(
+            CityId cityId,
+            PersonId personId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Persons
+               .AsNoTracking()
+               .Join(
+                    inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
+                    outerKeySelector: person => person.HouseholdId,
+                    innerKeySelector: placement => placement.HouseholdId,
+                    resultSelector: (
+                        person,
+                        _) => person)
+               .FirstOrDefaultAsync(
+                    predicate: person => person.Id == personId,
+                    cancellationToken: cancellationToken);
         }
     }
 }

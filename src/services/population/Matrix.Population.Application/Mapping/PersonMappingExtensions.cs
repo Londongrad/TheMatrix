@@ -2,6 +2,7 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 
 namespace Matrix.Population.Application.Mapping
@@ -52,6 +53,45 @@ namespace Matrix.Population.Application.Mapping
                 SocialNeed: person.SocialNeed.Value,
                 EmploymentStatus: person.Employment.Status.ToString(),
                 JobTitle: person.Employment.Job?.Title);
+        }
+
+        public static PersonReferenceDto ToReferenceDto(this Person person)
+        {
+            person = GuardHelper.AgainstNull(
+                value: person,
+                errorFactory: ApplicationErrorsFactory.Required);
+
+            return new PersonReferenceDto(
+                Id: person.Id.Value,
+                FullName: person.Name.ToString());
+        }
+
+        public static CityResidentDetailsDto ToResidentDetailsDto(
+            this Person person,
+            DateOnly currentDate,
+            Person? currentSpouse = null)
+        {
+            PersonDto snapshot = person.ToDto(currentDate);
+
+            return new CityResidentDetailsDto(
+                Id: snapshot.Id,
+                FullName: snapshot.FullName,
+                Sex: snapshot.Sex,
+                BirthDate: snapshot.BirthDate,
+                DeathDate: snapshot.DeathDate,
+                Age: snapshot.Age,
+                AgeGroup: snapshot.AgeGroup,
+                LifeStatus: snapshot.LifeStatus,
+                MaritalStatus: snapshot.MaritalStatus,
+                EducationLevel: snapshot.EducationLevel,
+                Health: snapshot.Health,
+                Happiness: snapshot.Happiness,
+                Energy: snapshot.Energy,
+                Stress: snapshot.Stress,
+                SocialNeed: snapshot.SocialNeed,
+                EmploymentStatus: snapshot.EmploymentStatus,
+                JobTitle: snapshot.JobTitle,
+                CurrentSpouse: currentSpouse?.ToReferenceDto());
         }
 
         /// <summary>

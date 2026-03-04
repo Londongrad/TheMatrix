@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
@@ -111,6 +112,23 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                     CityId: cityId,
                     CurrentDate: currentDate,
                     Pagination: pagination),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpGet("cities/{cityId:guid}/residents/{personId:guid}")]
+        public async Task<ActionResult<CityResidentDetailsDto>> GetCityResidentDetails(
+            [FromRoute] Guid cityId,
+            [FromRoute] Guid personId,
+            [FromQuery] DateOnly currentDate,
+            CancellationToken cancellationToken = default)
+        {
+            CityResidentDetailsDto result = await _sender.Send(
+                request: new GetCityResidentDetailsQuery(
+                    CityId: cityId,
+                    PersonId: personId,
+                    CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 
             return Ok(result);
