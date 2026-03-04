@@ -927,7 +927,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             value = Math.Clamp(
                 value: value,
-                min: 0,
+                min: 1,
                 max: 100);
             return HealthLevel.From(value);
         }
