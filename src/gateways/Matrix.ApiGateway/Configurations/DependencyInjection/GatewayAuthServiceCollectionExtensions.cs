@@ -59,6 +59,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .ValidateOnStart();
 
             services.AddSingleton<IInternalJwtIssuer, InternalJwtIssuer>();
+            services.AddSingleton<IInternalJwtRequestContextAccessor, InternalJwtRequestContextAccessor>();
 
             return services;
         }

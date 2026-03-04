@@ -6,11 +6,13 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
     public sealed class ClassicCitySetupSessionState
     {
         public Guid SessionId { get; init; }
+        public Guid? OwnerUserId { get; set; }
         public string ScenarioKind { get; set; } = "ClassicCity";
         public string Status { get; set; } = ClassicCitySetupSessionStatuses.Draft;
         public string CurrentStepId { get; set; } = ClassicCitySetupSteps.Scenario;
         public ClassicCitySetupDraftDto Draft { get; set; } = default!;
         public CreateCityRequestDto? LaunchRequest { get; set; }
+        public ClassicCitySetupSessionLaunchAuthSnapshot? LaunchAuthContext { get; set; }
         public Guid? CityId { get; set; }
         public string? SimulationKind { get; set; }
         public CityProvisioningView? Provisioning { get; set; }

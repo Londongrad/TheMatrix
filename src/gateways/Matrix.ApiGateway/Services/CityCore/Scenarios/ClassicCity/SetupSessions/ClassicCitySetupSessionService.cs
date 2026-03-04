@@ -1,12 +1,19 @@
 using System.Net;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using MassTransit;
+using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
+using Matrix.ApiGateway.Authorization.InternalJwt;
+using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
+using Matrix.Identity.Contracts.Internal.Responses;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions
@@ -16,6 +23,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         ICitiesApiClient citiesApiClient,
         ICityProvisioningService provisioningService,
         IPublishEndpoint publishEndpoint,
+        IHttpContextAccessor httpContextAccessor,
+        IPermissionsVersionStore permissionsVersionStore,
+        IAuthContextStore authContextStore,
+        IInternalJwtRequestContextAccessor internalJwtRequestContextAccessor,
         IOptions<ClassicCitySetupSessionOptions> options,
         ILogger<ClassicCitySetupSessionService> logger)
         : IClassicCitySetupSessionService
@@ -56,6 +67,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             var session = new ClassicCitySetupSessionState
             {
                 SessionId = Guid.NewGuid(),
+                OwnerUserId = GetCurrentUserIdOrThrow(),
                 ScenarioKind = "ClassicCity",
                 Status = ClassicCitySetupSessionStatuses.Draft,
                 CurrentStepId = NormalizeStepId(request.CurrentStepId),
@@ -83,7 +95,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             return session is null
                 ? null
-                : MapToView(session);
+                : IsOwnedByCurrentUser(session)
+                    ? MapToView(session)
+                    : null;
         }
 
         public async Task<ClassicCitySetupSessionMutationResult> UpdateAsync(
@@ -103,6 +117,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                         cancellationToken: cancellationToken);
 
                     if (session is null)
+                        return NotFound();
+
+                    if (!TryAttachOrValidateOwner(session))
                         return NotFound();
 
                     if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
@@ -142,6 +159,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     if (session is null)
                         return NotFound();
 
+                    if (!TryAttachOrValidateOwner(session))
+                        return NotFound();
+
                     if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
                         return Conflict(
                             session,
@@ -175,11 +195,30 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                         ProvisioningCorrelationId = session.SessionId
                     };
 
+                    ClassicCitySetupSessionLaunchAuthSnapshot launchAuthContext;
+                    try
+                    {
+                        launchAuthContext = await CaptureLaunchAuthSnapshotAsync(cancellationToken);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                    {
+                        logger.LogWarning(
+                            exception: ex,
+                            message: "Classic City setup launch auth context could not be captured for sessionId={SessionId}.",
+                            session.SessionId);
+
+                        return Unavailable(
+                            session,
+                            code: ClassicCitySetupSessionFailureCodes.LaunchAuthContextUnavailable,
+                            message: "Launch auth context could not be captured. Retry when gateway identity context is healthy.");
+                    }
+
                     DateTimeOffset now = DateTimeOffset.UtcNow;
                     session.Status = ClassicCitySetupSessionStatuses.LaunchQueued;
                     session.CurrentStepId = ClassicCitySetupSteps.Launch;
                     session.Draft = draft;
                     session.LaunchRequest = launchRequest;
+                    session.LaunchAuthContext = launchAuthContext;
                     session.FailureCode = null;
                     session.FailureMessage = null;
                     session.CityId = null;
@@ -738,9 +777,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             try
             {
-                created = await provisioningService.CreateCitySkeletonAsync(
-                    request: session.LaunchRequest,
-                    cancellationToken: cancellationToken);
+                created = await ExecuteWithLaunchAuthAsync(
+                    session: session,
+                    cancellationToken: cancellationToken,
+                    action: () => provisioningService.CreateCitySkeletonAsync(
+                        request: session.LaunchRequest,
+                        cancellationToken: cancellationToken));
             }
             catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
@@ -772,11 +814,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             try
             {
-                CityProvisioningView provisioning = await provisioningService.ProvisionCreatedCityAsync(
-                    cityId: created.CityId,
-                    simulationKind: created.SimulationKind,
-                    operationId: created.PopulationBootstrapOperationId,
-                    cancellationToken: cancellationToken);
+                CityProvisioningView provisioning = await ExecuteWithLaunchAuthAsync(
+                    session: session,
+                    cancellationToken: cancellationToken,
+                    action: () => provisioningService.ProvisionCreatedCityAsync(
+                        cityId: created.CityId,
+                        simulationKind: created.SimulationKind,
+                        operationId: created.PopulationBootstrapOperationId,
+                        cancellationToken: cancellationToken));
 
                 FinalizeFromProvisioning(session, provisioning);
 
@@ -819,9 +864,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             try
             {
-                provisioningStatus = await citiesApiClient.GetProvisioningStatusAsync(
-                    cityId: session.CityId!.Value,
-                    cancellationToken: cancellationToken);
+                provisioningStatus = await ExecuteWithLaunchAuthAsync(
+                    session: session,
+                    cancellationToken: cancellationToken,
+                    action: () => citiesApiClient.GetProvisioningStatusAsync(
+                        cityId: session.CityId!.Value,
+                        cancellationToken: cancellationToken));
             }
             catch (DownstreamServiceException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -1068,6 +1116,133 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             return firstLine.Length <= 220
                 ? firstLine
                 : firstLine[..220];
+        }
+
+        private bool IsOwnedByCurrentUser(ClassicCitySetupSessionState session)
+        {
+            Guid? currentUserId = TryGetCurrentUserId();
+            return currentUserId is not null &&
+                   (session.OwnerUserId is null || session.OwnerUserId == currentUserId);
+        }
+
+        private bool TryAttachOrValidateOwner(ClassicCitySetupSessionState session)
+        {
+            Guid currentUserId = GetCurrentUserIdOrThrow();
+
+            if (session.OwnerUserId is null)
+            {
+                session.OwnerUserId = currentUserId;
+                return true;
+            }
+
+            return session.OwnerUserId == currentUserId;
+        }
+
+        private Guid GetCurrentUserIdOrThrow()
+        {
+            ClaimsPrincipal? user = httpContextAccessor.HttpContext?.User;
+            string? sub =
+                user?.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
+                user?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (Guid.TryParse(sub, out Guid userId))
+            {
+                return userId;
+            }
+
+            throw new InvalidOperationException("A current authenticated gateway user is required for setup session mutation.");
+        }
+
+        private Guid? TryGetCurrentUserId()
+        {
+            ClaimsPrincipal? user = httpContextAccessor.HttpContext?.User;
+            string? sub =
+                user?.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
+                user?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return Guid.TryParse(sub, out Guid userId)
+                ? userId
+                : null;
+        }
+
+        private async Task<ClassicCitySetupSessionLaunchAuthSnapshot> CaptureLaunchAuthSnapshotAsync(
+            CancellationToken cancellationToken)
+        {
+            Guid userId = GetCurrentUserIdOrThrow();
+            string? jti = httpContextAccessor.HttpContext?.User.FindFirstValue(JwtRegisteredClaimNames.Jti);
+
+            return await BuildLaunchAuthSnapshotAsync(
+                userId: userId,
+                jti: jti,
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<TResult> ExecuteWithLaunchAuthAsync<TResult>(
+            ClassicCitySetupSessionState session,
+            CancellationToken cancellationToken,
+            Func<Task<TResult>> action)
+        {
+            InternalJwtRequestContext requestContext = await ResolveLaunchRequestContextAsync(
+                session: session,
+                cancellationToken: cancellationToken);
+
+            using IDisposable _ = internalJwtRequestContextAccessor.Push(requestContext);
+            return await action();
+        }
+
+        private async Task<InternalJwtRequestContext> ResolveLaunchRequestContextAsync(
+            ClassicCitySetupSessionState session,
+            CancellationToken cancellationToken)
+        {
+            ClassicCitySetupSessionLaunchAuthSnapshot? snapshot = session.LaunchAuthContext;
+
+            if (snapshot is null)
+            {
+                if (session.OwnerUserId is not Guid ownerUserId)
+                {
+                    throw new InvalidOperationException("Setup session launch auth context is missing.");
+                }
+
+                snapshot = await BuildLaunchAuthSnapshotAsync(
+                    userId: ownerUserId,
+                    jti: null,
+                    cancellationToken: cancellationToken);
+
+                session.LaunchAuthContext = snapshot;
+            }
+
+            return new InternalJwtRequestContext(
+                UserId: snapshot.UserId,
+                Jti: snapshot.Jti,
+                PermissionsVersion: snapshot.PermissionsVersion,
+                EffectivePermissions: snapshot.EffectivePermissions);
+        }
+
+        private async Task<ClassicCitySetupSessionLaunchAuthSnapshot> BuildLaunchAuthSnapshotAsync(
+            Guid userId,
+            string? jti,
+            CancellationToken cancellationToken)
+        {
+            int currentPermissionsVersion = await permissionsVersionStore.GetCurrentAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
+
+            UserAuthContextResponse authContext = await authContextStore.GetAsync(
+                userId: userId,
+                permissionsVersion: currentPermissionsVersion,
+                ct: cancellationToken);
+
+            return new ClassicCitySetupSessionLaunchAuthSnapshot
+            {
+                UserId = userId,
+                Jti = string.IsNullOrWhiteSpace(jti) ? null : jti.Trim(),
+                PermissionsVersion = authContext.PermissionsVersion,
+                EffectivePermissions = authContext.EffectivePermissions
+                   .Where(permission => !string.IsNullOrWhiteSpace(permission))
+                   .Distinct(StringComparer.Ordinal)
+                   .ToArray(),
+                CapturedAtUtc = DateTimeOffset.UtcNow
+            };
         }
 
         private static ClassicCitySetupSessionView MapToView(ClassicCitySetupSessionState session)
