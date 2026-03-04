@@ -530,7 +530,10 @@ export default function ClassicCityProvisioningSessionPage() {
 
                             <article className="scenario-setup__review-card">
                                 <span className="scenario-setup__review-label">Failure code</span>
-                                <strong className="scenario-setup__review-value">
+                                <strong
+                                    className="scenario-setup__review-value scenario-setup__review-value--technical"
+                                    title={failureCode ? `${formatProvisioningFailureCode(failureCode)} (${failureCode})` : undefined}
+                                >
                                     {failureCode ? formatProvisioningFailureCode(failureCode) : "--"}
                                 </strong>
                                 <span className="scenario-setup__review-text">

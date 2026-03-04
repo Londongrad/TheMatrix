@@ -118,7 +118,9 @@ export function formatProvisioningFailureCode(value?: string | null): string {
     }
 
     return value
-        .split("_")
+        .split(/[._-]+/)
+        .filter(Boolean)
+        .flatMap((segment) => segment.replace(/([a-z0-9])([A-Z])/g, "$1 $2").split(/\s+/))
         .filter(Boolean)
         .map((segment) => segment.charAt(0) + segment.slice(1).toLowerCase())
         .join(" ");

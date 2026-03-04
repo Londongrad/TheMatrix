@@ -625,6 +625,15 @@
     letter-spacing: 0.03em;
 }
 
+.scenario-setup__review-value--technical {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 18px;
+}
+
 .scenario-setup__stat-value {
     font-size: clamp(24px, 4vw, 34px);
     line-height: 1;
