@@ -178,6 +178,15 @@
     margin-bottom: 0.12rem;
 }
 
+.citizens-page-modal-inline-link {
+    color: rgba(var(--shell-accent-rgb), 0.98);
+    text-decoration: none;
+}
+
+.citizens-page-modal-inline-link:hover {
+    text-decoration: underline;
+}
+
 /* строка label + маленький элемент справа (если нужен) */
 .citizens-page-modal-field-row {
     display: flex;

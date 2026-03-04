@@ -1,0 +1,190 @@
+.city-resident-dossier-page {
+    gap: 22px;
+}
+
+.city-resident-dossier__header {
+    gap: 18px;
+}
+
+.city-resident-dossier__summary-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.city-resident-dossier__chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.28);
+    background: rgba(var(--shell-accent-rgb), 0.08);
+    color: var(--app-text);
+    padding: 0.42rem 0.78rem;
+    font-size: 0.84rem;
+    letter-spacing: 0.04em;
+}
+
+.city-resident-dossier__chip--muted {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--app-text-muted);
+}
+
+.city-resident-dossier__tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.city-resident-dossier__tab {
+    min-width: 180px;
+    flex: 1 1 180px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.14);
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+    text-align: left;
+    color: var(--app-text);
+    transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.city-resident-dossier__tab:hover {
+    border-color: rgba(var(--shell-accent-rgb), 0.3);
+    background: rgba(var(--shell-accent-rgb), 0.08);
+    transform: translateY(-1px);
+}
+
+.city-resident-dossier__tab--active {
+    border-color: rgba(var(--shell-accent-rgb), 0.44);
+    background: linear-gradient(
+        180deg,
+        rgba(var(--shell-accent-rgb), 0.16),
+        rgba(var(--shell-accent-rgb), 0.08)
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.city-resident-dossier__tab-label {
+    display: block;
+    font-size: 0.96rem;
+    font-weight: 600;
+}
+
+.city-resident-dossier__tab-helper {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--app-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.city-resident-dossier__panel {
+    margin-top: 18px;
+}
+
+.city-resident-dossier__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.city-resident-dossier__stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.city-resident-dossier__section-card,
+.city-resident-dossier__hint,
+.city-resident-dossier__metric-card {
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.14);
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.16);
+}
+
+.city-resident-dossier__section-card,
+.city-resident-dossier__hint {
+    padding: 1.1rem 1.15rem;
+}
+
+.city-resident-dossier__section-title {
+    margin: 0 0 0.85rem;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--app-text-muted);
+}
+
+.city-resident-dossier__facts {
+    display: grid;
+    gap: 0.85rem;
+    margin: 0;
+}
+
+.city-resident-dossier__facts div {
+    display: grid;
+    gap: 0.18rem;
+}
+
+.city-resident-dossier__facts dt {
+    margin: 0;
+    font-size: 0.83rem;
+    color: var(--app-text-muted);
+}
+
+.city-resident-dossier__facts dd {
+    margin: 0;
+    color: var(--app-text-strong);
+    font-size: 1rem;
+}
+
+.city-resident-dossier__hint {
+    color: var(--app-text-muted);
+    line-height: 1.55;
+}
+
+.city-resident-dossier__inline-link {
+    color: rgba(var(--shell-accent-rgb), 0.98);
+    text-decoration: none;
+}
+
+.city-resident-dossier__inline-link:hover {
+    text-decoration: underline;
+}
+
+.city-resident-dossier__metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.city-resident-dossier__metric-card {
+    padding: 1rem 1.05rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.city-resident-dossier__metric-card span {
+    color: var(--app-text-muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.city-resident-dossier__metric-card strong {
+    font-size: 1.45rem;
+    color: var(--app-text-strong);
+}
+
+@media (max-width: 900px) {
+    .city-resident-dossier__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .city-resident-dossier__summary-chips {
+        justify-content: flex-start;
+    }
+}

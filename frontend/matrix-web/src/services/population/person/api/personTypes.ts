@@ -17,3 +17,12 @@ export interface PersonDto {
     employmentStatus: string;
     jobTitle?: string | null;
 }
+
+export interface PersonReferenceDto {
+    id: string;
+    fullName: string;
+}
+
+export interface CityResidentDetailsDto extends PersonDto {
+    currentSpouse?: PersonReferenceDto | null;
+}

@@ -178,6 +178,7 @@ const CityResidentsPage = () => {
             </section>
 
             <CitizenDetailsModal
+                cityId={cityId}
                 person={selectedPerson}
                 isOpen={selectedPerson !== null}
                 onClose={() => setSelectedPerson(null)}

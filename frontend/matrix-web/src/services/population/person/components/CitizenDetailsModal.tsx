@@ -1,6 +1,9 @@
 import {useEffect, useState} from "react";
 import {X} from "lucide-react";
-import type {PersonDto} from "@services/population/person/api/personTypes";
+import {Link, useNavigate} from "react-router-dom";
+import {useCityResidentDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityResidentDetails";
+import {getClassicCityResidentDossierPath} from "@services/citycore/scenarios/registry";
+import type {CityResidentDetailsDto, PersonDto} from "@services/population/person/api/personTypes";
 import {
     killCitizen,
     resurrectCitizen,
@@ -11,6 +14,7 @@ import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import "@services/population/person/styles/citizen-details-modal.css";
 
 interface CitizenDetailsModalProps {
+    cityId: string;
     person: PersonDto | null;
     isOpen: boolean;
     onClose: () => void;
@@ -31,6 +35,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 const CitizenDetailsModal = ({
+    cityId,
     person,
     isOpen,
     onClose,
@@ -42,6 +47,12 @@ const CitizenDetailsModal = ({
     const [isBusy, setIsBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const {token} = useAuth();
+    const navigate = useNavigate();
+    const residentQuery = useCityResidentDetails(
+        cityId,
+        person?.id ?? "",
+        isOpen && cityId.length > 0 && person !== null,
+    );
 
     useEffect(() => {
         if (!isOpen) {
@@ -54,7 +65,7 @@ const CitizenDetailsModal = ({
         return null;
     }
 
-    const resident = person;
+    const resident: PersonDto | CityResidentDetailsDto = residentQuery.data ?? person;
     const isDead = resident.lifeStatus === "Deceased";
     const canRunKill = !isDead && canKill && !readOnlyMessage;
     const canRunResurrect = isDead && canResurrect && !readOnlyMessage;
@@ -80,6 +91,7 @@ const CitizenDetailsModal = ({
 
             const updated = await killCitizen(resident.id, token);
             onPersonUpdated?.(updated);
+            void residentQuery.refetch();
         } catch (killError: unknown) {
             console.error(killError);
             setError(getErrorMessage(killError, "Failed to kill resident."));
@@ -104,6 +116,7 @@ const CitizenDetailsModal = ({
 
             const updated = await resurrectCitizen(resident.id, token);
             onPersonUpdated?.(updated);
+            void residentQuery.refetch();
         } catch (resurrectError: unknown) {
             console.error(resurrectError);
             setError(getErrorMessage(resurrectError, "Failed to resurrect resident."));
@@ -111,6 +124,8 @@ const CitizenDetailsModal = ({
             setIsBusy(false);
         }
     }
+
+    const currentSpouse = "currentSpouse" in resident ? resident.currentSpouse : null;
 
     return (
         <div className="citizens-page-modal-backdrop" onClick={onClose}>
@@ -141,6 +156,18 @@ const CitizenDetailsModal = ({
                 </header>
 
                 <section className="citizens-page-modal-body">
+                    {residentQuery.isLoading ? (
+                        <div className="citycore-error-banner" role="status">
+                            <span>Loading city-scoped resident details...</span>
+                        </div>
+                    ) : null}
+
+                    {residentQuery.error ? (
+                        <div className="citycore-error-banner" role="status">
+                            <span>{residentQuery.error}</span>
+                        </div>
+                    ) : null}
+
                     <div className="citycore-error-banner" role="status">
                         <span>
                             Resident cards are read-only. Relationship, education, employment, and other lifecycle
@@ -166,6 +193,20 @@ const CitizenDetailsModal = ({
                             <div className="citizens-page-modal-field">
                                 <div className="citizens-page-modal-field-label">Marital</div>
                                 <div>{resident.maritalStatus}</div>
+                            </div>
+
+                            <div className="citizens-page-modal-field">
+                                <div className="citizens-page-modal-field-label">Current spouse</div>
+                                <div>
+                                    {currentSpouse ? (
+                                        <Link
+                                            className="citizens-page-modal-inline-link"
+                                            to={getClassicCityResidentDossierPath(cityId, currentSpouse.id)}
+                                        >
+                                            {currentSpouse.fullName}
+                                        </Link>
+                                    ) : resident.maritalStatus === "Married" ? "Spouse record unavailable" : "--"}
+                                </div>
                             </div>
 
                             <div className="citizens-page-modal-field">
@@ -229,6 +270,16 @@ const CitizenDetailsModal = ({
 
                 <footer className="citizens-page-modal-footer">
                     <div className="citizens-page-modal-footer-group">
+                        <Button
+                            size="sm"
+                            onClick={() => {
+                                onClose();
+                                navigate(getClassicCityResidentDossierPath(cityId, resident.id));
+                            }}
+                        >
+                            Open dossier
+                        </Button>
+
                         {!isDead ? (
                             <Button
                                 variant="danger"
