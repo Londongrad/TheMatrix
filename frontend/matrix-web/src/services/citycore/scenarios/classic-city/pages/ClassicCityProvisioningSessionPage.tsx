@@ -136,6 +136,18 @@ function getEffectiveBootstrap(
         return null;
     }
 
+    if (provisioningStatus === "provisioning") {
+        if (retryBootstrap && retryBootstrap.status.toLowerCase() !== "failed") {
+            return retryBootstrap;
+        }
+
+        if (sessionBootstrap && sessionBootstrap.status.toLowerCase() !== "failed") {
+            return sessionBootstrap;
+        }
+
+        return null;
+    }
+
     if (provisioningStatus === "provisioningfailed") {
         if (retryBootstrap?.status?.toLowerCase() === "failed") {
             return retryBootstrap;
@@ -265,7 +277,9 @@ export default function ClassicCityProvisioningSessionPage() {
     const sessionBootstrap = session?.provisioning?.populationBootstrap ?? null;
     const effectiveBootstrap = getEffectiveBootstrap(sessionBootstrap, retryBootstrap, provisioning);
     const bootstrapOutcome = getBootstrapOutcome(effectiveBootstrap, provisioning);
-    const failureCode = effectiveBootstrap?.failureCode ?? provisioning?.populationBootstrapFailureCode ?? session?.failureCode;
+    const failureCode = bootstrapOutcome === "failed"
+        ? effectiveBootstrap?.failureCode ?? provisioning?.populationBootstrapFailureCode ?? session?.failureCode
+        : null;
     const summary = effectiveBootstrap?.summary ?? null;
     const cityStatusTone = getCityStatusTone(city?.status, city?.archivedAtUtc);
     const cityStatusLabel = formatCityStatusLabel(city?.status, city?.archivedAtUtc);
@@ -371,7 +385,7 @@ export default function ClassicCityProvisioningSessionPage() {
     }, [initialSession, refreshProvisioningSession, sessionId]);
 
     useEffect(() => {
-        if (!sessionId || pageError || isLoading || isRefreshing || provisioningMutations.isSubmitting) {
+        if (!sessionId || pageError || isLoading || isRefreshing) {
             return;
         }
 
@@ -396,7 +410,6 @@ export default function ClassicCityProvisioningSessionPage() {
         isLoading,
         isRefreshing,
         pageError,
-        provisioningMutations.isSubmitting,
         refreshProvisioningSession,
         session?.cityId,
         session?.status,
@@ -407,6 +420,10 @@ export default function ClassicCityProvisioningSessionPage() {
         if (!session?.cityId) {
             return;
         }
+
+        provisioningMutations.clearError();
+        setPageError(null);
+        setRetryBootstrap(null);
 
         const result = await provisioningMutations.retry(session.cityId);
         if (!result) {
@@ -586,7 +603,7 @@ export default function ClassicCityProvisioningSessionPage() {
                                 type="button"
                                 variant="default"
                                 onClick={() => void refreshProvisioningSession()}
-                                disabled={isRefreshing || provisioningMutations.isSubmitting}
+                                disabled={isRefreshing}
                             >
                                 {isRefreshing ? "Refreshing..." : "Refresh status"}
                             </Button>

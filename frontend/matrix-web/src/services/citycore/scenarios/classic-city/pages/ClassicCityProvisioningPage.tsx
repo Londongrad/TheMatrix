@@ -187,7 +187,9 @@ export default function ClassicCityProvisioningPage() {
     const cityStatusTone = getCityStatusTone(city?.status, city?.archivedAtUtc);
     const cityStatusLabel = formatCityStatusLabel(city?.status, city?.archivedAtUtc);
     const bootstrapOutcome = getBootstrapOutcome(bootstrapResult, provisioning);
-    const failureCode = bootstrapResult?.failureCode ?? provisioning?.populationBootstrapFailureCode;
+    const failureCode = bootstrapOutcome === "failed"
+        ? bootstrapResult?.failureCode ?? provisioning?.populationBootstrapFailureCode
+        : null;
     const summary = bootstrapResult?.summary ?? null;
     const provisioningTone = getProvisioningTone(bootstrapOutcome, cityStatusTone);
     const resultTitle = getResultTitle(bootstrapOutcome, cityStatusTone);
@@ -277,7 +279,7 @@ export default function ClassicCityProvisioningPage() {
     }, [cityId, refreshProvisioningState]);
 
     useEffect(() => {
-        if (!cityId || pageError || isLoading || isRefreshing || provisioningMutations.isSubmitting) {
+        if (!cityId || pageError || isLoading || isRefreshing) {
             return;
         }
 
@@ -299,7 +301,6 @@ export default function ClassicCityProvisioningPage() {
         isLoading,
         isRefreshing,
         pageError,
-        provisioningMutations.isSubmitting,
         refreshProvisioningState,
     ]);
 
@@ -307,6 +308,10 @@ export default function ClassicCityProvisioningPage() {
         if (!cityId) {
             return;
         }
+
+        provisioningMutations.clearError();
+        setPageError(null);
+        setBootstrapResult(null);
 
         const result = await provisioningMutations.retry(cityId);
         if (!result) {
@@ -474,7 +479,7 @@ export default function ClassicCityProvisioningPage() {
                                 type="button"
                                 variant="default"
                                 onClick={() => void refreshProvisioningState()}
-                                disabled={isLoading || isRefreshing || provisioningMutations.isSubmitting}
+                                disabled={isLoading || isRefreshing}
                             >
                                 {isRefreshing ? "Refreshing..." : "Refresh status"}
                             </Button>

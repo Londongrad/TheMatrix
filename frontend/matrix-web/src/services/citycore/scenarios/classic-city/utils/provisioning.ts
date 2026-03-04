@@ -25,6 +25,10 @@ export function getBootstrapOutcome(
     const bootstrapStatus = bootstrap?.status?.toLowerCase();
     const cityStatus = provisioning?.status?.toLowerCase();
 
+    if (cityStatus === "provisioning") {
+        return "pending";
+    }
+
     if (bootstrapStatus === "completed" || cityStatus === "active") {
         return "completed";
     }
