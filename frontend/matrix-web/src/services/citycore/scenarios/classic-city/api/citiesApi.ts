@@ -6,6 +6,7 @@ import type {
     CityView,
     CreateCityRequest,
     RenameCityRequest,
+    RetryPopulationBootstrapRequest,
 } from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
 import {API_CITY_URL} from "@shared/api/config";
 
@@ -51,9 +52,15 @@ export function getCityProvisioning(cityId: string, signal?: AbortSignal) {
     });
 }
 
-export function retryPopulationBootstrap(cityId: string) {
+export function retryPopulationBootstrap(
+    cityId: string,
+    request?: RetryPopulationBootstrapRequest,
+) {
     return apiRequest<CityProvisioningView>(`${API_CITY_URL}/${cityId}/population-bootstrap/retry`, {
         method: "POST",
+        body: request?.plannedPeopleCountOverride === undefined
+            ? undefined
+            : JSON.stringify(request),
     });
 }
 

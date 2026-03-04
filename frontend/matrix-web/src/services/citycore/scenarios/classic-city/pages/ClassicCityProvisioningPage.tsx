@@ -191,6 +191,10 @@ export default function ClassicCityProvisioningPage() {
         ? bootstrapResult?.failureCode ?? provisioning?.populationBootstrapFailureCode
         : null;
     const summary = bootstrapResult?.summary ?? null;
+    const retryPlannedPeopleCount =
+        bootstrapResult?.plannedPeopleCount ??
+        summary?.requestedPeopleCount ??
+        null;
     const provisioningTone = getProvisioningTone(bootstrapOutcome, cityStatusTone);
     const resultTitle = getResultTitle(bootstrapOutcome, cityStatusTone);
     const resultCopy = getResultCopy(bootstrapOutcome, cityStatusTone);
@@ -313,7 +317,10 @@ export default function ClassicCityProvisioningPage() {
         setPageError(null);
         setBootstrapResult(null);
 
-        const result = await provisioningMutations.retry(cityId);
+        const result = await provisioningMutations.retry(
+            cityId,
+            retryPlannedPeopleCount,
+        );
         if (!result) {
             return;
         }

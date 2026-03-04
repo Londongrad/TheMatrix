@@ -43,9 +43,12 @@ export function useCityProvisioning() {
                 () => createCity(request),
                 "Failed to launch city provisioning.",
             ),
-        retry: async (cityId: string): Promise<CityProvisioningView | null> =>
+        retry: async (
+            cityId: string,
+            plannedPeopleCountOverride?: number | null,
+        ): Promise<CityProvisioningView | null> =>
             run(
-                () => retryPopulationBootstrap(cityId),
+                () => retryPopulationBootstrap(cityId, {plannedPeopleCountOverride}),
                 "Failed to retry population bootstrap.",
             ),
     };

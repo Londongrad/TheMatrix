@@ -83,3 +83,7 @@ export interface CityView {
 export interface RenameCityRequest {
     name: string;
 }
+
+export interface RetryPopulationBootstrapRequest {
+    plannedPeopleCountOverride?: number | null;
+}

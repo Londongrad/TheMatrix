@@ -281,6 +281,11 @@ export default function ClassicCityProvisioningSessionPage() {
         ? effectiveBootstrap?.failureCode ?? provisioning?.populationBootstrapFailureCode ?? session?.failureCode
         : null;
     const summary = effectiveBootstrap?.summary ?? null;
+    const retryPlannedPeopleCount =
+        effectiveBootstrap?.plannedPeopleCount ??
+        summary?.requestedPeopleCount ??
+        session?.provisioning?.populationBootstrap?.plannedPeopleCount ??
+        null;
     const cityStatusTone = getCityStatusTone(city?.status, city?.archivedAtUtc);
     const cityStatusLabel = formatCityStatusLabel(city?.status, city?.archivedAtUtc);
     const sessionStatusLabel = formatSetupSessionStatusLabel(session?.status);
@@ -425,7 +430,10 @@ export default function ClassicCityProvisioningSessionPage() {
         setPageError(null);
         setRetryBootstrap(null);
 
-        const result = await provisioningMutations.retry(session.cityId);
+        const result = await provisioningMutations.retry(
+            session.cityId,
+            retryPlannedPeopleCount,
+        );
         if (!result) {
             return;
         }
