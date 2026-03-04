@@ -156,10 +156,12 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
         [HttpPost("{cityId:guid}/population-bootstrap/retry")]
         public async Task<ActionResult<CityProvisioningView>> RetryPopulationBootstrap(
             [FromRoute] Guid cityId,
+            [FromBody] RetryPopulationBootstrapRequestDto? request,
             CancellationToken cancellationToken)
         {
             CityProvisioningView provisioning = await _cityProvisioningService.RetryPopulationBootstrapAsync(
                 cityId: cityId,
+                plannedPeopleCountOverride: request?.PlannedPeopleCountOverride,
                 cancellationToken: cancellationToken);
 
             return Ok(provisioning);

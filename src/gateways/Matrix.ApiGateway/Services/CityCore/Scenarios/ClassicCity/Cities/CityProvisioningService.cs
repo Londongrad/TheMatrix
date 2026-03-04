@@ -74,6 +74,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 
         public async Task<CityProvisioningView> RetryPopulationBootstrapAsync(
             Guid cityId,
+            int? plannedPeopleCountOverride = null,
             CancellationToken cancellationToken = default)
         {
             CityPopulationBootstrapRestartedView restarted = await citiesApiClient.RestartPopulationBootstrapAsync(
@@ -84,6 +85,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 cityId: restarted.CityId,
                 simulationKind: restarted.SimulationKind,
                 operationId: restarted.PopulationBootstrapOperationId,
+                plannedPeopleCountOverride: plannedPeopleCountOverride,
                 cancellationToken: cancellationToken);
         }
 
@@ -91,7 +93,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             Guid cityId,
             string simulationKind,
             Guid operationId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default,
+            int? plannedPeopleCountOverride = null)
         {
             bool supportsAutomaticPopulationBootstrap = await SupportsAutomaticPopulationBootstrapAsync(
                 simulationKind: simulationKind,
@@ -112,6 +115,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             CityPopulationBootstrapView bootstrap = await BootstrapPopulationAsync(
                 cityId: cityId,
                 operationId: operationId,
+                plannedPeopleCountOverride: plannedPeopleCountOverride,
                 cancellationToken: cancellationToken);
 
             await ReportBootstrapOutcomeAsync(
@@ -128,7 +132,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
         private async Task<CityPopulationBootstrapView> BootstrapPopulationAsync(
             Guid cityId,
             Guid operationId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            int? plannedPeopleCountOverride = null)
         {
             int? plannedPeopleCount = null;
             int? residentialCapacity = null;
@@ -158,6 +163,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 
                 residentialCapacity = buildings.Sum(x => x.ResidentCapacity);
                 plannedPeopleCount = ResolvePlannedPeopleCount(
+                    plannedPeopleCountOverride: plannedPeopleCountOverride,
                     city: city,
                     buildings: buildings);
 
@@ -299,10 +305,16 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
         }
 
         private static int ResolvePlannedPeopleCount(
+            int? plannedPeopleCountOverride,
             CityView city,
             IReadOnlyCollection<ResidentialBuildingView> buildings)
         {
-            int totalCapacity = buildings.Sum(x => x.ResidentCapacity);
+            if (plannedPeopleCountOverride.HasValue)
+            {
+                return Math.Max(
+                    0,
+                    plannedPeopleCountOverride.Value);
+            }
 
             if (city.PlannedPeopleCount.HasValue)
             {

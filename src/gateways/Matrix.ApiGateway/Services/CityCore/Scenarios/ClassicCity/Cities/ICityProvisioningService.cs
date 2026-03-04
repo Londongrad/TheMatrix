@@ -11,6 +11,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 
         Task<CityProvisioningView> RetryPopulationBootstrapAsync(
             Guid cityId,
+            int? plannedPeopleCountOverride = null,
             CancellationToken cancellationToken = default);
 
         Task<CityCreatedView> CreateCitySkeletonAsync(
@@ -21,6 +22,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             Guid cityId,
             string simulationKind,
             Guid operationId,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            int? plannedPeopleCountOverride = null);
     }
 }
