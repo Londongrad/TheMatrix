@@ -75,6 +75,17 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                     exception: ex);
                 return;
             }
+            catch (OperationCanceledException ex)
+            {
+                MarkUnavailable(
+                    context: context,
+                    logger: logger,
+                    userId: userId,
+                    exception: new PermissionsVersionUnavailableException(
+                        userId: userId,
+                        innerException: ex));
+                return;
+            }
 
             if (tokenVersion != currentVersion)
                 MarkTokenStale(
