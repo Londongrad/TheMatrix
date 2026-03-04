@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {X} from "lucide-react";
 import type {PersonDto} from "@services/population/person/api/personTypes";
 import {
     killCitizen,
@@ -135,7 +136,7 @@ const CitizenDetailsModal = ({
                     </div>
 
                     <IconButton aria-label="Close modal" onClick={onClose}>
-                        X
+                        <X size={16}/>
                     </IconButton>
                 </header>
 

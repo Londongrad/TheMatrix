@@ -25,7 +25,7 @@ import "@services/citycore/scenarios/classic-city/styles/cities.css";
 import "@services/citycore/scenarios/classic-city/styles/city-details.css";
 import "@services/citycore/scenarios/classic-city/styles/city-residents.css";
 
-const PAGE_SIZE = 60;
+const PAGE_SIZE = 100;
 
 const CityResidentsPage = () => {
     const params = useParams<{ cityId: string }>();

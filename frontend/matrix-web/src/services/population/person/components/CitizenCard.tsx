@@ -1,4 +1,5 @@
 import React from "react";
+import {PencilLine} from "lucide-react";
 import type {PersonDto} from "@services/population/person/api/personTypes";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
 import "@services/population/person/styles/citizen-card.css";
@@ -44,9 +45,10 @@ const CitizenCard = ({person, onOpen}: CitizenCardProps) => {
                     <IconButton
                         size="sm"
                         aria-label="Open resident details"
+                        title="Open resident details"
                         onClick={handleOpenEditor}
                     >
-                        в‹Ї
+                        <PencilLine size={14}/>
                     </IconButton>
                 ) : null}
             </header>

@@ -2,20 +2,24 @@
 
 .citizens-page-modal-backdrop {
     position: fixed;
-    inset: 0;
+    top: var(--mx-shell-modal-top, 0);
+    right: var(--mx-shell-modal-right, 0);
+    bottom: var(--mx-shell-modal-bottom, 0);
+    left: var(--mx-shell-modal-left, 0);
     background: color-mix(in srgb, var(--app-bg) 84%, black 16%);
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    padding: 16px 18px 20px;
+    z-index: 25;
 }
 
 /* Градиентный бордер + тёмный внутренний фон */
 .citizens-page-modal {
     position: relative;
-    width: min(960px, 96vw);
-    max-height: 90vh;
+    width: min(960px, 100%);
+    max-height: 100%;
     padding: 1.75rem 1.9rem 1.4rem;
     border-radius: 18px;
 

@@ -1,4 +1,8 @@
 .mx-shell {
+    --mx-shell-modal-top: 84px;
+    --mx-shell-modal-left: 298px;
+    --mx-shell-modal-right: 18px;
+    --mx-shell-modal-bottom: 20px;
     height: 100vh;
     display: grid;
     grid-template-columns: 280px 1fr;
@@ -66,6 +70,7 @@
 }
 
 .mx-shell.is-collapsed {
+    --mx-shell-modal-left: 82px;
     grid-template-columns: 64px 1fr;
 }
 
@@ -143,6 +148,9 @@
 
 @media (max-width: 980px) {
     .mx-shell {
+        --mx-shell-modal-left: 0px;
+        --mx-shell-modal-right: 0px;
+        --mx-shell-modal-bottom: 0px;
         grid-template-columns: 1fr;
     }
 
