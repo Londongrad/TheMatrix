@@ -11,7 +11,7 @@ import {
     registerUser,
     sendEmailConfirmationEmail,
 } from "./authApi";
-import {configureHttpAuth} from "@shared/api/http";
+import {configureHttpAuth, type AuthRefreshResult, HttpError} from "@shared/api/http";
 
 interface AuthContextValue {
     user: ProfileResponse | null;
@@ -25,12 +25,16 @@ interface AuthContextValue {
         confirmPassword: string;
     }) => Promise<void>;
     logout: () => Promise<void>;
-    refreshSession: () => Promise<string | null>;
+    refreshSession: () => Promise<AuthRefreshResult>;
     reloadMe: () => Promise<ProfileResponse | null>;
     patchUser: (patch: Partial<ProfileResponse>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function shouldInvalidateSessionOnRefreshFailure(error: unknown): boolean {
+    return error instanceof HttpError && (error.status === 401 || error.status === 403);
+}
 
 export const AuthProvider = ({children}: PropsWithChildren) => {
     const [user, setUser] = useState<ProfileResponse | null>(null);
@@ -118,7 +122,7 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
         [reloadProfileOnce, user],
     );
 
-    const refreshSession = useCallback(async (): Promise<string | null> => {
+    const refreshSession = useCallback(async (): Promise<AuthRefreshResult> => {
         try {
             const result = await refreshAuth(); // /api/auth/refresh
             const newAccess = result.accessToken;
@@ -126,11 +130,27 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
             setAccessToken(newAccess); // tokenRef + state
             void syncProfileWithToken(newAccess);
 
-            return newAccess;
-        } catch {
-            setAccessToken(null);
-            setUser(null);
-            return null;
+            return {
+                accessToken: newAccess,
+                shouldLogout: false,
+            };
+        } catch (error) {
+            if (shouldInvalidateSessionOnRefreshFailure(error)) {
+                setAccessToken(null);
+                setUser(null);
+
+                return {
+                    accessToken: null,
+                    shouldLogout: true,
+                    error,
+                };
+            }
+
+            return {
+                accessToken: null,
+                shouldLogout: false,
+                error,
+            };
         }
     }, [setAccessToken, syncProfileWithToken]);
 
@@ -191,8 +211,8 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
         hasTriedRefresh.current = true;
 
         (async () => {
-            const access = await refreshSession();
-            if (access) {
+            const refreshResult = await refreshSession();
+            if (refreshResult.accessToken) {
                 await reloadMe(); // отдельный вызов профиля ОДИН РАЗ на старте
             }
             setIsLoading(false);

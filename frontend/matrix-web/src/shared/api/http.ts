@@ -29,7 +29,13 @@ function toSafeMessage(text: string): string {
     return short || "Server error. Please try again.";
 }
 
-type RefreshTokenFn = () => Promise<string | null>;
+export interface AuthRefreshResult {
+    accessToken: string | null;
+    shouldLogout: boolean;
+    error?: unknown;
+}
+
+type RefreshTokenFn = () => Promise<AuthRefreshResult>;
 type LogoutFn = () => void;
 type GetAccessTokenFn = () => string | null;
 type ForbiddenFn = (info: { url: string }) => void;
@@ -40,7 +46,7 @@ let getAccessTokenFn: GetAccessTokenFn | null = null;
 let forbiddenFn: ForbiddenFn | null = null;
 
 // single-flight refresh (один refresh на всех)
-let refreshInFlight: Promise<string | null> | null = null;
+let refreshInFlight: Promise<AuthRefreshResult> | null = null;
 
 export function configureHttpAuth(options: {
     refreshToken: RefreshTokenFn;
@@ -71,8 +77,13 @@ function setAuthHeader(options: RequestInit, token: string): RequestInit {
     return {...options, headers};
 }
 
-async function refreshOnce(): Promise<string | null> {
-    if (!refreshTokenFn) return null;
+async function refreshOnce(): Promise<AuthRefreshResult> {
+    if (!refreshTokenFn) {
+        return {
+            accessToken: null,
+            shouldLogout: true,
+        };
+    }
 
     if (!refreshInFlight) {
         refreshInFlight = refreshTokenFn().finally(() => {
@@ -207,19 +218,32 @@ export async function apiRequest<T>(
             // 401 → пробуем refresh, если включено
             if (err.status === 401 && enableAuthRefresh) {
                 try {
-                    const newToken = await refreshOnce();
+                    const refreshResult = await refreshOnce();
+                    const newToken = refreshResult.accessToken;
 
                     if (!newToken) {
-                        logoutFn?.();
+                        if (refreshResult.shouldLogout) {
+                            logoutFn?.();
+                        }
+
+                        if (refreshResult.error) {
+                            throw refreshResult.error;
+                        }
+
                         throw err;
                     }
 
                     // 2) Повторяем запрос уже с новым access token (перезаписываем Authorization)
                     const retryOptions = setAuthHeader(firstOptions, newToken);
                     return await request<T>(url, retryOptions);
-                } catch {
-                    logoutFn?.();
-                    throw err;
+                } catch (refreshError) {
+                    if (refreshError instanceof HttpError &&
+                        (refreshError.status === 401 || refreshError.status === 403)) {
+                        logoutFn?.();
+                        throw err;
+                    }
+
+                    throw refreshError;
                 }
             }
 
