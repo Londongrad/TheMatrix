@@ -65,21 +65,21 @@ export default function UserAccessModal({
                     <div className="mx-admin-users__section">
                         <div className="mx-admin-users__sectionTitle">Profile</div>
                         <div className="mx-admin-users__profileGrid">
-                            <div>
+                            <div className="mx-admin-users__profileItem">
                                 <div className="mx-admin-users__muted">Username</div>
-                                <div>{details.username}</div>
+                                <div className="mx-admin-users__profileValue">{details.username}</div>
                             </div>
-                            <div>
+                            <div className="mx-admin-users__profileItem">
                                 <div className="mx-admin-users__muted">Email</div>
-                                <div>{details.email}</div>
+                                <div className="mx-admin-users__profileValue">{details.email}</div>
                             </div>
-                            <div>
+                            <div className="mx-admin-users__profileItem">
                                 <div className="mx-admin-users__muted">Permissions version</div>
-                                <div>{details.permissionsVersion}</div>
+                                <div className="mx-admin-users__profileValue">{details.permissionsVersion}</div>
                             </div>
-                            <div>
+                            <div className="mx-admin-users__profileItem">
                                 <div className="mx-admin-users__muted">Status</div>
-                                <div>
+                                <div className="mx-admin-users__profileValue">
                                     {details.isDeleted ? (
                                         <UserBadge kind="bad">Deleted</UserBadge>
                                     ) : details.isLocked ? (
@@ -89,20 +89,24 @@ export default function UserAccessModal({
                                     )}
                                 </div>
                             </div>
-                            <div>
+                            <div className="mx-admin-users__profileItem">
                                 <div className="mx-admin-users__muted">Created</div>
-                                <div>{formatAdminUtc(details.createdAtUtc)}</div>
+                                <div className="mx-admin-users__profileValue">
+                                    {formatAdminUtc(details.createdAtUtc)}
+                                </div>
                             </div>
                             {details.deletedAtUtc ? (
-                                <div>
+                                <div className="mx-admin-users__profileItem">
                                     <div className="mx-admin-users__muted">Deleted at</div>
-                                    <div>{formatAdminUtc(details.deletedAtUtc)}</div>
+                                    <div className="mx-admin-users__profileValue">
+                                        {formatAdminUtc(details.deletedAtUtc)}
+                                    </div>
                                 </div>
                             ) : null}
-                            <div>
+                            <div className="mx-admin-users__profileItem">
                                 <div className="mx-admin-users__muted">Last visit</div>
                                 <div
-                                    className="mx-admin-users__time"
+                                    className="mx-admin-users__time mx-admin-users__time--profile"
                                     title={formatAdminVisitUtc(details.lastVisitedAtUtc)}
                                 >
                                     <span className="mx-admin-users__timePrimary">
@@ -116,8 +120,10 @@ export default function UserAccessModal({
                                 </div>
                             </div>
                             {isDeletedUser ? (
-                                <div className="mx-admin-users__muted">
-                                    Restore this account from the users list before changing roles or permission overrides.
+                                <div className="mx-admin-users__profileItem mx-admin-users__profileItem--full">
+                                    <div className="mx-admin-users__muted">
+                                        Restore this account from the users list before changing roles or permission overrides.
+                                    </div>
                                 </div>
                             ) : null}
                         </div>
