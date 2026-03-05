@@ -8,6 +8,7 @@ using Matrix.Identity.Application.UseCases.Admin.Users.GrantUserPermission;
 using Matrix.Identity.Application.UseCases.Admin.Users.LockUser;
 using Matrix.Identity.Application.UseCases.Admin.Users.RestoreUser;
 using Matrix.Identity.Application.UseCases.Admin.Users.UnlockUser;
+using Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserPermissions;
 using Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserRoles;
 using Matrix.Identity.Contracts.Admin.Users.Requests;
 using Matrix.Identity.Contracts.Admin.Users.Responses;
@@ -226,6 +227,27 @@ namespace Matrix.Identity.Api.Controllers.Admin
             var command = new GrantUserPermissionCommand(
                 UserId: userId,
                 TargetPermissionKey: request.PermissionKey);
+
+            await _sender.Send(
+                request: command,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
+        [HttpPut("{userId:guid}/permissions")]
+        public async Task<IActionResult> UpdateUserPermissions(
+            [FromRoute] Guid userId,
+            [FromBody] UpdateUserPermissionsRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var command = new UpdateUserPermissionsCommand(
+                UserId: userId,
+                Overrides: request.Overrides
+                   .Select(overrideEntry => new UpdateUserPermissionOverrideInput(
+                        PermissionKey: overrideEntry.PermissionKey,
+                        Effect: overrideEntry.Effect))
+                   .ToArray());
 
             await _sender.Send(
                 request: command,

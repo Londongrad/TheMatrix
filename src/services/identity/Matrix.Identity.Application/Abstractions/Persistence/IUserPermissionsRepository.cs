@@ -14,5 +14,10 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             string permissionKey,
             PermissionEffect effect,
             CancellationToken cancellationToken);
+
+        Task<bool> ReplaceUserPermissionsAsync(
+            Guid userId,
+            IReadOnlyDictionary<string, PermissionEffect> permissionEffects,
+            CancellationToken cancellationToken);
     }
 }
