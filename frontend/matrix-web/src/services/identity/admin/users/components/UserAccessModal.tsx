@@ -1,3 +1,4 @@
+import type {PermissionCatalogItemResponse, PermissionEffect} from "@services/identity/api/admin/adminTypes";
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import Modal from "@shared/ui/components/Modal/Modal";
@@ -9,10 +10,12 @@ import {
 import UserBadge from "./UserBadge";
 import {useUserAccess} from "../hooks/useUserAccess";
 
+type ManualPermissionState = PermissionEffect | "Inherit";
+
 export default function UserAccessModal({
-                                            userId,
-                                            onClose,
-                                        }: {
+    userId,
+    onClose,
+}: {
     userId: string;
     onClose: () => void;
 }) {
@@ -24,9 +27,9 @@ export default function UserAccessModal({
         error,
         details,
         rolesCatalog,
-        permissionsCatalog,
         permissionMap,
         permissionDraftMap,
+        groupedPermissions,
         rolePermissionKeys,
         selectedRoleIds,
         setSelectedRoleIds,
@@ -43,6 +46,81 @@ export default function UserAccessModal({
         isAccessReadOnly,
         readOnlyReason,
     } = useUserAccess(userId);
+
+    const renderPermissionRow = (permission: PermissionCatalogItemResponse) => {
+        const override = permissionMap.get(permission.key);
+        const draftOverride = permissionDraftMap[permission.key];
+        const selectedState: ManualPermissionState = draftOverride ?? "Inherit";
+        const hasRolePermission = rolePermissionKeys.has(permission.key);
+        const effectiveEffect = draftOverride ?? (hasRolePermission ? "Allow" : "None");
+        const badgeKind =
+            effectiveEffect === "Allow"
+                ? "ok"
+                : effectiveEffect === "Deny"
+                    ? "bad"
+                    : "warn";
+        const sourceLabel = draftOverride
+            ? "Manual"
+            : hasRolePermission
+                ? "Role"
+                : "Default";
+        const isDirty = (override?.effect ?? null) !== (draftOverride ?? null);
+        const editorDisabled =
+            !isEditingPermissions ||
+            savingPermissions ||
+            isAccessReadOnly ||
+            !canEditPermissionOverrides;
+
+        return (
+            <div key={permission.key} className="mx-admin-users__permissionRow">
+                <div className="mx-admin-users__permCopy">
+                    <div className="mx-admin-users__permKey">{permission.key}</div>
+                    <div className="mx-admin-users__permDesc">{permission.description}</div>
+                </div>
+                <div className="mx-admin-users__permActions">
+                    <div className="mx-admin-users__permBadges">
+                        <UserBadge kind={badgeKind}>{effectiveEffect}</UserBadge>
+                        <UserBadge kind="info">{sourceLabel}</UserBadge>
+                        {isDirty ? <UserBadge kind="warn">Draft</UserBadge> : null}
+                    </div>
+                    {isEditingPermissions ? (
+                        <div className="mx-admin-users__permEditor">
+                            <Button
+                                size="sm"
+                                variant="primary"
+                                disabled={editorDisabled || selectedState === "Inherit"}
+                                onClick={() =>
+                                    setPermissionOverride(permission.key, "Inherit")
+                                }
+                            >
+                                Inherit
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="success"
+                                disabled={editorDisabled || selectedState === "Allow"}
+                                onClick={() =>
+                                    setPermissionOverride(permission.key, "Allow")
+                                }
+                            >
+                                Allow
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="danger"
+                                disabled={editorDisabled || selectedState === "Deny"}
+                                onClick={() =>
+                                    setPermissionOverride(permission.key, "Deny")
+                                }
+                            >
+                                Deny
+                            </Button>
+                        </div>
+                    ) : null}
+                </div>
+            </div>
+        );
+    };
 
     return (
         <Modal
@@ -236,102 +314,52 @@ export default function UserAccessModal({
                                 {permissionEditReason}
                             </div>
                         ) : null}
-                        <div className="mx-admin-users__permissions">
-                            {permissionsCatalog.map((permission) => {
-                                const override = permissionMap.get(permission.key);
-                                const draftOverride = permissionDraftMap[permission.key];
-                                const hasRolePermission = rolePermissionKeys.has(
-                                    permission.key
-                                );
-                                const effectiveEffect =
-                                    draftOverride ??
-                                    (hasRolePermission ? "Allow" : "None");
-                                const badgeKind =
-                                    effectiveEffect === "Allow"
-                                        ? "ok"
-                                        : effectiveEffect === "Deny"
-                                            ? "bad"
-                                            : "warn";
-                                const sourceLabel = draftOverride
-                                    ? "Manual"
-                                    : hasRolePermission
-                                        ? "Role"
-                                        : "Default";
-                                const isDirty =
-                                    (override?.effect ?? null) !== (draftOverride ?? null);
-                                const editorDisabled =
-                                    !isEditingPermissions ||
-                                    savingPermissions ||
-                                    isAccessReadOnly ||
-                                    !canEditPermissionOverrides;
-                                return (
-                                    <div
-                                        key={permission.key}
-                                        className="mx-admin-users__permissionRow"
-                                    >
-                                        <div className="mx-admin-users__permCopy">
-                                            <div className="mx-admin-users__permKey">
-                                                {permission.key}
-                                            </div>
-                                            <div className="mx-admin-users__permDesc">
-                                                {permission.description}
-                                            </div>
-                                        </div>
-                                        <div className="mx-admin-users__permActions">
-                                            <div className="mx-admin-users__permBadges">
-                                                <UserBadge kind={badgeKind}>{effectiveEffect}</UserBadge>
-                                                <UserBadge kind="info">{sourceLabel}</UserBadge>
-                                                {isDirty ? (
-                                                    <UserBadge kind="warn">Draft</UserBadge>
-                                                ) : null}
-                                            </div>
-                                            {isEditingPermissions ? (
-                                                <div className="mx-admin-users__permEditor">
-                                                    <Button
-                                                        size="sm"
-                                                        variant={draftOverride ? "default" : "primary"}
-                                                        disabled={editorDisabled}
-                                                        onClick={() =>
-                                                            setPermissionOverride(
-                                                                permission.key,
-                                                                "Inherit"
-                                                            )
-                                                        }
+                        <div className="mx-admin-users__permissionSections">
+                            {groupedPermissions.map((section) => (
+                                <details
+                                    key={section.title}
+                                    className="mx-admin-users__permissionSection"
+                                    open
+                                >
+                                    <summary className="mx-admin-users__permissionSectionTitle">
+                                        {section.title}
+                                    </summary>
+                                    <div className="mx-admin-users__permissionSectionBody">
+                                        {section.groups.map((group) => {
+                                            const showGroupTitle =
+                                                section.groups.length > 1 || group.title !== "General";
+
+                                            if (!showGroupTitle) {
+                                                return (
+                                                    <div
+                                                        key={group.title}
+                                                        className="mx-admin-users__permissionGroupBody"
                                                     >
-                                                        Inherit
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant={draftOverride === "Allow" ? "success" : "default"}
-                                                        disabled={editorDisabled}
-                                                        onClick={() =>
-                                                            setPermissionOverride(
-                                                                permission.key,
-                                                                "Allow"
-                                                            )
-                                                        }
-                                                    >
-                                                        Allow
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant={draftOverride === "Deny" ? "danger" : "default"}
-                                                        disabled={editorDisabled}
-                                                        onClick={() =>
-                                                            setPermissionOverride(
-                                                                permission.key,
-                                                                "Deny"
-                                                            )
-                                                        }
-                                                    >
-                                                        Deny
-                                                    </Button>
-                                                </div>
-                                            ) : null}
-                                        </div>
+                                                        <div className="mx-admin-users__permissions">
+                                                            {group.items.map(renderPermissionRow)}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return (
+                                                <details
+                                                    key={group.title}
+                                                    className="mx-admin-users__permissionGroup"
+                                                    open
+                                                >
+                                                    <summary className="mx-admin-users__permissionGroupTitle">
+                                                        {group.title}
+                                                    </summary>
+                                                    <div className="mx-admin-users__permissions">
+                                                        {group.items.map(renderPermissionRow)}
+                                                    </div>
+                                                </details>
+                                            );
+                                        })}
                                     </div>
-                                );
-                            })}
+                                </details>
+                            ))}
                         </div>
                     </div>
                 </div>

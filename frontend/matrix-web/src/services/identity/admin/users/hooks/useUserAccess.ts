@@ -25,7 +25,16 @@ import {
     isHiddenAdminRole,
 } from "@services/identity/admin/shared/utils/roleVisibility";
 
-type PermissionDraftMap = Record<string, PermissionEffect>;
+type PermissionDraftMap = Partial<Record<string, PermissionEffect>>;
+type PermissionGroup = {
+    title: string;
+    items: PermissionCatalogItemResponse[];
+};
+
+type PermissionSection = {
+    title: string;
+    groups: PermissionGroup[];
+};
 
 function toPermissionDraftMap(
     overrides: UserPermissionResponse[]
@@ -64,6 +73,37 @@ function countPermissionDraftChanges(
     });
 
     return changedCount;
+}
+
+function groupPermissionsCatalog(
+    permissions: PermissionCatalogItemResponse[]
+): PermissionSection[] {
+    const sectionMap = new Map<string, Map<string, PermissionCatalogItemResponse[]>>();
+
+    for (const permission of permissions) {
+        const [category, ...rest] = permission.group.split(" / ");
+        const subgroup = rest.join(" / ");
+        const sectionTitle = `${permission.service} / ${category}`;
+        const subgroupTitle = subgroup || "General";
+
+        const groups = sectionMap.get(sectionTitle) ?? new Map();
+        const items = groups.get(subgroupTitle) ?? [];
+        items.push(permission);
+        groups.set(subgroupTitle, items);
+        sectionMap.set(sectionTitle, groups);
+    }
+
+    return Array.from(sectionMap.entries())
+        .map(([title, groups]) => ({
+            title,
+            groups: Array.from(groups.entries())
+                .map(([groupTitle, items]) => ({
+                    title: groupTitle,
+                    items,
+                }))
+                .sort((left, right) => left.title.localeCompare(right.title)),
+        }))
+        .sort((left, right) => left.title.localeCompare(right.title));
 }
 
 export function useUserAccess(userId: string) {
@@ -151,6 +191,10 @@ export function useUserAccess(userId: string) {
         );
         return map;
     }, [userPermissions]);
+    const groupedPermissions = useMemo(
+        () => groupPermissionsCatalog(permissionsCatalog),
+        [permissionsCatalog]
+    );
     const savedPermissionDraftMap = useMemo(
         () => toPermissionDraftMap(userPermissions),
         [userPermissions]
@@ -273,6 +317,7 @@ export function useUserAccess(userId: string) {
         setError(null);
         try {
             const overrides = Object.entries(permissionDraftMap)
+                .filter((entry): entry is [string, PermissionEffect] => entry[1] !== undefined)
                 .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
                 .map(([permissionKey, effect]) => ({
                     permissionKey,
@@ -303,6 +348,7 @@ export function useUserAccess(userId: string) {
         rolesCatalog,
         userRoles,
         permissionsCatalog,
+        groupedPermissions,
         permissionMap,
         permissionDraftMap,
         rolePermissionKeys,

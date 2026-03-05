@@ -262,6 +262,68 @@
     gap: 12px;
 }
 
+.mx-admin-users__permissionSections {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mx-admin-users__permissionSection,
+.mx-admin-users__permissionGroup {
+    border: 1px solid var(--settings-card-border);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--settings-card-bg) 88%, white 12%);
+    overflow: hidden;
+}
+
+.mx-admin-users__permissionSectionTitle,
+.mx-admin-users__permissionGroupTitle {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--app-text) 78%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: color-mix(in srgb, var(--settings-card-bg) 88%, black 12%);
+}
+
+.mx-admin-users__permissionSectionTitle::marker,
+.mx-admin-users__permissionSectionTitle::-webkit-details-marker,
+.mx-admin-users__permissionGroupTitle::marker,
+.mx-admin-users__permissionGroupTitle::-webkit-details-marker {
+    display: none;
+}
+
+.mx-admin-users__permissionSectionTitle::after,
+.mx-admin-users__permissionGroupTitle::after {
+    content: "▾";
+    font-size: 12px;
+    color: var(--app-text-muted);
+    transition: transform 0.14s ease;
+}
+
+.mx-admin-users__permissionSection[open] > .mx-admin-users__permissionSectionTitle::after,
+.mx-admin-users__permissionGroup[open] > .mx-admin-users__permissionGroupTitle::after {
+    transform: rotate(180deg);
+}
+
+.mx-admin-users__permissionSectionBody,
+.mx-admin-users__permissionGroupBody {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mx-admin-users__permissionGroupBody {
+    border-top: 1px solid var(--settings-card-border);
+}
+
 .mx-admin-users__permissionRow {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
