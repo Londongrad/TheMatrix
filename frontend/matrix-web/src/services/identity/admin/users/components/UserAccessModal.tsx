@@ -19,17 +19,26 @@ export default function UserAccessModal({
     const {
         loading,
         savingRoles,
-        savingPermission,
+        savingPermissions,
+        isEditingPermissions,
         error,
         details,
         rolesCatalog,
         permissionsCatalog,
         permissionMap,
+        permissionDraftMap,
         rolePermissionKeys,
         selectedRoleIds,
         setSelectedRoleIds,
         saveRoles,
-        updatePermission,
+        beginPermissionEditing,
+        cancelPermissionEditing,
+        setPermissionOverride,
+        savePermissions,
+        hasPermissionChanges,
+        pendingPermissionChangesCount,
+        canEditPermissionOverrides,
+        permissionEditReason,
         isDeletedUser,
         isAccessReadOnly,
         readOnlyReason,
@@ -170,31 +179,91 @@ export default function UserAccessModal({
                     </div>
 
                     <div className="mx-admin-users__section">
-                        <div className="mx-admin-users__sectionTitle">
-                            Direct permission overrides
+                        <div className="mx-admin-users__sectionHeader">
+                            <div>
+                                <div className="mx-admin-users__sectionTitle">
+                                    Direct permission overrides
+                                </div>
+                                <div className="mx-admin-users__muted">
+                                    Draft manual allow or deny decisions locally, then save them in one batch.
+                                </div>
+                            </div>
+                            <div className="mx-admin-users__sectionActions">
+                                {isEditingPermissions ? (
+                                    <>
+                                        <div className="mx-admin-users__muted">
+                                            {pendingPermissionChangesCount === 0
+                                                ? "No unsaved changes"
+                                                : `${pendingPermissionChangesCount} unsaved override${pendingPermissionChangesCount === 1 ? "" : "s"}`}
+                                        </div>
+                                        <Button
+                                            onClick={cancelPermissionEditing}
+                                            disabled={savingPermissions}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            variant="primary"
+                                            onClick={() => void savePermissions()}
+                                            disabled={
+                                                savingPermissions ||
+                                                !hasPermissionChanges ||
+                                                isAccessReadOnly ||
+                                                !canEditPermissionOverrides
+                                            }
+                                            title={permissionEditReason ?? undefined}
+                                        >
+                                            Save overrides
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Button
+                                        onClick={beginPermissionEditing}
+                                        disabled={
+                                            savingPermissions ||
+                                            isAccessReadOnly ||
+                                            !canEditPermissionOverrides
+                                        }
+                                        title={permissionEditReason ?? undefined}
+                                    >
+                                        Edit overrides
+                                    </Button>
+                                )}
+                            </div>
                         </div>
+                        {permissionEditReason ? (
+                            <div className="mx-admin-users__muted">
+                                {permissionEditReason}
+                            </div>
+                        ) : null}
                         <div className="mx-admin-users__permissions">
                             {permissionsCatalog.map((permission) => {
                                 const override = permissionMap.get(permission.key);
+                                const draftOverride = permissionDraftMap[permission.key];
                                 const hasRolePermission = rolePermissionKeys.has(
                                     permission.key
                                 );
                                 const effectiveEffect =
-                                    override?.effect ?? (hasRolePermission ? "Allow" : "None");
+                                    draftOverride ??
+                                    (hasRolePermission ? "Allow" : "None");
                                 const badgeKind =
                                     effectiveEffect === "Allow"
                                         ? "ok"
                                         : effectiveEffect === "Deny"
                                             ? "bad"
                                             : "warn";
-                                const allowDisabled =
+                                const sourceLabel = draftOverride
+                                    ? "Manual"
+                                    : hasRolePermission
+                                        ? "Role"
+                                        : "Default";
+                                const isDirty =
+                                    (override?.effect ?? null) !== (draftOverride ?? null);
+                                const editorDisabled =
+                                    !isEditingPermissions ||
+                                    savingPermissions ||
                                     isAccessReadOnly ||
-                                    savingPermission === permission.key ||
-                                    effectiveEffect === "Allow";
-                                const denyDisabled =
-                                    isAccessReadOnly ||
-                                    savingPermission === permission.key ||
-                                    effectiveEffect === "Deny";
+                                    !canEditPermissionOverrides;
                                 return (
                                     <div
                                         key={permission.key}
@@ -209,32 +278,56 @@ export default function UserAccessModal({
                                             </div>
                                         </div>
                                         <div className="mx-admin-users__permActions">
-                                            <UserBadge kind={badgeKind}>{effectiveEffect}</UserBadge>
-                                            {override ? (
-                                                <UserBadge kind="info">Manual</UserBadge>
-                                            ) : hasRolePermission ? (
-                                                <UserBadge kind="info">Role</UserBadge>
+                                            <div className="mx-admin-users__permBadges">
+                                                <UserBadge kind={badgeKind}>{effectiveEffect}</UserBadge>
+                                                <UserBadge kind="info">{sourceLabel}</UserBadge>
+                                                {isDirty ? (
+                                                    <UserBadge kind="warn">Draft</UserBadge>
+                                                ) : null}
+                                            </div>
+                                            {isEditingPermissions ? (
+                                                <div className="mx-admin-users__permEditor">
+                                                    <Button
+                                                        size="sm"
+                                                        variant={draftOverride ? "default" : "primary"}
+                                                        disabled={editorDisabled}
+                                                        onClick={() =>
+                                                            setPermissionOverride(
+                                                                permission.key,
+                                                                "Inherit"
+                                                            )
+                                                        }
+                                                    >
+                                                        Inherit
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={draftOverride === "Allow" ? "success" : "default"}
+                                                        disabled={editorDisabled}
+                                                        onClick={() =>
+                                                            setPermissionOverride(
+                                                                permission.key,
+                                                                "Allow"
+                                                            )
+                                                        }
+                                                    >
+                                                        Allow
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={draftOverride === "Deny" ? "danger" : "default"}
+                                                        disabled={editorDisabled}
+                                                        onClick={() =>
+                                                            setPermissionOverride(
+                                                                permission.key,
+                                                                "Deny"
+                                                            )
+                                                        }
+                                                    >
+                                                        Deny
+                                                    </Button>
+                                                </div>
                                             ) : null}
-                                            <Button
-                                                size="sm"
-                                                variant="success"
-                                                disabled={allowDisabled}
-                                                onClick={() =>
-                                                    void updatePermission(permission.key, "Allow")
-                                                }
-                                            >
-                                                Allow
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="danger"
-                                                disabled={denyDisabled}
-                                                onClick={() =>
-                                                    void updatePermission(permission.key, "Deny")
-                                                }
-                                            >
-                                                Deny
-                                            </Button>
                                         </div>
                                     </div>
                                 );

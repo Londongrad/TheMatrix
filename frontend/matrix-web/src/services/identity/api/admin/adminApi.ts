@@ -4,6 +4,7 @@ import {API_ADMIN_URL, API_ADMIN_USERS_URL} from "@shared/api/config";
 import type {
     CreateRoleRequest,
     PermissionCatalogItemResponse,
+    UpdateUserPermissionsRequest,
     RenameRoleRequest,
     RolePermissionsResponse,
     RoleResponse,
@@ -73,6 +74,16 @@ export async function getUserPermissions(
     return await apiRequest<UserPermissionResponse[]>(
         `${API_ADMIN_USERS_URL}/${userId}/permissions`
     );
+}
+
+export async function updateUserPermissions(
+    userId: string,
+    payload: UpdateUserPermissionsRequest
+): Promise<void> {
+    await apiRequest<void>(`${API_ADMIN_USERS_URL}/${userId}/permissions`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
 }
 
 export async function grantUserPermission(

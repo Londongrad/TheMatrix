@@ -58,6 +58,15 @@ export interface UserPermissionResponse {
     effect: PermissionEffect;
 }
 
+export interface UserPermissionOverrideRequest {
+    permissionKey: string;
+    effect: PermissionEffect;
+}
+
+export interface UpdateUserPermissionsRequest {
+    overrides: UserPermissionOverrideRequest[];
+}
+
 export interface PermissionCatalogItemResponse {
     key: string;
     service: string;

@@ -181,6 +181,26 @@
     color: var(--app-text-strong);
 }
 
+.mx-admin-users__sectionHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.mx-admin-users__sectionHeader .mx-admin-users__sectionTitle {
+    margin-bottom: 4px;
+}
+
+.mx-admin-users__sectionActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .mx-admin-users__profileGrid {
     display: grid;
     gap: 12px;
@@ -274,7 +294,23 @@
 
 .mx-admin-users__permActions {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.mx-admin-users__permBadges {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.mx-admin-users__permEditor {
+    display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 8px;
     flex-wrap: wrap;
@@ -300,7 +336,22 @@
         grid-template-columns: 1fr;
     }
 
+    .mx-admin-users__sectionHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .mx-admin-users__sectionActions {
+        justify-content: flex-start;
+    }
+
     .mx-admin-users__permActions {
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .mx-admin-users__permBadges,
+    .mx-admin-users__permEditor {
         justify-content: flex-start;
     }
 }

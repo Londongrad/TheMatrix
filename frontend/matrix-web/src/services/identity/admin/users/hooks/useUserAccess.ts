@@ -1,34 +1,78 @@
 import {useEffect, useMemo, useState} from "react";
 import {
     assignUserRoles,
-    depriveUserPermission,
     getPermissionsCatalog,
     getRolePermissions,
     getRolesCatalog,
     getUserDetails,
     getUserPermissions,
     getUserRoles,
-    grantUserPermission,
+    updateUserPermissions,
 } from "@services/identity/api/admin/adminApi";
 import type {
     PermissionCatalogItemResponse,
+    PermissionEffect,
     RoleResponse,
     UserDetailsResponse,
     UserPermissionResponse,
     UserRoleResponse,
 } from "@services/identity/api/admin/adminTypes";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {canAll as canAllPermissions} from "@shared/permissions/can";
+import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {
     filterVisibleAdminRoles,
     isHiddenAdminRole,
 } from "@services/identity/admin/shared/utils/roleVisibility";
+
+type PermissionDraftMap = Record<string, PermissionEffect>;
+
+function toPermissionDraftMap(
+    overrides: UserPermissionResponse[]
+): PermissionDraftMap {
+    return overrides.reduce<PermissionDraftMap>((draft, override) => {
+        draft[override.permissionKey] = override.effect;
+        return draft;
+    }, {});
+}
+
+function arePermissionDraftMapsEqual(
+    left: PermissionDraftMap,
+    right: PermissionDraftMap
+): boolean {
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+
+    if (leftKeys.length !== rightKeys.length) {
+        return false;
+    }
+
+    return leftKeys.every((key) => left[key] === right[key]);
+}
+
+function countPermissionDraftChanges(
+    left: PermissionDraftMap,
+    right: PermissionDraftMap
+): number {
+    const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+    let changedCount = 0;
+
+    keys.forEach((key) => {
+        if ((left[key] ?? null) !== (right[key] ?? null)) {
+            changedCount += 1;
+        }
+    });
+
+    return changedCount;
+}
 
 export function useUserAccess(userId: string) {
     const {user: currentUser} = useAuth();
 
     const [loading, setLoading] = useState(true);
     const [savingRoles, setSavingRoles] = useState(false);
-    const [savingPermission, setSavingPermission] = useState<string | null>(null);
+    const [savingPermissions, setSavingPermissions] = useState(false);
+    const [isEditingPermissions, setIsEditingPermissions] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const [details, setDetails] = useState<UserDetailsResponse | null>(null);
@@ -45,6 +89,9 @@ export function useUserAccess(userId: string) {
     );
 
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+    const [permissionDraftMap, setPermissionDraftMap] = useState<PermissionDraftMap>(
+        {}
+    );
 
     useEffect(() => {
         let active = true;
@@ -68,6 +115,8 @@ export function useUserAccess(userId: string) {
                 setSelectedRoleIds(assignedRoles.map((role) => role.id));
                 setPermissionsCatalog(perms.filter((permission) => !permission.isDeprecated));
                 setUserPermissions(overrides);
+                setPermissionDraftMap(toPermissionDraftMap(overrides));
+                setIsEditingPermissions(false);
 
                 const rolePermissions = await Promise.all(
                     assignedRoles.map((role) => getRolePermissions(role.id))
@@ -102,6 +151,10 @@ export function useUserAccess(userId: string) {
         );
         return map;
     }, [userPermissions]);
+    const savedPermissionDraftMap = useMemo(
+        () => toPermissionDraftMap(userPermissions),
+        [userPermissions]
+    );
 
     const isCurrentUser = details?.id === currentUser?.userId;
     const isDeletedUser = details?.isDeleted ?? false;
@@ -113,6 +166,14 @@ export function useUserAccess(userId: string) {
         [userRoles]
     );
     const isAccessReadOnly = isCurrentUser || isProtectedUser || isDeletedUser;
+    const canEditPermissionOverrides = useMemo(
+        () =>
+            canAllPermissions(currentUser?.effectivePermissions ?? [], [
+                PermissionKeys.IdentityUserPermissionsGrant,
+                PermissionKeys.IdentityUserPermissionsDeprive,
+            ]),
+        [currentUser?.effectivePermissions]
+    );
     const readOnlyReason = isCurrentUser
         ? "You cannot manage your own access from the admin panel."
         : isDeletedUser
@@ -120,6 +181,21 @@ export function useUserAccess(userId: string) {
         : isProtectedUser
             ? "This account has protected system access that is not editable here."
             : null;
+    const permissionEditReason = isAccessReadOnly
+        ? readOnlyReason
+        : !canEditPermissionOverrides
+            ? "You need both grant and deprive permissions to edit direct overrides in bulk."
+            : null;
+    const hasPermissionChanges = useMemo(
+        () =>
+            !arePermissionDraftMapsEqual(permissionDraftMap, savedPermissionDraftMap),
+        [permissionDraftMap, savedPermissionDraftMap]
+    );
+    const pendingPermissionChangesCount = useMemo(
+        () =>
+            countPermissionDraftChanges(permissionDraftMap, savedPermissionDraftMap),
+        [permissionDraftMap, savedPermissionDraftMap]
+    );
 
     const saveRoles = async () => {
         if (isAccessReadOnly) return;
@@ -148,54 +224,99 @@ export function useUserAccess(userId: string) {
         }
     };
 
-    const updatePermission = async (
-        permissionKey: string,
-        effect: "Allow" | "Deny"
-    ) => {
-        if (isAccessReadOnly) return;
+    const beginPermissionEditing = () => {
+        if (isAccessReadOnly || !canEditPermissionOverrides) {
+            return;
+        }
 
-        setSavingPermission(permissionKey);
+        setPermissionDraftMap({...savedPermissionDraftMap});
+        setIsEditingPermissions(true);
         setError(null);
-        try {
-            if (effect === "Allow") {
-                await grantUserPermission(userId, permissionKey);
+    };
+
+    const cancelPermissionEditing = () => {
+        setPermissionDraftMap({...savedPermissionDraftMap});
+        setIsEditingPermissions(false);
+        setError(null);
+    };
+
+    const setPermissionOverride = (
+        permissionKey: string,
+        effect: PermissionEffect | "Inherit"
+    ) => {
+        if (!isEditingPermissions || isAccessReadOnly || !canEditPermissionOverrides) {
+            return;
+        }
+
+        setPermissionDraftMap((prev) => {
+            const next = {...prev};
+
+            if (effect === "Inherit") {
+                delete next[permissionKey];
             } else {
-                await depriveUserPermission(userId, permissionKey);
+                next[permissionKey] = effect;
             }
 
-            setUserPermissions((prev) => {
-                const updated = prev.filter(
-                    (permission) => permission.permissionKey !== permissionKey
-                );
-                updated.push({permissionKey, effect});
-                return updated;
-            });
+            return next;
+        });
+    };
+
+    const savePermissions = async () => {
+        if (isAccessReadOnly || !canEditPermissionOverrides) return;
+
+        if (!hasPermissionChanges) {
+            setIsEditingPermissions(false);
+            return;
+        }
+
+        setSavingPermissions(true);
+        setError(null);
+        try {
+            const overrides = Object.entries(permissionDraftMap)
+                .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+                .map(([permissionKey, effect]) => ({
+                    permissionKey,
+                    effect,
+                }));
+
+            await updateUserPermissions(userId, {overrides});
 
             const updated = await getUserPermissions(userId);
             setUserPermissions(updated);
+            setPermissionDraftMap(toPermissionDraftMap(updated));
+            setIsEditingPermissions(false);
         } catch (error) {
             console.error(error);
             setError("Failed to update permissions");
         } finally {
-            setSavingPermission(null);
+            setSavingPermissions(false);
         }
     };
 
     return {
         loading,
         savingRoles,
-        savingPermission,
+        savingPermissions,
+        isEditingPermissions,
         error,
         details,
         rolesCatalog,
         userRoles,
         permissionsCatalog,
         permissionMap,
+        permissionDraftMap,
         rolePermissionKeys,
         selectedRoleIds,
         setSelectedRoleIds,
         saveRoles,
-        updatePermission,
+        beginPermissionEditing,
+        cancelPermissionEditing,
+        setPermissionOverride,
+        savePermissions,
+        hasPermissionChanges,
+        pendingPermissionChangesCount,
+        canEditPermissionOverrides,
+        permissionEditReason,
         isDeletedUser,
         isCurrentUser,
         isProtectedUser,
