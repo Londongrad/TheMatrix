@@ -118,6 +118,10 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
                 request: request,
                 cancellationToken: cancellationToken);
 
+            await ClearPermissionsVersionCacheAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
+
             return NoContent();
         }
 
@@ -134,6 +138,24 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
             return Ok(perms);
         }
 
+        [HttpPut("{userId:guid}/permissions")]
+        public async Task<IActionResult> UpdateUserPermissions(
+            [FromRoute] Guid userId,
+            [FromBody] UpdateUserPermissionsRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _usersClient.UpdateUserPermissionsAsync(
+                userId: userId,
+                request: request,
+                cancellationToken: cancellationToken);
+
+            await ClearPermissionsVersionCacheAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
+        }
+
         [HttpPost("{userId:guid}/permissions/grant")]
         public async Task<IActionResult> GrantUserPermission(
             [FromRoute] Guid userId,
@@ -143,6 +165,10 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
             await _usersClient.GrantUserPermissionAsync(
                 userId: userId,
                 request: request,
+                cancellationToken: cancellationToken);
+
+            await ClearPermissionsVersionCacheAsync(
+                userId: userId,
                 cancellationToken: cancellationToken);
 
             return NoContent();
@@ -159,7 +185,23 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
                 request: request,
                 cancellationToken: cancellationToken);
 
+            await ClearPermissionsVersionCacheAsync(
+                userId: userId,
+                cancellationToken: cancellationToken);
+
             return NoContent();
+        }
+
+        private async Task ClearPermissionsVersionCacheAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            await _distributedCache.RemoveAsync(
+                key: AuthorizationCacheKeys.PermissionsVersion(userId),
+                token: cancellationToken);
+            await _distributedCache.RemoveAsync(
+                key: AuthorizationCacheKeys.PermissionsVersionStale(userId),
+                token: cancellationToken);
         }
     }
 }

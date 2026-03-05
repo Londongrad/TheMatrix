@@ -40,6 +40,11 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
             Guid userId,
             CancellationToken cancellationToken);
 
+        Task UpdateUserPermissionsAsync(
+            Guid userId,
+            UpdateUserPermissionsRequest request,
+            CancellationToken cancellationToken);
+
         Task GrantUserPermissionAsync(
             Guid userId,
             UserPermissionRequest request,

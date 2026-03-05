@@ -149,6 +149,23 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users
                 requestUrl: url);
         }
 
+        public async Task UpdateUserPermissionsAsync(
+            Guid userId,
+            UpdateUserPermissionsRequest request,
+            CancellationToken cancellationToken)
+        {
+            string url = $"{UsersEndpoint}/{userId:D}/permissions";
+
+            using HttpResponseMessage resp = await _httpClient.PutAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await resp.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task GrantUserPermissionAsync(
             Guid userId,
             UserPermissionRequest request,
