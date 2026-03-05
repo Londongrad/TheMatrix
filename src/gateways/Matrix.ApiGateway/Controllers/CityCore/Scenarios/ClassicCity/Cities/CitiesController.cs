@@ -92,15 +92,8 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            SimulationClockView clock = await _simulationClient.GetClockAsync(
-                simulationId: cityId,
-                cancellationToken: cancellationToken);
-
-            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
-
             CityPopulationSummaryDto summary = await _populationClient.GetCityPopulationSummaryAsync(
                 cityId: cityId,
-                currentDate: currentDate,
                 cancellationToken: cancellationToken);
 
             return Ok(summary);

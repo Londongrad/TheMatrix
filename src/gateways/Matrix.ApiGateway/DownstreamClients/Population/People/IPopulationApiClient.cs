@@ -12,7 +12,6 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
 
         Task<CityPopulationSummaryDto> GetCityPopulationSummaryAsync(
             Guid cityId,
-            DateOnly currentDate,
             CancellationToken cancellationToken = default);
 
         Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(

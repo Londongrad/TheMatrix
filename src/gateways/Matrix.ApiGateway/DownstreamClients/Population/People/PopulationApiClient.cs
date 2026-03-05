@@ -37,14 +37,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
 
         public async Task<CityPopulationSummaryDto> GetCityPopulationSummaryAsync(
             Guid cityId,
-            DateOnly currentDate,
             CancellationToken cancellationToken = default)
         {
-            string currentDateValue = Uri.EscapeDataString(
-                stringToEscape: currentDate.ToString(
-                    format: "yyyy-MM-dd",
-                    provider: CultureInfo.InvariantCulture));
-            string url = $"{PopulationBaseEndpoint}/cities/{cityId}/summary?currentDate={currentDateValue}";
+            string url = $"{PopulationBaseEndpoint}/cities/{cityId}/summary";
 
             using HttpResponseMessage response = await _client.GetAsync(
                 requestUri: url,
