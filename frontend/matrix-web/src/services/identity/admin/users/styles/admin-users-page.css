@@ -243,27 +243,39 @@
 }
 
 .mx-admin-users__permissionRow {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 16px;
+    align-items: start;
     padding: 12px;
     border-radius: 12px;
     border: 1px solid var(--settings-card-border);
 }
 
+.mx-admin-users__permCopy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .mx-admin-users__permKey {
     font-weight: 600;
     color: var(--app-text-strong);
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .mx-admin-users__permDesc {
     color: var(--app-text-muted);
     font-size: 12px;
+    line-height: 1.4;
 }
 
 .mx-admin-users__permActions {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    justify-content: flex-end;
     gap: 8px;
     flex-wrap: wrap;
 }
@@ -285,6 +297,10 @@
     }
 
     .mx-admin-users__permissionRow {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+
+    .mx-admin-users__permActions {
+        justify-content: flex-start;
     }
 }

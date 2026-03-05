@@ -175,13 +175,20 @@
 
 .mx-admin-perm__row {
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 2.2fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px;
-    align-items: center;
+    align-items: start;
     padding: 10px 10px;
     border-radius: 12px;
     border: 1px solid var(--settings-card-border);
     background: color-mix(in srgb, var(--settings-card-bg) 82%, black 18%);
+}
+
+.mx-admin-perm__permCopy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .mx-admin-perm__permKey {
@@ -196,11 +203,14 @@
         monospace;
     color: var(--app-text-strong);
     font-size: 13px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .mx-admin-perm__permDesc {
     color: var(--app-text-muted);
     font-size: 13px;
+    line-height: 1.4;
 }
 
 .mx-admin-perm__toggle {

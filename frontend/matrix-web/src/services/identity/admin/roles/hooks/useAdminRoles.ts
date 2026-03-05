@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {getRolesCatalog} from "@services/identity/api/admin/adminApi";
 import type {RoleResponse} from "@services/identity/api/admin/adminTypes";
+import {filterVisibleAdminRoles} from "@services/identity/admin/shared/utils/roleVisibility";
 
 export function useAdminRoles() {
     const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ export function useAdminRoles() {
         setError(null);
         try {
             const response = await getRolesCatalog();
-            setRoles(response);
+            setRoles(filterVisibleAdminRoles(response));
         } catch (error: any) {
             setError(error?.message ?? "Failed to load roles");
         } finally {

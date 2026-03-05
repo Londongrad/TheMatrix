@@ -35,11 +35,13 @@ export default function PermissionsMatrix({
                 key={permission.key}
                 className="mx-admin-perm__row"
             >
-                <div className="mx-admin-perm__permKey">
-                    {permission.key}
-                </div>
-                <div className="mx-admin-perm__permDesc">
-                    {permission.description}
+                <div className="mx-admin-perm__permCopy">
+                    <div className="mx-admin-perm__permKey">
+                        {permission.key}
+                    </div>
+                    <div className="mx-admin-perm__permDesc">
+                        {permission.description}
+                    </div>
                 </div>
 
                 <div className="mx-admin-perm__toggle">

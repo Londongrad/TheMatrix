@@ -6,6 +6,7 @@ import {
     updateRolePermissions,
 } from "@services/identity/api/admin/adminApi";
 import type {PermissionCatalogItemResponse, RoleResponse,} from "@services/identity/api/admin/adminTypes";
+import {filterVisibleAdminRoles} from "@services/identity/admin/shared/utils/roleVisibility";
 
 export type PermissionGroup = {
     title: string;
@@ -40,9 +41,14 @@ export function useAdminPermissions() {
                 getRolesCatalog(),
                 getPermissionsCatalog(),
             ]);
-            setRoles(rolesResponse);
+            const visibleRoles = filterVisibleAdminRoles(rolesResponse);
+            setRoles(visibleRoles);
             setPerms(permsResponse.filter((x) => !x.isDeprecated));
-            setActiveRoleId((prev) => prev ?? rolesResponse[0]?.id ?? null);
+            setActiveRoleId((prev) =>
+                prev && visibleRoles.some((role) => role.id === prev)
+                    ? prev
+                    : visibleRoles[0]?.id ?? null
+            );
         } catch (error: any) {
             setError(error?.message ?? "Failed to load catalog");
         } finally {

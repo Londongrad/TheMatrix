@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from "react";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import Modal from "@shared/ui/components/Modal/Modal";
 import Button from "@shared/ui/controls/Button/Button";
-import {getPermissionsCatalog, getRolePermissions,} from "@services/identity/api/admin/adminApi";
+import {getPermissionsCatalog, getRolePermissions} from "@services/identity/api/admin/adminApi";
 import type {
     PermissionCatalogItemResponse,
     RolePermissionsResponse,
@@ -10,9 +10,9 @@ import type {
 } from "@services/identity/api/admin/adminTypes";
 
 export default function RolePermissionsModal({
-                                                 role,
-                                                 onClose,
-                                             }: {
+    role,
+    onClose,
+}: {
     role: RoleResponse;
     onClose: () => void;
 }) {
@@ -29,17 +29,26 @@ export default function RolePermissionsModal({
 
         Promise.all([getPermissionsCatalog(), getRolePermissions(role.id)])
             .then(([permissions, rolePerms]) => {
-                if (!active) return;
-                setCatalog(permissions.filter((p) => !p.isDeprecated));
+                if (!active) {
+                    return;
+                }
+
+                setCatalog(permissions.filter((permission) => !permission.isDeprecated));
                 setRolePermissions(rolePerms);
             })
-            .catch((error) => {
-                console.error(error);
-                if (!active) return;
+            .catch((loadError) => {
+                console.error(loadError);
+                if (!active) {
+                    return;
+                }
+
                 setError("Failed to load role permissions");
             })
             .finally(() => {
-                if (!active) return;
+                if (!active) {
+                    return;
+                }
+
                 setLoading(false);
             });
 
@@ -56,7 +65,7 @@ export default function RolePermissionsModal({
     return (
         <Modal
             open
-            title={`Permissions · ${role.name}`}
+            title={`Permissions - ${role.name}`}
             onClose={onClose}
             footer={
                 <Button variant="primary" onClick={onClose}>
@@ -74,7 +83,7 @@ export default function RolePermissionsModal({
             <div className="mx-admin-roles__permissions">
                 {catalog.map((permission) => (
                     <div key={permission.key} className="mx-admin-roles__permissionRow">
-                        <div>
+                        <div className="mx-admin-roles__permissionCopy">
                             <div className="mx-admin-roles__permissionKey">
                                 {permission.key}
                             </div>
@@ -89,8 +98,8 @@ export default function RolePermissionsModal({
                                     : "mx-admin-roles__permissionBadge"
                             }
                         >
-              {assigned.has(permission.key) ? "Granted" : "Not granted"}
-            </span>
+                            {assigned.has(permission.key) ? "Granted" : "Not granted"}
+                        </span>
                     </div>
                 ))}
             </div>

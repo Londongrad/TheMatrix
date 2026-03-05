@@ -18,8 +18,10 @@ import type {
     UserRoleResponse,
 } from "@services/identity/api/admin/adminTypes";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
-
-const SUPER_ADMIN_ROLE_NAME = "SuperAdmin";
+import {
+    filterVisibleAdminRoles,
+    isHiddenAdminRole,
+} from "@services/identity/admin/shared/utils/roleVisibility";
 
 export function useUserAccess(userId: string) {
     const {user: currentUser} = useAuth();
@@ -61,7 +63,7 @@ export function useUserAccess(userId: string) {
                     ]);
                 if (!active) return;
                 setDetails(user);
-                setRolesCatalog(roles);
+                setRolesCatalog(filterVisibleAdminRoles(roles));
                 setUserRoles(assignedRoles);
                 setSelectedRoleIds(assignedRoles.map((role) => role.id));
                 setPermissionsCatalog(perms.filter((permission) => !permission.isDeprecated));
@@ -106,7 +108,7 @@ export function useUserAccess(userId: string) {
     const isProtectedUser = useMemo(
         () =>
             userRoles.some(
-                (role) => role.name === SUPER_ADMIN_ROLE_NAME
+                (role) => isHiddenAdminRole(role)
             ),
         [userRoles]
     );
@@ -116,7 +118,7 @@ export function useUserAccess(userId: string) {
         : isDeletedUser
             ? "Restore the account before editing roles or direct permission overrides."
         : isProtectedUser
-            ? "SuperAdmin access is protected and can only be viewed here."
+            ? "This account has protected system access that is not editable here."
             : null;
 
     const saveRoles = async () => {

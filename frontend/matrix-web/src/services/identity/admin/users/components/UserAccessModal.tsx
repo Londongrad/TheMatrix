@@ -9,8 +9,6 @@ import {
 import UserBadge from "./UserBadge";
 import {useUserAccess} from "../hooks/useUserAccess";
 
-const SUPER_ADMIN_ROLE_NAME = "SuperAdmin";
-
 export default function UserAccessModal({
                                             userId,
                                             onClose,
@@ -25,7 +23,6 @@ export default function UserAccessModal({
         error,
         details,
         rolesCatalog,
-        userRoles,
         permissionsCatalog,
         permissionMap,
         rolePermissionKeys,
@@ -132,40 +129,32 @@ export default function UserAccessModal({
                     <div className="mx-admin-users__section">
                         <div className="mx-admin-users__sectionTitle">Roles</div>
                         <div className="mx-admin-users__roles">
-                            {rolesCatalog.map((role) => {
-                                const isSuperAdminRole = role.name === SUPER_ADMIN_ROLE_NAME;
-
-                                return (
-                                    <label key={role.id} className="mx-admin-users__roleItem">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedRoleIds.includes(role.id)}
-                                            disabled={
-                                                savingRoles ||
-                                                isAccessReadOnly ||
-                                                isSuperAdminRole
+                            {rolesCatalog.map((role) => (
+                                <label key={role.id} className="mx-admin-users__roleItem">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedRoleIds.includes(role.id)}
+                                        disabled={savingRoles || isAccessReadOnly}
+                                        onChange={(event) => {
+                                            if (event.target.checked) {
+                                                setSelectedRoleIds((prev) =>
+                                                    prev.includes(role.id)
+                                                        ? prev
+                                                        : [...prev, role.id]
+                                                );
+                                            } else {
+                                                setSelectedRoleIds((prev) =>
+                                                    prev.filter((id) => id !== role.id)
+                                                );
                                             }
-                                            onChange={(event) => {
-                                                if (event.target.checked) {
-                                                    setSelectedRoleIds((prev) =>
-                                                        prev.includes(role.id)
-                                                            ? prev
-                                                            : [...prev, role.id]
-                                                    );
-                                                } else {
-                                                    setSelectedRoleIds((prev) =>
-                                                        prev.filter((id) => id !== role.id)
-                                                    );
-                                                }
-                                            }}
-                                        />
-                                        <span>{role.name}</span>
-                                        {role.isSystem ? (
-                                            <span className="mx-admin-users__chip">System</span>
-                                        ) : null}
-                                    </label>
-                                );
-                            })}
+                                        }}
+                                    />
+                                    <span>{role.name}</span>
+                                    {role.isSystem ? (
+                                        <span className="mx-admin-users__chip">System</span>
+                                    ) : null}
+                                </label>
+                            ))}
                         </div>
                         <div className="mx-admin-users__rolesActions">
                             <Button
@@ -175,7 +164,7 @@ export default function UserAccessModal({
                                 Save roles
                             </Button>
                             <div className="mx-admin-users__muted">
-                                {userRoles.length} assigned
+                                {rolesCatalog.filter((role) => selectedRoleIds.includes(role.id)).length} assigned
                             </div>
                         </div>
                     </div>
@@ -211,7 +200,7 @@ export default function UserAccessModal({
                                         key={permission.key}
                                         className="mx-admin-users__permissionRow"
                                     >
-                                        <div>
+                                        <div className="mx-admin-users__permCopy">
                                             <div className="mx-admin-users__permKey">
                                                 {permission.key}
                                             </div>
