@@ -1,5 +1,6 @@
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.UseCases.Admin.Roles.GetRolesList;
+using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
         {
             return await _db.Roles
                .AsNoTracking()
+               .Where(r => r.Name != SystemRoleNames.SuperAdmin)
                .OrderBy(r => r.Name)
                .Select(r => new RoleListItemResult
                 {
