@@ -81,13 +81,10 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
         [HttpGet("cities/{cityId:guid}/summary")]
         public async Task<ActionResult<CityPopulationSummaryDto>> GetCitySummary(
             [FromRoute] Guid cityId,
-            [FromQuery] DateOnly currentDate,
             CancellationToken cancellationToken = default)
         {
             CityPopulationSummaryDto? result = await _sender.Send(
-                request: new GetCityPopulationSummaryQuery(
-                    CityId: cityId,
-                    CurrentDate: currentDate),
+                request: new GetCityPopulationSummaryQuery(cityId),
                 cancellationToken: cancellationToken);
 
             return result is null

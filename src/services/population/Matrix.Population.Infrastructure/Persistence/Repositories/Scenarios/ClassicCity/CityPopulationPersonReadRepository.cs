@@ -17,7 +17,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.Persons
-               .AsNoTracking()
                .Join(
                     inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
                     outerKeySelector: person => person.HouseholdId,
@@ -71,6 +70,23 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .FirstOrDefaultAsync(
                     predicate: person => person.Id == personId,
                     cancellationToken: cancellationToken);
+        }
+
+        public async Task<CityId?> FindCityIdByPersonIdAsync(
+            PersonId personId,
+            CancellationToken cancellationToken = default)
+        {
+            Guid? cityId = await (
+                from person in _dbContext.Persons.AsNoTracking()
+                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                    on person.HouseholdId equals placement.HouseholdId
+                where person.Id == personId
+                select (Guid?)placement.CityId.Value)
+               .FirstOrDefaultAsync(cancellationToken);
+
+            return cityId.HasValue
+                ? CityId.From(cityId.Value)
+                : null;
         }
     }
 }

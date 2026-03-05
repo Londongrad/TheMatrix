@@ -7,7 +7,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
     {
         Task<CityPopulationSummaryReadModel?> GetByCityIdAsync(
             CityId cityId,
-            DateOnly currentDate,
             CancellationToken cancellationToken = default);
     }
 }

@@ -2,6 +2,7 @@ using MassTransit;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers;
+using Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
@@ -16,6 +17,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityPopulationDeletionStateRepository, CityPopulationDeletionStateRepository>();
             services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
+            services.AddScoped<ICityPopulationSummaryProjectionService, CityPopulationSummaryProjectionService>();
             services.AddScoped<ICityPopulationSummaryReadRepository, CityPopulationSummaryReadRepository>();
             services.AddScoped<ICityPopulationWeatherImpactStateRepository, CityPopulationWeatherImpactStateRepository>();
             services.AddScoped<ICityPopulationWeatherExposureStateRepository,

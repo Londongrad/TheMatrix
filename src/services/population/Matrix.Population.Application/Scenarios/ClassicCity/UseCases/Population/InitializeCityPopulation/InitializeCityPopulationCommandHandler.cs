@@ -20,6 +20,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
+        ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         CityPopulationBootstrapGenerator generator,
         IUnitOfWork unitOfWork)
         : IRequestHandler<InitializeCityPopulationCommand, CityPopulationBootstrapSummaryDto>
@@ -88,6 +89,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     await personWriteRepository.AddRangeAsync(
                         persons: result.Persons,
+                        cancellationToken: ct);
+
+                    await cityPopulationSummaryProjectionService.UpdateAsync(
+                        cityId: cityId,
+                        currentDate: request.CurrentDate,
+                        persons: result.Persons,
+                        householdPlacements: result.HouseholdPlacements,
                         cancellationToken: ct);
 
                     await unitOfWork.SaveChangesAsync(ct);

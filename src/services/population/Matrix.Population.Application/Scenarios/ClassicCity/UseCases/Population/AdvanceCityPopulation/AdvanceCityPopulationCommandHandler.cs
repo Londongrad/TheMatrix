@@ -20,6 +20,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationProgressionStateRepository progressionStateRepository,
+        ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
@@ -91,6 +92,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         toSimTimeUtc: request.ToSimTimeUtc)
                     : [];
             bool requiresWeatherExposure = exposureSegments.Count > 0;
+            IReadOnlyCollection<PersonEntity>? personsSnapshot = null;
 
             if ((requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure) && environment is null)
                 logger.LogWarning(
@@ -103,11 +105,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 {
                     if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
                     {
-                        IReadOnlyCollection<PersonEntity> persons = await personReadRepository.ListByCityAsync(
+                        personsSnapshot = await personReadRepository.ListByCityAsync(
                             cityId: cityId,
                             cancellationToken: ct);
 
-                        foreach (PersonEntity person in persons)
+                        foreach (PersonEntity person in personsSnapshot)
                             if (ApplyProgressionNeedsAndExposure(
                                     person: person,
                                     fromSimTimeUtc: request.FromSimTimeUtc,
@@ -146,6 +148,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         weatherExposureState.MarkExposureProcessed(
                             processedAtSimTimeUtc: request.ToSimTimeUtc,
                             updatedAtUtc: updatedAtUtc);
+
+                    if (personsSnapshot is not null)
+                    {
+                        await cityPopulationSummaryProjectionService.UpdateAsync(
+                            cityId: cityId,
+                            currentDate: toDate,
+                            persons: personsSnapshot,
+                            cancellationToken: ct);
+                    }
 
                     await unitOfWork.SaveChangesAsync(ct);
                 },

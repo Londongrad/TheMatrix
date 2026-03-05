@@ -20,5 +20,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             CityId cityId,
             PersonId personId,
             CancellationToken cancellationToken = default);
+
+        Task<CityId?> FindCityIdByPersonIdAsync(
+            PersonId personId,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -12,6 +12,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationProgressionStateRepository cityPopulationProgressionStateRepository,
+        ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherImpactStateRepository cityPopulationWeatherImpactStateRepository,
         ICityPopulationWeatherExposureStateRepository cityPopulationWeatherExposureStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
@@ -63,6 +64,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId,
                         cancellationToken: ct);
                     await cityPopulationWeatherExposureStateRepository.DeleteByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+                    await cityPopulationSummaryProjectionService.DeleteAsync(
                         cityId: cityId,
                         cancellationToken: ct);
 

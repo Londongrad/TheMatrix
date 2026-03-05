@@ -6,8 +6,7 @@ using MediatR;
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary
 {
     public sealed record GetCityPopulationSummaryQuery(
-        Guid CityId,
-        DateOnly CurrentDate) : IRequest<CityPopulationSummaryDto?>, IRequirePermission
+        Guid CityId) : IRequest<CityPopulationSummaryDto?>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.PopulationPeopleRead;
     }

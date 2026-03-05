@@ -162,6 +162,89 @@ namespace Matrix.Population.Infrastructure.Migrations
                     b.ToTable("CityPopulationProgressionStates", (string)null);
                 });
 
+            modelBuilder.Entity("Matrix.Population.Domain.Scenarios.ClassicCity.Entities.CityPopulationSummaryProjection", b =>
+                {
+                    b.Property<Guid>("CityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("AverageEnergy")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("AverageHappiness")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("AverageHealth")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("AverageSocialNeed")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("AverageStress")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<int>("ChildCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CurrentDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("DeceasedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EmployedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HomelessHouseholdCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HomelessResidentCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HouseholdCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HousedHouseholdCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HousedResidentCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ResidentCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RetiredCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SeniorCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UnemployedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("YouthCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AdultCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CityId");
+
+                    b.HasIndex("UpdatedAtUtc");
+
+                    b.ToTable("CityPopulationSummaryProjections", (string)null);
+                });
+
             modelBuilder.Entity("Matrix.Population.Domain.Scenarios.ClassicCity.Entities.CityPopulationWeatherExposureState", b =>
                 {
                     b.Property<Guid>("CityId")

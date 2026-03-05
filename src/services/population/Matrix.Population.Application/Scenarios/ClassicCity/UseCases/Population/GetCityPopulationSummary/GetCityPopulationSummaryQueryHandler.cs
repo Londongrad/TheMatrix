@@ -6,16 +6,21 @@ using MediatR;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary
 {
-    public sealed class GetCityPopulationSummaryQueryHandler(ICityPopulationSummaryReadRepository summaryReadRepository)
+    public sealed class GetCityPopulationSummaryQueryHandler(
+        ICityPopulationSummaryProjectionService summaryProjectionService,
+        ICityPopulationSummaryReadRepository summaryReadRepository)
         : IRequestHandler<GetCityPopulationSummaryQuery, CityPopulationSummaryDto?>
     {
         public async Task<CityPopulationSummaryDto?> Handle(
             GetCityPopulationSummaryQuery request,
             CancellationToken cancellationToken)
         {
+            await summaryProjectionService.EnsureExistsAsync(
+                cityId: CityId.From(request.CityId),
+                cancellationToken: cancellationToken);
+
             CityPopulationSummaryReadModel? summary = await summaryReadRepository.GetByCityIdAsync(
                 cityId: CityId.From(request.CityId),
-                currentDate: request.CurrentDate,
                 cancellationToken: cancellationToken);
 
             if (summary is null)

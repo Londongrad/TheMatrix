@@ -18,6 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
+        ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherImpactStateRepository weatherImpactStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
         CityPopulationWeatherImpactPolicy weatherImpactPolicy,
@@ -128,6 +129,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             atSimTimeUtc: request.AtSimTimeUtc,
                             occurredOnUtc: occurredOnUtc,
                             updatedAtUtc: updatedAtUtc);
+
+                    await cityPopulationSummaryProjectionService.UpdateAsync(
+                        cityId: cityId,
+                        currentDate: currentDate,
+                        persons: persons,
+                        cancellationToken: ct);
 
                     await unitOfWork.SaveChangesAsync(ct);
 
