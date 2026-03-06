@@ -4,6 +4,11 @@ export interface CityListItemView {
     name: string;
     simulationKind: string;
     status: string;
+    createdAtUtc: string;
+    populationBootstrapCompletedAtUtc?: string | null;
+    populationBootstrapFailedAtUtc?: string | null;
+    populationBootstrapFailureCode?: string | null;
+    archivedAtUtc?: string | null;
 }
 
 export interface CreateCityRequest {

@@ -1,8 +1,14 @@
-import {useEffect, useMemo} from "react";
+import {useEffect} from "react";
 import {Link, useNavigate} from "react-router-dom";
+import type {
+    CityOperationsDashboardView,
+    DashboardMetricView,
+    DashboardPeriodComparisonRowView,
+    DashboardRecentEventView,
+    DashboardServiceHealthView,
+} from "@services/citycore/dashboard/api/dashboardTypes";
+import {useCityOperationsDashboardQuery} from "@services/citycore/dashboard/hooks/useCityOperationsDashboardQuery";
 import type {CityListItemView} from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
-import {useCitiesQuery} from "@services/citycore/scenarios/classic-city/hooks/useCitiesQuery";
-import {useProvisioningCitiesQuery} from "@services/citycore/scenarios/classic-city/hooks/useProvisioningCitiesQuery";
 import {
     describeCityLifecycle,
     formatCityShortId,
@@ -11,7 +17,6 @@ import {
     getCityStatusTone,
 } from "@services/citycore/scenarios/classic-city/utils/presentation";
 import {
-    CITYCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_LIST_PATH,
     getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
@@ -25,54 +30,208 @@ import "@services/citycore/dashboard/styles/dashboard.css";
 
 const DASHBOARD_AUTO_REFRESH_MS = 30000;
 
-function getProvisioningRank(city: CityListItemView): number {
-    switch (getCityStatusTone(city.status)) {
-        case "failed":
-            return 0;
-        case "provisioning":
-            return 1;
+function formatDateTime(value: string) {
+    return new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(new Date(value));
+}
+
+function formatDelta(value: number | null | undefined) {
+    if (value == null) {
+        return null;
+    }
+
+    if (value === 0) {
+        return "0";
+    }
+
+    return value > 0 ? `+${value}` : String(value);
+}
+
+function getDeltaTone(value: number) {
+    if (value > 0) {
+        return "positive";
+    }
+
+    if (value < 0) {
+        return "negative";
+    }
+
+    return "neutral";
+}
+
+function getHealthTone(status: string) {
+    switch (status.trim().toLowerCase()) {
+        case "healthy":
+            return "healthy";
+        case "degraded":
+            return "degraded";
         default:
-            return 2;
+            return "unhealthy";
     }
 }
 
-function sortAlphabetically(cities: CityListItemView[]): CityListItemView[] {
-    return [...cities].sort((left, right) =>
-        left.name.localeCompare(right.name, undefined, {sensitivity: "base"}),
+function openCityPath(cityId: string, status: string, archivedAtUtc?: string | null) {
+    const tone = getCityStatusTone(status, archivedAtUtc);
+    return tone === "provisioning" || tone === "failed"
+        ? getClassicCityProvisioningPath(cityId)
+        : getClassicCityDetailsPath(cityId);
+}
+
+type MetricCardProps = {
+    metric: DashboardMetricView;
+};
+
+function MetricCard({metric}: MetricCardProps) {
+    const dayDelta = formatDelta(metric.deltaYesterday);
+    const monthDelta = formatDelta(metric.deltaMonth);
+    const yearDelta = formatDelta(metric.deltaYear);
+
+    return (
+        <article className="dashboard-metric-card">
+            <div className="dashboard-metric-card__label-row">
+                <span className="dashboard-metric-card__label">{metric.label}</span>
+                {metric.deltaMode === "live" ? (
+                    <span className="dashboard-live-pill">Live</span>
+                ) : null}
+            </div>
+            <strong className="dashboard-metric-card__value">{metric.current}</strong>
+            <p className="dashboard-metric-card__description">{metric.description}</p>
+
+            {metric.deltaMode === "live" ? (
+                <div className="dashboard-metric-card__live-note">
+                    This queue is read as a live snapshot, not as a historical total.
+                </div>
+            ) : (
+                <div className="dashboard-metric-card__delta-grid">
+                    <div className="dashboard-metric-card__delta">
+                        <span className="dashboard-metric-card__delta-label">Day</span>
+                        <span className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYesterday ?? 0)}`}>
+                            {dayDelta ?? "--"}
+                        </span>
+                    </div>
+                    <div className="dashboard-metric-card__delta">
+                        <span className="dashboard-metric-card__delta-label">Month</span>
+                        <span className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaMonth ?? 0)}`}>
+                            {monthDelta ?? "--"}
+                        </span>
+                    </div>
+                    <div className="dashboard-metric-card__delta">
+                        <span className="dashboard-metric-card__delta-label">Year</span>
+                        <span className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYear ?? 0)}`}>
+                            {yearDelta ?? "--"}
+                        </span>
+                    </div>
+                </div>
+            )}
+        </article>
     );
 }
 
-function sortProvisioningQueue(cities: CityListItemView[]): CityListItemView[] {
-    return [...cities].sort((left, right) => {
-        const rankDelta = getProvisioningRank(left) - getProvisioningRank(right);
+type ActivityRowProps = {
+    row: DashboardPeriodComparisonRowView;
+};
 
-        if (rankDelta !== 0) {
-            return rankDelta;
-        }
+function ActivityRow({row}: ActivityRowProps) {
+    const periods = [
+        {label: "Yesterday", value: row.yesterday},
+        {label: "Month", value: row.month},
+        {label: "Year", value: row.year},
+    ];
 
-        return left.name.localeCompare(right.name, undefined, {sensitivity: "base"});
-    });
+    return (
+        <article className="dashboard-activity-row">
+            <div className="dashboard-activity-row__summary">
+                <h3 className="dashboard-activity-row__title">{row.label}</h3>
+                <p className="dashboard-activity-row__description">{row.description}</p>
+            </div>
+
+            <div className="dashboard-activity-row__periods">
+                {periods.map((period) => (
+                    <div key={period.label} className="dashboard-activity-period">
+                        <div className="dashboard-activity-period__label">{period.label}</div>
+                        <div className="dashboard-activity-period__numbers">
+                            <span className="dashboard-activity-period__current">{period.value.current}</span>
+                            <span className="dashboard-activity-period__separator">/</span>
+                            <span className="dashboard-activity-period__previous">{period.value.previous}</span>
+                        </div>
+                        <div className={`dashboard-activity-period__delta dashboard-activity-period__delta--${getDeltaTone(period.value.delta)}`}>
+                            {formatDelta(period.value.delta)}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </article>
+    );
+}
+
+type HealthItemProps = {
+    service: DashboardServiceHealthView;
+};
+
+function HealthItem({service}: HealthItemProps) {
+    const tone = getHealthTone(service.status);
+
+    return (
+        <article className={`dashboard-health-item dashboard-health-item--${tone}`}>
+            <div className="dashboard-health-item__topline">
+                <h3 className="dashboard-health-item__service">{service.service}</h3>
+                <span className={`dashboard-health-pill dashboard-health-pill--${tone}`}>
+                    {service.status}
+                </span>
+            </div>
+            <p className="dashboard-health-item__detail">{service.detail}</p>
+            <span className="dashboard-health-item__timestamp">{formatDateTime(service.checkedAtUtc)}</span>
+        </article>
+    );
+}
+
+type EventItemProps = {
+    event: DashboardRecentEventView;
+    onOpen: (cityId: string, status: string) => void;
+};
+
+function EventItem({event, onOpen}: EventItemProps) {
+    return (
+        <article className={`dashboard-event dashboard-event--${event.severity}`}>
+            <div className="dashboard-event__topline">
+                <div>
+                    <h3 className="dashboard-event__title">{event.title}</h3>
+                    <div className="dashboard-event__meta">
+                        <span>{event.cityName}</span>
+                        <span className="dashboard-event__separator">/</span>
+                        <span>{formatDateTime(event.occurredAtUtc)}</span>
+                    </div>
+                </div>
+
+                <Button
+                    size="sm"
+                    variant={event.severity === "danger" ? "danger" : "default"}
+                    onClick={() => onOpen(event.cityId, event.cityStatus)}
+                >
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-event__detail">{event.detail}</p>
+        </article>
+    );
 }
 
 type WatchlistProps = {
     title: string;
     subtitle: string;
-    emptyTitle: string;
-    emptyText: string;
     cities: CityListItemView[];
+    emptyText: string;
+    actionLabel: string;
     onOpen: (city: CityListItemView) => void;
-    actionLabel?: (city: CityListItemView) => string;
 };
 
-function WatchlistSection({
-    title,
-    subtitle,
-    emptyTitle,
-    emptyText,
-    cities,
-    onOpen,
-    actionLabel,
-}: WatchlistProps) {
+function WatchlistSection({title, subtitle, cities, emptyText, actionLabel, onOpen}: WatchlistProps) {
     return (
         <section className="dashboard-panel">
             <div className="dashboard-panel__header">
@@ -85,42 +244,40 @@ function WatchlistSection({
 
             {cities.length === 0 ? (
                 <div className="dashboard-empty-state" role="status">
-                    <div className="dashboard-empty-state__title">{emptyTitle}</div>
                     <div className="dashboard-empty-state__text">{emptyText}</div>
                 </div>
             ) : (
                 <div className="dashboard-watchlist">
                     {cities.map((city) => {
-                        const statusTone = getCityStatusTone(city.status);
+                        const statusTone = getCityStatusTone(city.status, city.archivedAtUtc);
 
                         return (
-                            <article key={city.cityId} className={`dashboard-city-row dashboard-city-row--${statusTone}`}>
-                                <div className="dashboard-city-row__main">
-                                    <div className="dashboard-city-row__topline">
+                            <article key={city.cityId} className={`dashboard-watch-item dashboard-watch-item--${statusTone}`}>
+                                <div className="dashboard-watch-item__main">
+                                    <div className="dashboard-watch-item__topline">
                                         <span className={`cities-status-pill cities-status-pill--${statusTone}`}>
-                                            {formatCityStatusLabel(city.status)}
+                                            {formatCityStatusLabel(city.status, city.archivedAtUtc)}
                                         </span>
-                                        <span className="dashboard-city-row__id" title={city.cityId}>
+                                        <span className="dashboard-watch-item__id" title={city.cityId}>
                                             {formatCityShortId(city.cityId)}
                                         </span>
                                     </div>
 
-                                    <h3 className="dashboard-city-row__title">{city.name}</h3>
-
-                                    <div className="dashboard-city-row__meta">
+                                    <h3 className="dashboard-watch-item__title">{city.name}</h3>
+                                    <div className="dashboard-watch-item__meta">
                                         <span>{formatSimulationKindLabel(city.simulationKind)}</span>
-                                        <span className="dashboard-city-row__separator">/</span>
-                                        <span>{describeCityLifecycle(city.status, null, "registry")}</span>
+                                        <span className="dashboard-watch-item__separator">/</span>
+                                        <span>{describeCityLifecycle(city.status, city.archivedAtUtc, "registry")}</span>
                                     </div>
                                 </div>
 
-                                <div className="dashboard-city-row__actions">
+                                <div className="dashboard-watch-item__actions">
                                     <Button
                                         size="sm"
-                                        variant={statusTone === "archived" || statusTone === "unknown" ? "default" : "primary"}
+                                        variant={statusTone === "failed" ? "danger" : "primary"}
                                         onClick={() => onOpen(city)}
                                     >
-                                        {actionLabel?.(city) ?? "Open"}
+                                        {actionLabel}
                                     </Button>
                                 </div>
                             </article>
@@ -132,84 +289,49 @@ function WatchlistSection({
     );
 }
 
-const DashboardPage = () => {
-    const navigate = useNavigate();
-    const {can} = usePermissions();
-    const canCreateCity = can(PermissionKeys.CityCoreClassicCityCreate);
-
-    const citiesQuery = useCitiesQuery(true);
-    const provisioningQuery = useProvisioningCitiesQuery();
-
-    useEffect(() => {
-        const intervalId = window.setInterval(() => {
-            if (document.visibilityState !== "visible") {
-                return;
-            }
-
-            void Promise.all([
-                citiesQuery.refetch(),
-                provisioningQuery.refetch(),
-            ]);
-        }, DASHBOARD_AUTO_REFRESH_MS);
-
-        return () => {
-            window.clearInterval(intervalId);
-        };
-    }, [citiesQuery.refetch, provisioningQuery.refetch]);
-
-    const readyCities = useMemo(
-        () => sortAlphabetically(citiesQuery.data.filter((city) => getCityStatusTone(city.status) === "active")),
-        [citiesQuery.data],
-    );
-    const archivedCities = useMemo(
-        () => sortAlphabetically(citiesQuery.data.filter((city) => getCityStatusTone(city.status) === "archived")),
-        [citiesQuery.data],
-    );
-    const attentionQueue = useMemo(
-        () => sortProvisioningQueue(provisioningQuery.data),
-        [provisioningQuery.data],
-    );
-    const failedQueue = useMemo(
-        () => attentionQueue.filter((city) => getCityStatusTone(city.status) === "failed"),
-        [attentionQueue],
-    );
-
-    const stats = useMemo(() => ({
-        totalHosts: readyCities.length + archivedCities.length + attentionQueue.length,
-        ready: readyCities.length,
-        attention: attentionQueue.length,
-        failed: failedQueue.length,
-        archived: archivedCities.length,
-    }), [archivedCities.length, attentionQueue.length, failedQueue.length, readyCities.length]);
-
-    const isRefreshing = citiesQuery.isLoading || provisioningQuery.isLoading;
-
-    const openCity = (city: CityListItemView) => {
-        const statusTone = getCityStatusTone(city.status);
-        navigate(
-            statusTone === "provisioning" || statusTone === "failed"
-                ? getClassicCityProvisioningPath(city.cityId)
-                : getClassicCityDetailsPath(city.cityId),
-        );
-    };
+function DashboardContent({
+    dashboard,
+    canCreateCity,
+    isRefreshing,
+    onOpenCity,
+    onRefresh,
+}: {
+    dashboard: CityOperationsDashboardView;
+    canCreateCity: boolean;
+    isRefreshing: boolean;
+    onOpenCity: (city: CityListItemView) => void;
+    onRefresh: () => void;
+}) {
+    const metrics = [
+        dashboard.trackedHosts,
+        dashboard.readyHosts,
+        dashboard.archivedRecords,
+        dashboard.attentionQueue,
+    ];
+    const activityRows = [
+        dashboard.newCities,
+        dashboard.archivedCities,
+        dashboard.failedBootstraps,
+        dashboard.readyHandOffs,
+    ];
 
     return (
-        <section className="dashboard-page">
-            <header className="dashboard-hero">
-                <div className="dashboard-hero__content">
-                    <div className="dashboard-hero__eyebrow">CityCore / Operations</div>
-                    <h1 className="dashboard-hero__title">Simulation watchboard</h1>
-                    <p className="dashboard-hero__subtitle">
-                        Watch the global state of city hosts, keep failed or in-flight launches visible,
-                        and jump straight into the registry or provisioning handoff without opening each city blindly.
+        <>
+            <header className="dashboard-header">
+                <div className="dashboard-header__content">
+                    <div className="dashboard-header__eyebrow">CityCore / Overview</div>
+                    <h1 className="dashboard-header__title">Operations dashboard</h1>
+                    <p className="dashboard-header__subtitle">
+                        Monitor city throughput, compare current flow against yesterday, month, and year windows,
+                        and keep service health plus the latest lifecycle events visible without diving into each host first.
                     </p>
-                    <div className="dashboard-hero__meta">
-                        <span className="settings-pill">Auto-refresh every 30s while visible</span>
-                        <span className="settings-pill">{stats.totalHosts} tracked hosts</span>
+                    <div className="dashboard-header__meta">
+                        <span className="settings-pill">Updated {formatDateTime(dashboard.generatedAtUtc)}</span>
+                        <span className="settings-pill">{dashboard.trackedHosts.current} total records</span>
                     </div>
                 </div>
 
-                <div className="dashboard-hero__actions">
+                <div className="dashboard-header__actions">
                     {canCreateCity ? (
                         <Link className="cities-page__header-link cities-page__header-link--primary" to={getClassicCitySetupPath()}>
                             Compose Classic City
@@ -220,142 +342,166 @@ const DashboardPage = () => {
                         Open registry
                     </Link>
 
-                    <Link className="cities-page__header-link" to={CITYCORE_SCENARIO_CATALOG_PATH}>
-                        Scenario catalog
-                    </Link>
-
-                    <Button
-                        type="button"
-                        variant="default"
-                        onClick={() => {
-                            void Promise.all([citiesQuery.refetch(), provisioningQuery.refetch()]);
-                        }}
-                        disabled={isRefreshing}
-                    >
-                        {isRefreshing ? "Refreshing..." : "Refresh watchboard"}
+                    <Button type="button" variant="default" onClick={onRefresh} disabled={isRefreshing}>
+                        {isRefreshing ? "Refreshing..." : "Refresh dashboard"}
                     </Button>
                 </div>
             </header>
 
-            {(citiesQuery.error || provisioningQuery.error) ? (
+            <section className="dashboard-metric-grid" aria-label="Operations dashboard metrics">
+                {metrics.map((metric) => (
+                    <MetricCard key={metric.label} metric={metric}/>
+                ))}
+            </section>
+
+            <div className="dashboard-main-grid">
+                <section className="dashboard-panel dashboard-panel--wide">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">Operational deltas</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Compare today, this month, and this year against the previous equivalent windows.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="dashboard-activity-list">
+                        {activityRows.map((row) => (
+                            <ActivityRow key={row.label} row={row}/>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="dashboard-panel">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">System health</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Ready-state signals for the services this operator dashboard depends on most.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="dashboard-health-list">
+                        {dashboard.services.map((service) => (
+                            <HealthItem key={service.service} service={service}/>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="dashboard-panel dashboard-panel--wide">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">Recent operator events</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Latest city lifecycle signals worth noticing before switching into a specific workspace.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.events.length}</span>
+                    </div>
+
+                    <div className="dashboard-event-list">
+                        {dashboard.events.map((event) => (
+                            <EventItem
+                                key={`${event.kind}-${event.cityId}-${event.occurredAtUtc}`}
+                                event={event}
+                                onOpen={(cityId, status) => {
+                                    onOpenCity({
+                                        cityId,
+                                        simulationId: cityId,
+                                        name: event.cityName,
+                                        simulationKind: "ClassicCity",
+                                        status,
+                                        createdAtUtc: event.occurredAtUtc,
+                                    });
+                                }}
+                            />
+                        ))}
+                    </div>
+                </section>
+
+                <WatchlistSection
+                    title="Attention queue"
+                    subtitle="Cities still stuck in provisioning or already marked as failed."
+                    cities={dashboard.attentionCities}
+                    emptyText="No provisioning handoff currently needs attention."
+                    actionLabel="Open handoff"
+                    onOpen={onOpenCity}
+                />
+
+                <WatchlistSection
+                    title="Ready monitoring"
+                    subtitle="Most recently ready city hosts that can be opened directly for live inspection."
+                    cities={dashboard.readyCities}
+                    emptyText="No city has completed provisioning yet."
+                    actionLabel="Open monitoring"
+                    onOpen={onOpenCity}
+                />
+
+                <WatchlistSection
+                    title="Archived records"
+                    subtitle="Recently archived cities that remain available for audit and cleanup review."
+                    cities={dashboard.archivedCitiesList}
+                    emptyText="Archived records will appear here once cities are taken out of active monitoring."
+                    actionLabel="Review record"
+                    onOpen={onOpenCity}
+                />
+            </div>
+        </>
+    );
+}
+
+const DashboardPage = () => {
+    const navigate = useNavigate();
+    const {can} = usePermissions();
+    const canCreateCity = can(PermissionKeys.CityCoreClassicCityCreate);
+    const dashboardQuery = useCityOperationsDashboardQuery();
+
+    useEffect(() => {
+        const intervalId = window.setInterval(() => {
+            if (document.visibilityState !== "visible") {
+                return;
+            }
+
+            void dashboardQuery.refetch();
+        }, DASHBOARD_AUTO_REFRESH_MS);
+
+        return () => {
+            window.clearInterval(intervalId);
+        };
+    }, [dashboardQuery.refetch]);
+
+    const openCity = (city: CityListItemView) => {
+        navigate(openCityPath(city.cityId, city.status, city.archivedAtUtc));
+    };
+
+    return (
+        <section className="dashboard-page">
+            {(dashboardQuery.error && !dashboardQuery.data) ? (
                 <div className="citycore-error-banner" role="alert">
-                    <span>
-                        {citiesQuery.error ?? provisioningQuery.error}
-                    </span>
-                    <Button
-                        type="button"
-                        variant="primary"
-                        onClick={() => {
-                            void Promise.all([citiesQuery.refetch(), provisioningQuery.refetch()]);
-                        }}
-                    >
+                    <span>{dashboardQuery.error}</span>
+                    <Button type="button" variant="primary" onClick={() => void dashboardQuery.refetch()}>
                         Retry
                     </Button>
                 </div>
             ) : null}
 
-            <div className="dashboard-metrics" aria-label="Simulation watchboard summary">
-                <article className="cities-metric-card">
-                    <span className="cities-metric-card__label">Tracked hosts</span>
-                    <strong className="cities-metric-card__value">{stats.totalHosts}</strong>
-                    <span className="cities-metric-card__hint">
-                        Combined view of ready cities, archived records, and the provisioning handoff queue.
-                    </span>
-                </article>
-
-                <article className="cities-metric-card cities-metric-card--active">
-                    <span className="cities-metric-card__label">Ready monitoring</span>
-                    <strong className="cities-metric-card__value">{stats.ready}</strong>
-                    <span className="cities-metric-card__hint">
-                        Active city hosts already handed off to live monitoring workspaces.
-                    </span>
-                </article>
-
-                <article className="cities-metric-card cities-metric-card--provisioning">
-                    <span className="cities-metric-card__label">Attention queue</span>
-                    <strong className="cities-metric-card__value">{stats.attention}</strong>
-                    <span className="cities-metric-card__hint">
-                        In-flight launches and unresolved handoffs that still need operator attention.
-                    </span>
-                </article>
-
-                <article className="cities-metric-card cities-metric-card--archived">
-                    <span className="cities-metric-card__label">Archived records</span>
-                    <strong className="cities-metric-card__value">{stats.archived}</strong>
-                    <span className="cities-metric-card__hint">
-                        Historical city records kept for review, cleanup, and post-mortem inspection.
-                    </span>
-                </article>
-            </div>
-
-            <div className="dashboard-layout">
-                <WatchlistSection
-                    title="Attention queue"
-                    subtitle="Provisioning handoffs and failed launches that still need active operator review."
-                    emptyTitle="Attention queue is clear"
-                    emptyText="No launches are currently stalled or waiting for downstream bootstrap resolution."
-                    cities={attentionQueue}
-                    onOpen={openCity}
-                    actionLabel={(city) => getCityStatusTone(city.status) === "failed" ? "Resolve handoff" : "Open handoff"}
+            {dashboardQuery.data ? (
+                <DashboardContent
+                    dashboard={dashboardQuery.data}
+                    canCreateCity={canCreateCity}
+                    isRefreshing={dashboardQuery.isLoading}
+                    onOpenCity={openCity}
+                    onRefresh={() => void dashboardQuery.refetch()}
                 />
-
-                <WatchlistSection
-                    title="Ready monitoring hosts"
-                    subtitle="Active cities that are already live and available for monitoring workspaces."
-                    emptyTitle="No ready cities yet"
-                    emptyText="Launch a new city from the setup wizard or wait for provisioning to complete."
-                    cities={readyCities.slice(0, 6)}
-                    onOpen={openCity}
-                    actionLabel={() => "Open monitoring"}
-                />
-
-                <WatchlistSection
-                    title="Archived records"
-                    subtitle="Inactive city records that remain available for audit, review, or cleanup."
-                    emptyTitle="Archive is empty"
-                    emptyText="Archived city records will appear here once they are taken out of active monitoring."
-                    cities={archivedCities.slice(0, 4)}
-                    onOpen={openCity}
-                    actionLabel={() => "Review record"}
-                />
-
-                <section className="dashboard-panel dashboard-panel--notes">
-                    <div className="dashboard-panel__header">
-                        <div>
-                            <h2 className="dashboard-panel__title">Operator cadence</h2>
-                            <p className="dashboard-panel__subtitle">
-                                Use this watchboard as the first stop before diving into a specific city workspace.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="dashboard-notes">
-                        <article className="dashboard-note">
-                            <span className="dashboard-note__eyebrow">Start here</span>
-                            <h3 className="dashboard-note__title">Scan the queue before the registry</h3>
-                            <p className="dashboard-note__text">
-                                Failed or unfinished launches stay visible above so they do not get buried among ready cities.
-                            </p>
-                        </article>
-
-                        <article className="dashboard-note">
-                            <span className="dashboard-note__eyebrow">Monitoring</span>
-                            <h3 className="dashboard-note__title">Use ready hosts for live operations</h3>
-                            <p className="dashboard-note__text">
-                                Open active cities from here when you already know what host needs attention and want to jump in directly.
-                            </p>
-                        </article>
-
-                        <article className="dashboard-note">
-                            <span className="dashboard-note__eyebrow">Archive</span>
-                            <h3 className="dashboard-note__title">Keep inactive records available</h3>
-                            <p className="dashboard-note__text">
-                                Archived cities remain reviewable here without mixing them into the live handoff queue.
-                            </p>
-                        </article>
+            ) : (
+                <section className="dashboard-loading" role="status" aria-live="polite">
+                    <div className="dashboard-loading__title">Loading operations dashboard</div>
+                    <div className="dashboard-loading__text">
+                        Pulling real city metrics, system health, and lifecycle activity into the watchboard.
                     </div>
                 </section>
-            </div>
+            )}
         </section>
     );
 };
