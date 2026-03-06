@@ -66,6 +66,7 @@ export function CityOverviewCard({
                 : statusTone === "unknown"
                     ? "Unknown lifecycle state"
                     : "Ready city";
+    const showLifecycleBanner = statusTone !== "active";
 
     const effectiveNamePlaceholder = useMemo(() => {
         return city?.name ?? "New city name";
@@ -158,12 +159,14 @@ export function CityOverviewCard({
                 </div>
             ) : null}
 
-            <div className={`city-state-banner city-state-banner--${statusTone}`}>
-                <div className="city-state-banner__title">{bannerTitle}</div>
-                <div className="city-state-banner__text">
-                    {describeCityLifecycle(city?.status, city?.archivedAtUtc, "workspace")}
+            {showLifecycleBanner ? (
+                <div className={`city-state-banner city-state-banner--${statusTone}`}>
+                    <div className="city-state-banner__title">{bannerTitle}</div>
+                    <div className="city-state-banner__text">
+                        {describeCityLifecycle(city?.status, city?.archivedAtUtc, "workspace")}
+                    </div>
                 </div>
-            </div>
+            ) : null}
 
             {!canRename && !canArchive && !canDelete ? (
                 <div className="citycore-error-banner" role="status">
