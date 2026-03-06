@@ -61,6 +61,9 @@ const PersonalizationCard = ({
     const activeAvatarUrl = previewUrl ?? avatarUrl;
     const hasPendingSelection = selectedAvatarFile !== null;
     const hasDisplayNameChanged = effectiveDraftDisplayName !== currentDisplayName;
+    const applyAvatarButtonClassName = hasPendingSelection && !isUploadingAvatar && !isClearingAvatar
+        ? "settings-button settings-button--avatar-apply-active"
+        : "settings-button";
 
     useEffect(() => {
         setDraftDisplayName(displayName ?? "");
@@ -416,7 +419,7 @@ const PersonalizationCard = ({
                 >
                     <button
                         type="button"
-                        className="settings-button settings-button--secondary"
+                        className={applyAvatarButtonClassName}
                         onClick={() => {
                             void handleApplyAvatar();
                         }}
@@ -518,7 +521,7 @@ const PersonalizationCard = ({
                         >
                             <button
                                 type="button"
-                                className="settings-button"
+                                className={applyAvatarButtonClassName}
                                 onClick={() => {
                                     void handleApplyAvatar();
                                 }}
