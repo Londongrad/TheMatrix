@@ -1,55 +1,14 @@
 // src/services/citycore/pages/DashboardPage.tsx
-import {useState} from "react";
-import {initializePopulation} from "@services/population/people/api/peopleApi";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/citycore/dashboard/styles/dashboard.css";
 
 const DashboardPage = () => {
-    const [generateCount, setGenerateCount] = useState(10000);
-    const [isInitializing, setIsInitializing] = useState(false);
-    const [initError, setInitError] = useState<string | null>(null);
-    const [initMessage, setInitMessage] = useState<string | null>(null);
-
-    const {token} = useAuth(); // берем access токен
-
     const handleTriggerStorm = () => {
         console.log("Trigger storm in district #1");
-        // TODO: вызов backend, когда появится API
     };
 
     const handleTriggerBlackout = () => {
         console.log("Trigger blackout for 15 minutes");
-    };
-
-    const handleInitializePopulation = async () => {
-        // простая валидация
-        if (!Number.isFinite(generateCount) || generateCount <= 0) {
-            setInitError("Please enter a positive number of citizens.");
-            return;
-        }
-
-        if (!token) {
-            setInitError("Not authenticated.");
-            return;
-        }
-
-        try {
-            setIsInitializing(true);
-            setInitError(null);
-            setInitMessage(null);
-
-            await initializePopulation(generateCount, token);
-
-            setInitMessage(
-                `Population initialized with ${generateCount.toLocaleString()} citizens.`
-            );
-        } catch (e) {
-            console.error(e);
-            setInitError("Failed to initialize population.");
-        } finally {
-            setIsInitializing(false);
-        }
     };
 
     return (
@@ -87,30 +46,6 @@ const DashboardPage = () => {
                     </Button>
                     <Button disabled>Spawn random event (soon)</Button>
                 </div>
-            </section>
-
-            {/* секция генерации населения */}
-            <section className="actions" style={{marginTop: "24px"}}>
-                <h2 className="section-title">Population initialization</h2>
-                <div className="actions-row">
-                    <input
-                        type="number"
-                        min={1}
-                        className="text-input"
-                        value={generateCount}
-                        onChange={(e) => setGenerateCount(Number(e.target.value))}
-                    />
-                    <Button
-                        variant="primary"
-                        onClick={handleInitializePopulation}
-                        disabled={isInitializing}
-                    >
-                        {isInitializing ? "Initializing..." : "Generate citizens"}
-                    </Button>
-                </div>
-
-                {initError && <p className="error-text">{initError}</p>}
-                {initMessage && <p className="card-sub">{initMessage}</p>}
             </section>
         </>
     );
