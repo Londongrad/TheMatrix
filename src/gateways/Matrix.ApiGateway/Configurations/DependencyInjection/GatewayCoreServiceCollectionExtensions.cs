@@ -1,3 +1,4 @@
+using Matrix.ApiGateway.Services.CityCore.Dashboard;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.BuildingBlocks.Api.Errors;
@@ -10,6 +11,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         public static IServiceCollection AddGatewayCore(this IServiceCollection services)
         {
             services
+               .AddScoped<ICityOperationsDashboardService, CityOperationsDashboardService>()
                .AddScoped<ICityProvisioningService, CityProvisioningService>()
                .AddScoped<IClassicCitySetupSessionStore, RedisClassicCitySetupSessionStore>()
                .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()

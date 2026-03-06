@@ -5,5 +5,10 @@ namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views
         Guid SimulationId,
         string Name,
         string SimulationKind,
-        string Status);
+        string Status,
+        DateTimeOffset CreatedAtUtc,
+        DateTimeOffset? PopulationBootstrapCompletedAtUtc,
+        DateTimeOffset? PopulationBootstrapFailedAtUtc,
+        string? PopulationBootstrapFailureCode,
+        DateTimeOffset? ArchivedAtUtc);
 }

@@ -402,7 +402,12 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                 SimulationId: dto.SimulationId,
                 Name: dto.Name,
                 SimulationKind: dto.SimulationKind,
-                Status: dto.Status);
+                Status: dto.Status,
+                CreatedAtUtc: dto.CreatedAtUtc,
+                PopulationBootstrapCompletedAtUtc: dto.PopulationBootstrapCompletedAtUtc,
+                PopulationBootstrapFailedAtUtc: dto.PopulationBootstrapFailedAtUtc,
+                PopulationBootstrapFailureCode: dto.PopulationBootstrapFailureCode,
+                ArchivedAtUtc: dto.ArchivedAtUtc);
         }
 
         private static DistrictView MapToDistrictView(DistrictDto dto)
