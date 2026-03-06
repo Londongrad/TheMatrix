@@ -61,6 +61,9 @@ const PersonalizationCard = ({
     const activeAvatarUrl = previewUrl ?? avatarUrl;
     const hasPendingSelection = selectedAvatarFile !== null;
     const hasDisplayNameChanged = effectiveDraftDisplayName !== currentDisplayName;
+    const displayNameSaveButtonClassName = hasDisplayNameChanged && !isSavingDisplayName
+        ? "settings-button settings-button--prompt-edit"
+        : "settings-button";
     const applyAvatarButtonClassName = hasPendingSelection && !isUploadingAvatar && !isClearingAvatar
         ? "settings-button settings-button--avatar-apply-active"
         : "settings-button";
@@ -318,7 +321,7 @@ const PersonalizationCard = ({
                     >
                         <button
                             type="submit"
-                            className="settings-button"
+                            className={displayNameSaveButtonClassName}
                             disabled={!hasDisplayNameChanged || isSavingDisplayName}
                         >
                             {isSavingDisplayName ? "Saving..." : "Save display name"}

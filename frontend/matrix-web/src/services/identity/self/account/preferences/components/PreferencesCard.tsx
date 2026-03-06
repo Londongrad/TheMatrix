@@ -64,6 +64,9 @@ const PreferencesCard = () => {
     const isDirty =
         preferences.language !== savedPreferences.language ||
         preferences.theme !== savedPreferences.theme;
+    const preferencesApplyButtonClassName = isDirty && !isSavingPreferences
+        ? "settings-button settings-button--preferences settings-button--prompt-edit"
+        : "settings-button settings-button--preferences";
 
     useEffect(() => {
         if (!preferencesSaved) {
@@ -218,7 +221,7 @@ const PreferencesCard = () => {
 
                         <button
                             type="submit"
-                            className="settings-button settings-button--preferences"
+                            className={preferencesApplyButtonClassName}
                             disabled={isSavingPreferences || !isDirty}
                         >
                             {isSavingPreferences ? (

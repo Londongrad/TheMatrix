@@ -49,6 +49,9 @@ const AccountCard = ({
 
     const normalizedDraft = useMemo(() => draftUsername.trim(), [draftUsername]);
     const hasUsernameChanged = normalizedDraft !== username;
+    const usernameUpdateButtonClassName = hasUsernameChanged && !!currentPassword && !isSaving
+        ? "settings-button settings-button--prompt-edit"
+        : "settings-button";
     const emailStateLabel = pendingEmail
         ? "Pending change"
         : isEmailConfirmed
@@ -181,7 +184,7 @@ const AccountCard = ({
                     >
                         <button
                             type="submit"
-                            className="settings-button"
+                            className={usernameUpdateButtonClassName}
                             disabled={!hasUsernameChanged || !currentPassword || isSaving}
                         >
                             {isSaving ? "Updating..." : "Update username"}

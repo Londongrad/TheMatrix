@@ -56,6 +56,27 @@ const SecurityCard = ({
             : null,
     );
     const [confirmationError, setConfirmationError] = useState<string | null>(null);
+    const canSendVerificationEmail = !isEmailConfirmed && !!email && !isSendingConfirmation;
+    const canSubmitEmailChange =
+        !!nextEmail.trim() &&
+        !!emailChangePassword &&
+        !isSavingEmailChange &&
+        !isResendingPendingEmailChange &&
+        !isCancellingPendingEmailChange;
+    const canSubmitPasswordChange =
+        !!passwordCurrentPassword &&
+        !!newPassword &&
+        !!confirmNewPassword &&
+        !isSavingSecurity;
+    const verificationButtonClassName = canSendVerificationEmail
+        ? "settings-button settings-button--warning settings-button--prompt-send"
+        : "settings-button settings-button--warning";
+    const emailChangeButtonClassName = canSubmitEmailChange
+        ? "settings-button settings-button--prompt-send"
+        : "settings-button";
+    const passwordChangeButtonClassName = canSubmitPasswordChange
+        ? "settings-button settings-button--prompt-edit"
+        : "settings-button";
 
     useEffect(() => {
         if (!pendingEmail) {
@@ -210,7 +231,7 @@ const SecurityCard = ({
                     <div className="settings-email-warning__actions">
                         <button
                             type="button"
-                            className="settings-button settings-button--warning"
+                            className={verificationButtonClassName}
                             disabled={isSendingConfirmation || !email}
                             onClick={() => {
                                 void resendConfirmation();
@@ -356,7 +377,7 @@ const SecurityCard = ({
                         >
                             <button
                                 type="submit"
-                                className="settings-button"
+                                className={emailChangeButtonClassName}
                                 disabled={
                                     !nextEmail.trim() ||
                                     !emailChangePassword ||
@@ -447,7 +468,7 @@ const SecurityCard = ({
                         >
                             <button
                                 type="submit"
-                                className="settings-button"
+                                className={passwordChangeButtonClassName}
                                 disabled={isSavingSecurity}
                             >
                                 {isSavingSecurity ? "Updating..." : "Update password"}
