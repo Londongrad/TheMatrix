@@ -1,7 +1,11 @@
 import {API_CITY_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
 import type {PagedResult} from "@shared/lib/paging/pagingTypes";
-import type {CityResidentDetailsDto, PersonDto} from "@services/population/person/api/personTypes";
+import type {
+    CityCivilRegistryOperationResultDto,
+    CityResidentDetailsDto,
+    PersonDto,
+} from "@services/population/person/api/personTypes";
 
 export function getCityResidentsPage(
     cityId: string,
@@ -26,6 +30,37 @@ export function getCityResidentDetails(
         {
             method: "GET",
             signal,
+        },
+    );
+}
+
+type CityCivilRegistryOperationPayload = {
+    firstResidentId: string;
+    secondResidentId: string;
+};
+
+export function registerCityMarriage(
+    cityId: string,
+    payload: CityCivilRegistryOperationPayload,
+) {
+    return apiRequest<CityCivilRegistryOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/civil-registry/marriages`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
+        },
+    );
+}
+
+export function registerCityDivorce(
+    cityId: string,
+    payload: CityCivilRegistryOperationPayload,
+) {
+    return apiRequest<CityCivilRegistryOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/civil-registry/divorces`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
         },
     );
 }

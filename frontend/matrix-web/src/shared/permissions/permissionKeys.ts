@@ -40,6 +40,7 @@ export const PermissionKeys = {
     CityCoreSimulationControl: "citycore.simulations.control",
     PopulationPeopleInitialize: "population.people.initialize",
     PopulationPeopleRead: "population.people.read",
+    PopulationCivilRegistryManage: "population.civil-registry.manage",
     PopulationPersonResurrect: "population.person.resurrect",
     PopulationPersonKill: "population.person.kill",
 } as const;

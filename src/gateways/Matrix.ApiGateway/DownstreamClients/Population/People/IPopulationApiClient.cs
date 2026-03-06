@@ -27,6 +27,16 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             DateOnly currentDate,
             CancellationToken cancellationToken = default);
 
+        Task<CityCivilRegistryOperationResultDto> RegisterCityMarriageAsync(
+            Guid cityId,
+            CityCivilRegistryOperationRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task<CityCivilRegistryOperationResultDto> RegisterCityDivorceAsync(
+            Guid cityId,
+            CityCivilRegistryOperationRequest request,
+            CancellationToken cancellationToken = default);
+
         Task<PagedResult<PersonDto>> GetCitizensPageAsync(
             int pageNumber,
             int pageSize,

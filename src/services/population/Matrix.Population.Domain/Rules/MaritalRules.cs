@@ -61,7 +61,7 @@ namespace Matrix.Population.Domain.Rules
             if (personMarital.Status == MaritalStatus.Married)
                 throw DomainErrorsFactory.PersonAlreadyMarried(personId);
 
-            if (personLifeStatus != LifeStatus.Alive && spouceLifeStatus != LifeStatus.Alive)
+            if (personLifeStatus != LifeStatus.Alive || spouceLifeStatus != LifeStatus.Alive)
                 throw DomainErrorsFactory.DeceasedPersonCannotMarry();
 
             if (spouseMarital.Status == MaritalStatus.Married)
@@ -76,7 +76,7 @@ namespace Matrix.Population.Domain.Rules
             LifeStatus spouceLifeStatus,
             MaritalInfo spouseMarital)
         {
-            if (personLifeStatus != LifeStatus.Alive && spouceLifeStatus != LifeStatus.Alive)
+            if (personLifeStatus != LifeStatus.Alive || spouceLifeStatus != LifeStatus.Alive)
                 throw DomainErrorsFactory.DeceasedPersonCannotDivorce();
 
             if (personId == spouseId)

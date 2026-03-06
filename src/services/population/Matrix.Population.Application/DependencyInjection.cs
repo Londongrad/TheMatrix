@@ -17,6 +17,7 @@ namespace Matrix.Population.Application
             Assembly assembly = typeof(DependencyInjection).Assembly;
 
             services.AddSingleton<PersonNeedsProgressionPolicy>();
+            services.AddSingleton<MarriageDomainService>();
             services.AddClassicCityScenarioApplication();
 
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });

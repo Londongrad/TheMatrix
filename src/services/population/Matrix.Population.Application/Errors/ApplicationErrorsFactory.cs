@@ -101,5 +101,26 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
+        public static MatrixApplicationException PersonNotAssignedToCity(
+            Guid personId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Person.NotAssignedToCity",
+                message: $"Person '{personId}' is not assigned to city '{cityId}'.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
+        public static MatrixApplicationException CivilRegistryResidentsAreNotCurrentSpouses(
+            Guid firstResidentId,
+            Guid secondResidentId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.CivilRegistry.ResidentsAreNotCurrentSpouses",
+                message:
+                $"Residents '{firstResidentId}' and '{secondResidentId}' are not currently married to each other.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
     }
 }

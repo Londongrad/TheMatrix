@@ -96,6 +96,11 @@
     gap: 14px;
 }
 
+.city-resident-dossier__actions {
+    display: flex;
+    justify-content: flex-start;
+}
+
 .city-resident-dossier__section-card,
 .city-resident-dossier__hint,
 .city-resident-dossier__metric-card {

@@ -1,10 +1,11 @@
 import {useMemo, useState} from "react";
-import {Link, Navigate, useParams} from "react-router-dom";
+import {Link, Navigate, useNavigate, useParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityResidentDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityResidentDetails";
 import {
     CLASSIC_CITY_LIST_PATH,
+    getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
     getClassicCityResidentDossierPath,
@@ -15,6 +16,8 @@ import {
     isArchivedCity,
 } from "@services/citycore/scenarios/classic-city/utils/presentation";
 import Button from "@shared/ui/controls/Button/Button";
+import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {usePermissions} from "@shared/permissions/usePermissions";
 import "@services/citycore/scenarios/classic-city/styles/cities.css";
 import "@services/citycore/scenarios/classic-city/styles/city-details.css";
 import "@services/citycore/scenarios/classic-city/styles/city-resident-dossier.css";
@@ -35,6 +38,8 @@ function renderLifecycleHint(text: string) {
 
 const CityResidentDossierPage = () => {
     const params = useParams<{ cityId: string; residentId: string }>();
+    const navigate = useNavigate();
+    const {can} = usePermissions();
     const cityId = params.cityId ?? "";
     const residentId = params.residentId ?? "";
 
@@ -45,6 +50,7 @@ const CityResidentDossierPage = () => {
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const resident = residentQuery.data;
+    const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
 
     if (!cityId || !residentId) {
         return <Navigate to={CLASSIC_CITY_LIST_PATH} replace/>;
@@ -238,6 +244,17 @@ const CityResidentDossierPage = () => {
 
                         {activeTab === "relationships" ? (
                             <div className="city-resident-dossier__stack">
+                                {canManageCivilRegistry && resident ? (
+                                    <div className="city-resident-dossier__actions">
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            onClick={() => navigate(getClassicCityCivilRegistryPath(cityId, resident.id))}
+                                        >
+                                            Open civil registry
+                                        </Button>
+                                    </div>
+                                ) : null}
                                 <section className="city-resident-dossier__section-card">
                                     <h3 className="city-resident-dossier__section-title">Current relationship state</h3>
                                     <dl className="city-resident-dossier__facts">

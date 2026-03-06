@@ -1,10 +1,11 @@
 import {useMemo, useState} from "react";
-import {Navigate, useParams} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {getCityResidentsPage} from "@services/citycore/scenarios/classic-city/api/residentsApi";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {
     CLASSIC_CITY_LIST_PATH,
+    getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
 } from "@services/citycore/scenarios/registry";
@@ -29,6 +30,7 @@ const PAGE_SIZE = 100;
 
 const CityResidentsPage = () => {
     const params = useParams<{ cityId: string }>();
+    const navigate = useNavigate();
     const cityId = params.cityId ?? "";
     const cityQuery = useCityDetails(cityId);
     const {can} = usePermissions();
@@ -49,6 +51,7 @@ const CityResidentsPage = () => {
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const canKill = can(PermissionKeys.PopulationPersonKill) && !isArchived;
     const canResurrect = can(PermissionKeys.PopulationPersonResurrect) && !isArchived;
+    const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
 
     if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
         return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
@@ -110,6 +113,16 @@ const CityResidentsPage = () => {
                             Browse and inspect only the people assigned to this simulation host.
                         </p>
                     </div>
+
+                    {canManageCivilRegistry ? (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            onClick={() => navigate(getClassicCityCivilRegistryPath(cityId))}
+                        >
+                            Open civil registry
+                        </Button>
+                    ) : null}
                 </div>
 
                 <div className="city-residents-page__toolbar">

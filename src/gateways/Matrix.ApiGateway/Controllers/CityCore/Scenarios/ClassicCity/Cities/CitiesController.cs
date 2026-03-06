@@ -143,6 +143,52 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             return Ok(resident);
         }
 
+        [HttpPost("{cityId:guid}/civil-registry/marriages")]
+        public async Task<ActionResult<CityCivilRegistryOperationResultDto>> RegisterMarriage(
+            [FromRoute] Guid cityId,
+            [FromBody] CityCivilRegistryOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityCivilRegistryOperationResultDto result = await _populationClient.RegisterCityMarriageAsync(
+                cityId: cityId,
+                request: new CityCivilRegistryOperationRequest(
+                    FirstResidentId: request.FirstResidentId,
+                    SecondResidentId: request.SecondResidentId,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{cityId:guid}/civil-registry/divorces")]
+        public async Task<ActionResult<CityCivilRegistryOperationResultDto>> RegisterDivorce(
+            [FromRoute] Guid cityId,
+            [FromBody] CityCivilRegistryOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityCivilRegistryOperationResultDto result = await _populationClient.RegisterCityDivorceAsync(
+                cityId: cityId,
+                request: new CityCivilRegistryOperationRequest(
+                    FirstResidentId: request.FirstResidentId,
+                    SecondResidentId: request.SecondResidentId,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
         [HttpGet("{cityId:guid}/provisioning")]
         public async Task<ActionResult<CityProvisioningStatusView>> GetProvisioning(
             [FromRoute] Guid cityId,

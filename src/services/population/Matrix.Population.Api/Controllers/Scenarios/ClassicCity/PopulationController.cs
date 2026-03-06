@@ -1,4 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterDivorce;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterMarriage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
@@ -126,6 +128,44 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                     CityId: cityId,
                     PersonId: personId,
                     CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/civil-registry/marriages")]
+        public async Task<ActionResult<CityCivilRegistryOperationResultDto>> RegisterMarriage(
+            [FromRoute] Guid cityId,
+            [FromBody] CityCivilRegistryOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            CityCivilRegistryOperationResultDto result = await _sender.Send(
+                request: new RegisterCityMarriageCommand(
+                    CityId: cityId,
+                    FirstResidentId: request.FirstResidentId,
+                    SecondResidentId: request.SecondResidentId,
+                    CurrentDate: request.CurrentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/civil-registry/divorces")]
+        public async Task<ActionResult<CityCivilRegistryOperationResultDto>> RegisterDivorce(
+            [FromRoute] Guid cityId,
+            [FromBody] CityCivilRegistryOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            CityCivilRegistryOperationResultDto result = await _sender.Send(
+                request: new RegisterCityDivorceCommand(
+                    CityId: cityId,
+                    FirstResidentId: request.FirstResidentId,
+                    SecondResidentId: request.SecondResidentId,
+                    CurrentDate: request.CurrentDate),
                 cancellationToken: cancellationToken);
 
             return Ok(result);
