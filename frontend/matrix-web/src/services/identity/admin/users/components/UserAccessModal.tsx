@@ -1,3 +1,4 @@
+import {useEffect, useState} from "react";
 import type {PermissionCatalogItemResponse, PermissionEffect} from "@services/identity/api/admin/adminTypes";
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
@@ -46,6 +47,48 @@ export default function UserAccessModal({
         isAccessReadOnly,
         readOnlyReason,
     } = useUserAccess(userId);
+    const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        setOpenSections(
+            Object.fromEntries(groupedPermissions.map((section) => [section.title, true]))
+        );
+        setOpenGroups(
+            Object.fromEntries(
+                groupedPermissions.flatMap((section) =>
+                    section.groups.map((group) => [
+                        `${section.title}::${group.title}`,
+                        true,
+                    ])
+                )
+            )
+        );
+    }, [groupedPermissions]);
+
+    const anyPermissionsExpanded =
+        Object.values(openSections).some(Boolean) ||
+        Object.values(openGroups).some(Boolean);
+
+    const toggleAllPermissionSections = () => {
+        const nextOpen = !anyPermissionsExpanded;
+
+        setOpenSections(
+            Object.fromEntries(
+                groupedPermissions.map((section) => [section.title, nextOpen])
+            )
+        );
+        setOpenGroups(
+            Object.fromEntries(
+                groupedPermissions.flatMap((section) =>
+                    section.groups.map((group) => [
+                        `${section.title}::${group.title}`,
+                        nextOpen,
+                    ])
+                )
+            )
+        );
+    };
 
     const renderPermissionRow = (permission: PermissionCatalogItemResponse) => {
         const override = permissionMap.get(permission.key);
@@ -267,6 +310,12 @@ export default function UserAccessModal({
                                 </div>
                             </div>
                             <div className="mx-admin-users__sectionActions">
+                                <Button
+                                    onClick={toggleAllPermissionSections}
+                                    disabled={groupedPermissions.length === 0}
+                                >
+                                    {anyPermissionsExpanded ? "Collapse all" : "Expand all"}
+                                </Button>
                                 {isEditingPermissions ? (
                                     <>
                                         <div className="mx-admin-users__muted">
@@ -319,15 +368,25 @@ export default function UserAccessModal({
                                 <details
                                     key={section.title}
                                     className="mx-admin-users__permissionSection"
-                                    open
+                                    open={openSections[section.title] ?? true}
                                 >
-                                    <summary className="mx-admin-users__permissionSectionTitle">
+                                    <summary
+                                        className="mx-admin-users__permissionSectionTitle"
+                                        onClick={(event) => {
+                                            event.preventDefault();
+                                            setOpenSections((prev) => ({
+                                                ...prev,
+                                                [section.title]: !(prev[section.title] ?? true),
+                                            }));
+                                        }}
+                                    >
                                         {section.title}
                                     </summary>
                                     <div className="mx-admin-users__permissionSectionBody">
                                         {section.groups.map((group) => {
                                             const showGroupTitle =
                                                 section.groups.length > 1 || group.title !== "General";
+                                            const groupKey = `${section.title}::${group.title}`;
 
                                             if (!showGroupTitle) {
                                                 return (
@@ -346,9 +405,18 @@ export default function UserAccessModal({
                                                 <details
                                                     key={group.title}
                                                     className="mx-admin-users__permissionGroup"
-                                                    open
+                                                    open={openGroups[groupKey] ?? true}
                                                 >
-                                                    <summary className="mx-admin-users__permissionGroupTitle">
+                                                    <summary
+                                                        className="mx-admin-users__permissionGroupTitle"
+                                                        onClick={(event) => {
+                                                            event.preventDefault();
+                                                            setOpenGroups((prev) => ({
+                                                                ...prev,
+                                                                [groupKey]: !(prev[groupKey] ?? true),
+                                                            }));
+                                                        }}
+                                                    >
                                                         {group.title}
                                                     </summary>
                                                     <div className="mx-admin-users__permissions">

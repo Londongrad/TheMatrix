@@ -103,6 +103,14 @@
     font-weight: 900;
 }
 
+.mx-admin-perm__matrixActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .mx-admin-perm__matrixSub {
     margin-top: 4px;
     font-size: 12px;
@@ -294,6 +302,10 @@
 @media (max-width: 1060px) {
     .mx-admin-perm__layout {
         grid-template-columns: 1fr;
+    }
+
+    .mx-admin-perm__matrixActions {
+        justify-content: flex-start;
     }
 }
 
