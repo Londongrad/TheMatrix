@@ -184,7 +184,9 @@ export default function UserAccessModal({
 
             {error ? <div className="mx-admin-users__error">{error}</div> : null}
             {readOnlyReason ? (
-                <div className="mx-admin-users__muted">{readOnlyReason}</div>
+                <div className="mx-admin-users__notice mx-admin-users__notice--danger">
+                    {readOnlyReason}
+                </div>
             ) : null}
 
             {details ? (
@@ -358,7 +360,7 @@ export default function UserAccessModal({
                                 )}
                             </div>
                         </div>
-                        {permissionEditReason ? (
+                        {permissionEditReason && permissionEditReason !== readOnlyReason ? (
                             <div className="mx-admin-users__muted">
                                 {permissionEditReason}
                             </div>

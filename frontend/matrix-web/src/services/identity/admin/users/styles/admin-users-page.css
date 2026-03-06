@@ -140,6 +140,22 @@
     font-size: 13px;
 }
 
+.mx-admin-users__notice {
+    margin: 0 auto 16px;
+    max-width: 680px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.mx-admin-users__notice--danger {
+    border: 1px solid var(--status-danger-border);
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+}
+
 .mx-admin-users__badge {
     padding: 2px 8px;
     border-radius: 999px;
