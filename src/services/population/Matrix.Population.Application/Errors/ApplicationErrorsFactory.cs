@@ -122,5 +122,71 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.BusinessRule);
         }
 
+        public static MatrixApplicationException InvalidEducationLevel(string? value)
+        {
+            string normalizedValue = string.IsNullOrWhiteSpace(value)
+                ? "<empty>"
+                : value.Trim();
+
+            return new MatrixApplicationException(
+                code: "Population.Education.Level.Invalid",
+                message: $"Education level '{normalizedValue}' is not supported.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
+        public static MatrixApplicationException ResidentAlreadyStudent(Guid residentId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.ResidentAlreadyStudent",
+                message: $"Resident '{residentId}' is already marked as a student.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
+        public static MatrixApplicationException ResidentMustBeStudent(
+            Guid residentId,
+            string action)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.ResidentMustBeStudent",
+                message: $"Resident '{residentId}' must currently be a student to {action}.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
+        public static MatrixApplicationException RetiredResidentCannotStudy(Guid residentId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.RetiredResidentCannotStudy",
+                message: $"Resident '{residentId}' cannot re-enter study after retirement through this service.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
+        public static MatrixApplicationException SeniorResidentCannotStudy(Guid residentId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.SeniorResidentCannotStudy",
+                message: $"Resident '{residentId}' is already in a senior age group and cannot start studying through this service.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
+        public static MatrixApplicationException DeceasedResidentCannotStudy(
+            Guid residentId,
+            string action)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.DeceasedResidentCannotStudy",
+                message: $"Resident '{residentId}' must be alive to {action}.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
+        public static MatrixApplicationException ResidentAlreadyAtEducationLevel(
+            Guid residentId,
+            string educationLevel)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.ResidentAlreadyAtLevel",
+                message: $"Resident '{residentId}' is already at education level '{educationLevel}'.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
     }
 }

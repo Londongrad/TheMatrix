@@ -224,6 +224,75 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             return Ok(result);
         }
 
+        [HttpPost("{cityId:guid}/education/enroll")]
+        public async Task<ActionResult<CityEducationOperationResultDto>> EnrollResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEducationOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityEducationOperationResultDto result = await _populationClient.EnrollCityResidentAsync(
+                cityId: cityId,
+                request: new CityEducationOperationRequest(
+                    ResidentId: request.ResidentId,
+                    TargetEducationLevel: request.TargetEducationLevel,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{cityId:guid}/education/graduate")]
+        public async Task<ActionResult<CityEducationOperationResultDto>> GraduateResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEducationOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityEducationOperationResultDto result = await _populationClient.GraduateCityResidentAsync(
+                cityId: cityId,
+                request: new CityEducationOperationRequest(
+                    ResidentId: request.ResidentId,
+                    TargetEducationLevel: request.TargetEducationLevel,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{cityId:guid}/education/withdraw")]
+        public async Task<ActionResult<CityEducationOperationResultDto>> WithdrawResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEducationOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityEducationOperationResultDto result = await _populationClient.WithdrawCityResidentFromStudyAsync(
+                cityId: cityId,
+                request: new CityEducationOperationRequest(
+                    ResidentId: request.ResidentId,
+                    TargetEducationLevel: request.TargetEducationLevel,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
         [HttpPost("{cityId:guid}/civil-registry/marriages")]
         public async Task<ActionResult<CityCivilRegistryOperationResultDto>> RegisterMarriage(
             [FromRoute] Guid cityId,

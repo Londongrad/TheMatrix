@@ -323,6 +323,34 @@ namespace Matrix.Population.Domain.Entities
             Education = EducationInfo.FromLevel(newLevel);
         }
 
+        public void StartStudying(DateOnly currentDate)
+        {
+            Employment = Employment.Change(
+                newStatus: EmploymentStatus.Student,
+                newJob: null,
+                lifeStatus: LifeStatus,
+                ageGroup: GetAgeGroup(currentDate));
+
+            ChangeHappiness(PersonHappinessDeltas.OnStatusStudent);
+        }
+
+        public void StopStudying(DateOnly currentDate)
+        {
+            AgeGroup ageGroup = GetAgeGroup(currentDate);
+
+            EmploymentStatus nextStatus = ageGroup == AgeGroup.Adult
+                ? EmploymentStatus.Unemployed
+                : EmploymentStatus.None;
+
+            Employment = Employment.Change(
+                newStatus: nextStatus,
+                newJob: null,
+                lifeStatus: LifeStatus,
+                ageGroup: ageGroup);
+
+            ChangeHappiness(PersonHappinessDeltas.OnStatusNone);
+        }
+
         public void GraduateTo(EducationLevel newLevel)
         {
             Education = Education.GraduateTo(newLevel);

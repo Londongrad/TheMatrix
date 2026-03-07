@@ -1,4 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.EnrollResident;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GraduateResident;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.WithdrawResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.FireResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.GetEmploymentCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.HireResident;
@@ -196,6 +199,61 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
 
             CityEmploymentOperationResultDto result = await _sender.Send(
                 request: new RetireCityResidentCommand(
+                    CityId: cityId,
+                    ResidentId: request.ResidentId,
+                    CurrentDate: request.CurrentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/education/enroll")]
+        public async Task<ActionResult<CityEducationOperationResultDto>> EnrollResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEducationOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            CityEducationOperationResultDto result = await _sender.Send(
+                request: new EnrollCityResidentCommand(
+                    CityId: cityId,
+                    ResidentId: request.ResidentId,
+                    CurrentDate: request.CurrentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/education/graduate")]
+        public async Task<ActionResult<CityEducationOperationResultDto>> GraduateResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEducationOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            CityEducationOperationResultDto result = await _sender.Send(
+                request: new GraduateCityResidentCommand(
+                    CityId: cityId,
+                    ResidentId: request.ResidentId,
+                    TargetEducationLevel: request.TargetEducationLevel ?? string.Empty,
+                    CurrentDate: request.CurrentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/education/withdraw")]
+        public async Task<ActionResult<CityEducationOperationResultDto>> WithdrawResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEducationOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            CityEducationOperationResultDto result = await _sender.Send(
+                request: new WithdrawCityResidentFromStudyCommand(
                     CityId: cityId,
                     ResidentId: request.ResidentId,
                     CurrentDate: request.CurrentDate),
