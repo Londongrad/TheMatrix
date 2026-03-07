@@ -27,9 +27,19 @@ export interface CityResidentDetailsDto extends PersonDto {
     currentSpouse?: PersonReferenceDto | null;
 }
 
+export interface CityEmploymentCatalogDto {
+    jobTitles: string[];
+}
+
 export interface CityCivilRegistryOperationResultDto {
     action: string;
     recordedAtUtc: string;
     firstResident: CityResidentDetailsDto;
     secondResident: CityResidentDetailsDto;
+}
+
+export interface CityEmploymentOperationResultDto {
+    action: string;
+    recordedAtUtc: string;
+    resident: CityResidentDetailsDto;
 }

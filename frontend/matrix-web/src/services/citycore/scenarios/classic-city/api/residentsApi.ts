@@ -3,6 +3,8 @@ import {apiRequest} from "@shared/api/http";
 import type {PagedResult} from "@shared/lib/paging/pagingTypes";
 import type {
     CityCivilRegistryOperationResultDto,
+    CityEmploymentCatalogDto,
+    CityEmploymentOperationResultDto,
     CityResidentDetailsDto,
     PersonDto,
 } from "@services/population/person/api/personTypes";
@@ -38,6 +40,63 @@ type CityCivilRegistryOperationPayload = {
     firstResidentId: string;
     secondResidentId: string;
 };
+
+type CityEmploymentOperationPayload = {
+    residentId: string;
+    jobTitle?: string | null;
+};
+
+export function getCityEmploymentCatalog(
+    cityId: string,
+    signal?: AbortSignal,
+) {
+    return apiRequest<CityEmploymentCatalogDto>(
+        `${API_CITY_URL}/${cityId}/employment/catalog`,
+        {
+            method: "GET",
+            signal,
+        },
+    );
+}
+
+export function hireCityResident(
+    cityId: string,
+    payload: CityEmploymentOperationPayload,
+) {
+    return apiRequest<CityEmploymentOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/employment/hire`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
+        },
+    );
+}
+
+export function fireCityResident(
+    cityId: string,
+    payload: CityEmploymentOperationPayload,
+) {
+    return apiRequest<CityEmploymentOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/employment/fire`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
+        },
+    );
+}
+
+export function retireCityResident(
+    cityId: string,
+    payload: CityEmploymentOperationPayload,
+) {
+    return apiRequest<CityEmploymentOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/employment/retire`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
+        },
+    );
+}
 
 export function registerCityMarriage(
     cityId: string,

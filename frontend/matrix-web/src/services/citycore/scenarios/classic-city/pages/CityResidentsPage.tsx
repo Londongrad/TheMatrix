@@ -7,6 +7,7 @@ import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
+    getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
 } from "@services/citycore/scenarios/registry";
 import {
@@ -52,6 +53,7 @@ const CityResidentsPage = () => {
     const canKill = can(PermissionKeys.PopulationPersonKill) && !isArchived;
     const canResurrect = can(PermissionKeys.PopulationPersonResurrect) && !isArchived;
     const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
+    const canManageEmployment = can(PermissionKeys.PopulationEmploymentManage) && !isArchived;
 
     if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
         return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
@@ -114,15 +116,27 @@ const CityResidentsPage = () => {
                         </p>
                     </div>
 
-                    {canManageCivilRegistry ? (
-                        <Button
-                            type="button"
-                            variant="primary"
-                            onClick={() => navigate(getClassicCityCivilRegistryPath(cityId))}
-                        >
-                            Open civil registry
-                        </Button>
-                    ) : null}
+                    <div className="city-residents-page__header-actions">
+                        {canManageEmployment ? (
+                            <Button
+                                type="button"
+                                variant="primary"
+                                onClick={() => navigate(getClassicCityEmploymentPath(cityId))}
+                            >
+                                Open employment service
+                            </Button>
+                        ) : null}
+
+                        {canManageCivilRegistry ? (
+                            <Button
+                                type="button"
+                                variant="primary"
+                                onClick={() => navigate(getClassicCityCivilRegistryPath(cityId))}
+                            >
+                                Open civil registry
+                            </Button>
+                        ) : null}
+                    </div>
                 </div>
 
                 <div className="city-residents-page__toolbar">

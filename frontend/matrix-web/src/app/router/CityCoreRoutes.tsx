@@ -4,6 +4,7 @@ import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission"
 import CitiesPage from "@services/citycore/scenarios/classic-city/pages/CitiesPage";
 import CityCivilRegistryPage from "@services/citycore/scenarios/classic-city/pages/CityCivilRegistryPage";
 import CityDetailsPage from "@services/citycore/scenarios/classic-city/pages/CityDetailsPage";
+import CityEmploymentPage from "@services/citycore/scenarios/classic-city/pages/CityEmploymentPage";
 import CityResidentDossierPage from "@services/citycore/scenarios/classic-city/pages/CityResidentDossierPage";
 import CityResidentsPage from "@services/citycore/scenarios/classic-city/pages/CityResidentsPage";
 import ClassicCityProvisioningPage from "@services/citycore/scenarios/classic-city/pages/ClassicCityProvisioningPage";
@@ -15,6 +16,7 @@ import {
     CITYCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_CIVIL_REGISTRY_PATH_PATTERN,
     CLASSIC_CITY_DETAILS_PATH_PATTERN,
+    CLASSIC_CITY_EMPLOYMENT_PATH_PATTERN,
     CLASSIC_CITY_LIST_PATH,
     CLASSIC_CITY_RESIDENT_DOSSIER_PATH_PATTERN,
     CLASSIC_CITY_PROVISIONING_PATH_PATTERN,
@@ -106,6 +108,21 @@ export const cityCoreRoutes = (
                     permissionMatchMode="all"
                 >
                     <CityDetailsPage/>
+                </RequireRoutePermission>
+            }
+        />
+        <Route
+            path={CLASSIC_CITY_EMPLOYMENT_PATH_PATTERN}
+            element={
+                <RequireRoutePermission
+                    permissions={[
+                        PermissionKeys.CityCoreClassicCityRead,
+                        PermissionKeys.PopulationPeopleRead,
+                        PermissionKeys.PopulationEmploymentManage,
+                    ]}
+                    permissionMatchMode="all"
+                >
+                    <CityEmploymentPage/>
                 </RequireRoutePermission>
             }
         />

@@ -7,6 +7,7 @@ import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
+    getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
     getClassicCityResidentDossierPath,
     getClassicCityResidentsPath,
@@ -51,6 +52,7 @@ const CityResidentDossierPage = () => {
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const resident = residentQuery.data;
     const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
+    const canManageEmployment = can(PermissionKeys.PopulationEmploymentManage) && !isArchived;
 
     if (!cityId || !residentId) {
         return <Navigate to={CLASSIC_CITY_LIST_PATH} replace/>;
@@ -283,6 +285,17 @@ const CityResidentDossierPage = () => {
 
                         {activeTab === "career" ? (
                             <div className="city-resident-dossier__stack">
+                                {canManageEmployment && resident ? (
+                                    <div className="city-resident-dossier__actions">
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            onClick={() => navigate(getClassicCityEmploymentPath(cityId, resident.id))}
+                                        >
+                                            Open employment service
+                                        </Button>
+                                    </div>
+                                ) : null}
                                 <section className="city-resident-dossier__section-card">
                                     <h3 className="city-resident-dossier__section-title">Current employment</h3>
                                     <dl className="city-resident-dossier__facts">

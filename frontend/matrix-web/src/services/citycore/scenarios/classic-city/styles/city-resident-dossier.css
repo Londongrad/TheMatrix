@@ -99,6 +99,8 @@
 .city-resident-dossier__actions {
     display: flex;
     justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .city-resident-dossier__section-card,

@@ -18,6 +18,13 @@
     min-height: 24px;
 }
 
+.city-residents-page__header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
 .city-residents-page__cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
