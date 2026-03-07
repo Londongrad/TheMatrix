@@ -20,6 +20,7 @@ export const CLASSIC_CITY_RESIDENTS_PATH_PATTERN = "/cities/:cityId/residents";
 export const CLASSIC_CITY_RESIDENT_DOSSIER_PATH_PATTERN = "/cities/:cityId/residents/:residentId";
 export const CLASSIC_CITY_CIVIL_REGISTRY_PATH_PATTERN = "/cities/:cityId/civil-registry";
 export const CLASSIC_CITY_EMPLOYMENT_PATH_PATTERN = "/cities/:cityId/employment";
+export const CLASSIC_CITY_EDUCATION_PATH_PATTERN = "/cities/:cityId/education";
 export const CLASSIC_CITY_SETUP_PATH = "/scenarios/classic-city/setup";
 export const CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN = "/scenarios/classic-city/setup/:sessionId";
 export const CLASSIC_CITY_SETUP_PROVISIONING_PATH_PATTERN = "/scenarios/classic-city/setup/:sessionId/provisioning";
@@ -49,6 +50,16 @@ export function getClassicCityCivilRegistryPath(cityId: string, residentId?: str
 
 export function getClassicCityEmploymentPath(cityId: string, residentId?: string): string {
     const basePath = `/cities/${cityId}/employment`;
+
+    if (!residentId) {
+        return basePath;
+    }
+
+    return `${basePath}?residentId=${encodeURIComponent(residentId)}`;
+}
+
+export function getClassicCityEducationPath(cityId: string, residentId?: string): string {
+    const basePath = `/cities/${cityId}/education`;
 
     if (!residentId) {
         return basePath;

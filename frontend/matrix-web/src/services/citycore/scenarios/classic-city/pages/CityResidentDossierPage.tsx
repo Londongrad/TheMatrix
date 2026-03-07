@@ -7,6 +7,7 @@ import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
+    getClassicCityEducationPath,
     getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
     getClassicCityResidentDossierPath,
@@ -53,6 +54,7 @@ const CityResidentDossierPage = () => {
     const resident = residentQuery.data;
     const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
     const canManageEmployment = can(PermissionKeys.PopulationEmploymentManage) && !isArchived;
+    const canManageEducation = can(PermissionKeys.PopulationEducationManage) && !isArchived;
 
     if (!cityId || !residentId) {
         return <Navigate to={CLASSIC_CITY_LIST_PATH} replace/>;
@@ -315,12 +317,27 @@ const CityResidentDossierPage = () => {
 
                         {activeTab === "education" ? (
                             <div className="city-resident-dossier__stack">
+                                {canManageEducation && resident ? (
+                                    <div className="city-resident-dossier__actions">
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            onClick={() => navigate(getClassicCityEducationPath(cityId, resident.id))}
+                                        >
+                                            Open education service
+                                        </Button>
+                                    </div>
+                                ) : null}
                                 <section className="city-resident-dossier__section-card">
                                     <h3 className="city-resident-dossier__section-title">Current education</h3>
                                     <dl className="city-resident-dossier__facts">
                                         <div>
                                             <dt>Education level</dt>
                                             <dd>{resident.educationLevel}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Study status</dt>
+                                            <dd>{resident.employmentStatus === "Student" ? "Currently studying" : "Not currently studying"}</dd>
                                         </div>
                                     </dl>
                                 </section>

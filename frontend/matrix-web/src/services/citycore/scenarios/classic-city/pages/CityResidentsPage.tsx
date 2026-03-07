@@ -7,6 +7,7 @@ import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
+    getClassicCityEducationPath,
     getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
 } from "@services/citycore/scenarios/registry";
@@ -54,6 +55,7 @@ const CityResidentsPage = () => {
     const canResurrect = can(PermissionKeys.PopulationPersonResurrect) && !isArchived;
     const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
     const canManageEmployment = can(PermissionKeys.PopulationEmploymentManage) && !isArchived;
+    const canManageEducation = can(PermissionKeys.PopulationEducationManage) && !isArchived;
 
     if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
         return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
@@ -117,6 +119,16 @@ const CityResidentsPage = () => {
                     </div>
 
                     <div className="city-residents-page__header-actions">
+                        {canManageEducation ? (
+                            <Button
+                                type="button"
+                                variant="primary"
+                                onClick={() => navigate(getClassicCityEducationPath(cityId))}
+                            >
+                                Open education service
+                            </Button>
+                        ) : null}
+
                         {canManageEmployment ? (
                             <Button
                                 type="button"

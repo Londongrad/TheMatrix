@@ -42,6 +42,7 @@ export const PermissionKeys = {
     PopulationPeopleRead: "population.people.read",
     PopulationCivilRegistryManage: "population.civil-registry.manage",
     PopulationEmploymentManage: "population.employment.manage",
+    PopulationEducationManage: "population.education.manage",
     PopulationPersonResurrect: "population.person.resurrect",
     PopulationPersonKill: "population.person.kill",
 } as const;

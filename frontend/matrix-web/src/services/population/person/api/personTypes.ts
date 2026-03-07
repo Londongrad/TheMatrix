@@ -43,3 +43,9 @@ export interface CityEmploymentOperationResultDto {
     recordedAtUtc: string;
     resident: CityResidentDetailsDto;
 }
+
+export interface CityEducationOperationResultDto {
+    action: string;
+    recordedAtUtc: string;
+    resident: CityResidentDetailsDto;
+}

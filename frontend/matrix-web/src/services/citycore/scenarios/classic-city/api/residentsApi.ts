@@ -3,6 +3,7 @@ import {apiRequest} from "@shared/api/http";
 import type {PagedResult} from "@shared/lib/paging/pagingTypes";
 import type {
     CityCivilRegistryOperationResultDto,
+    CityEducationOperationResultDto,
     CityEmploymentCatalogDto,
     CityEmploymentOperationResultDto,
     CityResidentDetailsDto,
@@ -44,6 +45,11 @@ type CityCivilRegistryOperationPayload = {
 type CityEmploymentOperationPayload = {
     residentId: string;
     jobTitle?: string | null;
+};
+
+type CityEducationOperationPayload = {
+    residentId: string;
+    targetEducationLevel?: string | null;
 };
 
 export function getCityEmploymentCatalog(
@@ -91,6 +97,45 @@ export function retireCityResident(
 ) {
     return apiRequest<CityEmploymentOperationResultDto>(
         `${API_CITY_URL}/${cityId}/employment/retire`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
+        },
+    );
+}
+
+export function enrollCityResident(
+    cityId: string,
+    payload: CityEducationOperationPayload,
+) {
+    return apiRequest<CityEducationOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/education/enroll`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
+        },
+    );
+}
+
+export function graduateCityResident(
+    cityId: string,
+    payload: CityEducationOperationPayload,
+) {
+    return apiRequest<CityEducationOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/education/graduate`,
+        {
+            method: "POST",
+            body: JSON.stringify(payload),
+        },
+    );
+}
+
+export function withdrawCityResidentFromStudy(
+    cityId: string,
+    payload: CityEducationOperationPayload,
+) {
+    return apiRequest<CityEducationOperationResultDto>(
+        `${API_CITY_URL}/${cityId}/education/withdraw`,
         {
             method: "POST",
             body: JSON.stringify(payload),
