@@ -52,11 +52,20 @@ type SelectedResidentCardProps = {
     isLoading: boolean;
     residentName: string;
     residentStatus: string;
+    residentHousing?: { householdId: string; housingStatus: string } | null;
     residentSpouse?: { id: string; fullName: string } | null;
     residentLifecycle?: string;
     onClear: () => void;
     cityId: string;
 };
+
+function formatHouseholdLabel(householdId?: string | null) {
+    if (!householdId) {
+        return "Unknown household";
+    }
+
+    return `Household ${householdId.slice(0, 8)}`;
+}
 
 function SelectedResidentCard({
     slotLabel,
@@ -64,6 +73,7 @@ function SelectedResidentCard({
     isLoading,
     residentName,
     residentStatus,
+    residentHousing,
     residentSpouse,
     residentLifecycle,
     onClear,
@@ -107,6 +117,14 @@ function SelectedResidentCard({
                             >
                                 {residentSpouse.fullName}
                             </Link>
+                        </p>
+                    ) : null}
+
+                    {residentHousing ? (
+                        <p className="city-civil-registry__selected-spouse">
+                            {formatHouseholdLabel(residentHousing.householdId)}
+                            {" · "}
+                            {residentHousing.housingStatus}
                         </p>
                     ) : null}
 
@@ -351,6 +369,7 @@ const CityCivilRegistryPage = () => {
                         isLoading={firstResidentQuery.isLoading}
                         residentName={firstResidentQuery.data?.fullName ?? "Resident A"}
                         residentStatus={firstResidentQuery.data?.maritalStatus ?? "Snapshot pending"}
+                        residentHousing={firstResidentQuery.data?.currentHousing ?? null}
                         residentSpouse={firstResidentQuery.data?.currentSpouse}
                         residentLifecycle={firstResidentQuery.data?.lifeStatus}
                         onClear={() => setSelectedFirstResidentId("")}
@@ -363,6 +382,7 @@ const CityCivilRegistryPage = () => {
                         isLoading={secondResidentQuery.isLoading}
                         residentName={secondResidentQuery.data?.fullName ?? "Resident B"}
                         residentStatus={secondResidentQuery.data?.maritalStatus ?? "Snapshot pending"}
+                        residentHousing={secondResidentQuery.data?.currentHousing ?? null}
                         residentSpouse={secondResidentQuery.data?.currentSpouse}
                         residentLifecycle={secondResidentQuery.data?.lifeStatus}
                         onClear={() => setSelectedSecondResidentId("")}

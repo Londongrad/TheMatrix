@@ -38,6 +38,14 @@ function renderLifecycleHint(text: string) {
     return <div className="city-resident-dossier__hint">{text}</div>;
 }
 
+function formatHouseholdLabel(householdId?: string | null) {
+    if (!householdId) {
+        return "Unknown household";
+    }
+
+    return `Household ${householdId.slice(0, 8)}`;
+}
+
 const CityResidentDossierPage = () => {
     const params = useParams<{ cityId: string; residentId: string }>();
     const navigate = useNavigate();
@@ -206,6 +214,14 @@ const CityResidentDossierPage = () => {
                                                 ) : resident.maritalStatus === "Married" ? "Spouse record unavailable" : "None"}
                                             </dd>
                                         </div>
+                                        <div>
+                                            <dt>Household</dt>
+                                            <dd>{formatHouseholdLabel(resident.currentHousing.householdId)}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Housing</dt>
+                                            <dd>{resident.currentHousing.housingStatus}</dd>
+                                        </div>
                                     </dl>
                                 </section>
 
@@ -278,6 +294,14 @@ const CityResidentDossierPage = () => {
                                                     </Link>
                                                 ) : resident.maritalStatus === "Married" ? "Spouse record unavailable" : "No current spouse"}
                                             </dd>
+                                        </div>
+                                        <div>
+                                            <dt>Current household</dt>
+                                            <dd>{formatHouseholdLabel(resident.currentHousing.householdId)}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Housing status</dt>
+                                            <dd>{resident.currentHousing.housingStatus}</dd>
                                         </div>
                                     </dl>
                                 </section>

@@ -34,6 +34,14 @@ function getErrorMessage(error: unknown, fallback: string): string {
         : fallback;
 }
 
+function formatHouseholdLabel(householdId?: string | null): string {
+    if (!householdId) {
+        return "--";
+    }
+
+    return `Household ${householdId.slice(0, 8)}`;
+}
+
 const CitizenDetailsModal = ({
     cityId,
     person,
@@ -125,7 +133,11 @@ const CitizenDetailsModal = ({
         }
     }
 
-    const currentSpouse = "currentSpouse" in resident ? resident.currentSpouse : null;
+    const residentDetails = "currentSpouse" in resident
+        ? resident as CityResidentDetailsDto
+        : null;
+    const currentSpouse = residentDetails?.currentSpouse ?? null;
+    const currentHousing = residentDetails?.currentHousing ?? null;
 
     return (
         <div className="citizens-page-modal-backdrop" onClick={onClose}>
@@ -213,6 +225,20 @@ const CitizenDetailsModal = ({
                                 <div className="citizens-page-modal-field-label">Education</div>
                                 <div>{resident.educationLevel}</div>
                             </div>
+
+                            {currentHousing ? (
+                                <>
+                                    <div className="citizens-page-modal-field">
+                                        <div className="citizens-page-modal-field-label">Household</div>
+                                        <div>{formatHouseholdLabel(currentHousing.householdId)}</div>
+                                    </div>
+
+                                    <div className="citizens-page-modal-field">
+                                        <div className="citizens-page-modal-field-label">Housing</div>
+                                        <div>{currentHousing.housingStatus}</div>
+                                    </div>
+                                </>
+                            ) : null}
                         </div>
 
                         <div>

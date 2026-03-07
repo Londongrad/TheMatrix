@@ -23,8 +23,15 @@ export interface PersonReferenceDto {
     fullName: string;
 }
 
+export interface CityResidentHousingDto {
+    householdId: string;
+    housingStatus: string;
+    residentialBuildingId?: string | null;
+}
+
 export interface CityResidentDetailsDto extends PersonDto {
     currentSpouse?: PersonReferenceDto | null;
+    currentHousing: CityResidentHousingDto;
 }
 
 export interface CityEmploymentCatalogDto {
