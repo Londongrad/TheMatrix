@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -22,6 +23,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
+        MarriageDomainService marriageDomainService,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
@@ -108,10 +110,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         personsSnapshot = await personReadRepository.ListByCityAsync(
                             cityId: cityId,
                             cancellationToken: ct);
+                        var personsById = personsSnapshot.ToDictionary(
+                            keySelector: x => x.Id,
+                            elementSelector: x => x);
 
                         foreach (PersonEntity person in personsSnapshot)
                             if (ApplyProgressionNeedsAndExposure(
                                     person: person,
+                                    residentsById: personsById,
                                     fromSimTimeUtc: request.FromSimTimeUtc,
                                     toSimTimeUtc: request.ToSimTimeUtc,
                                     currentDate: toDate,
@@ -119,6 +125,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     requiresNeedsProgression: requiresNeedsProgression,
                                     environment: environment,
                                     exposureSegments: exposureSegments,
+                                    marriageDomainService: marriageDomainService,
                                     personNeedsProgressionPolicy: personNeedsProgressionPolicy,
                                     weatherExposurePolicy: weatherExposurePolicy))
                                 affectedPeopleCount++;
@@ -169,6 +176,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static bool ApplyProgressionNeedsAndExposure(
             PersonEntity person,
+            IReadOnlyDictionary<Matrix.Population.Domain.ValueObjects.PersonId, PersonEntity> residentsById,
             DateTimeOffset fromSimTimeUtc,
             DateTimeOffset toSimTimeUtc,
             DateOnly currentDate,
@@ -176,6 +184,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             bool requiresNeedsProgression,
             CityPopulationEnvironment? environment,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
+            MarriageDomainService marriageDomainService,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
@@ -184,10 +193,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (requiresNeedsProgression &&
                 ApplyNeedsProgression(
                     person: person,
+                    residentsById: residentsById,
                     fromSimTimeUtc: fromSimTimeUtc,
                     toSimTimeUtc: toSimTimeUtc,
                     currentDate: currentDate,
                     environment: environment,
+                    marriageDomainService: marriageDomainService,
                     personNeedsProgressionPolicy: personNeedsProgressionPolicy))
                 changed = true;
 
@@ -200,9 +211,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (exposureSegments.Count > 0)
                 if (ApplyWeatherExposure(
                         person: person,
+                        residentsById: residentsById,
                         currentDate: currentDate,
                         environment: environment,
                         exposureSegments: exposureSegments,
+                        marriageDomainService: marriageDomainService,
                         weatherExposurePolicy: weatherExposurePolicy))
                     changed = true;
 
@@ -211,10 +224,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static bool ApplyNeedsProgression(
             PersonEntity person,
+            IReadOnlyDictionary<Matrix.Population.Domain.ValueObjects.PersonId, PersonEntity> residentsById,
             DateTimeOffset fromSimTimeUtc,
             DateTimeOffset toSimTimeUtc,
             DateOnly currentDate,
             CityPopulationEnvironment? environment,
+            MarriageDomainService marriageDomainService,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy)
         {
             int utcOffsetMinutes = environment?.UtcOffsetMinutes ?? 0;
@@ -225,9 +240,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 toSimTimeUtc: toSimTimeUtc,
                 utcOffsetMinutes: utcOffsetMinutes);
 
-            return person.ApplyNeedsProgression(
+            bool wasAlive = person.IsAlive;
+            bool changed = person.ApplyNeedsProgression(
                 effect: effect,
                 currentDate: currentDate);
+
+            if (wasAlive && !person.IsAlive)
+                changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
+                              deceased: person,
+                              residentsById: residentsById,
+                              marriageDomainService: marriageDomainService) ||
+                          changed;
+
+            return changed;
         }
 
         private static bool ApplyTimeProgression(
@@ -249,9 +274,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static bool ApplyWeatherExposure(
             PersonEntity person,
+            IReadOnlyDictionary<Matrix.Population.Domain.ValueObjects.PersonId, PersonEntity> residentsById,
             DateOnly currentDate,
             CityPopulationEnvironment? environment,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
+            MarriageDomainService marriageDomainService,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
             if (exposureSegments.Count == 0)
@@ -287,6 +314,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     currentDate: currentDate);
 
                 changed = previousHealth != person.Health.Value || wasAlive != person.IsAlive;
+
+                if (wasAlive && !person.IsAlive)
+                    changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
+                                  deceased: person,
+                                  residentsById: residentsById,
+                                  marriageDomainService: marriageDomainService) ||
+                              changed;
             }
 
             if (totalHappinessDelta != 0 && person.IsAlive)

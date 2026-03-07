@@ -1,12 +1,14 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
@@ -21,6 +23,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherImpactStateRepository weatherImpactStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
+        MarriageDomainService marriageDomainService,
         CityPopulationWeatherImpactPolicy weatherImpactPolicy,
         ILogger<ApplyCityWeatherImpactCommandHandler> logger,
         IUnitOfWork unitOfWork)
@@ -99,14 +102,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     IReadOnlyCollection<PersonEntity> persons = await personReadRepository.ListByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
+                    var personsById = persons.ToDictionary(
+                        keySelector: x => x.Id,
+                        elementSelector: x => x);
 
                     foreach (PersonEntity person in persons)
                         if (ApplyWeatherImpact(
                                 person: person,
+                                residentsById: personsById,
                                 currentDate: currentDate,
                                 previousWeather: previousWeather,
                                 currentWeather: currentWeather,
                                 environment: environment,
+                                marriageDomainService: marriageDomainService,
                                 weatherImpactPolicy: weatherImpactPolicy))
                             affectedPeopleCount++;
 
@@ -147,10 +155,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static bool ApplyWeatherImpact(
             PersonEntity person,
+            IReadOnlyDictionary<Matrix.Population.Domain.ValueObjects.PersonId, PersonEntity> residentsById,
             DateOnly currentDate,
             WeatherImpactProfile previousWeather,
             WeatherImpactProfile currentWeather,
             CityPopulationEnvironment? environment,
+            MarriageDomainService marriageDomainService,
             CityPopulationWeatherImpactPolicy weatherImpactPolicy)
         {
             PersonWeatherImpact impact = weatherImpactPolicy.CalculateDifferential(
@@ -175,6 +185,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     currentDate: currentDate);
 
                 changed = previousHealth != person.Health.Value || wasAlive != person.IsAlive;
+
+                if (wasAlive && !person.IsAlive)
+                    changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
+                                  deceased: person,
+                                  residentsById: residentsById,
+                                  marriageDomainService: marriageDomainService) ||
+                              changed;
             }
 
             if (impact.HappinessDelta != 0 && person.IsAlive)
