@@ -316,6 +316,15 @@ namespace Matrix.Population.Domain.Entities
 
         #endregion [ Name ]
 
+        #region [ Household ]
+
+        public void ChangeHousehold(HouseholdId newHouseholdId)
+        {
+            HouseholdId = newHouseholdId;
+        }
+
+        #endregion [ Household ]
+
         #region [ Education ]
 
         public void SetEducationLevel(EducationLevel newLevel)

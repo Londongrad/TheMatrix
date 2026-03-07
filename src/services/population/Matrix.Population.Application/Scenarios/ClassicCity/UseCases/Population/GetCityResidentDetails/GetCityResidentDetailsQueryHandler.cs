@@ -2,6 +2,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -30,10 +31,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 : await personReadRepository.FindByIdAsync(
                     id: spouseId,
                     cancellationToken: cancellationToken);
+            CityResidentHousingSnapshot? housing = await cityPopulationPersonReadRepository.FindHousingSnapshotByPersonIdAsync(
+                cityId: CityId.From(request.CityId),
+                personId: resident.Id,
+                cancellationToken: cancellationToken);
 
             return resident.ToResidentDetailsDto(
                 currentDate: request.CurrentDate,
-                currentSpouse: currentSpouse);
+                currentSpouse: currentSpouse,
+                currentHousing: housing);
         }
     }
 }

@@ -2,6 +2,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -53,17 +54,21 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             DateOnly currentDate,
             Person firstResident,
             Person secondResident,
-            bool includeSpouseLinks)
+            bool includeSpouseLinks,
+            CityResidentHousingSnapshot? firstHousing,
+            CityResidentHousingSnapshot? secondHousing)
         {
             return new CityCivilRegistryOperationResultDto(
                 Action: action,
                 RecordedAtUtc: recordedAtUtc,
                 FirstResident: firstResident.ToResidentDetailsDto(
                     currentDate: currentDate,
-                    currentSpouse: includeSpouseLinks ? secondResident : null),
+                    currentSpouse: includeSpouseLinks ? secondResident : null,
+                    currentHousing: firstHousing),
                 SecondResident: secondResident.ToResidentDetailsDto(
                     currentDate: currentDate,
-                    currentSpouse: includeSpouseLinks ? firstResident : null));
+                    currentSpouse: includeSpouseLinks ? firstResident : null,
+                    currentHousing: secondHousing));
         }
     }
 }

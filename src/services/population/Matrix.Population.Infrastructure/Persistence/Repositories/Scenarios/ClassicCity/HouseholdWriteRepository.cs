@@ -11,6 +11,35 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
     {
         private readonly PopulationDbContext _dbContext = context;
 
+        public async Task<Household?> FindByIdAsync(
+            HouseholdId householdId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Households
+               .SingleOrDefaultAsync(
+                    predicate: x => x.Id == householdId,
+                    cancellationToken: cancellationToken);
+        }
+
+        public async Task<ClassicCityHouseholdPlacement?> FindPlacementByHouseholdIdAsync(
+            HouseholdId householdId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.ClassicCityHouseholdPlacements
+               .SingleOrDefaultAsync(
+                    predicate: x => x.HouseholdId == householdId,
+                    cancellationToken: cancellationToken);
+        }
+
+        public async Task<int> CountResidentsAsync(
+            HouseholdId householdId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Persons.CountAsync(
+                predicate: x => x.HouseholdId == householdId,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task DeleteAllAsync(CancellationToken cancellationToken = default)
         {
             await _dbContext.ClassicCityHouseholdPlacements.ExecuteDeleteAsync(cancellationToken);
@@ -38,6 +67,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .ExecuteDeleteAsync(cancellationToken);
         }
 
+        public Task DeleteAsync(
+            Household household,
+            CancellationToken cancellationToken = default)
+        {
+            _dbContext.Households.Remove(household);
+            return Task.CompletedTask;
+        }
+
         public async Task AddRangeAsync(
             IReadOnlyCollection<Household> households,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
@@ -49,6 +86,27 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             await _dbContext.ClassicCityHouseholdPlacements.AddRangeAsync(
                 entities: householdPlacements,
                 cancellationToken: cancellationToken);
+        }
+
+        public async Task AddAsync(
+            Household household,
+            ClassicCityHouseholdPlacement householdPlacement,
+            CancellationToken cancellationToken = default)
+        {
+            await _dbContext.Households.AddAsync(
+                entity: household,
+                cancellationToken: cancellationToken);
+            await _dbContext.ClassicCityHouseholdPlacements.AddAsync(
+                entity: householdPlacement,
+                cancellationToken: cancellationToken);
+        }
+
+        public Task UpdateAsync(
+            Household household,
+            CancellationToken cancellationToken = default)
+        {
+            _dbContext.Households.Update(household);
+            return Task.CompletedTask;
         }
     }
 }

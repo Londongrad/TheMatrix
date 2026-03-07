@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Application.Errors;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
@@ -69,9 +70,19 @@ namespace Matrix.Population.Application.Mapping
         public static CityResidentDetailsDto ToResidentDetailsDto(
             this Person person,
             DateOnly currentDate,
-            Person? currentSpouse = null)
+            Person? currentSpouse = null,
+            CityResidentHousingSnapshot? currentHousing = null)
         {
             PersonDto snapshot = person.ToDto(currentDate);
+            CityResidentHousingDto housing = currentHousing is null
+                ? new CityResidentHousingDto(
+                    HouseholdId: person.HouseholdId.Value,
+                    HousingStatus: "Unknown",
+                    ResidentialBuildingId: null)
+                : new CityResidentHousingDto(
+                    HouseholdId: currentHousing.HouseholdId.Value,
+                    HousingStatus: currentHousing.HousingStatus.ToString(),
+                    ResidentialBuildingId: currentHousing.ResidentialBuildingId?.Value);
 
             return new CityResidentDetailsDto(
                 Id: snapshot.Id,
@@ -91,7 +102,8 @@ namespace Matrix.Population.Application.Mapping
                 SocialNeed: snapshot.SocialNeed,
                 EmploymentStatus: snapshot.EmploymentStatus,
                 JobTitle: snapshot.JobTitle,
-                CurrentSpouse: currentSpouse?.ToReferenceDto());
+                CurrentSpouse: currentSpouse?.ToReferenceDto(),
+                CurrentHousing: housing);
         }
 
         /// <summary>

@@ -2,6 +2,11 @@ using Matrix.Population.Contracts.Models;
 
 namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
 {
+    public sealed record class CityResidentHousingDto(
+        Guid HouseholdId,
+        string HousingStatus,
+        Guid? ResidentialBuildingId);
+
     public sealed record class CityResidentDetailsDto(
         Guid Id,
         string FullName,
@@ -20,5 +25,6 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         int SocialNeed,
         string EmploymentStatus,
         string? JobTitle,
-        PersonReferenceDto? CurrentSpouse);
+        PersonReferenceDto? CurrentSpouse,
+        CityResidentHousingDto CurrentHousing);
 }

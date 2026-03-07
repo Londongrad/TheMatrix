@@ -122,6 +122,24 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.BusinessRule);
         }
 
+        public static MatrixApplicationException HouseholdNotFound(Guid householdId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Household.NotFound",
+                message: $"Household '{householdId}' was not found.",
+                errorType: ApplicationErrorType.NotFound);
+        }
+
+        public static MatrixApplicationException HouseholdPlacementNotFound(
+            Guid householdId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.ClassicCity.HouseholdPlacement.NotFound",
+                message: $"Household '{householdId}' has no classic city placement for city '{cityId}'.",
+                errorType: ApplicationErrorType.NotFound);
+        }
+
         public static MatrixApplicationException InvalidEducationLevel(string? value)
         {
             string normalizedValue = string.IsNullOrWhiteSpace(value)

@@ -35,6 +35,11 @@ namespace Matrix.Population.Domain.Entities
                 createdAtUtc: createdAtUtc);
         }
 
+        public void Resize(HouseholdSize size)
+        {
+            Size = size;
+        }
+
         private static void EnsureUtc(DateTimeOffset value)
         {
             GuardHelper.Ensure(

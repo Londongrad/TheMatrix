@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -87,6 +88,36 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             return cityId.HasValue
                 ? CityId.From(cityId.Value)
                 : null;
+        }
+
+        public async Task<CityResidentHousingSnapshot?> FindHousingSnapshotByPersonIdAsync(
+            CityId cityId,
+            PersonId personId,
+            CancellationToken cancellationToken = default)
+        {
+            var snapshot = await (
+                from person in _dbContext.Persons.AsNoTracking()
+                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                    on person.HouseholdId equals placement.HouseholdId
+                where placement.CityId == cityId && person.Id == personId
+                select new
+                {
+                    HouseholdId = person.HouseholdId.Value,
+                    placement.HousingStatus,
+                    ResidentialBuildingId = placement.ResidentialBuildingId.HasValue
+                        ? placement.ResidentialBuildingId.Value.Value
+                        : (Guid?)null
+                })
+               .FirstOrDefaultAsync(cancellationToken);
+
+            return snapshot is null
+                ? null
+                : new CityResidentHousingSnapshot(
+                    HouseholdId: HouseholdId.From(snapshot.HouseholdId),
+                    HousingStatus: snapshot.HousingStatus,
+                    ResidentialBuildingId: snapshot.ResidentialBuildingId.HasValue
+                        ? ResidentialBuildingId.From(snapshot.ResidentialBuildingId.Value)
+                        : null);
         }
     }
 }
