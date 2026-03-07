@@ -187,7 +187,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 CityCorePermissionKeys.CityCoreSimulationRead,
                 CityCorePermissionKeys.CityCoreSimulationControl,
                 PopulationPermissionKeys.PopulationPeopleRead,
-                PopulationPermissionKeys.PopulationCivilRegistryManage
+                PopulationPermissionKeys.PopulationCivilRegistryManage,
+                PopulationPermissionKeys.PopulationEmploymentManage
             };
         }
     }

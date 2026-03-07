@@ -8,6 +8,7 @@ namespace Matrix.Population.Contracts.Authorization.Permissions
 
         private const string PeopleGroup = "People";
         private const string CivilRegistryGroup = "Civil registry";
+        private const string EmploymentGroup = "Employment";
         private const string PersonGroup = "Person";
 
         public static readonly IReadOnlyList<PermissionDefinition> All =
@@ -28,6 +29,11 @@ namespace Matrix.Population.Contracts.Authorization.Permissions
                     Service: PopulationService,
                     Group: CivilRegistryGroup,
                     Description: "Manage marriages and divorces inside city civil registry services."),
+                new(
+                    Key: PermissionKeys.PopulationEmploymentManage,
+                    Service: PopulationService,
+                    Group: EmploymentGroup,
+                    Description: "Manage hiring, firing, and retirement inside classic city employment services."),
                 new(
                     Key: PermissionKeys.PopulationPersonKill,
                     Service: PopulationService,

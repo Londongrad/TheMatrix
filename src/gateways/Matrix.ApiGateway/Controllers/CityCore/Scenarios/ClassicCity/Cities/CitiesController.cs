@@ -143,6 +143,87 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             return Ok(resident);
         }
 
+        [HttpGet("{cityId:guid}/employment/catalog")]
+        public async Task<ActionResult<CityEmploymentCatalogDto>> GetEmploymentCatalog(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            CityEmploymentCatalogDto catalog = await _populationClient.GetCityEmploymentCatalogAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(catalog);
+        }
+
+        [HttpPost("{cityId:guid}/employment/hire")]
+        public async Task<ActionResult<CityEmploymentOperationResultDto>> HireResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEmploymentOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityEmploymentOperationResultDto result = await _populationClient.HireCityResidentAsync(
+                cityId: cityId,
+                request: new CityEmploymentOperationRequest(
+                    ResidentId: request.ResidentId,
+                    JobTitle: request.JobTitle,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{cityId:guid}/employment/fire")]
+        public async Task<ActionResult<CityEmploymentOperationResultDto>> FireResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEmploymentOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityEmploymentOperationResultDto result = await _populationClient.FireCityResidentAsync(
+                cityId: cityId,
+                request: new CityEmploymentOperationRequest(
+                    ResidentId: request.ResidentId,
+                    JobTitle: request.JobTitle,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{cityId:guid}/employment/retire")]
+        public async Task<ActionResult<CityEmploymentOperationResultDto>> RetireResident(
+            [FromRoute] Guid cityId,
+            [FromBody] CityEmploymentOperationRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            SimulationClockView clock = await _simulationClient.GetClockAsync(
+                simulationId: cityId,
+                cancellationToken: cancellationToken);
+
+            var currentDate = DateOnly.FromDateTime(clock.SimTimeUtc.UtcDateTime);
+
+            CityEmploymentOperationResultDto result = await _populationClient.RetireCityResidentAsync(
+                cityId: cityId,
+                request: new CityEmploymentOperationRequest(
+                    ResidentId: request.ResidentId,
+                    JobTitle: request.JobTitle,
+                    CurrentDate: currentDate),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
         [HttpPost("{cityId:guid}/civil-registry/marriages")]
         public async Task<ActionResult<CityCivilRegistryOperationResultDto>> RegisterMarriage(
             [FromRoute] Guid cityId,
