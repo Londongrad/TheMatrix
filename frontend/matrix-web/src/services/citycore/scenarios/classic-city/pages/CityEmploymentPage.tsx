@@ -65,6 +65,14 @@ function formatTimestamp(value: string): string {
     return parsed.toLocaleString();
 }
 
+function formatWorkplaceLabel(workplaceId?: string | null) {
+    if (!workplaceId) {
+        return "No current workplace";
+    }
+
+    return `Workplace ${workplaceId.slice(0, 8)}`;
+}
+
 type SelectedResidentCardProps = {
     cityId: string;
     residentId: string;
@@ -119,6 +127,21 @@ function SelectedResidentCard({
                         Current job:
                         {" "}
                         <strong>{resident?.jobTitle?.trim() ? resident.jobTitle : "No assigned title"}</strong>
+                    </p>
+
+                    <p className="city-employment__selected-copy">
+                        Current workplace:
+                        {" "}
+                        {resident?.currentWorkplace ? (
+                            <span
+                                className="city-employment__entity-token"
+                                title={resident.currentWorkplace.workplaceId}
+                            >
+                                {formatWorkplaceLabel(resident.currentWorkplace.workplaceId)}
+                            </span>
+                        ) : (
+                            <strong>No current workplace</strong>
+                        )}
                     </p>
 
                     {resident ? (

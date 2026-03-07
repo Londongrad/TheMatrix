@@ -29,7 +29,7 @@ type ResidentDossierTabKey = "overview" | "relationships" | "career" | "educatio
 const DOSSIER_TABS: ReadonlyArray<{ key: ResidentDossierTabKey; label: string; helper: string }> = [
     {key: "overview", label: "Overview", helper: "Current snapshot of this resident inside the city."},
     {key: "relationships", label: "Relationships", helper: "Current marital state and spouse link."},
-    {key: "career", label: "Career", helper: "Current employment status until work services land."},
+    {key: "career", label: "Career", helper: "Current employment and workplace context."},
     {key: "education", label: "Education", helper: "Current level until education history arrives."},
     {key: "health", label: "Health", helper: "Live wellbeing and pressure metrics."},
 ];
@@ -44,6 +44,14 @@ function formatHouseholdLabel(householdId?: string | null) {
     }
 
     return `Household ${householdId.slice(0, 8)}`;
+}
+
+function formatWorkplaceLabel(workplaceId?: string | null) {
+    if (!workplaceId) {
+        return "No current workplace";
+    }
+
+    return `Workplace ${workplaceId.slice(0, 8)}`;
 }
 
 const CityResidentDossierPage = () => {
@@ -236,6 +244,19 @@ const CityResidentDossierPage = () => {
                                             </dd>
                                         </div>
                                         <div>
+                                            <dt>Current workplace</dt>
+                                            <dd>
+                                                {resident.currentWorkplace ? (
+                                                    <span
+                                                        className="city-resident-dossier__entity-token"
+                                                        title={resident.currentWorkplace.workplaceId}
+                                                    >
+                                                        {formatWorkplaceLabel(resident.currentWorkplace.workplaceId)}
+                                                    </span>
+                                                ) : "No current workplace"}
+                                            </dd>
+                                        </div>
+                                        <div>
                                             <dt>Education</dt>
                                             <dd>{resident.educationLevel}</dd>
                                         </div>
@@ -333,9 +354,22 @@ const CityResidentDossierPage = () => {
                                             <dt>Job title</dt>
                                             <dd>{resident.jobTitle?.trim() ? resident.jobTitle : "No current job title"}</dd>
                                         </div>
+                                        <div>
+                                            <dt>Current workplace</dt>
+                                            <dd>
+                                                {resident.currentWorkplace ? (
+                                                    <span
+                                                        className="city-resident-dossier__entity-token"
+                                                        title={resident.currentWorkplace.workplaceId}
+                                                    >
+                                                        {formatWorkplaceLabel(resident.currentWorkplace.workplaceId)}
+                                                    </span>
+                                                ) : "No current workplace"}
+                                            </dd>
+                                        </div>
                                     </dl>
                                 </section>
-                                {renderLifecycleHint("Career history, workplace transfers, and hire/fire events will land here once employment services are in place.")}
+                                {renderLifecycleHint("Career history, workplace transfers, and hire/fire event streams can land here later without changing the current classic-city employment workspace.")}
                             </div>
                         ) : null}
 

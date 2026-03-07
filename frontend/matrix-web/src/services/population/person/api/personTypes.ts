@@ -29,9 +29,14 @@ export interface CityResidentHousingDto {
     residentialBuildingId?: string | null;
 }
 
+export interface CityResidentWorkplaceDto {
+    workplaceId: string;
+}
+
 export interface CityResidentDetailsDto extends PersonDto {
     currentSpouse?: PersonReferenceDto | null;
     currentHousing: CityResidentHousingDto;
+    currentWorkplace?: CityResidentWorkplaceDto | null;
 }
 
 export interface CityEmploymentCatalogDto {

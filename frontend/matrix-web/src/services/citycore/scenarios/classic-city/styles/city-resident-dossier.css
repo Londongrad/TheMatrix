@@ -161,6 +161,20 @@
     text-decoration: underline;
 }
 
+.city-resident-dossier__entity-token {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.22);
+    background: rgba(var(--shell-accent-rgb), 0.1);
+    color: var(--app-text-strong);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
 .city-resident-dossier__metric-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
