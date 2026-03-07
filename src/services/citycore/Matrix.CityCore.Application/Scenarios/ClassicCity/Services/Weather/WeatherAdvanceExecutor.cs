@@ -47,7 +47,11 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherState nextNaturalState = planner.PlanNaturalState(
                 environment: city.Environment,
                 climateProfile: cityWeather.ClimateProfile,
-                evaluatedAt: evaluatedAt);
+                generationSeed: city.GenerationSeed,
+                evaluatedAt: evaluatedAt,
+                previousState: cityWeather.ActiveOverride is null
+                    ? cityWeather.CurrentState
+                    : null);
 
             cityWeather.AdvanceTo(
                 evaluatedAt: evaluatedAt,

@@ -26,7 +26,9 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherState naturalState = planner.PlanNaturalState(
                 environment: city.Environment,
                 climateProfile: climateProfile,
-                evaluatedAt: initialTime);
+                generationSeed: city.GenerationSeed,
+                evaluatedAt: initialTime,
+                previousState: null);
             WeatherState initialState = city.InitialWeatherProfile.Mode switch
             {
                 InitialWeatherMode.Manual => BuildManualInitialState(

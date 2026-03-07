@@ -9,6 +9,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather.Abs
         WeatherState PlanNaturalState(
             CityEnvironment environment,
             WeatherClimateProfile climateProfile,
-            SimTime evaluatedAt);
+            CityGenerationSeed generationSeed,
+            SimTime evaluatedAt,
+            WeatherState? previousState = null);
     }
 }

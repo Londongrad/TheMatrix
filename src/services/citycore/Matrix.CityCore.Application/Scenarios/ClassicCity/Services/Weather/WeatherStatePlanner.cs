@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
@@ -18,7 +20,9 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
         public WeatherState PlanNaturalState(
             CityEnvironment environment,
             WeatherClimateProfile climateProfile,
-            SimTime evaluatedAt)
+            CityGenerationSeed generationSeed,
+            SimTime evaluatedAt,
+            WeatherState? previousState = null)
         {
             ArgumentNullException.ThrowIfNull(environment);
             ArgumentNullException.ThrowIfNull(climateProfile);
@@ -33,30 +37,84 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
                 hemisphere: environment.Hemisphere);
 
             decimal volatilityFactor = ResolveVolatilityFactor(climateProfile.Volatility);
+            decimal temperatureRoll = GetSeededCenteredUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "temperature");
+            decimal humidityRoll = GetSeededCenteredUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "humidity");
+            decimal windRoll = GetSeededCenteredUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "wind");
+            decimal precipitationRoll = GetSeededUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "precipitation");
+            decimal precipitationKindRoll = GetSeededUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "precipitation-kind");
+            decimal weatherTypeRoll = GetSeededUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "weather-type");
+            decimal severityRoll = GetSeededUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "severity");
+            decimal cloudRoll = GetSeededCenteredUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "clouds");
+            decimal pressureRoll = GetSeededCenteredUnitValue(
+                generationSeed: generationSeed,
+                environment: environment,
+                localWindowStart: localWindowStart,
+                salt: "pressure");
+
             TemperatureC temperature = CalculateTemperature(
                 climateProfile: climateProfile,
                 season: season,
                 representativeHour: representativeHour,
-                volatilityFactor: volatilityFactor);
+                volatilityFactor: volatilityFactor,
+                temperatureRoll: temperatureRoll);
 
             HumidityPercent humidity = CalculateHumidity(
                 climateProfile: climateProfile,
                 season: season,
                 representativeHour: representativeHour,
-                volatilityFactor: volatilityFactor);
+                volatilityFactor: volatilityFactor,
+                humidityRoll: humidityRoll);
 
             WindSpeedKph windSpeed = CalculateWindSpeed(
                 climateProfile: climateProfile,
                 season: season,
                 representativeHour: representativeHour,
-                volatilityFactor: volatilityFactor);
+                volatilityFactor: volatilityFactor,
+                windRoll: windRoll);
 
             PrecipitationKind precipitationKind = DeterminePrecipitationKind(
                 climateProfile: climateProfile,
                 season: season,
                 temperature: temperature,
+                humidity: humidity,
+                windSpeed: windSpeed,
                 representativeHour: representativeHour,
-                volatilityFactor: volatilityFactor);
+                previousState: previousState,
+                localWindowStart: localWindowStart,
+                precipitationRoll: precipitationRoll,
+                precipitationKindRoll: precipitationKindRoll);
 
             WeatherType weatherType = DetermineWeatherType(
                 climateProfile: climateProfile,
@@ -64,24 +122,28 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
                 humidity: humidity,
                 windSpeed: windSpeed,
                 precipitationKind: precipitationKind,
-                representativeHour: representativeHour);
+                representativeHour: representativeHour,
+                weatherTypeRoll: weatherTypeRoll);
 
             WeatherSeverity severity = DetermineSeverity(
                 climateProfile: climateProfile,
                 weatherType: weatherType,
                 precipitationKind: precipitationKind,
                 windSpeed: windSpeed,
-                volatilityFactor: volatilityFactor);
+                volatilityFactor: volatilityFactor,
+                severityRoll: severityRoll);
 
             CloudCoveragePercent cloudCoverage = DetermineCloudCoverage(
                 weatherType: weatherType,
                 humidity: humidity,
                 precipitationKind: precipitationKind,
-                volatilityFactor: volatilityFactor);
+                volatilityFactor: volatilityFactor,
+                cloudRoll: cloudRoll);
 
             PressureHpa pressure = DeterminePressure(
                 weatherType: weatherType,
-                volatilityFactor: volatilityFactor);
+                volatilityFactor: volatilityFactor,
+                pressureRoll: pressureRoll);
 
             return WeatherState.Create(
                 type: weatherType,
@@ -119,7 +181,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherClimateProfile climateProfile,
             WeatherSeason season,
             int representativeHour,
-            decimal volatilityFactor)
+            decimal volatilityFactor,
+            decimal temperatureRoll)
         {
             decimal baseline = climateProfile.GetBaselineTemperature(season)
                .Value;
@@ -133,6 +196,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             };
 
             decimal value = baseline + (swing * multiplier * volatilityFactor);
+            value += temperatureRoll * (1.10m + (volatilityFactor * 1.80m));
             return TemperatureC.From(
                 Math.Round(
                     d: value,
@@ -143,7 +207,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherClimateProfile climateProfile,
             WeatherSeason season,
             int representativeHour,
-            decimal volatilityFactor)
+            decimal volatilityFactor,
+            decimal humidityRoll)
         {
             decimal baseline = climateProfile.GetBaselineHumidity(season)
                .Value;
@@ -156,6 +221,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             };
 
             decimal value = baseline + (adjustment * volatilityFactor);
+            value += humidityRoll * (4m + (volatilityFactor * 4m));
             value = Math.Clamp(
                 value: value,
                 min: HumidityPercent.Min,
@@ -170,7 +236,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherClimateProfile climateProfile,
             WeatherSeason season,
             int representativeHour,
-            decimal volatilityFactor)
+            decimal volatilityFactor,
+            decimal windRoll)
         {
             decimal baseline = climateProfile.GetBaselineWindSpeed(season)
                .Value;
@@ -183,6 +250,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             };
 
             decimal value = baseline + (adjustment * volatilityFactor);
+            value += windRoll * (2.5m + (volatilityFactor * 4.5m));
             value = Math.Clamp(
                 value: value,
                 min: WindSpeedKph.Min,
@@ -197,34 +265,62 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherClimateProfile climateProfile,
             WeatherSeason season,
             TemperatureC temperature,
+            HumidityPercent humidity,
+            WindSpeedKph windSpeed,
             int representativeHour,
-            decimal volatilityFactor)
+            WeatherState? previousState,
+            DateTimeOffset localWindowStart,
+            decimal precipitationRoll,
+            decimal precipitationKindRoll)
         {
             PrecipitationKind dominantKind = climateProfile.GetDominantPrecipitation(season);
+            decimal wetProbability = ResolveWetProbability(
+                climateProfile: climateProfile,
+                dominantKind: dominantKind,
+                humidity: humidity,
+                representativeHour: representativeHour,
+                previousState: previousState,
+                localWindowStart: localWindowStart);
 
-            if (dominantKind == PrecipitationKind.None && volatilityFactor >= 1.25m && representativeHour >= 12)
+            if (precipitationRoll > wetProbability)
+                return PrecipitationKind.None;
+
+            if (temperature.Value <= -2m)
+            {
+                return precipitationKindRoll >= 0.78m &&
+                       dominantKind == PrecipitationKind.Sleet
+                    ? PrecipitationKind.Sleet
+                    : PrecipitationKind.Snow;
+            }
+
+            if (temperature.Value < 2m)
+            {
+                return dominantKind is PrecipitationKind.Snow or PrecipitationKind.Sleet ||
+                       precipitationKindRoll < 0.58m
+                    ? PrecipitationKind.Sleet
+                    : PrecipitationKind.Drizzle;
+            }
+
+            if (climateProfile.ExtremeWeatherProfile.SupportsThunderstorms &&
+                humidity.Value >= 82m &&
+                windSpeed.Value >= 28m &&
+                precipitationKindRoll >= 0.96m)
+            {
+                return PrecipitationKind.Hail;
+            }
+
+            if (dominantKind == PrecipitationKind.Drizzle && precipitationKindRoll < 0.64m)
                 return PrecipitationKind.Drizzle;
 
-            return dominantKind switch
-            {
-                PrecipitationKind.None => PrecipitationKind.None,
-                PrecipitationKind.Drizzle => volatilityFactor >= 1.30m && representativeHour >= 12
-                    ? PrecipitationKind.Rain
-                    : PrecipitationKind.Drizzle,
-                PrecipitationKind.Rain => representativeHour < 6
+            if (dominantKind == PrecipitationKind.None)
+                return precipitationKindRoll < 0.55m
                     ? PrecipitationKind.Drizzle
-                    : PrecipitationKind.Rain,
-                PrecipitationKind.Snow => temperature.Value > 0m
-                    ? PrecipitationKind.Sleet
-                    : PrecipitationKind.Snow,
-                PrecipitationKind.Sleet => temperature.Value <= 0m
-                    ? PrecipitationKind.Snow
-                    : PrecipitationKind.Sleet,
-                PrecipitationKind.Hail => volatilityFactor >= 1.15m
-                    ? PrecipitationKind.Hail
-                    : PrecipitationKind.Rain,
-                _ => PrecipitationKind.None
-            };
+                    : PrecipitationKind.Rain;
+
+            if (precipitationKindRoll < 0.30m && representativeHour < 6)
+                return PrecipitationKind.Drizzle;
+
+            return PrecipitationKind.Rain;
         }
 
         private static WeatherType DetermineWeatherType(
@@ -233,10 +329,28 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             HumidityPercent humidity,
             WindSpeedKph windSpeed,
             PrecipitationKind precipitationKind,
-            int representativeHour)
+            int representativeHour,
+            decimal weatherTypeRoll)
         {
             if (precipitationKind == PrecipitationKind.Hail)
                 return WeatherType.Storm;
+
+            if ((precipitationKind == PrecipitationKind.Rain || precipitationKind == PrecipitationKind.Drizzle) &&
+                climateProfile.ExtremeWeatherProfile.SupportsThunderstorms &&
+                humidity.Value >= 82m &&
+                windSpeed.Value >= 26m &&
+                weatherTypeRoll >= 0.84m)
+            {
+                return WeatherType.Storm;
+            }
+
+            if ((precipitationKind == PrecipitationKind.Snow || precipitationKind == PrecipitationKind.Sleet) &&
+                climateProfile.ExtremeWeatherProfile.SupportsSnowstorms &&
+                windSpeed.Value >= 30m &&
+                weatherTypeRoll >= 0.80m)
+            {
+                return WeatherType.Storm;
+            }
 
             if (precipitationKind == PrecipitationKind.Rain || precipitationKind == PrecipitationKind.Drizzle)
                 return WeatherType.Rain;
@@ -244,21 +358,30 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             if (precipitationKind == PrecipitationKind.Snow || precipitationKind == PrecipitationKind.Sleet)
                 return WeatherType.Snow;
 
-            if (climateProfile.ExtremeWeatherProfile.SupportsHeatwaves && temperature.Value >= 33m)
+            if (climateProfile.ExtremeWeatherProfile.SupportsHeatwaves &&
+                temperature.Value >= 33m &&
+                humidity.Value <= 58m &&
+                weatherTypeRoll >= 0.52m)
+            {
                 return WeatherType.Heatwave;
+            }
 
-            if (temperature.Value <= -18m)
+            if (temperature.Value <= -18m && weatherTypeRoll >= 0.40m)
                 return WeatherType.ColdSnap;
 
             if (climateProfile.ExtremeWeatherProfile.SupportsFog &&
                 humidity.Value >= 90m &&
-                (representativeHour < 6 || representativeHour >= 18))
+                windSpeed.Value <= 15m &&
+                (representativeHour < 6 || representativeHour >= 18) &&
+                weatherTypeRoll <= 0.42m)
+            {
                 return WeatherType.Fog;
+            }
 
-            if (windSpeed.Value >= 35m)
+            if (windSpeed.Value >= 36m || (windSpeed.Value >= 28m && weatherTypeRoll >= 0.86m))
                 return WeatherType.Windy;
 
-            if (humidity.Value >= 68m)
+            if (humidity.Value >= 68m || (humidity.Value >= 60m && weatherTypeRoll >= 0.76m))
                 return WeatherType.Overcast;
 
             return WeatherType.Clear;
@@ -269,32 +392,60 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherType weatherType,
             PrecipitationKind precipitationKind,
             WindSpeedKph windSpeed,
-            decimal volatilityFactor)
+            decimal volatilityFactor,
+            decimal severityRoll)
         {
-            WeatherSeverity requested = weatherType switch
+            int requestedValue = weatherType switch
             {
                 WeatherType.Clear => windSpeed.Value >= 20m
-                    ? WeatherSeverity.Mild
-                    : WeatherSeverity.Calm,
-                WeatherType.Overcast => WeatherSeverity.Mild,
-                WeatherType.Fog => WeatherSeverity.Mild,
+                    ? (int)WeatherSeverity.Mild
+                    : (int)WeatherSeverity.Calm,
+                WeatherType.Overcast => (int)WeatherSeverity.Mild,
+                WeatherType.Fog => (int)WeatherSeverity.Mild,
                 WeatherType.Windy => windSpeed.Value >= 55m
-                    ? WeatherSeverity.Moderate
-                    : WeatherSeverity.Mild,
-                WeatherType.Heatwave => WeatherSeverity.Moderate,
-                WeatherType.ColdSnap => WeatherSeverity.Moderate,
+                    ? (int)WeatherSeverity.Moderate
+                    : (int)WeatherSeverity.Mild,
+                WeatherType.Heatwave => (int)WeatherSeverity.Moderate,
+                WeatherType.ColdSnap => (int)WeatherSeverity.Moderate,
                 WeatherType.Rain => precipitationKind == PrecipitationKind.Rain
-                    ? WeatherSeverity.Moderate
-                    : WeatherSeverity.Mild,
+                    ? (int)WeatherSeverity.Moderate
+                    : (int)WeatherSeverity.Mild,
                 WeatherType.Snow => windSpeed.Value >= 25m || precipitationKind == PrecipitationKind.Sleet
-                    ? WeatherSeverity.Moderate
-                    : WeatherSeverity.Mild,
-                WeatherType.Storm => WeatherSeverity.Severe,
-                _ => WeatherSeverity.Mild
+                    ? (int)WeatherSeverity.Moderate
+                    : (int)WeatherSeverity.Mild,
+                WeatherType.Storm => (int)WeatherSeverity.Severe,
+                _ => (int)WeatherSeverity.Mild
             };
 
-            if (volatilityFactor >= 1.28m && requested < WeatherSeverity.Severe)
-                requested++;
+            if (severityRoll >= 0.78m && requestedValue < (int)WeatherSeverity.Severe)
+                requestedValue++;
+
+            if (weatherType is WeatherType.Storm or WeatherType.Heatwave or WeatherType.ColdSnap &&
+                severityRoll >= 0.94m &&
+                requestedValue < (int)WeatherSeverity.Extreme)
+            {
+                requestedValue++;
+            }
+
+            if (severityRoll <= 0.14m &&
+                weatherType != WeatherType.Storm &&
+                requestedValue > (int)WeatherSeverity.Calm)
+            {
+                requestedValue--;
+            }
+
+            if (volatilityFactor >= 1.35m &&
+                severityRoll >= 0.60m &&
+                requestedValue < (int)WeatherSeverity.Severe)
+            {
+                requestedValue++;
+            }
+
+            requestedValue = Math.Clamp(
+                value: requestedValue,
+                min: (int)WeatherSeverity.Calm,
+                max: (int)WeatherSeverity.Extreme);
+            WeatherSeverity requested = (WeatherSeverity)requestedValue;
 
             return requested <= climateProfile.ExtremeWeatherProfile.MaxOverallSeverity
                 ? requested
@@ -305,7 +456,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherType weatherType,
             HumidityPercent humidity,
             PrecipitationKind precipitationKind,
-            decimal volatilityFactor)
+            decimal volatilityFactor,
+            decimal cloudRoll)
         {
             decimal value = weatherType switch
             {
@@ -330,6 +482,14 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             if (weatherType == WeatherType.Clear || weatherType == WeatherType.Windy)
                 value += (volatilityFactor - 1m) * 8m;
 
+            value += cloudRoll * (weatherType switch
+            {
+                WeatherType.Clear => 10m,
+                WeatherType.Windy => 12m,
+                WeatherType.Heatwave => 8m,
+                WeatherType.Fog => 6m,
+                _ => 5m
+            });
             value = Math.Clamp(
                 value: value,
                 min: CloudCoveragePercent.Min,
@@ -342,7 +502,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
 
         private static PressureHpa DeterminePressure(
             WeatherType weatherType,
-            decimal volatilityFactor)
+            decimal volatilityFactor,
+            decimal pressureRoll)
         {
             decimal value = weatherType switch
             {
@@ -367,6 +528,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             };
 
             value += adjustment * (volatilityFactor - 1m);
+            value += pressureRoll * 5m;
             value = Math.Clamp(
                 value: value,
                 min: PressureHpa.Min,
@@ -375,6 +537,95 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
                 Math.Round(
                     d: value,
                     decimals: 2));
+        }
+
+        private static decimal ResolveWetProbability(
+            WeatherClimateProfile climateProfile,
+            PrecipitationKind dominantKind,
+            HumidityPercent humidity,
+            int representativeHour,
+            WeatherState? previousState,
+            DateTimeOffset localWindowStart)
+        {
+            decimal humidityFactor = humidity.Value / HumidityPercent.Max;
+            decimal dominantBias = dominantKind switch
+            {
+                PrecipitationKind.None => 0.06m + (humidityFactor * 0.16m),
+                PrecipitationKind.Drizzle => 0.22m + (humidityFactor * 0.18m),
+                PrecipitationKind.Rain => 0.34m + (humidityFactor * 0.24m),
+                PrecipitationKind.Snow => 0.36m + (humidityFactor * 0.18m),
+                PrecipitationKind.Sleet => 0.30m + (humidityFactor * 0.20m),
+                PrecipitationKind.Hail => 0.28m + (humidityFactor * 0.20m),
+                _ => 0.12m
+            };
+
+            decimal timeOfDayBias = representativeHour switch
+            {
+                >= 0 and < 6 => -0.10m,
+                >= 6 and < 12 => -0.02m,
+                >= 12 and < 18 => 0.08m,
+                _ => 0.03m
+            };
+
+            decimal continuityBias = ResolveWetContinuityBias(
+                previousState: previousState,
+                localWindowStart: localWindowStart);
+
+            decimal probability = dominantBias +
+                                  timeOfDayBias +
+                                  (climateProfile.Volatility.Value * 0.22m) +
+                                  continuityBias;
+
+            return Math.Clamp(
+                value: probability,
+                min: 0.05m,
+                max: 0.92m);
+        }
+
+        private static decimal ResolveWetContinuityBias(
+            WeatherState? previousState,
+            DateTimeOffset localWindowStart)
+        {
+            if (previousState is null)
+                return 0m;
+
+            bool previousWet = previousState.PrecipitationKind != PrecipitationKind.None;
+            int streakBlocks = CalculateStreakBlocks(
+                previousState: previousState,
+                localWindowStart: localWindowStart);
+
+            if (previousWet)
+            {
+                decimal persistencePenalty = Math.Min(
+                    val1: 0.18m,
+                    val2: Math.Max(
+                        val1: 0,
+                        val2: streakBlocks - 1) * 0.05m);
+                return 0.12m - persistencePenalty;
+            }
+
+            decimal recoveryBoost = Math.Min(
+                val1: 0.12m,
+                val2: Math.Max(
+                    val1: 0,
+                    val2: streakBlocks - 2) * 0.03m);
+            return -0.06m + recoveryBoost;
+        }
+
+        private static int CalculateStreakBlocks(
+            WeatherState previousState,
+            DateTimeOffset localWindowStart)
+        {
+            DateTimeOffset currentWindowStartUtc = localWindowStart.ToUniversalTime();
+
+            if (currentWindowStartUtc <= previousState.StartedAt.ValueUtc)
+                return 1;
+
+            double elapsedBlocks = (currentWindowStartUtc - previousState.StartedAt.ValueUtc)
+               .TotalHours / WeatherBlockHours;
+            return Math.Max(
+                val1: 1,
+                val2: (int)Math.Floor(elapsedBlocks));
         }
 
         private static WeatherSeason ResolveSeason(
@@ -400,6 +651,46 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
                 WeatherSeason.Winter => WeatherSeason.Summer,
                 _ => northernSeason
             };
+        }
+
+        private static decimal GetSeededUnitValue(
+            CityGenerationSeed generationSeed,
+            CityEnvironment environment,
+            DateTimeOffset localWindowStart,
+            string salt)
+        {
+            byte[] hash = SHA256.HashData(
+                Encoding.UTF8.GetBytes(
+                    BuildSeedInput(
+                        generationSeed: generationSeed,
+                        environment: environment,
+                        localWindowStart: localWindowStart,
+                        salt: salt)));
+            uint sample = BitConverter.ToUInt32(hash, 0);
+            return sample / (decimal)uint.MaxValue;
+        }
+
+        private static decimal GetSeededCenteredUnitValue(
+            CityGenerationSeed generationSeed,
+            CityEnvironment environment,
+            DateTimeOffset localWindowStart,
+            string salt)
+        {
+            return (GetSeededUnitValue(
+                        generationSeed: generationSeed,
+                        environment: environment,
+                        localWindowStart: localWindowStart,
+                        salt: salt) - 0.5m) * 2m;
+        }
+
+        private static string BuildSeedInput(
+            CityGenerationSeed generationSeed,
+            CityEnvironment environment,
+            DateTimeOffset localWindowStart,
+            string salt)
+        {
+            return FormattableString.Invariant(
+                $"weather|{generationSeed.Value}|{environment.ClimateZone}|{environment.Hemisphere}|{localWindowStart:yyyy-MM-dd-HH}|{salt}");
         }
     }
 }
