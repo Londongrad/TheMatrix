@@ -83,6 +83,10 @@ namespace Matrix.Population.Application.Mapping
                     HouseholdId: currentHousing.HouseholdId.Value,
                     HousingStatus: currentHousing.HousingStatus.ToString(),
                     ResidentialBuildingId: currentHousing.ResidentialBuildingId?.Value);
+            CityResidentWorkplaceDto? workplace = person.Employment.Job is null
+                ? null
+                : new CityResidentWorkplaceDto(
+                    WorkplaceId: person.Employment.Job.WorkplaceId.Value);
 
             return new CityResidentDetailsDto(
                 Id: snapshot.Id,
@@ -103,7 +107,8 @@ namespace Matrix.Population.Application.Mapping
                 EmploymentStatus: snapshot.EmploymentStatus,
                 JobTitle: snapshot.JobTitle,
                 CurrentSpouse: currentSpouse?.ToReferenceDto(),
-                CurrentHousing: housing);
+                CurrentHousing: housing,
+                CurrentWorkplace: workplace);
         }
 
         /// <summary>
