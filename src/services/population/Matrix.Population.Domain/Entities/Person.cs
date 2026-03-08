@@ -33,7 +33,10 @@ namespace Matrix.Population.Domain.Entities
             HealthLevel healthLevel,
             BodyWeight weight,
             Job? job,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            PersonId? motherId = null,
+            PersonId? fatherId = null,
+            DateOnly? lastChildbirthDate = null)
         {
             var lifeSpan = LifeSpan.FromBirthDate(birthDate);
             var life = LifeState.Create(
@@ -71,7 +74,10 @@ namespace Matrix.Population.Domain.Entities
                 stress: stressLevel,
                 socialNeed: socialNeedLevel,
                 personality: personality,
-                weight: weight);
+                weight: weight,
+                motherId: motherId,
+                fatherId: fatherId,
+                lastChildbirthDate: lastChildbirthDate);
         }
 
         #endregion [ Factory Methods ]
@@ -96,6 +102,9 @@ namespace Matrix.Population.Domain.Entities
         public StressLevel Stress { get; private set; }
         public SocialNeedLevel SocialNeed { get; private set; }
         public Personality Personality { get; } = null!;
+        public PersonId? MotherId { get; private set; }
+        public PersonId? FatherId { get; private set; }
+        public DateOnly? LastChildbirthDate { get; private set; }
 
         #endregion [ Properties ]
 
@@ -132,7 +141,10 @@ namespace Matrix.Population.Domain.Entities
             StressLevel stress,
             SocialNeedLevel socialNeed,
             Personality personality,
-            BodyWeight weight)
+            BodyWeight weight,
+            PersonId? motherId,
+            PersonId? fatherId,
+            DateOnly? lastChildbirthDate)
         {
             Id = id;
             HouseholdId = householdId;
@@ -167,6 +179,9 @@ namespace Matrix.Population.Domain.Entities
             Weight = GuardHelper.AgainstNull(
                 value: weight,
                 propertyName: nameof(Weight));
+            MotherId = motherId;
+            FatherId = fatherId;
+            LastChildbirthDate = lastChildbirthDate;
         }
 
         #endregion [ Constructors ]
@@ -447,6 +462,11 @@ namespace Matrix.Population.Domain.Entities
         {
             Marital = MaritalInfo.Widowed();
             ChangeHappiness(PersonHappinessDeltas.OnWidow);
+        }
+
+        public void RegisterChildbirth(DateOnly currentDate)
+        {
+            LastChildbirthDate = currentDate;
         }
 
         private void ClearNeedsForDeath()

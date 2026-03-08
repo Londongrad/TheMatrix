@@ -26,6 +26,37 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(p => p.HouseholdId);
 
+            builder.Property(p => p.MotherId)
+               .HasConversion(
+                    convertToProviderExpression: id => id.HasValue
+                        ? id.Value.Value
+                        : (Guid?)null,
+                    convertFromProviderExpression: value => value.HasValue
+                        ? PersonId.From(value.Value)
+                        : null)
+               .HasColumnName("MotherId");
+
+            builder.Property(p => p.FatherId)
+               .HasConversion(
+                    convertToProviderExpression: id => id.HasValue
+                        ? id.Value.Value
+                        : (Guid?)null,
+                    convertFromProviderExpression: value => value.HasValue
+                        ? PersonId.From(value.Value)
+                        : null)
+               .HasColumnName("FatherId");
+
+            builder.Property(p => p.LastChildbirthDate)
+               .HasConversion(
+                    convertToProviderExpression: date => date.HasValue
+                        ? date.Value.ToDateTime(TimeOnly.MinValue)
+                        : (DateTime?)null,
+                    convertFromProviderExpression: date => date.HasValue
+                        ? DateOnly.FromDateTime(date.Value)
+                        : null)
+               .HasColumnName("LastChildbirthDate")
+               .HasColumnType("date");
+
             builder.HasOne<Household>()
                .WithMany()
                .HasForeignKey(p => p.HouseholdId)

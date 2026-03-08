@@ -18,6 +18,7 @@ namespace Matrix.Population.Application
 
             services.AddSingleton<PersonNeedsProgressionPolicy>();
             services.AddSingleton<MarriageDomainService>();
+            services.AddSingleton<PopulationBirthDomainService>();
             services.AddClassicCityScenarioApplication();
 
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });

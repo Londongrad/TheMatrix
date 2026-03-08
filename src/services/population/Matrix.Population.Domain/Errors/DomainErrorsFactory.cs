@@ -452,6 +452,98 @@ namespace Matrix.Population.Domain.Errors
 
         #endregion [ Person - Marital ]
 
+        #region [ Person - Birth ]
+
+        public static DomainException BirthMotherMustBeAlive(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.MotherMustBeAlive",
+                message: "Birth mother must be alive.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthMotherMustBeFemale(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.MotherMustBeFemale",
+                message: "Birth mother must have female sex.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthMotherTooYoung(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.MotherTooYoung",
+                message: "Birth mother is too young for childbirth.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthMotherTooOld(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.MotherTooOld",
+                message: "Birth mother is too old for childbirth.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthFatherMustBeAlive(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.FatherMustBeAlive",
+                message: "Birth father must be alive.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthFatherMustBeMale(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.FatherMustBeMale",
+                message: "Birth father must have male sex.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthParentsCannotBeSamePerson(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.ParentsCannotBeSamePerson",
+                message: "Birth parents cannot be the same person.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthParentsMustShareHousehold(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.ParentsMustShareHousehold",
+                message: "Birth parents must belong to the same household.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthHouseholdMustMatchMother(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.HouseholdMustMatchMother",
+                message: "Birth household must match the mother's household.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException BirthHouseholdIsFull(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.HouseholdIsFull",
+                message: "Birth household cannot accept another resident because it is already at max size.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException DuplicateChildbirthOnSameDate(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Person.Birth.DuplicateChildbirthOnSameDate",
+                message: "The same mother cannot register two childbirths on the same simulation date.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Person - Birth ]
+
         #region [ Person - Age ]
 
         public static DomainException AgeIncrementMustBePositive(string? propertyName = null)

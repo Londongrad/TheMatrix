@@ -14,5 +14,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Enums
         ResidentBecameWidowed = 9,
         ResidentDied = 10,
         ResidentResurrected = 11,
+        ResidentBorn = 12,
     }
 }

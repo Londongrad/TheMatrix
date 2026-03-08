@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
@@ -14,6 +15,7 @@ using Matrix.Population.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
+using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
 using EducationInstitutionId = Matrix.Population.Domain.ValueObjects.EducationInstitutionId;
 using WorkplaceId = Matrix.Population.Domain.ValueObjects.WorkplaceId;
 using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
@@ -31,6 +33,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
         IHouseholdWriteRepository householdWriteRepository,
         MarriageDomainService marriageDomainService,
+        PopulationBirthDomainService populationBirthDomainService,
+        IPersonWriteRepository personWriteRepository,
+        CityBirthAutonomyPolicy birthAutonomyPolicy,
         CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
         CityEducationAutonomyPolicy educationAutonomyPolicy,
         CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
@@ -83,12 +88,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             {
                 if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
                 {
-                    personsSnapshot = await personReadRepository.ListByCityAsync(cityId, ct);
-                    var personsById = personsSnapshot.ToDictionary(x => x.Id, x => x);
-                    Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools = BuildEducationInstitutionPools(personsSnapshot);
-                    Dictionary<string, List<WorkplaceId>> workplacePools = BuildWorkplacePools(personsSnapshot);
+                    List<PersonEntity> residents = (await personReadRepository.ListByCityAsync(cityId, ct)).ToList();
+                    personsSnapshot = residents;
+                    var personsById = residents.ToDictionary(x => x.Id, x => x);
+                    Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools = BuildEducationInstitutionPools(residents);
+                    Dictionary<string, List<WorkplaceId>> workplacePools = BuildWorkplacePools(residents);
 
-                    foreach (PersonEntity person in personsSnapshot)
+                    foreach (PersonEntity person in residents)
                     {
                         ResidentLifecycleSnapshot beforeSnapshot = CreateResidentSnapshot(person);
 
@@ -100,7 +106,31 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     }
 
                     if (requiresDateProgression)
-                        affectedPeopleCount += await ApplyCivilRegistryAutonomyAsync(cityId, personsById, previousDate, toDate, householdWriteRepository, marriageDomainService, civilRegistryAutonomyPolicy, pendingActivityEntries, ct);
+                    {
+                        affectedPeopleCount += await ApplyBirthAutonomyAsync(
+                            cityId,
+                            personsById,
+                            previousDate,
+                            toDate,
+                            birthAutonomyPolicy,
+                            populationBirthDomainService,
+                            personWriteRepository,
+                            householdWriteRepository,
+                            pendingActivityEntries,
+                            residents,
+                            ct);
+
+                        affectedPeopleCount += await ApplyCivilRegistryAutonomyAsync(
+                            cityId,
+                            personsById,
+                            previousDate,
+                            toDate,
+                            householdWriteRepository,
+                            marriageDomainService,
+                            civilRegistryAutonomyPolicy,
+                            pendingActivityEntries,
+                            ct);
+                    }
                 }
 
                 DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
@@ -200,6 +230,76 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 changed = changed || previousHappiness != person.Happiness.Value;
             }
             return changed;
+        }
+
+        private static async Task<int> ApplyBirthAutonomyAsync(
+            CityId cityId,
+            IDictionary<PersonId, PersonEntity> residentsById,
+            DateOnly previousDate,
+            DateOnly currentDate,
+            CityBirthAutonomyPolicy birthAutonomyPolicy,
+            PopulationBirthDomainService populationBirthDomainService,
+            IPersonWriteRepository personWriteRepository,
+            IHouseholdWriteRepository householdWriteRepository,
+            ICollection<CityPopulationActivityWriteModel> activityEntries,
+            ICollection<PersonEntity> residents,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<CityBirthAutonomyDecision> decisions = birthAutonomyPolicy.Plan(
+                residents: residentsById.Values.ToArray(),
+                previousDate: previousDate,
+                currentDate: currentDate);
+
+            if (decisions.Count == 0)
+                return 0;
+
+            int affectedResidents = 0;
+
+            foreach (CityBirthAutonomyDecision decision in decisions)
+            {
+                if (!residentsById.TryGetValue(decision.MotherId, out PersonEntity? mother))
+                    continue;
+
+                PersonEntity? father = null;
+                if (decision.FatherId is not null &&
+                    !residentsById.TryGetValue(decision.FatherId.Value, out father))
+                    continue;
+
+                HouseholdEntity? household = await householdWriteRepository.FindByIdAsync(
+                    householdId: mother.HouseholdId,
+                    cancellationToken: cancellationToken);
+
+                if (household is null)
+                    continue;
+
+                PersonEntity newborn = populationBirthDomainService.RegisterBirth(
+                    mother: mother,
+                    father: father,
+                    household: household,
+                    newborn: decision.Newborn,
+                    currentDate: currentDate);
+
+                await personWriteRepository.AddAsync(
+                    person: newborn,
+                    cancellationToken: cancellationToken);
+                await householdWriteRepository.UpdateAsync(
+                    household: household,
+                    cancellationToken: cancellationToken);
+
+                residents.Add(newborn);
+                residentsById[newborn.Id] = newborn;
+                activityEntries.Add(
+                    ClassicCityActivityFactory.ResidentBorn(
+                        cityId: cityId.Value,
+                        currentDate: currentDate,
+                        resident: newborn,
+                        mother: mother,
+                        father: father,
+                        source: CityPopulationActivitySource.Autonomy));
+                affectedResidents++;
+            }
+
+            return affectedResidents;
         }
 
         private static async Task<int> ApplyCivilRegistryAutonomyAsync(CityId cityId, IReadOnlyDictionary<PersonId, PersonEntity> residentsById, DateOnly previousDate, DateOnly currentDate, IHouseholdWriteRepository householdWriteRepository, MarriageDomainService marriageDomainService, CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy, ICollection<CityPopulationActivityWriteModel> activityEntries, CancellationToken cancellationToken)

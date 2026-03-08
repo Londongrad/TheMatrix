@@ -227,6 +227,31 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 summary: $"{resident.Name} was restored to life.");
         }
 
+        public static CityPopulationActivityWriteModel ResidentBorn(
+            Guid cityId,
+            DateOnly currentDate,
+            Person resident,
+            Person mother,
+            Person? father,
+            CityPopulationActivitySource source)
+        {
+            string householdSummary = father is null
+                ? $"{resident.Name} was born into {mother.Name}'s household."
+                : $"{resident.Name} was born to {mother.Name} and {father.Name}.";
+
+            return new CityPopulationActivityWriteModel(
+                CityId: cityId,
+                CurrentDate: currentDate,
+                OccurredAtUtc: DateTimeOffset.UtcNow,
+                EventType: CityPopulationActivityEventType.ResidentBorn,
+                Source: source,
+                Severity: CityPopulationActivitySeverity.Success,
+                Title: "Resident born",
+                Summary: householdSummary,
+                PrimaryResidentId: resident.Id.Value,
+                SecondaryResidentId: mother.Id.Value);
+        }
+
         private static CityPopulationActivityWriteModel CreateResidentEvent(
             Guid cityId,
             DateOnly currentDate,
