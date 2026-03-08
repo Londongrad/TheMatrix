@@ -33,10 +33,16 @@ export interface CityResidentWorkplaceDto {
     workplaceId: string;
 }
 
+export interface CityResidentEducationInstitutionDto {
+    institutionId: string;
+    educationLevel: string;
+}
+
 export interface CityResidentDetailsDto extends PersonDto {
     currentSpouse?: PersonReferenceDto | null;
     currentHousing: CityResidentHousingDto;
     currentWorkplace?: CityResidentWorkplaceDto | null;
+    currentEducationInstitution?: CityResidentEducationInstitutionDto | null;
 }
 
 export interface CityEmploymentCatalogDto {
@@ -47,6 +53,16 @@ export interface CityEmploymentCatalogDto {
 export interface CityEmploymentWorkplaceDto {
     workplaceId: string;
     jobTitle: string;
+    residentCount: number;
+}
+
+export interface CityEducationCatalogDto {
+    currentInstitutions: CityEducationInstitutionDto[];
+}
+
+export interface CityEducationInstitutionDto {
+    institutionId: string;
+    educationLevel: string;
     residentCount: number;
 }
 

@@ -3,6 +3,7 @@ import {apiRequest} from "@shared/api/http";
 import type {PagedResult} from "@shared/lib/paging/pagingTypes";
 import type {
     CityCivilRegistryOperationResultDto,
+    CityEducationCatalogDto,
     CityEducationOperationResultDto,
     CityEmploymentCatalogDto,
     CityEmploymentOperationResultDto,
@@ -51,6 +52,7 @@ type CityEmploymentOperationPayload = {
 type CityEducationOperationPayload = {
     residentId: string;
     targetEducationLevel?: string | null;
+    institutionId?: string | null;
 };
 
 export function getCityEmploymentCatalog(
@@ -59,6 +61,19 @@ export function getCityEmploymentCatalog(
 ) {
     return apiRequest<CityEmploymentCatalogDto>(
         `${API_CITY_URL}/${cityId}/employment/catalog`,
+        {
+            method: "GET",
+            signal,
+        },
+    );
+}
+
+export function getCityEducationCatalog(
+    cityId: string,
+    signal?: AbortSignal,
+) {
+    return apiRequest<CityEducationCatalogDto>(
+        `${API_CITY_URL}/${cityId}/education/catalog`,
         {
             method: "GET",
             signal,

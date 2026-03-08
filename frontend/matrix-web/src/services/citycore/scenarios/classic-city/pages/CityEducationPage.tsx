@@ -1,8 +1,9 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {Link, Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {
     enrollCityResident,
+    getCityEducationCatalog,
     getCityResidentsPage,
     graduateCityResident,
     withdrawCityResidentFromStudy,
@@ -21,6 +22,8 @@ import {
     isArchivedCity,
 } from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {
+    CityEducationCatalogDto,
+    CityEducationInstitutionDto,
     CityEducationOperationResultDto,
     CityResidentDetailsDto,
     PersonDto,
@@ -34,6 +37,7 @@ import "@services/citycore/scenarios/classic-city/styles/city-details.css";
 import "@services/citycore/scenarios/classic-city/styles/city-education.css";
 
 const PAGE_SIZE = 100;
+const MAX_VISIBLE_INSTITUTIONS = 18;
 
 const NEXT_EDUCATION_LEVELS: Record<string, string[]> = {
     None: ["Preschool"],
@@ -77,6 +81,18 @@ function formatTimestamp(value: string): string {
     return parsed.toLocaleString();
 }
 
+function formatInstitutionLabel(institutionId?: string | null) {
+    if (!institutionId) {
+        return "No current institution";
+    }
+
+    return `Institution ${institutionId.slice(0, 8)}`;
+}
+
+function formatInstitutionOccupancy(count: number) {
+    return `${count} resident${count === 1 ? "" : "s"}`;
+}
+
 type SelectedResidentCardProps = {
     cityId: string;
     residentId: string;
@@ -86,14 +102,7 @@ type SelectedResidentCardProps = {
     onClear: () => void;
 };
 
-function SelectedResidentCard({
-    cityId,
-    residentId,
-    resident,
-    isLoading,
-    nextLevels,
-    onClear,
-}: SelectedResidentCardProps) {
+function SelectedResidentCard({cityId, residentId, resident, isLoading, nextLevels, onClear}: SelectedResidentCardProps) {
     return (
         <section className="city-education__selected-card">
             <div className="city-education__selected-header">
@@ -133,6 +142,21 @@ function SelectedResidentCard({
                         Current level:
                         {" "}
                         <strong>{resident?.educationLevel ? formatEducationLevel(resident.educationLevel) : "Snapshot pending"}</strong>
+                    </p>
+
+                    <p className="city-education__selected-copy">
+                        Current institution:
+                        {" "}
+                        {resident?.currentEducationInstitution ? (
+                            <span
+                                className="city-education__entity-token"
+                                title={resident.currentEducationInstitution.institutionId}
+                            >
+                                {formatInstitutionLabel(resident.currentEducationInstitution.institutionId)}
+                            </span>
+                        ) : (
+                            <strong>No assigned institution</strong>
+                        )}
                     </p>
 
                     {nextLevels.length > 0 ? (
@@ -179,10 +203,15 @@ const CityEducationPage = () => {
 
     const [selectedResidentId, setSelectedResidentId] = useState(focusResidentId);
     const [selectedTargetEducationLevel, setSelectedTargetEducationLevel] = useState("");
+    const [selectedInstitutionId, setSelectedInstitutionId] = useState("");
     const [refreshNonce, setRefreshNonce] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [operationError, setOperationError] = useState<string | null>(null);
     const [operationResult, setOperationResult] = useState<CityEducationOperationResultDto | null>(null);
+    const [catalog, setCatalog] = useState<CityEducationCatalogDto | null>(null);
+    const [catalogError, setCatalogError] = useState<string | null>(null);
+    const [isCatalogLoading, setIsCatalogLoading] = useState(false);
+    const catalogAbortRef = useRef<AbortController | null>(null);
 
     const cityQuery = useCityDetails(cityId);
     const residentQuery = useCityResidentDetails(cityId, selectedResidentId, selectedResidentId.length > 0);
@@ -206,16 +235,58 @@ const CityEducationPage = () => {
         setOperationResult(null);
     }, [focusResidentId]);
 
+    useEffect(() => {
+        if (!cityId) {
+            setCatalog(null);
+            setCatalogError(null);
+            setIsCatalogLoading(false);
+            return;
+        }
+
+        catalogAbortRef.current?.abort();
+
+        const abortController = new AbortController();
+        catalogAbortRef.current = abortController;
+
+        async function loadCatalog() {
+            try {
+                setIsCatalogLoading(true);
+                setCatalogError(null);
+
+                const response = await getCityEducationCatalog(cityId, abortController.signal);
+                setCatalog(response);
+            } catch (error: unknown) {
+                if (abortController.signal.aborted) {
+                    return;
+                }
+
+                setCatalogError(getErrorMessage(error, "Failed to load classic city education institutions."));
+            } finally {
+                if (!abortController.signal.aborted) {
+                    setIsCatalogLoading(false);
+                }
+            }
+        }
+
+        void loadCatalog();
+
+        return () => {
+            abortController.abort();
+        };
+    }, [cityId, refreshNonce]);
+
+    useEffect(() => {
+        if (!selectedResidentId) {
+            setSelectedTargetEducationLevel("");
+            setSelectedInstitutionId("");
+            return;
+        }
+
+        setSelectedInstitutionId(residentQuery.data?.currentEducationInstitution?.institutionId ?? "");
+    }, [residentQuery.data?.currentEducationInstitution?.institutionId, selectedResidentId]);
+
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
-
-    if (!cityId) {
-        return <Navigate to={CLASSIC_CITY_LIST_PATH} replace/>;
-    }
-
-    if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
-        return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
-    }
 
     const residents = residentsQuery.data?.items ?? [];
     const total = residentsQuery.data?.totalCount ?? 0;
@@ -227,6 +298,19 @@ const CityEducationPage = () => {
     const nextLevels = selectedResident
         ? NEXT_EDUCATION_LEVELS[selectedResident.educationLevel] ?? []
         : [];
+    const currentInstitutions = catalog?.currentInstitutions ?? [];
+    const relevantEducationLevel = selectedResident
+        ? selectedResident.employmentStatus === "Student"
+            ? selectedTargetEducationLevel || nextLevels[0] || ""
+            : selectedResident.educationLevel
+        : "";
+    const relevantInstitutions = relevantEducationLevel
+        ? currentInstitutions.filter((institution) => institution.educationLevel === relevantEducationLevel)
+        : currentInstitutions;
+    const visibleInstitutions = relevantInstitutions.slice(0, MAX_VISIBLE_INSTITUTIONS);
+    const selectedInstitution = selectedInstitutionId
+        ? currentInstitutions.find((institution) => institution.institutionId === selectedInstitutionId) ?? null
+        : null;
 
     useEffect(() => {
         if (!selectedResident) {
@@ -242,6 +326,21 @@ const CityEducationPage = () => {
             return nextLevels[0] ?? "";
         });
     }, [nextLevels, selectedResident]);
+
+    useEffect(() => {
+        if (!selectedInstitutionId) {
+            return;
+        }
+
+        const stillValid = currentInstitutions.some((institution) => (
+            institution.institutionId === selectedInstitutionId &&
+            (!relevantEducationLevel || institution.educationLevel === relevantEducationLevel)
+        ));
+
+        if (!stillValid) {
+            setSelectedInstitutionId("");
+        }
+    }, [currentInstitutions, relevantEducationLevel, selectedInstitutionId]);
 
     const canEnrollResident =
         selectedResidentId.length > 0 &&
@@ -287,6 +386,14 @@ const CityEducationPage = () => {
         ? `${cityQuery.data.name} education service`
         : "Education service";
 
+    if (!cityId) {
+        return <Navigate to={CLASSIC_CITY_LIST_PATH} replace/>;
+    }
+
+    if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
+        return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
+    }
+
     async function refreshSnapshots() {
         await residentQuery.refetch();
         setRefreshNonce((value) => value + 1);
@@ -306,6 +413,7 @@ const CityEducationPage = () => {
             if (action === "enroll") {
                 result = await enrollCityResident(cityId, {
                     residentId: selectedResidentId,
+                    institutionId: selectedInstitutionId || null,
                 });
             } else if (action === "withdraw") {
                 result = await withdrawCityResidentFromStudy(cityId, {
@@ -315,10 +423,12 @@ const CityEducationPage = () => {
                 result = await graduateCityResident(cityId, {
                     residentId: selectedResidentId,
                     targetEducationLevel: selectedTargetEducationLevel,
+                    institutionId: selectedInstitutionId || null,
                 });
             }
 
             setOperationResult(result);
+            setSelectedInstitutionId(result.resident.currentEducationInstitution?.institutionId ?? "");
             await refreshSnapshots();
         } catch (error: unknown) {
             setOperationError(getErrorMessage(error, "Failed to run education operation."));
@@ -329,6 +439,12 @@ const CityEducationPage = () => {
 
     function handleSelectResident(personId: string) {
         setSelectedResidentId(personId);
+        setOperationError(null);
+        setOperationResult(null);
+    }
+
+    function handleUseInstitution(institution: CityEducationInstitutionDto) {
+        setSelectedInstitutionId(institution.institutionId);
         setOperationError(null);
         setOperationResult(null);
     }
@@ -364,8 +480,8 @@ const CityEducationPage = () => {
                     <div>
                         <h2 className="cities-card__title">Education service</h2>
                         <p className="cities-card__subtitle">
-                            Manage current study state and next education transitions through a dedicated classic-city
-                            service instead of patching resident records directly.
+                            Manage current study state and place of study through a dedicated classic-city service
+                            instead of patching resident records directly.
                         </p>
                     </div>
                 </div>
@@ -373,6 +489,12 @@ const CityEducationPage = () => {
                 {isArchived ? (
                     <div className="citycore-error-banner" role="status">
                         <span>Archived cities are read-only snapshots. Education operations are disabled.</span>
+                    </div>
+                ) : null}
+
+                {catalogError ? (
+                    <div className="citycore-error-banner" role="alert">
+                        <span>{catalogError}</span>
                     </div>
                 ) : null}
 
@@ -430,8 +552,21 @@ const CityEducationPage = () => {
                         </label>
 
                         <div className="city-education__meta">
-                            <span>Children, youths, and adults can be marked as students in the current classic-city model.</span>
-                            <span>Graduation moves the resident only to the next valid education transition.</span>
+                            <span>
+                                {isCatalogLoading
+                                    ? "Loading classic-city study institutions..."
+                                    : `${currentInstitutions.length} active institutions ready`}
+                            </span>
+                            <span>
+                                {selectedInstitution
+                                    ? `The selected institution will be reused for ${formatEducationLevel(selectedInstitution.educationLevel)}.`
+                                    : relevantEducationLevel
+                                        ? `Leave institution empty to create a new ${formatEducationLevel(relevantEducationLevel)} institution.`
+                                        : "Select a resident to choose or create a place of study."}
+                            </span>
+                            <span>
+                                Children, youths, and adults can study. Seniors and retired residents cannot enroll.
+                            </span>
                         </div>
 
                         <div className="city-education__action-row">
@@ -470,10 +605,11 @@ const CityEducationPage = () => {
 
                             <Button
                                 type="button"
-                                disabled={isSubmitting || !selectedResidentId}
+                                disabled={isSubmitting || (!selectedResidentId && !selectedInstitutionId)}
                                 onClick={() => {
                                     setSelectedResidentId(focusResidentId);
                                     setSelectedTargetEducationLevel("");
+                                    setSelectedInstitutionId("");
                                     setOperationError(null);
                                     setOperationResult(null);
                                 }}
@@ -483,6 +619,77 @@ const CityEducationPage = () => {
                         </div>
                     </section>
                 </div>
+
+                <section className="city-education__institutions-card">
+                    <div className="city-education__selected-header">
+                        <div>
+                            <span className="city-education__selected-label">Study institutions</span>
+                            <h3 className="city-education__selected-name">Current institution network</h3>
+                        </div>
+                    </div>
+
+                    {relevantInstitutions.length > 0 ? (
+                        <>
+                            <p className="card-sub">
+                                {relevantEducationLevel
+                                    ? `Showing ${Math.min(relevantInstitutions.length, MAX_VISIBLE_INSTITUTIONS)} of ${relevantInstitutions.length} institutions for ${formatEducationLevel(relevantEducationLevel)}.`
+                                    : `Showing ${Math.min(relevantInstitutions.length, MAX_VISIBLE_INSTITUTIONS)} of ${relevantInstitutions.length} institutions in this city.`}
+                                {" "}Choose one to reuse it instead of creating a new place of study.
+                            </p>
+
+                            <div className="city-education__institutions-grid">
+                                {visibleInstitutions.map((institution) => {
+                                    const isSelectedInstitution = selectedInstitutionId === institution.institutionId;
+
+                                    return (
+                                        <article
+                                            key={institution.institutionId}
+                                            className={`city-education__institution-card${isSelectedInstitution ? " city-education__institution-card--selected" : ""}`}
+                                        >
+                                            <div className="city-education__institution-copy">
+                                                <strong>{formatEducationLevel(institution.educationLevel)}</strong>
+                                                <span
+                                                    className="city-education__entity-token"
+                                                    title={institution.institutionId}
+                                                >
+                                                    {formatInstitutionLabel(institution.institutionId)}
+                                                </span>
+                                                <span className="card-sub">
+                                                    {formatInstitutionOccupancy(institution.residentCount)}
+                                                </span>
+                                            </div>
+
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant={isSelectedInstitution ? "success" : "default"}
+                                                disabled={isSubmitting || isArchived || !selectedResidentId || isSelectedInstitution}
+                                                onClick={() => handleUseInstitution(institution)}
+                                            >
+                                                {isSelectedInstitution ? "Selected institution" : "Use institution"}
+                                            </Button>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+
+                            {relevantInstitutions.length > MAX_VISIBLE_INSTITUTIONS ? (
+                                <p className="card-sub">
+                                    {relevantInstitutions.length - MAX_VISIBLE_INSTITUTIONS} more institutions stay hidden
+                                    for now so this workspace stays readable.
+                                </p>
+                            ) : null}
+                        </>
+                    ) : (
+                        <div className="city-state-banner city-state-banner--active">
+                            <div className="city-state-banner__title">No shared study institutions yet</div>
+                            <div className="city-state-banner__text">
+                                Enrolling or graduating a resident can create the first institution for this education
+                                level, and later residents will be able to reuse it from this network.
+                            </div>
+                        </div>
+                    )}
+                </section>
             </section>
 
             <section className="cities-card">

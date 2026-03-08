@@ -54,6 +54,18 @@ function formatWorkplaceLabel(workplaceId?: string | null) {
     return `Workplace ${workplaceId.slice(0, 8)}`;
 }
 
+function formatEducationLevel(level: string) {
+    return level.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+function formatInstitutionLabel(institutionId?: string | null) {
+    if (!institutionId) {
+        return "No current institution";
+    }
+
+    return `Institution ${institutionId.slice(0, 8)}`;
+}
+
 const CityResidentDossierPage = () => {
     const params = useParams<{ cityId: string; residentId: string }>();
     const navigate = useNavigate();
@@ -258,7 +270,20 @@ const CityResidentDossierPage = () => {
                                         </div>
                                         <div>
                                             <dt>Education</dt>
-                                            <dd>{resident.educationLevel}</dd>
+                                            <dd>{formatEducationLevel(resident.educationLevel)}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Current institution</dt>
+                                            <dd>
+                                                {resident.currentEducationInstitution ? (
+                                                    <span
+                                                        className="city-resident-dossier__entity-token"
+                                                        title={resident.currentEducationInstitution.institutionId}
+                                                    >
+                                                        {formatInstitutionLabel(resident.currentEducationInstitution.institutionId)}
+                                                    </span>
+                                                ) : "No current institution"}
+                                            </dd>
                                         </div>
                                         <div>
                                             <dt>Health / Happiness</dt>
@@ -391,11 +416,24 @@ const CityResidentDossierPage = () => {
                                     <dl className="city-resident-dossier__facts">
                                         <div>
                                             <dt>Education level</dt>
-                                            <dd>{resident.educationLevel}</dd>
+                                            <dd>{formatEducationLevel(resident.educationLevel)}</dd>
                                         </div>
                                         <div>
                                             <dt>Study status</dt>
                                             <dd>{resident.employmentStatus === "Student" ? "Currently studying" : "Not currently studying"}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Current institution</dt>
+                                            <dd>
+                                                {resident.currentEducationInstitution ? (
+                                                    <span
+                                                        className="city-resident-dossier__entity-token"
+                                                        title={resident.currentEducationInstitution.institutionId}
+                                                    >
+                                                        {formatInstitutionLabel(resident.currentEducationInstitution.institutionId)}
+                                                    </span>
+                                                ) : "No current institution"}
+                                            </dd>
                                         </div>
                                     </dl>
                                 </section>
