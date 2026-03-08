@@ -41,6 +41,13 @@ export interface CityResidentDetailsDto extends PersonDto {
 
 export interface CityEmploymentCatalogDto {
     jobTitles: string[];
+    currentWorkplaces: CityEmploymentWorkplaceDto[];
+}
+
+export interface CityEmploymentWorkplaceDto {
+    workplaceId: string;
+    jobTitle: string;
+    residentCount: number;
 }
 
 export interface CityCivilRegistryOperationResultDto {

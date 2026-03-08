@@ -25,6 +25,7 @@ import type {
     CityEmploymentCatalogDto,
     CityEmploymentOperationResultDto,
     CityResidentDetailsDto,
+    CityEmploymentWorkplaceDto,
     PersonDto,
 } from "@services/population/person/api/personTypes";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
@@ -37,6 +38,7 @@ import "@services/citycore/scenarios/classic-city/styles/city-employment.css";
 
 const PAGE_SIZE = 100;
 const JOB_TITLES_DATALIST_ID = "classic-city-employment-job-titles";
+const MAX_VISIBLE_WORKPLACES = 18;
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0
@@ -71,6 +73,10 @@ function formatWorkplaceLabel(workplaceId?: string | null) {
     }
 
     return `Workplace ${workplaceId.slice(0, 8)}`;
+}
+
+function formatWorkplaceOccupancy(count: number) {
+    return `${count} resident${count === 1 ? "" : "s"}`;
 }
 
 type SelectedResidentCardProps = {
@@ -176,6 +182,7 @@ const CityEmploymentPage = () => {
 
     const [selectedResidentId, setSelectedResidentId] = useState(focusResidentId);
     const [jobTitle, setJobTitle] = useState("");
+    const [selectedWorkplaceId, setSelectedWorkplaceId] = useState("");
     const [refreshNonce, setRefreshNonce] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [operationError, setOperationError] = useState<string | null>(null);
@@ -250,11 +257,13 @@ const CityEmploymentPage = () => {
     useEffect(() => {
         if (!selectedResidentId) {
             setJobTitle("");
+            setSelectedWorkplaceId("");
             return;
         }
 
         setJobTitle(residentQuery.data?.jobTitle ?? "");
-    }, [residentQuery.data?.jobTitle, selectedResidentId]);
+        setSelectedWorkplaceId(residentQuery.data?.currentWorkplace?.workplaceId ?? "");
+    }, [residentQuery.data?.currentWorkplace?.workplaceId, residentQuery.data?.jobTitle, selectedResidentId]);
 
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
@@ -274,11 +283,13 @@ const CityEmploymentPage = () => {
     const pageSize = residentsQuery.data?.pageSize ?? PAGE_SIZE;
     const range = getPageRange(currentPage, pageSize, total);
     const selectedResident = residentQuery.data;
+    const currentWorkplaces = catalog?.currentWorkplaces ?? [];
+    const visibleWorkplaces = currentWorkplaces.slice(0, MAX_VISIBLE_WORKPLACES);
     const trimmedJobTitle = jobTitle.trim();
 
     const canAssignEmployment =
         selectedResidentId.length > 0 &&
-        trimmedJobTitle.length > 0 &&
+        (trimmedJobTitle.length > 0 || selectedWorkplaceId.length > 0) &&
         selectedResident?.lifeStatus === "Alive" &&
         selectedResident?.ageGroup === "Adult" &&
         !isArchived &&
@@ -348,11 +359,13 @@ const CityEmploymentPage = () => {
                 result = await hireCityResident(cityId, {
                     residentId: selectedResidentId,
                     jobTitle: trimmedJobTitle,
+                    workplaceId: selectedWorkplaceId || null,
                 });
             }
 
             setOperationResult(result);
             setJobTitle(result.resident.jobTitle ?? "");
+            setSelectedWorkplaceId(result.resident.currentWorkplace?.workplaceId ?? "");
             await refreshSnapshots();
         } catch (error: unknown) {
             setOperationError(getErrorMessage(error, "Failed to run employment operation."));
@@ -363,6 +376,13 @@ const CityEmploymentPage = () => {
 
     function handleSelectResident(personId: string) {
         setSelectedResidentId(personId);
+        setOperationError(null);
+        setOperationResult(null);
+    }
+
+    function handleUseWorkplace(workplace: CityEmploymentWorkplaceDto) {
+        setSelectedWorkplaceId(workplace.workplaceId);
+        setJobTitle(workplace.jobTitle);
         setOperationError(null);
         setOperationResult(null);
     }
@@ -456,7 +476,10 @@ const CityEmploymentPage = () => {
                                 value={jobTitle}
                                 list={JOB_TITLES_DATALIST_ID}
                                 placeholder="Choose or enter a title"
-                                onChange={(event) => setJobTitle(event.target.value)}
+                                onChange={(event) => {
+                                    setJobTitle(event.target.value);
+                                    setSelectedWorkplaceId("");
+                                }}
                                 disabled={isSubmitting || isArchived || !selectedResidentId}
                             />
                         </label>
@@ -472,6 +495,11 @@ const CityEmploymentPage = () => {
                                 {isCatalogLoading
                                     ? "Loading classic-city profession suggestions..."
                                     : `${catalog?.jobTitles.length ?? 0} suggested titles ready`}
+                            </span>
+                            <span>
+                                {selectedWorkplaceId
+                                    ? "Hiring will reuse the selected workplace."
+                                    : "Type a title to create a new workplace, or pick an active one below."}
                             </span>
                             <span>
                                 Adults can be assigned work. Seniors can be retired through this service.
@@ -518,6 +546,7 @@ const CityEmploymentPage = () => {
                                 onClick={() => {
                                     setSelectedResidentId(focusResidentId);
                                     setJobTitle("");
+                                    setSelectedWorkplaceId("");
                                     setOperationError(null);
                                     setOperationResult(null);
                                 }}
@@ -527,6 +556,75 @@ const CityEmploymentPage = () => {
                         </div>
                     </section>
                 </div>
+
+                <section className="city-employment__workplaces-card">
+                    <div className="city-employment__selected-header">
+                        <div>
+                            <span className="city-employment__selected-label">Active workplaces</span>
+                            <h3 className="city-employment__selected-name">Current workplace network</h3>
+                        </div>
+                    </div>
+
+                    {currentWorkplaces.length > 0 ? (
+                        <>
+                            <p className="card-sub">
+                                Showing {Math.min(currentWorkplaces.length, MAX_VISIBLE_WORKPLACES)} of {currentWorkplaces.length}
+                                {" "}active workplaces. Choose one to reuse it for the selected resident.
+                            </p>
+
+                            <div className="city-employment__workplaces-grid">
+                                {visibleWorkplaces.map((workplace) => {
+                                    const isSelectedWorkplace = selectedWorkplaceId === workplace.workplaceId;
+
+                                    return (
+                                        <article
+                                            key={workplace.workplaceId}
+                                            className={`city-employment__workplace-card${isSelectedWorkplace ? " city-employment__workplace-card--selected" : ""}`}
+                                        >
+                                            <div className="city-employment__workplace-copy">
+                                                <strong>{workplace.jobTitle}</strong>
+                                                <span
+                                                    className="city-employment__entity-token"
+                                                    title={workplace.workplaceId}
+                                                >
+                                                    {formatWorkplaceLabel(workplace.workplaceId)}
+                                                </span>
+                                                <span className="card-sub">
+                                                    {formatWorkplaceOccupancy(workplace.residentCount)}
+                                                </span>
+                                            </div>
+
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant={isSelectedWorkplace ? "success" : "default"}
+                                                disabled={isSubmitting || isArchived || !selectedResidentId || isSelectedWorkplace}
+                                                onClick={() => handleUseWorkplace(workplace)}
+                                            >
+                                                {isSelectedWorkplace ? "Selected workplace" : "Use workplace"}
+                                            </Button>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+
+                            {currentWorkplaces.length > MAX_VISIBLE_WORKPLACES ? (
+                                <p className="card-sub">
+                                    {currentWorkplaces.length - MAX_VISIBLE_WORKPLACES} more workplaces stay hidden for now so
+                                    this service workspace stays readable.
+                                </p>
+                            ) : null}
+                        </>
+                    ) : (
+                        <div className="city-state-banner city-state-banner--active">
+                            <div className="city-state-banner__title">No shared workplaces yet</div>
+                            <div className="city-state-banner__text">
+                                New hires can create the first classic-city workplaces from a job title, and future
+                                hires will be able to reuse them directly from this network.
+                            </div>
+                        </div>
+                    )}
+                </section>
             </section>
 
             <section className="cities-card">

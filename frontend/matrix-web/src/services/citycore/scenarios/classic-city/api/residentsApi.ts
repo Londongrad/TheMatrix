@@ -45,6 +45,7 @@ type CityCivilRegistryOperationPayload = {
 type CityEmploymentOperationPayload = {
     residentId: string;
     jobTitle?: string | null;
+    workplaceId?: string | null;
 };
 
 type CityEducationOperationPayload = {
