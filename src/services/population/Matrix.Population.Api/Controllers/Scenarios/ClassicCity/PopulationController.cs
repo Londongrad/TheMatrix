@@ -11,6 +11,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterMarriage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
@@ -95,6 +96,20 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
         {
             CityPopulationSummaryDto? result = await _sender.Send(
                 request: new GetCityPopulationSummaryQuery(cityId),
+                cancellationToken: cancellationToken);
+
+            return result is null
+                ? NotFound()
+                : Ok(result);
+        }
+
+        [HttpGet("cities/{cityId:guid}/dashboard")]
+        public async Task<ActionResult<CityPopulationDashboardDto>> GetCityDashboard(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            CityPopulationDashboardDto? result = await _sender.Send(
+                request: new GetCityDashboardQuery(cityId),
                 cancellationToken: cancellationToken);
 
             return result is null

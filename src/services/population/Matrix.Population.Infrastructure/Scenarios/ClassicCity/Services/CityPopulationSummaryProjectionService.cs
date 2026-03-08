@@ -106,6 +106,13 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
 
             if (projection is not null)
                 _dbContext.CityPopulationSummaryProjections.Remove(projection);
+
+            CityPopulationDailySummarySnapshot[] snapshots = await _dbContext.CityPopulationDailySummarySnapshots
+               .Where(x => x.CityId == cityId)
+               .ToArrayAsync(cancellationToken);
+
+            if (snapshots.Length > 0)
+                _dbContext.CityPopulationDailySummarySnapshots.RemoveRange(snapshots);
         }
 
         private async Task UpsertAsync(
@@ -131,25 +138,46 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 cityId: cityId,
                 currentDate: currentDate,
                 updatedAtUtc: DateTimeOffset.UtcNow);
-
-            ApplySnapshot(
-                projection: projection,
+            CityPopulationSummarySnapshotValues snapshotValues = BuildSnapshotValues(
                 currentDate: currentDate,
                 persons: persons,
                 householdPlacements: resolvedPlacements);
+
+            ApplySnapshot(
+                projection: projection,
+                snapshot: snapshotValues);
+
+            CityPopulationDailySummarySnapshot? dailySnapshot = await _dbContext.CityPopulationDailySummarySnapshots
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId && x.SnapshotDate == currentDate,
+                    cancellationToken: cancellationToken);
+            bool isNewDailySnapshot = dailySnapshot is null;
+            dailySnapshot ??= CityPopulationDailySummarySnapshot.Create(
+                cityId: cityId,
+                snapshotDate: currentDate,
+                updatedAtUtc: snapshotValues.UpdatedAtUtc);
+
+            ApplySnapshot(
+                snapshotEntity: dailySnapshot,
+                snapshot: snapshotValues);
 
             if (isNewProjection)
                 await _dbContext.CityPopulationSummaryProjections.AddAsync(
                     entity: projection,
                     cancellationToken: cancellationToken);
+
+            if (isNewDailySnapshot)
+                await _dbContext.CityPopulationDailySummarySnapshots.AddAsync(
+                    entity: dailySnapshot,
+                    cancellationToken: cancellationToken);
         }
 
-        private static void ApplySnapshot(
-            CityPopulationSummaryProjection projection,
+        private static CityPopulationSummarySnapshotValues BuildSnapshotValues(
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements)
         {
+            DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
             Dictionary<HouseholdId, HousingStatus> housingByHouseholdId = householdPlacements
                .ToDictionary(
                     keySelector: x => x.HouseholdId,
@@ -159,33 +187,90 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                .Where(x => x.IsAlive)
                .ToArray();
 
-            projection.Refresh(
-                currentDate: currentDate,
-                updatedAtUtc: DateTimeOffset.UtcNow,
-                householdCount: householdPlacements.Count,
-                housedHouseholdCount: householdPlacements.Count(x => x.HousingStatus == HousingStatus.Housed),
-                homelessHouseholdCount: householdPlacements.Count(x => x.HousingStatus == HousingStatus.Homeless),
-                residentCount: aliveResidents.Length,
-                deceasedCount: persons.Count - aliveResidents.Length,
-                housedResidentCount: aliveResidents.Count(x =>
+            return new CityPopulationSummarySnapshotValues(
+                currentDate,
+                updatedAtUtc,
+                householdPlacements.Count,
+                householdPlacements.Count(x => x.HousingStatus == HousingStatus.Housed),
+                householdPlacements.Count(x => x.HousingStatus == HousingStatus.Homeless),
+                aliveResidents.Length,
+                persons.Count - aliveResidents.Length,
+                aliveResidents.Count(x =>
                     housingByHouseholdId.TryGetValue(x.HouseholdId, out HousingStatus status) &&
                     status == HousingStatus.Housed),
-                homelessResidentCount: aliveResidents.Count(x =>
+                aliveResidents.Count(x =>
                     housingByHouseholdId.TryGetValue(x.HouseholdId, out HousingStatus status) &&
                     status == HousingStatus.Homeless),
-                childCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Child),
-                youthCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Youth),
-                adultCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Adult),
-                seniorCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Senior),
-                employedCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Employed),
-                studentCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Student),
-                unemployedCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Unemployed),
-                retiredCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Retired),
-                averageHealth: aliveResidents.Select(x => (decimal?)x.Health.Value).Average(),
-                averageHappiness: aliveResidents.Select(x => (decimal?)x.Happiness.Value).Average(),
-                averageEnergy: aliveResidents.Select(x => (decimal?)x.Energy.Value).Average(),
-                averageStress: aliveResidents.Select(x => (decimal?)x.Stress.Value).Average(),
-                averageSocialNeed: aliveResidents.Select(x => (decimal?)x.SocialNeed.Value).Average());
+                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Child),
+                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Youth),
+                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Adult),
+                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Senior),
+                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Employed),
+                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Student),
+                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Unemployed),
+                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Retired),
+                aliveResidents.Select(x => (decimal?)x.Health.Value).Average(),
+                aliveResidents.Select(x => (decimal?)x.Happiness.Value).Average(),
+                aliveResidents.Select(x => (decimal?)x.Energy.Value).Average(),
+                aliveResidents.Select(x => (decimal?)x.Stress.Value).Average(),
+                aliveResidents.Select(x => (decimal?)x.SocialNeed.Value).Average());
+        }
+
+        private static void ApplySnapshot(
+            CityPopulationSummaryProjection projection,
+            CityPopulationSummarySnapshotValues snapshot)
+        {
+            projection.Refresh(
+                currentDate: snapshot.CurrentDate,
+                updatedAtUtc: snapshot.UpdatedAtUtc,
+                householdCount: snapshot.HouseholdCount,
+                housedHouseholdCount: snapshot.HousedHouseholdCount,
+                homelessHouseholdCount: snapshot.HomelessHouseholdCount,
+                residentCount: snapshot.ResidentCount,
+                deceasedCount: snapshot.DeceasedCount,
+                housedResidentCount: snapshot.HousedResidentCount,
+                homelessResidentCount: snapshot.HomelessResidentCount,
+                childCount: snapshot.ChildCount,
+                youthCount: snapshot.YouthCount,
+                adultCount: snapshot.AdultCount,
+                seniorCount: snapshot.SeniorCount,
+                employedCount: snapshot.EmployedCount,
+                studentCount: snapshot.StudentCount,
+                unemployedCount: snapshot.UnemployedCount,
+                retiredCount: snapshot.RetiredCount,
+                averageHealth: snapshot.AverageHealth,
+                averageHappiness: snapshot.AverageHappiness,
+                averageEnergy: snapshot.AverageEnergy,
+                averageStress: snapshot.AverageStress,
+                averageSocialNeed: snapshot.AverageSocialNeed);
+        }
+
+        private static void ApplySnapshot(
+            CityPopulationDailySummarySnapshot snapshotEntity,
+            CityPopulationSummarySnapshotValues snapshot)
+        {
+            snapshotEntity.Refresh(
+                updatedAtUtc: snapshot.UpdatedAtUtc,
+                householdCount: snapshot.HouseholdCount,
+                housedHouseholdCount: snapshot.HousedHouseholdCount,
+                homelessHouseholdCount: snapshot.HomelessHouseholdCount,
+                residentCount: snapshot.ResidentCount,
+                deceasedCount: snapshot.DeceasedCount,
+                housedResidentCount: snapshot.HousedResidentCount,
+                homelessResidentCount: snapshot.HomelessResidentCount,
+                childCount: snapshot.ChildCount,
+                youthCount: snapshot.YouthCount,
+                adultCount: snapshot.AdultCount,
+                seniorCount: snapshot.SeniorCount,
+                employedCount: snapshot.EmployedCount,
+                studentCount: snapshot.StudentCount,
+                unemployedCount: snapshot.UnemployedCount,
+                retiredCount: snapshot.RetiredCount,
+                averageHealth: snapshot.AverageHealth,
+                averageHappiness: snapshot.AverageHappiness,
+                averageEnergy: snapshot.AverageEnergy,
+                averageStress: snapshot.AverageStress,
+                averageSocialNeed: snapshot.AverageSocialNeed);
         }
 
         private async Task<bool> HasAnyPopulationStateAsync(
@@ -266,5 +351,29 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 ? DateOnly.FromDateTime(deletedAtUtc.Value.UtcDateTime)
                 : DateOnly.FromDateTime(DateTime.UtcNow);
         }
+
+        private sealed record CityPopulationSummarySnapshotValues(
+            DateOnly CurrentDate,
+            DateTimeOffset UpdatedAtUtc,
+            int HouseholdCount,
+            int HousedHouseholdCount,
+            int HomelessHouseholdCount,
+            int ResidentCount,
+            int DeceasedCount,
+            int HousedResidentCount,
+            int HomelessResidentCount,
+            int ChildCount,
+            int YouthCount,
+            int AdultCount,
+            int SeniorCount,
+            int EmployedCount,
+            int StudentCount,
+            int UnemployedCount,
+            int RetiredCount,
+            decimal? AverageHealth,
+            decimal? AverageHappiness,
+            decimal? AverageEnergy,
+            decimal? AverageStress,
+            decimal? AverageSocialNeed);
     }
 }

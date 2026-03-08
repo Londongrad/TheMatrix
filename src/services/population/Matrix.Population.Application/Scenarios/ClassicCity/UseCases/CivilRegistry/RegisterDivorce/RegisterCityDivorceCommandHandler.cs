@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
@@ -14,6 +15,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
     public sealed class RegisterCityDivorceCommandHandler(
         IPersonReadRepository personReadRepository,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
+        ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         IPersonWriteRepository personWriteRepository,
         IHouseholdWriteRepository householdWriteRepository,
@@ -65,6 +67,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             await cityPopulationSummaryProjectionService.RebuildAsync(
                 cityId: CityId.From(request.CityId),
                 currentDate: request.CurrentDate,
+                cancellationToken: cancellationToken);
+
+            await cityPopulationActivityJournalService.RecordAsync(
+                entry: ClassicCityActivityFactory.ResidentsDivorced(
+                    cityId: request.CityId,
+                    currentDate: request.CurrentDate,
+                    firstResident: firstResident,
+                    secondResident: secondResident,
+                    source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);

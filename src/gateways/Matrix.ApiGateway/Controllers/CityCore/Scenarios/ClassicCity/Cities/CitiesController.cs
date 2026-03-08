@@ -99,6 +99,18 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             return Ok(summary);
         }
 
+        [HttpGet("{cityId:guid}/dashboard")]
+        public async Task<ActionResult<CityPopulationDashboardDto>> GetDashboard(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityPopulationDashboardDto dashboard = await _populationClient.GetCityPopulationDashboardAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(dashboard);
+        }
+
         [HttpGet("{cityId:guid}/residents")]
         public async Task<ActionResult<PagedResult<PersonDto>>> GetResidentsPage(
             [FromRoute] Guid cityId,

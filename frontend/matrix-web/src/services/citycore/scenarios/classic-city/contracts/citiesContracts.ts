@@ -85,6 +85,38 @@ export interface CityView {
     plannedPeopleCount?: number | null;
 }
 
+export interface CityDashboardMetricView {
+    key: string;
+    label: string;
+    description: string;
+    valueKind: string;
+    currentValue: number;
+    deltaYesterday?: number | null;
+    deltaMonth?: number | null;
+    deltaYear?: number | null;
+}
+
+export interface CityDashboardActivityEventView {
+    activityEventId: string;
+    currentDate: string;
+    occurredAtUtc: string;
+    eventType: string;
+    source: string;
+    severity: string;
+    title: string;
+    summary: string;
+    primaryResidentId?: string | null;
+    secondaryResidentId?: string | null;
+}
+
+export interface CityDashboardView {
+    cityId: string;
+    currentDate: string;
+    generatedAtUtc: string;
+    metrics: CityDashboardMetricView[];
+    recentEvents: CityDashboardActivityEventView[];
+}
+
 export interface RenameCityRequest {
     name: string;
 }

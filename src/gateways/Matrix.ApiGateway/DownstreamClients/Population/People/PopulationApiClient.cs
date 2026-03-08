@@ -51,6 +51,22 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
                 requestUrl: url);
         }
 
+        public async Task<CityPopulationDashboardDto> GetCityPopulationDashboardAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{PopulationBaseEndpoint}/cities/{cityId}/dashboard";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityPopulationDashboardDto>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
             Guid cityId,
             DateOnly currentDate,

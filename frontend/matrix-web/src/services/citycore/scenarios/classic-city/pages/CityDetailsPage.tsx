@@ -1,6 +1,7 @@
 import {useEffect, useMemo} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
+import {CityDashboardCard} from "@services/citycore/scenarios/classic-city/components/CityDashboardCard";
 import {CityOverviewCard} from "@services/citycore/scenarios/classic-city/components/CityOverviewCard";
 import {CityPopulationSummaryCard} from "@services/citycore/scenarios/classic-city/components/CityPopulationSummaryCard";
 import {CityWeatherCard} from "@services/citycore/scenarios/classic-city/components/CityWeatherCard";
@@ -23,6 +24,11 @@ import "@services/citycore/scenarios/classic-city/styles/cities.css";
 import "@services/citycore/scenarios/classic-city/styles/city-details.css";
 
 const CITY_DETAILS_TABS = [
+    {
+        id: "dashboard",
+        label: "Dashboard",
+        subtitle: "City-scale metrics, resident activity, and recent simulation signals.",
+    },
     {
         id: "overview",
         label: "Overview",
@@ -155,6 +161,15 @@ const CityDetailsPage = () => {
                         onDelete={handleDelete}
                     />
                 );
+
+            case "dashboard":
+                return cityQuery.data ? (
+                    <CityDashboardCard
+                        cityId={cityQuery.data.cityId}
+                        cityName={cityQuery.data.name}
+                        isArchived={isArchived}
+                    />
+                ) : null;
 
             case "population":
                 return cityQuery.data ? (

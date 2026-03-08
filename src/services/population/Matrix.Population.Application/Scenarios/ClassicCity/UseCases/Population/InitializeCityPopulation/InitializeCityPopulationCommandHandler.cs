@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
@@ -20,6 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
+        ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         CityPopulationBootstrapGenerator generator,
         IUnitOfWork unitOfWork)
@@ -96,6 +98,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         currentDate: request.CurrentDate,
                         persons: result.Persons,
                         householdPlacements: result.HouseholdPlacements,
+                        cancellationToken: ct);
+
+                    await cityPopulationActivityJournalService.RecordAsync(
+                        entry: ClassicCityActivityFactory.PopulationInitialized(
+                            cityId: request.CityId,
+                            currentDate: request.CurrentDate,
+                            requestedPeopleCount: request.PeopleCount,
+                            generatedPeopleCount: result.Persons.Count,
+                            householdCount: result.Households.Count),
                         cancellationToken: ct);
 
                     await unitOfWork.SaveChangesAsync(ct);

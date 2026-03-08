@@ -3,6 +3,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -14,6 +15,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
         IPersonReadRepository personReadRepository,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
         ICityPopulationProgressionStateRepository cityPopulationProgressionStateRepository,
+        ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         IPersonWriteRepository personWriteRepository,
         IUnitOfWork unitOfWork)
@@ -49,6 +51,14 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
                 await cityPopulationSummaryProjectionService.RebuildAsync(
                     cityId: cityId.Value,
                     currentDate: currentDate,
+                    cancellationToken: cancellationToken);
+
+                await cityPopulationActivityJournalService.RecordAsync(
+                    entry: ClassicCityActivityFactory.ResidentResurrected(
+                        cityId: cityId.Value.Value,
+                        currentDate: currentDate,
+                        resident: person,
+                        source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
                     cancellationToken: cancellationToken);
             }
 

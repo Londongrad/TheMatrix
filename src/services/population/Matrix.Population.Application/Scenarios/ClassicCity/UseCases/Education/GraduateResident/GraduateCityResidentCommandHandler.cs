@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.Common;
@@ -14,6 +15,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
     public sealed class GraduateCityResidentCommandHandler(
         IPersonReadRepository personReadRepository,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
+        ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         IPersonWriteRepository personWriteRepository,
         IUnitOfWork unitOfWork)
@@ -55,6 +57,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
             await cityPopulationSummaryProjectionService.RebuildAsync(
                 cityId: CityId.From(request.CityId),
                 currentDate: request.CurrentDate,
+                cancellationToken: cancellationToken);
+
+            await cityPopulationActivityJournalService.RecordAsync(
+                entry: ClassicCityActivityFactory.ResidentGraduated(
+                    cityId: request.CityId,
+                    currentDate: request.CurrentDate,
+                    resident: resident,
+                    source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);

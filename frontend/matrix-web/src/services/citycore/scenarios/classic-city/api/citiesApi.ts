@@ -1,6 +1,7 @@
 import {apiRequest} from "@shared/api/http";
 import type {
     CityListItemView,
+    CityDashboardView,
     CityProvisioningStatusView,
     CityProvisioningView,
     CityView,
@@ -33,6 +34,13 @@ export function createCity(request: CreateCityRequest) {
 
 export function getCity(cityId: string, signal?: AbortSignal) {
     return apiRequest<CityView>(`${API_CITY_URL}/${cityId}`, {
+        method: "GET",
+        signal,
+    });
+}
+
+export function getCityDashboard(cityId: string, signal?: AbortSignal) {
+    return apiRequest<CityDashboardView>(`${API_CITY_URL}/${cityId}/dashboard`, {
         method: "GET",
         signal,
     });

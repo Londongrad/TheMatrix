@@ -14,6 +14,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             Guid cityId,
             CancellationToken cancellationToken = default);
 
+        Task<CityPopulationDashboardDto> GetCityPopulationDashboardAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
         Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
             Guid cityId,
             DateOnly currentDate,

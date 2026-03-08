@@ -3,6 +3,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Services;
@@ -16,6 +17,7 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
         IPersonReadRepository personReadRepository,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
         ICityPopulationProgressionStateRepository cityPopulationProgressionStateRepository,
+        ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         MarriageDomainService marriageDomainService,
         IPersonWriteRepository personWriteRepository,
@@ -37,6 +39,12 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
             CityId? cityId = await cityPopulationPersonReadRepository.FindCityIdByPersonIdAsync(
                 personId: person.Id,
                 cancellationToken: cancellationToken);
+            DateOnly currentDate = cityId is not null
+                ? (await cityPopulationProgressionStateRepository.GetByCityAsync(
+                    cityId: cityId.Value,
+                    cancellationToken: cancellationToken))?.LastProcessedDate ??
+                  DateOnly.FromDateTime(DateTime.UtcNow)
+                : DateOnly.FromDateTime(DateTime.UtcNow);
 
             if (cityId is not null && person.SpouseId is not null)
             {
@@ -50,10 +58,22 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                         cancellationToken: cancellationToken);
 
                 if (spouseCityId is not null && spouseCityId.Value == cityId.Value)
-                    ClassicCityWidowhoodSupport.TryRegisterWidowhood(
+                {
+                    bool spouseBecameWidowed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
                         deceased: person,
                         spouse: spouse,
                         marriageDomainService: marriageDomainService);
+
+                    if (spouseBecameWidowed && spouse is not null)
+                        await cityPopulationActivityJournalService.RecordAsync(
+                            entry: ClassicCityActivityFactory.ResidentBecameWidowed(
+                                cityId: cityId.Value.Value,
+                                currentDate: currentDate,
+                                resident: spouse,
+                                deceasedName: person.Name.ToString(),
+                                source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
+                            cancellationToken: cancellationToken);
+                }
 
                 if (spouse is not null)
                     await personWriteRepository.UpdateAsync(
@@ -67,14 +87,17 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
 
             if (cityId is not null)
             {
-                var currentDate = (await cityPopulationProgressionStateRepository.GetByCityAsync(
-                    cityId: cityId.Value,
-                    cancellationToken: cancellationToken))?.LastProcessedDate ??
-                                  DateOnly.FromDateTime(DateTime.UtcNow);
-
                 await cityPopulationSummaryProjectionService.RebuildAsync(
                     cityId: cityId.Value,
                     currentDate: currentDate,
+                    cancellationToken: cancellationToken);
+
+                await cityPopulationActivityJournalService.RecordAsync(
+                    entry: ClassicCityActivityFactory.ResidentDied(
+                        cityId: cityId.Value.Value,
+                        currentDate: currentDate,
+                        resident: person,
+                        source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
                     cancellationToken: cancellationToken);
             }
 

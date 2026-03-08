@@ -11,6 +11,9 @@ namespace Matrix.Population.Infrastructure.Persistence
         public DbSet<CityPopulationArchiveState> CityPopulationArchiveStates => Set<CityPopulationArchiveState>();
         public DbSet<CityPopulationDeletionState> CityPopulationDeletionStates => Set<CityPopulationDeletionState>();
         public DbSet<CityPopulationEnvironment> CityPopulationEnvironments => Set<CityPopulationEnvironment>();
+        public DbSet<CityPopulationActivityEvent> CityPopulationActivityEvents => Set<CityPopulationActivityEvent>();
+        public DbSet<CityPopulationDailySummarySnapshot> CityPopulationDailySummarySnapshots
+            => Set<CityPopulationDailySummarySnapshot>();
 
         public DbSet<CityPopulationProgressionState> CityPopulationProgressionStates
             => Set<CityPopulationProgressionState>();
