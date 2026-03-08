@@ -25,6 +25,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
         MarriageDomainService marriageDomainService,
         CityEducationAutonomyPolicy educationAutonomyPolicy,
+        CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
@@ -116,6 +117,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             elementSelector: x => x);
                         Dictionary<EducationLevel, List<Matrix.Population.Domain.ValueObjects.EducationInstitutionId>> institutionPools =
                             BuildEducationInstitutionPools(personsSnapshot);
+                        Dictionary<string, List<Matrix.Population.Domain.ValueObjects.WorkplaceId>> workplacePools =
+                            BuildWorkplacePools(personsSnapshot);
 
                         foreach (PersonEntity person in personsSnapshot)
                             if (ApplyProgressionNeedsAndExposure(
@@ -131,7 +134,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     exposureSegments: exposureSegments,
                                     marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
+                                    employmentAutonomyPolicy: employmentAutonomyPolicy,
                                     institutionPools: institutionPools,
+                                    workplacePools: workplacePools,
                                     personNeedsProgressionPolicy: personNeedsProgressionPolicy,
                                     weatherExposurePolicy: weatherExposurePolicy))
                                 affectedPeopleCount++;
@@ -193,7 +198,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
+            CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
             IDictionary<EducationLevel, List<Matrix.Population.Domain.ValueObjects.EducationInstitutionId>> institutionPools,
+            IDictionary<string, List<Matrix.Population.Domain.ValueObjects.WorkplaceId>> workplacePools,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
@@ -217,7 +224,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     previousDate: previousDate,
                     currentDate: currentDate,
                     educationAutonomyPolicy: educationAutonomyPolicy,
-                    institutionPools: institutionPools))
+                    employmentAutonomyPolicy: employmentAutonomyPolicy,
+                    institutionPools: institutionPools,
+                    workplacePools: workplacePools))
                 changed = true;
 
             if (exposureSegments.Count > 0)
@@ -272,7 +281,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly previousDate,
             DateOnly currentDate,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
-            IDictionary<EducationLevel, List<Matrix.Population.Domain.ValueObjects.EducationInstitutionId>> institutionPools)
+            CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
+            IDictionary<EducationLevel, List<Matrix.Population.Domain.ValueObjects.EducationInstitutionId>> institutionPools,
+            IDictionary<string, List<Matrix.Population.Domain.ValueObjects.WorkplaceId>> workplacePools)
         {
             bool changed = false;
 
@@ -284,6 +295,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     previousDate: previousDate,
                     currentDate: currentDate,
                     institutionPools: institutionPools))
+                changed = true;
+
+            if (employmentAutonomyPolicy.Apply(
+                    person: person,
+                    previousDate: previousDate,
+                    currentDate: currentDate,
+                    workplacePools: workplacePools))
                 changed = true;
 
             if (person.GetAgeGroup(currentDate) != AgeGroup.Senior)
@@ -487,6 +505,30 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                 if (!levelPool.Contains(institutionId))
                     levelPool.Add(institutionId);
+            }
+
+            return pools;
+        }
+
+        private static Dictionary<string, List<Matrix.Population.Domain.ValueObjects.WorkplaceId>> BuildWorkplacePools(
+            IEnumerable<PersonEntity> persons)
+        {
+            var pools =
+                new Dictionary<string, List<Matrix.Population.Domain.ValueObjects.WorkplaceId>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (PersonEntity person in persons)
+            {
+                if (person.Employment.Status != EmploymentStatus.Employed || person.Employment.Job is not { } job)
+                    continue;
+
+                if (!pools.TryGetValue(job.Title, out List<Matrix.Population.Domain.ValueObjects.WorkplaceId>? titlePool))
+                {
+                    titlePool = [];
+                    pools[job.Title] = titlePool;
+                }
+
+                if (!titlePool.Contains(job.WorkplaceId))
+                    titlePool.Add(job.WorkplaceId);
             }
 
             return pools;
