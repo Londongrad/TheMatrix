@@ -140,6 +140,16 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
+        public static MatrixApplicationException EmploymentWorkplaceNotFound(
+            Guid workplaceId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Employment.Workplace.NotFound",
+                message: $"Workplace '{workplaceId}' was not found inside city '{cityId}'.",
+                errorType: ApplicationErrorType.NotFound);
+        }
+
         public static MatrixApplicationException InvalidEducationLevel(string? value)
         {
             string normalizedValue = string.IsNullOrWhiteSpace(value)

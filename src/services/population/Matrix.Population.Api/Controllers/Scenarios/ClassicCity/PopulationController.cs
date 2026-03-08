@@ -165,6 +165,7 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                     CityId: cityId,
                     ResidentId: request.ResidentId,
                     JobTitle: request.JobTitle ?? string.Empty,
+                    WorkplaceId: request.WorkplaceId,
                     CurrentDate: request.CurrentDate),
                 cancellationToken: cancellationToken);
 

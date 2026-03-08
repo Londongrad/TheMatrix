@@ -9,6 +9,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
         Guid CityId,
         Guid ResidentId,
         string JobTitle,
+        Guid? WorkplaceId,
         DateOnly CurrentDate) : IRequest<CityEmploymentOperationResultDto>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.PopulationEmploymentManage;

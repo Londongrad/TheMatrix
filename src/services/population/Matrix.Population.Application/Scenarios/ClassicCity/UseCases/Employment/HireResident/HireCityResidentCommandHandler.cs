@@ -1,6 +1,8 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
@@ -29,7 +31,21 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
                 cancellationToken: cancellationToken);
 
-            Job job = CityEmploymentOperationSupport.CreateJob(request.JobTitle);
+            CityEmploymentWorkplaceSnapshot? workplace = request.WorkplaceId.HasValue
+                ? await cityPopulationPersonReadRepository.FindEmploymentWorkplaceByIdAsync(
+                    cityId: CityId.From(request.CityId),
+                    workplaceId: WorkplaceId.From(request.WorkplaceId.Value),
+                    cancellationToken: cancellationToken)
+                : null;
+
+            if (request.WorkplaceId.HasValue && workplace is null)
+                throw ApplicationErrorsFactory.EmploymentWorkplaceNotFound(
+                    workplaceId: request.WorkplaceId.Value,
+                    cityId: request.CityId);
+
+            Job job = CityEmploymentOperationSupport.CreateJob(
+                jobTitle: request.JobTitle,
+                workplace: workplace);
             resident.AssignJob(
                 currentDate: request.CurrentDate,
                 job: job);

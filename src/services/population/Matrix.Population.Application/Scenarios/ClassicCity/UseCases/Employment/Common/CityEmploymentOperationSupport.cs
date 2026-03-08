@@ -3,6 +3,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
@@ -38,8 +39,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
             return resident;
         }
 
-        public static Job CreateJob(string? jobTitle)
+        public static Job CreateJob(
+            string? jobTitle,
+            CityEmploymentWorkplaceSnapshot? workplace = null)
         {
+            if (workplace is not null)
+            {
+                return new Job(
+                    workplaceId: workplace.WorkplaceId,
+                    title: workplace.JobTitle);
+            }
+
             string normalizedTitle = GuardHelper.AgainstNullOrWhiteSpace(
                 value: jobTitle,
                 errorFactory: ApplicationErrorsFactory.Required,

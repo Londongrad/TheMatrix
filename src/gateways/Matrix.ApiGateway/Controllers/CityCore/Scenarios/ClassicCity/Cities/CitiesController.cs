@@ -172,6 +172,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 request: new CityEmploymentOperationRequest(
                     ResidentId: request.ResidentId,
                     JobTitle: request.JobTitle,
+                    WorkplaceId: request.WorkplaceId,
                     CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 
@@ -195,6 +196,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 request: new CityEmploymentOperationRequest(
                     ResidentId: request.ResidentId,
                     JobTitle: request.JobTitle,
+                    WorkplaceId: request.WorkplaceId,
                     CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 
@@ -218,6 +220,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 request: new CityEmploymentOperationRequest(
                     ResidentId: request.ResidentId,
                     JobTitle: request.JobTitle,
+                    WorkplaceId: request.WorkplaceId,
                     CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 

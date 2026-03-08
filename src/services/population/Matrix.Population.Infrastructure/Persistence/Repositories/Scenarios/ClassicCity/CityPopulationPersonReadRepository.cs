@@ -119,5 +119,74 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                         ? ResidentialBuildingId.From(snapshot.ResidentialBuildingId.Value)
                         : null);
         }
+
+        public async Task<IReadOnlyCollection<CityEmploymentWorkplaceSnapshot>> ListEmploymentWorkplacesAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            var snapshots = await (
+                from person in _dbContext.Persons.AsNoTracking()
+                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                    on person.HouseholdId equals placement.HouseholdId
+                where placement.CityId == cityId
+                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Employed
+                    && person.Employment.Job != null
+                group person by new
+                {
+                    WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
+                    JobTitle = person.Employment.Job.Title
+                }
+                into workplaceGroup
+                orderby workplaceGroup.Count() descending, workplaceGroup.Key.JobTitle
+                select new
+                {
+                    workplaceGroup.Key.WorkplaceId,
+                    workplaceGroup.Key.JobTitle,
+                    ResidentCount = workplaceGroup.Count()
+                })
+               .ToListAsync(cancellationToken);
+
+            return snapshots
+               .Select(x => new CityEmploymentWorkplaceSnapshot(
+                    WorkplaceId: WorkplaceId.From(x.WorkplaceId),
+                    JobTitle: x.JobTitle,
+                    ResidentCount: x.ResidentCount))
+               .ToArray();
+        }
+
+        public async Task<CityEmploymentWorkplaceSnapshot?> FindEmploymentWorkplaceByIdAsync(
+            CityId cityId,
+            WorkplaceId workplaceId,
+            CancellationToken cancellationToken = default)
+        {
+            var snapshot = await (
+                from person in _dbContext.Persons.AsNoTracking()
+                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                    on person.HouseholdId equals placement.HouseholdId
+                where placement.CityId == cityId
+                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Employed
+                    && person.Employment.Job != null
+                    && person.Employment.Job.WorkplaceId.Value == workplaceId.Value
+                group person by new
+                {
+                    WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
+                    JobTitle = person.Employment.Job.Title
+                }
+                into workplaceGroup
+                select new
+                {
+                    workplaceGroup.Key.WorkplaceId,
+                    workplaceGroup.Key.JobTitle,
+                    ResidentCount = workplaceGroup.Count()
+                })
+               .FirstOrDefaultAsync(cancellationToken);
+
+            return snapshot is null
+                ? null
+                : new CityEmploymentWorkplaceSnapshot(
+                    WorkplaceId: WorkplaceId.From(snapshot.WorkplaceId),
+                    JobTitle: snapshot.JobTitle,
+                    ResidentCount: snapshot.ResidentCount);
+        }
     }
 }
