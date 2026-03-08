@@ -28,7 +28,7 @@ type ResidentDossierTabKey = "overview" | "relationships" | "career" | "educatio
 
 const DOSSIER_TABS: ReadonlyArray<{ key: ResidentDossierTabKey; label: string; helper: string }> = [
     {key: "overview", label: "Overview", helper: "Current snapshot of this resident inside the city."},
-    {key: "relationships", label: "Relationships", helper: "Current marital state and spouse link."},
+    {key: "relationships", label: "Relationships", helper: "Current spouse, parents, children, and household context."},
     {key: "career", label: "Career", helper: "Current employment and workplace context."},
     {key: "education", label: "Education", helper: "Current level until education history arrives."},
     {key: "health", label: "Health", helper: "Live wellbeing and pressure metrics."},
@@ -64,6 +64,50 @@ function formatInstitutionLabel(institutionId?: string | null) {
     }
 
     return `Institution ${institutionId.slice(0, 8)}`;
+}
+
+function renderResidentReference(
+    cityId: string,
+    resident?: { id: string; fullName: string } | null,
+    fallback = "Unknown"
+) {
+    if (!resident) {
+        return fallback;
+    }
+
+    return (
+        <Link
+            className="city-resident-dossier__inline-link"
+            to={getClassicCityResidentDossierPath(cityId, resident.id)}
+        >
+            {resident.fullName}
+        </Link>
+    );
+}
+
+function renderResidentReferenceList(
+    cityId: string,
+    residents: Array<{ id: string; fullName: string }>,
+    emptyLabel: string,
+) {
+    if (residents.length === 0) {
+        return <span>{emptyLabel}</span>;
+    }
+
+    return (
+        <div className="city-resident-dossier__reference-list">
+            {residents.map((resident) => (
+                <Link
+                    key={resident.id}
+                    className="city-resident-dossier__reference-token"
+                    to={getClassicCityResidentDossierPath(cityId, resident.id)}
+                    title={resident.fullName}
+                >
+                    {resident.fullName}
+                </Link>
+            ))}
+        </div>
+    );
 }
 
 const CityResidentDossierPage = () => {
@@ -193,7 +237,7 @@ const CityResidentDossierPage = () => {
                     <div className="city-state-banner city-state-banner--active">
                         <div className="city-state-banner__title">Loading resident dossier</div>
                         <div className="city-state-banner__text">
-                            Pulling the latest city-scoped resident snapshot and spouse reference.
+                            Pulling the latest city-scoped resident snapshot, family links, and household context.
                         </div>
                     </div>
                 ) : null}
@@ -224,16 +268,31 @@ const CityResidentDossierPage = () => {
                                         <div>
                                             <dt>Current spouse</dt>
                                             <dd>
-                                                {resident.currentSpouse ? (
-                                                    <Link
-                                                        className="city-resident-dossier__inline-link"
-                                                        to={getClassicCityResidentDossierPath(cityId, resident.currentSpouse.id)}
-                                                    >
-                                                        {resident.currentSpouse.fullName}
-                                                    </Link>
-                                                ) : resident.maritalStatus === "Married" ? "Spouse record unavailable" : "None"}
+                                                {resident.currentSpouse
+                                                    ? renderResidentReference(cityId, resident.currentSpouse)
+                                                    : resident.maritalStatus === "Married"
+                                                        ? "Spouse record unavailable"
+                                                        : "None"}
                                             </dd>
                                         </div>
+                                        <div>
+                                            <dt>Mother</dt>
+                                            <dd>{renderResidentReference(cityId, resident.mother, "Not recorded")}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Father</dt>
+                                            <dd>{renderResidentReference(cityId, resident.father, "Not recorded")}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Children</dt>
+                                            <dd>{resident.children.length > 0 ? `${resident.children.length} linked` : "No linked children"}</dd>
+                                        </div>
+                                        {resident.lastChildbirthDate ? (
+                                            <div>
+                                                <dt>Last childbirth</dt>
+                                                <dd>{resident.lastChildbirthDate}</dd>
+                                            </div>
+                                        ) : null}
                                         <div>
                                             <dt>Household</dt>
                                             <dd>{formatHouseholdLabel(resident.currentHousing.householdId)}</dd>
@@ -331,14 +390,11 @@ const CityResidentDossierPage = () => {
                                         <div>
                                             <dt>Current spouse</dt>
                                             <dd>
-                                                {resident.currentSpouse ? (
-                                                    <Link
-                                                        className="city-resident-dossier__inline-link"
-                                                        to={getClassicCityResidentDossierPath(cityId, resident.currentSpouse.id)}
-                                                    >
-                                                        {resident.currentSpouse.fullName}
-                                                    </Link>
-                                                ) : resident.maritalStatus === "Married" ? "Spouse record unavailable" : "No current spouse"}
+                                                {resident.currentSpouse
+                                                    ? renderResidentReference(cityId, resident.currentSpouse)
+                                                    : resident.maritalStatus === "Married"
+                                                        ? "Spouse record unavailable"
+                                                        : "No current spouse"}
                                             </dd>
                                         </div>
                                         <div>
@@ -351,7 +407,36 @@ const CityResidentDossierPage = () => {
                                         </div>
                                     </dl>
                                 </section>
-                                {renderLifecycleHint("Marriage, divorce, widowhood, and household change history will appear here once dedicated city relationship services start recording events.")}
+                                <section className="city-resident-dossier__section-card">
+                                    <h3 className="city-resident-dossier__section-title">Family links</h3>
+                                    <dl className="city-resident-dossier__facts">
+                                        <div>
+                                            <dt>Mother</dt>
+                                            <dd>{renderResidentReference(cityId, resident.mother, "Not recorded")}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Father</dt>
+                                            <dd>{renderResidentReference(cityId, resident.father, "Not recorded")}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Children</dt>
+                                            <dd>
+                                                {renderResidentReferenceList(
+                                                    cityId,
+                                                    resident.children,
+                                                    "No linked children",
+                                                )}
+                                            </dd>
+                                        </div>
+                                        {resident.lastChildbirthDate ? (
+                                            <div>
+                                                <dt>Last childbirth</dt>
+                                                <dd>{resident.lastChildbirthDate}</dd>
+                                            </div>
+                                        ) : null}
+                                    </dl>
+                                </section>
+                                {renderLifecycleHint("Marriage, divorce, widowhood, births, and wider family history can keep growing in this tab once relationship services start recording deeper timelines.")}
                             </div>
                         ) : null}
 

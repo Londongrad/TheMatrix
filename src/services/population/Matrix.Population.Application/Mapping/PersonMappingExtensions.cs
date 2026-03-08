@@ -71,7 +71,10 @@ namespace Matrix.Population.Application.Mapping
             this Person person,
             DateOnly currentDate,
             Person? currentSpouse = null,
-            CityResidentHousingSnapshot? currentHousing = null)
+            CityResidentHousingSnapshot? currentHousing = null,
+            Person? mother = null,
+            Person? father = null,
+            IReadOnlyCollection<Person>? children = null)
         {
             PersonDto snapshot = person.ToDto(currentDate);
             CityResidentHousingDto housing = currentHousing is null
@@ -92,6 +95,16 @@ namespace Matrix.Population.Application.Mapping
                 : new CityResidentEducationInstitutionDto(
                     InstitutionId: person.Education.CurrentInstitutionId.Value,
                     EducationLevel: person.Education.Level.ToString());
+            IReadOnlyCollection<PersonReferenceDto> childReferences = (children ?? Array.Empty<Person>())
+               .OrderBy(x => x.BirthDate)
+               .ThenBy(x => x.Name.LastName)
+               .ThenBy(x => x.Name.FirstName)
+               .Select(x => x.ToReferenceDto())
+               .ToArray();
+            string? lastChildbirthDate = person.LastChildbirthDate?
+               .ToString(
+                    format: "dd MMMM yyyy",
+                    provider: CultureInfo.InvariantCulture);
 
             return new CityResidentDetailsDto(
                 Id: snapshot.Id,
@@ -112,6 +125,10 @@ namespace Matrix.Population.Application.Mapping
                 EmploymentStatus: snapshot.EmploymentStatus,
                 JobTitle: snapshot.JobTitle,
                 CurrentSpouse: currentSpouse?.ToReferenceDto(),
+                Mother: mother?.ToReferenceDto(),
+                Father: father?.ToReferenceDto(),
+                Children: childReferences,
+                LastChildbirthDate: lastChildbirthDate,
                 CurrentHousing: housing,
                 CurrentWorkplace: workplace,
                 CurrentEducationInstitution: educationInstitution);

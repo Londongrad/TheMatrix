@@ -161,6 +161,30 @@
     text-decoration: underline;
 }
 
+.city-resident-dossier__reference-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.city-resident-dossier__reference-token {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.2);
+    background: rgba(var(--shell-accent-rgb), 0.08);
+    color: var(--app-text-strong);
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+.city-resident-dossier__reference-token:hover {
+    border-color: rgba(var(--shell-accent-rgb), 0.34);
+    background: rgba(var(--shell-accent-rgb), 0.13);
+}
+
 .city-resident-dossier__entity-token {
     display: inline-flex;
     align-items: center;

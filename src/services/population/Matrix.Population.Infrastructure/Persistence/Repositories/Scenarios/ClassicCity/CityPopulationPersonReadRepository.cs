@@ -73,6 +73,24 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     cancellationToken: cancellationToken);
         }
 
+        public async Task<IReadOnlyCollection<Person>> ListChildrenByParentIdAsync(
+            CityId cityId,
+            PersonId parentId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Persons
+               .AsNoTracking()
+               .Join(
+                    inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
+                    outerKeySelector: person => person.HouseholdId,
+                    innerKeySelector: placement => placement.HouseholdId,
+                    resultSelector: (
+                        person,
+                        _) => person)
+               .Where(person => person.MotherId == parentId || person.FatherId == parentId)
+               .ToListAsync(cancellationToken);
+        }
+
         public async Task<CityId?> FindCityIdByPersonIdAsync(
             PersonId personId,
             CancellationToken cancellationToken = default)

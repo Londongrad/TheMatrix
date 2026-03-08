@@ -33,6 +33,10 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         string EmploymentStatus,
         string? JobTitle,
         PersonReferenceDto? CurrentSpouse,
+        PersonReferenceDto? Mother,
+        PersonReferenceDto? Father,
+        IReadOnlyCollection<PersonReferenceDto> Children,
+        string? LastChildbirthDate,
         CityResidentHousingDto CurrentHousing,
         CityResidentWorkplaceDto? CurrentWorkplace,
         CityResidentEducationInstitutionDto? CurrentEducationInstitution);

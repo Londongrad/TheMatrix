@@ -40,6 +40,10 @@ export interface CityResidentEducationInstitutionDto {
 
 export interface CityResidentDetailsDto extends PersonDto {
     currentSpouse?: PersonReferenceDto | null;
+    mother?: PersonReferenceDto | null;
+    father?: PersonReferenceDto | null;
+    children: PersonReferenceDto[];
+    lastChildbirthDate?: string | null;
     currentHousing: CityResidentHousingDto;
     currentWorkplace?: CityResidentWorkplaceDto | null;
     currentEducationInstitution?: CityResidentEducationInstitutionDto | null;

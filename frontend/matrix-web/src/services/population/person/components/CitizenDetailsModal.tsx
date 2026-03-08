@@ -42,6 +42,25 @@ function formatHouseholdLabel(householdId?: string | null): string {
     return `Household ${householdId.slice(0, 8)}`;
 }
 
+function renderResidentLink(
+    cityId: string,
+    resident?: { id: string; fullName: string } | null,
+    fallback = "--",
+) {
+    if (!resident) {
+        return fallback;
+    }
+
+    return (
+        <Link
+            className="citizens-page-modal-inline-link"
+            to={getClassicCityResidentDossierPath(cityId, resident.id)}
+        >
+            {resident.fullName}
+        </Link>
+    );
+}
+
 const CitizenDetailsModal = ({
     cityId,
     person,
@@ -137,6 +156,9 @@ const CitizenDetailsModal = ({
         ? resident as CityResidentDetailsDto
         : null;
     const currentSpouse = residentDetails?.currentSpouse ?? null;
+    const mother = residentDetails?.mother ?? null;
+    const father = residentDetails?.father ?? null;
+    const children = residentDetails?.children ?? [];
     const currentHousing = residentDetails?.currentHousing ?? null;
 
     return (
@@ -210,16 +232,50 @@ const CitizenDetailsModal = ({
                             <div className="citizens-page-modal-field">
                                 <div className="citizens-page-modal-field-label">Current spouse</div>
                                 <div>
-                                    {currentSpouse ? (
-                                        <Link
-                                            className="citizens-page-modal-inline-link"
-                                            to={getClassicCityResidentDossierPath(cityId, currentSpouse.id)}
-                                        >
-                                            {currentSpouse.fullName}
-                                        </Link>
-                                    ) : resident.maritalStatus === "Married" ? "Spouse record unavailable" : "--"}
+                                    {currentSpouse
+                                        ? renderResidentLink(cityId, currentSpouse)
+                                        : resident.maritalStatus === "Married"
+                                            ? "Spouse record unavailable"
+                                            : "--"}
                                 </div>
                             </div>
+
+                            <div className="citizens-page-modal-field">
+                                <div className="citizens-page-modal-field-label">Mother</div>
+                                <div>{renderResidentLink(cityId, mother, "Not recorded")}</div>
+                            </div>
+
+                            <div className="citizens-page-modal-field">
+                                <div className="citizens-page-modal-field-label">Father</div>
+                                <div>{renderResidentLink(cityId, father, "Not recorded")}</div>
+                            </div>
+
+                            <div className="citizens-page-modal-field">
+                                <div className="citizens-page-modal-field-label">Children</div>
+                                <div>
+                                    {children.length > 0 ? (
+                                        <div className="citizens-page-modal-reference-list">
+                                            {children.map((child) => (
+                                                <Link
+                                                    key={child.id}
+                                                    className="citizens-page-modal-reference-token"
+                                                    to={getClassicCityResidentDossierPath(cityId, child.id)}
+                                                    title={child.fullName}
+                                                >
+                                                    {child.fullName}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    ) : "--"}
+                                </div>
+                            </div>
+
+                            {residentDetails?.lastChildbirthDate ? (
+                                <div className="citizens-page-modal-field">
+                                    <div className="citizens-page-modal-field-label">Last childbirth</div>
+                                    <div>{residentDetails.lastChildbirthDate}</div>
+                                </div>
+                            ) : null}
 
                             <div className="citizens-page-modal-field">
                                 <div className="citizens-page-modal-field-label">Education</div>
