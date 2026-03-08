@@ -23,7 +23,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
+        IHouseholdWriteRepository householdWriteRepository,
         MarriageDomainService marriageDomainService,
+        CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
         CityEducationAutonomyPolicy educationAutonomyPolicy,
         CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
@@ -140,6 +142,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     personNeedsProgressionPolicy: personNeedsProgressionPolicy,
                                     weatherExposurePolicy: weatherExposurePolicy))
                                 affectedPeopleCount++;
+
+                        if (requiresDateProgression)
+                            affectedPeopleCount += await ApplyCivilRegistryAutonomyAsync(
+                                cityId: cityId,
+                                residentsById: personsById,
+                                previousDate: previousDate,
+                                currentDate: toDate,
+                                householdWriteRepository: householdWriteRepository,
+                                marriageDomainService: marriageDomainService,
+                                civilRegistryAutonomyPolicy: civilRegistryAutonomyPolicy,
+                                cancellationToken: ct);
                     }
 
                     DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
@@ -375,6 +388,77 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             }
 
             return changed;
+        }
+
+        private static async Task<int> ApplyCivilRegistryAutonomyAsync(
+            CityId cityId,
+            IReadOnlyDictionary<Matrix.Population.Domain.ValueObjects.PersonId, PersonEntity> residentsById,
+            DateOnly previousDate,
+            DateOnly currentDate,
+            IHouseholdWriteRepository householdWriteRepository,
+            MarriageDomainService marriageDomainService,
+            CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<CityCivilRegistryAutonomyDecision> decisions = civilRegistryAutonomyPolicy.Plan(
+                residents: residentsById.Values.ToArray(),
+                previousDate: previousDate,
+                currentDate: currentDate);
+
+            if (decisions.Count == 0)
+                return 0;
+
+            int affectedResidents = 0;
+
+            foreach (CityCivilRegistryAutonomyDecision decision in decisions)
+            {
+                if (!residentsById.TryGetValue(decision.FirstResidentId, out PersonEntity? firstResident) ||
+                    !residentsById.TryGetValue(decision.SecondResidentId, out PersonEntity? secondResident))
+                    continue;
+
+                switch (decision.Type)
+                {
+                    case CityCivilRegistryAutonomyDecisionType.Marriage:
+                    {
+                        marriageDomainService.RegisterMarriage(
+                            person: firstResident,
+                            spouse: secondResident,
+                            currentDate: currentDate);
+
+                        await ClassicCityCivilRegistryHouseholdSupport.MergeSpousesIntoSharedHouseholdAsync(
+                            cityId: cityId,
+                            firstResident: firstResident,
+                            secondResident: secondResident,
+                            householdWriteRepository: householdWriteRepository,
+                            cancellationToken: cancellationToken);
+
+                        affectedResidents += 2;
+                        break;
+                    }
+                    case CityCivilRegistryAutonomyDecisionType.Divorce:
+                    {
+                        if (firstResident.SpouseId != secondResident.Id || secondResident.SpouseId != firstResident.Id)
+                            continue;
+
+                        marriageDomainService.RegisterDivorce(
+                            person: firstResident,
+                            spouse: secondResident,
+                            currentDate: currentDate);
+
+                        await ClassicCityCivilRegistryHouseholdSupport.SeparateDivorcedSpousesAsync(
+                            cityId: cityId,
+                            firstResident: firstResident,
+                            secondResident: secondResident,
+                            householdWriteRepository: householdWriteRepository,
+                            cancellationToken: cancellationToken);
+
+                        affectedResidents += 2;
+                        break;
+                    }
+                }
+            }
+
+            return affectedResidents;
         }
 
         private static bool ShouldAdvanceWeatherExposureCheckpoint(

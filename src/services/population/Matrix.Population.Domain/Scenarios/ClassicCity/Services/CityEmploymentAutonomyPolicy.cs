@@ -167,11 +167,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly previousDate,
             DateOnly currentDate)
         {
-            int elapsedDays = currentDate.DayNumber - previousDate.DayNumber;
-            if (elapsedDays <= 0)
-                return 0;
-
-            return Math.Clamp((elapsedDays + 6) / 7, 1, 8);
+            int previousWindow = previousDate.DayNumber / 7;
+            int currentWindow = currentDate.DayNumber / 7;
+            return Math.Clamp(currentWindow - previousWindow, 0, 8);
         }
 
         private static double ResolveHireChancePerReview(Person person)
