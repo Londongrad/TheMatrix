@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
@@ -32,7 +33,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                 resident: resident,
                 currentDate: request.CurrentDate);
 
-            resident.StartStudying(request.CurrentDate);
+            CityEducationInstitutionSnapshot? institution = await CityEducationOperationSupport.ResolveInstitutionAsync(
+                cityId: request.CityId,
+                institutionId: request.InstitutionId,
+                expectedEducationLevel: resident.EducationLevel,
+                cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
+                cancellationToken: cancellationToken);
+
+            resident.StartStudying(
+                currentDate: request.CurrentDate,
+                institutionId: CityEducationOperationSupport.ResolveInstitutionId(institution));
 
             await personWriteRepository.UpdateAsync(
                 person: resident,

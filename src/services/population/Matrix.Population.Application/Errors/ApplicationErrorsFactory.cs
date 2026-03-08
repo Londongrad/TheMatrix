@@ -150,6 +150,27 @@ namespace Matrix.Population.Application.Errors
                 errorType: ApplicationErrorType.NotFound);
         }
 
+        public static MatrixApplicationException EducationInstitutionNotFound(
+            Guid institutionId,
+            Guid cityId)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.Institution.NotFound",
+                message: $"Education institution '{institutionId}' was not found inside city '{cityId}'.",
+                errorType: ApplicationErrorType.NotFound);
+        }
+
+        public static MatrixApplicationException EducationInstitutionLevelMismatch(
+            Guid institutionId,
+            string expectedEducationLevel,
+            string actualEducationLevel)
+        {
+            return new MatrixApplicationException(
+                code: "Population.Education.Institution.LevelMismatch",
+                message: $"Education institution '{institutionId}' is registered for level '{actualEducationLevel}', but '{expectedEducationLevel}' is required.",
+                errorType: ApplicationErrorType.BusinessRule);
+        }
+
         public static MatrixApplicationException InvalidEducationLevel(string? value)
         {
             string normalizedValue = string.IsNullOrWhiteSpace(value)

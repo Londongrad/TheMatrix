@@ -188,5 +188,74 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     JobTitle: snapshot.JobTitle,
                     ResidentCount: snapshot.ResidentCount);
         }
+
+        public async Task<IReadOnlyCollection<CityEducationInstitutionSnapshot>> ListEducationInstitutionsAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            var snapshots = await (
+                from person in _dbContext.Persons.AsNoTracking()
+                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                    on person.HouseholdId equals placement.HouseholdId
+                where placement.CityId == cityId
+                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Student
+                    && person.Education.CurrentInstitutionId != null
+                group person by new
+                {
+                    InstitutionId = person.Education.CurrentInstitutionId!.Value,
+                    person.Education.Level
+                }
+                into institutionGroup
+                orderby institutionGroup.Count() descending, institutionGroup.Key.Level
+                select new
+                {
+                    institutionGroup.Key.InstitutionId,
+                    institutionGroup.Key.Level,
+                    ResidentCount = institutionGroup.Count()
+                })
+               .ToListAsync(cancellationToken);
+
+            return snapshots
+               .Select(x => new CityEducationInstitutionSnapshot(
+                    InstitutionId: EducationInstitutionId.From(x.InstitutionId),
+                    EducationLevel: x.Level,
+                    ResidentCount: x.ResidentCount))
+               .ToArray();
+        }
+
+        public async Task<CityEducationInstitutionSnapshot?> FindEducationInstitutionByIdAsync(
+            CityId cityId,
+            EducationInstitutionId institutionId,
+            CancellationToken cancellationToken = default)
+        {
+            var snapshot = await (
+                from person in _dbContext.Persons.AsNoTracking()
+                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                    on person.HouseholdId equals placement.HouseholdId
+                where placement.CityId == cityId
+                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Student
+                    && person.Education.CurrentInstitutionId != null
+                    && person.Education.CurrentInstitutionId.Value == institutionId.Value
+                group person by new
+                {
+                    InstitutionId = person.Education.CurrentInstitutionId!.Value,
+                    person.Education.Level
+                }
+                into institutionGroup
+                select new
+                {
+                    institutionGroup.Key.InstitutionId,
+                    institutionGroup.Key.Level,
+                    ResidentCount = institutionGroup.Count()
+                })
+               .FirstOrDefaultAsync(cancellationToken);
+
+            return snapshot is null
+                ? null
+                : new CityEducationInstitutionSnapshot(
+                    InstitutionId: EducationInstitutionId.From(snapshot.InstitutionId),
+                    EducationLevel: snapshot.Level,
+                    ResidentCount: snapshot.ResidentCount);
+        }
     }
 }

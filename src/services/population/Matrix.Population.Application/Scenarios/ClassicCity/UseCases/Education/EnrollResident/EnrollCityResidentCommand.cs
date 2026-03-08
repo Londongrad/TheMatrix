@@ -8,6 +8,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
     public sealed record EnrollCityResidentCommand(
         Guid CityId,
         Guid ResidentId,
+        Guid? InstitutionId,
         DateOnly CurrentDate) : IRequest<CityEducationOperationResultDto>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.PopulationEducationManage;

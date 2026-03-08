@@ -31,6 +31,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
             Guid cityId,
             CancellationToken cancellationToken = default);
 
+        Task<CityEducationCatalogDto> GetCityEducationCatalogAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
         Task<CityEmploymentOperationResultDto> HireCityResidentAsync(
             Guid cityId,
             CityEmploymentOperationRequest request,

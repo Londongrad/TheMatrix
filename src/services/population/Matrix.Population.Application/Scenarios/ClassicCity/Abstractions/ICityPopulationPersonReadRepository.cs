@@ -39,5 +39,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             CityId cityId,
             WorkplaceId workplaceId,
             CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyCollection<CityEducationInstitutionSnapshot>> ListEducationInstitutionsAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default);
+
+        Task<CityEducationInstitutionSnapshot?> FindEducationInstitutionByIdAsync(
+            CityId cityId,
+            EducationInstitutionId institutionId,
+            CancellationToken cancellationToken = default);
     }
 }

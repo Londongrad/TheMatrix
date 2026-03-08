@@ -27,6 +27,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     Persons: Array.Empty<Person>());
 
             Random random = CreateRandom(randomSeed);
+            var institutionPools = new Dictionary<EducationLevel, List<EducationInstitutionId>>();
             var workplacePools = new Dictionary<string, List<WorkplaceId>>(StringComparer.OrdinalIgnoreCase);
             var households = new List<Household>(peopleCount);
             var householdPlacements = new List<ClassicCityHouseholdPlacement>();
@@ -44,6 +45,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 persons.Add(
                     CreateSingleResident(
                         random: random,
+                        institutionPools: institutionPools,
                         workplacePools: workplacePools,
                         householdId: householdId,
                         currentDate: currentDate,
@@ -73,6 +75,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     Persons: Array.Empty<Person>());
 
             Random random = CreateRandom(randomSeed);
+            var institutionPools = new Dictionary<EducationLevel, List<EducationInstitutionId>>();
             var workplacePools = new Dictionary<string, List<WorkplaceId>>(StringComparer.OrdinalIgnoreCase);
             BootstrapTuningModel bootstrapTuning = BootstrapTuningModel.From(tuning);
             var households = new List<Household>();
@@ -110,6 +113,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 persons.AddRange(
                     CreateHouseholdMembers(
                         random: random,
+                        institutionPools: institutionPools,
                         workplacePools: workplacePools,
                         householdId: household.Id,
                         householdSizeValue: householdSizeValue,
@@ -128,6 +132,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateHouseholdMembers(
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -143,6 +148,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 {
                     CreateSingleResident(
                         random: random,
+                        institutionPools: institutionPools,
                         workplacePools: workplacePools,
                         householdId: householdId,
                         currentDate: currentDate,
@@ -159,6 +165,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 HouseholdComposition.MarriedFamily => CreateMarriedFamily(
                     random: random,
+                    institutionPools: institutionPools,
                     workplacePools: workplacePools,
                     householdId: householdId,
                     householdSizeValue: householdSizeValue,
@@ -167,6 +174,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     housingStatus: housingStatus),
                 HouseholdComposition.SingleParentFamily => CreateSingleParentFamily(
                     random: random,
+                    institutionPools: institutionPools,
                     workplacePools: workplacePools,
                     householdId: householdId,
                     householdSizeValue: householdSizeValue,
@@ -175,6 +183,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     housingStatus: housingStatus),
                 _ => CreateAdultOnlyHousehold(
                     random: random,
+                    institutionPools: institutionPools,
                     workplacePools: workplacePools,
                     householdId: householdId,
                     householdSizeValue: householdSizeValue,
@@ -208,6 +217,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateMarriedFamily(
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -231,6 +241,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             persons.Add(
                 CreateGeneratedPerson(
                     random: random,
+                    institutionPools: institutionPools,
                     workplacePools: workplacePools,
                     personId: firstSpouseId,
                     householdId: householdId,
@@ -246,6 +257,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             persons.Add(
                 CreateGeneratedPerson(
                     random: random,
+                    institutionPools: institutionPools,
                     workplacePools: workplacePools,
                     personId: secondSpouseId,
                     householdId: householdId,
@@ -270,6 +282,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             AddChildren(
                 persons: persons,
                 random: random,
+                institutionPools: institutionPools,
                 workplacePools: workplacePools,
                 householdId: householdId,
                 currentDate: currentDate,
@@ -282,6 +295,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             AddAdultRelatives(
                 persons: persons,
                 random: random,
+                institutionPools: institutionPools,
                 workplacePools: workplacePools,
                 householdId: householdId,
                 currentDate: currentDate,
@@ -295,6 +309,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateSingleParentFamily(
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -313,6 +328,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             persons.Add(
                 CreateGeneratedPerson(
                     random: random,
+                    institutionPools: institutionPools,
                     workplacePools: workplacePools,
                     personId: PersonId.New(),
                     householdId: householdId,
@@ -333,6 +349,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             AddChildren(
                 persons: persons,
                 random: random,
+                institutionPools: institutionPools,
                 workplacePools: workplacePools,
                 householdId: householdId,
                 currentDate: currentDate,
@@ -345,6 +362,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             AddAdultRelatives(
                 persons: persons,
                 random: random,
+                institutionPools: institutionPools,
                 workplacePools: workplacePools,
                 householdId: householdId,
                 currentDate: currentDate,
@@ -358,6 +376,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateAdultOnlyHousehold(
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -377,6 +396,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 persons.Add(
                     CreateGeneratedPerson(
                         random: random,
+                        institutionPools: institutionPools,
                         workplacePools: workplacePools,
                         personId: PersonId.New(),
                         householdId: householdId,
@@ -398,6 +418,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private void AddChildren(
             List<Person> persons,
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             HouseholdId householdId,
             DateOnly currentDate,
@@ -411,6 +432,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 persons.Add(
                     CreateGeneratedPerson(
                         random: random,
+                        institutionPools: institutionPools,
                         workplacePools: workplacePools,
                         personId: PersonId.New(),
                         householdId: householdId,
@@ -429,6 +451,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private void AddAdultRelatives(
             List<Person> persons,
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             HouseholdId householdId,
             DateOnly currentDate,
@@ -443,6 +466,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 persons.Add(
                     CreateGeneratedPerson(
                         random: random,
+                        institutionPools: institutionPools,
                         workplacePools: workplacePools,
                         personId: PersonId.New(),
                         householdId: householdId,
@@ -461,6 +485,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private Person CreateSingleResident(
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             HouseholdId householdId,
             DateOnly currentDate,
@@ -472,6 +497,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             return CreateGeneratedPerson(
                 random: random,
+                institutionPools: institutionPools,
                 workplacePools: workplacePools,
                 personId: PersonId.New(),
                 householdId: householdId,
@@ -489,6 +515,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private Person CreateGeneratedPerson(
             Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             Dictionary<string, List<WorkplaceId>> workplacePools,
             PersonId personId,
             HouseholdId householdId,
@@ -567,6 +594,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             EducationLevel educationLevel = CreateRandomEducationLevel(
                 random: random,
                 ageYears: ageYears);
+            EducationInstitutionId? educationInstitutionId = employmentStatus == EmploymentStatus.Student
+                ? CreateRandomEducationInstitution(
+                    random: random,
+                    institutionPools: institutionPools,
+                    educationLevel: educationLevel)
+                : null;
 
             return Person.CreatePerson(
                 id: personId,
@@ -577,6 +610,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 maritalStatus: maritalStatus,
                 spouseId: spouseId,
                 educationLevel: educationLevel,
+                educationInstitutionId: educationInstitutionId,
                 employmentStatus: employmentStatus,
                 happinessLevel: happiness,
                 energyLevel: energy,
@@ -1302,6 +1336,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             }
 
             return titlePool[random.Next(titlePool.Count)];
+        }
+
+        private static EducationInstitutionId CreateRandomEducationInstitution(
+            Random random,
+            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            EducationLevel educationLevel)
+        {
+            if (!institutionPools.TryGetValue(educationLevel, out List<EducationInstitutionId>? levelPool))
+            {
+                levelPool = new List<EducationInstitutionId>();
+                institutionPools[educationLevel] = levelPool;
+            }
+
+            bool shouldCreateNew = levelPool.Count == 0 || (levelPool.Count < 6 && random.NextDouble() < 0.32);
+
+            if (shouldCreateNew)
+            {
+                EducationInstitutionId newInstitutionId = EducationInstitutionId.New();
+                levelPool.Add(newInstitutionId);
+                return newInstitutionId;
+            }
+
+            return levelPool[random.Next(levelPool.Count)];
         }
 
         private PopulationProfessionCatalogItem PickProfession(Random random)

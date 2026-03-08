@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.EnrollResident;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GetEducationCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GraduateResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.WithdrawResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.FireResident;
@@ -152,6 +153,18 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
             return Ok(result);
         }
 
+        [HttpGet("cities/{cityId:guid}/education/catalog")]
+        public async Task<ActionResult<CityEducationCatalogDto>> GetCityEducationCatalog(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            CityEducationCatalogDto result = await _sender.Send(
+                request: new GetCityEducationCatalogQuery(cityId),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
         [HttpPost("cities/{cityId:guid}/employment/hire")]
         public async Task<ActionResult<CityEmploymentOperationResultDto>> HireResident(
             [FromRoute] Guid cityId,
@@ -220,6 +233,7 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                 request: new EnrollCityResidentCommand(
                     CityId: cityId,
                     ResidentId: request.ResidentId,
+                    InstitutionId: request.InstitutionId,
                     CurrentDate: request.CurrentDate),
                 cancellationToken: cancellationToken);
 
@@ -239,6 +253,7 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                     CityId: cityId,
                     ResidentId: request.ResidentId,
                     TargetEducationLevel: request.TargetEducationLevel ?? string.Empty,
+                    InstitutionId: request.InstitutionId,
                     CurrentDate: request.CurrentDate),
                 cancellationToken: cancellationToken);
 

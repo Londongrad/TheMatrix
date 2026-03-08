@@ -118,6 +118,22 @@ namespace Matrix.ApiGateway.DownstreamClients.Population.People
                 requestUrl: url);
         }
 
+        public async Task<CityEducationCatalogDto> GetCityEducationCatalogAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{PopulationBaseEndpoint}/cities/{cityId}/education/catalog";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityEducationCatalogDto>(
+                serviceName: ServiceName,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<CityEmploymentOperationResultDto> HireCityResidentAsync(
             Guid cityId,
             CityEmploymentOperationRequest request,

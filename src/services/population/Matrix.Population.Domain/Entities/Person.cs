@@ -22,6 +22,7 @@ namespace Matrix.Population.Domain.Entities
             MaritalStatus maritalStatus,
             PersonId? spouseId,
             EducationLevel educationLevel,
+            EducationInstitutionId? educationInstitutionId,
             EmploymentStatus employmentStatus,
             HappinessLevel happinessLevel,
             EnergyLevel energyLevel,
@@ -52,7 +53,9 @@ namespace Matrix.Population.Domain.Entities
             var marital = MaritalInfo.FromStatus(
                 status: maritalStatus,
                 spouseId: spouseId);
-            var education = EducationInfo.FromLevel(educationLevel);
+            var education = EducationInfo.FromLevel(
+                level: educationLevel,
+                currentInstitutionId: educationInstitutionId);
 
             return new Person(
                 id: id,
@@ -267,6 +270,7 @@ namespace Matrix.Population.Domain.Entities
             if (wasAlive && !IsAlive)
             {
                 ClearNeedsForDeath();
+                Education = Education.ClearInstitution();
                 Employment = Employment.Change(
                     newStatus: EmploymentStatus.None,
                     newJob: null,
@@ -282,6 +286,7 @@ namespace Matrix.Population.Domain.Entities
                 newHealth: HealthLevel.From(0),
                 newDeathDate: currentDate);
 
+            Education = Education.ClearInstitution();
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.None,
                 newJob: null,
@@ -329,11 +334,19 @@ namespace Matrix.Population.Domain.Entities
 
         public void SetEducationLevel(EducationLevel newLevel)
         {
-            Education = EducationInfo.FromLevel(newLevel);
+            Education = EducationInfo.FromLevel(
+                level: newLevel,
+                currentInstitutionId: Education.CurrentInstitutionId);
         }
 
-        public void StartStudying(DateOnly currentDate)
+        public void StartStudying(
+            DateOnly currentDate,
+            EducationInstitutionId institutionId)
         {
+            Education = Education.AssignInstitution(
+                GuardHelper.AgainstNull(
+                    value: institutionId,
+                    propertyName: nameof(institutionId)));
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Student,
                 newJob: null,
@@ -356,13 +369,18 @@ namespace Matrix.Population.Domain.Entities
                 newJob: null,
                 lifeStatus: LifeStatus,
                 ageGroup: ageGroup);
+            Education = Education.ClearInstitution();
 
             ChangeHappiness(PersonHappinessDeltas.OnStatusNone);
         }
 
-        public void GraduateTo(EducationLevel newLevel)
+        public void GraduateTo(
+            EducationLevel newLevel,
+            EducationInstitutionId? institutionId = null)
         {
-            Education = Education.GraduateTo(newLevel);
+            Education = Education.GraduateTo(
+                newLevel: newLevel,
+                currentInstitutionId: institutionId ?? Education.CurrentInstitutionId);
             ChangeHappiness(PersonHappinessDeltas.OnGraduate);
         }
 
@@ -374,6 +392,7 @@ namespace Matrix.Population.Domain.Entities
             DateOnly currentDate,
             Job job)
         {
+            Education = Education.ClearInstitution();
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Employed,
                 newJob: GuardHelper.AgainstNull(
@@ -398,6 +417,7 @@ namespace Matrix.Population.Domain.Entities
 
         public void Retire(DateOnly currentDate)
         {
+            Education = Education.ClearInstitution();
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Retired,
                 newJob: null,

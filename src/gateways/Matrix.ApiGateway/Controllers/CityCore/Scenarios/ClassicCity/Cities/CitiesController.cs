@@ -155,6 +155,18 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
             return Ok(catalog);
         }
 
+        [HttpGet("{cityId:guid}/education/catalog")]
+        public async Task<ActionResult<CityEducationCatalogDto>> GetEducationCatalog(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            CityEducationCatalogDto catalog = await _populationClient.GetCityEducationCatalogAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(catalog);
+        }
+
         [HttpPost("{cityId:guid}/employment/hire")]
         public async Task<ActionResult<CityEmploymentOperationResultDto>> HireResident(
             [FromRoute] Guid cityId,
@@ -244,6 +256,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 request: new CityEducationOperationRequest(
                     ResidentId: request.ResidentId,
                     TargetEducationLevel: request.TargetEducationLevel,
+                    InstitutionId: request.InstitutionId,
                     CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 
@@ -267,6 +280,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 request: new CityEducationOperationRequest(
                     ResidentId: request.ResidentId,
                     TargetEducationLevel: request.TargetEducationLevel,
+                    InstitutionId: request.InstitutionId,
                     CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 
@@ -290,6 +304,7 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 request: new CityEducationOperationRequest(
                     ResidentId: request.ResidentId,
                     TargetEducationLevel: request.TargetEducationLevel,
+                    InstitutionId: request.InstitutionId,
                     CurrentDate: currentDate),
                 cancellationToken: cancellationToken);
 

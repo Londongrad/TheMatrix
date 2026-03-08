@@ -9,6 +9,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
         Guid CityId,
         Guid ResidentId,
         string TargetEducationLevel,
+        Guid? InstitutionId,
         DateOnly CurrentDate) : IRequest<CityEducationOperationResultDto>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.PopulationEducationManage;

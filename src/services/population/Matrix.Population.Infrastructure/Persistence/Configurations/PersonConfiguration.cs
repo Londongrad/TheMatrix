@@ -145,6 +145,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                        .HasConversion<string>()
                        .HasColumnName("EducationLevel")
                        .IsRequired();
+
+                    edu.Property(e => e.CurrentInstitutionId)
+                       .HasConversion(
+                            convertToProviderExpression: id => id != null
+                                ? id.Value
+                                : (Guid?)null,
+                            convertFromProviderExpression: value => value.HasValue
+                                ? EducationInstitutionId.From(value.Value)
+                                : null)
+                       .HasColumnName("EducationInstitutionId");
                 });
 
             builder.OwnsOne(
