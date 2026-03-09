@@ -318,9 +318,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 : null;
             bool hadAdverseExposure = exposureSegments.Any(x => x.Kind == CityWeatherExposureKind.Adverse);
             bool wasAlive = person.IsAlive;
+            IReadOnlyCollection<PersonEntity> householdResidents = residentsById.Values
+               .Where(x => x.HouseholdId == person.HouseholdId)
+               .ToArray();
 
             bool changed = illnessAutonomyPolicy.Apply(
                 person: person,
+                householdResidents: householdResidents,
                 previousDate: previousDate,
                 currentDate: currentDate,
                 housingStatus: housingStatus,

@@ -9,12 +9,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
     {
         public bool Apply(
             Person person,
+            IReadOnlyCollection<Person> householdResidents,
             DateOnly previousDate,
             DateOnly currentDate,
             HousingStatus? housingStatus,
             bool hadAdverseWeatherExposure)
         {
             ArgumentNullException.ThrowIfNull(person);
+            ArgumentNullException.ThrowIfNull(householdResidents);
 
             if (!person.IsAlive || currentDate <= previousDate)
                 return false;
@@ -30,6 +32,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 IllnessDiagnosisCandidate? candidate = ResolveDiagnosisCandidate(
                     person: person,
+                    householdResidents: householdResidents,
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
@@ -109,12 +112,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static IllnessDiagnosisCandidate? ResolveDiagnosisCandidate(
             Person person,
+            IReadOnlyCollection<Person> householdResidents,
             DateOnly currentDate,
             int reviewWindows,
             HousingStatus? housingStatus,
             bool hadAdverseWeatherExposure)
         {
-            var candidates = new List<IllnessDiagnosisCandidate>(capacity: 3);
+            var candidates = new List<IllnessDiagnosisCandidate>(capacity: 4);
 
             if (hadAdverseWeatherExposure)
             {
@@ -145,8 +149,22 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 candidates.Add(new IllnessDiagnosisCandidate(
                     Kind: IllnessKind.Stress,
                     Severity: ResolveStressSeverity(person),
-                    ChancePerReview: stressChance,
-                    Salt: 467));
+                        ChancePerReview: stressChance,
+                        Salt: 467));
+            }
+
+            double infectionChance = ResolveInfectionIllnessChance(
+                person: person,
+                householdResidents: householdResidents,
+                currentDate: currentDate,
+                housingStatus: housingStatus);
+            if (infectionChance > 0d)
+            {
+                candidates.Add(new IllnessDiagnosisCandidate(
+                    Kind: IllnessKind.Infection,
+                    Severity: ResolveInfectionSeverity(person, currentDate, housingStatus),
+                    ChancePerReview: infectionChance,
+                    Salt: 479));
             }
 
             foreach (IllnessDiagnosisCandidate candidate in candidates.OrderByDescending(x => x.ChancePerReview))
@@ -327,6 +345,36 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return Math.Clamp(chance, 0d, 0.110d);
         }
 
+        private static double ResolveInfectionIllnessChance(
+            Person person,
+            IReadOnlyCollection<Person> householdResidents,
+            DateOnly currentDate,
+            HousingStatus? housingStatus)
+        {
+            int infectiousContacts = householdResidents.Count(x =>
+                x.Id != person.Id &&
+                x.IsAlive &&
+                x.CurrentIllnessKind == IllnessKind.Infection);
+
+            bool vulnerable = person.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
+            double lowHealth = 1d - Normalize(person.Health.Value);
+            double lowEnergy = 1d - Normalize(person.Energy.Value);
+            double stress = Normalize(person.Stress.Value);
+
+            double chance = 0.0006d
+                            + (infectiousContacts * 0.020d)
+                            + (vulnerable ? 0.008d : 0d)
+                            + (housingStatus == HousingStatus.Homeless ? 0.006d : 0d)
+                            + (lowHealth * 0.012d)
+                            + (lowEnergy * 0.008d)
+                            + (stress * 0.006d);
+
+            if (householdResidents.Count >= 5)
+                chance += 0.006d;
+
+            return Math.Clamp(chance, 0d, 0.160d);
+        }
+
         private static IllnessSeverity ResolveExposureSeverity(Person person, HousingStatus? housingStatus)
         {
             if (housingStatus == HousingStatus.Homeless && person.Health.Value < 45)
@@ -355,6 +403,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return IllnessSeverity.Severe;
 
             if (person.Stress.Value > 78 || person.Happiness.Value < 35)
+                return IllnessSeverity.Moderate;
+
+            return IllnessSeverity.Mild;
+        }
+
+        private static IllnessSeverity ResolveInfectionSeverity(
+            Person person,
+            DateOnly currentDate,
+            HousingStatus? housingStatus)
+        {
+            bool vulnerable = person.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
+
+            if ((vulnerable && person.Health.Value < 45) ||
+                (housingStatus == HousingStatus.Homeless && person.Health.Value < 55))
+                return IllnessSeverity.Severe;
+
+            if (vulnerable ||
+                person.Health.Value < 65 ||
+                person.Energy.Value < 45 ||
+                housingStatus == HousingStatus.Homeless)
                 return IllnessSeverity.Moderate;
 
             return IllnessSeverity.Mild;
