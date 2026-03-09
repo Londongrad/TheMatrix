@@ -14,6 +14,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             DateOnly snapshotDate,
             CancellationToken cancellationToken = default);
 
+        Task<CityPopulationDashboardEconomyReadModel> GetCurrentEconomySnapshotAsync(
+            CityId cityId,
+            DateOnly currentDate,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<CityPopulationActivityEventReadModel>> ListRecentActivityAsync(
             CityId cityId,
             int take,

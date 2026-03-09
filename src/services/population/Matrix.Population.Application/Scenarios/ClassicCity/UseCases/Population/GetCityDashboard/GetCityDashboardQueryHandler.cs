@@ -48,6 +48,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     snapshotDate: yearAnchor,
                     cancellationToken: cancellationToken);
+            CityPopulationDashboardEconomyReadModel economySnapshot =
+                await dashboardReadRepository.GetCurrentEconomySnapshotAsync(
+                    cityId: cityId,
+                    currentDate: currentSnapshot.SnapshotDate,
+                    cancellationToken: cancellationToken);
 
             IReadOnlyList<CityPopulationActivityEventReadModel> events =
                 await dashboardReadRepository.ListRecentActivityAsync(
@@ -125,6 +130,33 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         yesterdayValue: yesterdaySnapshot?.AverageStress,
                         monthValue: previousMonthSnapshot?.AverageStress,
                         yearValue: previousYearSnapshot?.AverageStress),
+                    new CityPopulationDashboardMetricDto(
+                        Key: "stableHouseholds",
+                        Label: "Stable households",
+                        Description: "Households whose current employment and dependency mix can comfortably support daily city living.",
+                        ValueKind: "count",
+                        CurrentValue: economySnapshot.StableHouseholdCount,
+                        DeltaYesterday: null,
+                        DeltaMonth: null,
+                        DeltaYear: null),
+                    new CityPopulationDashboardMetricDto(
+                        Key: "strainedHouseholds",
+                        Label: "Strained households",
+                        Description: "Households currently under economic pressure from low support capacity, dependents, illness, or housing load.",
+                        ValueKind: "count",
+                        CurrentValue: economySnapshot.StrainedHouseholdCount,
+                        DeltaYesterday: null,
+                        DeltaMonth: null,
+                        DeltaYear: null),
+                    new CityPopulationDashboardMetricDto(
+                        Key: "averageHouseholdEconomicBalance",
+                        Label: "Household balance",
+                        Description: "Average current household economic balance proxy, ready to be replaced later by real economy signals.",
+                        ValueKind: "average",
+                        CurrentValue: RoundMetric(economySnapshot.AverageHouseholdEconomicBalance) ?? 0m,
+                        DeltaYesterday: null,
+                        DeltaMonth: null,
+                        DeltaYear: null),
                 ],
                 RecentEvents: events
                    .Select(x => new CityPopulationActivityEventDto(

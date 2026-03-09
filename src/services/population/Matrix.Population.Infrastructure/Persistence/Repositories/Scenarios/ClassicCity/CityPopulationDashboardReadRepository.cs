@@ -2,14 +2,19 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
+using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
 {
-    public sealed class CityPopulationDashboardReadRepository(PopulationDbContext dbContext)
+    public sealed class CityPopulationDashboardReadRepository(
+        PopulationDbContext dbContext,
+        CityHouseholdEconomyPolicy householdEconomyPolicy)
         : ICityPopulationDashboardReadRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
+        private readonly CityHouseholdEconomyPolicy _householdEconomyPolicy = householdEconomyPolicy;
 
         public async Task<CityPopulationDashboardSnapshotReadModel?> GetCurrentSnapshotAsync(
             CityId cityId,
@@ -86,6 +91,74 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     averageEnergy: snapshot.AverageEnergy,
                     averageStress: snapshot.AverageStress,
                     averageSocialNeed: snapshot.AverageSocialNeed);
+        }
+
+        public async Task<CityPopulationDashboardEconomyReadModel> GetCurrentEconomySnapshotAsync(
+            CityId cityId,
+            DateOnly currentDate,
+            CancellationToken cancellationToken = default)
+        {
+            ClassicCityHouseholdPlacement[] placements = await _dbContext.ClassicCityHouseholdPlacements
+               .AsNoTracking()
+               .Where(x => x.CityId == cityId)
+               .ToArrayAsync(cancellationToken);
+
+            if (placements.Length == 0)
+            {
+                return new CityPopulationDashboardEconomyReadModel(
+                    StableHouseholdCount: 0,
+                    StrainedHouseholdCount: 0,
+                    AverageHouseholdEconomicBalance: null);
+            }
+
+            Matrix.Population.Domain.Entities.Person[] persons = await _dbContext.Persons
+               .AsNoTracking()
+               .Join(
+                    inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
+                    outerKeySelector: person => person.HouseholdId,
+                    innerKeySelector: placement => placement.HouseholdId,
+                    resultSelector: (person, _) => person)
+               .ToArrayAsync(cancellationToken);
+
+            Dictionary<HouseholdId, Matrix.Population.Domain.Entities.Person[]> residentsByHousehold = persons
+               .Where(x => x.IsAlive)
+               .GroupBy(x => x.HouseholdId)
+               .ToDictionary(
+                    keySelector: x => x.Key,
+                    elementSelector: x => x.ToArray());
+
+            int stableHouseholdCount = 0;
+            int strainedHouseholdCount = 0;
+            decimal balanceTotal = 0m;
+            int balanceCount = 0;
+
+            foreach (ClassicCityHouseholdPlacement placement in placements)
+            {
+                if (!residentsByHousehold.TryGetValue(placement.HouseholdId, out Matrix.Population.Domain.Entities.Person[]? householdResidents) ||
+                    householdResidents is null ||
+                    householdResidents.Length == 0)
+                    continue;
+
+                var economyProfile = _householdEconomyPolicy.Build(
+                    householdResidents: householdResidents,
+                    housingStatus: placement.HousingStatus,
+                    currentDate: currentDate);
+
+                if (economyProfile.StrainScore >= 0.55d)
+                    strainedHouseholdCount++;
+                else if (economyProfile.GrowthReadinessScore >= 0.60d && economyProfile.EconomicBalance >= 0d)
+                    stableHouseholdCount++;
+
+                balanceTotal += (decimal)economyProfile.EconomicBalance;
+                balanceCount++;
+            }
+
+            return new CityPopulationDashboardEconomyReadModel(
+                StableHouseholdCount: stableHouseholdCount,
+                StrainedHouseholdCount: strainedHouseholdCount,
+                AverageHouseholdEconomicBalance: balanceCount > 0
+                    ? decimal.Round(balanceTotal / balanceCount, 2, MidpointRounding.AwayFromZero)
+                    : null);
         }
 
         public async Task<IReadOnlyList<CityPopulationActivityEventReadModel>> ListRecentActivityAsync(
