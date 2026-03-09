@@ -1,0 +1,49 @@
+using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+
+namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
+{
+    public sealed class CityHealthcareAutonomyPolicy(
+        CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
+    {
+        public double ResolveSupportStrength(
+            Person resident,
+            IReadOnlyCollection<Person> householdResidents,
+            HousingStatus? housingStatus,
+            DateOnly currentDate)
+        {
+            ArgumentNullException.ThrowIfNull(resident);
+            ArgumentNullException.ThrowIfNull(householdResidents);
+
+            if (!resident.IsAlive)
+                return 0d;
+
+            var livelihood = householdLivelihoodPolicy.Build(
+                householdResidents: householdResidents,
+                housingStatus: housingStatus,
+                currentDate: currentDate);
+
+            double access = 0.02d
+                            + (livelihood.StabilityScore * 0.12d)
+                            + (livelihood.IsHoused ? 0.04d : 0d)
+                            + (livelihood.AdultProviderCount * 0.03d)
+                            + (livelihood.AdultStudentCount * 0.01d)
+                            - (livelihood.ActiveIllnessCount > 1 ? 0.03d : 0d);
+
+            if (resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior)
+                access += 0.03d;
+
+            if (resident.CurrentIllnessSeverity == IllnessSeverity.Severe)
+                access += 0.03d;
+
+            if (resident.Employment.Status == EmploymentStatus.Employed)
+                access += 0.02d;
+
+            if (!livelihood.HasStructuredSupport)
+                access *= 0.60d;
+
+            return Math.Clamp(access, 0d, 0.28d);
+        }
+    }
+}

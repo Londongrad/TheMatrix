@@ -13,7 +13,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly previousDate,
             DateOnly currentDate,
             HousingStatus? housingStatus,
-            bool hadAdverseWeatherExposure)
+            bool hadAdverseWeatherExposure,
+            double healthcareSupportStrength)
         {
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(householdResidents);
@@ -58,7 +59,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
-                    hadAdverseWeatherExposure: hadAdverseWeatherExposure))
+                    hadAdverseWeatherExposure: hadAdverseWeatherExposure,
+                    healthcareSupportStrength: healthcareSupportStrength))
             {
                 person.RecoverFromIllness(currentDate);
                 person.ChangeHappiness(+2);
@@ -71,7 +73,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
-                    hadAdverseWeatherExposure: hadAdverseWeatherExposure))
+                    hadAdverseWeatherExposure: hadAdverseWeatherExposure,
+                    healthcareSupportStrength: healthcareSupportStrength))
             {
                 person.ProgressIllness(NextSeverity(person.CurrentIllnessSeverity));
                 changed = true;
@@ -80,7 +83,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IllnessBurden burden = ResolveBurden(
                 kind: illnessKind,
                 severity: person.CurrentIllnessSeverity ?? IllnessSeverity.Mild,
-                reviewWindows: reviewWindows);
+                reviewWindows: reviewWindows,
+                healthcareSupportStrength: healthcareSupportStrength);
 
             if (!burden.HasAnyEffect)
                 return changed;
@@ -189,7 +193,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             int reviewWindows,
             HousingStatus? housingStatus,
-            bool hadAdverseWeatherExposure)
+            bool hadAdverseWeatherExposure,
+            double healthcareSupportStrength)
         {
             if (!person.HasActiveIllness || person.CurrentIllnessSeverity is not { } severity)
                 return false;
@@ -219,6 +224,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             - (stress * 0.06d)
                             + (housed ? 0.03d : -0.02d)
                             + (careSupport * 0.08d)
+                            + (healthcareSupportStrength * 0.12d)
                             - (hadAdverseWeatherExposure ? 0.04d : 0d);
 
             if (person.Health.Value < 35 || person.Energy.Value < 25)
@@ -238,7 +244,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             int reviewWindows,
             HousingStatus? housingStatus,
-            bool hadAdverseWeatherExposure)
+            bool hadAdverseWeatherExposure,
+            double healthcareSupportStrength)
         {
             if (!person.HasActiveIllness || person.CurrentIllnessSeverity == IllnessSeverity.Severe)
                 return false;
@@ -257,7 +264,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             + (stress * 0.016d)
                             + (housingStatus == HousingStatus.Homeless ? 0.010d : 0d)
                             + (hadAdverseWeatherExposure && person.CurrentIllnessKind == IllnessKind.Exposure ? 0.020d : 0d)
-                            - (careSupport * 0.045d);
+                            - (careSupport * 0.045d)
+                            - (healthcareSupportStrength * 0.060d);
 
             return RollOccurs(
                 personId: person.Id,
@@ -304,7 +312,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static IllnessBurden ResolveBurden(
             IllnessKind kind,
             IllnessSeverity severity,
-            int reviewWindows)
+            int reviewWindows,
+            double healthcareSupportStrength)
         {
             var daily = kind switch
             {
@@ -339,7 +348,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => IllnessBurden.None
             };
 
-            return daily.Scale(Math.Clamp(reviewWindows, 1, 3));
+            IllnessBurden scaled = daily.Scale(Math.Clamp(reviewWindows, 1, 3));
+            return scaled.Relieve(healthcareSupportStrength);
         }
 
         private static double ResolveExposureIllnessChance(Person person, DateOnly currentDate, HousingStatus? housingStatus)
@@ -574,6 +584,28 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     HappinessDelta: HappinessDelta * factor,
                     EnergyDelta: EnergyDelta * factor,
                     StressDelta: StressDelta * factor);
+            }
+
+            public IllnessBurden Relieve(double supportStrength)
+            {
+                double reliefFactor = Math.Clamp(1d - (supportStrength * 0.65d), 0.60d, 1d);
+
+                return new IllnessBurden(
+                    HealthDelta: ScaleSigned(HealthDelta, reliefFactor),
+                    HappinessDelta: ScaleSigned(HappinessDelta, reliefFactor),
+                    EnergyDelta: ScaleSigned(EnergyDelta, reliefFactor),
+                    StressDelta: ScaleSigned(StressDelta, reliefFactor));
+            }
+
+            private static int ScaleSigned(int value, double factor)
+            {
+                if (value == 0)
+                    return 0;
+
+                int scaled = (int)Math.Round(value * factor, MidpointRounding.AwayFromZero);
+                return value < 0
+                    ? Math.Min(-1, scaled)
+                    : Math.Max(1, scaled);
             }
         }
     }
