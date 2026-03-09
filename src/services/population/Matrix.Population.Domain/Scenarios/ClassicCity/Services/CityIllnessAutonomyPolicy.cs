@@ -54,6 +54,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (!diagnosedThisPass && ShouldRecover(
                     person: person,
+                    householdResidents: householdResidents,
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
@@ -66,6 +67,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (!diagnosedThisPass && ShouldProgress(
                     person: person,
+                    householdResidents: householdResidents,
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
@@ -183,6 +185,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static bool ShouldRecover(
             Person person,
+            IReadOnlyCollection<Person> householdResidents,
             DateOnly currentDate,
             int reviewWindows,
             HousingStatus? housingStatus,
@@ -196,6 +199,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double energy = Normalize(person.Energy.Value);
             double stress = Normalize(person.Stress.Value);
             bool housed = housingStatus == HousingStatus.Housed;
+            double careSupport = ResolveCareSupportStrength(
+                resident: person,
+                householdResidents: householdResidents,
+                currentDate: currentDate);
 
             double baseChance = severity switch
             {
@@ -211,6 +218,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             + (happiness * 0.02d)
                             - (stress * 0.06d)
                             + (housed ? 0.03d : -0.02d)
+                            + (careSupport * 0.08d)
                             - (hadAdverseWeatherExposure ? 0.04d : 0d);
 
             if (person.Health.Value < 35 || person.Energy.Value < 25)
@@ -226,6 +234,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static bool ShouldProgress(
             Person person,
+            IReadOnlyCollection<Person> householdResidents,
             DateOnly currentDate,
             int reviewWindows,
             HousingStatus? housingStatus,
@@ -237,13 +246,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double lowHealth = 1d - Normalize(person.Health.Value);
             double lowEnergy = 1d - Normalize(person.Energy.Value);
             double stress = Normalize(person.Stress.Value);
+            double careSupport = ResolveCareSupportStrength(
+                resident: person,
+                householdResidents: householdResidents,
+                currentDate: currentDate);
 
             double chance = 0.004d
                             + (lowHealth * 0.030d)
                             + (lowEnergy * 0.020d)
                             + (stress * 0.016d)
                             + (housingStatus == HousingStatus.Homeless ? 0.010d : 0d)
-                            + (hadAdverseWeatherExposure && person.CurrentIllnessKind == IllnessKind.Exposure ? 0.020d : 0d);
+                            + (hadAdverseWeatherExposure && person.CurrentIllnessKind == IllnessKind.Exposure ? 0.020d : 0d)
+                            - (careSupport * 0.045d);
 
             return RollOccurs(
                 personId: person.Id,
@@ -251,6 +265,40 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 salt: 541,
                 chancePerReview: Math.Clamp(chance, 0.002d, 0.18d),
                 reviewWindows: reviewWindows);
+        }
+
+        private static double ResolveCareSupportStrength(
+            Person resident,
+            IReadOnlyCollection<Person> householdResidents,
+            DateOnly currentDate)
+        {
+            IEnumerable<Person> caregivers = householdResidents.Where(x =>
+                x.Id != resident.Id &&
+                x.IsAlive &&
+                x.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior &&
+                (!x.HasActiveIllness || x.CurrentIllnessSeverity != IllnessSeverity.Severe));
+
+            int caregiverCount = caregivers.Count();
+            if (caregiverCount == 0)
+                return 0d;
+
+            double strength = Math.Min(0.18d, caregiverCount * 0.06d);
+
+            bool vulnerable = resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
+            if (vulnerable)
+                strength += 0.04d;
+
+            bool hasFamilyCaregiver = caregivers.Any(x =>
+                x.Id == resident.SpouseId ||
+                x.Id == resident.MotherId ||
+                x.Id == resident.FatherId ||
+                resident.MotherId == x.Id ||
+                resident.FatherId == x.Id);
+
+            if (hasFamilyCaregiver)
+                strength += 0.03d;
+
+            return Math.Clamp(strength, 0d, 0.28d);
         }
 
         private static IllnessBurden ResolveBurden(
