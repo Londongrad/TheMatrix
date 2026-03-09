@@ -38,12 +38,20 @@ export interface CityResidentEducationInstitutionDto {
     educationLevel: string;
 }
 
+export interface CityResidentIllnessDto {
+    kind: string;
+    severity: string;
+    diagnosedOn: string;
+}
+
 export interface CityResidentDetailsDto extends PersonDto {
     currentSpouse?: PersonReferenceDto | null;
     mother?: PersonReferenceDto | null;
     father?: PersonReferenceDto | null;
     children: PersonReferenceDto[];
     lastChildbirthDate?: string | null;
+    currentIllness?: CityResidentIllnessDto | null;
+    lastIllnessRecoveredOn?: string | null;
     currentHousing: CityResidentHousingDto;
     currentWorkplace?: CityResidentWorkplaceDto | null;
     currentEducationInstitution?: CityResidentEducationInstitutionDto | null;

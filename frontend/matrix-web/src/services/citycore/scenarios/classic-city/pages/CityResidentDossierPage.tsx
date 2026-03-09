@@ -58,6 +58,10 @@ function formatEducationLevel(level: string) {
     return level.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
+function formatLabel(value: string) {
+    return value.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
 function formatInstitutionLabel(institutionId?: string | null) {
     if (!institutionId) {
         return "No current institution";
@@ -356,6 +360,14 @@ const CityResidentDossierPage = () => {
                                             <dt>Social need</dt>
                                             <dd>{resident.socialNeed}</dd>
                                         </div>
+                                        <div>
+                                            <dt>Current illness</dt>
+                                            <dd>
+                                                {resident.currentIllness
+                                                    ? `${formatLabel(resident.currentIllness.kind)} (${resident.currentIllness.severity.toLowerCase()})`
+                                                    : "No active illness"}
+                                            </dd>
+                                        </div>
                                         {resident.deathDate ? (
                                             <div>
                                                 <dt>Death date</dt>
@@ -528,6 +540,33 @@ const CityResidentDossierPage = () => {
 
                         {activeTab === "health" ? (
                             <div className="city-resident-dossier__stack">
+                                <section className="city-resident-dossier__section-card">
+                                    <h3 className="city-resident-dossier__section-title">Current condition</h3>
+                                    <dl className="city-resident-dossier__facts">
+                                        <div>
+                                            <dt>Active illness</dt>
+                                            <dd>
+                                                {resident.currentIllness ? (
+                                                    <span className="city-resident-dossier__entity-token">
+                                                        {formatLabel(resident.currentIllness.kind)} / {resident.currentIllness.severity}
+                                                    </span>
+                                                ) : "No active illness"}
+                                            </dd>
+                                        </div>
+                                        {resident.currentIllness ? (
+                                            <div>
+                                                <dt>Diagnosed on</dt>
+                                                <dd>{resident.currentIllness.diagnosedOn}</dd>
+                                            </div>
+                                        ) : null}
+                                        {resident.lastIllnessRecoveredOn ? (
+                                            <div>
+                                                <dt>Last recovery</dt>
+                                                <dd>{resident.lastIllnessRecoveredOn}</dd>
+                                            </div>
+                                        ) : null}
+                                    </dl>
+                                </section>
                                 <section className="city-resident-dossier__metric-grid">
                                     <div className="city-resident-dossier__metric-card">
                                         <span>Health</span>
@@ -550,7 +589,7 @@ const CityResidentDossierPage = () => {
                                         <strong>{resident.socialNeed}</strong>
                                     </div>
                                 </section>
-                                {renderLifecycleHint("Illnesses, treatment history, and longer health episodes can slot into this tab later without changing the rest of the dossier layout.")}
+                                {renderLifecycleHint("Illnesses now surface as part of the live resident snapshot. Treatment history, recurring conditions, and longer medical episodes can keep growing here later without changing the rest of the dossier layout.")}
                             </div>
                         ) : null}
                     </div>

@@ -252,6 +252,44 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 SecondaryResidentId: mother.Id.Value);
         }
 
+        public static CityPopulationActivityWriteModel ResidentBecameIll(
+            Guid cityId,
+            DateOnly currentDate,
+            Person resident,
+            CityPopulationActivitySource source)
+        {
+            string illnessKind = resident.CurrentIllnessKind?.ToString() ?? "Illness";
+            string severity = resident.CurrentIllnessSeverity?.ToString() ?? "Unknown";
+
+            return CreateResidentEvent(
+                cityId: cityId,
+                currentDate: currentDate,
+                resident: resident,
+                source: source,
+                severity: CityPopulationActivitySeverity.Warning,
+                eventType: CityPopulationActivityEventType.ResidentBecameIll,
+                title: "Resident became ill",
+                summary: $"{resident.Name} developed {HumanizeIllnessKind(illnessKind)} ({severity.ToLowerInvariant()}).");
+        }
+
+        public static CityPopulationActivityWriteModel ResidentRecoveredFromIllness(
+            Guid cityId,
+            DateOnly currentDate,
+            Person resident,
+            string previousIllnessKind,
+            CityPopulationActivitySource source)
+        {
+            return CreateResidentEvent(
+                cityId: cityId,
+                currentDate: currentDate,
+                resident: resident,
+                source: source,
+                severity: CityPopulationActivitySeverity.Success,
+                eventType: CityPopulationActivityEventType.ResidentRecoveredFromIllness,
+                title: "Resident recovered",
+                summary: $"{resident.Name} recovered from {HumanizeIllnessKind(previousIllnessKind)}.");
+        }
+
         private static CityPopulationActivityWriteModel CreateResidentEvent(
             Guid cityId,
             DateOnly currentDate,
@@ -287,6 +325,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 EducationLevel.Higher => "higher",
                 EducationLevel.Postgraduate => "postgraduate",
                 _ => level.ToString()
+            };
+        }
+
+        private static string HumanizeIllnessKind(string illnessKind)
+        {
+            return illnessKind switch
+            {
+                "Exposure" => "exposure illness",
+                "Exhaustion" => "exhaustion",
+                "Stress" => "stress illness",
+                "Infection" => "infection",
+                _ => illnessKind.ToLowerInvariant()
             };
         }
     }

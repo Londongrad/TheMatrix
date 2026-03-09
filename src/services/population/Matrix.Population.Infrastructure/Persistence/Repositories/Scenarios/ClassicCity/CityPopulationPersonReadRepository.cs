@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -136,6 +137,25 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     ResidentialBuildingId: snapshot.ResidentialBuildingId.HasValue
                         ? ResidentialBuildingId.From(snapshot.ResidentialBuildingId.Value)
                         : null);
+        }
+
+        public async Task<IReadOnlyDictionary<HouseholdId, HousingStatus>> ListHousingStatusesByHouseholdAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            var rows = await _dbContext.ClassicCityHouseholdPlacements
+               .AsNoTracking()
+               .Where(x => x.CityId == cityId)
+               .Select(x => new
+                {
+                    HouseholdId = x.HouseholdId.Value,
+                    x.HousingStatus
+                })
+               .ToListAsync(cancellationToken);
+
+            return rows.ToDictionary(
+                keySelector: x => HouseholdId.From(x.HouseholdId),
+                elementSelector: x => x.HousingStatus);
         }
 
         public async Task<IReadOnlyCollection<CityEmploymentWorkplaceSnapshot>> ListEmploymentWorkplacesAsync(

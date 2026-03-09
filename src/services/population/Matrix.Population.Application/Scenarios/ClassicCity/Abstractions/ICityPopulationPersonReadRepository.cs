@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -34,6 +35,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
         Task<CityResidentHousingSnapshot?> FindHousingSnapshotByPersonIdAsync(
             CityId cityId,
             PersonId personId,
+            CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyDictionary<HouseholdId, HousingStatus>> ListHousingStatusesByHouseholdAsync(
+            CityId cityId,
             CancellationToken cancellationToken = default);
 
         Task<IReadOnlyCollection<CityEmploymentWorkplaceSnapshot>> ListEmploymentWorkplacesAsync(

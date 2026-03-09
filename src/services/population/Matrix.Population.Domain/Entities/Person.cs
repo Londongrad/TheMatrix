@@ -34,6 +34,7 @@ namespace Matrix.Population.Domain.Entities
             BodyWeight weight,
             Job? job,
             DateOnly currentDate,
+            IllnessInfo? illness = null,
             PersonId? motherId = null,
             PersonId? fatherId = null,
             DateOnly? lastChildbirthDate = null)
@@ -75,6 +76,7 @@ namespace Matrix.Population.Domain.Entities
                 socialNeed: socialNeedLevel,
                 personality: personality,
                 weight: weight,
+                illness: illness ?? IllnessInfo.Healthy(),
                 motherId: motherId,
                 fatherId: fatherId,
                 lastChildbirthDate: lastChildbirthDate);
@@ -102,6 +104,7 @@ namespace Matrix.Population.Domain.Entities
         public StressLevel Stress { get; private set; }
         public SocialNeedLevel SocialNeed { get; private set; }
         public Personality Personality { get; } = null!;
+        public IllnessInfo Illness { get; private set; } = null!;
         public PersonId? MotherId { get; private set; }
         public PersonId? FatherId { get; private set; }
         public DateOnly? LastChildbirthDate { get; private set; }
@@ -120,6 +123,11 @@ namespace Matrix.Population.Domain.Entities
         public PersonId? SpouseId => Marital.SpouseId;
 
         public EducationLevel EducationLevel => Education.Level;
+        public bool HasActiveIllness => Illness.HasActiveIllness;
+        public IllnessKind? CurrentIllnessKind => Illness.CurrentKind;
+        public IllnessSeverity? CurrentIllnessSeverity => Illness.CurrentSeverity;
+        public DateOnly? IllnessDiagnosedOn => Illness.DiagnosedOn;
+        public DateOnly? LastIllnessRecoveredOn => Illness.LastRecoveredOn;
 
         #endregion [ Convenience shortcuts ]
 
@@ -142,6 +150,7 @@ namespace Matrix.Population.Domain.Entities
             SocialNeedLevel socialNeed,
             Personality personality,
             BodyWeight weight,
+            IllnessInfo illness,
             PersonId? motherId,
             PersonId? fatherId,
             DateOnly? lastChildbirthDate)
@@ -179,6 +188,9 @@ namespace Matrix.Population.Domain.Entities
             Weight = GuardHelper.AgainstNull(
                 value: weight,
                 propertyName: nameof(Weight));
+            Illness = GuardHelper.AgainstNull(
+                value: illness,
+                propertyName: nameof(Illness));
             MotherId = motherId;
             FatherId = fatherId;
             LastChildbirthDate = lastChildbirthDate;
@@ -321,6 +333,37 @@ namespace Matrix.Population.Domain.Entities
             Energy = EnergyLevel.Default();
             Stress = StressLevel.Default();
             SocialNeed = SocialNeedLevel.Default();
+            Illness = Illness.ClearActive();
+        }
+
+        public void DiagnoseIllness(
+            IllnessKind kind,
+            IllnessSeverity severity,
+            DateOnly currentDate)
+        {
+            if (!IsAlive)
+                return;
+
+            Illness = Illness.Diagnose(
+                kind: kind,
+                severity: severity,
+                currentDate: currentDate);
+        }
+
+        public void ProgressIllness(IllnessSeverity severity)
+        {
+            if (!IsAlive || !HasActiveIllness)
+                return;
+
+            Illness = Illness.ProgressTo(severity);
+        }
+
+        public void RecoverFromIllness(DateOnly currentDate)
+        {
+            if (!HasActiveIllness)
+                return;
+
+            Illness = Illness.Recover(currentDate);
         }
 
         #endregion [ Health / Life ]

@@ -19,6 +19,7 @@ using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
 using EducationInstitutionId = Matrix.Population.Domain.ValueObjects.EducationInstitutionId;
 using WorkplaceId = Matrix.Population.Domain.ValueObjects.WorkplaceId;
 using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
+using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
@@ -39,6 +40,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
         CityEducationAutonomyPolicy educationAutonomyPolicy,
         CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
+        CityIllnessAutonomyPolicy illnessAutonomyPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
@@ -91,6 +93,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     List<PersonEntity> residents = (await personReadRepository.ListByCityAsync(cityId, ct)).ToList();
                     personsSnapshot = residents;
                     var personsById = residents.ToDictionary(x => x.Id, x => x);
+                    IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId = await personReadRepository.ListHousingStatusesByHouseholdAsync(cityId, ct);
                     Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools = BuildEducationInstitutionPools(residents);
                     Dictionary<string, List<WorkplaceId>> workplacePools = BuildWorkplacePools(residents);
 
@@ -98,7 +101,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     {
                         ResidentLifecycleSnapshot beforeSnapshot = CreateResidentSnapshot(person);
 
-                        if (ApplyProgressionNeedsAndExposure(person, personsById, previousDate, request.FromSimTimeUtc, request.ToSimTimeUtc, toDate, requiresDateProgression, requiresNeedsProgression, environment, exposureSegments, marriageDomainService, educationAutonomyPolicy, employmentAutonomyPolicy, institutionPools, workplacePools, personNeedsProgressionPolicy, weatherExposurePolicy))
+                        if (ApplyProgressionNeedsExposureAndIllness(person, personsById, previousDate, request.FromSimTimeUtc, request.ToSimTimeUtc, toDate, requiresDateProgression, requiresNeedsProgression, environment, exposureSegments, housingByHouseholdId, marriageDomainService, educationAutonomyPolicy, employmentAutonomyPolicy, illnessAutonomyPolicy, institutionPools, workplacePools, personNeedsProgressionPolicy, weatherExposurePolicy))
                         {
                             affectedPeopleCount++;
                             CollectResidentProgressionActivity(cityId, toDate, beforeSnapshot, person, personsById, pendingActivityEntries);
@@ -159,7 +162,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return new AdvanceCityPopulationResult(AdvanceCityPopulationStatus.Applied, affectedPeopleCount);
         }
 
-        private static bool ApplyProgressionNeedsAndExposure(PersonEntity person, IReadOnlyDictionary<PersonId, PersonEntity> residentsById, DateOnly previousDate, DateTimeOffset fromSimTimeUtc, DateTimeOffset toSimTimeUtc, DateOnly currentDate, bool requiresDateProgression, bool requiresNeedsProgression, CityPopulationEnvironment? environment, IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments, MarriageDomainService marriageDomainService, CityEducationAutonomyPolicy educationAutonomyPolicy, CityEmploymentAutonomyPolicy employmentAutonomyPolicy, IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools, IDictionary<string, List<WorkplaceId>> workplacePools, PersonNeedsProgressionPolicy personNeedsProgressionPolicy, CityPopulationWeatherExposurePolicy weatherExposurePolicy)
+        private static bool ApplyProgressionNeedsExposureAndIllness(PersonEntity person, IReadOnlyDictionary<PersonId, PersonEntity> residentsById, DateOnly previousDate, DateTimeOffset fromSimTimeUtc, DateTimeOffset toSimTimeUtc, DateOnly currentDate, bool requiresDateProgression, bool requiresNeedsProgression, CityPopulationEnvironment? environment, IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments, IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId, MarriageDomainService marriageDomainService, CityEducationAutonomyPolicy educationAutonomyPolicy, CityEmploymentAutonomyPolicy employmentAutonomyPolicy, CityIllnessAutonomyPolicy illnessAutonomyPolicy, IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools, IDictionary<string, List<WorkplaceId>> workplacePools, PersonNeedsProgressionPolicy personNeedsProgressionPolicy, CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
             bool changed = false;
             if (requiresNeedsProgression && ApplyNeedsProgression(person, residentsById, fromSimTimeUtc, toSimTimeUtc, currentDate, environment, marriageDomainService, personNeedsProgressionPolicy))
@@ -167,6 +170,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (requiresDateProgression && ApplyTimeProgression(person, previousDate, currentDate, educationAutonomyPolicy, employmentAutonomyPolicy, institutionPools, workplacePools))
                 changed = true;
             if (exposureSegments.Count > 0 && ApplyWeatherExposure(person, residentsById, currentDate, environment, exposureSegments, marriageDomainService, weatherExposurePolicy))
+                changed = true;
+            if (requiresDateProgression && ApplyIllnessProgression(person, residentsById, previousDate, currentDate, housingByHouseholdId, exposureSegments, marriageDomainService, illnessAutonomyPolicy))
                 changed = true;
             return changed;
         }
@@ -229,6 +234,35 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 person.ChangeHappiness(totalHappinessDelta);
                 changed = changed || previousHappiness != person.Happiness.Value;
             }
+            return changed;
+        }
+
+        private static bool ApplyIllnessProgression(
+            PersonEntity person,
+            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
+            DateOnly previousDate,
+            DateOnly currentDate,
+            IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
+            IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
+            MarriageDomainService marriageDomainService,
+            CityIllnessAutonomyPolicy illnessAutonomyPolicy)
+        {
+            HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(person.HouseholdId, out HousingStatus resolvedHousingStatus)
+                ? resolvedHousingStatus
+                : null;
+            bool hadAdverseExposure = exposureSegments.Any(x => x.Kind == CityWeatherExposureKind.Adverse);
+            bool wasAlive = person.IsAlive;
+
+            bool changed = illnessAutonomyPolicy.Apply(
+                person: person,
+                previousDate: previousDate,
+                currentDate: currentDate,
+                housingStatus: housingStatus,
+                hadAdverseWeatherExposure: hadAdverseExposure);
+
+            if (wasAlive && !person.IsAlive)
+                changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(person, residentsById, marriageDomainService) || changed;
+
             return changed;
         }
 
@@ -418,7 +452,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 SpouseId: person.SpouseId,
                 EmploymentStatus: person.Employment.Status,
                 JobTitle: person.Employment.Job?.Title,
-                EducationLevel: person.EducationLevel);
+                EducationLevel: person.EducationLevel,
+                IllnessKind: person.CurrentIllnessKind?.ToString(),
+                IllnessSeverity: person.CurrentIllnessSeverity?.ToString());
         }
 
         private static void CollectResidentProgressionActivity(
@@ -444,6 +480,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (before.EducationLevel != resident.EducationLevel && resident.EducationLevel > before.EducationLevel)
                 activityEntries.Add(ClassicCityActivityFactory.ResidentGraduated(cityId.Value, currentDate, resident, CityPopulationActivitySource.Autonomy));
 
+            if (before.IllnessKind is null && resident.CurrentIllnessKind is not null)
+                activityEntries.Add(ClassicCityActivityFactory.ResidentBecameIll(cityId.Value, currentDate, resident, CityPopulationActivitySource.Autonomy));
+            else if (before.IllnessKind is not null && resident.CurrentIllnessKind is null)
+                activityEntries.Add(ClassicCityActivityFactory.ResidentRecoveredFromIllness(cityId.Value, currentDate, resident, before.IllnessKind, CityPopulationActivitySource.Autonomy));
+
             if (before.EmploymentStatus != EmploymentStatus.Student && resident.Employment.Status == EmploymentStatus.Student)
                 activityEntries.Add(ClassicCityActivityFactory.ResidentEnrolled(cityId.Value, currentDate, resident, CityPopulationActivitySource.Autonomy));
             else if (before.EmploymentStatus == EmploymentStatus.Student && resident.Employment.Status != EmploymentStatus.Student)
@@ -463,6 +504,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PersonId? SpouseId,
             EmploymentStatus EmploymentStatus,
             string? JobTitle,
-            EducationLevel EducationLevel);
+            EducationLevel EducationLevel,
+            string? IllnessKind,
+            string? IllnessSeverity);
     }
 }

@@ -28,6 +28,10 @@ function formatMetric(value: number): string {
     return Number.isFinite(value) ? value.toString() : "--";
 }
 
+function formatLabel(value: string): string {
+    return value.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
 function getErrorMessage(error: unknown, fallback: string): string {
     return error instanceof Error && error.message.trim().length > 0
         ? error.message
@@ -322,6 +326,22 @@ const CitizenDetailsModal = ({
                             </div>
 
                             <div className="citizens-page-modal-field">
+                                <div className="citizens-page-modal-field-label">Current illness</div>
+                                <div>
+                                    {residentDetails?.currentIllness
+                                        ? `${formatLabel(residentDetails.currentIllness.kind)} (${residentDetails.currentIllness.severity.toLowerCase()})`
+                                        : "--"}
+                                </div>
+                            </div>
+
+                            {residentDetails?.currentIllness ? (
+                                <div className="citizens-page-modal-field">
+                                    <div className="citizens-page-modal-field-label">Diagnosed on</div>
+                                    <div>{residentDetails.currentIllness.diagnosedOn}</div>
+                                </div>
+                            ) : null}
+
+                            <div className="citizens-page-modal-field">
                                 <div className="citizens-page-modal-field-label">Happiness</div>
                                 <div>{formatMetric(resident.happiness)}</div>
                             </div>
@@ -344,6 +364,13 @@ const CitizenDetailsModal = ({
                                 <div className="citizens-page-modal-field-label">Social need</div>
                                 <div>{formatMetric(resident.socialNeed)}</div>
                             </div>
+
+                            {residentDetails?.lastIllnessRecoveredOn ? (
+                                <div className="citizens-page-modal-field">
+                                    <div className="citizens-page-modal-field-label">Last recovery</div>
+                                    <div>{residentDetails.lastIllnessRecoveredOn}</div>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
 
