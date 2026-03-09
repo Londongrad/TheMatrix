@@ -17,5 +17,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Enums
         ResidentBorn = 12,
         ResidentBecameIll = 13,
         ResidentRecoveredFromIllness = 14,
+        HouseholdFoundHousing = 15,
+        HouseholdLostHousing = 16,
     }
 }

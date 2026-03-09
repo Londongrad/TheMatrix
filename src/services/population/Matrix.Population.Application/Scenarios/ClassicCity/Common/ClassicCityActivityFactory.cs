@@ -290,6 +290,40 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 summary: $"{resident.Name} recovered from {HumanizeIllnessKind(previousIllnessKind)}.");
         }
 
+        public static CityPopulationActivityWriteModel HouseholdFoundHousing(
+            Guid cityId,
+            DateOnly currentDate,
+            Person resident,
+            CityPopulationActivitySource source)
+        {
+            return CreateResidentEvent(
+                cityId: cityId,
+                currentDate: currentDate,
+                resident: resident,
+                source: source,
+                severity: CityPopulationActivitySeverity.Success,
+                eventType: CityPopulationActivityEventType.HouseholdFoundHousing,
+                title: "Household found housing",
+                summary: $"{resident.Name}'s household secured housed placement inside the city.");
+        }
+
+        public static CityPopulationActivityWriteModel HouseholdLostHousing(
+            Guid cityId,
+            DateOnly currentDate,
+            Person resident,
+            CityPopulationActivitySource source)
+        {
+            return CreateResidentEvent(
+                cityId: cityId,
+                currentDate: currentDate,
+                resident: resident,
+                source: source,
+                severity: CityPopulationActivitySeverity.Warning,
+                eventType: CityPopulationActivityEventType.HouseholdLostHousing,
+                title: "Household lost housing",
+                summary: $"{resident.Name}'s household lost housed placement and became homeless.");
+        }
+
         private static CityPopulationActivityWriteModel CreateResidentEvent(
             Guid cityId,
             DateOnly currentDate,

@@ -20,6 +20,8 @@ using EducationInstitutionId = Matrix.Population.Domain.ValueObjects.EducationIn
 using WorkplaceId = Matrix.Population.Domain.ValueObjects.WorkplaceId;
 using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
+using DistrictId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.DistrictId;
+using ResidentialBuildingId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.ResidentialBuildingId;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
@@ -40,6 +42,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
         CityEducationAutonomyPolicy educationAutonomyPolicy,
         CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
+        CityHousingAutonomyPolicy housingAutonomyPolicy,
         CityIllnessAutonomyPolicy illnessAutonomyPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
@@ -133,6 +136,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             civilRegistryAutonomyPolicy,
                             pendingActivityEntries,
                             ct);
+
+                        affectedPeopleCount += await ApplyHousingAutonomyAsync(
+                            cityId,
+                            residentsById: personsById,
+                            previousDate: previousDate,
+                            currentDate: toDate,
+                            householdWriteRepository: householdWriteRepository,
+                            housingAutonomyPolicy: housingAutonomyPolicy,
+                            activityEntries: pendingActivityEntries,
+                            cancellationToken: ct);
                     }
                 }
 
@@ -150,7 +163,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                 if (personsSnapshot is not null)
                 {
-                    await cityPopulationSummaryProjectionService.UpdateAsync(cityId, toDate, personsSnapshot, ct);
+                    IReadOnlyCollection<ClassicCityHouseholdPlacement> placementsSnapshot =
+                        await householdWriteRepository.ListPlacementsByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
+
+                    await cityPopulationSummaryProjectionService.UpdateAsync(
+                        cityId: cityId,
+                        currentDate: toDate,
+                        persons: personsSnapshot,
+                        householdPlacements: placementsSnapshot,
+                        cancellationToken: ct);
 
                     foreach (CityPopulationActivityWriteModel activityEntry in pendingActivityEntries)
                         await cityPopulationActivityJournalService.RecordAsync(activityEntry, ct);
@@ -367,6 +390,109 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return affectedResidents;
         }
 
+        private static async Task<int> ApplyHousingAutonomyAsync(
+            CityId cityId,
+            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
+            DateOnly previousDate,
+            DateOnly currentDate,
+            IHouseholdWriteRepository householdWriteRepository,
+            CityHousingAutonomyPolicy housingAutonomyPolicy,
+            ICollection<CityPopulationActivityWriteModel> activityEntries,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
+                await householdWriteRepository.ListPlacementsByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+
+            if (placements.Count == 0)
+                return 0;
+
+            Dictionary<HouseholdId, HousingStatus> housingStatuses = placements.ToDictionary(
+                keySelector: x => x.HouseholdId,
+                elementSelector: x => x.HousingStatus);
+
+            IReadOnlyList<CityHousingAutonomyDecision> decisions = housingAutonomyPolicy.Plan(
+                residents: residentsById.Values.ToArray(),
+                housingStatuses: housingStatuses,
+                previousDate: previousDate,
+                currentDate: currentDate);
+
+            if (decisions.Count == 0)
+                return 0;
+
+            Dictionary<HouseholdId, List<PersonEntity>> residentsByHousehold = residentsById.Values
+               .Where(x => x.IsAlive)
+               .GroupBy(x => x.HouseholdId)
+               .ToDictionary(
+                    keySelector: x => x.Key,
+                    elementSelector: x => x.ToList());
+
+            Dictionary<HouseholdId, ClassicCityHouseholdPlacement> placementsByHousehold = placements.ToDictionary(
+                keySelector: x => x.HouseholdId,
+                elementSelector: x => x);
+
+            List<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> housingPool =
+                BuildHousingOpportunityPool(placements);
+
+            int affectedResidents = 0;
+
+            foreach (CityHousingAutonomyDecision decision in decisions)
+            {
+                if (!placementsByHousehold.TryGetValue(decision.HouseholdId, out ClassicCityHouseholdPlacement? placement) ||
+                    !residentsByHousehold.TryGetValue(decision.HouseholdId, out List<PersonEntity>? householdResidents) ||
+                    householdResidents.Count == 0)
+                    continue;
+
+                PersonEntity anchorResident = SelectHousingAnchorResident(
+                    householdResidents: householdResidents,
+                    currentDate: currentDate);
+
+                switch (decision.Type)
+                {
+                    case CityHousingAutonomyDecisionType.FindHousing:
+                        if (placement.HousingStatus == HousingStatus.Housed ||
+                            housingPool.Count == 0)
+                            continue;
+
+                        (DistrictId districtId, ResidentialBuildingId residentialBuildingId) opportunity =
+                            SelectHousingOpportunity(
+                                householdId: placement.HouseholdId,
+                                currentDate: currentDate,
+                                housingPool: housingPool);
+
+                        placement.Relocate(
+                            cityId: cityId,
+                            districtId: opportunity.districtId,
+                            residentialBuildingId: opportunity.residentialBuildingId);
+                        activityEntries.Add(
+                            ClassicCityActivityFactory.HouseholdFoundHousing(
+                                cityId: cityId.Value,
+                                currentDate: currentDate,
+                                resident: anchorResident,
+                                source: CityPopulationActivitySource.Autonomy));
+                        affectedResidents += householdResidents.Count;
+                        break;
+
+                    case CityHousingAutonomyDecisionType.LoseHousing:
+                        if (placement.HousingStatus != HousingStatus.Housed)
+                            continue;
+
+                        placement.BecomeHomeless(cityId);
+                        activityEntries.Add(
+                            ClassicCityActivityFactory.HouseholdLostHousing(
+                                cityId: cityId.Value,
+                                currentDate: currentDate,
+                                resident: anchorResident,
+                                source: CityPopulationActivitySource.Autonomy));
+                        affectedResidents += householdResidents.Count;
+                        break;
+                }
+            }
+
+            return affectedResidents;
+        }
+
         private static bool ShouldAdvanceWeatherExposureCheckpoint(CityPopulationWeatherExposureState? weatherExposureState, DateTimeOffset fromSimTimeUtc, DateTimeOffset toSimTimeUtc)
         {
             if (weatherExposureState is null)
@@ -442,6 +568,66 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     titlePool.Add(job.WorkplaceId);
             }
             return pools;
+        }
+
+        private static List<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> BuildHousingOpportunityPool(
+            IEnumerable<ClassicCityHouseholdPlacement> placements)
+        {
+            return placements
+               .Where(x => x.HousingStatus == HousingStatus.Housed &&
+                           x.DistrictId.HasValue &&
+                           x.ResidentialBuildingId.HasValue)
+               .Select(x => (x.DistrictId!.Value, x.ResidentialBuildingId!.Value))
+               .Distinct()
+               .ToList();
+        }
+
+        private static PersonEntity SelectHousingAnchorResident(
+            IReadOnlyCollection<PersonEntity> householdResidents,
+            DateOnly currentDate)
+        {
+            return householdResidents
+               .OrderByDescending(x => x.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior)
+               .ThenByDescending(x => x.GetAge(currentDate).Years)
+               .ThenBy(x => x.Id.Value)
+               .First();
+        }
+
+        private static (DistrictId districtId, ResidentialBuildingId residentialBuildingId) SelectHousingOpportunity(
+            HouseholdId householdId,
+            DateOnly currentDate,
+            IReadOnlyList<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> housingPool)
+        {
+            int index = GetStableInt(
+                householdId: householdId,
+                currentDate: currentDate,
+                salt: 1_123,
+                modulus: housingPool.Count);
+
+            return housingPool[index];
+        }
+
+        private static int GetStableInt(
+            HouseholdId householdId,
+            DateOnly currentDate,
+            int salt,
+            int modulus)
+        {
+            if (modulus <= 0)
+                return 0;
+
+            unchecked
+            {
+                byte[] bytes = householdId.Value.ToByteArray();
+                int hash = 17;
+                for (int i = 0; i < bytes.Length; i++)
+                    hash = (hash * 31) + bytes[i];
+
+                hash = (hash * 31) + currentDate.DayNumber;
+                hash = (hash * 31) + salt;
+
+                return (int)(Math.Abs((long)hash) % modulus);
+            }
         }
 
         private static ResidentLifecycleSnapshot CreateResidentSnapshot(PersonEntity person)

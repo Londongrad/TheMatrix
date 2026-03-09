@@ -15,6 +15,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity
             services.AddSingleton<CityBirthAutonomyPolicy>();
             services.AddSingleton<CityEducationAutonomyPolicy>();
             services.AddSingleton<CityEmploymentAutonomyPolicy>();
+            services.AddSingleton<CityHousingAutonomyPolicy>();
             services.AddSingleton<CityIllnessAutonomyPolicy>();
             services.AddSingleton<CityPopulationClimateAdaptationPolicy>();
             services.AddSingleton<CityPopulationWeatherImpactPolicy>();
