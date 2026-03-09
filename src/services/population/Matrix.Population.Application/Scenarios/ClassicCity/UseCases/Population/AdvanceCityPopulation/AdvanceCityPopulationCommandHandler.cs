@@ -124,6 +124,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         affectedPeopleCount += await ApplyBirthAutonomyAsync(
                             cityId,
                             personsById,
+                            housingStatusesByHouseholdId: housingByHouseholdId,
                             previousDate,
                             toDate,
                             birthAutonomyPolicy,
@@ -339,6 +340,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         private static async Task<int> ApplyBirthAutonomyAsync(
             CityId cityId,
             IDictionary<PersonId, PersonEntity> residentsById,
+            IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatusesByHouseholdId,
             DateOnly previousDate,
             DateOnly currentDate,
             CityBirthAutonomyPolicy birthAutonomyPolicy,
@@ -351,6 +353,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         {
             IReadOnlyList<CityBirthAutonomyDecision> decisions = birthAutonomyPolicy.Plan(
                 residents: residentsById.Values.ToArray(),
+                housingStatuses: housingStatusesByHouseholdId,
                 previousDate: previousDate,
                 currentDate: currentDate);
 

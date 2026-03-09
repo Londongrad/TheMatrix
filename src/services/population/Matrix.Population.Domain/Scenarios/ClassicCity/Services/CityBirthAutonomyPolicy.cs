@@ -1,13 +1,16 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityBirthAutonomyPolicy(IPopulationGenerationContentCatalog contentCatalog)
+    public sealed class CityBirthAutonomyPolicy(
+        IPopulationGenerationContentCatalog contentCatalog,
+        CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
     {
         private readonly IReadOnlyList<string> _maleFirstNames =
             contentCatalog.MaleFirstNames.Count == 0
@@ -21,10 +24,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         public IReadOnlyList<CityBirthAutonomyDecision> Plan(
             IReadOnlyCollection<Person> residents,
+            IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             DateOnly previousDate,
             DateOnly currentDate)
         {
             ArgumentNullException.ThrowIfNull(residents);
+            ArgumentNullException.ThrowIfNull(housingStatuses);
 
             if (currentDate <= previousDate)
                 return [];
@@ -34,6 +39,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return [];
 
             var residentsById = residents.ToDictionary(x => x.Id);
+            var householdResidents = residents
+               .Where(x => x.IsAlive)
+               .GroupBy(x => x.HouseholdId)
+               .ToDictionary(
+                    keySelector: x => x.Key,
+                    elementSelector: x => (IReadOnlyCollection<Person>)x.ToList());
             var householdResidentCounts = residents
                .Where(x => x.IsAlive)
                .GroupBy(x => x.HouseholdId)
@@ -51,7 +62,25 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (blockedMothers.Contains(mother.Id))
                     continue;
 
-                if (!ShouldGiveBirth(mother, father, householdResidentCounts, householdChildCounts, currentDate, reviewWindows))
+                if (!householdResidents.TryGetValue(mother.HouseholdId, out IReadOnlyCollection<Person>? members))
+                    continue;
+
+                HousingStatus? housingStatus = housingStatuses.TryGetValue(mother.HouseholdId, out HousingStatus resolvedHousingStatus)
+                    ? resolvedHousingStatus
+                    : null;
+                CityHouseholdLivelihoodProfile livelihoodProfile = householdLivelihoodPolicy.Build(
+                    householdResidents: members,
+                    housingStatus: housingStatus,
+                    currentDate: currentDate);
+
+                if (!ShouldGiveBirth(
+                        mother: mother,
+                        father: father,
+                        livelihoodProfile: livelihoodProfile,
+                        householdResidentCounts: householdResidentCounts,
+                        householdChildCounts: householdChildCounts,
+                        currentDate: currentDate,
+                        reviewWindows: reviewWindows))
                     continue;
 
                 CityBirthAutonomyDecision decision = new(
@@ -108,6 +137,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static bool ShouldGiveBirth(
             Person mother,
             Person father,
+            CityHouseholdLivelihoodProfile livelihoodProfile,
             IReadOnlyDictionary<HouseholdId, int> householdResidentCounts,
             IReadOnlyDictionary<HouseholdId, int> householdChildCounts,
             DateOnly currentDate,
@@ -128,13 +158,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 residentCount >= HouseholdSize.Max)
                 return false;
 
-            double chancePerReview = ResolveBirthChancePerReview(mother, father, childCount, currentDate);
+            double chancePerReview = ResolveBirthChancePerReview(
+                mother: mother,
+                father: father,
+                livelihoodProfile: livelihoodProfile,
+                householdChildCount: childCount,
+                currentDate: currentDate);
             return RollOccurs(mother.Id, father.Id, currentDate, 503, chancePerReview, reviewWindows);
         }
 
         private static double ResolveBirthChancePerReview(
             Person mother,
             Person father,
+            CityHouseholdLivelihoodProfile livelihoodProfile,
             int householdChildCount,
             DateOnly currentDate)
         {
@@ -165,6 +201,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             double childPenalty = householdChildCount * 0.004d;
 
+            double livelihoodFactor = Math.Clamp(
+                0.35d + (livelihoodProfile.StabilityScore * 0.95d),
+                0.20d,
+                1.20d);
+
             double chance = 0.002d
                             + ageFactor
                             + (motherHealth * 0.010d)
@@ -177,6 +218,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             - (fatherStress * 0.008d)
                             + employmentFactor
                             - childPenalty;
+
+            chance *= livelihoodFactor;
+
+            if (!livelihoodProfile.IsHoused)
+                chance *= 0.55d;
+
+            if (!livelihoodProfile.HasStructuredSupport)
+                chance *= 0.55d;
 
             if (mother.Health.Value < 45 || mother.Happiness.Value < 30)
                 chance *= 0.40d;

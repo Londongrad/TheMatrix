@@ -6,7 +6,8 @@ using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityHouseholdIndependenceAutonomyPolicy
+    public sealed class CityHouseholdIndependenceAutonomyPolicy(
+        CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
     {
         public IReadOnlyList<CityHouseholdIndependenceAutonomyDecision> Plan(
             IReadOnlyCollection<Person> residents,
@@ -47,6 +48,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 HouseholdIndependenceProfile profile = BuildProfile(
                     householdId: householdId,
                     members: members,
+                    housingStatus: housingStatus,
                     residentsById: residentsById,
                     currentDate: currentDate);
 
@@ -69,9 +71,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return decisions;
         }
 
-        private static HouseholdIndependenceProfile BuildProfile(
+        private HouseholdIndependenceProfile BuildProfile(
             HouseholdId householdId,
             IReadOnlyCollection<Person> members,
+            HousingStatus housingStatus,
             IReadOnlyDictionary<PersonId, Person> residentsById,
             DateOnly currentDate)
         {
@@ -112,6 +115,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     LivesWithParent: LivesWithParent(x, members, residentsById)))
                .ToArray();
 
+            CityHouseholdLivelihoodProfile livelihoodProfile = householdLivelihoodPolicy.Build(
+                householdResidents: members,
+                housingStatus: housingStatus,
+                currentDate: currentDate);
+
             return new HouseholdIndependenceProfile(
                 HouseholdId: householdId,
                 Size: members.Count,
@@ -121,6 +129,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 HasInfant: hasInfant,
                 AverageStress: averageStress,
                 AverageHappiness: averageHappiness,
+                LivelihoodProfile: livelihoodProfile,
                 Candidates: candidates);
         }
 
@@ -136,7 +145,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return candidate?.Resident;
         }
 
-        private static bool ShouldMoveOut(
+        private bool ShouldMoveOut(
             Person resident,
             HouseholdIndependenceProfile profile,
             DateOnly currentDate,
@@ -165,6 +174,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double householdCrowding = Math.Clamp((profile.Size - 2) / 4d, 0d, 1d);
             double householdStress = Normalize(profile.AverageStress);
             double householdLowHappiness = 1d - Normalize(profile.AverageHappiness);
+            double selfReliance = householdLivelihoodPolicy.ResolveResidentSelfReliance(resident);
+            double launchReadiness = Math.Clamp(
+                (profile.LivelihoodProfile.StabilityScore * 0.40d) +
+                (selfReliance * 0.60d),
+                0d,
+                1d);
 
             double chance = 0.001d
                             + ageFactor
@@ -178,6 +193,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             - (lowHealth * 0.010d)
                             - (profile.HasInfant ? 0.008d : 0d)
                             - (profile.ActiveIllnessCount > 0 ? 0.006d : 0d);
+
+            chance *= Math.Clamp(0.30d + launchReadiness, 0.25d, 1.10d);
+
+            if (selfReliance < 0.25d)
+                chance *= 0.45d;
 
             if (profile.ChildCount == 0 && profile.Size <= 2)
                 chance *= 0.40d;
@@ -307,6 +327,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             bool HasInfant,
             double AverageStress,
             double AverageHappiness,
+            CityHouseholdLivelihoodProfile LivelihoodProfile,
             IReadOnlyCollection<HouseholdIndependenceCandidate> Candidates);
 
         private sealed record HouseholdIndependenceCandidate(
