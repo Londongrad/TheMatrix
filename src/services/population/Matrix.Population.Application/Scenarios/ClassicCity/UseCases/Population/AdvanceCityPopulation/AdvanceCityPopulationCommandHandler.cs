@@ -3,6 +3,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
@@ -43,6 +44,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityEducationAutonomyPolicy educationAutonomyPolicy,
         CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
         CityHousingAutonomyPolicy housingAutonomyPolicy,
+        CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
         CityIllnessAutonomyPolicy illnessAutonomyPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
@@ -136,6 +138,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             civilRegistryAutonomyPolicy,
                             pendingActivityEntries,
                             ct);
+
+                        affectedPeopleCount += await ApplyHouseholdIndependenceAutonomyAsync(
+                            cityId: cityId,
+                            residentsById: personsById,
+                            previousDate: previousDate,
+                            currentDate: toDate,
+                            householdWriteRepository: householdWriteRepository,
+                            householdIndependenceAutonomyPolicy: householdIndependenceAutonomyPolicy,
+                            activityEntries: pendingActivityEntries,
+                            cancellationToken: ct);
 
                         affectedPeopleCount += await ApplyHousingAutonomyAsync(
                             cityId,
@@ -352,6 +364,65 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         resident: newborn,
                         mother: mother,
                         father: father,
+                        source: CityPopulationActivitySource.Autonomy));
+                affectedResidents++;
+            }
+
+            return affectedResidents;
+        }
+
+        private static async Task<int> ApplyHouseholdIndependenceAutonomyAsync(
+            CityId cityId,
+            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
+            DateOnly previousDate,
+            DateOnly currentDate,
+            IHouseholdWriteRepository householdWriteRepository,
+            CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
+            ICollection<CityPopulationActivityWriteModel> activityEntries,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
+                await householdWriteRepository.ListPlacementsByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+
+            if (placements.Count == 0)
+                return 0;
+
+            Dictionary<HouseholdId, HousingStatus> housingStatuses = placements.ToDictionary(
+                keySelector: x => x.HouseholdId,
+                elementSelector: x => x.HousingStatus);
+
+            IReadOnlyList<CityHouseholdIndependenceAutonomyDecision> decisions =
+                householdIndependenceAutonomyPolicy.Plan(
+                    residents: residentsById.Values.ToArray(),
+                    housingStatuses: housingStatuses,
+                    previousDate: previousDate,
+                    currentDate: currentDate);
+
+            if (decisions.Count == 0)
+                return 0;
+
+            int affectedResidents = 0;
+
+            foreach (CityHouseholdIndependenceAutonomyDecision decision in decisions)
+            {
+                if (!residentsById.TryGetValue(decision.ResidentId, out PersonEntity? resident) ||
+                    resident.HouseholdId != decision.SourceHouseholdId)
+                    continue;
+
+                if (!await ClassicCityHouseholdAutonomySupport.MoveResidentIntoIndependentHouseholdAsync(
+                        cityId: cityId,
+                        resident: resident,
+                        householdWriteRepository: householdWriteRepository,
+                        cancellationToken: cancellationToken))
+                    continue;
+
+                activityEntries.Add(
+                    ClassicCityActivityFactory.ResidentFormedIndependentHousehold(
+                        cityId: cityId.Value,
+                        currentDate: currentDate,
+                        resident: resident,
                         source: CityPopulationActivitySource.Autonomy));
                 affectedResidents++;
             }

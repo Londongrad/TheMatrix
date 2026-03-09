@@ -324,6 +324,23 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 summary: $"{resident.Name}'s household lost housed placement and became homeless.");
         }
 
+        public static CityPopulationActivityWriteModel ResidentFormedIndependentHousehold(
+            Guid cityId,
+            DateOnly currentDate,
+            Person resident,
+            CityPopulationActivitySource source)
+        {
+            return CreateResidentEvent(
+                cityId: cityId,
+                currentDate: currentDate,
+                resident: resident,
+                source: source,
+                severity: CityPopulationActivitySeverity.Success,
+                eventType: CityPopulationActivityEventType.ResidentFormedIndependentHousehold,
+                title: "Resident moved out",
+                summary: $"{resident.Name} formed an independent household and is now seeking separate housing.");
+        }
+
         private static CityPopulationActivityWriteModel CreateResidentEvent(
             Guid cityId,
             DateOnly currentDate,
