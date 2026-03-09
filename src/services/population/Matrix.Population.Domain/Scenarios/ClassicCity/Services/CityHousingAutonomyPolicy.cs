@@ -6,7 +6,8 @@ using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityHousingAutonomyPolicy
+    public sealed class CityHousingAutonomyPolicy(
+        CityHouseholdEconomyPolicy householdEconomyPolicy)
     {
         public IReadOnlyList<CityHousingAutonomyDecision> Plan(
             IReadOnlyCollection<Person> residents,
@@ -46,16 +47,20 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     householdId: householdId,
                     members: members,
                     currentDate: currentDate);
+                CityHouseholdEconomyProfile economyProfile = householdEconomyPolicy.Build(
+                    householdResidents: members,
+                    housingStatus: housingStatus,
+                    currentDate: currentDate);
 
                 switch (housingStatus)
                 {
-                    case HousingStatus.Homeless when ShouldFindHousing(profile, currentDate, reviewWindows):
+                    case HousingStatus.Homeless when ShouldFindHousing(profile, economyProfile, currentDate, reviewWindows):
                         decisions.Add(new CityHousingAutonomyDecision(
                             Type: CityHousingAutonomyDecisionType.FindHousing,
                             HouseholdId: householdId));
                         break;
 
-                    case HousingStatus.Housed when ShouldLoseHousing(profile, currentDate, reviewWindows):
+                    case HousingStatus.Housed when ShouldLoseHousing(profile, economyProfile, currentDate, reviewWindows):
                         decisions.Add(new CityHousingAutonomyDecision(
                             Type: CityHousingAutonomyDecisionType.LoseHousing,
                             HouseholdId: householdId));
@@ -141,13 +146,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static bool ShouldFindHousing(
             HouseholdHousingProfile profile,
+            CityHouseholdEconomyProfile economyProfile,
             DateOnly currentDate,
             int reviewWindows)
         {
             if (profile.AdultCount + profile.SeniorCount <= 0)
                 return false;
 
-            double chancePerReview = ResolveFindHousingChancePerReview(profile);
+            double chancePerReview = ResolveFindHousingChancePerReview(profile, economyProfile);
             return RollOccurs(
                 householdId: profile.HouseholdId,
                 currentDate: currentDate,
@@ -158,10 +164,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static bool ShouldLoseHousing(
             HouseholdHousingProfile profile,
+            CityHouseholdEconomyProfile economyProfile,
             DateOnly currentDate,
             int reviewWindows)
         {
-            double chancePerReview = ResolveLoseHousingChancePerReview(profile);
+            double chancePerReview = ResolveLoseHousingChancePerReview(profile, economyProfile);
             return RollOccurs(
                 householdId: profile.HouseholdId,
                 currentDate: currentDate,
@@ -170,7 +177,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 reviewWindows: reviewWindows);
         }
 
-        private static double ResolveFindHousingChancePerReview(HouseholdHousingProfile profile)
+        private static double ResolveFindHousingChancePerReview(
+            HouseholdHousingProfile profile,
+            CityHouseholdEconomyProfile economyProfile)
         {
             double averageHealth = Normalize(profile.AverageHealth);
             double averageHappiness = Normalize(profile.AverageHappiness);
@@ -197,13 +206,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             - (illnessBurden * 0.012d)
                             - (Math.Max(0, profile.Size - 3) * 0.003d);
 
+            chance += Math.Max(0d, economyProfile.EconomicBalance) * 0.018d;
+            chance += economyProfile.GrowthReadinessScore * 0.012d;
+            chance -= economyProfile.StrainScore * 0.010d;
+
             if (profile.EmployedAdults == 0 && profile.StudentResidents == 0)
                 chance *= 0.45d;
 
             return Math.Clamp(chance, 0.001d, 0.120d);
         }
 
-        private static double ResolveLoseHousingChancePerReview(HouseholdHousingProfile profile)
+        private static double ResolveLoseHousingChancePerReview(
+            HouseholdHousingProfile profile,
+            CityHouseholdEconomyProfile economyProfile)
         {
             double lowHealth = 1d - Normalize(profile.AverageHealth);
             double lowHappiness = 1d - Normalize(profile.AverageHappiness);
@@ -226,6 +241,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             + (Math.Max(0, profile.Size - 4) * 0.004d)
                             - (profile.ChildCount * 0.003d)
                             - (profile.EmployedAdults * 0.004d);
+
+            chance += economyProfile.StrainScore * 0.016d;
+            chance -= Math.Max(0d, economyProfile.EconomicBalance) * 0.010d;
 
             if (profile.HasInfant)
                 chance *= 0.60d;

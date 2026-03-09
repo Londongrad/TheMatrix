@@ -1,12 +1,15 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityEmploymentAutonomyPolicy(IPopulationGenerationContentCatalog contentCatalog)
+    public sealed class CityEmploymentAutonomyPolicy(
+        IPopulationGenerationContentCatalog contentCatalog,
+        CityHouseholdEconomyPolicy householdEconomyPolicy)
     {
         private readonly IReadOnlyList<PopulationProfessionCatalogItem> _professions =
             contentCatalog.Professions.Count == 0
@@ -15,11 +18,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         public bool Apply(
             Person person,
+            IReadOnlyCollection<Person> householdResidents,
             DateOnly previousDate,
             DateOnly currentDate,
+            HousingStatus? housingStatus,
             IDictionary<string, List<WorkplaceId>> workplacePools)
         {
             ArgumentNullException.ThrowIfNull(person);
+            ArgumentNullException.ThrowIfNull(householdResidents);
             ArgumentNullException.ThrowIfNull(workplacePools);
 
             if (!person.IsAlive)
@@ -35,6 +41,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int reviewWindows = ResolveReviewWindows(
                 previousDate: previousDate,
                 currentDate: currentDate);
+            CityHouseholdEconomyProfile householdEconomy = householdEconomyPolicy.Build(
+                householdResidents: householdResidents,
+                housingStatus: housingStatus,
+                currentDate: currentDate);
 
             return person.Employment.Status switch
             {
@@ -42,11 +52,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     person: person,
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
+                    householdEconomy: householdEconomy,
                     workplacePools: workplacePools),
                 EmploymentStatus.Employed => TryTriggerJobLoss(
                     person: person,
                     currentDate: currentDate,
-                    reviewWindows: reviewWindows),
+                    reviewWindows: reviewWindows,
+                    householdEconomy: householdEconomy),
                 _ => false
             };
         }
@@ -55,9 +67,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person person,
             DateOnly currentDate,
             int reviewWindows,
+            CityHouseholdEconomyProfile householdEconomy,
             IDictionary<string, List<WorkplaceId>> workplacePools)
         {
-            double chancePerReview = ResolveHireChancePerReview(person);
+            double chancePerReview = ResolveHireChancePerReview(person, householdEconomy);
             if (!RollOccurs(
                     personId: person.Id,
                     currentDate: currentDate,
@@ -87,9 +100,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static bool TryTriggerJobLoss(
             Person person,
             DateOnly currentDate,
-            int reviewWindows)
+            int reviewWindows,
+            CityHouseholdEconomyProfile householdEconomy)
         {
-            double chancePerReview = ResolveJobLossChancePerReview(person);
+            double chancePerReview = ResolveJobLossChancePerReview(person, householdEconomy);
             if (!RollOccurs(
                     personId: person.Id,
                     currentDate: currentDate,
@@ -172,7 +186,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return Math.Clamp(currentWindow - previousWindow, 0, 8);
         }
 
-        private static double ResolveHireChancePerReview(Person person)
+        private static double ResolveHireChancePerReview(
+            Person person,
+            CityHouseholdEconomyProfile householdEconomy)
         {
             double discipline = Normalize(person.Personality.Discipline);
             double optimism = Normalize(person.Personality.Optimism);
@@ -201,13 +217,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             - (stress * 0.030d)
                             + educationBonus;
 
+            chance += householdEconomy.StrainScore * 0.030d;
+            chance -= Math.Max(0d, householdEconomy.EconomicBalance) * 0.006d;
+
             if (person.Health.Value < 25 || person.Energy.Value < 20)
                 chance *= 0.40d;
 
             return Math.Clamp(chance, 0.003d, 0.120d);
         }
 
-        private static double ResolveJobLossChancePerReview(Person person)
+        private static double ResolveJobLossChancePerReview(
+            Person person,
+            CityHouseholdEconomyProfile householdEconomy)
         {
             double discipline = Normalize(person.Personality.Discipline);
             double optimism = Normalize(person.Personality.Optimism);
@@ -221,6 +242,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             + (lowEnergy * 0.012d)
                             - (discipline * 0.010d)
                             - (optimism * 0.005d);
+
+            chance -= householdEconomy.StrainScore * 0.010d;
+            chance += Math.Max(0d, householdEconomy.EconomicBalance) * 0.004d;
 
             if (person.Health.Value < 20 || person.Energy.Value < 15 || person.Stress.Value > 90)
                 chance += 0.020d;

@@ -210,7 +210,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             bool changed = false;
             if (requiresNeedsProgression && ApplyNeedsProgression(person, residentsById, fromSimTimeUtc, toSimTimeUtc, currentDate, environment, marriageDomainService, personNeedsProgressionPolicy))
                 changed = true;
-            if (requiresDateProgression && ApplyTimeProgression(person, previousDate, currentDate, educationAutonomyPolicy, employmentAutonomyPolicy, institutionPools, workplacePools))
+            if (requiresDateProgression && ApplyTimeProgression(person, residentsByHouseholdId, previousDate, currentDate, housingByHouseholdId, educationAutonomyPolicy, employmentAutonomyPolicy, institutionPools, workplacePools))
                 changed = true;
             if (requiresDateProgression && ApplyHouseholdPressureProgression(person, residentsByHouseholdId, previousDate, currentDate, housingByHouseholdId, householdPressurePolicy))
                 changed = true;
@@ -232,14 +232,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return changed;
         }
 
-        private static bool ApplyTimeProgression(PersonEntity person, DateOnly previousDate, DateOnly currentDate, CityEducationAutonomyPolicy educationAutonomyPolicy, CityEmploymentAutonomyPolicy employmentAutonomyPolicy, IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools, IDictionary<string, List<WorkplaceId>> workplacePools)
+        private static bool ApplyTimeProgression(PersonEntity person, IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId, DateOnly previousDate, DateOnly currentDate, IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId, CityEducationAutonomyPolicy educationAutonomyPolicy, CityEmploymentAutonomyPolicy employmentAutonomyPolicy, IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools, IDictionary<string, List<WorkplaceId>> workplacePools)
         {
             bool changed = false;
             if (!person.IsAlive)
                 return false;
+            IReadOnlyCollection<PersonEntity> householdResidents = residentsByHouseholdId.TryGetValue(person.HouseholdId, out IReadOnlyCollection<PersonEntity>? resolvedResidents)
+                ? resolvedResidents
+                : [person];
+            HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(person.HouseholdId, out HousingStatus resolvedHousingStatus)
+                ? resolvedHousingStatus
+                : null;
             if (educationAutonomyPolicy.Apply(person, previousDate, currentDate, institutionPools))
                 changed = true;
-            if (employmentAutonomyPolicy.Apply(person, previousDate, currentDate, workplacePools))
+            if (employmentAutonomyPolicy.Apply(person, householdResidents, previousDate, currentDate, housingStatus, workplacePools))
                 changed = true;
             if (person.GetAgeGroup(currentDate) != AgeGroup.Senior)
                 return changed;
