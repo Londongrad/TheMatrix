@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Messaging;
 using Matrix.Economy.Infrastructure.Persistence;
@@ -41,6 +42,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
             services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
+            services.AddSingleton<CityBudgetOperatingExpensePolicy>();
 
             services.AddMassTransit(x =>
             {

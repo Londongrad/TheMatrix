@@ -4,6 +4,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -13,6 +14,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
         ICityBudgetRepository budgetRepository,
         ICityBudgetSettlementRepository settlementRepository,
         IEconomyUnitOfWork unitOfWork,
+        CityBudgetOperatingExpensePolicy operatingExpensePolicy,
         ILogger<CityEconomyDailySettlementConsumer> logger)
         : IConsumer<CityEconomyDailySettlementV1>
     {
@@ -49,16 +51,21 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 correlationId: message.CorrelationId,
                 occurredAtUtc: message.OccurredAtUtc);
 
-            budget.ApplySettlement(settlement);
+            var operatingExpense = operatingExpensePolicy.Build(settlement);
+
+            budget.ApplySettlement(
+                settlement: settlement,
+                operatingExpense: operatingExpense);
             await settlementRepository.AddAsync(settlement, context.CancellationToken);
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
-                "Applied city economy settlement for cityId={CityId}, tickId={TickId}, incomeTax={IncomeTax}, retailTax={RetailTax}.",
+                "Applied city economy settlement for cityId={CityId}, tickId={TickId}, incomeTax={IncomeTax}, retailTax={RetailTax}, cityExpense={CityExpense}.",
                 message.CityId,
                 message.TickId,
                 message.IncomeTaxAmount,
-                message.RetailTaxAmount);
+                message.RetailTaxAmount,
+                operatingExpense.TotalExpense.Amount);
         }
 
         private static CityBudget CreateBudget(Guid cityId, ICityBudgetRepository budgetRepository)

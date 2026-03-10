@@ -17,6 +17,7 @@ namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
                 TotalTaxIncome: Sum(budgets, x => x.TotalTaxIncome),
                 TotalIncomeTaxIncome: Sum(budgets, x => x.TotalIncomeTaxIncome),
                 TotalSalesTaxIncome: Sum(budgets, x => x.TotalSalesTaxIncome),
+                TotalCityExpenses: Sum(budgets, x => x.TotalCityExpenses),
                 TotalRetailTurnover: Sum(budgets, x => x.TotalRetailTurnover),
                 TotalGrossPayroll: Sum(budgets, x => x.TotalGrossPayroll),
                 TotalNetPayroll: Sum(budgets, x => x.TotalNetPayroll));

@@ -54,6 +54,13 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                 .HasColumnName("total_sales_tax_income_amount");
 
             builder
+                .Property(b => b.TotalCityExpenses)
+                .HasConversion(
+                    m => m.Amount,
+                    v => new Money(v))
+                .HasColumnName("total_city_expenses_amount");
+
+            builder
                 .Property(b => b.TotalRetailTurnover)
                 .HasConversion(
                     m => m.Amount,

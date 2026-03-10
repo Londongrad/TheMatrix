@@ -40,6 +40,7 @@ namespace Matrix.Economy.Api.Controllers
                 totalTaxIncome = result.TotalTaxIncome.Amount,
                 totalIncomeTaxIncome = result.TotalIncomeTaxIncome.Amount,
                 totalSalesTaxIncome = result.TotalSalesTaxIncome.Amount,
+                totalCityExpenses = result.TotalCityExpenses.Amount,
                 totalRetailTurnover = result.TotalRetailTurnover.Amount,
                 totalGrossPayroll = result.TotalGrossPayroll.Amount,
                 totalNetPayroll = result.TotalNetPayroll.Amount
