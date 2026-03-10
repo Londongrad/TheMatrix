@@ -13,8 +13,10 @@ type Props = {
 };
 
 function formatNumber(value: number, valueKind: string) {
+    const fractionalKinds = new Set(["average", "money"]);
+
     return new Intl.NumberFormat(document.documentElement.lang || undefined, {
-        maximumFractionDigits: valueKind === "average" ? 2 : 0,
+        maximumFractionDigits: fractionalKinds.has(valueKind) ? 2 : 0,
         minimumFractionDigits: 0,
     }).format(value);
 }
