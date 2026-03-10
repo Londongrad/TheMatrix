@@ -1,9 +1,13 @@
-﻿using Matrix.Economy.Application.Abstractions;
+using MassTransit;
+using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Infrastructure.Consumers;
+using Matrix.Economy.Infrastructure.Messaging;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Matrix.Economy.Infrastructure
 {
@@ -21,9 +25,45 @@ namespace Matrix.Economy.Infrastructure
                 options.UseNpgsql(connectionString);
             });
 
+            services.AddOptions<RabbitMqOptions>()
+                .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
+                .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
+                    failureMessage: "RabbitMq:Host is required.")
+                .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
+                    failureMessage: "RabbitMq:Username is required.")
+                .Validate(
+                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
+                    failureMessage: "RabbitMq:Password is required.")
+                .ValidateOnStart();
+
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
             services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
+
+            services.AddMassTransit(x =>
+            {
+                x.SetKebabCaseEndpointNameFormatter();
+                x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
+
+                    cfg.Host(
+                        host: rmq.Host,
+                        port: rmq.Port,
+                        virtualHost: rmq.VirtualHost,
+                        configure: h =>
+                        {
+                            h.Username(rmq.Username);
+                            h.Password(rmq.Password);
+                        });
+
+                    cfg.ConfigureEndpoints(context);
+                });
+            });
 
             return services;
         }
