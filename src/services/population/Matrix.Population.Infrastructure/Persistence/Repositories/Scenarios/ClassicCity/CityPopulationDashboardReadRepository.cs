@@ -108,8 +108,23 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 return new CityPopulationDashboardEconomyReadModel(
                     StableHouseholdCount: 0,
                     StrainedHouseholdCount: 0,
-                    AverageHouseholdEconomicBalance: null);
+                    DeficitHouseholdCount: 0,
+                    AverageCashReserveAmount: null,
+                    AverageDailyNetAmount: null);
             }
+
+            HouseholdId[] householdIds = placements
+               .Select(x => x.HouseholdId)
+               .Distinct()
+               .ToArray();
+
+            Matrix.Population.Domain.Entities.Household[] households = await _dbContext.Households
+               .AsNoTracking()
+               .Where(x => householdIds.Contains(x.Id))
+               .ToArrayAsync(cancellationToken);
+            Dictionary<HouseholdId, Matrix.Population.Domain.Entities.Household> householdsById = households.ToDictionary(
+                keySelector: x => x.Id,
+                elementSelector: x => x);
 
             Matrix.Population.Domain.Entities.Person[] persons = await _dbContext.Persons
                .AsNoTracking()
@@ -129,17 +144,23 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             int stableHouseholdCount = 0;
             int strainedHouseholdCount = 0;
-            decimal balanceTotal = 0m;
-            int balanceCount = 0;
+            int deficitHouseholdCount = 0;
+            decimal cashReserveTotal = 0m;
+            decimal dailyNetTotal = 0m;
+            int measuredHouseholdCount = 0;
 
             foreach (ClassicCityHouseholdPlacement placement in placements)
             {
+                if (!householdsById.TryGetValue(placement.HouseholdId, out Matrix.Population.Domain.Entities.Household? household))
+                    continue;
+
                 if (!residentsByHousehold.TryGetValue(placement.HouseholdId, out Matrix.Population.Domain.Entities.Person[]? householdResidents) ||
                     householdResidents is null ||
                     householdResidents.Length == 0)
                     continue;
 
                 var economyProfile = _householdEconomyPolicy.Build(
+                    household: household,
                     householdResidents: householdResidents,
                     housingStatus: placement.HousingStatus,
                     currentDate: currentDate);
@@ -149,15 +170,23 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 else if (economyProfile.GrowthReadinessScore >= 0.60d && economyProfile.EconomicBalance >= 0d)
                     stableHouseholdCount++;
 
-                balanceTotal += (decimal)economyProfile.EconomicBalance;
-                balanceCount++;
+                if (economyProfile.HasCashDeficit || economyProfile.DailyNetAmount < 0m)
+                    deficitHouseholdCount++;
+
+                cashReserveTotal += economyProfile.CashReserveAmount;
+                dailyNetTotal += economyProfile.DailyNetAmount;
+                measuredHouseholdCount++;
             }
 
             return new CityPopulationDashboardEconomyReadModel(
                 StableHouseholdCount: stableHouseholdCount,
                 StrainedHouseholdCount: strainedHouseholdCount,
-                AverageHouseholdEconomicBalance: balanceCount > 0
-                    ? decimal.Round(balanceTotal / balanceCount, 2, MidpointRounding.AwayFromZero)
+                DeficitHouseholdCount: deficitHouseholdCount,
+                AverageCashReserveAmount: measuredHouseholdCount > 0
+                    ? decimal.Round(cashReserveTotal / measuredHouseholdCount, 2, MidpointRounding.AwayFromZero)
+                    : null,
+                AverageDailyNetAmount: measuredHouseholdCount > 0
+                    ? decimal.Round(dailyNetTotal / measuredHouseholdCount, 2, MidpointRounding.AwayFromZero)
                     : null);
         }
 

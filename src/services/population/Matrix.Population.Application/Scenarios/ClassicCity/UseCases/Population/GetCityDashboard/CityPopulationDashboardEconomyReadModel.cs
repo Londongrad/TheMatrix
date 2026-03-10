@@ -3,5 +3,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     public sealed record CityPopulationDashboardEconomyReadModel(
         int StableHouseholdCount,
         int StrainedHouseholdCount,
-        decimal? AverageHouseholdEconomicBalance);
+        int DeficitHouseholdCount,
+        decimal? AverageCashReserveAmount,
+        decimal? AverageDailyNetAmount);
 }
