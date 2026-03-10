@@ -7,6 +7,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         Money GrossIncome,
         Money TaxWithheld,
         Money TakeHomeIncome,
+        Money RetailTurnover,
+        Money HousingExpense,
         Money DailyExpenses,
         Money DailyNet);
 }

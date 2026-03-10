@@ -2,7 +2,7 @@ namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Economy
 {
     public sealed record CityEconomyDailySettlementV1(
         Guid CityId,
-        Guid TickId,
+        long TickId,
         DateOnly CurrentDate,
         int SettledDays,
         int HouseholdCount,

@@ -1,4 +1,6 @@
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
@@ -32,6 +34,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
+        ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityPopulationWeatherExposureStateRepository weatherExposureStateRepository,
@@ -90,6 +93,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             bool requiresWeatherExposure = exposureSegments.Count > 0;
             IReadOnlyCollection<PersonEntity>? personsSnapshot = null;
             List<CityPopulationActivityWriteModel> pendingActivityEntries = [];
+            CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
 
             if ((requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure) && environment is null)
                 logger.LogWarning("Advancing city population without synced environment for cityId={CityId}. Climate adaptation will be neutral and needs progression will use UTC fallback.", request.CityId);
@@ -126,7 +130,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     if (requiresDateProgression)
                     {
-                        ApplyHouseholdCashflowSettlement(
+                        pendingEconomySettlement = ApplyHouseholdCashflowSettlement(
                             householdsById: householdsById,
                             residentsByHouseholdId: residentsByHouseholdId,
                             housingByHouseholdId: housingByHouseholdId,
@@ -214,6 +218,27 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         await cityPopulationActivityJournalService.RecordAsync(activityEntry, ct);
                 }
 
+                if (pendingEconomySettlement is not null)
+                {
+                    await cityEconomySettlementOutboxWriter.AddCityDailySettlementAsync(
+                        new CityEconomyDailySettlementV1(
+                            CityId: cityId.Value,
+                            TickId: request.TickId,
+                            CurrentDate: pendingEconomySettlement.CurrentDate,
+                            SettledDays: pendingEconomySettlement.SettledDays,
+                            HouseholdCount: pendingEconomySettlement.HouseholdCount,
+                            ResidentCount: pendingEconomySettlement.ResidentCount,
+                            GrossPayrollAmount: pendingEconomySettlement.GrossPayroll.Amount,
+                            IncomeTaxAmount: pendingEconomySettlement.IncomeTax.Amount,
+                            NetPayrollAmount: pendingEconomySettlement.NetPayroll.Amount,
+                            RetailTurnoverAmount: pendingEconomySettlement.RetailTurnover.Amount,
+                            RetailTaxAmount: pendingEconomySettlement.RetailTax.Amount,
+                            HousingSpendAmount: pendingEconomySettlement.HousingSpend.Amount,
+                            CorrelationId: $"classic-city:{cityId.Value:N}:tick:{request.TickId:N}:economy-settlement",
+                            OccurredAtUtc: updatedAtUtc),
+                        ct);
+                }
+
                 await unitOfWork.SaveChangesAsync(ct);
             }, cancellationToken);
 
@@ -272,7 +297,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return true;
         }
 
-        private static void ApplyHouseholdCashflowSettlement(
+        private static CityEconomyDailySettlementSnapshot? ApplyHouseholdCashflowSettlement(
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
@@ -282,7 +307,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         {
             int daysElapsed = Math.Max(0, currentDate.DayNumber - previousDate.DayNumber);
             if (daysElapsed <= 0)
-                return;
+                return null;
+
+            Money grossPayroll = Money.Zero;
+            Money incomeTax = Money.Zero;
+            Money netPayroll = Money.Zero;
+            Money retailTurnover = Money.Zero;
+            Money retailTax = Money.Zero;
+            Money housingSpend = Money.Zero;
+            int settledHouseholdCount = 0;
+            int settledResidentCount = 0;
 
             foreach ((HouseholdId householdId, HouseholdEntity household) in householdsById)
             {
@@ -298,12 +332,38 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     housingStatus: housingStatus,
                     currentDate: currentDate);
 
+                grossPayroll = grossPayroll.Add(cashflow.GrossIncome.Multiply(daysElapsed));
+                incomeTax = incomeTax.Add(cashflow.TaxWithheld.Multiply(daysElapsed));
+                netPayroll = netPayroll.Add(cashflow.TakeHomeIncome.Multiply(daysElapsed));
+                Money retailTurnoverForPeriod = cashflow.RetailTurnover.Multiply(daysElapsed);
+                retailTurnover = retailTurnover.Add(retailTurnoverForPeriod);
+                retailTax = retailTax.Add(retailTurnoverForPeriod.Multiply(ResolveRetailTaxRate()));
+                housingSpend = housingSpend.Add(cashflow.HousingExpense.Multiply(daysElapsed));
+                settledHouseholdCount++;
+                settledResidentCount += cashflow.ResidentCount;
+
                 household.ApplyDailyCashflow(
                     takeHomeIncome: cashflow.TakeHomeIncome,
                     expenses: cashflow.DailyExpenses,
                     daysElapsed: daysElapsed);
             }
+
+            return settledHouseholdCount == 0
+                ? null
+                : new CityEconomyDailySettlementSnapshot(
+                    CurrentDate: currentDate,
+                    SettledDays: daysElapsed,
+                    HouseholdCount: settledHouseholdCount,
+                    ResidentCount: settledResidentCount,
+                    GrossPayroll: grossPayroll,
+                    IncomeTax: incomeTax,
+                    NetPayroll: netPayroll,
+                    RetailTurnover: retailTurnover,
+                    RetailTax: retailTax,
+                    HousingSpend: housingSpend);
         }
+
+        private static decimal ResolveRetailTaxRate() => 0.08m;
 
         private static bool ApplyWeatherExposure(PersonEntity person, IReadOnlyDictionary<PersonId, PersonEntity> residentsById, DateOnly currentDate, CityPopulationEnvironment? environment, IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments, MarriageDomainService marriageDomainService, CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {

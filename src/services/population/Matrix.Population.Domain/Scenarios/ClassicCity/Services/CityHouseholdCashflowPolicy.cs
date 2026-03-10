@@ -26,13 +26,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     GrossIncome: Money.Zero,
                     TaxWithheld: Money.Zero,
                     TakeHomeIncome: Money.Zero,
+                    RetailTurnover: Money.Zero,
+                    HousingExpense: Money.Zero,
                     DailyExpenses: Money.Zero,
                     DailyNet: Money.Zero);
             }
 
             Money grossIncome = Money.Zero;
             Money taxWithheld = Money.Zero;
-            Money dailyExpenses = Money.Zero;
+            Money retailTurnover = Money.Zero;
             int childCount = 0;
             int infantCount = 0;
 
@@ -50,19 +52,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 grossIncome = grossIncome.Add(residentGrossIncome);
                 taxWithheld = taxWithheld.Add(residentTax);
-                dailyExpenses = dailyExpenses.Add(
+                retailTurnover = retailTurnover.Add(
                     ResolveResidentDailyExpense(
                         resident: resident,
                         ageGroup: ageGroup,
                         currentDate: currentDate));
             }
 
-            dailyExpenses = dailyExpenses.Add(
-                ResolveHousingExpense(
-                    residentCount: activeResidents.Length,
-                    childCount: childCount,
-                    infantCount: infantCount,
-                    housingStatus: housingStatus));
+            Money housingExpense = ResolveHousingExpense(
+                residentCount: activeResidents.Length,
+                childCount: childCount,
+                infantCount: infantCount,
+                housingStatus: housingStatus);
+            Money dailyExpenses = retailTurnover.Add(housingExpense);
 
             Money takeHomeIncome = grossIncome.Subtract(taxWithheld);
             Money dailyNet = takeHomeIncome.Subtract(dailyExpenses);
@@ -72,6 +74,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 GrossIncome: grossIncome,
                 TaxWithheld: taxWithheld,
                 TakeHomeIncome: takeHomeIncome,
+                RetailTurnover: retailTurnover,
+                HousingExpense: housingExpense,
                 DailyExpenses: dailyExpenses,
                 DailyNet: dailyNet);
         }
@@ -148,7 +152,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static decimal ResolveTaxRate(Person resident)
         {
             return resident.Employment.Status == EmploymentStatus.Employed
-                ? 0.12m
+                ? 0.13m
                 : 0m;
         }
 
