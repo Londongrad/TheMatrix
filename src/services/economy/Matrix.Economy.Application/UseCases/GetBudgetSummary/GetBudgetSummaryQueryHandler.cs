@@ -1,30 +1,32 @@
-﻿using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
-using Matrix.Economy.Domain.ValueObjects;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
 {
-    public sealed class GetBudgetSummaryQueryHandler
-    : IRequestHandler<GetBudgetSummaryQuery, BudgetSummaryDto>
+    public sealed class GetBudgetSummaryQueryHandler(ICityBudgetRepository budgetRepository)
+        : IRequestHandler<GetBudgetSummaryQuery, BudgetSummaryDto>
     {
-        private readonly ICityBudgetRepository _budgetRepository;
-
-        public GetBudgetSummaryQueryHandler(ICityBudgetRepository budgetRepository)
-        {
-            _budgetRepository = budgetRepository;
-        }
-
         public async Task<BudgetSummaryDto> Handle(GetBudgetSummaryQuery request, CancellationToken cancellationToken)
         {
-            var budget = await _budgetRepository.GetCurrentAsync(cancellationToken);
-
-            budget ??= new CityBudget(CityBudgetId.New());
+            IReadOnlyList<CityBudget> budgets = await budgetRepository.ListAsync(cancellationToken);
 
             return new BudgetSummaryDto(
-                Balance: budget.Balance,
-                TotalTaxIncome: budget.TotalTaxIncome);
+                Balance: Sum(budgets, x => x.Balance),
+                TotalTaxIncome: Sum(budgets, x => x.TotalTaxIncome),
+                TotalIncomeTaxIncome: Sum(budgets, x => x.TotalIncomeTaxIncome),
+                TotalSalesTaxIncome: Sum(budgets, x => x.TotalSalesTaxIncome),
+                TotalRetailTurnover: Sum(budgets, x => x.TotalRetailTurnover),
+                TotalGrossPayroll: Sum(budgets, x => x.TotalGrossPayroll),
+                TotalNetPayroll: Sum(budgets, x => x.TotalNetPayroll));
+        }
+
+        private static Money Sum(
+            IEnumerable<CityBudget> budgets,
+            Func<CityBudget, Money> selector)
+        {
+            return budgets.Aggregate(Money.Zero, (current, budget) => current.Add(selector(budget)));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +21,10 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                     value => new CityBudgetId(value))
                 .HasColumnName("id");
 
-            // Money -> decimal
+            builder
+                .Property(b => b.CityId)
+                .HasColumnName("city_id");
+
             builder
                 .Property(b => b.Balance)
                 .HasConversion(
@@ -35,6 +38,43 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                     m => m.Amount,
                     v => new Money(v))
                 .HasColumnName("total_tax_income_amount");
+
+            builder
+                .Property(b => b.TotalIncomeTaxIncome)
+                .HasConversion(
+                    m => m.Amount,
+                    v => new Money(v))
+                .HasColumnName("total_income_tax_income_amount");
+
+            builder
+                .Property(b => b.TotalSalesTaxIncome)
+                .HasConversion(
+                    m => m.Amount,
+                    v => new Money(v))
+                .HasColumnName("total_sales_tax_income_amount");
+
+            builder
+                .Property(b => b.TotalRetailTurnover)
+                .HasConversion(
+                    m => m.Amount,
+                    v => new Money(v))
+                .HasColumnName("total_retail_turnover_amount");
+
+            builder
+                .Property(b => b.TotalGrossPayroll)
+                .HasConversion(
+                    m => m.Amount,
+                    v => new Money(v))
+                .HasColumnName("total_gross_payroll_amount");
+
+            builder
+                .Property(b => b.TotalNetPayroll)
+                .HasConversion(
+                    m => m.Amount,
+                    v => new Money(v))
+                .HasColumnName("total_net_payroll_amount");
+
+            builder.HasIndex(b => b.CityId).IsUnique();
         }
     }
 }

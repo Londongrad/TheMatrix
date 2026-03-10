@@ -1,4 +1,5 @@
 ﻿using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.ValueObjects;
 
 namespace Matrix.Economy.Domain.Aggregates
@@ -9,37 +10,49 @@ namespace Matrix.Economy.Domain.Aggregates
     public sealed class CityBudget
     {
         public CityBudgetId Id { get; }
+        public Guid CityId { get; private set; }
 
         /// <summary> Общий баланс бюджета (доходы - расходы). </summary>
         public Money Balance { get; private set; } = null!;
 
         /// <summary> Всего налогов собрано за всё время. </summary>
         public Money TotalTaxIncome { get; private set; } = null!;
-
-        // позже добавим TotalExpenses, TotalSalaries, TotalMaintenance и т.п.
+        public Money TotalIncomeTaxIncome { get; private set; } = null!;
+        public Money TotalSalesTaxIncome { get; private set; } = null!;
+        public Money TotalRetailTurnover { get; private set; } = null!;
+        public Money TotalGrossPayroll { get; private set; } = null!;
+        public Money TotalNetPayroll { get; private set; } = null!;
 
         private CityBudget()
         {
         }
 
-        public CityBudget(CityBudgetId id)
+        public CityBudget(CityBudgetId id, Guid cityId)
         {
             Id = id;
+            CityId = cityId;
             Balance = Money.Zero;
             TotalTaxIncome = Money.Zero;
+            TotalIncomeTaxIncome = Money.Zero;
+            TotalSalesTaxIncome = Money.Zero;
+            TotalRetailTurnover = Money.Zero;
+            TotalGrossPayroll = Money.Zero;
+            TotalNetPayroll = Money.Zero;
         }
 
-        /// <summary>
-        /// Регистрирует налоговый доход (например, от MonthlyIncome из Population).
-        /// </summary>
-        public void RegisterTaxIncome(Money taxAmount, int simulationMonth, string source, string correlationId)
+        public void ApplySettlement(CityBudgetSettlement settlement)
         {
-            // здесь можно сделать доменные проверки (например, simulationMonth > 0)
+            if (settlement.CityId != CityId)
+                throw new InvalidOperationException("Settlement city does not match budget city.");
 
-            TotalTaxIncome = TotalTaxIncome.Add(taxAmount);
-            Balance = Balance.Add(taxAmount);
-
-            // позже: добавить запись в ledger/transactions
+            Money totalTax = settlement.IncomeTax.Add(settlement.RetailTax);
+            TotalIncomeTaxIncome = TotalIncomeTaxIncome.Add(settlement.IncomeTax);
+            TotalSalesTaxIncome = TotalSalesTaxIncome.Add(settlement.RetailTax);
+            TotalTaxIncome = TotalTaxIncome.Add(totalTax);
+            TotalRetailTurnover = TotalRetailTurnover.Add(settlement.RetailTurnover);
+            TotalGrossPayroll = TotalGrossPayroll.Add(settlement.GrossPayroll);
+            TotalNetPayroll = TotalNetPayroll.Add(settlement.NetPayroll);
+            Balance = Balance.Add(totalTax);
         }
     }
 }

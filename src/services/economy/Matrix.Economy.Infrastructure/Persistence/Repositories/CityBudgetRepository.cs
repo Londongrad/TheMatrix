@@ -1,4 +1,4 @@
-﻿using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +8,14 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
     {
         private readonly EconomyDbContext _dbContext = dbContext;
 
-        public async Task<CityBudget?> GetCurrentAsync(CancellationToken cancellationToken = default)
+        public async Task<CityBudget?> GetByCityAsync(Guid cityId, CancellationToken cancellationToken = default)
         {
-            // В первой версии считаем, что бюджет один.
-            return await _dbContext.CityBudgets.SingleOrDefaultAsync(cancellationToken);
+            return await _dbContext.CityBudgets.SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<CityBudget>> ListAsync(CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.CityBudgets.ToListAsync(cancellationToken);
         }
 
         public void Add(CityBudget cityBudget)

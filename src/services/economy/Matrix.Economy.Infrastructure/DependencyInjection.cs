@@ -22,6 +22,7 @@ namespace Matrix.Economy.Infrastructure
             });
 
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
+            services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
 
             return services;
