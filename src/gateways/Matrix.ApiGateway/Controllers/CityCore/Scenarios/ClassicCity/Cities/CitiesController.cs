@@ -1,6 +1,8 @@
 using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
+using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
@@ -21,11 +23,15 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
     public sealed class CitiesController(
         ICitiesApiClient citiesClient,
         ISimulationApiClient simulationClient,
+        IEconomyApiClient economyClient,
         IPopulationApiClient populationClient,
-        ICityProvisioningService cityProvisioningService) : ControllerBase
+        ICityProvisioningService cityProvisioningService,
+        ILogger<CitiesController> logger) : ControllerBase
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
+        private readonly IEconomyApiClient _economyClient = economyClient;
+        private readonly ILogger<CitiesController> _logger = logger;
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ISimulationApiClient _simulationClient = simulationClient;
 
@@ -108,7 +114,34 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 cityId: cityId,
                 cancellationToken: cancellationToken);
 
-            return Ok(dashboard);
+            List<CityPopulationDashboardMetricDto> metrics = [.. dashboard.Metrics];
+
+            try
+            {
+                EconomySummaryDto? economySummary = await _economyClient.GetCitySummaryAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+
+                if (economySummary is not null)
+                {
+                    metrics.AddRange(BuildEconomyMetrics(economySummary));
+                }
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Failed to attach economy metrics to classic city dashboard for cityId={CityId}.",
+                    cityId);
+            }
+
+            return Ok(
+                new CityPopulationDashboardDto(
+                    CityId: dashboard.CityId,
+                    CurrentDate: dashboard.CurrentDate,
+                    GeneratedAtUtc: dashboard.GeneratedAtUtc,
+                    Metrics: metrics,
+                    RecentEvents: dashboard.RecentEvents));
         }
 
         [HttpGet("{cityId:guid}/residents")]
@@ -457,6 +490,67 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 cancellationToken: cancellationToken);
 
             return NoContent();
+        }
+
+        private static IReadOnlyList<CityPopulationDashboardMetricDto> BuildEconomyMetrics(EconomySummaryDto summary)
+        {
+            return
+            [
+                new CityPopulationDashboardMetricDto(
+                    Key: "economyBudgetBalance",
+                    Label: "City budget balance",
+                    Description: "Current city budget after collected taxes and municipal operating expenses.",
+                    ValueKind: "money",
+                    CurrentValue: summary.Balance,
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null),
+                new CityPopulationDashboardMetricDto(
+                    Key: "economyGrossPayroll",
+                    Label: "Gross payroll",
+                    Description: "Cumulative wages paid to employed residents before the city income tax is withheld.",
+                    ValueKind: "money",
+                    CurrentValue: summary.TotalGrossPayroll,
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null),
+                new CityPopulationDashboardMetricDto(
+                    Key: "economyIncomeTax",
+                    Label: "Income tax",
+                    Description: "Cumulative city income tax collected from resident payroll settlements.",
+                    ValueKind: "money",
+                    CurrentValue: summary.TotalIncomeTaxIncome,
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null),
+                new CityPopulationDashboardMetricDto(
+                    Key: "economySalesTax",
+                    Label: "Retail tax",
+                    Description: "Cumulative city sales tax collected from household retail turnover.",
+                    ValueKind: "money",
+                    CurrentValue: summary.TotalSalesTaxIncome,
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null),
+                new CityPopulationDashboardMetricDto(
+                    Key: "economyRetailTurnover",
+                    Label: "Retail turnover",
+                    Description: "Cumulative household spending routed through the local commerce loop.",
+                    ValueKind: "money",
+                    CurrentValue: summary.TotalRetailTurnover,
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null),
+                new CityPopulationDashboardMetricDto(
+                    Key: "economyCityExpenses",
+                    Label: "City expenses",
+                    Description: "Cumulative municipal operating expenses allocated back into city upkeep and services.",
+                    ValueKind: "money",
+                    CurrentValue: summary.TotalCityExpenses,
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null)
+            ];
         }
     }
 }

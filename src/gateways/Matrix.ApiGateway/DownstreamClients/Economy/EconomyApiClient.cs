@@ -7,6 +7,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
         ILogger<EconomyApiClient> logger) : IEconomyApiClient
     {
         private const string SummaryEndpoint = "/api/economy/Budget/summary";
+        private const string CitySummaryEndpointTemplate = "/api/economy/Budget/cities/{0}/summary";
         private const string HealthEndpoint = "/api/economy/Budget/health";
         private readonly HttpClient _client = client;
         private readonly ILogger<EconomyApiClient> _logger = logger;
@@ -16,6 +17,19 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
             HttpResponseMessage response =
                 await _client.GetAsync(
                     requestUri: SummaryEndpoint,
+                    cancellationToken: cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<EconomySummaryDto>(cancellationToken: cancellationToken);
+        }
+
+        public async Task<EconomySummaryDto?> GetCitySummaryAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            HttpResponseMessage response =
+                await _client.GetAsync(
+                    requestUri: string.Format(CitySummaryEndpointTemplate, cityId),
                     cancellationToken: cancellationToken);
             response.EnsureSuccessStatusCode();
 

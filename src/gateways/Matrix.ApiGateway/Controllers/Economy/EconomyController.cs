@@ -18,7 +18,17 @@ namespace Matrix.ApiGateway.Controllers.Economy
             if (summary is null)
                 return StatusCode(StatusCodes.Status502BadGateway);
 
-            // Здесь можно адаптировать DTO под фронт, если нужно
+            return Ok(summary);
+        }
+
+        [HttpGet("cities/{cityId:guid}/summary")]
+        public async Task<IActionResult> GetCitySummary([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        {
+            EconomySummaryDto? summary = await _economyClient.GetCitySummaryAsync(cityId, cancellationToken);
+
+            if (summary is null)
+                return StatusCode(StatusCodes.Status502BadGateway);
+
             return Ok(summary);
         }
 
