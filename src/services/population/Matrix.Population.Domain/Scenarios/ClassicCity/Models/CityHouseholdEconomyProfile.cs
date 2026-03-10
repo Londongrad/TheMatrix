@@ -4,6 +4,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record CityHouseholdEconomyProfile(
         HousingStatus? HousingStatus,
+        decimal CashReserveAmount,
+        decimal GrossDailyIncomeAmount,
+        decimal DailyTaxAmount,
+        decimal NetDailyIncomeAmount,
+        decimal DailyExpenseAmount,
+        decimal DailyNetAmount,
+        double ReserveCoverageDays,
         double SupportUnits,
         double LivingCostUnits,
         double EconomicBalance,
@@ -11,5 +18,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         double GrowthReadinessScore)
     {
         public bool IsStrained => StrainScore >= 0.55d;
+        public bool HasCashDeficit => CashReserveAmount < 0m;
     }
 }

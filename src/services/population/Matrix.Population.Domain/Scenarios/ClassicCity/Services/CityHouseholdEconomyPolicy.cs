@@ -6,13 +6,16 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
     public sealed class CityHouseholdEconomyPolicy(
-        CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
+        CityHouseholdLivelihoodPolicy householdLivelihoodPolicy,
+        CityHouseholdCashflowPolicy householdCashflowPolicy)
     {
         public CityHouseholdEconomyProfile Build(
+            Household household,
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
             DateOnly currentDate)
         {
+            ArgumentNullException.ThrowIfNull(household);
             ArgumentNullException.ThrowIfNull(householdResidents);
 
             Person[] activeResidents = householdResidents
@@ -23,6 +26,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 return new CityHouseholdEconomyProfile(
                     HousingStatus: housingStatus,
+                    CashReserveAmount: household.CashReserve.Amount,
+                    GrossDailyIncomeAmount: 0m,
+                    DailyTaxAmount: 0m,
+                    NetDailyIncomeAmount: 0m,
+                    DailyExpenseAmount: 0m,
+                    DailyNetAmount: 0m,
+                    ReserveCoverageDays: 0d,
                     SupportUnits: 0d,
                     LivingCostUnits: 0d,
                     EconomicBalance: 0d,
@@ -34,42 +44,68 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 householdResidents: activeResidents,
                 housingStatus: housingStatus,
                 currentDate: currentDate);
+            CityHouseholdCashflowProfile cashflow = householdCashflowPolicy.Build(
+                householdResidents: activeResidents,
+                housingStatus: housingStatus,
+                currentDate: currentDate);
 
             int retiredAdults = activeResidents.Count(x =>
                 x.GetAgeGroup(currentDate) == AgeGroup.Senior &&
                 x.Employment.Status == EmploymentStatus.Retired);
 
-            double supportUnits = (livelihood.AdultProviderCount * 1.10d)
-                                  + (livelihood.AdultStudentCount * 0.42d)
-                                  + (retiredAdults * 0.34d)
-                                  + (livelihood.StabilityScore * 0.75d);
+            double supportUnits = (double)(cashflow.TakeHomeIncome.Amount / 24m)
+                                  + (livelihood.AdultProviderCount * 0.25d)
+                                  + (livelihood.AdultStudentCount * 0.15d)
+                                  + (retiredAdults * 0.10d);
+            double livingCostUnits = (double)(cashflow.DailyExpenses.Amount / 26m)
+                                     + (livelihood.DependentCount * 0.06d)
+                                     + (livelihood.InfantCount * 0.08d)
+                                     + (livelihood.ActiveIllnessCount * 0.08d);
 
-            double livingCostUnits = (livelihood.ResidentCount * 0.44d)
-                                     + (livelihood.DependentCount * 0.30d)
-                                     + (livelihood.InfantCount * 0.38d)
-                                     + (livelihood.ActiveIllnessCount * 0.22d)
-                                     + (housingStatus == HousingStatus.Housed ? 0.56d : 0.18d);
+            double reserveCoverageDays = cashflow.DailyExpenses.Amount <= 0m
+                ? 12d
+                : (double)(household.CashReserve.Amount / cashflow.DailyExpenses.Amount);
+            double reserveBufferUnits = Math.Clamp(reserveCoverageDays / 6d, -1.8d, 2.4d);
+            double netUnits = (double)(cashflow.DailyNet.Amount / 32m);
+            double balance = reserveBufferUnits + netUnits;
 
-            double balance = supportUnits - livingCostUnits;
-            double strain = Math.Clamp(
-                0.50d - (balance * 0.40d),
-                0d,
-                1d);
+            double strain = 0.46d
+                            - (reserveBufferUnits * 0.16d)
+                            - (netUnits * 0.22d)
+                            - (livelihood.StabilityScore * 0.24d)
+                            + (livelihood.DependentCount * 0.03d)
+                            + (livelihood.ActiveIllnessCount * 0.04d);
 
             if (livelihood.AdultProviderCount == 0 && livelihood.AdultStudentCount == 0)
-                strain = Math.Clamp(strain + 0.12d, 0d, 1d);
+                strain += 0.14d;
+
+            if (household.CashReserve.IsNegative)
+                strain += 0.18d;
+
+            if (cashflow.DailyNet.Amount < 0m)
+                strain += Math.Min(0.18d, (double)(Math.Abs(cashflow.DailyNet.Amount) / 120m));
 
             double growthReadiness = Math.Clamp(
-                (0.55d - strain) + (livelihood.StabilityScore * 0.45d),
+                (0.72d - strain)
+                + (livelihood.StabilityScore * 0.24d)
+                + Math.Clamp(reserveCoverageDays / 18d, -0.18d, 0.28d)
+                + Math.Max(0d, netUnits) * 0.08d,
                 0d,
                 1d);
 
             return new CityHouseholdEconomyProfile(
                 HousingStatus: housingStatus,
+                CashReserveAmount: household.CashReserve.Amount,
+                GrossDailyIncomeAmount: cashflow.GrossIncome.Amount,
+                DailyTaxAmount: cashflow.TaxWithheld.Amount,
+                NetDailyIncomeAmount: cashflow.TakeHomeIncome.Amount,
+                DailyExpenseAmount: cashflow.DailyExpenses.Amount,
+                DailyNetAmount: cashflow.DailyNet.Amount,
+                ReserveCoverageDays: reserveCoverageDays,
                 SupportUnits: supportUnits,
                 LivingCostUnits: livingCostUnits,
                 EconomicBalance: balance,
-                StrainScore: strain,
+                StrainScore: Math.Clamp(strain, 0d, 1d),
                 GrowthReadinessScore: growthReadiness);
         }
     }

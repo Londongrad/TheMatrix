@@ -18,6 +18,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         public bool Apply(
             Person person,
+            Household household,
             IReadOnlyCollection<Person> householdResidents,
             DateOnly previousDate,
             DateOnly currentDate,
@@ -42,6 +43,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 previousDate: previousDate,
                 currentDate: currentDate);
             CityHouseholdEconomyProfile householdEconomy = householdEconomyPolicy.Build(
+                household: household,
                 householdResidents: householdResidents,
                 housingStatus: housingStatus,
                 currentDate: currentDate);

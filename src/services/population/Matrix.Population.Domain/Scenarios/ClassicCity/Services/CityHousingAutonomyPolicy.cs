@@ -10,15 +10,17 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         CityHouseholdEconomyPolicy householdEconomyPolicy)
     {
         public IReadOnlyList<CityHousingAutonomyDecision> Plan(
+            IReadOnlyDictionary<HouseholdId, Household> households,
             IReadOnlyCollection<Person> residents,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             DateOnly previousDate,
             DateOnly currentDate)
         {
+            ArgumentNullException.ThrowIfNull(households);
             ArgumentNullException.ThrowIfNull(residents);
             ArgumentNullException.ThrowIfNull(housingStatuses);
 
-            if (currentDate <= previousDate || residents.Count == 0 || housingStatuses.Count == 0)
+            if (currentDate <= previousDate || households.Count == 0 || residents.Count == 0 || housingStatuses.Count == 0)
                 return [];
 
             int reviewWindows = ResolveMonthlyReviewWindows(
@@ -39,6 +41,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             foreach ((HouseholdId householdId, HousingStatus housingStatus) in housingStatuses)
             {
+                if (!households.TryGetValue(householdId, out Household? household))
+                    continue;
+
                 if (!householdResidents.TryGetValue(householdId, out List<Person>? members) ||
                     members.Count == 0)
                     continue;
@@ -48,6 +53,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     members: members,
                     currentDate: currentDate);
                 CityHouseholdEconomyProfile economyProfile = householdEconomyPolicy.Build(
+                    household: household,
                     householdResidents: members,
                     housingStatus: housingStatus,
                     currentDate: currentDate);
