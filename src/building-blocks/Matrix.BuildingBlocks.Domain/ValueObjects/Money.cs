@@ -23,6 +23,18 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
             return new Money(Amount - other.Amount);
         }
 
+        public Money Multiply(decimal factor)
+        {
+            return new Money(decimal.Round(
+                d: Amount * factor,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero));
+        }
+
+        public bool IsZero => Amount == 0m;
+        public bool IsPositive => Amount > 0m;
+        public bool IsNegative => Amount < 0m;
+
         public override string ToString()
         {
             return Amount.ToString(

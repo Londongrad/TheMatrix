@@ -52,6 +52,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             Person movedResident = keepFirstHousehold
                 ? secondResident
                 : firstResident;
+            targetHousehold.ReceiveReserve(sourceHousehold.DrainReserve());
 
             int sourceCount = await householdWriteRepository.CountResidentsAsync(
                 householdId: sourceHousehold.Id,
@@ -114,7 +115,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             Household newHousehold = Household.Create(
                 id: newHouseholdId,
                 size: HouseholdSize.From(1),
-                createdAtUtc: DateTimeOffset.UtcNow);
+                createdAtUtc: DateTimeOffset.UtcNow,
+                cashReserve: sharedHousehold.ReleasePositiveReserveShare(0.40m));
             ClassicCityHouseholdPlacement newPlacement = sharedPlacement.HousingStatus == HousingStatus.Housed &&
                                                          sharedPlacement.DistrictId.HasValue &&
                                                          sharedPlacement.ResidentialBuildingId.HasValue

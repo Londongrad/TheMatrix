@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Rules;
@@ -36,21 +37,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             for (int i = 0; i < peopleCount; i++)
             {
                 var householdId = HouseholdId.New();
+                Person resident = CreateSingleResident(
+                    random: random,
+                    institutionPools: institutionPools,
+                    workplacePools: workplacePools,
+                    householdId: householdId,
+                    currentDate: currentDate,
+                    tuning: BootstrapTuningModel.Default(),
+                    housingStatus: HousingStatus.Housed);
                 var household = Household.Create(
                     id: householdId,
                     size: HouseholdSize.From(1),
-                    createdAtUtc: createdAtUtc);
+                    createdAtUtc: createdAtUtc,
+                    cashReserve: ResolveInitialHouseholdReserve(
+                        random: random,
+                        residents: new[] { resident },
+                        housingStatus: HousingStatus.Housed,
+                        currentDate: currentDate));
 
                 households.Add(household);
-                persons.Add(
-                    CreateSingleResident(
-                        random: random,
-                        institutionPools: institutionPools,
-                        workplacePools: workplacePools,
-                        householdId: householdId,
-                        currentDate: currentDate,
-                        tuning: BootstrapTuningModel.Default(),
-                        housingStatus: HousingStatus.Housed));
+                persons.Add(resident);
             }
 
             return new PopulationBootstrapResult(
@@ -97,29 +103,34 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     tuning: bootstrapTuning);
                 var householdSize = HouseholdSize.From(householdSizeValue);
                 var householdId = HouseholdId.New();
-                Household household = Household.Create(
-                    id: householdId,
-                    size: householdSize,
-                    createdAtUtc: createdAtUtc);
                 ClassicCityHouseholdPlacement householdPlacement = TryAllocateHouseholdPlacement(
                     cityId: cityId,
                     householdId: householdId,
                     householdSize: householdSize,
                     capacityStates: capacityStates,
                     random: random);
+                IReadOnlyCollection<Person> householdMembers = CreateHouseholdMembers(
+                    random: random,
+                    institutionPools: institutionPools,
+                    workplacePools: workplacePools,
+                    householdId: householdId,
+                    householdSizeValue: householdSizeValue,
+                    currentDate: currentDate,
+                    tuning: bootstrapTuning,
+                    housingStatus: householdPlacement.HousingStatus);
+                Household household = Household.Create(
+                    id: householdId,
+                    size: householdSize,
+                    createdAtUtc: createdAtUtc,
+                    cashReserve: ResolveInitialHouseholdReserve(
+                        random: random,
+                        residents: householdMembers,
+                        housingStatus: householdPlacement.HousingStatus,
+                        currentDate: currentDate));
 
                 households.Add(household);
                 householdPlacements.Add(householdPlacement);
-                persons.AddRange(
-                    CreateHouseholdMembers(
-                        random: random,
-                        institutionPools: institutionPools,
-                        workplacePools: workplacePools,
-                        householdId: household.Id,
-                        householdSizeValue: householdSizeValue,
-                        currentDate: currentDate,
-                        tuning: bootstrapTuning,
-                        housingStatus: householdPlacement.HousingStatus));
+                persons.AddRange(householdMembers);
 
                 remainingPeople -= householdSizeValue;
             }
@@ -128,6 +139,60 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 Households: households,
                 HouseholdPlacements: householdPlacements,
                 Persons: persons);
+        }
+
+        private static Money ResolveInitialHouseholdReserve(
+            Random random,
+            IReadOnlyCollection<Person> residents,
+            HousingStatus housingStatus,
+            DateOnly currentDate)
+        {
+            decimal reserve = housingStatus == HousingStatus.Housed
+                ? 96m
+                : 34m;
+
+            foreach (Person resident in residents)
+            {
+                AgeGroup ageGroup = resident.GetAgeGroup(currentDate);
+
+                reserve += resident.Employment.Status switch
+                {
+                    EmploymentStatus.Employed => 74m + Math.Min(22m, resident.EducationLevel switch
+                    {
+                        EducationLevel.Vocational => 6m,
+                        EducationLevel.Higher => 12m,
+                        EducationLevel.Postgraduate => 16m,
+                        _ => 0m
+                    }),
+                    EmploymentStatus.Retired => 38m,
+                    EmploymentStatus.Student when ageGroup is AgeGroup.Adult or AgeGroup.Senior => 18m,
+                    EmploymentStatus.Student => 8m,
+                    _ => ageGroup switch
+                    {
+                        AgeGroup.Child => -8m,
+                        AgeGroup.Youth => -4m,
+                        _ => 4m
+                    }
+                };
+
+                if (resident.HasActiveIllness)
+                {
+                    reserve -= resident.CurrentIllnessSeverity switch
+                    {
+                        IllnessSeverity.Mild => 8m,
+                        IllnessSeverity.Moderate => 16m,
+                        IllnessSeverity.Severe => 28m,
+                        _ => 10m
+                    };
+                }
+            }
+
+            reserve += random.Next(-18, 37);
+
+            return Money.FromDecimal(Math.Max(-24m, decimal.Round(
+                d: reserve,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero)));
         }
 
         private IReadOnlyCollection<Person> CreateHouseholdMembers(

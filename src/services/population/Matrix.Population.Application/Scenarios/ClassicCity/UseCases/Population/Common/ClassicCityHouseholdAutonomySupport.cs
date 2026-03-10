@@ -36,7 +36,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             Household newHousehold = Household.Create(
                 id: newHouseholdId,
                 size: HouseholdSize.From(1),
-                createdAtUtc: DateTimeOffset.UtcNow);
+                createdAtUtc: DateTimeOffset.UtcNow,
+                cashReserve: sourceHousehold.ReleasePositiveReserveShare(0.32m));
 
             ClassicCityHouseholdPlacement newPlacement = ClassicCityHouseholdPlacement.CreateHomeless(
                 householdId: newHouseholdId,

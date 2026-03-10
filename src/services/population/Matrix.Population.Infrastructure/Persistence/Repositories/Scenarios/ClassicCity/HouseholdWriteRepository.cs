@@ -40,6 +40,23 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyCollection<Household>> ListByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            List<HouseholdId> householdIds = await _dbContext.ClassicCityHouseholdPlacements
+               .Where(x => x.CityId == cityId)
+               .Select(x => x.HouseholdId)
+               .ToListAsync(cancellationToken);
+
+            if (householdIds.Count == 0)
+                return Array.Empty<Household>();
+
+            return await _dbContext.Households
+               .Where(x => householdIds.Contains(x.Id))
+               .ToListAsync(cancellationToken);
+        }
+
         public async Task<int> CountResidentsAsync(
             HouseholdId householdId,
             CancellationToken cancellationToken = default)

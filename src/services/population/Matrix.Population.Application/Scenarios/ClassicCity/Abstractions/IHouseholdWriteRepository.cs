@@ -19,6 +19,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             CityId cityId,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyCollection<Household>> ListByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default);
+
         Task<int> CountResidentsAsync(
             HouseholdId householdId,
             CancellationToken cancellationToken = default);
