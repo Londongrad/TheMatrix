@@ -2,9 +2,14 @@ using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Application.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Infrastructure.Messaging;
+using Matrix.Population.Infrastructure.Outbox;
+using Matrix.Population.Infrastructure.Outbox.RabbitMq;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
@@ -71,6 +76,9 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<PopulationDbContext>>();
             services.AddPermissionCheckingFromClaims();
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
+            services.AddOutbox<PopulationDbContext>(configuration);
+            services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+            services.AddScoped<ICityEconomySettlementOutboxWriter, CityEconomySettlementOutboxWriter>();
 
             services.AddMassTransit(x =>
             {

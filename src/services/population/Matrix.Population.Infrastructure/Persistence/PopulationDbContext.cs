@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Persistence;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Infrastructure.Persistence.Entities;
@@ -31,6 +33,7 @@ namespace Matrix.Population.Infrastructure.Persistence
             => Set<ClassicCityHouseholdPlacement>();
 
         public DbSet<Household> Households => Set<Household>();
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
         public DbSet<Person> Persons => Set<Person>();
         public DbSet<ProcessedIntegrationMessage> ProcessedIntegrationMessages => Set<ProcessedIntegrationMessage>();
 
@@ -38,6 +41,7 @@ namespace Matrix.Population.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.AddOutboxMessageModel();
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(PopulationDbContext).Assembly);
         }
     }
