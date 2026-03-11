@@ -44,6 +44,8 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<ICityBusinessRepository, CityBusinessRepository>();
             services.AddScoped<ICityBusinessLedgerRepository, CityBusinessLedgerRepository>();
+            services.AddScoped<ICityHouseholdAccountRepository, CityHouseholdAccountRepository>();
+            services.AddScoped<ICityHouseholdAccountLedgerRepository, CityHouseholdAccountLedgerRepository>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
 
