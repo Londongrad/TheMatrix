@@ -7,6 +7,7 @@ namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
         Money TotalTaxIncome,
         Money TotalIncomeTaxIncome,
         Money TotalSalesTaxIncome,
+        Money TotalDirectRevenue,
         Money TotalCityExpenses,
         Money TotalRetailTurnover,
         Money TotalGrossPayroll,

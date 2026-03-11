@@ -19,6 +19,7 @@ namespace Matrix.Economy.Application.UseCases.GetCityBudgetSummary
                 TotalTaxIncome: budget.TotalTaxIncome,
                 TotalIncomeTaxIncome: budget.TotalIncomeTaxIncome,
                 TotalSalesTaxIncome: budget.TotalSalesTaxIncome,
+                TotalDirectRevenue: budget.TotalDirectRevenue,
                 TotalCityExpenses: budget.TotalCityExpenses,
                 TotalRetailTurnover: budget.TotalRetailTurnover,
                 TotalGrossPayroll: budget.TotalGrossPayroll,
