@@ -1,6 +1,7 @@
 using Matrix.Economy.Api.Contracts.Business;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpense;
+using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetailSale;
 using Matrix.Economy.Application.UseCases.Businesses.RemitCityBusinessTax;
 using Matrix.Economy.Domain.Enums;
@@ -47,6 +48,25 @@ namespace Matrix.Economy.Api.Controllers
                     request.Amount,
                     request.Title,
                     request.Description),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{businessId:guid}/payroll")]
+        public async Task<IActionResult> RecordPayroll(
+            [FromRoute] Guid businessId,
+            [FromBody] RecordBusinessPayrollRequest request,
+            CancellationToken cancellationToken)
+        {
+            CityBusinessLedgerEntryDto result = await _sender.Send(
+                new RecordCityBusinessPayrollCommand(
+                    BusinessId: businessId,
+                    HouseholdAccountId: request.HouseholdAccountId,
+                    GrossAmount: request.GrossAmount,
+                    IncomeTaxAmount: request.IncomeTaxAmount,
+                    Title: request.Title,
+                    Description: request.Description),
                 cancellationToken);
 
             return Ok(result);

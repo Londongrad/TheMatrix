@@ -1,0 +1,36 @@
+using Matrix.Economy.Api.Contracts.HouseholdAccounts;
+using Matrix.Economy.Application.UseCases.HouseholdAccounts;
+using Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Matrix.Economy.Api.Controllers
+{
+    [ApiController]
+    [Authorize]
+    [Route("api/economy/household-accounts")]
+    public class HouseholdAccountOperationsController(ISender sender) : ControllerBase
+    {
+        private readonly ISender _sender = sender;
+
+        [HttpPost("{householdAccountId:guid}/purchases")]
+        public async Task<IActionResult> RecordPurchase(
+            [FromRoute] Guid householdAccountId,
+            [FromBody] RecordHouseholdPurchaseRequest request,
+            CancellationToken cancellationToken)
+        {
+            CityHouseholdAccountLedgerEntryDto result = await _sender.Send(
+                new RecordCityHouseholdPurchaseCommand(
+                    HouseholdAccountId: householdAccountId,
+                    BusinessId: request.BusinessId,
+                    GrossAmount: request.GrossAmount,
+                    SalesTaxAmount: request.SalesTaxAmount,
+                    Title: request.Title,
+                    Description: request.Description),
+                cancellationToken);
+
+            return Ok(result);
+        }
+    }
+}

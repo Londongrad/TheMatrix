@@ -4,6 +4,7 @@ namespace Matrix.Economy.Domain.Enums
     {
         Manual = 0,
         Settlement = 1,
-        BusinessRemittance = 2
+        BusinessRemittance = 2,
+        PayrollWithholding = 3
     }
 }

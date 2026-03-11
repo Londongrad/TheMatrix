@@ -5,6 +5,7 @@ namespace Matrix.Economy.Domain.Enums
         CapitalInjection = 0,
         RetailSale = 1,
         OperatingExpense = 2,
-        TaxRemittance = 3
+        TaxRemittance = 3,
+        PayrollExpense = 4
     }
 }
