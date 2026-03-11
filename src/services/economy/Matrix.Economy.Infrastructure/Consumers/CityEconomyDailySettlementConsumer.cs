@@ -4,6 +4,7 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
 {
     public sealed class CityEconomyDailySettlementConsumer(
         ICityBudgetRepository budgetRepository,
+        ICityBudgetLedgerRepository ledgerRepository,
         ICityBudgetSettlementRepository settlementRepository,
         IEconomyUnitOfWork unitOfWork,
         CityBudgetOperatingExpensePolicy operatingExpensePolicy,
@@ -56,6 +58,36 @@ namespace Matrix.Economy.Infrastructure.Consumers
             budget.ApplySettlement(
                 settlement: settlement,
                 operatingExpense: operatingExpense);
+            await AddLedgerEntryIfPositiveAsync(
+                ledgerRepository: ledgerRepository,
+                cityId: message.CityId,
+                kind: CityBudgetLedgerEntryKind.Revenue,
+                category: CityBudgetCategory.Taxation,
+                amount: Money.FromDecimal(message.IncomeTaxAmount),
+                title: "Income tax settlement",
+                description: "Resident payroll income tax transferred into the city budget.",
+                referenceCode: $"{message.CorrelationId}:income-tax",
+                cancellationToken: context.CancellationToken);
+            await AddLedgerEntryIfPositiveAsync(
+                ledgerRepository: ledgerRepository,
+                cityId: message.CityId,
+                kind: CityBudgetLedgerEntryKind.Revenue,
+                category: CityBudgetCategory.Commerce,
+                amount: Money.FromDecimal(message.RetailTaxAmount),
+                title: "Retail tax settlement",
+                description: "Household retail turnover tax transferred into the city budget.",
+                referenceCode: $"{message.CorrelationId}:retail-tax",
+                cancellationToken: context.CancellationToken);
+            await AddLedgerEntryIfPositiveAsync(
+                ledgerRepository: ledgerRepository,
+                cityId: message.CityId,
+                kind: CityBudgetLedgerEntryKind.Expense,
+                category: CityBudgetCategory.Operations,
+                amount: operatingExpense.TotalExpense,
+                title: "Municipal operating expense",
+                description: "Budget allocation for baseline city upkeep and operating services.",
+                referenceCode: $"{message.CorrelationId}:operations",
+                cancellationToken: context.CancellationToken);
             await settlementRepository.AddAsync(settlement, context.CancellationToken);
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
@@ -73,6 +105,53 @@ namespace Matrix.Economy.Infrastructure.Consumers
             var budget = new CityBudget(CityBudgetId.New(), cityId);
             budgetRepository.Add(budget);
             return budget;
+        }
+
+        private static CityBudgetLedgerEntry CreateLedgerEntry(
+            Guid cityId,
+            CityBudgetLedgerEntryKind kind,
+            CityBudgetCategory category,
+            Money amount,
+            string title,
+            string description,
+            string referenceCode)
+        {
+            return new CityBudgetLedgerEntry(
+                id: Guid.NewGuid(),
+                cityId: cityId,
+                occurredAtUtc: DateTimeOffset.UtcNow,
+                kind: kind,
+                category: category,
+                amount: amount,
+                title: title,
+                description: description,
+                source: CityBudgetLedgerEntrySource.Settlement,
+                referenceCode: referenceCode);
+        }
+
+        private static Task AddLedgerEntryIfPositiveAsync(
+            ICityBudgetLedgerRepository ledgerRepository,
+            Guid cityId,
+            CityBudgetLedgerEntryKind kind,
+            CityBudgetCategory category,
+            Money amount,
+            string title,
+            string description,
+            string referenceCode,
+            CancellationToken cancellationToken)
+        {
+            return amount.IsPositive
+                ? ledgerRepository.AddAsync(
+                    CreateLedgerEntry(
+                        cityId: cityId,
+                        kind: kind,
+                        category: category,
+                        amount: amount,
+                        title: title,
+                        description: description,
+                        referenceCode: referenceCode),
+                    cancellationToken)
+                : Task.CompletedTask;
         }
     }
 }

@@ -40,6 +40,7 @@ namespace Matrix.Economy.Infrastructure
                 .ValidateOnStart();
 
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
+            services.AddScoped<ICityBudgetLedgerRepository, CityBudgetLedgerRepository>();
             services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();

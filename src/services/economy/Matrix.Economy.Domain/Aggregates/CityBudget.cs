@@ -1,5 +1,6 @@
 ﻿using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 
@@ -20,6 +21,7 @@ namespace Matrix.Economy.Domain.Aggregates
         public Money TotalTaxIncome { get; private set; } = null!;
         public Money TotalIncomeTaxIncome { get; private set; } = null!;
         public Money TotalSalesTaxIncome { get; private set; } = null!;
+        public Money TotalDirectRevenue { get; private set; } = null!;
         public Money TotalCityExpenses { get; private set; } = null!;
         public Money TotalRetailTurnover { get; private set; } = null!;
         public Money TotalGrossPayroll { get; private set; } = null!;
@@ -37,6 +39,7 @@ namespace Matrix.Economy.Domain.Aggregates
             TotalTaxIncome = Money.Zero;
             TotalIncomeTaxIncome = Money.Zero;
             TotalSalesTaxIncome = Money.Zero;
+            TotalDirectRevenue = Money.Zero;
             TotalCityExpenses = Money.Zero;
             TotalRetailTurnover = Money.Zero;
             TotalGrossPayroll = Money.Zero;
@@ -59,6 +62,26 @@ namespace Matrix.Economy.Domain.Aggregates
             TotalGrossPayroll = TotalGrossPayroll.Add(settlement.GrossPayroll);
             TotalNetPayroll = TotalNetPayroll.Add(settlement.NetPayroll);
             Balance = Balance.Add(totalTax).Subtract(operatingExpense.TotalExpense);
+        }
+
+        public void ApplyLedgerEntry(CityBudgetLedgerEntry entry)
+        {
+            if (entry.CityId != CityId)
+                throw new InvalidOperationException("Ledger entry city does not match budget city.");
+
+            switch (entry.Kind)
+            {
+                case CityBudgetLedgerEntryKind.Revenue:
+                    TotalDirectRevenue = TotalDirectRevenue.Add(entry.Amount);
+                    Balance = Balance.Add(entry.Amount);
+                    break;
+                case CityBudgetLedgerEntryKind.Expense:
+                    TotalCityExpenses = TotalCityExpenses.Add(entry.Amount);
+                    Balance = Balance.Subtract(entry.Amount);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported ledger entry kind '{entry.Kind}'.");
+            }
         }
     }
 }
