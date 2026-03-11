@@ -1,0 +1,39 @@
+using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace Matrix.Economy.Infrastructure.Persistence.Repositories
+{
+    public sealed class CityBusinessLedgerRepository(EconomyDbContext dbContext) : ICityBusinessLedgerRepository
+    {
+        private readonly EconomyDbContext _dbContext = dbContext;
+
+        public async Task AddAsync(CityBusinessLedgerEntry entry, CancellationToken cancellationToken = default)
+        {
+            await _dbContext.CityBusinessLedgerEntries.AddAsync(entry, cancellationToken);
+        }
+
+        public async Task<PagedResult<CityBusinessLedgerEntry>> GetPageByBusinessAsync(
+            Guid businessId,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            int normalizedPageNumber = pageNumber <= 0 ? 1 : pageNumber;
+            int normalizedPageSize = pageSize <= 0 ? 50 : pageSize;
+
+            IQueryable<CityBusinessLedgerEntry> query = _dbContext.CityBusinessLedgerEntries
+                .Where(x => x.BusinessId == businessId)
+                .OrderByDescending(x => x.OccurredAtUtc);
+
+            int totalCount = await query.CountAsync(cancellationToken);
+            CityBusinessLedgerEntry[] items = await query
+                .Skip((normalizedPageNumber - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
+                .ToArrayAsync(cancellationToken);
+
+            return new PagedResult<CityBusinessLedgerEntry>(items, totalCount, normalizedPageNumber, normalizedPageSize);
+        }
+    }
+}

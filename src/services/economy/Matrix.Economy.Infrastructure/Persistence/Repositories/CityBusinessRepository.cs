@@ -1,0 +1,29 @@
+using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Domain.Aggregates;
+using Microsoft.EntityFrameworkCore;
+
+namespace Matrix.Economy.Infrastructure.Persistence.Repositories
+{
+    public sealed class CityBusinessRepository(EconomyDbContext dbContext) : ICityBusinessRepository
+    {
+        private readonly EconomyDbContext _dbContext = dbContext;
+
+        public async Task<CityBusiness?> GetByIdAsync(Guid businessId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.CityBusinesses.SingleOrDefaultAsync(x => x.Id == businessId, cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<CityBusiness>> ListByCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.CityBusinesses
+                .Where(x => x.CityId == cityId)
+                .OrderBy(x => x.Name)
+                .ToListAsync(cancellationToken);
+        }
+
+        public void Add(CityBusiness cityBusiness)
+        {
+            _dbContext.CityBusinesses.Add(cityBusiness);
+        }
+    }
+}

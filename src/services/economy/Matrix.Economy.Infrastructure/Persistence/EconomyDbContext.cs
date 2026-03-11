@@ -6,6 +6,8 @@ namespace Matrix.Economy.Infrastructure.Persistence
 {
     public class EconomyDbContext(DbContextOptions<EconomyDbContext> options) : DbContext(options)
     {
+        public DbSet<CityBusiness> CityBusinesses => Set<CityBusiness>();
+        public DbSet<CityBusinessLedgerEntry> CityBusinessLedgerEntries => Set<CityBusinessLedgerEntry>();
         public DbSet<CityBudget> CityBudgets => Set<CityBudget>();
         public DbSet<CityBudgetLedgerEntry> CityBudgetLedgerEntries => Set<CityBudgetLedgerEntry>();
         public DbSet<CityBudgetSettlement> CityBudgetSettlements => Set<CityBudgetSettlement>();

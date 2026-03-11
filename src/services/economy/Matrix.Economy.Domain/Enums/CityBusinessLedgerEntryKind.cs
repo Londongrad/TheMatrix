@@ -1,0 +1,10 @@
+namespace Matrix.Economy.Domain.Enums
+{
+    public enum CityBusinessLedgerEntryKind
+    {
+        CapitalInjection = 0,
+        RetailSale = 1,
+        OperatingExpense = 2,
+        TaxRemittance = 3
+    }
+}
