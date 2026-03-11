@@ -70,7 +70,11 @@ namespace Matrix.Economy.Api.Controllers
                     Category: category,
                     Amount: request.Amount,
                     Title: request.Title,
-                    Description: request.Description),
+                    Description: request.Description,
+                    UnitKind: request.UnitKind,
+                    UnitCode: request.UnitCode,
+                    UnitDisplayName: request.UnitDisplayName,
+                    UnitSymbol: request.UnitSymbol),
                 cancellationToken);
 
             return Ok(result);
@@ -93,7 +97,11 @@ namespace Matrix.Economy.Api.Controllers
                     Category: category,
                     Amount: request.Amount,
                     Title: request.Title,
-                    Description: request.Description),
+                    Description: request.Description,
+                    UnitKind: request.UnitKind,
+                    UnitCode: request.UnitCode,
+                    UnitDisplayName: request.UnitDisplayName,
+                    UnitSymbol: request.UnitSymbol),
                 cancellationToken);
 
             return Ok(result);
@@ -111,6 +119,10 @@ namespace Matrix.Economy.Api.Controllers
         {
             return new
             {
+                unitKind = result.UnitKind,
+                unitCode = result.UnitCode,
+                unitDisplayName = result.UnitDisplayName,
+                unitSymbol = result.UnitSymbol,
                 balance = result.Balance.Amount,
                 totalTaxIncome = result.TotalTaxIncome.Amount,
                 totalIncomeTaxIncome = result.TotalIncomeTaxIncome.Amount,

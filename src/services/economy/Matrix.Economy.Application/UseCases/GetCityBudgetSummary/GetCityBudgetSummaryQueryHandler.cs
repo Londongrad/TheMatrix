@@ -15,6 +15,10 @@ namespace Matrix.Economy.Application.UseCases.GetCityBudgetSummary
                 ?? new CityBudget(CityBudgetId.New(), request.CityId);
 
             return new BudgetSummaryDto(
+                UnitKind: budget.UnitKind.ToString(),
+                UnitCode: budget.UnitCode,
+                UnitDisplayName: budget.UnitDisplayName,
+                UnitSymbol: budget.UnitSymbol,
                 Balance: budget.Balance,
                 TotalTaxIncome: budget.TotalTaxIncome,
                 TotalIncomeTaxIncome: budget.TotalIncomeTaxIncome,

@@ -3,6 +3,10 @@
 namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
 {
     public sealed record BudgetSummaryDto(
+        string UnitKind,
+        string UnitCode,
+        string UnitDisplayName,
+        string UnitSymbol,
         Money Balance,
         Money TotalTaxIncome,
         Money TotalIncomeTaxIncome,

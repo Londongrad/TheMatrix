@@ -9,5 +9,9 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetE
         CityBudgetCategory Category,
         decimal Amount,
         string Title,
-        string? Description) : IRequest<BudgetLedgerEntryDto>;
+        string? Description,
+        string? UnitKind,
+        string? UnitCode,
+        string? UnitDisplayName,
+        string? UnitSymbol) : IRequest<BudgetLedgerEntryDto>;
 }

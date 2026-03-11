@@ -11,8 +11,13 @@ namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
         public async Task<BudgetSummaryDto> Handle(GetBudgetSummaryQuery request, CancellationToken cancellationToken)
         {
             IReadOnlyList<CityBudget> budgets = await budgetRepository.ListAsync(cancellationToken);
+            (string unitKind, string unitCode, string unitDisplayName, string unitSymbol) = ResolveUnitDescriptor(budgets);
 
             return new BudgetSummaryDto(
+                UnitKind: unitKind,
+                UnitCode: unitCode,
+                UnitDisplayName: unitDisplayName,
+                UnitSymbol: unitSymbol,
                 Balance: Sum(budgets, x => x.Balance),
                 TotalTaxIncome: Sum(budgets, x => x.TotalTaxIncome),
                 TotalIncomeTaxIncome: Sum(budgets, x => x.TotalIncomeTaxIncome),
@@ -29,6 +34,26 @@ namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
             Func<CityBudget, Money> selector)
         {
             return budgets.Aggregate(Money.Zero, (current, budget) => current.Add(selector(budget)));
+        }
+
+        private static (string unitKind, string unitCode, string unitDisplayName, string unitSymbol) ResolveUnitDescriptor(
+            IReadOnlyList<CityBudget> budgets)
+        {
+            if (budgets.Count == 0)
+            {
+                return ("Currency", "MNY", "Money", "¤");
+            }
+
+            CityBudget first = budgets[0];
+            bool isMixed = budgets.Any(x =>
+                !string.Equals(x.UnitCode, first.UnitCode, StringComparison.OrdinalIgnoreCase)
+                || x.UnitKind != first.UnitKind
+                || !string.Equals(x.UnitDisplayName, first.UnitDisplayName, StringComparison.Ordinal)
+                || !string.Equals(x.UnitSymbol, first.UnitSymbol, StringComparison.Ordinal));
+
+            return isMixed
+                ? ("Mixed", "MIXED", "Mixed units", "∑")
+                : (first.UnitKind.ToString(), first.UnitCode, first.UnitDisplayName, first.UnitSymbol);
         }
     }
 }

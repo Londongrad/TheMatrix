@@ -26,6 +26,23 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                 .HasColumnName("city_id");
 
             builder
+                .Property(b => b.UnitKind)
+                .HasConversion<string>()
+                .HasColumnName("unit_kind");
+
+            builder
+                .Property(b => b.UnitCode)
+                .HasColumnName("unit_code");
+
+            builder
+                .Property(b => b.UnitDisplayName)
+                .HasColumnName("unit_display_name");
+
+            builder
+                .Property(b => b.UnitSymbol)
+                .HasColumnName("unit_symbol");
+
+            builder
                 .Property(b => b.Balance)
                 .HasConversion(
                     m => m.Amount,

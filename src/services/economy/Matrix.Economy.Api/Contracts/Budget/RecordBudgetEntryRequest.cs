@@ -4,5 +4,9 @@ namespace Matrix.Economy.Api.Contracts.Budget
         string Category,
         decimal Amount,
         string Title,
-        string? Description);
+        string? Description,
+        string? UnitKind,
+        string? UnitCode,
+        string? UnitDisplayName,
+        string? UnitSymbol);
 }

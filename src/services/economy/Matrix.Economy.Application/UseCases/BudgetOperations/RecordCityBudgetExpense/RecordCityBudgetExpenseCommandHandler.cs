@@ -1,10 +1,11 @@
-using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetExpense
@@ -19,8 +20,11 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetE
             RecordCityBudgetExpenseCommand request,
             CancellationToken cancellationToken)
         {
+            CityBudgetUnitProfile requestedUnit = ResolveRequestedUnit(request);
+
             CityBudget budget = await budgetRepository.GetByCityAsync(request.CityId, cancellationToken)
-                ?? CreateBudget(request.CityId, budgetRepository);
+                ?? CreateBudget(request.CityId, requestedUnit, budgetRepository);
+            budget.EnsureCompatibleUnit(requestedUnit);
 
             var entry = new CityBudgetLedgerEntry(
                 id: Guid.NewGuid(),
@@ -38,21 +42,52 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetE
             await ledgerRepository.AddAsync(entry, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Map(entry);
+            return Map(entry, budget.GetUnitProfile());
         }
 
-        private static CityBudget CreateBudget(Guid cityId, ICityBudgetRepository budgetRepository)
+        private static CityBudget CreateBudget(
+            Guid cityId,
+            CityBudgetUnitProfile requestedUnit,
+            ICityBudgetRepository budgetRepository)
         {
-            var budget = new CityBudget(CityBudgetId.New(), cityId);
+            var budget = new CityBudget(CityBudgetId.New(), cityId, requestedUnit);
             budgetRepository.Add(budget);
             return budget;
         }
 
-        private static BudgetLedgerEntryDto Map(CityBudgetLedgerEntry entry)
+        private static CityBudgetUnitProfile ResolveRequestedUnit(RecordCityBudgetExpenseCommand request)
+        {
+            if (string.IsNullOrWhiteSpace(request.UnitCode)
+                && string.IsNullOrWhiteSpace(request.UnitDisplayName)
+                && string.IsNullOrWhiteSpace(request.UnitSymbol)
+                && string.IsNullOrWhiteSpace(request.UnitKind))
+            {
+                return CityBudgetUnitProfile.DefaultMoney();
+            }
+
+            if (!Enum.TryParse(request.UnitKind, ignoreCase: true, out CityBudgetUnitKind unitKind))
+            {
+                throw new InvalidOperationException($"Unsupported unit kind '{request.UnitKind}'.");
+            }
+
+            return new CityBudgetUnitProfile(
+                Kind: unitKind,
+                Code: request.UnitCode ?? string.Empty,
+                DisplayName: request.UnitDisplayName ?? string.Empty,
+                Symbol: request.UnitSymbol ?? string.Empty);
+        }
+
+        private static BudgetLedgerEntryDto Map(
+            CityBudgetLedgerEntry entry,
+            CityBudgetUnitProfile unitProfile)
         {
             return new BudgetLedgerEntryDto(
                 EntryId: entry.Id,
                 OccurredAtUtc: entry.OccurredAtUtc.ToString("O"),
+                UnitKind: unitProfile.Kind.ToString(),
+                UnitCode: unitProfile.Code,
+                UnitDisplayName: unitProfile.DisplayName,
+                UnitSymbol: unitProfile.Symbol,
                 Kind: entry.Kind.ToString(),
                 Category: entry.Category.ToString(),
                 Amount: entry.Amount.Amount,
