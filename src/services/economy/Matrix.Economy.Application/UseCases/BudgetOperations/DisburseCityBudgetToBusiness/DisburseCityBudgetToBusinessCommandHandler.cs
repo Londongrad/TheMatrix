@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.BudgetAllocations.Common;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
@@ -15,6 +16,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
         ICityBudgetLedgerRepository budgetLedgerRepository,
         ICityBusinessRepository businessRepository,
         ICityBusinessLedgerRepository businessLedgerRepository,
+        CityBudgetAllocationExpenseSupport allocationExpenseSupport,
         IEconomyUnitOfWork unitOfWork)
         : IRequestHandler<DisburseCityBudgetToBusinessCommand, BudgetLedgerEntryDto>
     {
@@ -65,6 +67,12 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
                 referenceCode: budget.CityId.ToString("N"));
 
             budget.ApplyLedgerEntry(budgetEntry);
+            await allocationExpenseSupport.RecordExpenseAsync(
+                request.CityId,
+                request.Category,
+                budgetEntry.Amount,
+                budget.GetUnitProfile(),
+                cancellationToken);
             await budgetLedgerRepository.AddAsync(budgetEntry, cancellationToken);
             await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
