@@ -4,6 +4,7 @@ using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpense;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll;
 using Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetailSale;
 using Matrix.Economy.Application.UseCases.Businesses.RemitCityBusinessTax;
+using Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -93,6 +94,27 @@ namespace Matrix.Economy.Api.Controllers
                     BudgetCategory: category,
                     Title: request.Title,
                     Description: request.Description),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/run-tax-cycle")]
+        public async Task<IActionResult> RunTaxCycle(
+            [FromRoute] Guid cityId,
+            [FromBody] RunCityBusinessTaxCycleRequest? request,
+            CancellationToken cancellationToken)
+        {
+            CityBudgetCategory budgetCategory = CityBudgetCategory.Taxation;
+
+            if (!string.IsNullOrWhiteSpace(request?.BudgetCategory)
+                && !Enum.TryParse(request.BudgetCategory, ignoreCase: true, out budgetCategory))
+            {
+                return BadRequest(new { error = $"Unsupported budget category '{request.BudgetCategory}'." });
+            }
+
+            RunCityBusinessTaxCycleResultDto result = await _sender.Send(
+                new RunCityBusinessTaxCycleCommand(cityId, budgetCategory),
                 cancellationToken);
 
             return Ok(result);

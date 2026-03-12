@@ -1,4 +1,5 @@
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,7 @@ namespace Matrix.Economy.Application
             });
 
             services.AddScoped<HouseholdObligationChargeSupport>();
+            services.AddScoped<CityBusinessTaxRemittanceSupport>();
         }
     }
 }
