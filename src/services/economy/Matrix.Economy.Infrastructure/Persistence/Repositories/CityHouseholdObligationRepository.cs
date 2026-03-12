@@ -21,6 +21,18 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<CityHouseholdObligation>> ListDueByCityAsync(
+            Guid cityId,
+            DateTimeOffset asOfUtc,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.CityHouseholdObligations
+                .Where(x => x.CityId == cityId && x.IsActive && x.NextChargeDueAtUtc <= asOfUtc)
+                .OrderBy(x => x.NextChargeDueAtUtc)
+                .ThenBy(x => x.Name)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<IReadOnlyList<CityHouseholdObligation>> ListByHouseholdAsync(Guid householdAccountId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityHouseholdObligations

@@ -19,6 +19,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
             builder.Property(x => x.ProviderBusinessId).HasColumnName("provider_business_id");
             builder.Property(x => x.Name).HasColumnName("name");
             builder.Property(x => x.Kind).HasConversion<string>().HasColumnName("kind");
+            builder.Property(x => x.BillingCadence).HasConversion<string>().HasColumnName("billing_cadence");
             builder.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc");
             builder.Property(x => x.IsActive).HasColumnName("is_active");
             builder.Property(x => x.UnitKind).HasConversion<string>().HasColumnName("unit_kind");
@@ -34,12 +35,14 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                 .HasConversion(m => m.Amount, v => new Money(v))
                 .HasColumnName("tax_amount");
 
+            builder.Property(x => x.NextChargeDueAtUtc).HasColumnName("next_charge_due_at_utc");
             builder.Property(x => x.LastChargedAtUtc).HasColumnName("last_charged_at_utc");
             builder.Property(x => x.ChargeCount).HasColumnName("charge_count");
 
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => x.HouseholdAccountId);
             builder.HasIndex(x => x.ProviderBusinessId);
+            builder.HasIndex(x => new { x.CityId, x.NextChargeDueAtUtc });
             builder.HasIndex(x => new { x.HouseholdAccountId, x.ProviderBusinessId, x.Name }).IsUnique();
         }
     }

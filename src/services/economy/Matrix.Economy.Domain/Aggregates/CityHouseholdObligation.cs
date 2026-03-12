@@ -13,6 +13,7 @@ namespace Matrix.Economy.Domain.Aggregates
         public Guid ProviderBusinessId { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public CityHouseholdObligationKind Kind { get; private set; }
+        public CityHouseholdObligationBillingCadence BillingCadence { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; private set; }
         public bool IsActive { get; private set; }
         public CityBudgetUnitKind UnitKind { get; private set; }
@@ -21,6 +22,7 @@ namespace Matrix.Economy.Domain.Aggregates
         public string UnitSymbol { get; private set; } = string.Empty;
         public Money ChargeAmount { get; private set; } = null!;
         public Money TaxAmount { get; private set; } = null!;
+        public DateTimeOffset NextChargeDueAtUtc { get; private set; }
         public DateTimeOffset? LastChargedAtUtc { get; private set; }
         public int ChargeCount { get; private set; }
 
@@ -35,7 +37,9 @@ namespace Matrix.Economy.Domain.Aggregates
             Guid providerBusinessId,
             string name,
             CityHouseholdObligationKind kind,
+            CityHouseholdObligationBillingCadence billingCadence,
             DateTimeOffset createdAtUtc,
+            DateTimeOffset firstChargeDueAtUtc,
             CityBudgetUnitProfile unitProfile,
             Money chargeAmount,
             Money taxAmount)
@@ -48,6 +52,7 @@ namespace Matrix.Economy.Domain.Aggregates
                 ? throw new ArgumentException("Obligation name is required.", nameof(name))
                 : name.Trim();
             Kind = kind;
+            BillingCadence = billingCadence;
             CreatedAtUtc = createdAtUtc;
             IsActive = true;
             ApplyUnitProfile(unitProfile);
@@ -64,6 +69,7 @@ namespace Matrix.Economy.Domain.Aggregates
 
             ChargeAmount = chargeAmount;
             TaxAmount = taxAmount;
+            NextChargeDueAtUtc = firstChargeDueAtUtc;
             ChargeCount = 0;
         }
 
@@ -97,6 +103,17 @@ namespace Matrix.Economy.Domain.Aggregates
 
             LastChargedAtUtc = chargedAtUtc;
             ChargeCount++;
+            NextChargeDueAtUtc = BillingCadence switch
+            {
+                CityHouseholdObligationBillingCadence.Daily => chargedAtUtc.AddDays(1),
+                CityHouseholdObligationBillingCadence.Weekly => chargedAtUtc.AddDays(7),
+                _ => chargedAtUtc.AddMonths(1)
+            };
+        }
+
+        public bool IsDue(DateTimeOffset asOfUtc)
+        {
+            return IsActive && NextChargeDueAtUtc <= asOfUtc;
         }
 
         public void Deactivate()

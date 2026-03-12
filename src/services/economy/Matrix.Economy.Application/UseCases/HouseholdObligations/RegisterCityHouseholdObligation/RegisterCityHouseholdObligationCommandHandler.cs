@@ -16,6 +16,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
             RegisterCityHouseholdObligationCommand request,
             CancellationToken cancellationToken)
         {
+            DateTimeOffset createdAtUtc = DateTimeOffset.UtcNow;
+
             CityHouseholdAccount householdAccount = await householdAccountRepository.GetByIdAsync(request.HouseholdAccountId, cancellationToken)
                 ?? throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
             CityBusiness providerBusiness = await businessRepository.GetByIdAsync(request.ProviderBusinessId, cancellationToken)
@@ -35,7 +37,9 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
                 providerBusinessId: providerBusiness.Id,
                 name: request.Name,
                 kind: request.Kind,
-                createdAtUtc: DateTimeOffset.UtcNow,
+                billingCadence: Matrix.Economy.Domain.Enums.CityHouseholdObligationBillingCadence.Monthly,
+                createdAtUtc: createdAtUtc,
+                firstChargeDueAtUtc: createdAtUtc.AddMonths(1),
                 unitProfile: householdAccount.GetUnitProfile(),
                 chargeAmount: Money.FromDecimal(request.ChargeAmount),
                 taxAmount: Money.FromDecimal(request.TaxAmount));
