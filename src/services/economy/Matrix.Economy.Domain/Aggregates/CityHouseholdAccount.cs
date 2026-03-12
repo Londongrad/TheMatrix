@@ -104,6 +104,11 @@ namespace Matrix.Economy.Domain.Aggregates
             TotalConsumerSpending = TotalConsumerSpending.Add(amount);
         }
 
+        public void RecordObligationCharge(Money amount)
+        {
+            RecordConsumerPurchase(amount);
+        }
+
         private void ApplyUnitProfile(CityBudgetUnitProfile unitProfile)
         {
             UnitKind = unitProfile.Kind;

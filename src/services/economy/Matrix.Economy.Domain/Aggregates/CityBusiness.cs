@@ -116,6 +116,11 @@ namespace Matrix.Economy.Domain.Aggregates
             TotalNetSalesRevenue = TotalNetSalesRevenue.Add(netRevenue);
         }
 
+        public void RecordObligationRevenue(Money grossAmount, Money salesTaxAmount)
+        {
+            RecordRetailSale(grossAmount, salesTaxAmount);
+        }
+
         public void RecordOperatingExpense(Money amount)
         {
             if (!amount.IsPositive)

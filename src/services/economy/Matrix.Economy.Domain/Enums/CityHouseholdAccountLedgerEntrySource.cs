@@ -4,6 +4,7 @@ namespace Matrix.Economy.Domain.Enums
     {
         Manual = 0,
         Payroll = 1,
-        ConsumerPurchase = 2
+        ConsumerPurchase = 2,
+        Obligation = 3
     }
 }

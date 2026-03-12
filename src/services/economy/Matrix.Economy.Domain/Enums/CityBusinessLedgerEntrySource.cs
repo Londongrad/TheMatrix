@@ -6,6 +6,7 @@ namespace Matrix.Economy.Domain.Enums
         RetailSale = 1,
         Operations = 2,
         TaxRemittance = 3,
-        Payroll = 4
+        Payroll = 4,
+        Obligation = 5
     }
 }
