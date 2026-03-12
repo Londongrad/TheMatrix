@@ -10,6 +10,7 @@ namespace Matrix.Economy.Infrastructure.Persistence
         public DbSet<CityBusinessLedgerEntry> CityBusinessLedgerEntries => Set<CityBusinessLedgerEntry>();
         public DbSet<CityHouseholdAccount> CityHouseholdAccounts => Set<CityHouseholdAccount>();
         public DbSet<CityHouseholdAccountLedgerEntry> CityHouseholdAccountLedgerEntries => Set<CityHouseholdAccountLedgerEntry>();
+        public DbSet<CityHouseholdObligation> CityHouseholdObligations => Set<CityHouseholdObligation>();
         public DbSet<CityBudget> CityBudgets => Set<CityBudget>();
         public DbSet<CityBudgetLedgerEntry> CityBudgetLedgerEntries => Set<CityBudgetLedgerEntry>();
         public DbSet<CityBudgetSettlement> CityBudgetSettlements => Set<CityBudgetSettlement>();
