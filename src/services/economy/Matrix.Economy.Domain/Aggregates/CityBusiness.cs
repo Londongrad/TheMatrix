@@ -81,6 +81,58 @@ namespace Matrix.Economy.Domain.Aggregates
             }
         }
 
+        public void EnsureCanIssuePayroll()
+        {
+            if (Kind is CityBusinessKind.Generic
+                or CityBusinessKind.Employer
+                or CityBusinessKind.Service
+                or CityBusinessKind.Manufacturer
+                or CityBusinessKind.Utility
+                or CityBusinessKind.MunicipalVendor)
+            {
+                return;
+            }
+
+            throw new InvalidOperationException($"Business kind '{Kind}' cannot issue payroll.");
+        }
+
+        public void EnsureCanRecordConsumerSale()
+        {
+            if (Kind is CityBusinessKind.Generic
+                or CityBusinessKind.RetailStore
+                or CityBusinessKind.Service
+                or CityBusinessKind.Utility
+                or CityBusinessKind.MunicipalVendor)
+            {
+                return;
+            }
+
+            throw new InvalidOperationException($"Business kind '{Kind}' cannot record consumer sales.");
+        }
+
+        public void EnsureCanServeObligation(CityHouseholdObligationKind obligationKind)
+        {
+            bool allowed = obligationKind switch
+            {
+                CityHouseholdObligationKind.Rent => Kind is CityBusinessKind.Generic
+                    or CityBusinessKind.Landlord
+                    or CityBusinessKind.MunicipalVendor,
+                CityHouseholdObligationKind.Utilities => Kind is CityBusinessKind.Generic
+                    or CityBusinessKind.Utility
+                    or CityBusinessKind.MunicipalVendor,
+                CityHouseholdObligationKind.ServiceFee => Kind is CityBusinessKind.Generic
+                    or CityBusinessKind.Service
+                    or CityBusinessKind.MunicipalVendor,
+                _ => false
+            };
+
+            if (!allowed)
+            {
+                throw new InvalidOperationException(
+                    $"Business kind '{Kind}' cannot serve obligation kind '{obligationKind}'.");
+            }
+        }
+
         public void InjectCapital(Money amount)
         {
             if (!amount.IsPositive)

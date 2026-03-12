@@ -30,6 +30,7 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
             }
 
             providerBusiness.EnsureCompatibleUnit(householdAccount.GetUnitProfile());
+            providerBusiness.EnsureCanServeObligation(request.Kind);
 
             DateTimeOffset firstChargeDueAtUtc = request.FirstChargeDueAtUtc ?? request.BillingCadence switch
             {

@@ -29,6 +29,8 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayro
             CityHouseholdAccount householdAccount = await householdAccountRepository.GetByIdAsync(request.HouseholdAccountId, cancellationToken)
                 ?? throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
 
+            business.EnsureCanIssuePayroll();
+
             if (business.CityId != householdAccount.CityId)
             {
                 throw new InvalidOperationException("Business and household account must belong to the same city.");

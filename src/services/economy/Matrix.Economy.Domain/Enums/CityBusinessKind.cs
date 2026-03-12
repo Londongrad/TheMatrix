@@ -8,6 +8,7 @@ namespace Matrix.Economy.Domain.Enums
         Service = 3,
         Manufacturer = 4,
         Utility = 5,
-        MunicipalVendor = 6
+        MunicipalVendor = 6,
+        Landlord = 7
     }
 }

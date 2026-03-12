@@ -26,6 +26,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseh
             CityBusiness business = await businessRepository.GetByIdAsync(request.BusinessId, cancellationToken)
                 ?? throw new InvalidOperationException($"Business '{request.BusinessId}' was not found.");
 
+            business.EnsureCanRecordConsumerSale();
+
             if (business.CityId != householdAccount.CityId)
             {
                 throw new InvalidOperationException("Household account and business must belong to the same city.");
