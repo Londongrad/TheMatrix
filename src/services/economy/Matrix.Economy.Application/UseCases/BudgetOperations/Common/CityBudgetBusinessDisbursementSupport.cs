@@ -1,0 +1,97 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.BudgetAllocations.Common;
+using Matrix.Economy.Application.UseCases.BudgetLedger;
+using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Models;
+using Matrix.Economy.Domain.ValueObjects;
+
+namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
+{
+    public sealed class CityBudgetBusinessDisbursementSupport(
+        ICityBudgetRepository budgetRepository,
+        ICityBudgetLedgerRepository budgetLedgerRepository,
+        ICityBusinessLedgerRepository businessLedgerRepository,
+        CityBudgetAllocationExpenseSupport allocationExpenseSupport)
+    {
+        public async Task<BudgetLedgerEntryDto> DisburseAsync(
+            CityBusiness business,
+            CityBudgetCategory category,
+            decimal amount,
+            string title,
+            string? description,
+            CancellationToken cancellationToken)
+        {
+            CityBudget budget = await budgetRepository.GetByCityAsync(business.CityId, cancellationToken)
+                ?? CreateBudget(business.CityId, business.GetUnitProfile(), budgetRepository);
+            budget.EnsureCompatibleUnit(business.GetUnitProfile());
+
+            Money moneyAmount = Money.FromDecimal(amount);
+            business.RecordMunicipalRevenue(moneyAmount);
+
+            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+
+            var budgetEntry = new CityBudgetLedgerEntry(
+                id: Guid.NewGuid(),
+                cityId: business.CityId,
+                occurredAtUtc: occurredAtUtc,
+                kind: CityBudgetLedgerEntryKind.Expense,
+                category: category,
+                amount: moneyAmount,
+                title: title,
+                description: description,
+                source: CityBudgetLedgerEntrySource.MunicipalDisbursement,
+                referenceCode: business.Id.ToString("N"));
+
+            var businessEntry = new CityBusinessLedgerEntry(
+                id: Guid.NewGuid(),
+                businessId: business.Id,
+                cityId: business.CityId,
+                occurredAtUtc: occurredAtUtc,
+                kind: CityBusinessLedgerEntryKind.MunicipalRevenue,
+                amount: moneyAmount,
+                taxAmount: Money.Zero,
+                title: title,
+                description: description,
+                source: CityBusinessLedgerEntrySource.MunicipalBudget,
+                referenceCode: budget.CityId.ToString("N"));
+
+            budget.ApplyLedgerEntry(budgetEntry);
+            await allocationExpenseSupport.RecordExpenseAsync(
+                business.CityId,
+                category,
+                budgetEntry.Amount,
+                budget.GetUnitProfile(),
+                cancellationToken);
+            await budgetLedgerRepository.AddAsync(budgetEntry, cancellationToken);
+            await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
+
+            return new BudgetLedgerEntryDto(
+                EntryId: budgetEntry.Id,
+                OccurredAtUtc: budgetEntry.OccurredAtUtc.ToString("O"),
+                UnitKind: budget.UnitKind.ToString(),
+                UnitCode: budget.UnitCode,
+                UnitDisplayName: budget.UnitDisplayName,
+                UnitSymbol: budget.UnitSymbol,
+                Kind: budgetEntry.Kind.ToString(),
+                Category: budgetEntry.Category.ToString(),
+                Amount: budgetEntry.Amount.Amount,
+                Title: budgetEntry.Title,
+                Description: budgetEntry.Description,
+                Source: budgetEntry.Source.ToString(),
+                ReferenceCode: budgetEntry.ReferenceCode);
+        }
+
+        private static CityBudget CreateBudget(
+            Guid cityId,
+            CityBudgetUnitProfile unitProfile,
+            ICityBudgetRepository budgetRepository)
+        {
+            var budget = new CityBudget(CityBudgetId.New(), cityId, unitProfile);
+            budgetRepository.Add(budget);
+            return budget;
+        }
+    }
+}

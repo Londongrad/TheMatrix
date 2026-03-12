@@ -8,6 +8,7 @@ using Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetExpense;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetRevenue;
+using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
 using Matrix.Economy.Domain.Enums;
@@ -166,6 +167,18 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/run-operating-cycle")]
+        public async Task<IActionResult> RunOperatingCycle(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            RunCityMunicipalOperatingCycleResultDto result = await _sender.Send(
+                new RunCityMunicipalOperatingCycleCommand(cityId),
                 cancellationToken);
 
             return Ok(result);

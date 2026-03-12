@@ -1,7 +1,9 @@
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.Common;
+using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.Businesses.Common;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
+using Matrix.Economy.Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Application
@@ -16,8 +18,10 @@ namespace Matrix.Economy.Application
             });
 
             services.AddScoped<CityBudgetAllocationExpenseSupport>();
+            services.AddScoped<CityBudgetBusinessDisbursementSupport>();
             services.AddScoped<HouseholdObligationChargeSupport>();
             services.AddScoped<CityBusinessTaxRemittanceSupport>();
+            services.AddScoped<CityMunicipalOperatingCyclePolicy>();
         }
     }
 }
