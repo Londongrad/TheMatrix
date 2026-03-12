@@ -9,6 +9,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
         Guid ProviderBusinessId,
         string Name,
         CityHouseholdObligationKind Kind,
+        CityHouseholdObligationBillingCadence BillingCadence,
         decimal ChargeAmount,
-        decimal TaxAmount) : IRequest<CityHouseholdObligationDto>;
+        decimal TaxAmount,
+        DateTimeOffset? FirstChargeDueAtUtc) : IRequest<CityHouseholdObligationDto>;
 }

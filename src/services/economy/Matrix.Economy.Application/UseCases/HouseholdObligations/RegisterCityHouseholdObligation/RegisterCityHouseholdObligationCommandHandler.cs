@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Enums;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityHouseholdObligation
@@ -30,6 +31,13 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
 
             providerBusiness.EnsureCompatibleUnit(householdAccount.GetUnitProfile());
 
+            DateTimeOffset firstChargeDueAtUtc = request.FirstChargeDueAtUtc ?? request.BillingCadence switch
+            {
+                CityHouseholdObligationBillingCadence.Daily => createdAtUtc.AddDays(1),
+                CityHouseholdObligationBillingCadence.Weekly => createdAtUtc.AddDays(7),
+                _ => createdAtUtc.AddMonths(1)
+            };
+
             var obligation = new CityHouseholdObligation(
                 id: Guid.NewGuid(),
                 cityId: request.CityId,
@@ -37,9 +45,9 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
                 providerBusinessId: providerBusiness.Id,
                 name: request.Name,
                 kind: request.Kind,
-                billingCadence: Matrix.Economy.Domain.Enums.CityHouseholdObligationBillingCadence.Monthly,
+                billingCadence: request.BillingCadence,
                 createdAtUtc: createdAtUtc,
-                firstChargeDueAtUtc: createdAtUtc.AddMonths(1),
+                firstChargeDueAtUtc: firstChargeDueAtUtc,
                 unitProfile: householdAccount.GetUnitProfile(),
                 chargeAmount: Money.FromDecimal(request.ChargeAmount),
                 taxAmount: Money.FromDecimal(request.TaxAmount));

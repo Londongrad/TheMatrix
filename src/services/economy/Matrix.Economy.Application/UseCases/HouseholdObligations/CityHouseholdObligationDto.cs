@@ -15,6 +15,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations
         string UnitSymbol,
         decimal ChargeAmount,
         decimal TaxAmount,
+        string BillingCadence,
+        string NextChargeDueAtUtc,
         string? LastChargedAtUtc,
         int ChargeCount);
 }

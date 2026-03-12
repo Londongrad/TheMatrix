@@ -5,6 +5,7 @@ using Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseholdO
 using Matrix.Economy.Application.UseCases.HouseholdObligations.GetHouseholdObligations;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHouseholdObligationCharge;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityHouseholdObligation;
+using Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -44,6 +45,13 @@ namespace Matrix.Economy.Api.Controllers
                 return BadRequest(new { error = $"Unsupported obligation kind '{request.Kind}'." });
             }
 
+            CityHouseholdObligationBillingCadence billingCadence = CityHouseholdObligationBillingCadence.Monthly;
+            if (!string.IsNullOrWhiteSpace(request.BillingCadence)
+                && !Enum.TryParse(request.BillingCadence, ignoreCase: true, out billingCadence))
+            {
+                return BadRequest(new { error = $"Unsupported billing cadence '{request.BillingCadence}'." });
+            }
+
             CityHouseholdObligationDto result = await _sender.Send(
                 new RegisterCityHouseholdObligationCommand(
                     CityId: cityId,
@@ -51,8 +59,10 @@ namespace Matrix.Economy.Api.Controllers
                     ProviderBusinessId: request.ProviderBusinessId,
                     Name: request.Name,
                     Kind: kind,
+                    BillingCadence: billingCadence,
                     ChargeAmount: request.ChargeAmount,
-                    TaxAmount: request.TaxAmount),
+                    TaxAmount: request.TaxAmount,
+                    FirstChargeDueAtUtc: request.FirstChargeDueAtUtc),
                 cancellationToken);
 
             return Ok(result);
@@ -66,6 +76,19 @@ namespace Matrix.Economy.Api.Controllers
         {
             CityHouseholdAccountLedgerEntryDto result = await _sender.Send(
                 new IssueHouseholdObligationChargeCommand(obligationId, request.Description),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/run-billing")]
+        public async Task<IActionResult> RunBillingCycle(
+            [FromRoute] Guid cityId,
+            [FromBody] RunCityHouseholdBillingCycleRequest? request,
+            CancellationToken cancellationToken)
+        {
+            RunCityHouseholdBillingCycleResultDto result = await _sender.Send(
+                new RunCityHouseholdBillingCycleCommand(cityId, request?.AsOfUtc),
                 cancellationToken);
 
             return Ok(result);

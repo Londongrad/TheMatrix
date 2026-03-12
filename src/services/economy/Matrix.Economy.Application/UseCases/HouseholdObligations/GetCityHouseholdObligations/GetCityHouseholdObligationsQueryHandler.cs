@@ -35,6 +35,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseh
                 UnitSymbol: obligation.UnitSymbol,
                 ChargeAmount: obligation.ChargeAmount.Amount,
                 TaxAmount: obligation.TaxAmount.Amount,
+                BillingCadence: obligation.BillingCadence.ToString(),
+                NextChargeDueAtUtc: obligation.NextChargeDueAtUtc.ToString("O"),
                 LastChargedAtUtc: obligation.LastChargedAtUtc?.ToString("O"),
                 ChargeCount: obligation.ChargeCount);
         }

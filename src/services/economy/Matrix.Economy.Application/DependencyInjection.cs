@@ -1,4 +1,5 @@
-﻿using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Economy.Application
@@ -11,6 +12,8 @@ namespace Matrix.Economy.Application
             {
                 cfg.RegisterServicesFromAssembly(typeof(ICityBudgetRepository).Assembly);
             });
+
+            services.AddScoped<HouseholdObligationChargeSupport>();
         }
     }
 }
