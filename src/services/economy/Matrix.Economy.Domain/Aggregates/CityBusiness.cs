@@ -173,6 +173,16 @@ namespace Matrix.Economy.Domain.Aggregates
             RecordRetailSale(grossAmount, salesTaxAmount);
         }
 
+        public void RecordMunicipalRevenue(Money amount)
+        {
+            if (!amount.IsPositive)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Municipal revenue must be positive.");
+            }
+
+            Balance = Balance.Add(amount);
+        }
+
         public void RecordOperatingExpense(Money amount)
         {
             if (!amount.IsPositive)

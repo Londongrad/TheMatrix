@@ -5,6 +5,7 @@ namespace Matrix.Economy.Domain.Enums
         Manual = 0,
         Settlement = 1,
         BusinessRemittance = 2,
-        PayrollWithholding = 3
+        PayrollWithholding = 3,
+        MunicipalDisbursement = 4
     }
 }

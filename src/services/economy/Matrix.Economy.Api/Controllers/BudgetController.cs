@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Api.Contracts.Budget;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedger;
+using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetExpense;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetRevenue;
 using Matrix.Economy.Application.UseCases.GetBudgetSummary;
@@ -102,6 +103,30 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("cities/{cityId:guid}/disbursements")]
+        public async Task<IActionResult> DisburseToBusiness(
+            [FromRoute] Guid cityId,
+            [FromBody] DisburseBudgetToBusinessRequest request,
+            CancellationToken cancellationToken)
+        {
+            if (!TryParseCategory(request.Category, out CityBudgetCategory category))
+            {
+                return BadRequest(new { error = $"Unsupported budget category '{request.Category}'." });
+            }
+
+            BudgetLedgerEntryDto result = await _sender.Send(
+                new DisburseCityBudgetToBusinessCommand(
+                    CityId: cityId,
+                    BusinessId: request.BusinessId,
+                    Category: category,
+                    Amount: request.Amount,
+                    Title: request.Title,
+                    Description: request.Description),
                 cancellationToken);
 
             return Ok(result);
