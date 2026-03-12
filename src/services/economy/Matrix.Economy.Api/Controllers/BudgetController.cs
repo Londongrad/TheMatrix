@@ -1,5 +1,8 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Api.Contracts.Budget;
+using Matrix.Economy.Application.UseCases.BudgetAllocations;
+using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
+using Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
@@ -49,6 +52,16 @@ namespace Matrix.Economy.Api.Controllers
                     CityId: cityId,
                     PageNumber: pageNumber,
                     PageSize: pageSize),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpGet("cities/{cityId:guid}/allocations")]
+        public async Task<IActionResult> GetCityAllocations([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        {
+            IReadOnlyList<CityBudgetAllocationDto> result = await _sender.Send(
+                new GetCityBudgetAllocationsQuery(cityId),
                 cancellationToken);
 
             return Ok(result);
@@ -127,6 +140,32 @@ namespace Matrix.Economy.Api.Controllers
                     Amount: request.Amount,
                     Title: request.Title,
                     Description: request.Description),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPut("cities/{cityId:guid}/allocations/{category}")]
+        public async Task<IActionResult> SetAllocation(
+            [FromRoute] Guid cityId,
+            [FromRoute] string category,
+            [FromBody] SetBudgetAllocationRequest request,
+            CancellationToken cancellationToken)
+        {
+            if (!TryParseCategory(category, out CityBudgetCategory parsedCategory))
+            {
+                return BadRequest(new { error = $"Unsupported budget category '{category}'." });
+            }
+
+            CityBudgetAllocationDto result = await _sender.Send(
+                new SetCityBudgetAllocationCommand(
+                    CityId: cityId,
+                    Category: parsedCategory,
+                    TargetAmount: request.TargetAmount,
+                    UnitKind: request.UnitKind,
+                    UnitCode: request.UnitCode,
+                    UnitDisplayName: request.UnitDisplayName,
+                    UnitSymbol: request.UnitSymbol),
                 cancellationToken);
 
             return Ok(result);
