@@ -9,6 +9,7 @@ import {
     updateClassicCitySetupSession,
 } from "@services/citycore/scenarios/classic-city/api/setupSessionsApi";
 import type {
+    ClassicCityEconomyProfile,
     ClassicCityInitialWeatherMode,
     ClassicCityInitialWeatherSeverity,
     ClassicCityInitialWeatherType,
@@ -22,6 +23,7 @@ import {
     CLASSIC_CITY_CLIMATE_OPTIONS,
     CLASSIC_CITY_DEVELOPMENT_OPTIONS,
     CLASSIC_CITY_DENSITY_OPTIONS,
+    CLASSIC_CITY_ECONOMY_PROFILE_OPTIONS,
     CLASSIC_CITY_FORM_PRESET_OPTIONS,
     CLASSIC_CITY_HEMISPHERE_OPTIONS,
     CLASSIC_CITY_INITIAL_WEATHER_MODE_OPTIONS,
@@ -153,6 +155,7 @@ function createDefaultDraft(): SetupDraft {
         sizeTier: "Medium",
         urbanDensity: "Balanced",
         developmentLevel: "Balanced",
+        economyProfile: "Balanced",
         populationOccupancyProfile: "Balanced",
         plannedPeopleCount: "",
     };
@@ -167,6 +170,7 @@ function normalizeDraft(draft: SetupDraft): SetupDraft {
         initialWeatherSeverity: normalizeInitialWeatherSeverity(draft.initialWeatherSeverity),
         initialWeatherTemperatureC: draft.initialWeatherTemperatureC?.trim() ?? "",
         populationTargetMode: normalizePopulationTargetMode(draft.populationTargetMode, draft.plannedPeopleCount, draft.sizeTier),
+        economyProfile: normalizeEconomyProfile(draft.economyProfile),
         populationOccupancyProfile: normalizePopulationOccupancyProfile(draft.populationOccupancyProfile),
         plannedPeopleCount: draft.plannedPeopleCount?.trim() ?? "",
     };
@@ -298,6 +302,10 @@ function formatDateTime(value?: string | null): string {
 
 function normalizePopulationOccupancyProfile(value?: string): ClassicCityPopulationOccupancyProfile {
     return value === "Light" || value === "High" ? value : "Balanced";
+}
+
+function normalizeEconomyProfile(value?: string): ClassicCityEconomyProfile {
+    return value === "Struggling" || value === "Affluent" ? value : "Balanced";
 }
 
 function normalizeInitialWeatherMode(value?: string): ClassicCityInitialWeatherMode {
@@ -506,6 +514,11 @@ function getCityFormDescription(draft: SetupDraft): string {
     return `${draft.sizeTier} footprint with ${draft.urbanDensity.toLowerCase()} density and ${draft.developmentLevel.toLowerCase()} development.`;
 }
 
+function getEconomyProfileOption(profile: ClassicCityEconomyProfile): SetupOption {
+    return CLASSIC_CITY_ECONOMY_PROFILE_OPTIONS.find((option) => option.value === profile)
+        ?? CLASSIC_CITY_ECONOMY_PROFILE_OPTIONS[1];
+}
+
 function formatSessionStatusLabel(status?: string | null): string {
     switch (status) {
         case "Draft":
@@ -631,6 +644,7 @@ export default function ClassicCitySetupPage() {
     const populationPlanningEstimate = buildPopulationPlanningEstimate(draft);
     const resolvedPopulationTarget = populationPlanningEstimate.targetPopulation;
     const cityFormPreset = inferCityFormPreset(draft);
+    const economyProfileOption = getEconomyProfileOption(draft.economyProfile);
     const showAdvancedProfile = isAdvancedProfileOpen || cityFormPreset === "Custom";
     const sessionStatusLabel = formatSessionStatusLabel(session?.status);
     const sessionStatusTone = getSessionStatusTone(session?.status);
@@ -1268,6 +1282,24 @@ export default function ClassicCitySetupPage() {
                                     />
                                 </div>
                             ) : null}
+
+                            <OptionGrid
+                                legend="Economy profile"
+                                options={CLASSIC_CITY_ECONOMY_PROFILE_OPTIONS}
+                                selectedValue={draft.economyProfile}
+                                onSelect={(value) => updateDraft("economyProfile", value as ClassicCityEconomyProfile)}
+                                disabled={!canEditSession}
+                            />
+
+                            <div className="scenario-setup__fact-card">
+                                <strong>{economyProfileOption.label}</strong>
+                                <span>
+                                    {economyProfileOption.description}
+                                </span>
+                                <span>
+                                    This profile becomes part of the launch contract and is published to `Economy`, which uses it to seed the city's initial treasury reserve and category allocations.
+                                </span>
+                            </div>
                         </div>
                     ) : null}
 
@@ -1543,6 +1575,14 @@ export default function ClassicCitySetupPage() {
                                 </article>
 
                                 <article className="scenario-setup__review-card">
+                                    <span className="scenario-setup__review-label">Economy</span>
+                                    <strong className="scenario-setup__review-value">{economyProfileOption.label}</strong>
+                                    <span className="scenario-setup__review-text">
+                                        {economyProfileOption.description}
+                                    </span>
+                                </article>
+
+                                <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Generation seed</span>
                                     <strong
                                         className="scenario-setup__review-value scenario-setup__review-value--seed"
@@ -1636,6 +1676,11 @@ export default function ClassicCitySetupPage() {
                                 <span>Population</span>
                                 <strong>{getPopulationPlanLabel(draft, resolvedPopulationTarget)}</strong>
                                 <span>{getPopulationPlanDescription(draft, resolvedPopulationTarget)}</span>
+                            </div>
+                            <div className="scenario-setup__aside-item">
+                                <span>Economy</span>
+                                <strong>{economyProfileOption.label}</strong>
+                                <span>{economyProfileOption.description}</span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Clock</span>

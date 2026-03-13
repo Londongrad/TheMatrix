@@ -86,6 +86,24 @@ export const CLASSIC_CITY_DEVELOPMENT_OPTIONS: SetupOption[] = [
     },
 ];
 
+export const CLASSIC_CITY_ECONOMY_PROFILE_OPTIONS: SetupOption[] = [
+    {
+        value: "Struggling",
+        label: "Struggling economy",
+        description: "Tighter city treasury with thinner public headroom, rougher starting reserves, and less forgiving budget allocations.",
+    },
+    {
+        value: "Balanced",
+        label: "Balanced economy",
+        description: "Stable middle-ground fiscal start with readable reserves and public spending room across the main city services.",
+    },
+    {
+        value: "Affluent",
+        label: "Affluent economy",
+        description: "Wealthier launch with stronger treasury reserves and broader day-one capacity for housing, healthcare, and education budgets.",
+    },
+];
+
 export const CLASSIC_CITY_POPULATION_TARGET_OPTIONS: SetupOption[] = [
     {
         value: "Random",
