@@ -42,6 +42,9 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => new { x.CityId, x.Name }).IsUnique();
             builder.HasIndex(x => x.ExternalReferenceCode);
+            builder.HasIndex(x => new { x.CityId, x.ExternalReferenceCode })
+                .IsUnique()
+                .HasFilter("\"external_reference_code\" IS NOT NULL");
         }
     }
 }
