@@ -24,6 +24,31 @@ namespace Matrix.CityCore.Infrastructure.Outbox
 
             foreach (IDomainEvent domainEvent in domainEvents)
             {
+                if (domainEvent is CityCreatedDomainEvent created)
+                {
+                    dbContext.OutboxMessages.Add(
+                        OutboxMessage.Create(
+                            type: IntegrationEventTypes.CityCreatedV1,
+                            occurredOnUtc: occurredOnUtc.UtcDateTime,
+                            payload: new CityCreatedV1(
+                                CityId: created.CityId.Value,
+                                Name: created.Name.Value,
+                                SimulationKind: created.SimulationKind.ToString(),
+                                CreatedAtUtc: created.CreatedAtUtc)));
+
+                    dbContext.OutboxMessages.Add(
+                        OutboxMessage.Create(
+                            type: IntegrationEventTypes.CityEnvironmentChangedV1,
+                            occurredOnUtc: occurredOnUtc.UtcDateTime,
+                            payload: new CityEnvironmentChangedV1(
+                                CityId: created.CityId.Value,
+                                PreviousEnvironment: null,
+                                CurrentEnvironment: ToCityEnvironment(created.Environment),
+                                OccurredOnUtc: occurredOnUtc)));
+
+                    continue;
+                }
+
                 OutboxMessage? message = domainEvent switch
                 {
                     CityArchivedDomainEvent archived => OutboxMessage.Create(
@@ -38,14 +63,6 @@ namespace Matrix.CityCore.Infrastructure.Outbox
                         payload: new CityDeletedV1(
                             CityId: deleted.CityId.Value,
                             DeletedAtUtc: deleted.DeletedAtUtc)),
-                    CityCreatedDomainEvent created => OutboxMessage.Create(
-                        type: IntegrationEventTypes.CityEnvironmentChangedV1,
-                        occurredOnUtc: occurredOnUtc.UtcDateTime,
-                        payload: new CityEnvironmentChangedV1(
-                            CityId: created.CityId.Value,
-                            PreviousEnvironment: null,
-                            CurrentEnvironment: ToCityEnvironment(created.Environment),
-                            OccurredOnUtc: occurredOnUtc)),
                     CityEnvironmentChangedDomainEvent changed => OutboxMessage.Create(
                         type: IntegrationEventTypes.CityEnvironmentChangedV1,
                         occurredOnUtc: occurredOnUtc.UtcDateTime,
