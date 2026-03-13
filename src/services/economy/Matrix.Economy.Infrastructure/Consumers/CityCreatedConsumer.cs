@@ -15,6 +15,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
         ICityBudgetRepository budgetRepository,
         ICityBudgetAllocationRepository allocationRepository,
         ICityBudgetLedgerRepository budgetLedgerRepository,
+        ICityBusinessRepository businessRepository,
         IEconomyUnitOfWork unitOfWork,
         CityEconomySimulationTemplatePolicy simulationTemplatePolicy,
         ILogger<CityCreatedConsumer> logger)
@@ -30,6 +31,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             CityBudget? budget = await budgetRepository.GetByCityAsync(message.CityId, context.CancellationToken);
             bool budgetCreated = false;
             int createdAllocations = 0;
+            int createdBusinesses = 0;
 
             if (budget is null)
             {
@@ -74,10 +76,37 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 createdAllocations++;
             }
 
-            if (!budgetCreated && createdAllocations == 0)
+            foreach (CityEconomyBusinessTemplate businessTemplate in template.DefaultBusinesses)
+            {
+                CityBusiness? existing = await businessRepository.GetByCityAndTemplateKeyAsync(
+                    cityId: message.CityId,
+                    templateKey: businessTemplate.TemplateKey,
+                    cancellationToken: context.CancellationToken);
+
+                if (existing is not null)
+                {
+                    existing.EnsureCompatibleUnit(template.UnitProfile);
+                    continue;
+                }
+
+                businessRepository.Add(
+                    new CityBusiness(
+                        id: Guid.NewGuid(),
+                        cityId: message.CityId,
+                        name: businessTemplate.Name,
+                        templateKey: businessTemplate.TemplateKey,
+                        kind: businessTemplate.Kind,
+                        createdAtUtc: message.CreatedAtUtc,
+                        unitProfile: template.UnitProfile,
+                        initialCapital: businessTemplate.StartingCapital));
+
+                createdBusinesses++;
+            }
+
+            if (!budgetCreated && createdAllocations == 0 && createdBusinesses == 0)
             {
                 logger.LogDebug(
-                    "Skipped city economy initialization for cityId={CityId}; budget and default allocations already exist.",
+                    "Skipped city economy initialization for cityId={CityId}; budget, default allocations, and template businesses already exist.",
                     message.CityId);
                 return;
             }
@@ -85,12 +114,13 @@ namespace Matrix.Economy.Infrastructure.Consumers
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
-                "Initialized economy context for cityId={CityId}, simulationKind={SimulationKind}, economyProfile={EconomyProfile}, budgetCreated={BudgetCreated}, createdAllocations={CreatedAllocations}.",
+                "Initialized economy context for cityId={CityId}, simulationKind={SimulationKind}, economyProfile={EconomyProfile}, budgetCreated={BudgetCreated}, createdAllocations={CreatedAllocations}, createdBusinesses={CreatedBusinesses}.",
                 message.CityId,
                 message.SimulationKind,
                 message.EconomyProfile,
                 budgetCreated,
-                createdAllocations);
+                createdAllocations,
+                createdBusinesses);
         }
 
         private static async Task ApplyInitialReserveAsync(
