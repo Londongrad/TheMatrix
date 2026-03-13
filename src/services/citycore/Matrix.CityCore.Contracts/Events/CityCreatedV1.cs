@@ -4,5 +4,6 @@ namespace Matrix.CityCore.Contracts.Events
         Guid CityId,
         string Name,
         string SimulationKind,
-        DateTimeOffset CreatedAtUtc);
+        DateTimeOffset CreatedAtUtc,
+        string? EconomyProfile = null);
 }

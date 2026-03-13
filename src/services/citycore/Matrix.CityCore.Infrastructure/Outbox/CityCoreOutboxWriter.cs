@@ -34,7 +34,8 @@ namespace Matrix.CityCore.Infrastructure.Outbox
                                 CityId: created.CityId.Value,
                                 Name: created.Name.Value,
                                 SimulationKind: created.SimulationKind.ToString(),
-                                CreatedAtUtc: created.CreatedAtUtc)));
+                                CreatedAtUtc: created.CreatedAtUtc,
+                                EconomyProfile: created.GenerationProfile.EconomyProfile.ToString())));
 
                     dbContext.OutboxMessages.Add(
                         OutboxMessage.Create(
