@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -10,11 +11,16 @@ namespace Matrix.Economy.Infrastructure.Consumers
 {
     public sealed class ClassicCityHouseholdAccountSyncConsumer(
         ICityBudgetRepository budgetRepository,
+        ICityBusinessRepository businessRepository,
         ICityHouseholdAccountRepository householdAccountRepository,
+        ICityHouseholdObligationRepository householdObligationRepository,
         IEconomyUnitOfWork unitOfWork,
         ILogger<ClassicCityHouseholdAccountSyncConsumer> logger)
         : IConsumer<ClassicCityHouseholdAccountSyncBatchV1>
     {
+        private const string DefaultLandlordTemplateKey = "city-housing-authority";
+        private const string DefaultUtilityTemplateKey = "city-utilities-board";
+
         public async Task Consume(ConsumeContext<ClassicCityHouseholdAccountSyncBatchV1> context)
         {
             ClassicCityHouseholdAccountSyncBatchV1 message = context.Message;
@@ -23,33 +29,47 @@ namespace Matrix.Economy.Infrastructure.Consumers
             bool budgetCreated = existingBudget is null;
             CityBudget budget = existingBudget ?? CreateBudget(message.CityId, budgetRepository);
             int createdAccounts = 0;
+            int createdObligations = 0;
+            var housedAccounts = new List<(CityHouseholdAccount Account, int MemberCount)>(message.Households.Count);
 
             foreach (ClassicCityHouseholdAccountSyncItemV1 household in message.Households)
             {
-                CityHouseholdAccount? existing = await householdAccountRepository.GetByCityAndExternalReferenceCodeAsync(
+                CityHouseholdAccount? account = await householdAccountRepository.GetByCityAndExternalReferenceCodeAsync(
                     cityId: message.CityId,
                     externalReferenceCode: household.ExternalReferenceCode,
                     cancellationToken: context.CancellationToken);
 
-                if (existing is not null)
+                if (account is not null)
                 {
-                    existing.EnsureCompatibleUnit(budget.GetUnitProfile());
-                    continue;
+                    account.EnsureCompatibleUnit(budget.GetUnitProfile());
                 }
-
-                householdAccountRepository.Add(
-                    new CityHouseholdAccount(
+                else
+                {
+                    account = new CityHouseholdAccount(
                         id: Guid.NewGuid(),
                         cityId: message.CityId,
                         name: household.Name,
                         externalReferenceCode: household.ExternalReferenceCode,
                         createdAtUtc: household.CreatedAtUtc,
                         unitProfile: budget.GetUnitProfile(),
-                        openingBalance: Money.FromDecimal(household.OpeningBalanceAmount)));
-                createdAccounts++;
+                        openingBalance: Money.FromDecimal(household.OpeningBalanceAmount));
+                    householdAccountRepository.Add(account);
+                    createdAccounts++;
+                }
+
+                if (household.IsHoused)
+                {
+                    housedAccounts.Add((account, household.MemberCount));
+                }
             }
 
-            if (!budgetCreated && createdAccounts == 0)
+            createdObligations += await EnsureStarterObligationsAsync(
+                cityId: message.CityId,
+                occurredAtUtc: message.OccurredAtUtc,
+                housedAccounts: housedAccounts,
+                cancellationToken: context.CancellationToken);
+
+            if (!budgetCreated && createdAccounts == 0 && createdObligations == 0)
             {
                 logger.LogDebug(
                     "Skipped classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}; all accounts already exist.",
@@ -63,13 +83,14 @@ namespace Matrix.Economy.Infrastructure.Consumers
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
-                "Applied classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, budgetCreated={BudgetCreated}, createdAccounts={CreatedAccounts}.",
+                "Applied classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, budgetCreated={BudgetCreated}, createdAccounts={CreatedAccounts}, createdObligations={CreatedObligations}.",
                 message.CityId,
                 message.CorrelationId,
                 message.BatchNumber,
                 message.TotalBatches,
                 budgetCreated,
-                createdAccounts);
+                createdAccounts,
+                createdObligations);
         }
 
         private static CityBudget CreateBudget(Guid cityId, ICityBudgetRepository budgetRepository)
@@ -77,6 +98,114 @@ namespace Matrix.Economy.Infrastructure.Consumers
             var budget = new CityBudget(CityBudgetId.New(), cityId);
             budgetRepository.Add(budget);
             return budget;
+        }
+
+        private async Task<int> EnsureStarterObligationsAsync(
+            Guid cityId,
+            DateTimeOffset occurredAtUtc,
+            IReadOnlyList<(CityHouseholdAccount Account, int MemberCount)> housedAccounts,
+            CancellationToken cancellationToken)
+        {
+            if (housedAccounts.Count == 0)
+                return 0;
+
+            CityBusiness? landlord = await businessRepository.GetByCityAndTemplateKeyAsync(
+                cityId: cityId,
+                templateKey: DefaultLandlordTemplateKey,
+                cancellationToken: cancellationToken);
+            CityBusiness? utility = await businessRepository.GetByCityAndTemplateKeyAsync(
+                cityId: cityId,
+                templateKey: DefaultUtilityTemplateKey,
+                cancellationToken: cancellationToken);
+
+            if (landlord is null && utility is null)
+                return 0;
+
+            Guid[] householdIds = housedAccounts.Select(x => x.Account.Id).ToArray();
+            IReadOnlyList<CityHouseholdObligation> existingObligations = await householdObligationRepository.ListByHouseholdsAsync(
+                householdAccountIds: householdIds,
+                cancellationToken: cancellationToken);
+            ILookup<Guid, CityHouseholdObligation> obligationsByHouseholdId = existingObligations.ToLookup(x => x.HouseholdAccountId);
+            int created = 0;
+
+            foreach ((CityHouseholdAccount account, int memberCount) in housedAccounts)
+            {
+                IEnumerable<CityHouseholdObligation> householdObligations = obligationsByHouseholdId[account.Id];
+
+                if (landlord is not null
+                    && !householdObligations.Any(x => x.ProviderBusinessId == landlord.Id && x.Kind == CityHouseholdObligationKind.Rent))
+                {
+                    landlord.EnsureCompatibleUnit(account.GetUnitProfile());
+                    landlord.EnsureCanServeObligation(CityHouseholdObligationKind.Rent);
+                    householdObligationRepository.Add(
+                        CreateStarterObligation(
+                            cityId: cityId,
+                            account: account,
+                            provider: landlord,
+                            memberCount: memberCount,
+                            kind: CityHouseholdObligationKind.Rent,
+                            createdAtUtc: occurredAtUtc));
+                    created++;
+                }
+
+                if (utility is not null
+                    && !householdObligations.Any(x => x.ProviderBusinessId == utility.Id && x.Kind == CityHouseholdObligationKind.Utilities))
+                {
+                    utility.EnsureCompatibleUnit(account.GetUnitProfile());
+                    utility.EnsureCanServeObligation(CityHouseholdObligationKind.Utilities);
+                    householdObligationRepository.Add(
+                        CreateStarterObligation(
+                            cityId: cityId,
+                            account: account,
+                            provider: utility,
+                            memberCount: memberCount,
+                            kind: CityHouseholdObligationKind.Utilities,
+                            createdAtUtc: occurredAtUtc));
+                    created++;
+                }
+            }
+
+            return created;
+        }
+
+        private static CityHouseholdObligation CreateStarterObligation(
+            Guid cityId,
+            CityHouseholdAccount account,
+            CityBusiness provider,
+            int memberCount,
+            CityHouseholdObligationKind kind,
+            DateTimeOffset createdAtUtc)
+        {
+            memberCount = Math.Max(1, memberCount);
+            decimal chargeAmount = kind switch
+            {
+                CityHouseholdObligationKind.Rent => 96m + (memberCount * 26m) + (Math.Max(0, memberCount - 3) * 18m),
+                CityHouseholdObligationKind.Utilities => 18m + (memberCount * 9m) + (Math.Max(0, memberCount - 2) * 4m),
+                _ => 24m + (memberCount * 8m)
+            };
+            decimal taxAmount = kind == CityHouseholdObligationKind.Utilities
+                ? decimal.Round(chargeAmount * 0.08m, 2, MidpointRounding.AwayFromZero)
+                : 0m;
+            string name = kind switch
+            {
+                CityHouseholdObligationKind.Rent => "Starter housing rent",
+                CityHouseholdObligationKind.Utilities => "Starter utility service",
+                _ => "Starter household obligation"
+            };
+
+            return new CityHouseholdObligation(
+                id: Guid.NewGuid(),
+                cityId: cityId,
+                householdAccountId: account.Id,
+                providerBusinessId: provider.Id,
+                name: name,
+                kind: kind,
+                billingCadence: CityHouseholdObligationBillingCadence.Monthly,
+                createdAtUtc: createdAtUtc,
+                firstChargeDueAtUtc: createdAtUtc.AddMonths(1),
+                unitProfile: account.GetUnitProfile(),
+                chargeAmount: Money.FromDecimal(chargeAmount),
+                taxAmount: Money.FromDecimal(taxAmount));
         }
     }
 }

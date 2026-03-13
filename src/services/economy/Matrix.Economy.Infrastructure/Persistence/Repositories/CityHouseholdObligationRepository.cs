@@ -41,6 +41,20 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<CityHouseholdObligation>> ListByHouseholdsAsync(
+            IReadOnlyCollection<Guid> householdAccountIds,
+            CancellationToken cancellationToken = default)
+        {
+            if (householdAccountIds.Count == 0)
+                return [];
+
+            return await _dbContext.CityHouseholdObligations
+                .Where(x => householdAccountIds.Contains(x.HouseholdAccountId))
+                .OrderBy(x => x.HouseholdAccountId)
+                .ThenBy(x => x.Name)
+                .ToListAsync(cancellationToken);
+        }
+
         public void Add(CityHouseholdObligation obligation)
         {
             _dbContext.CityHouseholdObligations.Add(obligation);
