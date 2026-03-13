@@ -22,6 +22,7 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness
                 id: Guid.NewGuid(),
                 cityId: request.CityId,
                 name: request.Name,
+                templateKey: null,
                 kind: request.Kind,
                 createdAtUtc: DateTimeOffset.UtcNow,
                 unitProfile: unitProfile,
