@@ -24,5 +24,19 @@ namespace Matrix.Population.Infrastructure.Outbox
 
             return Task.CompletedTask;
         }
+
+        public Task AddClassicCityHouseholdAccountSyncBatchAsync(
+            ClassicCityHouseholdAccountSyncBatchV1 batch,
+            CancellationToken cancellationToken = default)
+        {
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1,
+                    occurredOnUtc: batch.OccurredAtUtc.UtcDateTime,
+                    payload: batch,
+                    jsonOptions: JsonOptions));
+
+            return Task.CompletedTask;
+        }
     }
 }

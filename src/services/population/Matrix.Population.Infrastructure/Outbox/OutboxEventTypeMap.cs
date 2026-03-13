@@ -7,7 +7,8 @@ namespace Matrix.Population.Infrastructure.Outbox
         public static readonly IReadOnlyDictionary<string, Type> Map =
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
-                [PopulationOutboxEventTypes.CityEconomyDailySettlementV1] = typeof(CityEconomyDailySettlementV1)
+                [PopulationOutboxEventTypes.CityEconomyDailySettlementV1] = typeof(CityEconomyDailySettlementV1),
+                [PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1] = typeof(ClassicCityHouseholdAccountSyncBatchV1)
             };
     }
 }

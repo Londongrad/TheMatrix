@@ -57,6 +57,7 @@ namespace Matrix.Economy.Infrastructure
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
+                x.AddConsumer<ClassicCityHouseholdAccountSyncConsumer, ClassicCityHouseholdAccountSyncConsumerDefinition>();
 
                 x.UsingRabbitMq((context, cfg) =>
                 {

@@ -7,5 +7,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
         Task AddCityDailySettlementAsync(
             CityEconomyDailySettlementV1 settlement,
             CancellationToken cancellationToken = default);
+
+        Task AddClassicCityHouseholdAccountSyncBatchAsync(
+            ClassicCityHouseholdAccountSyncBatchV1 batch,
+            CancellationToken cancellationToken = default);
     }
 }
