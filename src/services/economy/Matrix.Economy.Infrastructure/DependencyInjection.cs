@@ -50,10 +50,12 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityHouseholdObligationRepository, CityHouseholdObligationRepository>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
+            services.AddSingleton<CityEconomySimulationTemplatePolicy>();
 
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
 
                 x.UsingRabbitMq((context, cfg) =>
