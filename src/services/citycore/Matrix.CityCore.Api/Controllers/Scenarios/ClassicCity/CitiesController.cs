@@ -47,6 +47,7 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                     SizeTier: request.SizeTier,
                     UrbanDensity: request.UrbanDensity,
                     DevelopmentLevel: request.DevelopmentLevel,
+                    EconomyProfile: request.EconomyProfile,
                     PopulationOccupancyProfile: request.PopulationOccupancyProfile,
                     InitialWeatherMode: request.InitialWeatherMode,
                     InitialWeatherType: request.InitialWeatherType,

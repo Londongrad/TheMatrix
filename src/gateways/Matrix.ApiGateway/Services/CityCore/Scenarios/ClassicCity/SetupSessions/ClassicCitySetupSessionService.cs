@@ -32,6 +32,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         : IClassicCitySetupSessionService
     {
         private const int MaxPlannedPeopleCount = 1_000_000;
+        private const string EconomyProfileStruggling = "Struggling";
+        private const string EconomyProfileBalanced = "Balanced";
+        private const string EconomyProfileAffluent = "Affluent";
         private const string PopulationOccupancyProfileLight = "Light";
         private const string PopulationOccupancyProfileBalanced = "Balanced";
         private const string PopulationOccupancyProfileHigh = "High";
@@ -388,6 +391,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 SizeTier = string.IsNullOrWhiteSpace(draft.SizeTier) ? "Medium" : draft.SizeTier.Trim(),
                 UrbanDensity = string.IsNullOrWhiteSpace(draft.UrbanDensity) ? "Balanced" : draft.UrbanDensity.Trim(),
                 DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel) ? "Balanced" : draft.DevelopmentLevel.Trim(),
+                EconomyProfile = NormalizeEconomyProfile(draft.EconomyProfile),
                 PopulationOccupancyProfile = NormalizePopulationOccupancyProfile(draft.PopulationOccupancyProfile),
                 PlannedPeopleCount = draft.PlannedPeopleCount?.Trim() ?? string.Empty
             };
@@ -488,6 +492,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 SizeTier: draft.SizeTier,
                 UrbanDensity: draft.UrbanDensity,
                 DevelopmentLevel: draft.DevelopmentLevel,
+                EconomyProfile: draft.EconomyProfile,
                 PopulationOccupancyProfile: draft.PopulationOccupancyProfile,
                 InitialWeatherMode: draft.InitialWeatherMode,
                 InitialWeatherType: draft.InitialWeatherType,
@@ -505,6 +510,16 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 PopulationOccupancyProfileLight => PopulationOccupancyProfileLight,
                 PopulationOccupancyProfileHigh => PopulationOccupancyProfileHigh,
                 _ => PopulationOccupancyProfileBalanced
+            };
+        }
+
+        private static string NormalizeEconomyProfile(string? value)
+        {
+            return value?.Trim() switch
+            {
+                EconomyProfileStruggling => EconomyProfileStruggling,
+                EconomyProfileAffluent => EconomyProfileAffluent,
+                _ => EconomyProfileBalanced
             };
         }
 

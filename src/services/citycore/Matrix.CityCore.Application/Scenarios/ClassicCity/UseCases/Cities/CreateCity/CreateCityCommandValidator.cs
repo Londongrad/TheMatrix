@@ -56,6 +56,11 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                .When(x => !string.IsNullOrWhiteSpace(x.DevelopmentLevel))
                .WithMessage("DevelopmentLevel is invalid.");
 
+            RuleFor(x => x.EconomyProfile)
+               .Must(BeValidEconomyProfile)
+               .When(x => !string.IsNullOrWhiteSpace(x.EconomyProfile))
+               .WithMessage("EconomyProfile is invalid.");
+
             RuleFor(x => x.PopulationOccupancyProfile)
                .Must(BeValidPopulationOccupancyProfile)
                .When(x => !string.IsNullOrWhiteSpace(x.PopulationOccupancyProfile))
@@ -156,6 +161,15 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                        ignoreCase: true,
                        result: out CityDevelopmentLevel developmentLevel) &&
                    Enum.IsDefined(developmentLevel);
+        }
+
+        private static bool BeValidEconomyProfile(string? value)
+        {
+            return Enum.TryParse(
+                       value: value,
+                       ignoreCase: true,
+                       result: out CityEconomyProfile economyProfile) &&
+                   Enum.IsDefined(economyProfile);
         }
 
         private static bool BeValidPopulationOccupancyProfile(string? value)

@@ -51,6 +51,10 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 value: request.DevelopmentLevel,
                 defaultValue: CityDevelopmentLevel.Balanced);
 
+            CityEconomyProfile economyProfile = ParseOrDefault(
+                value: request.EconomyProfile,
+                defaultValue: CityEconomyProfile.Balanced);
+
             PopulationOccupancyProfile populationOccupancyProfile = ParseOrDefault(
                 value: request.PopulationOccupancyProfile,
                 defaultValue: PopulationOccupancyProfile.Balanced);
@@ -66,6 +70,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 sizeTier: sizeTier,
                 urbanDensity: urbanDensity,
                 developmentLevel: developmentLevel,
+                economyProfile: economyProfile,
                 populationOccupancyProfile: populationOccupancyProfile,
                 plannedPeopleCount: request.PlannedPeopleCount);
 
@@ -154,6 +159,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 generationProfile.UrbanDensity,
                 "|",
                 generationProfile.DevelopmentLevel,
+                "|",
+                generationProfile.EconomyProfile,
                 "|",
                 generationProfile.PopulationOccupancyProfile,
                 "|",

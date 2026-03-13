@@ -10,6 +10,7 @@ namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests
         string? SizeTier,
         string? UrbanDensity,
         string? DevelopmentLevel,
+        string? EconomyProfile,
         string? PopulationOccupancyProfile,
         string? InitialWeatherMode,
         string? InitialWeatherType,

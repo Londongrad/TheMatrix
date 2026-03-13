@@ -12,6 +12,7 @@
         string? SizeTier = null,
         string? UrbanDensity = null,
         string? DevelopmentLevel = null,
+        string? EconomyProfile = null,
         string? PopulationOccupancyProfile = null,
         string? InitialWeatherMode = null,
         string? InitialWeatherType = null,

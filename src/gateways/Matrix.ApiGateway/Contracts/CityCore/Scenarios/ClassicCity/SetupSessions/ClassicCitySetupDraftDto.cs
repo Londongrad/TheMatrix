@@ -17,6 +17,7 @@ namespace Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.SetupSessio
         string SizeTier = "Medium",
         string UrbanDensity = "Balanced",
         string DevelopmentLevel = "Balanced",
+        string EconomyProfile = "Balanced",
         string PopulationOccupancyProfile = "Balanced",
         string PlannedPeopleCount = "");
 }

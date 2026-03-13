@@ -60,6 +60,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     SizeTier: request.SizeTier,
                     UrbanDensity: request.UrbanDensity,
                     DevelopmentLevel: request.DevelopmentLevel,
+                    EconomyProfile: request.EconomyProfile,
                     PopulationOccupancyProfile: request.PopulationOccupancyProfile,
                     InitialWeatherMode: request.InitialWeatherMode,
                     InitialWeatherType: request.InitialWeatherType,

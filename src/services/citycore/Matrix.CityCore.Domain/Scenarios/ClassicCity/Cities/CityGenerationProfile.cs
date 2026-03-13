@@ -17,12 +17,14 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CitySizeTier sizeTier,
             UrbanDensity urbanDensity,
             CityDevelopmentLevel developmentLevel,
+            CityEconomyProfile economyProfile,
             PopulationOccupancyProfile populationOccupancyProfile,
             int? plannedPeopleCount)
         {
             SizeTier = sizeTier;
             UrbanDensity = urbanDensity;
             DevelopmentLevel = developmentLevel;
+            EconomyProfile = economyProfile;
             PopulationOccupancyProfile = populationOccupancyProfile;
             PlannedPeopleCount = plannedPeopleCount;
         }
@@ -30,6 +32,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         public CitySizeTier SizeTier { get; private set; }
         public UrbanDensity UrbanDensity { get; private set; }
         public CityDevelopmentLevel DevelopmentLevel { get; private set; }
+        public CityEconomyProfile EconomyProfile { get; private set; }
         public PopulationOccupancyProfile PopulationOccupancyProfile { get; private set; }
         public int? PlannedPeopleCount { get; private set; }
 
@@ -37,6 +40,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CitySizeTier sizeTier,
             UrbanDensity urbanDensity,
             CityDevelopmentLevel developmentLevel,
+            CityEconomyProfile economyProfile,
             PopulationOccupancyProfile populationOccupancyProfile,
             int? plannedPeopleCount = null)
         {
@@ -53,6 +57,10 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 propertyName: nameof(DevelopmentLevel));
 
             GuardHelper.AgainstInvalidEnum(
+                value: economyProfile,
+                propertyName: nameof(EconomyProfile));
+
+            GuardHelper.AgainstInvalidEnum(
                 value: populationOccupancyProfile,
                 propertyName: nameof(PopulationOccupancyProfile));
 
@@ -66,6 +74,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 sizeTier: sizeTier,
                 urbanDensity: urbanDensity,
                 developmentLevel: developmentLevel,
+                economyProfile: economyProfile,
                 populationOccupancyProfile: populationOccupancyProfile,
                 plannedPeopleCount: plannedPeopleCount);
         }

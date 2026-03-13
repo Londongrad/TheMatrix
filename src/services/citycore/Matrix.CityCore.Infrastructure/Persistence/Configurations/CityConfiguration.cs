@@ -80,6 +80,11 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                        .HasColumnName("GenerationDevelopmentLevel")
                        .IsRequired();
 
+                    profile.Property(x => x.EconomyProfile)
+                       .HasConversion<int>()
+                       .HasColumnName("GenerationEconomyProfile")
+                       .IsRequired();
+
                     profile.Property(x => x.PopulationOccupancyProfile)
                        .HasConversion<int>()
                        .HasColumnName("GenerationPopulationOccupancyProfile")
