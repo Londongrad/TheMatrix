@@ -178,6 +178,29 @@ namespace Matrix.Economy.Domain.Aggregates
             RecordRetailSale(grossAmount, salesTaxAmount);
         }
 
+        public void RecordSettledRetailSale(Money grossAmount, Money salesTaxAmount)
+        {
+            if (!grossAmount.IsPositive)
+            {
+                throw new ArgumentOutOfRangeException(nameof(grossAmount), "Retail sale amount must be positive.");
+            }
+
+            if (salesTaxAmount.IsNegative)
+            {
+                throw new ArgumentOutOfRangeException(nameof(salesTaxAmount), "Sales tax amount cannot be negative.");
+            }
+
+            if (salesTaxAmount.Amount > grossAmount.Amount)
+            {
+                throw new InvalidOperationException("Sales tax cannot exceed gross sale amount.");
+            }
+
+            Money netRevenue = grossAmount.Subtract(salesTaxAmount);
+            Balance = Balance.Add(netRevenue);
+            TotalRetailTurnover = TotalRetailTurnover.Add(grossAmount);
+            TotalNetSalesRevenue = TotalNetSalesRevenue.Add(netRevenue);
+        }
+
         public void RecordMunicipalRevenue(Money amount)
         {
             if (!amount.IsPositive)
