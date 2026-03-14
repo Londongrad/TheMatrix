@@ -96,6 +96,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 : [];
             bool requiresWeatherExposure = exposureSegments.Count > 0;
             IReadOnlyCollection<PersonEntity>? personsSnapshot = null;
+            IReadOnlyCollection<HouseholdEntity>? householdsSnapshot = null;
             List<CityPopulationActivityWriteModel> pendingActivityEntries = [];
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
@@ -210,6 +211,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                 if (personsSnapshot is not null)
                 {
+                    householdsSnapshot =
+                        await householdWriteRepository.ListByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct);
                     IReadOnlyCollection<ClassicCityHouseholdPlacement> placementsSnapshot =
                         await householdWriteRepository.ListPlacementsByCityAsync(
                             cityId: cityId,
@@ -224,6 +229,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
                     foreach (CityPopulationActivityWriteModel activityEntry in pendingActivityEntries)
                         await cityPopulationActivityJournalService.RecordAsync(activityEntry, ct);
+
+                    foreach (ClassicCityHouseholdAccountSyncBatchV1 batch in ClassicCityHouseholdAccountSyncBatchFactory.Build(
+                                 cityId: cityId.Value,
+                                 households: householdsSnapshot,
+                                 placements: placementsSnapshot,
+                                 correlationId: $"classic-city:{cityId.Value:N}:tick:{request.TickId}:households",
+                                 occurredAtUtc: updatedAtUtc,
+                                 batchSize: EconomyHouseholdCashflowBatchSize))
+                    {
+                        await cityEconomySettlementOutboxWriter.AddClassicCityHouseholdAccountSyncBatchAsync(
+                            batch: batch,
+                            cancellationToken: ct);
+                    }
                 }
 
                 if (pendingEconomySettlement is not null)

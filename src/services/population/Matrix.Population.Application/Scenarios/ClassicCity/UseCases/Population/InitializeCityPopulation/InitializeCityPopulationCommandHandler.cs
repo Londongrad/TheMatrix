@@ -73,11 +73,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 randomSeed: request.RandomSeed);
             DateTimeOffset syncOccurredAtUtc = DateTimeOffset.UtcNow;
             string syncCorrelationId = $"classic-city-population-init:{request.CityId:N}:{Guid.NewGuid():N}";
-            ClassicCityHouseholdAccountSyncBatchV1[] householdAccountBatches = BuildHouseholdAccountSyncBatches(
+            ClassicCityHouseholdAccountSyncBatchV1[] householdAccountBatches = ClassicCityHouseholdAccountSyncBatchFactory.Build(
                 cityId: request.CityId,
-                result: result,
+                households: result.Households,
+                placements: result.HouseholdPlacements,
                 correlationId: syncCorrelationId,
-                occurredAtUtc: syncOccurredAtUtc);
+                occurredAtUtc: syncOccurredAtUtc,
+                batchSize: EconomyHouseholdSyncBatchSize);
             ClassicCityWorkplaceBusinessSyncBatchV1[] workplaceBusinessBatches =
                 ClassicCityWorkplaceBusinessSyncBatchFactory.Build(
                     cityId: request.CityId,
@@ -166,63 +168,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 HomelessHouseholdCount: homelessHouseholdCount,
                 HousedPeopleCount: housedPeopleCount,
                 HomelessPeopleCount: homelessPeopleCount);
-        }
-
-        private static ClassicCityHouseholdAccountSyncBatchV1[] BuildHouseholdAccountSyncBatches(
-            Guid cityId,
-            PopulationBootstrapResult result,
-            string correlationId,
-            DateTimeOffset occurredAtUtc)
-        {
-            var placementsByHouseholdId = result.HouseholdPlacements.ToDictionary(x => x.HouseholdId);
-            ClassicCityHouseholdAccountSyncItemV1[] items = result.Households
-                .OrderBy(x => x.CreatedAtUtc)
-                .ThenBy(x => x.Id.Value)
-                .Select(household =>
-                {
-                    ClassicCityHouseholdPlacement placement = placementsByHouseholdId[household.Id];
-                    return new ClassicCityHouseholdAccountSyncItemV1(
-                        HouseholdId: household.Id.Value,
-                        ExternalReferenceCode: BuildHouseholdExternalReferenceCode(household.Id),
-                        Name: BuildHouseholdAccountName(household.Id),
-                        MemberCount: household.Size.Value,
-                        OpeningBalanceAmount: household.CashReserve.Amount,
-                        IsHoused: placement.HousingStatus == HousingStatus.Housed,
-                        CreatedAtUtc: household.CreatedAtUtc);
-                })
-                .ToArray();
-
-            if (items.Length == 0)
-                return [];
-
-            ClassicCityHouseholdAccountSyncBatchV1[] batches = items
-                .Chunk(EconomyHouseholdSyncBatchSize)
-                .Select((chunk, index) => new ClassicCityHouseholdAccountSyncBatchV1(
-                    CityId: cityId,
-                    BatchNumber: index + 1,
-                    TotalBatches: 0,
-                    Households: chunk,
-                    CorrelationId: correlationId,
-                    OccurredAtUtc: occurredAtUtc))
-                .ToArray();
-
-            for (int i = 0; i < batches.Length; i++)
-            {
-                batches[i] = batches[i] with { TotalBatches = batches.Length };
-            }
-
-            return batches;
-        }
-
-        private static string BuildHouseholdExternalReferenceCode(HouseholdId householdId)
-        {
-            return $"classic-city-household:{householdId.Value:N}";
-        }
-
-        private static string BuildHouseholdAccountName(HouseholdId householdId)
-        {
-            string shortCode = householdId.Value.ToString("N")[..8].ToUpperInvariant();
-            return $"Household {shortCode}";
         }
     }
 }
