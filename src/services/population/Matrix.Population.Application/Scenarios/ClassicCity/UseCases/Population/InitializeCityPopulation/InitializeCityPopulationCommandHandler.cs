@@ -30,6 +30,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         : IRequestHandler<InitializeCityPopulationCommand, CityPopulationBootstrapSummaryDto>
     {
         private const int EconomyHouseholdSyncBatchSize = 500;
+        private const int EconomyWorkplaceSyncBatchSize = 500;
 
         public async Task<CityPopulationBootstrapSummaryDto> Handle(
             InitializeCityPopulationCommand request,
@@ -77,6 +78,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 result: result,
                 correlationId: syncCorrelationId,
                 occurredAtUtc: syncOccurredAtUtc);
+            ClassicCityWorkplaceBusinessSyncBatchV1[] workplaceBusinessBatches =
+                ClassicCityWorkplaceBusinessSyncBatchFactory.Build(
+                    cityId: request.CityId,
+                    persons: result.Persons,
+                    correlationId: $"{syncCorrelationId}:workplaces",
+                    occurredAtUtc: syncOccurredAtUtc,
+                    batchSize: EconomyWorkplaceSyncBatchSize);
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -123,6 +131,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     foreach (ClassicCityHouseholdAccountSyncBatchV1 batch in householdAccountBatches)
                     {
                         await cityEconomySettlementOutboxWriter.AddClassicCityHouseholdAccountSyncBatchAsync(
+                            batch: batch,
+                            cancellationToken: ct);
+                    }
+
+                    foreach (ClassicCityWorkplaceBusinessSyncBatchV1 batch in workplaceBusinessBatches)
+                    {
+                        await cityEconomySettlementOutboxWriter.AddClassicCityWorkplaceBusinessSyncBatchAsync(
                             batch: batch,
                             cancellationToken: ct);
                     }
