@@ -10,6 +10,7 @@ namespace Matrix.Population.Infrastructure.Outbox
                 [PopulationOutboxEventTypes.CityEconomyDailySettlementV1] = typeof(CityEconomyDailySettlementV1),
                 [PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1] = typeof(ClassicCityHouseholdAccountSyncBatchV1),
                 [PopulationOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1] = typeof(ClassicCityWorkplaceBusinessSyncBatchV1),
+                [PopulationOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1] = typeof(ClassicCityWorkplacePayrollSettlementBatchV1),
                 [PopulationOutboxEventTypes.ClassicCityHouseholdCashflowSettlementBatchV1] = typeof(ClassicCityHouseholdCashflowSettlementBatchV1)
             };
     }

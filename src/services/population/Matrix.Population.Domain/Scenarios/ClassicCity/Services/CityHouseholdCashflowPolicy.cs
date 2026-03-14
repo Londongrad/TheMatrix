@@ -8,6 +8,22 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
     public sealed class CityHouseholdCashflowPolicy
     {
+        public CityResidentIncomeSettlementProfile BuildResidentIncome(
+            Person resident,
+            DateOnly currentDate)
+        {
+            ArgumentNullException.ThrowIfNull(resident);
+
+            AgeGroup ageGroup = resident.GetAgeGroup(currentDate);
+            Money grossIncome = ResolveResidentGrossIncome(resident, ageGroup);
+            Money taxWithheld = grossIncome.Multiply(ResolveTaxRate(resident));
+
+            return new CityResidentIncomeSettlementProfile(
+                GrossIncome: grossIncome,
+                TaxWithheld: taxWithheld,
+                NetIncome: grossIncome.Subtract(taxWithheld));
+        }
+
         public CityHouseholdCashflowProfile Build(
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
@@ -47,11 +63,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (resident.GetAge(currentDate).Years == 0)
                     infantCount++;
 
-                Money residentGrossIncome = ResolveResidentGrossIncome(resident, ageGroup);
-                Money residentTax = residentGrossIncome.Multiply(ResolveTaxRate(resident));
+                CityResidentIncomeSettlementProfile residentIncome = BuildResidentIncome(
+                    resident: resident,
+                    currentDate: currentDate);
 
-                grossIncome = grossIncome.Add(residentGrossIncome);
-                taxWithheld = taxWithheld.Add(residentTax);
+                grossIncome = grossIncome.Add(residentIncome.GrossIncome);
+                taxWithheld = taxWithheld.Add(residentIncome.TaxWithheld);
                 retailTurnover = retailTurnover.Add(
                     ResolveResidentDailyExpense(
                         resident: resident,

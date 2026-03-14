@@ -53,6 +53,20 @@ namespace Matrix.Population.Infrastructure.Outbox
             return Task.CompletedTask;
         }
 
+        public Task AddClassicCityWorkplacePayrollSettlementBatchAsync(
+            ClassicCityWorkplacePayrollSettlementBatchV1 batch,
+            CancellationToken cancellationToken = default)
+        {
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: PopulationOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1,
+                    occurredOnUtc: batch.OccurredAtUtc.UtcDateTime,
+                    payload: batch,
+                    jsonOptions: JsonOptions));
+
+            return Task.CompletedTask;
+        }
+
         public Task AddClassicCityHouseholdCashflowSettlementBatchAsync(
             ClassicCityHouseholdCashflowSettlementBatchV1 batch,
             CancellationToken cancellationToken = default)
