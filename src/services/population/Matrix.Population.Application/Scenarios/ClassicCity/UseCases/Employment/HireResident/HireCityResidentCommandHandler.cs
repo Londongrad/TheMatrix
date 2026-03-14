@@ -18,6 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
+        ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPersonWriteRepository personWriteRepository,
         IUnitOfWork unitOfWork)
         : IRequestHandler<HireCityResidentCommand, CityEmploymentOperationResultDto>
@@ -68,6 +69,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     resident: resident,
                     source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
                 cancellationToken: cancellationToken);
+
+            string workplaceSyncCorrelationId = $"classic-city:{request.CityId:N}:resident-hire:{resident.Id.Value:N}:workplaces";
+            foreach (var batch in ClassicCityWorkplaceBusinessSyncBatchFactory.Build(
+                         cityId: request.CityId,
+                         persons: [resident],
+                         correlationId: workplaceSyncCorrelationId,
+                         occurredAtUtc: DateTimeOffset.UtcNow,
+                         batchSize: 1))
+            {
+                await cityEconomySettlementOutboxWriter.AddClassicCityWorkplaceBusinessSyncBatchAsync(
+                    batch: batch,
+                    cancellationToken: cancellationToken);
+            }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
