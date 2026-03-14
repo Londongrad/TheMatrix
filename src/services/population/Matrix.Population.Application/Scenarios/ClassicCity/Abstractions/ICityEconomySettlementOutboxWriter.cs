@@ -11,5 +11,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
         Task AddClassicCityHouseholdAccountSyncBatchAsync(
             ClassicCityHouseholdAccountSyncBatchV1 batch,
             CancellationToken cancellationToken = default);
+
+        Task AddClassicCityHouseholdCashflowSettlementBatchAsync(
+            ClassicCityHouseholdCashflowSettlementBatchV1 batch,
+            CancellationToken cancellationToken = default);
     }
 }
