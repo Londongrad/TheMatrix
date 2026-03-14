@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Economy.Infrastructure.Persistence.Repositories
@@ -12,6 +13,19 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
         public async Task AddAsync(CityBusinessLedgerEntry entry, CancellationToken cancellationToken = default)
         {
             await _dbContext.CityBusinessLedgerEntries.AddAsync(entry, cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync(
+            Guid businessId,
+            CityBusinessLedgerEntryKind kind,
+            string referenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.CityBusinessLedgerEntries.AnyAsync(
+                x => x.BusinessId == businessId
+                    && x.Kind == kind
+                    && x.ReferenceCode == referenceCode,
+                cancellationToken);
         }
 
         public async Task<PagedResult<CityBusinessLedgerEntry>> GetPageByBusinessAsync(

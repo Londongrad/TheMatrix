@@ -28,6 +28,9 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => new { x.HouseholdAccountId, x.OccurredAtUtc });
+            builder.HasIndex(x => new { x.HouseholdAccountId, x.Kind, x.ReferenceCode })
+                .IsUnique()
+                .HasFilter("\"reference_code\" IS NOT NULL");
         }
     }
 }
