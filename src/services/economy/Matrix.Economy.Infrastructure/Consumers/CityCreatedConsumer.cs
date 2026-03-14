@@ -94,6 +94,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                         id: Guid.NewGuid(),
                         cityId: message.CityId,
                         name: businessTemplate.Name,
+                        externalReferenceCode: null,
                         templateKey: businessTemplate.TemplateKey,
                         kind: businessTemplate.Kind,
                         createdAtUtc: message.CreatedAtUtc,

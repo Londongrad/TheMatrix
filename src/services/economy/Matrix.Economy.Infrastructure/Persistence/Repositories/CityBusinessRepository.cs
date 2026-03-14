@@ -13,6 +13,16 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             return await _dbContext.CityBusinesses.SingleOrDefaultAsync(x => x.Id == businessId, cancellationToken);
         }
 
+        public async Task<CityBusiness?> GetByCityAndExternalReferenceCodeAsync(
+            Guid cityId,
+            string externalReferenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.CityBusinesses.SingleOrDefaultAsync(
+                x => x.CityId == cityId && x.ExternalReferenceCode == externalReferenceCode,
+                cancellationToken);
+        }
+
         public async Task<CityBusiness?> GetByCityAndTemplateKeyAsync(
             Guid cityId,
             string templateKey,

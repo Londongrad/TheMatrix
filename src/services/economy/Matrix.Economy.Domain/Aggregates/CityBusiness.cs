@@ -10,6 +10,7 @@ namespace Matrix.Economy.Domain.Aggregates
         public Guid Id { get; private set; }
         public Guid CityId { get; private set; }
         public string Name { get; private set; } = string.Empty;
+        public string? ExternalReferenceCode { get; private set; }
         public string? TemplateKey { get; private set; }
         public CityBusinessKind Kind { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; private set; }
@@ -33,6 +34,7 @@ namespace Matrix.Economy.Domain.Aggregates
             Guid id,
             Guid cityId,
             string name,
+            string? externalReferenceCode,
             string? templateKey,
             CityBusinessKind kind,
             DateTimeOffset createdAtUtc,
@@ -44,6 +46,9 @@ namespace Matrix.Economy.Domain.Aggregates
             Name = string.IsNullOrWhiteSpace(name)
                 ? throw new ArgumentException("Business name is required.", nameof(name))
                 : name.Trim();
+            ExternalReferenceCode = string.IsNullOrWhiteSpace(externalReferenceCode)
+                ? null
+                : externalReferenceCode.Trim();
             TemplateKey = string.IsNullOrWhiteSpace(templateKey)
                 ? null
                 : templateKey.Trim();

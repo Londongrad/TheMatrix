@@ -16,6 +16,7 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
             builder.Property(x => x.Id).HasColumnName("id");
             builder.Property(x => x.CityId).HasColumnName("city_id");
             builder.Property(x => x.Name).HasColumnName("name");
+            builder.Property(x => x.ExternalReferenceCode).HasColumnName("external_reference_code");
             builder.Property(x => x.TemplateKey).HasColumnName("template_key");
             builder.Property(x => x.Kind).HasConversion<string>().HasColumnName("kind");
             builder.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc");
@@ -56,6 +57,9 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => new { x.CityId, x.TemplateKey })
                 .IsUnique()
                 .HasFilter("\"template_key\" IS NOT NULL");
+            builder.HasIndex(x => new { x.CityId, x.ExternalReferenceCode })
+                .IsUnique()
+                .HasFilter("\"external_reference_code\" IS NOT NULL");
             builder.HasIndex(x => x.CityId);
         }
     }
