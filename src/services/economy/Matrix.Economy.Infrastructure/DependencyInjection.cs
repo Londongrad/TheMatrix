@@ -59,6 +59,7 @@ namespace Matrix.Economy.Infrastructure
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
                 x.AddConsumer<ClassicCityHouseholdAccountSyncConsumer, ClassicCityHouseholdAccountSyncConsumerDefinition>();
                 x.AddConsumer<ClassicCityWorkplaceBusinessSyncConsumer, ClassicCityWorkplaceBusinessSyncConsumerDefinition>();
+                x.AddConsumer<ClassicCityWorkplacePayrollSettlementConsumer, ClassicCityWorkplacePayrollSettlementConsumerDefinition>();
                 x.AddConsumer<ClassicCityHouseholdCashflowSettlementConsumer, ClassicCityHouseholdCashflowSettlementConsumerDefinition>();
 
                 x.UsingRabbitMq((context, cfg) =>
