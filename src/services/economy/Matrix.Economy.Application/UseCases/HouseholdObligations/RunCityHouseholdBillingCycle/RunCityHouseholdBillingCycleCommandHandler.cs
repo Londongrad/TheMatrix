@@ -74,16 +74,12 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
             ICityHouseholdAccountRepository householdAccountRepository,
             CancellationToken cancellationToken)
         {
-            CityHouseholdObligation[] overdueObligations = dueObligations
-                .Where(x => x.IsActive && x.NextChargeDueAtUtc <= asOfUtc)
-                .ToArray();
-
-            if (overdueObligations.Length == 0)
+            if (dueObligations.Count == 0)
                 return [];
 
             var items = new List<ClassicCityHouseholdFinancialStressItemV1>();
 
-            foreach (IGrouping<Guid, CityHouseholdObligation> group in overdueObligations.GroupBy(x => x.HouseholdAccountId))
+            foreach (IGrouping<Guid, CityHouseholdObligation> group in dueObligations.GroupBy(x => x.HouseholdAccountId))
             {
                 CityHouseholdAccount? account = await householdAccountRepository.GetByIdAsync(
                     householdAccountId: group.Key,
@@ -92,7 +88,9 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
                 if (account is null || string.IsNullOrWhiteSpace(account.ExternalReferenceCode))
                     continue;
 
-                CityHouseholdObligation[] obligations = group.ToArray();
+                CityHouseholdObligation[] obligations = group
+                    .Where(x => x.IsActive && x.NextChargeDueAtUtc <= asOfUtc)
+                    .ToArray();
                 decimal overdueAmount = obligations.Sum(x => x.ChargeAmount.Amount);
                 int overdueRentCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Rent);
                 int overdueUtilityCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Utilities);
