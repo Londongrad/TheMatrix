@@ -62,6 +62,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     housingStatus: housingStatus,
                     currentDate: currentDate);
 
+                if (housingStatus == HousingStatus.Housed &&
+                    ShouldForceLoseHousing(
+                        profile: profile,
+                        economyProfile: economyProfile,
+                        financialStressState: financialStressState,
+                        currentDate: currentDate))
+                {
+                    decisions.Add(new CityHousingAutonomyDecision(
+                        Type: CityHousingAutonomyDecisionType.LoseHousing,
+                        HouseholdId: householdId));
+                    continue;
+                }
+
                 switch (housingStatus)
                 {
                     case HousingStatus.Homeless when ShouldFindHousing(profile, economyProfile, financialStressState, currentDate, reviewWindows):
@@ -195,6 +208,33 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 salt: 907,
                 chancePerReview: chancePerReview,
                 reviewWindows: reviewWindows);
+        }
+
+        private static bool ShouldForceLoseHousing(
+            HouseholdHousingProfile profile,
+            CityHouseholdEconomyProfile economyProfile,
+            CityPopulationHouseholdFinancialStressState? financialStressState,
+            DateOnly currentDate)
+        {
+            if (!IsRecentFinancialStress(financialStressState, currentDate))
+                return false;
+
+            if (financialStressState!.OverdueRentCount <= 0)
+                return false;
+
+            if (financialStressState.DistressScore < 0.58m)
+                return false;
+
+            if (economyProfile.StrainScore < 0.72d)
+                return false;
+
+            if (economyProfile.CashReserveAmount > 0m && economyProfile.DailyNetAmount >= 0m)
+                return false;
+
+            if (profile.HasInfant && financialStressState.DistressScore < 0.80m)
+                return false;
+
+            return true;
         }
 
         private static double ResolveFindHousingChancePerReview(
