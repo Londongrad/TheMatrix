@@ -12,7 +12,7 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
         ICityBusinessRepository businessRepository,
         ICityBusinessLedgerRepository businessLedgerRepository)
     {
-        public async Task<CityHouseholdAccountLedgerEntryDto> ChargeAsync(
+        public async Task<HouseholdObligationChargeAttemptResult> TryChargeAsync(
             CityHouseholdObligation obligation,
             string? description,
             CancellationToken cancellationToken)
@@ -29,6 +29,11 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
 
             householdAccount.EnsureCompatibleUnit(obligation.GetUnitProfile());
             providerBusiness.EnsureCompatibleUnit(obligation.GetUnitProfile());
+
+            if (obligation.ChargeAmount.Amount > householdAccount.Balance.Amount)
+            {
+                return HouseholdObligationChargeAttemptResult.Failure("InsufficientBalance");
+            }
 
             householdAccount.RecordObligationCharge(obligation.ChargeAmount);
             providerBusiness.RecordObligationRevenue(obligation.ChargeAmount, obligation.TaxAmount);
@@ -73,19 +78,36 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
             await householdLedgerRepository.AddAsync(householdEntry, cancellationToken);
             await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
 
-            return new CityHouseholdAccountLedgerEntryDto(
-                EntryId: householdEntry.Id,
-                OccurredAtUtc: householdEntry.OccurredAtUtc.ToString("O"),
-                UnitKind: householdAccount.UnitKind.ToString(),
-                UnitCode: householdAccount.UnitCode,
-                UnitDisplayName: householdAccount.UnitDisplayName,
-                UnitSymbol: householdAccount.UnitSymbol,
-                Kind: householdEntry.Kind.ToString(),
-                Amount: householdEntry.Amount.Amount,
-                Title: householdEntry.Title,
-                Description: householdEntry.Description,
-                Source: householdEntry.Source.ToString(),
-                ReferenceCode: householdEntry.ReferenceCode);
+            return HouseholdObligationChargeAttemptResult.Success(
+                new CityHouseholdAccountLedgerEntryDto(
+                    EntryId: householdEntry.Id,
+                    OccurredAtUtc: householdEntry.OccurredAtUtc.ToString("O"),
+                    UnitKind: householdAccount.UnitKind.ToString(),
+                    UnitCode: householdAccount.UnitCode,
+                    UnitDisplayName: householdAccount.UnitDisplayName,
+                    UnitSymbol: householdAccount.UnitSymbol,
+                    Kind: householdEntry.Kind.ToString(),
+                    Amount: householdEntry.Amount.Amount,
+                    Title: householdEntry.Title,
+                    Description: householdEntry.Description,
+                    Source: householdEntry.Source.ToString(),
+                    ReferenceCode: householdEntry.ReferenceCode));
+        }
+
+        public async Task<CityHouseholdAccountLedgerEntryDto> ChargeAsync(
+            CityHouseholdObligation obligation,
+            string? description,
+            CancellationToken cancellationToken)
+        {
+            HouseholdObligationChargeAttemptResult result = await TryChargeAsync(
+                obligation: obligation,
+                description: description,
+                cancellationToken: cancellationToken);
+
+            return result.Succeeded
+                ? result.LedgerEntry!
+                : throw new InvalidOperationException(
+                    $"Could not charge obligation '{obligation.Id}' because '{result.FailureCode}'.");
         }
     }
 }
