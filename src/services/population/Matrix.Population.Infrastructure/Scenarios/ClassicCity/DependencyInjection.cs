@@ -32,6 +32,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
 
         public static void AddClassicCityScenarioConsumers(this IBusRegistrationConfigurator configurator)
         {
+            configurator.AddConsumer<ClassicCityHouseholdFinancialStressConsumer,
+                ClassicCityHouseholdFinancialStressConsumerDefinition>();
             configurator.AddConsumer<CityArchivedConsumer, CityArchivedConsumerDefinition>();
             configurator.AddConsumer<CityDeletedConsumer, CityDeletedConsumerDefinition>();
             configurator.AddConsumer<CityEnvironmentChangedConsumer, CityEnvironmentChangedConsumerDefinition>();
