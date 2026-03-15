@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -11,6 +12,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person resident,
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
+            CityPopulationHouseholdFinancialStressState? financialStressState,
             DateOnly previousDate,
             DateOnly currentDate)
         {
@@ -38,6 +40,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 resident: resident,
                 householdResidents: activeResidents,
                 housingStatus: housingStatus,
+                financialStressState: financialStressState,
                 currentDate: currentDate)
                .Scale(Math.Clamp(reviewWindows, 1, 3));
 
@@ -68,6 +71,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person resident,
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
+            CityPopulationHouseholdFinancialStressState? financialStressState,
             DateOnly currentDate)
         {
             int householdSize = householdResidents.Count;
@@ -150,6 +154,31 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 happinessDelta -= 1;
             }
 
+            if (IsRecentFinancialStress(financialStressState, currentDate))
+            {
+                decimal financialStressScore = financialStressState!.DistressScore;
+
+                if (financialStressScore >= 0.35m)
+                    happinessDelta -= 1;
+
+                if (financialStressScore >= 0.60m)
+                    stressDelta += 2;
+                else if (financialStressScore > 0m)
+                    stressDelta += 1;
+
+                if (financialStressState.OverdueRentCount > 0)
+                {
+                    happinessDelta -= 1;
+                    stressDelta += 1;
+                }
+
+                if (financialStressState.OverdueUtilityCount > 0)
+                {
+                    energyDelta -= 1;
+                    stressDelta += 1;
+                }
+            }
+
             return new HouseholdPressureEffect(
                 HappinessDelta: happinessDelta,
                 EnergyDelta: energyDelta,
@@ -162,6 +191,17 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate)
         {
             return Math.Clamp(currentDate.DayNumber - previousDate.DayNumber, 0, 3);
+        }
+
+        private static bool IsRecentFinancialStress(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            if (state is null)
+                return false;
+
+            DateOnly lastEvaluatedDate = DateOnly.FromDateTime(state.LastEvaluatedAtUtc.UtcDateTime);
+            return currentDate.DayNumber - lastEvaluatedDate.DayNumber <= 45;
         }
 
         private sealed record HouseholdPressureEffect(

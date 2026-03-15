@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.ValueObjects;
@@ -13,12 +14,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<HouseholdId, Household> households,
             IReadOnlyCollection<Person> residents,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
+            IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressStates,
             DateOnly previousDate,
             DateOnly currentDate)
         {
             ArgumentNullException.ThrowIfNull(households);
             ArgumentNullException.ThrowIfNull(residents);
             ArgumentNullException.ThrowIfNull(housingStatuses);
+            ArgumentNullException.ThrowIfNull(financialStressStates);
 
             if (currentDate <= previousDate || households.Count == 0 || residents.Count == 0 || housingStatuses.Count == 0)
                 return [];
@@ -52,6 +55,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     householdId: householdId,
                     members: members,
                     currentDate: currentDate);
+                financialStressStates.TryGetValue(householdId, out CityPopulationHouseholdFinancialStressState? financialStressState);
                 CityHouseholdEconomyProfile economyProfile = householdEconomyPolicy.Build(
                     household: household,
                     householdResidents: members,
@@ -60,13 +64,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 switch (housingStatus)
                 {
-                    case HousingStatus.Homeless when ShouldFindHousing(profile, economyProfile, currentDate, reviewWindows):
+                    case HousingStatus.Homeless when ShouldFindHousing(profile, economyProfile, financialStressState, currentDate, reviewWindows):
                         decisions.Add(new CityHousingAutonomyDecision(
                             Type: CityHousingAutonomyDecisionType.FindHousing,
                             HouseholdId: householdId));
                         break;
 
-                    case HousingStatus.Housed when ShouldLoseHousing(profile, economyProfile, currentDate, reviewWindows):
+                    case HousingStatus.Housed when ShouldLoseHousing(profile, economyProfile, financialStressState, currentDate, reviewWindows):
                         decisions.Add(new CityHousingAutonomyDecision(
                             Type: CityHousingAutonomyDecisionType.LoseHousing,
                             HouseholdId: householdId));
@@ -153,13 +157,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static bool ShouldFindHousing(
             HouseholdHousingProfile profile,
             CityHouseholdEconomyProfile economyProfile,
+            CityPopulationHouseholdFinancialStressState? financialStressState,
             DateOnly currentDate,
             int reviewWindows)
         {
             if (profile.AdultCount + profile.SeniorCount <= 0)
                 return false;
 
-            double chancePerReview = ResolveFindHousingChancePerReview(profile, economyProfile);
+            double chancePerReview = ResolveFindHousingChancePerReview(
+                profile: profile,
+                economyProfile: economyProfile,
+                financialStressState: financialStressState,
+                currentDate: currentDate);
             return RollOccurs(
                 householdId: profile.HouseholdId,
                 currentDate: currentDate,
@@ -171,10 +180,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static bool ShouldLoseHousing(
             HouseholdHousingProfile profile,
             CityHouseholdEconomyProfile economyProfile,
+            CityPopulationHouseholdFinancialStressState? financialStressState,
             DateOnly currentDate,
             int reviewWindows)
         {
-            double chancePerReview = ResolveLoseHousingChancePerReview(profile, economyProfile);
+            double chancePerReview = ResolveLoseHousingChancePerReview(
+                profile: profile,
+                economyProfile: economyProfile,
+                financialStressState: financialStressState,
+                currentDate: currentDate);
             return RollOccurs(
                 householdId: profile.HouseholdId,
                 currentDate: currentDate,
@@ -185,7 +199,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static double ResolveFindHousingChancePerReview(
             HouseholdHousingProfile profile,
-            CityHouseholdEconomyProfile economyProfile)
+            CityHouseholdEconomyProfile economyProfile,
+            CityPopulationHouseholdFinancialStressState? financialStressState,
+            DateOnly currentDate)
         {
             double averageHealth = Normalize(profile.AverageHealth);
             double averageHappiness = Normalize(profile.AverageHappiness);
@@ -212,9 +228,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             - (illnessBurden * 0.012d)
                             - (Math.Max(0, profile.Size - 3) * 0.003d);
 
+            double financialStressScore = ResolveRecentFinancialStressScore(financialStressState, currentDate);
+            int overdueRentCount = ResolveRecentOverdueRentCount(financialStressState, currentDate);
+            int overdueUtilityCount = ResolveRecentOverdueUtilityCount(financialStressState, currentDate);
+            decimal overdueAmount = ResolveRecentOverdueAmount(financialStressState, currentDate);
+
             chance += Math.Max(0d, economyProfile.EconomicBalance) * 0.018d;
             chance += economyProfile.GrowthReadinessScore * 0.012d;
             chance -= economyProfile.StrainScore * 0.010d;
+            chance -= financialStressScore * 0.026d;
+            chance -= Math.Min(0.018d, overdueRentCount * 0.008d);
+            chance -= Math.Min(0.010d, overdueUtilityCount * 0.004d);
+            chance -= Math.Min(0.018d, (double)(overdueAmount / 2_500m));
 
             if (profile.EmployedAdults == 0 && profile.StudentResidents == 0)
                 chance *= 0.45d;
@@ -224,7 +249,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static double ResolveLoseHousingChancePerReview(
             HouseholdHousingProfile profile,
-            CityHouseholdEconomyProfile economyProfile)
+            CityHouseholdEconomyProfile economyProfile,
+            CityPopulationHouseholdFinancialStressState? financialStressState,
+            DateOnly currentDate)
         {
             double lowHealth = 1d - Normalize(profile.AverageHealth);
             double lowHappiness = 1d - Normalize(profile.AverageHappiness);
@@ -248,8 +275,17 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             - (profile.ChildCount * 0.003d)
                             - (profile.EmployedAdults * 0.004d);
 
+            double financialStressScore = ResolveRecentFinancialStressScore(financialStressState, currentDate);
+            int overdueRentCount = ResolveRecentOverdueRentCount(financialStressState, currentDate);
+            int overdueUtilityCount = ResolveRecentOverdueUtilityCount(financialStressState, currentDate);
+            decimal overdueAmount = ResolveRecentOverdueAmount(financialStressState, currentDate);
+
             chance += economyProfile.StrainScore * 0.016d;
             chance -= Math.Max(0d, economyProfile.EconomicBalance) * 0.010d;
+            chance += financialStressScore * 0.034d;
+            chance += Math.Min(0.020d, overdueRentCount * 0.010d);
+            chance += Math.Min(0.012d, overdueUtilityCount * 0.005d);
+            chance += Math.Min(0.018d, (double)(overdueAmount / 1_800m));
 
             if (profile.HasInfant)
                 chance *= 0.60d;
@@ -286,6 +322,53 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static double Normalize(double value)
         {
             return Math.Clamp(value / 100d, 0d, 1d);
+        }
+
+        private static double ResolveRecentFinancialStressScore(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return !IsRecentFinancialStress(state, currentDate)
+                ? 0d
+                : (double)state!.DistressScore;
+        }
+
+        private static int ResolveRecentOverdueRentCount(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(state, currentDate)
+                ? state!.OverdueRentCount
+                : 0;
+        }
+
+        private static int ResolveRecentOverdueUtilityCount(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(state, currentDate)
+                ? state!.OverdueUtilityCount
+                : 0;
+        }
+
+        private static decimal ResolveRecentOverdueAmount(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(state, currentDate)
+                ? state!.TotalOverdueAmount
+                : 0m;
+        }
+
+        private static bool IsRecentFinancialStress(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            if (state is null)
+                return false;
+
+            DateOnly lastEvaluatedDate = DateOnly.FromDateTime(state.LastEvaluatedAtUtc.UtcDateTime);
+            return currentDate.DayNumber - lastEvaluatedDate.DayNumber <= 45;
         }
 
         private static int GetStableInt(
