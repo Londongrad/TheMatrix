@@ -18,6 +18,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityPopulationDashboardReadRepository, CityPopulationDashboardReadRepository>();
             services.AddScoped<ICityPopulationDeletionStateRepository, CityPopulationDeletionStateRepository>();
             services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
+            services.AddScoped<ICityPopulationHouseholdFinancialStressStateRepository,
+                CityPopulationHouseholdFinancialStressStateRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
             services.AddScoped<ICityPopulationSummaryProjectionService, CityPopulationSummaryProjectionService>();
             services.AddScoped<ICityPopulationSummaryReadRepository, CityPopulationSummaryReadRepository>();
