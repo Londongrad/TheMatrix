@@ -24,7 +24,7 @@ namespace Matrix.Economy.Api.Configurations
             services.AddAuthorization();
 
             services.AddApplication();
-            services.AddInfrastructure(configuration);
+            services.AddInfrastructure(configuration, builder.Environment);
         }
     }
 }

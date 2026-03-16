@@ -8,7 +8,9 @@ using Matrix.Economy.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Matrix.Economy.Infrastructure
 {
@@ -16,14 +18,28 @@ namespace Matrix.Economy.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(
             this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IHostEnvironment environment)
         {
             var connectionString = configuration.GetConnectionString("EconomyDb")
                 ?? throw new InvalidOperationException("Connection string 'EconomyDb' is not configured.");
+            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+
+            if (environment.IsDevelopment())
+            {
+                connectionStringBuilder.IncludeErrorDetail = true;
+            }
+
+            string effectiveConnectionString = connectionStringBuilder.ConnectionString;
 
             services.AddDbContext<EconomyDbContext>(options =>
             {
-                options.UseNpgsql(connectionString);
+                options.UseNpgsql(effectiveConnectionString);
+
+                if (environment.IsDevelopment())
+                {
+                    options.EnableDetailedErrors();
+                }
             });
 
             services.AddOptions<RabbitMqOptions>()
