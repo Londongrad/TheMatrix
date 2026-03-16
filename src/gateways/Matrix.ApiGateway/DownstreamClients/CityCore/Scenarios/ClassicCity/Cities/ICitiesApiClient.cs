@@ -47,9 +47,19 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cit
             CompleteCityPopulationBootstrapRequest request,
             CancellationToken cancellationToken = default);
 
+        Task CompleteEconomyBootstrapAsync(
+            Guid cityId,
+            CompleteCityEconomyBootstrapRequest request,
+            CancellationToken cancellationToken = default);
+
         Task FailPopulationBootstrapAsync(
             Guid cityId,
             FailCityPopulationBootstrapRequest request,
+            CancellationToken cancellationToken = default);
+
+        Task FailEconomyBootstrapAsync(
+            Guid cityId,
+            FailCityEconomyBootstrapRequest request,
             CancellationToken cancellationToken = default);
 
         Task UpdateEnvironmentAsync(

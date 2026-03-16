@@ -21,7 +21,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
         Task<CityProvisioningView> ProvisionCreatedCityAsync(
             Guid cityId,
             string simulationKind,
-            Guid operationId,
+            Guid populationOperationId,
+            Guid economyOperationId,
             CancellationToken cancellationToken = default,
             int? plannedPeopleCountOverride = null);
     }

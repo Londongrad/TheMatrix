@@ -51,6 +51,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private const string PopulationBootstrapStatusPending = "Pending";
         private const string PopulationBootstrapStatusCompleted = "Completed";
         private const string PopulationBootstrapStatusFailed = "Failed";
+        private const string EconomyBootstrapStatusPending = "Pending";
+        private const string EconomyBootstrapStatusCompleted = "Completed";
+        private const string EconomyBootstrapStatusFailed = "Failed";
         private readonly ClassicCitySetupSessionOptions _options = options.Value;
 
         private static readonly string[] MutableStatuses =
@@ -744,25 +747,42 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     PlannedPeopleCount: plannedPeopleCount,
                     ResidentialCapacity: null,
                     Summary: null,
-                    FailureCode: null));
+                    FailureCode: null),
+                EconomyBootstrap: new CityEconomyBootstrapView(
+                    OperationId: created.EconomyBootstrapOperationId,
+                    Status: EconomyBootstrapStatusPending,
+                    FailureCode: null,
+                    UnitKind: null,
+                    UnitCode: null,
+                    UnitDisplayName: null,
+                    UnitSymbol: null));
         }
 
         private static CityProvisioningView BuildFailedProvisioningFromPending(
             Guid cityId,
             string simulationKind,
-            Guid operationId,
+            Guid populationOperationId,
+            Guid economyOperationId,
             string failureCode)
         {
             return new CityProvisioningView(
                 CityId: cityId,
                 SimulationKind: simulationKind,
                 PopulationBootstrap: new CityPopulationBootstrapView(
-                    OperationId: operationId,
-                    Status: "Failed",
+                    OperationId: populationOperationId,
+                    Status: PopulationBootstrapStatusPending,
                     PlannedPeopleCount: null,
                     ResidentialCapacity: null,
                     Summary: null,
-                    FailureCode: failureCode));
+                    FailureCode: null),
+                EconomyBootstrap: new CityEconomyBootstrapView(
+                    OperationId: economyOperationId,
+                    Status: EconomyBootstrapStatusFailed,
+                    FailureCode: failureCode,
+                    UnitKind: null,
+                    UnitCode: null,
+                    UnitDisplayName: null,
+                    UnitSymbol: null));
         }
 
         private async Task ProcessLaunchCoreAsync(
@@ -835,7 +855,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     action: () => provisioningService.ProvisionCreatedCityAsync(
                         cityId: created.CityId,
                         simulationKind: created.SimulationKind,
-                        operationId: created.PopulationBootstrapOperationId,
+                        populationOperationId: created.PopulationBootstrapOperationId,
+                        economyOperationId: created.EconomyBootstrapOperationId,
                         cancellationToken: cancellationToken));
 
                 FinalizeFromProvisioning(session, provisioning);
@@ -856,12 +877,13 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 session.Provisioning = BuildFailedProvisioningFromPending(
                     cityId: created.CityId,
                     simulationKind: created.SimulationKind,
-                    operationId: created.PopulationBootstrapOperationId,
+                    populationOperationId: created.PopulationBootstrapOperationId,
+                    economyOperationId: created.EconomyBootstrapOperationId,
                     failureCode: ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError);
                 session.FailureCode = ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError;
                 session.FailureMessage = BuildSafeFailureMessage(
                     exception: ex,
-                    fallback: "Population bootstrap finished with an unexpected orchestration error.");
+                    fallback: "City provisioning finished with an unexpected orchestration error.");
                 session.CompletedAtUtc = DateTimeOffset.UtcNow;
                 session.UpdatedAtUtc = session.CompletedAtUtc.Value;
 
@@ -921,8 +943,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             ClassicCitySetupSessionState session,
             CityProvisioningStatusView provisioningStatus)
         {
-            string bootstrapStatus = DetermineBootstrapStatus(provisioningStatus);
+            string populationBootstrapStatus = DeterminePopulationBootstrapStatus(provisioningStatus);
+            string economyBootstrapStatus = DetermineEconomyBootstrapStatus(provisioningStatus);
             CityPopulationBootstrapView? existingBootstrap = session.Provisioning?.PopulationBootstrap;
+            CityEconomyBootstrapView? existingEconomyBootstrap = session.Provisioning?.EconomyBootstrap;
             DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
             string simulationKind = session.SimulationKind ??
                                     session.LaunchRequest?.SimulationKind ??
@@ -935,33 +959,56 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 SimulationKind: simulationKind,
                 PopulationBootstrap: new CityPopulationBootstrapView(
                     OperationId: provisioningStatus.PopulationBootstrapOperationId,
-                    Status: bootstrapStatus,
+                    Status: populationBootstrapStatus,
                     PlannedPeopleCount: existingBootstrap?.PlannedPeopleCount ?? session.LaunchRequest?.PlannedPeopleCount,
                     ResidentialCapacity: existingBootstrap?.ResidentialCapacity,
                     Summary: existingBootstrap?.Summary,
-                    FailureCode: string.Equals(bootstrapStatus, PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase)
+                    FailureCode: string.Equals(populationBootstrapStatus, PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase)
                         ? provisioningStatus.PopulationBootstrapFailureCode ?? existingBootstrap?.FailureCode
-                        : null));
+                        : null),
+                EconomyBootstrap: new CityEconomyBootstrapView(
+                    OperationId: provisioningStatus.EconomyBootstrapOperationId,
+                    Status: economyBootstrapStatus,
+                    FailureCode: string.Equals(economyBootstrapStatus, EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase)
+                        ? provisioningStatus.EconomyBootstrapFailureCode ?? existingEconomyBootstrap?.FailureCode
+                        : null,
+                    UnitKind: existingEconomyBootstrap?.UnitKind,
+                    UnitCode: existingEconomyBootstrap?.UnitCode,
+                    UnitDisplayName: existingEconomyBootstrap?.UnitDisplayName,
+                    UnitSymbol: existingEconomyBootstrap?.UnitSymbol));
             session.UpdatedAtUtc = updatedAtUtc;
 
-            if (string.Equals(bootstrapStatus, PopulationBootstrapStatusCompleted, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(populationBootstrapStatus, PopulationBootstrapStatusCompleted, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(economyBootstrapStatus, EconomyBootstrapStatusCompleted, StringComparison.OrdinalIgnoreCase))
             {
                 session.Status = ClassicCitySetupSessionStatuses.Ready;
                 session.FailureCode = null;
                 session.FailureMessage = null;
-                session.CompletedAtUtc = provisioningStatus.PopulationBootstrapCompletedAtUtc ?? updatedAtUtc;
+                session.CompletedAtUtc =
+                    provisioningStatus.EconomyBootstrapCompletedAtUtc ??
+                    provisioningStatus.PopulationBootstrapCompletedAtUtc ??
+                    updatedAtUtc;
                 return;
             }
 
-            if (string.Equals(bootstrapStatus, PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(populationBootstrapStatus, PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(economyBootstrapStatus, EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase))
             {
                 session.Status = ClassicCitySetupSessionStatuses.ProvisioningFailed;
-                session.FailureCode =
-                    provisioningStatus.PopulationBootstrapFailureCode ??
-                    existingBootstrap?.FailureCode ??
-                    ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError;
-                session.FailureMessage = "Population bootstrap failed and requires operator review.";
-                session.CompletedAtUtc = provisioningStatus.PopulationBootstrapFailedAtUtc ?? updatedAtUtc;
+                bool economyFailed = string.Equals(economyBootstrapStatus, EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase);
+                session.FailureCode = economyFailed
+                    ? provisioningStatus.EconomyBootstrapFailureCode ??
+                      existingEconomyBootstrap?.FailureCode ??
+                      ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError
+                    : provisioningStatus.PopulationBootstrapFailureCode ??
+                      existingBootstrap?.FailureCode ??
+                      ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError;
+                session.FailureMessage = economyFailed
+                    ? "Economy bootstrap failed and requires operator review."
+                    : "Population bootstrap failed and requires operator review.";
+                session.CompletedAtUtc = economyFailed
+                    ? provisioningStatus.EconomyBootstrapFailedAtUtc ?? updatedAtUtc
+                    : provisioningStatus.PopulationBootstrapFailedAtUtc ?? updatedAtUtc;
                 return;
             }
 
@@ -972,7 +1019,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             session.StartedAtUtc ??= updatedAtUtc;
         }
 
-        private static string DetermineBootstrapStatus(CityProvisioningStatusView provisioningStatus)
+        private static string DeterminePopulationBootstrapStatus(CityProvisioningStatusView provisioningStatus)
         {
             if (provisioningStatus.PopulationBootstrapFailedAtUtc.HasValue ||
                 string.Equals(
@@ -997,6 +1044,34 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             }
 
             return PopulationBootstrapStatusPending;
+        }
+
+        private static string DetermineEconomyBootstrapStatus(CityProvisioningStatusView provisioningStatus)
+        {
+            if (provisioningStatus.EconomyBootstrapFailedAtUtc.HasValue ||
+                string.Equals(
+                    provisioningStatus.Status,
+                    "ProvisioningFailed",
+                    StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrWhiteSpace(provisioningStatus.EconomyBootstrapFailureCode))
+            {
+                return EconomyBootstrapStatusFailed;
+            }
+
+            if (provisioningStatus.EconomyBootstrapCompletedAtUtc.HasValue ||
+                string.Equals(
+                    provisioningStatus.Status,
+                    "Active",
+                    StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    provisioningStatus.Status,
+                    "Archived",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return EconomyBootstrapStatusCompleted;
+            }
+
+            return EconomyBootstrapStatusPending;
         }
 
         private static bool ShouldStopTracking(string status)
@@ -1058,16 +1133,24 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             ClassicCitySetupSessionState session,
             CityProvisioningView provisioning)
         {
-            string bootstrapStatus = provisioning.PopulationBootstrap.Status.Trim();
+            string populationBootstrapStatus = provisioning.PopulationBootstrap.Status.Trim();
+            string economyBootstrapStatus = provisioning.EconomyBootstrap.Status.Trim();
 
             session.CityId = provisioning.CityId;
             session.SimulationKind = provisioning.SimulationKind;
             session.Provisioning = provisioning;
-            session.FailureCode = provisioning.PopulationBootstrap.FailureCode;
-            session.FailureMessage = bootstrapStatus.Equals("Failed", StringComparison.OrdinalIgnoreCase)
-                ? "Population bootstrap failed and requires operator review."
+            bool economyFailed = economyBootstrapStatus.Equals(EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase);
+            bool populationFailed = populationBootstrapStatus.Equals(PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase);
+
+            session.FailureCode = economyFailed
+                ? provisioning.EconomyBootstrap.FailureCode
+                : provisioning.PopulationBootstrap.FailureCode;
+            session.FailureMessage = economyFailed
+                ? "Economy bootstrap failed and requires operator review."
+                : populationFailed
+                    ? "Population bootstrap failed and requires operator review."
                 : null;
-            session.Status = bootstrapStatus.Equals("Failed", StringComparison.OrdinalIgnoreCase)
+            session.Status = economyFailed || populationFailed
                 ? ClassicCitySetupSessionStatuses.ProvisioningFailed
                 : ClassicCitySetupSessionStatuses.Ready;
             session.CompletedAtUtc = DateTimeOffset.UtcNow;

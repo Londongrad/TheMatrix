@@ -176,12 +176,46 @@ namespace Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cit
                 cancellationToken: cancellationToken);
         }
 
+        public async Task CompleteEconomyBootstrapAsync(
+            Guid cityId,
+            CompleteCityEconomyBootstrapRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/economy-bootstrap/complete";
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
+        }
+
         public async Task FailPopulationBootstrapAsync(
             Guid cityId,
             FailCityPopulationBootstrapRequest request,
             CancellationToken cancellationToken = default)
         {
             string url = $"{CitiesEndpoint}/{cityId}/population-bootstrap/fail";
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            await response.EnsureSuccessOrThrowDownstreamAsync(
+                serviceName: DownstreamServiceNames.CityCore,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task FailEconomyBootstrapAsync(
+            Guid cityId,
+            FailCityEconomyBootstrapRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/economy-bootstrap/fail";
 
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 requestUri: url,

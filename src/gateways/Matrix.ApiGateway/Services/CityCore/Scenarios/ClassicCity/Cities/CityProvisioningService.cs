@@ -6,6 +6,8 @@ using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
+using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities;
@@ -21,6 +23,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
     public sealed class CityProvisioningService(
         ICitiesApiClient citiesApiClient,
         ISimulationApiClient simulationApiClient,
+        IEconomyApiClient economyApiClient,
         IPopulationApiClient populationApiClient,
         ILogger<CityProvisioningService> logger) : ICityProvisioningService
     {
@@ -39,7 +42,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             return await ProvisionCreatedCityAsync(
                 cityId: created.CityId,
                 simulationKind: created.SimulationKind,
-                operationId: created.PopulationBootstrapOperationId,
+                populationOperationId: created.PopulationBootstrapOperationId,
+                economyOperationId: created.EconomyBootstrapOperationId,
                 cancellationToken: cancellationToken);
         }
 
@@ -85,7 +89,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             return await ProvisionCreatedCityAsync(
                 cityId: restarted.CityId,
                 simulationKind: restarted.SimulationKind,
-                operationId: restarted.PopulationBootstrapOperationId,
+                populationOperationId: restarted.PopulationBootstrapOperationId,
+                economyOperationId: restarted.EconomyBootstrapOperationId,
                 plannedPeopleCountOverride: plannedPeopleCountOverride,
                 cancellationToken: cancellationToken);
         }
@@ -93,10 +98,37 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
         public async Task<CityProvisioningView> ProvisionCreatedCityAsync(
             Guid cityId,
             string simulationKind,
-            Guid operationId,
+            Guid populationOperationId,
+            Guid economyOperationId,
             CancellationToken cancellationToken = default,
             int? plannedPeopleCountOverride = null)
         {
+            CityEconomyBootstrapView economyBootstrap = await BootstrapEconomyAsync(
+                cityId: cityId,
+                simulationKind: simulationKind,
+                operationId: economyOperationId,
+                cancellationToken: cancellationToken);
+
+            await ReportEconomyBootstrapOutcomeAsync(
+                cityId: cityId,
+                bootstrap: economyBootstrap,
+                cancellationToken: cancellationToken);
+
+            if (!string.Equals(economyBootstrap.Status, EconomyBootstrapStatuses.Completed, StringComparison.Ordinal))
+            {
+                return new CityProvisioningView(
+                    CityId: cityId,
+                    SimulationKind: simulationKind,
+                    PopulationBootstrap: new CityPopulationBootstrapView(
+                        OperationId: populationOperationId,
+                        Status: PopulationBootstrapStatuses.Pending,
+                        PlannedPeopleCount: plannedPeopleCountOverride,
+                        ResidentialCapacity: null,
+                        Summary: null,
+                        FailureCode: null),
+                    EconomyBootstrap: economyBootstrap);
+            }
+
             bool supportsAutomaticPopulationBootstrap = await SupportsAutomaticPopulationBootstrapAsync(
                 simulationKind: simulationKind,
                 cancellationToken: cancellationToken);
@@ -106,16 +138,17 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     CityId: cityId,
                     SimulationKind: simulationKind,
                     PopulationBootstrap: new CityPopulationBootstrapView(
-                        OperationId: operationId,
+                        OperationId: populationOperationId,
                         Status: PopulationBootstrapStatuses.Skipped,
                         PlannedPeopleCount: null,
                         ResidentialCapacity: null,
                         Summary: null,
-                        FailureCode: null));
+                        FailureCode: null),
+                    EconomyBootstrap: economyBootstrap);
 
             CityPopulationBootstrapView bootstrap = await BootstrapPopulationAsync(
                 cityId: cityId,
-                operationId: operationId,
+                operationId: populationOperationId,
                 plannedPeopleCountOverride: plannedPeopleCountOverride,
                 cancellationToken: cancellationToken);
 
@@ -127,7 +160,60 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             return new CityProvisioningView(
                 CityId: cityId,
                 SimulationKind: simulationKind,
-                PopulationBootstrap: bootstrap);
+                PopulationBootstrap: bootstrap,
+                EconomyBootstrap: economyBootstrap);
+        }
+
+        private async Task<CityEconomyBootstrapView> BootstrapEconomyAsync(
+            Guid cityId,
+            string simulationKind,
+            Guid operationId,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                CityView city = await citiesApiClient.GetCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+
+                CityEconomyBootstrapResultDto result = await economyApiClient.InitializeCityEconomyAsync(
+                    cityId: cityId,
+                    request: new InitializeCityEconomyRequestDto(
+                        SimulationKind: simulationKind,
+                        EconomyProfile: city.EconomyProfile,
+                        CreatedAtUtc: city.CreatedAtUtc),
+                    cancellationToken: cancellationToken);
+
+                return new CityEconomyBootstrapView(
+                    OperationId: operationId,
+                    Status: EconomyBootstrapStatuses.Completed,
+                    FailureCode: null,
+                    UnitKind: result.UnitKind,
+                    UnitCode: result.UnitCode,
+                    UnitDisplayName: result.UnitDisplayName,
+                    UnitSymbol: result.UnitSymbol);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                return BuildFailedEconomyBootstrap(
+                    operationId: operationId,
+                    failureCode: EconomyBootstrapFailureCodes.EconomyTimeout);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Automatic economy bootstrap failed for cityId={CityId}.",
+                    cityId);
+
+                return BuildFailedEconomyBootstrap(
+                    operationId: operationId,
+                    failureCode: DetermineEconomyFailureCode(ex));
+            }
         }
 
         private async Task<CityPopulationBootstrapView> BootstrapPopulationAsync(
@@ -302,6 +388,35 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 default:
                     throw new InvalidOperationException(
                         $"Unsupported population bootstrap status '{bootstrap.Status}'.");
+            }
+        }
+
+        private async Task ReportEconomyBootstrapOutcomeAsync(
+            Guid cityId,
+            CityEconomyBootstrapView bootstrap,
+            CancellationToken cancellationToken)
+        {
+            switch (bootstrap.Status)
+            {
+                case EconomyBootstrapStatuses.Completed:
+                    await citiesApiClient.CompleteEconomyBootstrapAsync(
+                        cityId: cityId,
+                        request: new CompleteCityEconomyBootstrapRequest(OperationId: bootstrap.OperationId),
+                        cancellationToken: cancellationToken);
+                    break;
+
+                case EconomyBootstrapStatuses.Failed:
+                    await citiesApiClient.FailEconomyBootstrapAsync(
+                        cityId: cityId,
+                        request: new FailCityEconomyBootstrapRequest(
+                            OperationId: bootstrap.OperationId,
+                            FailureCode: bootstrap.FailureCode ?? EconomyBootstrapFailureCodes.EconomyUnexpectedError),
+                        cancellationToken: cancellationToken);
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        $"Unsupported economy bootstrap status '{bootstrap.Status}'.");
             }
         }
 
@@ -732,6 +847,48 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             };
         }
 
+        private static string DetermineEconomyFailureCode(Exception exception)
+        {
+            return exception switch
+            {
+                DownstreamServiceException downstreamException when
+                    TryReadDownstreamErrorCode(
+                        exception: downstreamException,
+                        errorCode: out string? errorCode) &&
+                    errorCode is "Gateway.InvalidDownstreamResponse" or "Gateway.InvalidDownstreamJson" =>
+                    EconomyBootstrapFailureCodes.EconomyResponseInvalid,
+                DownstreamServiceException downstreamException when
+                    downstreamException.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity =>
+                    EconomyBootstrapFailureCodes.EconomyValidationFailed,
+                DownstreamServiceException downstreamException when downstreamException.StatusCode == HttpStatusCode.Conflict =>
+                    EconomyBootstrapFailureCodes.EconomyConflict,
+                DownstreamServiceException downstreamException when downstreamException.StatusCode == HttpStatusCode.NotFound =>
+                    EconomyBootstrapFailureCodes.EconomyDependencyNotFound,
+                DownstreamServiceException downstreamException when
+                    downstreamException.StatusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout =>
+                    EconomyBootstrapFailureCodes.EconomyTimeout,
+                DownstreamServiceException downstreamException when (int)downstreamException.StatusCode >= 500 =>
+                    EconomyBootstrapFailureCodes.EconomyServiceUnavailable,
+                HttpRequestException => EconomyBootstrapFailureCodes.EconomyTransportError,
+                OperationCanceledException => EconomyBootstrapFailureCodes.EconomyTimeout,
+                _ => EconomyBootstrapFailureCodes.EconomyUnexpectedError
+            };
+        }
+
+        private static CityEconomyBootstrapView BuildFailedEconomyBootstrap(
+            Guid operationId,
+            string failureCode)
+        {
+            return new CityEconomyBootstrapView(
+                OperationId: operationId,
+                Status: EconomyBootstrapStatuses.Failed,
+                FailureCode: failureCode,
+                UnitKind: null,
+                UnitCode: null,
+                UnitDisplayName: null,
+                UnitSymbol: null);
+        }
+
         private static bool TryReadDownstreamErrorCode(
             DownstreamServiceException exception,
             out string? errorCode)
@@ -787,9 +944,16 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
 
         private static class PopulationBootstrapStatuses
         {
+            public const string Pending = "Pending";
             public const string Completed = "Completed";
             public const string Failed = "Failed";
             public const string Skipped = "Skipped";
+        }
+
+        private static class EconomyBootstrapStatuses
+        {
+            public const string Completed = "Completed";
+            public const string Failed = "Failed";
         }
     }
 }

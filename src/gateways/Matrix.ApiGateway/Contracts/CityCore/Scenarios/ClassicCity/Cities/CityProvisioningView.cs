@@ -3,5 +3,6 @@
     public sealed record CityProvisioningView(
         Guid CityId,
         string SimulationKind,
-        CityPopulationBootstrapView PopulationBootstrap);
+        CityPopulationBootstrapView PopulationBootstrap,
+        CityEconomyBootstrapView EconomyBootstrap);
 }
