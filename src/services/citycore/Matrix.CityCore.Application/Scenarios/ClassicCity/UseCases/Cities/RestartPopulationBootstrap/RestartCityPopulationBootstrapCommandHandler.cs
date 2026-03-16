@@ -21,12 +21,13 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Rest
             if (city is null)
                 return RestartCityPopulationBootstrapResult.NotFound();
 
-            if (city.IsArchived || !city.HasPopulationBootstrapFailure)
+            if (city.IsArchived || city.Status != CityStatus.ProvisioningFailed)
                 return RestartCityPopulationBootstrapResult.NotAllowed();
 
             bool restarted = city.TryRestartPopulationBootstrap(
                 restartedAtUtc: DateTimeOffset.UtcNow,
-                operationId: out Guid operationId);
+                populationOperationId: out Guid populationOperationId,
+                economyOperationId: out Guid economyOperationId);
 
             if (!restarted)
                 return RestartCityPopulationBootstrapResult.NotAllowed();
@@ -34,7 +35,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Rest
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return RestartCityPopulationBootstrapResult.Restarted(
-                operationId: operationId,
+                populationOperationId: populationOperationId,
+                economyOperationId: economyOperationId,
                 simulationKind: city.SimulationKind.ToString());
         }
     }

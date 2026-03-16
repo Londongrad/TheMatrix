@@ -4,7 +4,11 @@ namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views
         Guid CityId,
         string Status,
         Guid PopulationBootstrapOperationId,
+        Guid EconomyBootstrapOperationId,
         string? PopulationBootstrapFailureCode,
+        string? EconomyBootstrapFailureCode,
         DateTimeOffset? PopulationBootstrapCompletedAtUtc,
-        DateTimeOffset? PopulationBootstrapFailedAtUtc);
+        DateTimeOffset? EconomyBootstrapCompletedAtUtc,
+        DateTimeOffset? PopulationBootstrapFailedAtUtc,
+        DateTimeOffset? EconomyBootstrapFailedAtUtc);
 }

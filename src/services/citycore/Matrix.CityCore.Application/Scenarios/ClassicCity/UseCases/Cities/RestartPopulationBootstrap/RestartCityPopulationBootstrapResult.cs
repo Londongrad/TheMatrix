@@ -10,15 +10,18 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Rest
     public sealed record RestartCityPopulationBootstrapResult(
         RestartCityPopulationBootstrapStatus Status,
         Guid? PopulationBootstrapOperationId,
+        Guid? EconomyBootstrapOperationId,
         string? SimulationKind)
     {
         public static RestartCityPopulationBootstrapResult Restarted(
-            Guid operationId,
+            Guid populationOperationId,
+            Guid economyOperationId,
             string simulationKind)
         {
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.Restarted,
-                PopulationBootstrapOperationId: operationId,
+                PopulationBootstrapOperationId: populationOperationId,
+                EconomyBootstrapOperationId: economyOperationId,
                 SimulationKind: simulationKind);
         }
 
@@ -27,6 +30,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Rest
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.NotFound,
                 PopulationBootstrapOperationId: null,
+                EconomyBootstrapOperationId: null,
                 SimulationKind: null);
         }
 
@@ -35,6 +39,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Rest
             return new RestartCityPopulationBootstrapResult(
                 Status: RestartCityPopulationBootstrapStatus.NotAllowed,
                 PopulationBootstrapOperationId: null,
+                EconomyBootstrapOperationId: null,
                 SimulationKind: null);
         }
     }

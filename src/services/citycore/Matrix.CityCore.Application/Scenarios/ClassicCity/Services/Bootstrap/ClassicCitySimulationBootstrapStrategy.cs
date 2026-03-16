@@ -97,6 +97,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap
                 initialWeatherProfile: initialWeatherProfile,
                 provisioningCorrelationId: request.ProvisioningCorrelationId,
                 requiresPopulationBootstrap: true,
+                requiresEconomyBootstrap: true,
                 createdAtUtc: DateTimeOffset.UtcNow);
 
             CityTopologySeed topology = cityTopologyBootstrapFactory.CreateInitial(city);

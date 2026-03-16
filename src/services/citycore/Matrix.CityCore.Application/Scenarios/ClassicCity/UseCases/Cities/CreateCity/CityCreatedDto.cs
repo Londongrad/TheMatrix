@@ -3,5 +3,6 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
     public sealed record CityCreatedDto(
         Guid CityId,
         Guid PopulationBootstrapOperationId,
+        Guid EconomyBootstrapOperationId,
         string SimulationKind);
 }

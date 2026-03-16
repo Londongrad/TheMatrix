@@ -145,14 +145,27 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
             builder.Property(x => x.PopulationBootstrapOperationId)
                .IsRequired();
 
+            builder.Property(x => x.EconomyBootstrapOperationId)
+               .IsRequired();
+
             builder.Property(x => x.PopulationBootstrapCompletedAtUtc)
+               .IsRequired(false);
+
+            builder.Property(x => x.EconomyBootstrapCompletedAtUtc)
                .IsRequired(false);
 
             builder.Property(x => x.PopulationBootstrapFailedAtUtc)
                .IsRequired(false);
 
+            builder.Property(x => x.EconomyBootstrapFailedAtUtc)
+               .IsRequired(false);
+
             builder.Property(x => x.PopulationBootstrapFailureCode)
                .HasMaxLength(City.PopulationBootstrapFailureCodeMaxLength)
+               .IsRequired(false);
+
+            builder.Property(x => x.EconomyBootstrapFailureCode)
+               .HasMaxLength(City.EconomyBootstrapFailureCodeMaxLength)
                .IsRequired(false);
 
             builder.Property(x => x.ArchivedAtUtc)

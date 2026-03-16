@@ -13,6 +13,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
     public sealed class City : AggregateRoot<CityId>
     {
         public const int PopulationBootstrapFailureCodeMaxLength = 128;
+        public const int EconomyBootstrapFailureCodeMaxLength = 128;
 
         private City(
             CityId id,
@@ -26,19 +27,28 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CityStatus status,
             DateTimeOffset createdAtUtc,
             Guid populationBootstrapOperationId,
+            Guid economyBootstrapOperationId,
             DateTimeOffset? populationBootstrapCompletedAtUtc,
+            DateTimeOffset? economyBootstrapCompletedAtUtc,
             DateTimeOffset? populationBootstrapFailedAtUtc,
+            DateTimeOffset? economyBootstrapFailedAtUtc,
             string? populationBootstrapFailureCode,
+            string? economyBootstrapFailureCode,
             DateTimeOffset? archivedAtUtc)
             : base(id)
         {
             EnsureUtc(createdAtUtc);
             EnsureUtc(populationBootstrapCompletedAtUtc);
+            EnsureUtc(economyBootstrapCompletedAtUtc);
             EnsureUtc(populationBootstrapFailedAtUtc);
+            EnsureUtc(economyBootstrapFailedAtUtc);
             EnsureUtc(archivedAtUtc);
             GuardHelper.AgainstEmptyGuid(
                 id: populationBootstrapOperationId,
                 propertyName: nameof(populationBootstrapOperationId));
+            GuardHelper.AgainstEmptyGuid(
+                id: economyBootstrapOperationId,
+                propertyName: nameof(economyBootstrapOperationId));
 
             Name = name;
             SimulationKind = GuardHelper.AgainstInvalidEnum(
@@ -52,9 +62,13 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             Status = status;
             CreatedAtUtc = createdAtUtc;
             PopulationBootstrapOperationId = populationBootstrapOperationId;
+            EconomyBootstrapOperationId = economyBootstrapOperationId;
             PopulationBootstrapCompletedAtUtc = populationBootstrapCompletedAtUtc;
+            EconomyBootstrapCompletedAtUtc = economyBootstrapCompletedAtUtc;
             PopulationBootstrapFailedAtUtc = populationBootstrapFailedAtUtc;
+            EconomyBootstrapFailedAtUtc = economyBootstrapFailedAtUtc;
             PopulationBootstrapFailureCode = populationBootstrapFailureCode;
+            EconomyBootstrapFailureCode = economyBootstrapFailureCode;
             ArchivedAtUtc = archivedAtUtc;
         }
 
@@ -79,15 +93,20 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         public CityStatus Status { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
         public Guid PopulationBootstrapOperationId { get; private set; }
+        public Guid EconomyBootstrapOperationId { get; private set; }
         public DateTimeOffset? PopulationBootstrapCompletedAtUtc { get; private set; }
+        public DateTimeOffset? EconomyBootstrapCompletedAtUtc { get; private set; }
         public DateTimeOffset? PopulationBootstrapFailedAtUtc { get; private set; }
+        public DateTimeOffset? EconomyBootstrapFailedAtUtc { get; private set; }
         public string? PopulationBootstrapFailureCode { get; private set; }
+        public string? EconomyBootstrapFailureCode { get; private set; }
         public DateTimeOffset? ArchivedAtUtc { get; private set; }
 
         public bool IsActive => Status == CityStatus.Active;
         public bool IsArchived => Status == CityStatus.Archived;
         public bool IsProvisioning => Status == CityStatus.Provisioning;
-        public bool HasPopulationBootstrapFailure => Status == CityStatus.ProvisioningFailed;
+        public bool HasPopulationBootstrapFailure => Status == CityStatus.ProvisioningFailed && PopulationBootstrapFailedAtUtc.HasValue;
+        public bool HasEconomyBootstrapFailure => Status == CityStatus.ProvisioningFailed && EconomyBootstrapFailedAtUtc.HasValue;
 
         public static City Create(
             CityName name,
@@ -98,6 +117,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             CityInitialWeatherProfile initialWeatherProfile,
             Guid? provisioningCorrelationId,
             bool requiresPopulationBootstrap,
+            bool requiresEconomyBootstrap,
             DateTimeOffset createdAtUtc)
         {
             EnsureUtc(createdAtUtc);
@@ -130,15 +150,22 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 initialWeatherProfile: initialWeatherProfile,
                 provisioningCorrelationId: provisioningCorrelationId,
                 status: requiresPopulationBootstrap
+                        || requiresEconomyBootstrap
                     ? CityStatus.Provisioning
                     : CityStatus.Active,
                 createdAtUtc: createdAtUtc,
                 populationBootstrapOperationId: Guid.NewGuid(),
+                economyBootstrapOperationId: Guid.NewGuid(),
                 populationBootstrapCompletedAtUtc: requiresPopulationBootstrap
                     ? null
                     : createdAtUtc,
+                economyBootstrapCompletedAtUtc: requiresEconomyBootstrap
+                    ? null
+                    : createdAtUtc,
                 populationBootstrapFailedAtUtc: null,
+                economyBootstrapFailedAtUtc: null,
                 populationBootstrapFailureCode: null,
+                economyBootstrapFailureCode: null,
                 archivedAtUtc: null);
 
             city.AddDomainEvent(
@@ -217,22 +244,59 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             if (operationId != PopulationBootstrapOperationId)
                 return false;
 
+            if (Status == CityStatus.ProvisioningFailed)
+                return false;
+
             if (HasPopulationBootstrapFailure)
                 return false;
 
             if (IsActive)
                 return true;
 
-            Status = CityStatus.Active;
             PopulationBootstrapCompletedAtUtc = completedAtUtc;
             PopulationBootstrapFailedAtUtc = null;
             PopulationBootstrapFailureCode = null;
+            TryActivate();
 
             AddDomainEvent(
                 new CityPopulationBootstrapCompletedDomainEvent(
                     CityId: Id,
                     OperationId: operationId,
                     CompletedAtUtc: completedAtUtc));
+
+            return true;
+        }
+
+        public bool TryCompleteEconomyBootstrap(
+            Guid operationId,
+            DateTimeOffset completedAtUtc)
+        {
+            EnsureUtc(completedAtUtc);
+            GuardHelper.AgainstEmptyGuid(
+                id: operationId,
+                propertyName: nameof(operationId));
+
+            GuardHelper.Ensure(
+                condition: !IsArchived,
+                value: Status,
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
+
+            if (operationId != EconomyBootstrapOperationId)
+                return false;
+
+            if (Status == CityStatus.ProvisioningFailed)
+                return false;
+
+            if (HasEconomyBootstrapFailure)
+                return false;
+
+            if (EconomyBootstrapCompletedAtUtc.HasValue)
+                return true;
+
+            EconomyBootstrapCompletedAtUtc = completedAtUtc;
+            EconomyBootstrapFailedAtUtc = null;
+            EconomyBootstrapFailureCode = null;
+            TryActivate();
 
             return true;
         }
@@ -255,6 +319,9 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             if (operationId != PopulationBootstrapOperationId)
                 return false;
 
+            if (Status == CityStatus.ProvisioningFailed && !HasPopulationBootstrapFailure)
+                return false;
+
             if (IsActive)
                 return false;
 
@@ -267,6 +334,8 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             PopulationBootstrapCompletedAtUtc = null;
             PopulationBootstrapFailedAtUtc = failedAtUtc;
             PopulationBootstrapFailureCode = normalizedFailureCode;
+            EconomyBootstrapFailedAtUtc = null;
+            EconomyBootstrapFailureCode = null;
 
             AddDomainEvent(
                 new CityPopulationBootstrapFailedDomainEvent(
@@ -278,9 +347,52 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             return true;
         }
 
+        public bool TryFailEconomyBootstrap(
+            Guid operationId,
+            string failureCode,
+            DateTimeOffset failedAtUtc)
+        {
+            EnsureUtc(failedAtUtc);
+            GuardHelper.AgainstEmptyGuid(
+                id: operationId,
+                propertyName: nameof(operationId));
+
+            GuardHelper.Ensure(
+                condition: !IsArchived,
+                value: Status,
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
+
+            if (operationId != EconomyBootstrapOperationId)
+                return false;
+
+            if (Status == CityStatus.ProvisioningFailed && !HasEconomyBootstrapFailure)
+                return false;
+
+            if (IsActive)
+                return false;
+
+            if (HasEconomyBootstrapFailure)
+                return true;
+
+            string normalizedFailureCode = NormalizeFailureCode(
+                failureCode: failureCode,
+                maxLength: EconomyBootstrapFailureCodeMaxLength,
+                propertyName: nameof(EconomyBootstrapFailureCode));
+
+            Status = CityStatus.ProvisioningFailed;
+            EconomyBootstrapCompletedAtUtc = null;
+            EconomyBootstrapFailedAtUtc = failedAtUtc;
+            EconomyBootstrapFailureCode = normalizedFailureCode;
+            PopulationBootstrapFailedAtUtc = null;
+            PopulationBootstrapFailureCode = null;
+
+            return true;
+        }
+
         public bool TryRestartPopulationBootstrap(
             DateTimeOffset restartedAtUtc,
-            out Guid operationId)
+            out Guid populationOperationId,
+            out Guid economyOperationId)
         {
             EnsureUtc(restartedAtUtc);
 
@@ -289,26 +401,32 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 value: Status,
                 errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
 
-            if (!HasPopulationBootstrapFailure)
+            if (Status != CityStatus.ProvisioningFailed)
             {
-                operationId = PopulationBootstrapOperationId;
+                populationOperationId = PopulationBootstrapOperationId;
+                economyOperationId = EconomyBootstrapOperationId;
                 return false;
             }
 
             Guid previousOperationId = PopulationBootstrapOperationId;
-            operationId = Guid.NewGuid();
+            populationOperationId = Guid.NewGuid();
+            economyOperationId = Guid.NewGuid();
 
-            PopulationBootstrapOperationId = operationId;
+            PopulationBootstrapOperationId = populationOperationId;
+            EconomyBootstrapOperationId = economyOperationId;
             Status = CityStatus.Provisioning;
             PopulationBootstrapCompletedAtUtc = null;
+            EconomyBootstrapCompletedAtUtc = null;
             PopulationBootstrapFailedAtUtc = null;
+            EconomyBootstrapFailedAtUtc = null;
             PopulationBootstrapFailureCode = null;
+            EconomyBootstrapFailureCode = null;
 
             AddDomainEvent(
                 new CityPopulationBootstrapRestartedDomainEvent(
                     CityId: Id,
                     PreviousOperationId: previousOperationId,
-                    OperationId: operationId,
+                    OperationId: populationOperationId,
                     RestartedAtUtc: restartedAtUtc));
 
             return true;
@@ -330,18 +448,38 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                     ArchivedAtUtc: archivedAtUtc));
         }
 
+        private void TryActivate()
+        {
+            if (PopulationBootstrapCompletedAtUtc.HasValue &&
+                EconomyBootstrapCompletedAtUtc.HasValue)
+            {
+                Status = CityStatus.Active;
+            }
+        }
+
         private static string NormalizePopulationBootstrapFailureCode(string failureCode)
+        {
+            return NormalizeFailureCode(
+                failureCode: failureCode,
+                maxLength: PopulationBootstrapFailureCodeMaxLength,
+                propertyName: nameof(PopulationBootstrapFailureCode));
+        }
+
+        private static string NormalizeFailureCode(
+            string failureCode,
+            int maxLength,
+            string propertyName)
         {
             string normalizedFailureCode = GuardHelper.AgainstNullOrWhiteSpace(
                     value: failureCode,
                     errorFactory: ClassicCityDomainErrorsFactory.CityPopulationBootstrapFailureCodeNullOrEmpty)
                .ToUpperInvariant();
 
-            if (normalizedFailureCode.Length > PopulationBootstrapFailureCodeMaxLength)
+            if (normalizedFailureCode.Length > maxLength)
                 throw ClassicCityDomainErrorsFactory.CityPopulationBootstrapFailureCodeTooLong(
                     value: normalizedFailureCode,
-                    max: PopulationBootstrapFailureCodeMaxLength,
-                    propertyName: nameof(PopulationBootstrapFailureCode));
+                    max: maxLength,
+                    propertyName: propertyName);
 
             bool isValid = normalizedFailureCode.All(symbol =>
                 char.IsAsciiLetterOrDigit(symbol) || symbol == '_');
@@ -349,7 +487,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
             if (!isValid)
                 throw ClassicCityDomainErrorsFactory.CityPopulationBootstrapFailureCodeInvalid(
                     value: normalizedFailureCode,
-                    propertyName: nameof(PopulationBootstrapFailureCode));
+                    propertyName: propertyName);
 
             return normalizedFailureCode;
         }

@@ -1,8 +1,10 @@
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.ArchiveCity;
+using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Common;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.DeleteCity;
+using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetCity;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.GetGenerationCatalog;
@@ -64,6 +66,7 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                 value: new CityCreatedView(
                     CityId: created.CityId,
                     PopulationBootstrapOperationId: created.PopulationBootstrapOperationId,
+                    EconomyBootstrapOperationId: created.EconomyBootstrapOperationId,
                     SimulationKind: created.SimulationKind));
         }
 
@@ -244,6 +247,7 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                     new CityPopulationBootstrapRestartedView(
                         CityId: cityId,
                         PopulationBootstrapOperationId: result.PopulationBootstrapOperationId!.Value,
+                        EconomyBootstrapOperationId: result.EconomyBootstrapOperationId!.Value,
                         SimulationKind: result.SimulationKind!)),
                 RestartCityPopulationBootstrapStatus.NotFound => Results.NotFound(),
                 RestartCityPopulationBootstrapStatus.NotAllowed => Results.Conflict(
@@ -281,6 +285,41 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
         {
             bool updated = await mediator.Send(
                 request: new FailCityPopulationBootstrapCommand(
+                    CityId: cityId,
+                    OperationId: request.OperationId,
+                    FailureCode: request.FailureCode),
+                cancellationToken: cancellationToken);
+
+            return updated
+                ? Results.NoContent()
+                : Results.NotFound();
+        }
+
+        [HttpPost("{cityId:guid}/economy-bootstrap/complete")]
+        public async Task<IResult> CompleteEconomyBootstrap(
+            [FromRoute] Guid cityId,
+            [FromBody] CompleteCityEconomyBootstrapRequest request,
+            CancellationToken cancellationToken)
+        {
+            bool updated = await mediator.Send(
+                request: new CompleteCityEconomyBootstrapCommand(
+                    CityId: cityId,
+                    OperationId: request.OperationId),
+                cancellationToken: cancellationToken);
+
+            return updated
+                ? Results.NoContent()
+                : Results.NotFound();
+        }
+
+        [HttpPost("{cityId:guid}/economy-bootstrap/fail")]
+        public async Task<IResult> FailEconomyBootstrap(
+            [FromRoute] Guid cityId,
+            [FromBody] FailCityEconomyBootstrapRequest request,
+            CancellationToken cancellationToken)
+        {
+            bool updated = await mediator.Send(
+                request: new FailCityEconomyBootstrapCommand(
                     CityId: cityId,
                     OperationId: request.OperationId,
                     FailureCode: request.FailureCode),
@@ -379,6 +418,7 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                 SizeTier: dto.SizeTier,
                 UrbanDensity: dto.UrbanDensity,
                 DevelopmentLevel: dto.DevelopmentLevel,
+                EconomyProfile: dto.EconomyProfile,
                 PopulationOccupancyProfile: dto.PopulationOccupancyProfile,
                 CreatedAtUtc: dto.CreatedAtUtc,
                 ArchivedAtUtc: dto.ArchivedAtUtc,
@@ -391,9 +431,13 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
                 CityId: dto.CityId,
                 Status: dto.Status,
                 PopulationBootstrapOperationId: dto.PopulationBootstrapOperationId,
+                EconomyBootstrapOperationId: dto.EconomyBootstrapOperationId,
                 PopulationBootstrapFailureCode: dto.PopulationBootstrapFailureCode,
+                EconomyBootstrapFailureCode: dto.EconomyBootstrapFailureCode,
                 PopulationBootstrapCompletedAtUtc: dto.PopulationBootstrapCompletedAtUtc,
-                PopulationBootstrapFailedAtUtc: dto.PopulationBootstrapFailedAtUtc);
+                EconomyBootstrapCompletedAtUtc: dto.EconomyBootstrapCompletedAtUtc,
+                PopulationBootstrapFailedAtUtc: dto.PopulationBootstrapFailedAtUtc,
+                EconomyBootstrapFailedAtUtc: dto.EconomyBootstrapFailedAtUtc);
         }
 
         private static CityListItemView MapToListItemView(CityDto dto)

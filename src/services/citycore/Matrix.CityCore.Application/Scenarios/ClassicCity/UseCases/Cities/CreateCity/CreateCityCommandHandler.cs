@@ -133,6 +133,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
             return new CityCreatedDto(
                 CityId: city.Id.Value,
                 PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
+                EconomyBootstrapOperationId: city.EconomyBootstrapOperationId,
                 SimulationKind: city.SimulationKind.ToString());
         }
     }
