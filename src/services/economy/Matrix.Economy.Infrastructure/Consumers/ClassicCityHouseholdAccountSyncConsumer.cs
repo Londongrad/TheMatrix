@@ -25,8 +25,11 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             ClassicCityHouseholdAccountSyncBatchV1 message = context.Message;
 
-            CityBudget budget = await budgetRepository.GetByCityAsync(message.CityId, context.CancellationToken)
-                ?? throw CreateMissingBudgetException(message.CityId);
+            CityBudget budget = await CityBudgetInitializationSupport.EnsureExistsAsync(
+                cityId: message.CityId,
+                budgetRepository: budgetRepository,
+                unitOfWork: unitOfWork,
+                cancellationToken: context.CancellationToken);
             int createdAccounts = 0;
             int createdObligations = 0;
             var housedAccounts = new List<(CityHouseholdAccount Account, int MemberCount)>(message.Households.Count);
@@ -89,12 +92,6 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 message.TotalBatches,
                 createdAccounts,
                 createdObligations);
-        }
-
-        private static InvalidOperationException CreateMissingBudgetException(Guid cityId)
-        {
-            return new InvalidOperationException(
-                $"Economy budget for city '{cityId}' is not initialized yet. Classic city household account sync requires CityCreatedV1 to be processed first.");
         }
 
         private async Task<int> EnsureStarterObligationsAsync(

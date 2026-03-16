@@ -1,0 +1,52 @@
+using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.ValueObjects;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+
+namespace Matrix.Economy.Infrastructure.Consumers
+{
+    internal static class CityBudgetInitializationSupport
+    {
+        private const string CityBudgetByCityConstraintName = "IX_City_Budget_city_id";
+
+        public static async Task<CityBudget> EnsureExistsAsync(
+            Guid cityId,
+            ICityBudgetRepository budgetRepository,
+            IEconomyUnitOfWork unitOfWork,
+            CancellationToken cancellationToken)
+        {
+            CityBudget? existingBudget = await budgetRepository.GetByCityAsync(cityId, cancellationToken);
+
+            if (existingBudget is not null)
+                return existingBudget;
+
+            var newBudget = new CityBudget(CityBudgetId.New(), cityId);
+            budgetRepository.Add(newBudget);
+
+            try
+            {
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                return newBudget;
+            }
+            catch (DbUpdateException ex) when (IsConcurrentCityBudgetInitialization(ex))
+            {
+                CityBudget? concurrentBudget = await budgetRepository.GetByCityAsync(cityId, cancellationToken);
+
+                if (concurrentBudget is not null)
+                    return concurrentBudget;
+
+                throw;
+            }
+        }
+
+        private static bool IsConcurrentCityBudgetInitialization(DbUpdateException exception)
+        {
+            return exception.InnerException is PostgresException
+            {
+                SqlState: PostgresErrorCodes.UniqueViolation,
+                ConstraintName: CityBudgetByCityConstraintName
+            };
+        }
+    }
+}

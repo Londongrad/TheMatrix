@@ -20,8 +20,11 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             ClassicCityWorkplaceBusinessSyncBatchV1 message = context.Message;
 
-            CityBudget budget = await budgetRepository.GetByCityAsync(message.CityId, context.CancellationToken)
-                ?? throw CreateMissingBudgetException(message.CityId);
+            CityBudget budget = await CityBudgetInitializationSupport.EnsureExistsAsync(
+                cityId: message.CityId,
+                budgetRepository: budgetRepository,
+                unitOfWork: unitOfWork,
+                cancellationToken: context.CancellationToken);
 
             Dictionary<string, CityBusiness> existingBusinessesByExternalReference = (await businessRepository.ListByCityAsync(
                     cityId: message.CityId,
@@ -81,10 +84,5 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 createdBusinesses);
         }
 
-        private static InvalidOperationException CreateMissingBudgetException(Guid cityId)
-        {
-            return new InvalidOperationException(
-                $"Economy budget for city '{cityId}' is not initialized yet. Classic city workplace sync requires CityCreatedV1 to be processed first.");
-        }
     }
 }
