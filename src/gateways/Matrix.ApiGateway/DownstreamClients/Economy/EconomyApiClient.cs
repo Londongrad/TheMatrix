@@ -34,10 +34,14 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
         {
             HttpResponseMessage response =
                 await _client.GetAsync(
-                    requestUri: string.Format(CitySummaryEndpointTemplate, cityId),
+                    requestUri: string.Format(
+                        format: CitySummaryEndpointTemplate,
+                        arg0: cityId),
                     cancellationToken: cancellationToken);
 
-            string url = string.Format(CitySummaryEndpointTemplate, cityId);
+            string url = string.Format(
+                format: CitySummaryEndpointTemplate,
+                arg0: cityId);
 
             return await response.ReadJsonOrThrowDownstreamAsync<EconomySummaryDto>(
                 serviceName: DownstreamServiceNames.Economy,
@@ -50,7 +54,9 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
             InitializeCityEconomyRequestDto request,
             CancellationToken cancellationToken = default)
         {
-            string url = string.Format(CityBootstrapEndpointTemplate, cityId);
+            string url = string.Format(
+                format: CityBootstrapEndpointTemplate,
+                arg0: cityId);
 
             using HttpResponseMessage response = await _client.PostAsJsonAsync(
                 requestUri: url,

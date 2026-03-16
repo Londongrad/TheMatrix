@@ -60,9 +60,14 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserPermissions
                 cancellationToken: cancellationToken);
         }
 
-        private static PermissionEffect ParseEffect(string effect) =>
-            effect.Trim().Equals("Allow", StringComparison.OrdinalIgnoreCase)
+        private static PermissionEffect ParseEffect(string effect)
+        {
+            return effect.Trim()
+               .Equals(
+                    value: "Allow",
+                    comparisonType: StringComparison.OrdinalIgnoreCase)
                 ? PermissionEffect.Allow
                 : PermissionEffect.Deny;
+        }
     }
 }

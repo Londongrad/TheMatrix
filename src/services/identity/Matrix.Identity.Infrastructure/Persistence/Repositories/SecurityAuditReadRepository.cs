@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
+using Matrix.Identity.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -18,7 +19,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         {
             try
             {
-                var query = dbContext.SecurityAuditEvents
+                IOrderedQueryable<SecurityAuditEventRecord> query = dbContext.SecurityAuditEvents
                    .AsNoTracking()
                    .Where(x => x.UserId == userId)
                    .OrderByDescending(x => x.OccurredAtUtc);
@@ -46,8 +47,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             catch (PostgresException ex) when (IsMissingSecurityAuditTable(ex))
             {
                 logger.LogWarning(
-                    ex,
-                    "Security audit table is missing. Returning empty security activity history.");
+                    exception: ex,
+                    message: "Security audit table is missing. Returning empty security activity history.");
                 return (Array.Empty<SecurityActivityItemResult>(), 0);
             }
         }
@@ -55,7 +56,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         private static bool IsMissingSecurityAuditTable(PostgresException exception)
         {
             return exception.SqlState == PostgresErrorCodes.UndefinedTable &&
-                   exception.MessageText.Contains("SecurityAuditEvents", StringComparison.Ordinal);
+                   exception.MessageText.Contains(
+                       value: "SecurityAuditEvents",
+                       comparisonType: StringComparison.Ordinal);
         }
     }
 }

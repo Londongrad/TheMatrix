@@ -81,8 +81,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
         private int GetTransientLogPeriodSeconds()
         {
             return Math.Max(
-                30,
-                _options.PollIntervalSeconds * 10);
+                val1: 30,
+                val2: _options.PollIntervalSeconds * 10);
         }
 
         private static class LogKeys

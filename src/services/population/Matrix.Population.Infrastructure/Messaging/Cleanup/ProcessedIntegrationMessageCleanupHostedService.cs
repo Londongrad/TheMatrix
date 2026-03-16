@@ -24,7 +24,8 @@ namespace Matrix.Population.Infrastructure.Messaging.Cleanup
             if (_options.PollIntervalSeconds <= 0)
             {
                 logger.LogError(
-                    message: "Processed integration message cleanup poll interval must be > 0. Current value: {PollIntervalSeconds}",
+                    message:
+                    "Processed integration message cleanup poll interval must be > 0. Current value: {PollIntervalSeconds}",
                     _options.PollIntervalSeconds);
                 return;
             }
@@ -45,11 +46,13 @@ namespace Matrix.Population.Infrastructure.Messaging.Cleanup
                     try
                     {
                         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-                        var cleaner = scope.ServiceProvider.GetRequiredService<ProcessedIntegrationMessageCleaner>();
+                        ProcessedIntegrationMessageCleaner cleaner =
+                            scope.ServiceProvider.GetRequiredService<ProcessedIntegrationMessageCleaner>();
 
                         DateTimeOffset processedBeforeUtc = _options.RetentionHours <= 0
                             ? timeProvider.GetUtcNow()
-                            : timeProvider.GetUtcNow().AddHours(-_options.RetentionHours);
+                            : timeProvider.GetUtcNow()
+                               .AddHours(-_options.RetentionHours);
 
                         int deletedCount = await cleaner.DeleteBatchAsync(
                             processedBeforeUtc: processedBeforeUtc,
@@ -58,7 +61,8 @@ namespace Matrix.Population.Infrastructure.Messaging.Cleanup
 
                         if (deletedCount > 0)
                             logger.LogDebug(
-                                message: "Deleted {DeletedCount} processed integration message markers older than {ProcessedBeforeUtc}.",
+                                message:
+                                "Deleted {DeletedCount} processed integration message markers older than {ProcessedBeforeUtc}.",
                                 deletedCount,
                                 processedBeforeUtc);
                     }

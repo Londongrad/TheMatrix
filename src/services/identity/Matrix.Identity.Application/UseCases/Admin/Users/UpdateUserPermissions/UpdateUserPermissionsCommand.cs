@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using AppPermissionKeys = Matrix.Identity.Application.Authorization.Permissions.PermissionKeys;
 using MediatR;
+using AppPermissionKeys = Matrix.Identity.Application.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserPermissions
 {

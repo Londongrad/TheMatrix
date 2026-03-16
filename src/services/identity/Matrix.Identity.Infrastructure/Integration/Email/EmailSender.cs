@@ -1,9 +1,9 @@
-using Matrix.Identity.Application.Abstractions.Services;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
 using System.Text;
+using Matrix.Identity.Application.Abstractions.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Matrix.Identity.Infrastructure.Integration.Email
 {
@@ -166,7 +166,7 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
             if (emailOptions.DeliveryMode == EmailDeliveryMode.LogOnly)
             {
                 logger.LogInformation(
-                    "Identity email in log-only mode. To={ToEmail}; Subject={Subject}; Link={Link}",
+                    message: "Identity email in log-only mode. To={ToEmail}; Subject={Subject}; Link={Link}",
                     toEmail,
                     subject,
                     linkForLogging);
@@ -176,7 +176,9 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
 
             using var message = new MailMessage
             {
-                From = new MailAddress(emailOptions.FromEmail, emailOptions.FromName),
+                From = new MailAddress(
+                    address: emailOptions.FromEmail,
+                    displayName: emailOptions.FromName),
                 Subject = subject,
                 Body = htmlBody,
                 IsBodyHtml = true
@@ -205,7 +207,9 @@ namespace Matrix.Identity.Infrastructure.Integration.Email
                     password: emailOptions.SmtpPassword);
             }
 
-            await client.SendMailAsync(message, cancellationToken);
+            await client.SendMailAsync(
+                message: message,
+                cancellationToken: cancellationToken);
         }
     }
 }

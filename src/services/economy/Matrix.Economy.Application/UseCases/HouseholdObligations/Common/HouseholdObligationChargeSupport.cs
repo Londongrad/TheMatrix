@@ -17,26 +17,31 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
             string? description,
             CancellationToken cancellationToken)
         {
-            CityHouseholdAccount householdAccount = await householdAccountRepository.GetByIdAsync(obligation.HouseholdAccountId, cancellationToken)
-                ?? throw new InvalidOperationException($"Household account '{obligation.HouseholdAccountId}' was not found.");
-            CityBusiness providerBusiness = await businessRepository.GetByIdAsync(obligation.ProviderBusinessId, cancellationToken)
-                ?? throw new InvalidOperationException($"Business '{obligation.ProviderBusinessId}' was not found.");
+            CityHouseholdAccount householdAccount =
+                await householdAccountRepository.GetByIdAsync(
+                    householdAccountId: obligation.HouseholdAccountId,
+                    cancellationToken: cancellationToken) ??
+                throw new InvalidOperationException(
+                    $"Household account '{obligation.HouseholdAccountId}' was not found.");
+            CityBusiness providerBusiness =
+                await businessRepository.GetByIdAsync(
+                    businessId: obligation.ProviderBusinessId,
+                    cancellationToken: cancellationToken) ??
+                throw new InvalidOperationException($"Business '{obligation.ProviderBusinessId}' was not found.");
 
             if (householdAccount.CityId != obligation.CityId || providerBusiness.CityId != obligation.CityId)
-            {
                 throw new InvalidOperationException("Obligation actors must belong to the same city.");
-            }
 
             householdAccount.EnsureCompatibleUnit(obligation.GetUnitProfile());
             providerBusiness.EnsureCompatibleUnit(obligation.GetUnitProfile());
 
             if (obligation.ChargeAmount.Amount > householdAccount.Balance.Amount)
-            {
                 return HouseholdObligationChargeAttemptResult.Failure("InsufficientBalance");
-            }
 
             householdAccount.RecordObligationCharge(obligation.ChargeAmount);
-            providerBusiness.RecordObligationRevenue(obligation.ChargeAmount, obligation.TaxAmount);
+            providerBusiness.RecordObligationRevenue(
+                grossAmount: obligation.ChargeAmount,
+                salesTaxAmount: obligation.TaxAmount);
 
             DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
             obligation.MarkCharged(occurredAtUtc);
@@ -75,8 +80,12 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
                 source: CityBusinessLedgerEntrySource.Obligation,
                 referenceCode: obligation.Id.ToString("N"));
 
-            await householdLedgerRepository.AddAsync(householdEntry, cancellationToken);
-            await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
+            await householdLedgerRepository.AddAsync(
+                entry: householdEntry,
+                cancellationToken: cancellationToken);
+            await businessLedgerRepository.AddAsync(
+                entry: businessEntry,
+                cancellationToken: cancellationToken);
 
             return HouseholdObligationChargeAttemptResult.Success(
                 new CityHouseholdAccountLedgerEntryDto(

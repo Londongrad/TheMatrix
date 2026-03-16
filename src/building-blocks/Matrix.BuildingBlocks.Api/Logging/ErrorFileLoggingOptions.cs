@@ -15,6 +15,7 @@ namespace Matrix.BuildingBlocks.Api.Logging
         public bool RollOnFileSizeLimit { get; set; } = true;
         public long FileSizeLimitBytes { get; set; } = 104857600;
         public int FlushToDiskIntervalSeconds { get; set; } = 1;
+
         public string OutputTemplate { get; set; } =
             "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}";
     }

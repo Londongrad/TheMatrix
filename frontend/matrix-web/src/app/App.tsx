@@ -8,7 +8,8 @@ import AdminRolesPage from "@services/identity/admin/roles/pages/AdminRolesPage"
 import AdminPermissionsPage from "@services/identity/admin/permissions/pages/AdminPermissionsPage";
 
 import UserSettingsAccountPage from "@services/identity/self/account/account/pages/UserSettingsAccountPage";
-import UserSettingsPersonalizationPage from "@services/identity/self/account/personalization/pages/UserSettingsPersonalizationPage";
+import UserSettingsPersonalizationPage
+    from "@services/identity/self/account/personalization/pages/UserSettingsPersonalizationPage";
 import UserSettingsSecurityPage from "@services/identity/self/account/security/pages/UserSettingsSecurityPage";
 import UserSettingsSessionsPage from "@services/identity/self/account/sessions/pages/UserSettingsSessionsPage";
 import UserSettingsWorkspacePage from "@services/identity/self/account/workspace/pages/UserSettingsWorkspacePage";

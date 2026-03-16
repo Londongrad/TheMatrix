@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.CityCore.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
 {
-    public sealed class ClassicCitySimulationHostReadRepository(CityCoreDbContext dbContext) : ISimulationHostReadRepository
+    public sealed class ClassicCitySimulationHostReadRepository(CityCoreDbContext dbContext)
+        : ISimulationHostReadRepository
     {
         public async Task<SimulationHost?> GetBySimulationIdAsync(
             SimulationId simulationId,

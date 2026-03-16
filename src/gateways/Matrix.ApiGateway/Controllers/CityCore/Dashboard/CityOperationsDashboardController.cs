@@ -8,7 +8,8 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Dashboard
     [Authorize]
     [ApiController]
     [Route("api/dashboard/citycore")]
-    public sealed class CityOperationsDashboardController(ICityOperationsDashboardService dashboardService) : ControllerBase
+    public sealed class CityOperationsDashboardController(ICityOperationsDashboardService dashboardService)
+        : ControllerBase
     {
         private readonly ICityOperationsDashboardService _dashboardService = dashboardService;
 

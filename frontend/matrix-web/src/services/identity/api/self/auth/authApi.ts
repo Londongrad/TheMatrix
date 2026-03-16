@@ -2,14 +2,14 @@
 import {API_AUTH_URL} from "@shared/api/config";
 import {request} from "@shared/api/http";
 import type {
-    ConfirmEmailRequest,
     ConfirmAccountRecoveryRequest,
     ConfirmEmailChangeRequest,
+    ConfirmEmailRequest,
     ForgotPasswordRequest,
     LoginRequest,
     LoginResponse,
-    RequestAccountRecoveryRequest,
     RegisterRequest,
+    RequestAccountRecoveryRequest,
     ResetPasswordRequest,
     SendEmailConfirmationRequest,
 } from "./authTypes";

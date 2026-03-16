@@ -1,8 +1,8 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
@@ -11,7 +11,6 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation
@@ -73,13 +72,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 randomSeed: request.RandomSeed);
             DateTimeOffset syncOccurredAtUtc = DateTimeOffset.UtcNow;
             string syncCorrelationId = $"classic-city-population-init:{request.CityId:N}:{Guid.NewGuid():N}";
-            ClassicCityHouseholdAccountSyncBatchV1[] householdAccountBatches = ClassicCityHouseholdAccountSyncBatchFactory.Build(
-                cityId: request.CityId,
-                households: result.Households,
-                placements: result.HouseholdPlacements,
-                correlationId: syncCorrelationId,
-                occurredAtUtc: syncOccurredAtUtc,
-                batchSize: EconomyHouseholdSyncBatchSize);
+            ClassicCityHouseholdAccountSyncBatchV1[] householdAccountBatches =
+                ClassicCityHouseholdAccountSyncBatchFactory.Build(
+                    cityId: request.CityId,
+                    households: result.Households,
+                    placements: result.HouseholdPlacements,
+                    correlationId: syncCorrelationId,
+                    occurredAtUtc: syncOccurredAtUtc,
+                    batchSize: EconomyHouseholdSyncBatchSize);
             ClassicCityWorkplaceBusinessSyncBatchV1[] workplaceBusinessBatches =
                 ClassicCityWorkplaceBusinessSyncBatchFactory.Build(
                     cityId: request.CityId,
@@ -131,18 +131,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cancellationToken: ct);
 
                     foreach (ClassicCityHouseholdAccountSyncBatchV1 batch in householdAccountBatches)
-                    {
                         await cityEconomySettlementOutboxWriter.AddClassicCityHouseholdAccountSyncBatchAsync(
                             batch: batch,
                             cancellationToken: ct);
-                    }
 
                     foreach (ClassicCityWorkplaceBusinessSyncBatchV1 batch in workplaceBusinessBatches)
-                    {
                         await cityEconomySettlementOutboxWriter.AddClassicCityWorkplaceBusinessSyncBatchAsync(
                             batch: batch,
                             cancellationToken: ct);
-                    }
 
                     await unitOfWork.SaveChangesAsync(ct);
                 },
@@ -150,7 +146,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
             int housedHouseholdCount = result.HouseholdPlacements.Count(x => x.HousingStatus == HousingStatus.Housed);
             int homelessHouseholdCount = result.HouseholdPlacements.Count - housedHouseholdCount;
-            HashSet<HouseholdId> housedHouseholdIds = result.HouseholdPlacements
+            var housedHouseholdIds = result.HouseholdPlacements
                .Where(x => x.HousingStatus == HousingStatus.Housed)
                .Select(x => x.HouseholdId)
                .ToHashSet();

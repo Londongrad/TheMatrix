@@ -5,7 +5,6 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
@@ -22,7 +21,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
         public async Task Consume(ConsumeContext<ClassicCityHouseholdCashflowSettlementBatchV1> context)
         {
             ClassicCityHouseholdCashflowSettlementBatchV1 message = context.Message;
-            CityBusiness? retailProvider = await ResolveRetailProviderAsync(message.CityId, context.CancellationToken);
+            CityBusiness? retailProvider = await ResolveRetailProviderAsync(
+                cityId: message.CityId,
+                cancellationToken: context.CancellationToken);
             int settledPayrollAccounts = 0;
             int settledRetailAccounts = 0;
 
@@ -36,6 +37,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 if (account is null)
                 {
                     logger.LogWarning(
+                        message:
                         "Skipped household cashflow settlement for cityId={CityId}, correlationId={CorrelationId}, householdRef={HouseholdRef}; account was not found.",
                         message.CityId,
                         message.CorrelationId,
@@ -43,18 +45,21 @@ namespace Matrix.Economy.Infrastructure.Consumers
                     continue;
                 }
 
-                string payrollReferenceCode = BuildReferenceCode(message.CorrelationId, household.HouseholdId, "payroll");
-                if (household.NetPayrollAmount > 0m
-                    && !await householdLedgerRepository.ExistsAsync(
+                string payrollReferenceCode = BuildReferenceCode(
+                    correlationId: message.CorrelationId,
+                    householdId: household.HouseholdId,
+                    segment: "payroll");
+                if (household.NetPayrollAmount > 0m &&
+                    !await householdLedgerRepository.ExistsAsync(
                         householdAccountId: account.Id,
                         kind: CityHouseholdAccountLedgerEntryKind.PayrollIncome,
                         referenceCode: payrollReferenceCode,
                         cancellationToken: context.CancellationToken))
                 {
-                    Money netPayroll = Money.FromDecimal(household.NetPayrollAmount);
+                    var netPayroll = Money.FromDecimal(household.NetPayrollAmount);
                     account.ReceivePayroll(netPayroll);
                     await householdLedgerRepository.AddAsync(
-                        new CityHouseholdAccountLedgerEntry(
+                        entry: new CityHouseholdAccountLedgerEntry(
                             id: Guid.NewGuid(),
                             householdAccountId: account.Id,
                             cityId: account.CityId,
@@ -62,17 +67,21 @@ namespace Matrix.Economy.Infrastructure.Consumers
                             kind: CityHouseholdAccountLedgerEntryKind.PayrollIncome,
                             amount: netPayroll,
                             title: "Daily household payroll settlement",
-                            description: $"Settled {message.SettledDays} day(s) of take-home payroll into the economy account.",
+                            description:
+                            $"Settled {message.SettledDays} day(s) of take-home payroll into the economy account.",
                             source: CityHouseholdAccountLedgerEntrySource.Settlement,
                             referenceCode: payrollReferenceCode),
-                        context.CancellationToken);
+                        cancellationToken: context.CancellationToken);
                     settledPayrollAccounts++;
                 }
 
                 if (retailProvider is null || household.RetailTurnoverAmount <= 0m)
                     continue;
 
-                string retailReferenceCode = BuildReferenceCode(message.CorrelationId, household.HouseholdId, "retail");
+                string retailReferenceCode = BuildReferenceCode(
+                    correlationId: message.CorrelationId,
+                    householdId: household.HouseholdId,
+                    segment: "retail");
                 bool householdRetailEntryExists = await householdLedgerRepository.ExistsAsync(
                     householdAccountId: account.Id,
                     kind: CityHouseholdAccountLedgerEntryKind.ConsumerPurchase,
@@ -90,14 +99,16 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 retailProvider.EnsureCompatibleUnit(account.GetUnitProfile());
                 retailProvider.EnsureCanRecordConsumerSale();
 
-                Money grossRetail = Money.FromDecimal(household.RetailTurnoverAmount);
-                Money retailTax = Money.FromDecimal(household.RetailTaxAmount);
+                var grossRetail = Money.FromDecimal(household.RetailTurnoverAmount);
+                var retailTax = Money.FromDecimal(household.RetailTaxAmount);
 
                 account.RecordConsumerPurchase(grossRetail);
-                retailProvider.RecordSettledRetailSale(grossRetail, retailTax);
+                retailProvider.RecordSettledRetailSale(
+                    grossAmount: grossRetail,
+                    salesTaxAmount: retailTax);
 
                 await householdLedgerRepository.AddAsync(
-                    new CityHouseholdAccountLedgerEntry(
+                    entry: new CityHouseholdAccountLedgerEntry(
                         id: Guid.NewGuid(),
                         householdAccountId: account.Id,
                         cityId: account.CityId,
@@ -105,12 +116,13 @@ namespace Matrix.Economy.Infrastructure.Consumers
                         kind: CityHouseholdAccountLedgerEntryKind.ConsumerPurchase,
                         amount: grossRetail,
                         title: "Daily household retail settlement",
-                        description: $"Settled {message.SettledDays} day(s) of household consumer spending into the economy ledger.",
+                        description:
+                        $"Settled {message.SettledDays} day(s) of household consumer spending into the economy ledger.",
                         source: CityHouseholdAccountLedgerEntrySource.Settlement,
                         referenceCode: retailReferenceCode),
-                    context.CancellationToken);
+                    cancellationToken: context.CancellationToken);
                 await businessLedgerRepository.AddAsync(
-                    new CityBusinessLedgerEntry(
+                    entry: new CityBusinessLedgerEntry(
                         id: Guid.NewGuid(),
                         businessId: retailProvider.Id,
                         cityId: retailProvider.CityId,
@@ -119,16 +131,18 @@ namespace Matrix.Economy.Infrastructure.Consumers
                         amount: grossRetail,
                         taxAmount: retailTax,
                         title: "Daily household retail settlement",
-                        description: "Retail turnover settled from classic city household cashflow. Sales tax was already transferred through aggregate city settlement.",
+                        description:
+                        "Retail turnover settled from classic city household cashflow. Sales tax was already transferred through aggregate city settlement.",
                         source: CityBusinessLedgerEntrySource.Settlement,
                         referenceCode: retailReferenceCode),
-                    context.CancellationToken);
+                    cancellationToken: context.CancellationToken);
                 settledRetailAccounts++;
             }
 
             if (settledPayrollAccounts == 0 && settledRetailAccounts == 0)
             {
                 logger.LogDebug(
+                    message:
                     "Skipped duplicate classic city household cashflow settlement for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}.",
                     message.CityId,
                     message.CorrelationId,
@@ -140,6 +154,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
+                message:
                 "Applied classic city household cashflow settlement for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, settledPayrollAccounts={SettledPayrollAccounts}, settledRetailAccounts={SettledRetailAccounts}.",
                 message.CityId,
                 message.CorrelationId,
@@ -149,13 +164,17 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 settledRetailAccounts);
         }
 
-        private async Task<CityBusiness?> ResolveRetailProviderAsync(Guid cityId, CancellationToken cancellationToken)
+        private async Task<CityBusiness?> ResolveRetailProviderAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(cityId, cancellationToken);
+            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
             return businesses
-                .OrderBy(x => GetRetailPriority(x.Kind))
-                .ThenBy(x => x.Name)
-                .FirstOrDefault(x => GetRetailPriority(x.Kind) < int.MaxValue);
+               .OrderBy(x => GetRetailPriority(x.Kind))
+               .ThenBy(x => x.Name)
+               .FirstOrDefault(x => GetRetailPriority(x.Kind) < int.MaxValue);
         }
 
         private static int GetRetailPriority(CityBusinessKind kind)
@@ -171,7 +190,10 @@ namespace Matrix.Economy.Infrastructure.Consumers
             };
         }
 
-        private static string BuildReferenceCode(string correlationId, Guid householdId, string segment)
+        private static string BuildReferenceCode(
+            string correlationId,
+            Guid householdId,
+            string segment)
         {
             return $"{correlationId}:household:{householdId:N}:{segment}";
         }

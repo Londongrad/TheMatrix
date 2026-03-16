@@ -27,16 +27,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             ValidateAmounts(
                 totalOverdueAmount: totalOverdueAmount,
                 distressScore: distressScore);
-            EnsureUtc(lastEvaluatedAtUtc, nameof(lastEvaluatedAtUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: lastEvaluatedAtUtc,
+                paramName: nameof(lastEvaluatedAtUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             CityId = cityId;
             HouseholdId = householdId;
             OverdueObligationCount = overdueObligationCount;
             OverdueRentCount = overdueRentCount;
             OverdueUtilityCount = overdueUtilityCount;
-            TotalOverdueAmount = decimal.Round(totalOverdueAmount, 2, MidpointRounding.AwayFromZero);
-            DistressScore = decimal.Round(distressScore, 4, MidpointRounding.AwayFromZero);
+            TotalOverdueAmount = decimal.Round(
+                d: totalOverdueAmount,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            DistressScore = decimal.Round(
+                d: distressScore,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
             LastEvaluatedAtUtc = lastEvaluatedAtUtc;
             UpdatedAtUtc = updatedAtUtc;
         }
@@ -95,14 +105,24 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             ValidateAmounts(
                 totalOverdueAmount: totalOverdueAmount,
                 distressScore: distressScore);
-            EnsureUtc(lastEvaluatedAtUtc, nameof(lastEvaluatedAtUtc));
-            EnsureUtc(updatedAtUtc, nameof(updatedAtUtc));
+            EnsureUtc(
+                value: lastEvaluatedAtUtc,
+                paramName: nameof(lastEvaluatedAtUtc));
+            EnsureUtc(
+                value: updatedAtUtc,
+                paramName: nameof(updatedAtUtc));
 
             OverdueObligationCount = overdueObligationCount;
             OverdueRentCount = overdueRentCount;
             OverdueUtilityCount = overdueUtilityCount;
-            TotalOverdueAmount = decimal.Round(totalOverdueAmount, 2, MidpointRounding.AwayFromZero);
-            DistressScore = decimal.Round(distressScore, 4, MidpointRounding.AwayFromZero);
+            TotalOverdueAmount = decimal.Round(
+                d: totalOverdueAmount,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            DistressScore = decimal.Round(
+                d: distressScore,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
             LastEvaluatedAtUtc = lastEvaluatedAtUtc;
             UpdatedAtUtc = updatedAtUtc;
         }
@@ -112,9 +132,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             int overdueRentCount,
             int overdueUtilityCount)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(overdueObligationCount, nameof(overdueObligationCount));
-            ArgumentOutOfRangeException.ThrowIfNegative(overdueRentCount, nameof(overdueRentCount));
-            ArgumentOutOfRangeException.ThrowIfNegative(overdueUtilityCount, nameof(overdueUtilityCount));
+            ArgumentOutOfRangeException.ThrowIfNegative(value: overdueObligationCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(value: overdueRentCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(value: overdueUtilityCount);
         }
 
         private static void ValidateAmounts(

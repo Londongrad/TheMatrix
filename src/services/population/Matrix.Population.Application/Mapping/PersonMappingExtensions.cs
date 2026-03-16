@@ -88,8 +88,7 @@ namespace Matrix.Population.Application.Mapping
                     ResidentialBuildingId: currentHousing.ResidentialBuildingId?.Value);
             CityResidentWorkplaceDto? workplace = person.Employment.Job is null
                 ? null
-                : new CityResidentWorkplaceDto(
-                    WorkplaceId: person.Employment.Job.WorkplaceId.Value);
+                : new CityResidentWorkplaceDto(WorkplaceId: person.Employment.Job.WorkplaceId.Value);
             CityResidentEducationInstitutionDto? educationInstitution = person.Education.CurrentInstitutionId is null
                 ? null
                 : new CityResidentEducationInstitutionDto(
@@ -105,9 +104,12 @@ namespace Matrix.Population.Application.Mapping
                .ToString(
                     format: "dd MMMM yyyy",
                     provider: CultureInfo.InvariantCulture);
-            CityResidentIllnessDto? currentIllness = person.CurrentIllnessKind is not { } illnessKind ||
-                                                     person.CurrentIllnessSeverity is not { } illnessSeverity ||
-                                                     person.IllnessDiagnosedOn is not { } illnessDiagnosedOn
+            CityResidentIllnessDto? currentIllness = person.CurrentIllnessKind is not
+                                                         { } illnessKind ||
+                                                     person.CurrentIllnessSeverity is not
+                                                         { } illnessSeverity ||
+                                                     person.IllnessDiagnosedOn is not
+                                                         { } illnessDiagnosedOn
                 ? null
                 : new CityResidentIllnessDto(
                     Kind: illnessKind.ToString(),

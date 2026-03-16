@@ -1,6 +1,5 @@
-using Matrix.Identity.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Seed

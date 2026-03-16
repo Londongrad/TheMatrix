@@ -8,10 +8,14 @@ namespace Matrix.Population.Infrastructure.Outbox
             new Dictionary<string, Type>(StringComparer.Ordinal)
             {
                 [PopulationOutboxEventTypes.CityEconomyDailySettlementV1] = typeof(CityEconomyDailySettlementV1),
-                [PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1] = typeof(ClassicCityHouseholdAccountSyncBatchV1),
-                [PopulationOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1] = typeof(ClassicCityWorkplaceBusinessSyncBatchV1),
-                [PopulationOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1] = typeof(ClassicCityWorkplacePayrollSettlementBatchV1),
-                [PopulationOutboxEventTypes.ClassicCityHouseholdCashflowSettlementBatchV1] = typeof(ClassicCityHouseholdCashflowSettlementBatchV1)
+                [PopulationOutboxEventTypes.ClassicCityHouseholdAccountSyncBatchV1] =
+                    typeof(ClassicCityHouseholdAccountSyncBatchV1),
+                [PopulationOutboxEventTypes.ClassicCityWorkplaceBusinessSyncBatchV1] =
+                    typeof(ClassicCityWorkplaceBusinessSyncBatchV1),
+                [PopulationOutboxEventTypes.ClassicCityWorkplacePayrollSettlementBatchV1] =
+                    typeof(ClassicCityWorkplacePayrollSettlementBatchV1),
+                [PopulationOutboxEventTypes.ClassicCityHouseholdCashflowSettlementBatchV1] =
+                    typeof(ClassicCityHouseholdCashflowSettlementBatchV1)
             };
     }
 }

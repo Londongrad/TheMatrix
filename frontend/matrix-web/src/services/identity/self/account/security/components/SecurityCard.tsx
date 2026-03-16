@@ -22,13 +22,13 @@ type Props = {
 };
 
 const SecurityCard = ({
-    token,
-    email,
-    pendingEmail,
-    isEmailConfirmed,
-    emailConfirmationRequested,
-    patchUser,
-}: Props) => {
+                          token,
+                          email,
+                          pendingEmail,
+                          isEmailConfirmed,
+                          emailConfirmationRequested,
+                          patchUser,
+                      }: Props) => {
     const {
         currentPassword: passwordCurrentPassword,
         setCurrentPassword: setPasswordCurrentPassword,
@@ -214,7 +214,8 @@ const SecurityCard = ({
                             Confirm your email
                         </h3>
                         <p className="settings-email-warning__text">
-                            Confirm <strong>{email || "your email address"}</strong> to keep password recovery and account security flows available.
+                            Confirm <strong>{email || "your email address"}</strong> to keep password recovery and
+                            account security flows available.
                         </p>
 
                         {confirmationNotice && (
@@ -265,7 +266,9 @@ const SecurityCard = ({
                             New email is waiting for confirmation
                         </h3>
                         <p className="settings-email-warning__text">
-                            <strong>{pendingEmail}</strong> still needs confirmation. Until then, <strong>{email || "your current email"}</strong> remains active for login recovery and notifications.
+                            <strong>{pendingEmail}</strong> still needs confirmation. Until
+                            then, <strong>{email || "your current email"}</strong> remains active for login recovery and
+                            notifications.
                         </p>
                     </div>
 

@@ -26,8 +26,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityPopulationHouseholdFinancialStressStates
-                .Where(x => x.CityId == cityId)
-                .ToListAsync(cancellationToken);
+               .Where(x => x.CityId == cityId)
+               .ToListAsync(cancellationToken);
         }
 
         public async Task AddAsync(
@@ -44,8 +44,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             await _dbContext.CityPopulationHouseholdFinancialStressStates
-                .Where(x => x.CityId == cityId)
-                .ExecuteDeleteAsync(cancellationToken);
+               .Where(x => x.CityId == cityId)
+               .ExecuteDeleteAsync(cancellationToken);
         }
     }
 }

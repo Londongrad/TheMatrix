@@ -19,7 +19,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .ToArray();
 
             if (activeResidents.Length == 0)
-            {
                 return new CityHouseholdLivelihoodProfile(
                     HousingStatus: housingStatus,
                     ResidentCount: 0,
@@ -32,7 +31,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     AverageEnergy: 0d,
                     AverageStress: 0d,
                     StabilityScore: 0d);
-            }
 
             int adultProviderCount = 0;
             int adultStudentCount = 0;
@@ -49,11 +47,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
                     dependentCount++;
 
-                if (resident.GetAge(currentDate).Years == 0)
+                if (resident.GetAge(currentDate)
+                       .Years ==
+                    0)
                     infantCount++;
 
                 if (ageGroup is AgeGroup.Adult or AgeGroup.Senior)
-                {
                     switch (resident.Employment.Status)
                     {
                         case EmploymentStatus.Employed:
@@ -63,7 +62,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             adultStudentCount++;
                             break;
                     }
-                }
 
                 if (resident.HasActiveIllness)
                     activeIllnessCount++;
@@ -78,22 +76,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double averageStress = stressTotal / activeResidents.Length;
             double dependencyLoad = dependentCount + (infantCount * 0.8d);
             double supportStrength = Math.Clamp(
-                (adultProviderCount + (adultStudentCount * 0.45d)) /
-                Math.Max(1d, dependencyLoad + (activeResidents.Length * 0.5d)),
-                0d,
-                1d);
+                value: (adultProviderCount + (adultStudentCount * 0.45d)) /
+                       Math.Max(
+                           val1: 1d,
+                           val2: dependencyLoad + (activeResidents.Length * 0.5d)),
+                min: 0d,
+                max: 1d);
             double illnessBurden = activeIllnessCount / (double)activeResidents.Length;
-            double crowdingBurden = Math.Clamp((activeResidents.Length - 4) * 0.08d, 0d, 0.32d);
+            double crowdingBurden = Math.Clamp(
+                value: (activeResidents.Length - 4) * 0.08d,
+                min: 0d,
+                max: 0.32d);
 
-            double stability = 0.16d
-                               + (housingStatus == HousingStatus.Housed ? 0.18d : -0.10d)
-                               + (supportStrength * 0.34d)
-                               + (Normalize(averageHealth) * 0.12d)
-                               + (Normalize(averageEnergy) * 0.10d)
-                               - (Normalize(averageStress) * 0.14d)
-                               - (illnessBurden * 0.12d)
-                               - crowdingBurden
-                               - (dependencyLoad * 0.03d);
+            double stability = 0.16d +
+                               (housingStatus == HousingStatus.Housed
+                                   ? 0.18d
+                                   : -0.10d) +
+                               (supportStrength * 0.34d) +
+                               (Normalize(averageHealth) * 0.12d) +
+                               (Normalize(averageEnergy) * 0.10d) -
+                               (Normalize(averageStress) * 0.14d) -
+                               (illnessBurden * 0.12d) -
+                               crowdingBurden -
+                               (dependencyLoad * 0.03d);
 
             if (adultProviderCount == 0 && adultStudentCount == 0)
                 stability -= 0.10d;
@@ -109,7 +114,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 AverageHealth: averageHealth,
                 AverageEnergy: averageEnergy,
                 AverageStress: averageStress,
-                StabilityScore: Math.Clamp(stability, 0d, 1d));
+                StabilityScore: Math.Clamp(
+                    value: stability,
+                    min: 0d,
+                    max: 1d));
         }
 
         public double ResolveResidentSelfReliance(Person resident)
@@ -124,19 +132,25 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0.16d
             };
 
-            double selfReliance = employmentStrength
-                                  + (Normalize(resident.Health.Value) * 0.14d)
-                                  + (Normalize(resident.Energy.Value) * 0.10d)
-                                  + (Normalize(resident.Personality.Discipline) * 0.10d)
-                                  + (Normalize(resident.Personality.Optimism) * 0.06d)
-                                  - (Normalize(resident.Stress.Value) * 0.14d);
+            double selfReliance = employmentStrength +
+                                  (Normalize(resident.Health.Value) * 0.14d) +
+                                  (Normalize(resident.Energy.Value) * 0.10d) +
+                                  (Normalize(resident.Personality.Discipline) * 0.10d) +
+                                  (Normalize(resident.Personality.Optimism) * 0.06d) -
+                                  (Normalize(resident.Stress.Value) * 0.14d);
 
-            return Math.Clamp(selfReliance, 0d, 1d);
+            return Math.Clamp(
+                value: selfReliance,
+                min: 0d,
+                max: 1d);
         }
 
         private static double Normalize(double value)
         {
-            return Math.Clamp(value / 100d, 0d, 1d);
+            return Math.Clamp(
+                value: value / 100d,
+                min: 0d,
+                max: 1d);
         }
     }
 }

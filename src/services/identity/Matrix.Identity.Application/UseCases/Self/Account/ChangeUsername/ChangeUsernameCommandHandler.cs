@@ -35,7 +35,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);
 
-            Username newUsername = Username.Create(request.Username);
+            var newUsername = Username.Create(request.Username);
 
             if (string.Equals(
                     a: user.Username.Value,

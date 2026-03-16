@@ -4,10 +4,7 @@ import {Link, useNavigate} from "react-router-dom";
 import {useCityResidentDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityResidentDetails";
 import {getClassicCityResidentDossierPath} from "@services/citycore/scenarios/registry";
 import type {CityResidentDetailsDto, PersonDto} from "@services/population/person/api/personTypes";
-import {
-    killCitizen,
-    resurrectCitizen,
-} from "@services/population/person/api/personApi";
+import {killCitizen, resurrectCitizen,} from "@services/population/person/api/personApi";
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import Button from "@shared/ui/controls/Button/Button";
 import IconButton from "@shared/ui/controls/IconButton/IconButton";
@@ -66,15 +63,15 @@ function renderResidentLink(
 }
 
 const CitizenDetailsModal = ({
-    cityId,
-    person,
-    isOpen,
-    onClose,
-    onPersonUpdated,
-    canKill = false,
-    canResurrect = false,
-    readOnlyMessage,
-}: CitizenDetailsModalProps) => {
+                                 cityId,
+                                 person,
+                                 isOpen,
+                                 onClose,
+                                 onPersonUpdated,
+                                 canKill = false,
+                                 canResurrect = false,
+                                 readOnlyMessage,
+                             }: CitizenDetailsModalProps) => {
     const [isBusy, setIsBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const {token} = useAuth();

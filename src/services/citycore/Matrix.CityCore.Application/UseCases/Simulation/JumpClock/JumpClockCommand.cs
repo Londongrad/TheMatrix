@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
-using AppPermissionKeys = Matrix.CityCore.Application.Authorization.Permissions.PermissionKeys;
 using MediatR;
+using AppPermissionKeys = Matrix.CityCore.Application.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.JumpClock
 {

@@ -15,7 +15,9 @@ namespace Matrix.Population.Infrastructure.Outbox.RabbitMq
             string payloadJson,
             CancellationToken cancellationToken)
         {
-            if (!OutboxEventTypeMap.Map.TryGetValue(type, out Type? clrType))
+            if (!OutboxEventTypeMap.Map.TryGetValue(
+                    key: type,
+                    value: out Type? clrType))
                 throw new NotSupportedException($"Outbox message type '{type}' is not supported.");
 
             object evt = JsonSerializer.Deserialize(

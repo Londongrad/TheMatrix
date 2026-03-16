@@ -22,18 +22,15 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
             ChangeEmailRequest request,
             CancellationToken cancellationToken = default);
 
-        Task<ChangeAvatarResponse> ClearAvatarAsync(
-            CancellationToken cancellationToken = default);
+        Task<ChangeAvatarResponse> ClearAvatarAsync(CancellationToken cancellationToken = default);
 
         Task ChangePasswordAsync(
             ChangePasswordRequest request,
             CancellationToken cancellationToken = default);
 
-        Task ResendPendingEmailChangeAsync(
-            CancellationToken cancellationToken = default);
+        Task ResendPendingEmailChangeAsync(CancellationToken cancellationToken = default);
 
-        Task CancelPendingEmailChangeAsync(
-            CancellationToken cancellationToken = default);
+        Task CancelPendingEmailChangeAsync(CancellationToken cancellationToken = default);
 
         Task DeleteAccountAsync(
             DeleteAccountRequest request,

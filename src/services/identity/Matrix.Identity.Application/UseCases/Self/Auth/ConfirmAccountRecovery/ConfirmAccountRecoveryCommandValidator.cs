@@ -7,10 +7,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ConfirmAccountRecovery
         public ConfirmAccountRecoveryCommandValidator()
         {
             RuleFor(x => x.UserId)
-                .NotEmpty();
+               .NotEmpty();
 
             RuleFor(x => x.Token)
-                .NotEmpty();
+               .NotEmpty();
         }
     }
 }

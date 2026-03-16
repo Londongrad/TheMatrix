@@ -31,7 +31,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.UserNotFound(userId);
 
-            Email newEmail = Email.Create(request.NewEmail);
+            var newEmail = Email.Create(request.NewEmail);
 
             if (string.Equals(
                     a: user.Email.Value,

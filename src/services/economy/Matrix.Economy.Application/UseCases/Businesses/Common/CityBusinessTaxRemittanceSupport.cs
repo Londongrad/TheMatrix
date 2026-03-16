@@ -3,7 +3,6 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
 
 namespace Matrix.Economy.Application.UseCases.Businesses.Common
@@ -23,8 +22,12 @@ namespace Matrix.Economy.Application.UseCases.Businesses.Common
         {
             business.RemitTax(amount);
 
-            CityBudget budget = await budgetRepository.GetByCityAsync(business.CityId, cancellationToken)
-                ?? CreateBudget(business, budgetRepository);
+            CityBudget budget = await budgetRepository.GetByCityAsync(
+                                    cityId: business.CityId,
+                                    cancellationToken: cancellationToken) ??
+                                CreateBudget(
+                                    business: business,
+                                    budgetRepository: budgetRepository);
             budget.EnsureCompatibleUnit(business.GetUnitProfile());
 
             DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
@@ -55,8 +58,12 @@ namespace Matrix.Economy.Application.UseCases.Businesses.Common
                 referenceCode: business.Id.ToString("N"));
 
             budget.ApplyLedgerEntry(budgetEntry);
-            await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
-            await budgetLedgerRepository.AddAsync(budgetEntry, cancellationToken);
+            await businessLedgerRepository.AddAsync(
+                entry: businessEntry,
+                cancellationToken: cancellationToken);
+            await budgetLedgerRepository.AddAsync(
+                entry: budgetEntry,
+                cancellationToken: cancellationToken);
 
             return new CityBusinessLedgerEntryDto(
                 EntryId: businessEntry.Id,
@@ -74,9 +81,14 @@ namespace Matrix.Economy.Application.UseCases.Businesses.Common
                 ReferenceCode: businessEntry.ReferenceCode);
         }
 
-        private static CityBudget CreateBudget(CityBusiness business, ICityBudgetRepository budgetRepository)
+        private static CityBudget CreateBudget(
+            CityBusiness business,
+            ICityBudgetRepository budgetRepository)
         {
-            var budget = new CityBudget(CityBudgetId.New(), business.CityId, business.GetUnitProfile());
+            var budget = new CityBudget(
+                id: CityBudgetId.New(),
+                cityId: business.CityId,
+                unitProfile: business.GetUnitProfile());
             budgetRepository.Add(budget);
             return budget;
         }

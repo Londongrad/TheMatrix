@@ -53,18 +53,17 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness
 
         private static CityBudgetUnitProfile ResolveRequestedUnit(RegisterCityBusinessCommand request)
         {
-            if (string.IsNullOrWhiteSpace(request.UnitCode)
-                && string.IsNullOrWhiteSpace(request.UnitDisplayName)
-                && string.IsNullOrWhiteSpace(request.UnitSymbol)
-                && string.IsNullOrWhiteSpace(request.UnitKind))
-            {
+            if (string.IsNullOrWhiteSpace(request.UnitCode) &&
+                string.IsNullOrWhiteSpace(request.UnitDisplayName) &&
+                string.IsNullOrWhiteSpace(request.UnitSymbol) &&
+                string.IsNullOrWhiteSpace(request.UnitKind))
                 return CityBudgetUnitProfile.DefaultMoney();
-            }
 
-            if (!Enum.TryParse(request.UnitKind, ignoreCase: true, out CityBudgetUnitKind unitKind))
-            {
+            if (!Enum.TryParse(
+                    value: request.UnitKind,
+                    ignoreCase: true,
+                    result: out CityBudgetUnitKind unitKind))
                 throw new InvalidOperationException($"Unsupported unit kind '{request.UnitKind}'.");
-            }
 
             return new CityBudgetUnitProfile(
                 Kind: unitKind,

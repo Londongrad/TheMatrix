@@ -22,14 +22,13 @@ namespace Matrix.Economy.Infrastructure
             IConfiguration configuration,
             IHostEnvironment environment)
         {
-            var connectionString = configuration.GetConnectionString("EconomyDb")
-                ?? throw new InvalidOperationException("Connection string 'EconomyDb' is not configured.");
+            string connectionString = configuration.GetConnectionString("EconomyDb") ??
+                                      throw new InvalidOperationException(
+                                          "Connection string 'EconomyDb' is not configured.");
             var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
 
             if (environment.IsDevelopment())
-            {
                 connectionStringBuilder.IncludeErrorDetail = true;
-            }
 
             string effectiveConnectionString = connectionStringBuilder.ConnectionString;
 
@@ -38,23 +37,21 @@ namespace Matrix.Economy.Infrastructure
                 options.UseNpgsql(effectiveConnectionString);
 
                 if (environment.IsDevelopment())
-                {
                     options.EnableDetailedErrors();
-                }
             });
 
             services.AddOptions<RabbitMqOptions>()
-                .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
-                .Validate(
+               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
+               .Validate(
                     validation: o => !string.IsNullOrWhiteSpace(o.Host),
                     failureMessage: "RabbitMq:Host is required.")
-                .Validate(
+               .Validate(
                     validation: o => !string.IsNullOrWhiteSpace(o.Username),
                     failureMessage: "RabbitMq:Username is required.")
-                .Validate(
+               .Validate(
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
-                .ValidateOnStart();
+               .ValidateOnStart();
 
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
             services.AddScoped<ICityBudgetAllocationRepository, CityBudgetAllocationRepository>();
@@ -76,14 +73,21 @@ namespace Matrix.Economy.Infrastructure
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
-                x.AddConsumer<ClassicCityHouseholdAccountSyncConsumer, ClassicCityHouseholdAccountSyncConsumerDefinition>();
-                x.AddConsumer<ClassicCityWorkplaceBusinessSyncConsumer, ClassicCityWorkplaceBusinessSyncConsumerDefinition>();
-                x.AddConsumer<ClassicCityWorkplacePayrollSettlementConsumer, ClassicCityWorkplacePayrollSettlementConsumerDefinition>();
-                x.AddConsumer<ClassicCityHouseholdCashflowSettlementConsumer, ClassicCityHouseholdCashflowSettlementConsumerDefinition>();
+                x.AddConsumer<ClassicCityHouseholdAccountSyncConsumer,
+                    ClassicCityHouseholdAccountSyncConsumerDefinition>();
+                x.AddConsumer<ClassicCityWorkplaceBusinessSyncConsumer,
+                    ClassicCityWorkplaceBusinessSyncConsumerDefinition>();
+                x.AddConsumer<ClassicCityWorkplacePayrollSettlementConsumer,
+                    ClassicCityWorkplacePayrollSettlementConsumerDefinition>();
+                x.AddConsumer<ClassicCityHouseholdCashflowSettlementConsumer,
+                    ClassicCityHouseholdCashflowSettlementConsumerDefinition>();
 
-                x.UsingRabbitMq((context, cfg) =>
+                x.UsingRabbitMq((
+                    context,
+                    cfg) =>
                 {
-                    RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
+                    RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>()
+                       .Value;
 
                     cfg.Host(
                         host: rmq.Host,

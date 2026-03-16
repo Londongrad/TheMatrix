@@ -14,9 +14,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
         IOptions<DownstreamServicesOptions> downstreamOptions) : ICityOperationsDashboardService
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
+        private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-        private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
 
         public async Task<CityOperationsDashboardView> GetAsync(CancellationToken cancellationToken)
         {
@@ -27,49 +27,63 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                 cancellationToken: cancellationToken);
             Task<IReadOnlyList<DashboardServiceHealthView>> healthTask = ProbeSystemHealthAsync(cancellationToken);
 
-            await Task.WhenAll(allCitiesTask, provisioningTask, healthTask);
+            await Task.WhenAll(
+                allCitiesTask,
+                provisioningTask,
+                healthTask);
 
-            var allCities = allCitiesTask.Result;
-            var attentionCities = provisioningTask.Result;
-            var now = DateTimeOffset.Now;
+            IReadOnlyList<CityListItemView> allCities = allCitiesTask.Result;
+            IReadOnlyList<CityListItemView> attentionCities = provisioningTask.Result;
+            DateTimeOffset now = DateTimeOffset.Now;
 
-            var readyCities = allCities
+            CityListItemView[] readyCities = allCities
                .Where(IsReady)
                .OrderByDescending(city => city.PopulationBootstrapCompletedAtUtc ?? city.CreatedAtUtc)
-               .ThenBy(city => city.Name, StringComparer.OrdinalIgnoreCase)
+               .ThenBy(
+                    keySelector: city => city.Name,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .Take(6)
                .ToArray();
 
-            var archivedCities = allCities
+            CityListItemView[] archivedCities = allCities
                .Where(IsArchived)
                .OrderByDescending(city => city.ArchivedAtUtc ?? DateTimeOffset.MinValue)
-               .ThenBy(city => city.Name, StringComparer.OrdinalIgnoreCase)
+               .ThenBy(
+                    keySelector: city => city.Name,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .Take(6)
                .ToArray();
 
-            var rankedAttentionCities = attentionCities
+            CityListItemView[] rankedAttentionCities = attentionCities
                .OrderBy(city => GetAttentionRank(city))
                .ThenByDescending(city => city.PopulationBootstrapFailedAtUtc ?? city.CreatedAtUtc)
-               .ThenBy(city => city.Name, StringComparer.OrdinalIgnoreCase)
+               .ThenBy(
+                    keySelector: city => city.Name,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .ToArray();
 
             return new CityOperationsDashboardView(
                 GeneratedAtUtc: now,
                 TrackedHosts: BuildSnapshotMetric(
                     label: "Tracked hosts",
-                    description: "Total city records still visible to operators across live, provisioning, and archived workspaces.",
+                    description:
+                    "Total city records still visible to operators across live, provisioning, and archived workspaces.",
                     current: allCities.Count,
                     countAtCutoff: cutoff => allCities.Count(city => city.CreatedAtUtc <= cutoff)),
                 ReadyHosts: BuildSnapshotMetric(
                     label: "Ready monitoring",
                     description: "Cities that have completed bootstrap and are currently live for direct monitoring.",
                     current: allCities.Count(IsReady),
-                    countAtCutoff: cutoff => allCities.Count(city => WasReadyAt(city, cutoff))),
+                    countAtCutoff: cutoff => allCities.Count(city => WasReadyAt(
+                        city: city,
+                        cutoff: cutoff))),
                 ArchivedRecords: BuildSnapshotMetric(
                     label: "Archived records",
                     description: "Historical city records retained for audit, cleanup, and post-mortem review.",
                     current: allCities.Count(IsArchived),
-                    countAtCutoff: cutoff => allCities.Count(city => city.ArchivedAtUtc is { } archivedAtUtc && archivedAtUtc <= cutoff)),
+                    countAtCutoff: cutoff => allCities.Count(city => city.ArchivedAtUtc is
+                                                                         { } archivedAtUtc &&
+                                                                     archivedAtUtc <= cutoff)),
                 AttentionQueue: new DashboardMetricView(
                     Label: "Attention queue",
                     Current: rankedAttentionCities.Length,
@@ -104,7 +118,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                     source: allCities),
                 Services: healthTask.Result,
                 Events: BuildRecentEvents(allCities),
-                AttentionCities: rankedAttentionCities.Take(8).ToArray(),
+                AttentionCities: rankedAttentionCities.Take(8)
+                   .ToArray(),
                 ReadyCities: readyCities,
                 ArchivedCitiesList: archivedCities);
         }
@@ -116,9 +131,30 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
             Func<DateTimeOffset, int> countAtCutoff)
         {
             DateTimeOffset now = DateTimeOffset.Now;
-            DateTimeOffset dayStart = new(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset);
-            DateTimeOffset monthStart = new(now.Year, now.Month, 1, 0, 0, 0, now.Offset);
-            DateTimeOffset yearStart = new(now.Year, 1, 1, 0, 0, 0, now.Offset);
+            DateTimeOffset dayStart = new(
+                year: now.Year,
+                month: now.Month,
+                day: now.Day,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                offset: now.Offset);
+            DateTimeOffset monthStart = new(
+                year: now.Year,
+                month: now.Month,
+                day: 1,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                offset: now.Offset);
+            DateTimeOffset yearStart = new(
+                year: now.Year,
+                month: 1,
+                day: 1,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                offset: now.Offset);
 
             return new DashboardMetricView(
                 Label: label,
@@ -137,9 +173,30 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
             DateTimeOffset now,
             IReadOnlyList<CityListItemView> source)
         {
-            DateTimeOffset dayStart = new(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset);
-            DateTimeOffset monthStart = new(now.Year, now.Month, 1, 0, 0, 0, now.Offset);
-            DateTimeOffset yearStart = new(now.Year, 1, 1, 0, 0, 0, now.Offset);
+            DateTimeOffset dayStart = new(
+                year: now.Year,
+                month: now.Month,
+                day: now.Day,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                offset: now.Offset);
+            DateTimeOffset monthStart = new(
+                year: now.Year,
+                month: now.Month,
+                day: 1,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                offset: now.Offset);
+            DateTimeOffset yearStart = new(
+                year: now.Year,
+                month: 1,
+                day: 1,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                offset: now.Offset);
 
             DateTimeOffset previousDayStart = dayStart.AddDays(-1);
             DateTimeOffset previousMonthStart = monthStart.AddMonths(-1);
@@ -148,9 +205,27 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
             return new DashboardPeriodComparisonRowView(
                 Label: label,
                 Description: description,
-                Yesterday: BuildWindowComparison(source, selectMoment, dayStart, now, previousDayStart, dayStart),
-                Month: BuildWindowComparison(source, selectMoment, monthStart, now, previousMonthStart, monthStart),
-                Year: BuildWindowComparison(source, selectMoment, yearStart, now, previousYearStart, yearStart));
+                Yesterday: BuildWindowComparison(
+                    source: source,
+                    selectMoment: selectMoment,
+                    currentStart: dayStart,
+                    currentEnd: now,
+                    previousStart: previousDayStart,
+                    previousEnd: dayStart),
+                Month: BuildWindowComparison(
+                    source: source,
+                    selectMoment: selectMoment,
+                    currentStart: monthStart,
+                    currentEnd: now,
+                    previousStart: previousMonthStart,
+                    previousEnd: monthStart),
+                Year: BuildWindowComparison(
+                    source: source,
+                    selectMoment: selectMoment,
+                    currentStart: yearStart,
+                    currentEnd: now,
+                    previousStart: previousYearStart,
+                    previousEnd: yearStart));
         }
 
         private static DashboardWindowComparisonView BuildWindowComparison(
@@ -161,8 +236,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
             DateTimeOffset previousStart,
             DateTimeOffset previousEnd)
         {
-            int current = source.Count(city => IsInsideWindow(selectMoment(city), currentStart, currentEnd));
-            int previous = source.Count(city => IsInsideWindow(selectMoment(city), previousStart, previousEnd));
+            int current = source.Count(city => IsInsideWindow(
+                moment: selectMoment(city),
+                startInclusive: currentStart,
+                endExclusive: currentEnd));
+            int previous = source.Count(city => IsInsideWindow(
+                moment: selectMoment(city),
+                startInclusive: previousStart,
+                endExclusive: previousEnd));
 
             return new DashboardWindowComparisonView(
                 Current: current,
@@ -170,14 +251,28 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                 Delta: current - previous);
         }
 
-        private async Task<IReadOnlyList<DashboardServiceHealthView>> ProbeSystemHealthAsync(CancellationToken cancellationToken)
+        private async Task<IReadOnlyList<DashboardServiceHealthView>> ProbeSystemHealthAsync(
+            CancellationToken cancellationToken)
         {
             Task<DashboardServiceHealthView> gatewayTask = ProbeGatewayHealthAsync(cancellationToken);
-            Task<DashboardServiceHealthView> cityCoreTask = ProbeRemoteHealthAsync("CityCore", _downstreamOptions.CityCore, cancellationToken);
-            Task<DashboardServiceHealthView> populationTask = ProbeRemoteHealthAsync("Population", _downstreamOptions.Population, cancellationToken);
-            Task<DashboardServiceHealthView> identityTask = ProbeRemoteHealthAsync("Identity", _downstreamOptions.Identity, cancellationToken);
+            Task<DashboardServiceHealthView> cityCoreTask = ProbeRemoteHealthAsync(
+                service: "CityCore",
+                baseUrl: _downstreamOptions.CityCore,
+                cancellationToken: cancellationToken);
+            Task<DashboardServiceHealthView> populationTask = ProbeRemoteHealthAsync(
+                service: "Population",
+                baseUrl: _downstreamOptions.Population,
+                cancellationToken: cancellationToken);
+            Task<DashboardServiceHealthView> identityTask = ProbeRemoteHealthAsync(
+                service: "Identity",
+                baseUrl: _downstreamOptions.Identity,
+                cancellationToken: cancellationToken);
 
-            return await Task.WhenAll(gatewayTask, cityCoreTask, populationTask, identityTask);
+            return await Task.WhenAll(
+                gatewayTask,
+                cityCoreTask,
+                populationTask,
+                identityTask);
         }
 
         private async Task<DashboardServiceHealthView> ProbeGatewayHealthAsync(CancellationToken cancellationToken)
@@ -191,13 +286,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                     cancellationToken: cancellationToken);
 
                 if (report.Status == HealthStatus.Healthy)
-                {
                     return new DashboardServiceHealthView(
                         Service: "Gateway",
                         Status: "healthy",
                         Detail: "Ready endpoint is healthy.",
                         CheckedAtUtc: checkedAt);
-                }
 
                 string detail = report.Entries.Count == 0
                     ? "Gateway ready checks reported a non-healthy state."
@@ -208,7 +301,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
 
                 return new DashboardServiceHealthView(
                     Service: "Gateway",
-                    Status: report.Status == HealthStatus.Degraded ? "degraded" : "unhealthy",
+                    Status: report.Status == HealthStatus.Degraded
+                        ? "degraded"
+                        : "unhealthy",
                     Detail: detail,
                     CheckedAtUtc: checkedAt);
             }
@@ -235,7 +330,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                 timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
 
                 HttpClient client = _httpClientFactory.CreateClient();
-                client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+                client.BaseAddress = new Uri(
+                    uriString: baseUrl,
+                    uriKind: UriKind.Absolute);
 
                 using HttpResponseMessage response = await client.GetAsync(
                     requestUri: "/health/ready",
@@ -288,8 +385,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                         CityStatus: city.Status,
                         OccurredAtUtc: city.CreatedAtUtc));
 
-                if (city.PopulationBootstrapCompletedAtUtc is { } completedAtUtc)
-                {
+                if (city.PopulationBootstrapCompletedAtUtc is
+                    { } completedAtUtc)
                     events.Add(
                         new DashboardRecentEventView(
                             Kind: "bootstrap-ready",
@@ -300,9 +397,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                             CityName: city.Name,
                             CityStatus: city.Status,
                             OccurredAtUtc: completedAtUtc));
-                }
 
-                if (city.PopulationBootstrapFailedAtUtc is { } failedAtUtc)
+                if (city.PopulationBootstrapFailedAtUtc is
+                    { } failedAtUtc)
                 {
                     string failureDetail = string.IsNullOrWhiteSpace(city.PopulationBootstrapFailureCode)
                         ? "Population bootstrap failed before the city became ready."
@@ -320,8 +417,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                             OccurredAtUtc: failedAtUtc));
                 }
 
-                if (city.ArchivedAtUtc is { } archivedAtUtc)
-                {
+                if (city.ArchivedAtUtc is
+                    { } archivedAtUtc)
                     events.Add(
                         new DashboardRecentEventView(
                             Kind: "city-archived",
@@ -332,12 +429,13 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
                             CityName: city.Name,
                             CityStatus: city.Status,
                             OccurredAtUtc: archivedAtUtc));
-                }
             }
 
             return events
                .OrderByDescending(@event => @event.OccurredAtUtc)
-               .ThenBy(@event => @event.CityName, StringComparer.OrdinalIgnoreCase)
+               .ThenBy(
+                    keySelector: @event => @event.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .Take(10)
                .ToArray();
         }
@@ -347,15 +445,19 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
             DateTimeOffset startInclusive,
             DateTimeOffset endExclusive)
         {
-            return moment is { } value &&
+            return moment is
+                       { } value &&
                    value >= startInclusive &&
                    value < endExclusive;
         }
 
-        private static bool WasReadyAt(CityListItemView city, DateTimeOffset cutoff)
+        private static bool WasReadyAt(
+            CityListItemView city,
+            DateTimeOffset cutoff)
         {
             return city.CreatedAtUtc <= cutoff &&
-                   city.PopulationBootstrapCompletedAtUtc is { } completedAtUtc &&
+                   city.PopulationBootstrapCompletedAtUtc is
+                       { } completedAtUtc &&
                    completedAtUtc <= cutoff &&
                    (city.ArchivedAtUtc is null || city.ArchivedAtUtc > cutoff);
         }
@@ -363,13 +465,17 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
         private static bool IsReady(CityListItemView city)
         {
             return city.ArchivedAtUtc is null &&
-                   city.Status.Equals("Active", StringComparison.OrdinalIgnoreCase);
+                   city.Status.Equals(
+                       value: "Active",
+                       comparisonType: StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsArchived(CityListItemView city)
         {
             return city.ArchivedAtUtc is not null ||
-                   city.Status.Equals("Archived", StringComparison.OrdinalIgnoreCase);
+                   city.Status.Equals(
+                       value: "Archived",
+                       comparisonType: StringComparison.OrdinalIgnoreCase);
         }
 
         private static int GetAttentionRank(CityListItemView city)
@@ -378,7 +484,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Dashboard
             {
                 "provisioningfailed" => 0,
                 "provisioning" => 1,
-                _ => 2,
+                _ => 2
             };
         }
     }

@@ -86,20 +86,18 @@
     color: var(--shell-button-text);
     cursor: pointer;
     border: 1px solid var(--shell-border);
-    background:
-        radial-gradient(
+    background: radial-gradient(
             120px 80px at 30% 30%,
             rgba(var(--shell-accent-rgb), 0.18),
             transparent 70%
-        ),
-        linear-gradient(180deg, var(--shell-surface-strong), var(--shell-surface-soft));
+    ),
+    linear-gradient(180deg, var(--shell-surface-strong), var(--shell-surface-soft));
     backdrop-filter: blur(10px);
     box-shadow: var(--shell-shadow), 0 0 28px rgba(var(--shell-accent-rgb), 0.16);
-    transition:
-        transform 0.14s ease,
-        border-color 0.14s ease,
-        box-shadow 0.14s ease,
-        background 0.18s ease;
+    transition: transform 0.14s ease,
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    background 0.18s ease;
 }
 
 .mx-shell__handle::before {
@@ -120,10 +118,9 @@
 
 .mx-shell__handle:focus-visible {
     outline: none;
-    box-shadow:
-        0 0 0 3px var(--shell-focus-ring),
-        var(--shell-shadow),
-        0 0 38px rgba(var(--shell-accent-rgb), 0.24);
+    box-shadow: 0 0 0 3px var(--shell-focus-ring),
+    var(--shell-shadow),
+    0 0 38px rgba(var(--shell-accent-rgb), 0.24);
 }
 
 .mx-shell__burger {

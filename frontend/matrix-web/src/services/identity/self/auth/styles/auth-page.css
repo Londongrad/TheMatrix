@@ -4,16 +4,14 @@
     max-width: 980px;
     border-radius: 1.5rem;
     border: 1px solid var(--settings-card-border);
-    background:
-        radial-gradient(
+    background: radial-gradient(
             circle at top left,
             rgba(var(--shell-accent-rgb), 0.16),
             transparent 60%
-        ),
-        var(--settings-card-bg);
-    box-shadow:
-        var(--settings-card-shadow),
-        0 0 0 1px rgba(15, 23, 42, 0.18);
+    ),
+    var(--settings-card-bg);
+    box-shadow: var(--settings-card-shadow),
+    0 0 0 1px rgba(15, 23, 42, 0.18);
     backdrop-filter: blur(18px);
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
@@ -40,17 +38,16 @@ html[data-theme="matrix"] .auth-card {
 .auth-card__side {
     padding: 2.5rem 2.75rem;
     border-right: 1px solid var(--settings-card-border);
-    background:
-        radial-gradient(
+    background: radial-gradient(
             circle at top,
             rgba(var(--shell-accent-rgb), 0.18),
             transparent 60%
-        ),
-        linear-gradient(
+    ),
+    linear-gradient(
             145deg,
             color-mix(in srgb, var(--shell-surface-strong) 96%, black 4%),
             color-mix(in srgb, var(--shell-surface) 94%, transparent)
-        );
+    );
 }
 
 .auth-logo {
@@ -182,11 +179,10 @@ html[data-theme="matrix"] .auth-card {
     color: var(--app-text);
     font-size: 0.95rem;
     outline: none;
-    transition:
-        border-color 0.15s ease-out,
-        box-shadow 0.15s ease-out,
-        background-color 0.15s ease-out,
-        transform 0.08s ease-out;
+    transition: border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out,
+    transform 0.08s ease-out;
 }
 
 .auth-input::placeholder {
@@ -269,10 +265,9 @@ html[data-theme="matrix"] .auth-card {
     background-image: var(--settings-button-gradient);
     color: var(--settings-button-text);
     box-shadow: var(--settings-button-shadow);
-    transition:
-        transform 0.08s ease-out,
-        box-shadow 0.12s ease-out,
-        filter 0.12s ease-out;
+    transition: transform 0.08s ease-out,
+    box-shadow 0.12s ease-out,
+    filter 0.12s ease-out;
     display: inline-flex;
     align-items: center;
     justify-content: center;

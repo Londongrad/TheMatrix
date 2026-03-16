@@ -5,6 +5,5 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         string EducationLevel,
         int ResidentCount);
 
-    public sealed record CityEducationCatalogDto(
-        IReadOnlyList<CityEducationInstitutionDto> CurrentInstitutions);
+    public sealed record CityEducationCatalogDto(IReadOnlyList<CityEducationInstitutionDto> CurrentInstitutions);
 }

@@ -31,12 +31,15 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             catch (DbUpdateException ex) when (TryRecoverFromMissingSecurityAuditTable(ex))
             {
                 logger.LogWarning(
-                    ex,
+                    exception: ex,
+                    message:
                     "Security audit table is missing. Pending audit entries were dropped so the main transaction could continue.");
 
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
-            catch (DbUpdateException ex) when (TryTranslateKnownDbException(ex, out MatrixApplicationException? translated))
+            catch (DbUpdateException ex) when (TryTranslateKnownDbException(
+                                                   exception: ex,
+                                                   translated: out MatrixApplicationException? translated))
             {
                 throw translated;
             }
@@ -117,8 +120,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         {
             if (exception.InnerException is PostgresException
                 {
-                    SqlState: PostgresErrorCodes.UniqueViolation,
-                    ConstraintName: RolesNormalizedNameConstraint
+                    SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: RolesNormalizedNameConstraint
                 })
             {
                 translated = ApplicationErrorsFactory.RoleNameAlreadyInUse(
@@ -137,7 +139,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 
             bool detachedAny = false;
 
-            foreach (EntityEntry<SecurityAuditEventRecord> entry in dbContext.ChangeTracker.Entries<SecurityAuditEventRecord>())
+            foreach (EntityEntry<SecurityAuditEventRecord> entry in dbContext.ChangeTracker
+                        .Entries<SecurityAuditEventRecord>())
             {
                 if (entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
                     continue;
@@ -153,7 +156,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         {
             return exception.InnerException is PostgresException postgresException &&
                    postgresException.SqlState == PostgresErrorCodes.UndefinedTable &&
-                   postgresException.MessageText.Contains("SecurityAuditEvents", StringComparison.Ordinal);
+                   postgresException.MessageText.Contains(
+                       value: "SecurityAuditEvents",
+                       comparisonType: StringComparison.Ordinal);
         }
 
         private string? GetTrackedRoleName()

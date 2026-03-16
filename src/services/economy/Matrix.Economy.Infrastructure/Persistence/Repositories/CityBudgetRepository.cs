@@ -8,9 +8,13 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
     {
         private readonly EconomyDbContext _dbContext = dbContext;
 
-        public async Task<CityBudget?> GetByCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        public async Task<CityBudget?> GetByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
         {
-            return await _dbContext.CityBudgets.SingleOrDefaultAsync(x => x.CityId == cityId, cancellationToken);
+            return await _dbContext.CityBudgets.SingleOrDefaultAsync(
+                predicate: x => x.CityId == cityId,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyList<CityBudget>> ListAsync(CancellationToken cancellationToken = default)

@@ -23,8 +23,14 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserPermissions
 
                     overrideRule.RuleFor(x => x.Effect)
                        .Must(effect =>
-                            string.Equals(effect, "Allow", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(effect, "Deny", StringComparison.OrdinalIgnoreCase))
+                            string.Equals(
+                                a: effect,
+                                b: "Allow",
+                                comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(
+                                a: effect,
+                                b: "Deny",
+                                comparisonType: StringComparison.OrdinalIgnoreCase))
                        .WithMessage("Effect must be Allow or Deny");
                 });
 
@@ -33,8 +39,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.UpdateUserPermissions
                .WithMessage("Permission keys must be unique");
         }
 
-        private static bool HaveUniquePermissionKeys(
-            IReadOnlyCollection<UpdateUserPermissionOverrideInput>? overrides)
+        private static bool HaveUniquePermissionKeys(IReadOnlyCollection<UpdateUserPermissionOverrideInput>? overrides)
         {
             if (overrides is null || overrides.Count <= 1)
                 return true;

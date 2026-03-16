@@ -2,7 +2,6 @@ using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
-using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
@@ -37,12 +36,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return false;
 
             HouseholdPressureEffect effect = ResolveEffect(
-                resident: resident,
-                householdResidents: activeResidents,
-                housingStatus: housingStatus,
-                financialStressState: financialStressState,
-                currentDate: currentDate)
-               .Scale(Math.Clamp(reviewWindows, 1, 3));
+                    resident: resident,
+                    householdResidents: activeResidents,
+                    housingStatus: housingStatus,
+                    financialStressState: financialStressState,
+                    currentDate: currentDate)
+               .Scale(
+                    Math.Clamp(
+                        value: reviewWindows,
+                        min: 1,
+                        max: 3));
 
             if (!effect.HasAnyEffect)
                 return false;
@@ -75,8 +78,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate)
         {
             int householdSize = householdResidents.Count;
-            int dependentCount = householdResidents.Count(x => x.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Youth);
-            int infantCount = householdResidents.Count(x => x.GetAge(currentDate).Years == 0);
+            int dependentCount =
+                householdResidents.Count(x => x.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Youth);
+            int infantCount = householdResidents.Count(x => x.GetAge(currentDate)
+                                                               .Years ==
+                                                            0);
             int activeIllnessCount = householdResidents.Count(x => x.HasActiveIllness);
             int employedAdults = householdResidents.Count(x =>
                 x.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior &&
@@ -88,12 +94,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 x.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Youth &&
                 (x.MotherId == resident.Id || x.FatherId == resident.Id));
             bool isParentOfInfant = householdResidents.Any(x =>
-                x.GetAge(currentDate).Years == 0 &&
+                x.GetAge(currentDate)
+                   .Years ==
+                0 &&
                 (x.MotherId == resident.Id || x.FatherId == resident.Id));
-            bool isolatedSingle = householdSize == 1 && resident.MaritalStatus is MaritalStatus.Single or MaritalStatus.Divorced or MaritalStatus.Widowed;
+            bool isolatedSingle = householdSize == 1 &&
+                                  resident.MaritalStatus is MaritalStatus.Single
+                                   or MaritalStatus.Divorced
+                                   or MaritalStatus.Widowed;
 
-            int crowding = Math.Max(0, householdSize - 3);
-            int supportShortfall = Math.Max(0, dependentCount - employedAdults - studentResidents);
+            int crowding = Math.Max(
+                val1: 0,
+                val2: householdSize - 3);
+            int supportShortfall = Math.Max(
+                val1: 0,
+                val2: dependentCount - employedAdults - studentResidents);
 
             int happinessDelta = 0;
             int energyDelta = 0;
@@ -109,14 +124,20 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (crowding > 0)
             {
-                happinessDelta -= Math.Min(2, crowding);
-                stressDelta += Math.Min(3, crowding);
+                happinessDelta -= Math.Min(
+                    val1: 2,
+                    val2: crowding);
+                stressDelta += Math.Min(
+                    val1: 3,
+                    val2: crowding);
             }
 
             if (supportShortfall > 0)
             {
                 happinessDelta -= 1;
-                stressDelta += Math.Min(2, supportShortfall);
+                stressDelta += Math.Min(
+                    val1: 2,
+                    val2: supportShortfall);
             }
 
             if (activeIllnessCount > 0)
@@ -127,10 +148,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 socialNeedDelta += 2;
                 happinessDelta -= 1;
             }
-            else if (householdSize >= 2)
-            {
-                socialNeedDelta -= 1;
-            }
+            else
+                if (householdSize >= 2)
+                    socialNeedDelta -= 1;
 
             if (hasDependents && employedAdults > dependentCount)
                 happinessDelta += 1;
@@ -154,7 +174,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 happinessDelta -= 1;
             }
 
-            if (IsRecentFinancialStress(financialStressState, currentDate))
+            if (IsRecentFinancialStress(
+                    state: financialStressState,
+                    currentDate: currentDate))
             {
                 decimal financialStressScore = financialStressState!.DistressScore;
 
@@ -163,8 +185,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 if (financialStressScore >= 0.60m)
                     stressDelta += 2;
-                else if (financialStressScore > 0m)
-                    stressDelta += 1;
+                else
+                    if (financialStressScore > 0m)
+                        stressDelta += 1;
 
                 if (financialStressState.OverdueRentCount > 0)
                 {
@@ -190,7 +213,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly previousDate,
             DateOnly currentDate)
         {
-            return Math.Clamp(currentDate.DayNumber - previousDate.DayNumber, 0, 3);
+            return Math.Clamp(
+                value: currentDate.DayNumber - previousDate.DayNumber,
+                min: 0,
+                max: 3);
         }
 
         private static bool IsRecentFinancialStress(
@@ -200,7 +226,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (state is null)
                 return false;
 
-            DateOnly lastEvaluatedDate = DateOnly.FromDateTime(state.LastEvaluatedAtUtc.UtcDateTime);
+            var lastEvaluatedDate = DateOnly.FromDateTime(state.LastEvaluatedAtUtc.UtcDateTime);
             return currentDate.DayNumber - lastEvaluatedDate.DayNumber <= 45;
         }
 
@@ -219,10 +245,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             public HouseholdPressureEffect Scale(int factor)
             {
                 return new HouseholdPressureEffect(
-                    HappinessDelta * factor,
-                    EnergyDelta * factor,
-                    StressDelta * factor,
-                    SocialNeedDelta * factor);
+                    HappinessDelta: HappinessDelta * factor,
+                    EnergyDelta: EnergyDelta * factor,
+                    StressDelta: StressDelta * factor,
+                    SocialNeedDelta: SocialNeedDelta * factor);
             }
         }
     }

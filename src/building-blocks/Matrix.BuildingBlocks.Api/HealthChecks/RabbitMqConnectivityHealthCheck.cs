@@ -16,7 +16,9 @@ namespace Matrix.BuildingBlocks.Api.HealthChecks
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             linkedCts.CancelAfter(timeout);
 
-            using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            using var socket = new Socket(
+                socketType: SocketType.Stream,
+                protocolType: ProtocolType.Tcp);
 
             try
             {
@@ -31,7 +33,8 @@ namespace Matrix.BuildingBlocks.Api.HealthChecks
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 return HealthCheckResult.Unhealthy(
-                    description: $"RabbitMQ TCP connectivity to {host}:{port} timed out after {timeout.TotalSeconds:0.#} seconds.");
+                    description:
+                    $"RabbitMQ TCP connectivity to {host}:{port} timed out after {timeout.TotalSeconds:0.#} seconds.");
             }
             catch (Exception ex)
             {

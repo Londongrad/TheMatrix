@@ -5,10 +5,7 @@ import Button from "@shared/ui/controls/Button/Button";
 import ProvisioningTimeline, {
     type ProvisioningTimelineItem,
 } from "@services/citycore/scenarios/classic-city/components/ProvisioningTimeline";
-import {
-    getCity,
-    getCityProvisioning,
-} from "@services/citycore/scenarios/classic-city/api/citiesApi";
+import {getCity, getCityProvisioning,} from "@services/citycore/scenarios/classic-city/api/citiesApi";
 import type {
     CityPopulationBootstrapView,
     CityProvisioningStatusView,
@@ -338,7 +335,8 @@ export default function ClassicCityProvisioningPage() {
                 <div className="scenario-setup__hero-grid">
                     <div className="scenario-setup__hero-copy">
                         <div className="scenario-setup__status-row">
-                            <span className={`scenario-setup__status-chip scenario-setup__status-chip--${provisioningTone}`}>
+                            <span
+                                className={`scenario-setup__status-chip scenario-setup__status-chip--${provisioningTone}`}>
                                 {cityStatusLabel}
                             </span>
                             {cityId ? (
@@ -353,7 +351,8 @@ export default function ClassicCityProvisioningPage() {
                         </h1>
                         <p className="scenario-setup__subtitle">
                             This provisioning route now speaks the same visual language as setup-session handoff, so
-                            launch state stays readable whether you arrive from the wizard or from the provisioning queue.
+                            launch state stays readable whether you arrive from the wizard or from the provisioning
+                            queue.
                         </p>
                     </div>
 
@@ -458,11 +457,13 @@ export default function ClassicCityProvisioningPage() {
                             <div className="scenario-setup__stats-grid">
                                 <div className="scenario-setup__stat-card">
                                     <span className="scenario-setup__stat-label">Requested people</span>
-                                    <strong className="scenario-setup__stat-value">{summary.requestedPeopleCount}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{summary.requestedPeopleCount}</strong>
                                 </div>
                                 <div className="scenario-setup__stat-card">
                                     <span className="scenario-setup__stat-label">Generated people</span>
-                                    <strong className="scenario-setup__stat-value">{summary.generatedPeopleCount}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{summary.generatedPeopleCount}</strong>
                                 </div>
                                 <div className="scenario-setup__stat-card">
                                     <span className="scenario-setup__stat-label">Households</span>
@@ -515,7 +516,8 @@ export default function ClassicCityProvisioningPage() {
                     </div>
 
                     <aside className="scenario-setup__aside">
-                        <div className={`scenario-setup__aside-card scenario-setup__aside-card--status-${provisioningTone}`}>
+                        <div
+                            className={`scenario-setup__aside-card scenario-setup__aside-card--status-${provisioningTone}`}>
                             <div className="scenario-setup__aside-label">Provisioning state</div>
                             <div className="scenario-setup__aside-value">{cityStatusLabel}</div>
                             <div className="scenario-setup__aside-list">

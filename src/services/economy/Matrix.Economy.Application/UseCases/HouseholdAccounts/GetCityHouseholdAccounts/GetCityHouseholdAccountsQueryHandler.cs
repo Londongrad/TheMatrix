@@ -12,10 +12,11 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHousehold
             CancellationToken cancellationToken)
         {
             IReadOnlyList<CityHouseholdAccount> accounts = await householdAccountRepository.ListByCityAsync(
-                request.CityId,
-                cancellationToken);
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
 
-            return accounts.Select(Map).ToArray();
+            return accounts.Select(Map)
+               .ToArray();
         }
 
         private static CityHouseholdAccountDto Map(CityHouseholdAccount account)

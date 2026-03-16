@@ -27,11 +27,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar
                         throw ApplicationErrorsFactory.UserNotFound(userId);
 
             if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
-            {
                 await avatarStorage.DeleteAsync(
                     path: user.AvatarUrl,
                     cancellationToken: cancellationToken);
-            }
 
             user.ChangeAvatar(null);
 

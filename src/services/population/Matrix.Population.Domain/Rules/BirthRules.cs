@@ -1,4 +1,5 @@
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -18,10 +19,11 @@ namespace Matrix.Population.Domain.Rules
             if (!mother.IsAlive)
                 throw DomainErrorsFactory.BirthMotherMustBeAlive(nameof(mother));
 
-            if (mother.Sex != Enums.Sex.Female)
+            if (mother.Sex != Sex.Female)
                 throw DomainErrorsFactory.BirthMotherMustBeFemale(nameof(mother));
 
-            int motherAgeYears = mother.GetAge(currentDate).Years;
+            int motherAgeYears = mother.GetAge(currentDate)
+               .Years;
             if (motherAgeYears < 16)
                 throw DomainErrorsFactory.BirthMotherTooYoung(nameof(mother));
 
@@ -43,7 +45,7 @@ namespace Matrix.Population.Domain.Rules
             if (!father.IsAlive)
                 throw DomainErrorsFactory.BirthFatherMustBeAlive(nameof(father));
 
-            if (father.Sex != Enums.Sex.Male)
+            if (father.Sex != Sex.Male)
                 throw DomainErrorsFactory.BirthFatherMustBeMale(nameof(father));
 
             if (mother.Id == father.Id)

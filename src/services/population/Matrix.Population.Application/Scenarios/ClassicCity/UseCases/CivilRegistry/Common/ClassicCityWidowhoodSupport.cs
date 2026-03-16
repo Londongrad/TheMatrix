@@ -33,7 +33,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             IReadOnlyDictionary<PersonId, Person> residentsById,
             MarriageDomainService marriageDomainService)
         {
-            if (deceased.SpouseId is not { } spouseId)
+            if (deceased.SpouseId is not
+                { } spouseId)
                 return false;
 
             return residentsById.TryGetValue(

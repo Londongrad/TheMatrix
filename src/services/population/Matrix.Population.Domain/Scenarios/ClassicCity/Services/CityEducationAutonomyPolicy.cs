@@ -18,8 +18,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (!person.IsAlive)
                 return false;
 
-            int previousAgeYears = person.GetAge(previousDate).Years;
-            int currentAgeYears = person.GetAge(currentDate).Years;
+            int previousAgeYears = person.GetAge(previousDate)
+               .Years;
+            int currentAgeYears = person.GetAge(currentDate)
+               .Years;
             bool changed = false;
 
             EducationLevel? targetFloor = ResolveMandatoryEducationFloor(
@@ -27,7 +29,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 currentAgeYears: currentAgeYears);
 
             if (targetFloor.HasValue)
-            {
                 while (person.EducationLevel < targetFloor.Value)
                 {
                     EducationLevel nextLevel = ResolveNextEducationLevel(person.EducationLevel);
@@ -41,7 +42,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         institutionId: institutionId);
                     changed = true;
                 }
-            }
 
             if (currentAgeYears is >= 3 and < 18)
             {
@@ -120,7 +120,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 EducationLevel.UpperSecondary => EducationLevel.Vocational,
                 EducationLevel.Vocational => EducationLevel.Higher,
                 EducationLevel.Higher => EducationLevel.Postgraduate,
-                _ => EducationLevel.Postgraduate,
+                _ => EducationLevel.Postgraduate
             };
         }
 
@@ -129,7 +129,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             EducationLevel educationLevel,
             IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools)
         {
-            if (!institutionPools.TryGetValue(educationLevel, out List<EducationInstitutionId>? levelPool))
+            if (!institutionPools.TryGetValue(
+                    key: educationLevel,
+                    value: out List<EducationInstitutionId>? levelPool))
             {
                 levelPool = [];
                 institutionPools[educationLevel] = levelPool;
@@ -137,7 +139,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (levelPool.Count == 0)
             {
-                EducationInstitutionId created = EducationInstitutionId.New();
+                var created = EducationInstitutionId.New();
                 levelPool.Add(created);
                 return created;
             }

@@ -8,9 +8,13 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
     {
         private readonly EconomyDbContext _dbContext = dbContext;
 
-        public async Task<CityBusiness?> GetByIdAsync(Guid businessId, CancellationToken cancellationToken = default)
+        public async Task<CityBusiness?> GetByIdAsync(
+            Guid businessId,
+            CancellationToken cancellationToken = default)
         {
-            return await _dbContext.CityBusinesses.SingleOrDefaultAsync(x => x.Id == businessId, cancellationToken);
+            return await _dbContext.CityBusinesses.SingleOrDefaultAsync(
+                predicate: x => x.Id == businessId,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<CityBusiness?> GetByCityAndExternalReferenceCodeAsync(
@@ -19,8 +23,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityBusinesses.SingleOrDefaultAsync(
-                x => x.CityId == cityId && x.ExternalReferenceCode == externalReferenceCode,
-                cancellationToken);
+                predicate: x => x.CityId == cityId && x.ExternalReferenceCode == externalReferenceCode,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<CityBusiness?> GetByCityAndTemplateKeyAsync(
@@ -29,16 +33,18 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityBusinesses.SingleOrDefaultAsync(
-                x => x.CityId == cityId && x.TemplateKey == templateKey,
-                cancellationToken);
+                predicate: x => x.CityId == cityId && x.TemplateKey == templateKey,
+                cancellationToken: cancellationToken);
         }
 
-        public async Task<IReadOnlyList<CityBusiness>> ListByCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<CityBusiness>> ListByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityBusinesses
-                .Where(x => x.CityId == cityId)
-                .OrderBy(x => x.Name)
-                .ToListAsync(cancellationToken);
+               .Where(x => x.CityId == cityId)
+               .OrderBy(x => x.Name)
+               .ToListAsync(cancellationToken);
         }
 
         public void Add(CityBusiness cityBusiness)

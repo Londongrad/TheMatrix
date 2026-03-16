@@ -17,20 +17,26 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHousehold
             CancellationToken cancellationToken)
         {
             PagedResult<CityHouseholdAccountLedgerEntry> page = await ledgerRepository.GetPageByHouseholdAccountAsync(
-                request.HouseholdAccountId,
-                request.PageNumber,
-                request.PageSize,
-                cancellationToken);
+                householdAccountId: request.HouseholdAccountId,
+                pageNumber: request.PageNumber,
+                pageSize: request.PageSize,
+                cancellationToken: cancellationToken);
 
-            CityHouseholdAccount account = await householdAccountRepository.GetByIdAsync(request.HouseholdAccountId, cancellationToken)
-                ?? throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
+            CityHouseholdAccount account =
+                await householdAccountRepository.GetByIdAsync(
+                    householdAccountId: request.HouseholdAccountId,
+                    cancellationToken: cancellationToken) ??
+                throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
             CityBudgetUnitProfile unitProfile = account.GetUnitProfile();
 
             return new PagedResult<CityHouseholdAccountLedgerEntryDto>(
-                page.Items.Select(entry => Map(entry, unitProfile)).ToArray(),
-                page.TotalCount,
-                page.PageNumber,
-                page.PageSize);
+                items: page.Items.Select(entry => Map(
+                        entry: entry,
+                        unitProfile: unitProfile))
+                   .ToArray(),
+                totalCount: page.TotalCount,
+                pageNumber: page.PageNumber,
+                pageSize: page.PageSize);
         }
 
         private static CityHouseholdAccountLedgerEntryDto Map(

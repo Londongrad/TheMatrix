@@ -15,7 +15,6 @@ using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Topology.Views;
 using Matrix.CityCore.Contracts.Simulation.Views;
-using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 
 namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
@@ -114,8 +113,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 bootstrap: economyBootstrap,
                 cancellationToken: cancellationToken);
 
-            if (!string.Equals(economyBootstrap.Status, EconomyBootstrapStatuses.Completed, StringComparison.Ordinal))
-            {
+            if (!string.Equals(
+                    a: economyBootstrap.Status,
+                    b: EconomyBootstrapStatuses.Completed,
+                    comparisonType: StringComparison.Ordinal))
                 return new CityProvisioningView(
                     CityId: cityId,
                     SimulationKind: simulationKind,
@@ -127,7 +128,6 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                         Summary: null,
                         FailureCode: null),
                     EconomyBootstrap: economyBootstrap);
-            }
 
             bool supportsAutomaticPopulationBootstrap = await SupportsAutomaticPopulationBootstrapAsync(
                 simulationKind: simulationKind,
@@ -415,8 +415,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                     break;
 
                 default:
-                    throw new InvalidOperationException(
-                        $"Unsupported economy bootstrap status '{bootstrap.Status}'.");
+                    throw new InvalidOperationException($"Unsupported economy bootstrap status '{bootstrap.Status}'.");
             }
         }
 
@@ -426,18 +425,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             IReadOnlyCollection<ResidentialBuildingView> buildings)
         {
             if (plannedPeopleCountOverride.HasValue)
-            {
                 return Math.Max(
-                    0,
-                    plannedPeopleCountOverride.Value);
-            }
+                    val1: 0,
+                    val2: plannedPeopleCountOverride.Value);
 
             if (city.PlannedPeopleCount.HasValue)
-            {
                 return Math.Max(
-                    0,
-                    city.PlannedPeopleCount.Value);
-            }
+                    val1: 0,
+                    val2: city.PlannedPeopleCount.Value);
 
             return CalculateAutomaticPeopleCount(
                 city: city,
@@ -549,7 +544,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 salt: "population-housing-pressure",
                 maxAbsPoints: 5);
 
-            return Math.Clamp(pressure, 0, 100);
+            return Math.Clamp(
+                value: pressure,
+                min: 0,
+                max: 100);
         }
 
         private static int CalculateEconomicStabilityPercent(
@@ -586,13 +584,20 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 _ => 0
             };
 
-            stability -= (int)Math.Round(Math.Max(0, housingPressurePercent - 50) * 0.40m);
+            stability -= (int)Math.Round(
+                Math.Max(
+                    val1: 0,
+                    val2: housingPressurePercent - 50) *
+                0.40m);
             stability += GetSeedJitterPoints(
                 generationSeed: city.GenerationSeed,
                 salt: "population-economic-stability",
                 maxAbsPoints: 6);
 
-            return Math.Clamp(stability, 0, 100);
+            return Math.Clamp(
+                value: stability,
+                min: 0,
+                max: 100);
         }
 
         private static int CalculateSocialVolatilityPercent(
@@ -622,13 +627,20 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 _ => 0
             };
 
-            volatility += (int)Math.Round(Math.Max(0, housingPressurePercent - 45) * 0.35m);
+            volatility += (int)Math.Round(
+                Math.Max(
+                    val1: 0,
+                    val2: housingPressurePercent - 45) *
+                0.35m);
             volatility += GetSeedJitterPoints(
                 generationSeed: city.GenerationSeed,
                 salt: "population-social-volatility",
                 maxAbsPoints: 8);
 
-            return Math.Clamp(volatility, 0, 100);
+            return Math.Clamp(
+                value: volatility,
+                min: 0,
+                max: 100);
         }
 
         private static int CalculateFamilyFormationPercent(
@@ -665,13 +677,20 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 _ => 0
             };
 
-            familyFormation -= (int)Math.Round(Math.Max(0, housingPressurePercent - 50) * 0.45m);
+            familyFormation -= (int)Math.Round(
+                Math.Max(
+                    val1: 0,
+                    val2: housingPressurePercent - 50) *
+                0.45m);
             familyFormation += GetSeedJitterPoints(
                 generationSeed: city.GenerationSeed,
                 salt: "population-family-formation",
                 maxAbsPoints: 5);
 
-            return Math.Clamp(familyFormation, 0, 100);
+            return Math.Clamp(
+                value: familyFormation,
+                min: 0,
+                max: 100);
         }
 
         private static bool TryValidateBootstrapSummary(
@@ -814,7 +833,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
             decimal normalized = sample / (decimal)int.MaxValue;
             decimal centered = (normalized - 0.5m) * 2m;
 
-            return (int)Math.Round(centered * maxAbsPoints, MidpointRounding.AwayFromZero);
+            return (int)Math.Round(
+                d: centered * maxAbsPoints,
+                mode: MidpointRounding.AwayFromZero);
         }
 
         private static string DetermineFailureCode(Exception exception)
@@ -860,9 +881,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities
                 DownstreamServiceException downstreamException when
                     downstreamException.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity =>
                     EconomyBootstrapFailureCodes.EconomyValidationFailed,
-                DownstreamServiceException downstreamException when downstreamException.StatusCode == HttpStatusCode.Conflict =>
+                DownstreamServiceException downstreamException when downstreamException.StatusCode ==
+                                                                    HttpStatusCode.Conflict =>
                     EconomyBootstrapFailureCodes.EconomyConflict,
-                DownstreamServiceException downstreamException when downstreamException.StatusCode == HttpStatusCode.NotFound =>
+                DownstreamServiceException downstreamException when downstreamException.StatusCode ==
+                                                                    HttpStatusCode.NotFound =>
                     EconomyBootstrapFailureCodes.EconomyDependencyNotFound,
                 DownstreamServiceException downstreamException when
                     downstreamException.StatusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout =>

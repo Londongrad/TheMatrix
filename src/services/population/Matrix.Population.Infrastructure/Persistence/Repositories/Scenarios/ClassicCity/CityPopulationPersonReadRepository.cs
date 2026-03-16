@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -97,11 +98,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             Guid? cityId = await (
-                from person in _dbContext.Persons.AsNoTracking()
-                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
-                    on person.HouseholdId equals placement.HouseholdId
-                where person.Id == personId
-                select (Guid?)placement.CityId.Value)
+                    from person in _dbContext.Persons.AsNoTracking()
+                    join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                        on person.HouseholdId equals placement.HouseholdId
+                    where person.Id == personId
+                    select (Guid?)placement.CityId.Value)
                .FirstOrDefaultAsync(cancellationToken);
 
             return cityId.HasValue
@@ -115,18 +116,18 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             var snapshot = await (
-                from person in _dbContext.Persons.AsNoTracking()
-                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
-                    on person.HouseholdId equals placement.HouseholdId
-                where placement.CityId == cityId && person.Id == personId
-                select new
-                {
-                    HouseholdId = person.HouseholdId.Value,
-                    placement.HousingStatus,
-                    ResidentialBuildingId = placement.ResidentialBuildingId.HasValue
-                        ? placement.ResidentialBuildingId.Value.Value
-                        : (Guid?)null
-                })
+                    from person in _dbContext.Persons.AsNoTracking()
+                    join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                        on person.HouseholdId equals placement.HouseholdId
+                    where placement.CityId == cityId && person.Id == personId
+                    select new
+                    {
+                        HouseholdId = person.HouseholdId.Value,
+                        placement.HousingStatus,
+                        ResidentialBuildingId = placement.ResidentialBuildingId.HasValue
+                            ? placement.ResidentialBuildingId.Value.Value
+                            : (Guid?)null
+                    })
                .FirstOrDefaultAsync(cancellationToken);
 
             return snapshot is null
@@ -163,25 +164,25 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             var snapshots = await (
-                from person in _dbContext.Persons.AsNoTracking()
-                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
-                    on person.HouseholdId equals placement.HouseholdId
-                where placement.CityId == cityId
-                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Employed
-                    && person.Employment.Job != null
-                group person by new
-                {
-                    WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
-                    JobTitle = person.Employment.Job.Title
-                }
-                into workplaceGroup
-                orderby workplaceGroup.Count() descending, workplaceGroup.Key.JobTitle
-                select new
-                {
-                    workplaceGroup.Key.WorkplaceId,
-                    workplaceGroup.Key.JobTitle,
-                    ResidentCount = workplaceGroup.Count()
-                })
+                    from person in _dbContext.Persons.AsNoTracking()
+                    join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                        on person.HouseholdId equals placement.HouseholdId
+                    where placement.CityId == cityId &&
+                          person.Employment.Status == EmploymentStatus.Employed &&
+                          person.Employment.Job != null
+                    group person by new
+                    {
+                        WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
+                        JobTitle = person.Employment.Job.Title
+                    }
+                    into workplaceGroup
+                    orderby workplaceGroup.Count() descending, workplaceGroup.Key.JobTitle
+                    select new
+                    {
+                        workplaceGroup.Key.WorkplaceId,
+                        workplaceGroup.Key.JobTitle,
+                        ResidentCount = workplaceGroup.Count()
+                    })
                .ToListAsync(cancellationToken);
 
             return snapshots
@@ -198,25 +199,25 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             var snapshot = await (
-                from person in _dbContext.Persons.AsNoTracking()
-                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
-                    on person.HouseholdId equals placement.HouseholdId
-                where placement.CityId == cityId
-                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Employed
-                    && person.Employment.Job != null
-                    && person.Employment.Job.WorkplaceId.Value == workplaceId.Value
-                group person by new
-                {
-                    WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
-                    JobTitle = person.Employment.Job.Title
-                }
-                into workplaceGroup
-                select new
-                {
-                    workplaceGroup.Key.WorkplaceId,
-                    workplaceGroup.Key.JobTitle,
-                    ResidentCount = workplaceGroup.Count()
-                })
+                    from person in _dbContext.Persons.AsNoTracking()
+                    join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                        on person.HouseholdId equals placement.HouseholdId
+                    where placement.CityId == cityId &&
+                          person.Employment.Status == EmploymentStatus.Employed &&
+                          person.Employment.Job != null &&
+                          person.Employment.Job.WorkplaceId.Value == workplaceId.Value
+                    group person by new
+                    {
+                        WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
+                        JobTitle = person.Employment.Job.Title
+                    }
+                    into workplaceGroup
+                    select new
+                    {
+                        workplaceGroup.Key.WorkplaceId,
+                        workplaceGroup.Key.JobTitle,
+                        ResidentCount = workplaceGroup.Count()
+                    })
                .FirstOrDefaultAsync(cancellationToken);
 
             return snapshot is null
@@ -232,25 +233,25 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             var snapshots = await (
-                from person in _dbContext.Persons.AsNoTracking()
-                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
-                    on person.HouseholdId equals placement.HouseholdId
-                where placement.CityId == cityId
-                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Student
-                    && person.Education.CurrentInstitutionId != null
-                group person by new
-                {
-                    InstitutionId = person.Education.CurrentInstitutionId!.Value,
-                    person.Education.Level
-                }
-                into institutionGroup
-                orderby institutionGroup.Count() descending, institutionGroup.Key.Level
-                select new
-                {
-                    institutionGroup.Key.InstitutionId,
-                    institutionGroup.Key.Level,
-                    ResidentCount = institutionGroup.Count()
-                })
+                    from person in _dbContext.Persons.AsNoTracking()
+                    join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                        on person.HouseholdId equals placement.HouseholdId
+                    where placement.CityId == cityId &&
+                          person.Employment.Status == EmploymentStatus.Student &&
+                          person.Education.CurrentInstitutionId != null
+                    group person by new
+                    {
+                        InstitutionId = person.Education.CurrentInstitutionId!.Value,
+                        person.Education.Level
+                    }
+                    into institutionGroup
+                    orderby institutionGroup.Count() descending, institutionGroup.Key.Level
+                    select new
+                    {
+                        institutionGroup.Key.InstitutionId,
+                        institutionGroup.Key.Level,
+                        ResidentCount = institutionGroup.Count()
+                    })
                .ToListAsync(cancellationToken);
 
             return snapshots
@@ -267,25 +268,25 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CancellationToken cancellationToken = default)
         {
             var snapshot = await (
-                from person in _dbContext.Persons.AsNoTracking()
-                join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
-                    on person.HouseholdId equals placement.HouseholdId
-                where placement.CityId == cityId
-                    && person.Employment.Status == Domain.Enums.EmploymentStatus.Student
-                    && person.Education.CurrentInstitutionId != null
-                    && person.Education.CurrentInstitutionId.Value == institutionId.Value
-                group person by new
-                {
-                    InstitutionId = person.Education.CurrentInstitutionId!.Value,
-                    person.Education.Level
-                }
-                into institutionGroup
-                select new
-                {
-                    institutionGroup.Key.InstitutionId,
-                    institutionGroup.Key.Level,
-                    ResidentCount = institutionGroup.Count()
-                })
+                    from person in _dbContext.Persons.AsNoTracking()
+                    join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
+                        on person.HouseholdId equals placement.HouseholdId
+                    where placement.CityId == cityId &&
+                          person.Employment.Status == EmploymentStatus.Student &&
+                          person.Education.CurrentInstitutionId != null &&
+                          person.Education.CurrentInstitutionId.Value == institutionId.Value
+                    group person by new
+                    {
+                        InstitutionId = person.Education.CurrentInstitutionId!.Value,
+                        person.Education.Level
+                    }
+                    into institutionGroup
+                    select new
+                    {
+                        institutionGroup.Key.InstitutionId,
+                        institutionGroup.Key.Level,
+                        ResidentCount = institutionGroup.Count()
+                    })
                .FirstOrDefaultAsync(cancellationToken);
 
             return snapshot is null

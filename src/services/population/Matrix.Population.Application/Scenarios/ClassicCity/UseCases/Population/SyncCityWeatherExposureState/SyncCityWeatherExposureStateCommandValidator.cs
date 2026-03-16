@@ -2,7 +2,8 @@ using FluentValidation;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityWeatherExposureState
 {
-    public sealed class SyncCityWeatherExposureStateCommandValidator : AbstractValidator<SyncCityWeatherExposureStateCommand>
+    public sealed class
+        SyncCityWeatherExposureStateCommandValidator : AbstractValidator<SyncCityWeatherExposureStateCommand>
     {
         public SyncCityWeatherExposureStateCommandValidator()
         {

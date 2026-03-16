@@ -65,7 +65,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 List<Person> laneResidents = marriageLanes[laneKey];
                 laneResidents.Sort(
-                    comparison: (left, right) => CompareMarriageLaneResidents(
+                    comparison: (
+                        left,
+                        right) => CompareMarriageLaneResidents(
                         left: left,
                         right: right,
                         currentDate: currentDate));
@@ -119,11 +121,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 if (!resident.IsAlive ||
                     resident.MaritalStatus != MaritalStatus.Married ||
-                    resident.SpouseId is not { } spouseId ||
+                    resident.SpouseId is not
+                        { } spouseId ||
                     resident.GetAgeGroup(currentDate) != AgeGroup.Adult)
                     continue;
 
-                if (!residentsById.TryGetValue(spouseId, out Person? spouse) ||
+                if (!residentsById.TryGetValue(
+                        key: spouseId,
+                        value: out Person? spouse) ||
                     !spouse.IsAlive ||
                     spouse.MaritalStatus != MaritalStatus.Married ||
                     spouse.SpouseId != resident.Id ||
@@ -148,7 +153,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             foreach (Person resident in residents)
             {
                 if (blockedResidents.Contains(resident.Id) ||
-                    !IsEligibleForMarriage(resident, currentDate) ||
+                    !IsEligibleForMarriage(
+                        resident: resident,
+                        currentDate: currentDate) ||
                     !IsSeekingMarriage(
                         resident: resident,
                         currentDate: currentDate,
@@ -159,7 +166,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     resident: resident,
                     currentDate: currentDate);
 
-                if (!lanes.TryGetValue(laneKey, out List<Person>? laneResidents))
+                if (!lanes.TryGetValue(
+                        key: laneKey,
+                        value: out List<Person>? laneResidents))
                 {
                     laneResidents = [];
                     lanes[laneKey] = laneResidents;
@@ -228,7 +237,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double stress = Normalize(resident.Stress.Value);
             double socialNeed = Normalize(resident.SocialNeed.Value);
 
-            int ageYears = resident.GetAge(currentDate).Years;
+            int ageYears = resident.GetAge(currentDate)
+               .Years;
             double ageFactor = ageYears switch
             {
                 <= 21 => 0.004d,
@@ -249,44 +259,61 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 ? 0.003d
                 : 0d;
 
-            double chance = 0.001d
-                            + ageFactor
-                            + (sociability * 0.018d)
-                            + (socialNeed * 0.020d)
-                            + (optimism * 0.008d)
-                            + (happiness * 0.006d)
-                            + (health * 0.006d)
-                            - (stress * 0.012d)
-                            + statusFactor
-                            - studentPenalty;
+            double chance = 0.001d +
+                            ageFactor +
+                            (sociability * 0.018d) +
+                            (socialNeed * 0.020d) +
+                            (optimism * 0.008d) +
+                            (happiness * 0.006d) +
+                            (health * 0.006d) -
+                            (stress * 0.012d) +
+                            statusFactor -
+                            studentPenalty;
 
             if (resident.Health.Value < 25 || resident.Happiness.Value < 20)
                 chance *= 0.45d;
 
-            return Math.Clamp(chance, 0.0005d, 0.050d);
+            return Math.Clamp(
+                value: chance,
+                min: 0.0005d,
+                max: 0.050d);
         }
 
         private static double ResolveDivorceChancePerReview(
             Person first,
             Person second)
         {
-            double averageHappiness = Normalize(first.Happiness.Value + second.Happiness.Value, divisor: 200d);
-            double averageStress = Normalize(first.Stress.Value + second.Stress.Value, divisor: 200d);
-            double averageSocialNeed = Normalize(first.SocialNeed.Value + second.SocialNeed.Value, divisor: 200d);
-            double averageOptimism = Normalize(first.Personality.Optimism + second.Personality.Optimism, divisor: 200d);
-            double healthBurden = 1d - Normalize(first.Health.Value + second.Health.Value, divisor: 200d);
+            double averageHappiness = Normalize(
+                value: first.Happiness.Value + second.Happiness.Value,
+                divisor: 200d);
+            double averageStress = Normalize(
+                value: first.Stress.Value + second.Stress.Value,
+                divisor: 200d);
+            double averageSocialNeed = Normalize(
+                value: first.SocialNeed.Value + second.SocialNeed.Value,
+                divisor: 200d);
+            double averageOptimism = Normalize(
+                value: first.Personality.Optimism + second.Personality.Optimism,
+                divisor: 200d);
+            double healthBurden = 1d -
+                Normalize(
+                    value: first.Health.Value + second.Health.Value,
+                    divisor: 200d);
 
-            double chance = 0.0004d
-                            + ((1d - averageHappiness) * 0.012d)
-                            + (averageStress * 0.010d)
-                            + (averageSocialNeed * 0.006d)
-                            + (healthBurden * 0.004d)
-                            - (averageOptimism * 0.004d);
+            double chance = 0.0004d +
+                            ((1d - averageHappiness) * 0.012d) +
+                            (averageStress * 0.010d) +
+                            (averageSocialNeed * 0.006d) +
+                            (healthBurden * 0.004d) -
+                            (averageOptimism * 0.004d);
 
             if (first.Happiness.Value < 20 || second.Happiness.Value < 20)
                 chance += 0.004d;
 
-            return Math.Clamp(chance, 0.0002d, 0.030d);
+            return Math.Clamp(
+                value: chance,
+                min: 0.0002d,
+                max: 0.030d);
         }
 
         private static bool AreMarriageCompatible(
@@ -297,7 +324,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (first.Id == second.Id || first.HouseholdId == second.HouseholdId)
                 return false;
 
-            int ageGap = Math.Abs(first.GetAge(currentDate).Years - second.GetAge(currentDate).Years);
+            int ageGap = Math.Abs(
+                first.GetAge(currentDate)
+                   .Years -
+                second.GetAge(currentDate)
+                   .Years);
             if (ageGap > 14)
                 return false;
 
@@ -315,7 +346,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person right,
             DateOnly currentDate)
         {
-            int ageComparison = left.GetAge(currentDate).Years.CompareTo(right.GetAge(currentDate).Years);
+            int ageComparison = left.GetAge(currentDate)
+               .Years.CompareTo(
+                    right.GetAge(currentDate)
+                       .Years);
             if (ageComparison != 0)
                 return ageComparison;
 
@@ -330,8 +364,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person resident,
             DateOnly currentDate)
         {
-            int ageYears = resident.GetAge(currentDate).Years;
-            return Math.Min(5, Math.Max(0, (ageYears - 18) / 12));
+            int ageYears = resident.GetAge(currentDate)
+               .Years;
+            return Math.Min(
+                val1: 5,
+                val2: Math.Max(
+                    val1: 0,
+                    val2: (ageYears - 18) / 12));
         }
 
         private static int ResolveMonthlyReviewWindows(
@@ -340,7 +379,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             int previousWindow = previousDate.DayNumber / 30;
             int currentWindow = currentDate.DayNumber / 30;
-            return Math.Clamp(currentWindow - previousWindow, 0, 6);
+            return Math.Clamp(
+                value: currentWindow - previousWindow,
+                min: 0,
+                max: 6);
         }
 
         private static bool RollOccurs(
@@ -353,11 +395,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (reviewWindows <= 0 || chancePerReview <= 0d)
                 return false;
 
-            double combinedChance = 1d - Math.Pow(1d - chancePerReview, reviewWindows);
+            double combinedChance = 1d -
+                Math.Pow(
+                    x: 1d - chancePerReview,
+                    y: reviewWindows);
             return GetStableFraction(
-                personId: personId,
-                currentDate: currentDate,
-                salt: salt) < combinedChance;
+                       personId: personId,
+                       currentDate: currentDate,
+                       salt: salt) <
+                   combinedChance;
         }
 
         private static bool RollOccurs(
@@ -371,22 +417,33 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (reviewWindows <= 0 || chancePerReview <= 0d)
                 return false;
 
-            double combinedChance = 1d - Math.Pow(1d - chancePerReview, reviewWindows);
+            double combinedChance = 1d -
+                Math.Pow(
+                    x: 1d - chancePerReview,
+                    y: reviewWindows);
             return GetStableFraction(
-                firstResidentId: firstResidentId,
-                secondResidentId: secondResidentId,
-                currentDate: currentDate,
-                salt: salt) < combinedChance;
+                       firstResidentId: firstResidentId,
+                       secondResidentId: secondResidentId,
+                       currentDate: currentDate,
+                       salt: salt) <
+                   combinedChance;
         }
 
         private static double Normalize(int value)
         {
-            return Normalize(value, 100d);
+            return Normalize(
+                value: value,
+                divisor: 100d);
         }
 
-        private static double Normalize(int value, double divisor)
+        private static double Normalize(
+            int value,
+            double divisor)
         {
-            return Math.Clamp(value / divisor, 0d, 1d);
+            return Math.Clamp(
+                value: value / divisor,
+                min: 0d,
+                max: 1d);
         }
 
         private static double GetStableFraction(
@@ -398,7 +455,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                        personId: personId,
                        currentDate: currentDate,
                        salt: salt,
-                       modulus: 10_000) / 10_000d;
+                       modulus: 10_000) /
+                   10_000d;
         }
 
         private static double GetStableFraction(
@@ -412,7 +470,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                        secondResidentId: secondResidentId,
                        currentDate: currentDate,
                        salt: salt,
-                       modulus: 10_000) / 10_000d;
+                       modulus: 10_000) /
+                   10_000d;
         }
 
         private static int GetStableInt(

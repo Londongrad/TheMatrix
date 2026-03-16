@@ -4,14 +4,8 @@ import {useLocation, useNavigate} from "react-router-dom";
 import type {LoginRequest} from "./authTypes";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {fetchProfile} from "@services/identity/api/self/account/accountApi";
-import {
-    loginUser,
-    logoutAuth,
-    refreshAuth,
-    registerUser,
-    sendEmailConfirmationEmail,
-} from "./authApi";
-import {configureHttpAuth, type AuthRefreshResult, HttpError} from "@shared/api/http";
+import {loginUser, logoutAuth, refreshAuth, registerUser, sendEmailConfirmationEmail,} from "./authApi";
+import {type AuthRefreshResult, configureHttpAuth, HttpError} from "@shared/api/http";
 
 interface AuthContextValue {
     user: ProfileResponse | null;

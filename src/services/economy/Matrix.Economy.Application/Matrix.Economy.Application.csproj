@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="14.0.0" />
+    <PackageReference Include="MediatR" Version="14.0.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj" />
-    <ProjectReference Include="..\Matrix.Economy.Domain\Matrix.Economy.Domain.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
+    <ProjectReference Include="..\Matrix.Economy.Domain\Matrix.Economy.Domain.csproj"/>
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,7 @@ namespace Matrix.CityCore.Contracts.Authorization.Permissions
         public const string CityCoreClassicCityUpdate = "citycore.classic-city.update";
         public const string CityCoreClassicCityArchive = "citycore.classic-city.archive";
         public const string CityCoreClassicCityDelete = "citycore.classic-city.delete";
+
         public const string CityCoreClassicCityPopulationBootstrapRetry =
             "citycore.classic-city.population-bootstrap.retry";
 

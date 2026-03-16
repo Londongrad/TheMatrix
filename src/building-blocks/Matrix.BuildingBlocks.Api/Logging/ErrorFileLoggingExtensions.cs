@@ -30,8 +30,12 @@ namespace Matrix.BuildingBlocks.Api.Logging
                    .ReadFrom.Configuration(loggingConfiguration)
                    .ReadFrom.Services(services)
                    .Enrich.FromLogContext()
-                   .Enrich.WithProperty("Application", builder.Environment.ApplicationName)
-                   .Enrich.WithProperty("EnvironmentName", builder.Environment.EnvironmentName);
+                   .Enrich.WithProperty(
+                        name: "Application",
+                        value: builder.Environment.ApplicationName)
+                   .Enrich.WithProperty(
+                        name: "EnvironmentName",
+                        value: builder.Environment.EnvironmentName);
 
                 if (!options.Enabled)
                     return;
@@ -44,13 +48,15 @@ namespace Matrix.BuildingBlocks.Api.Logging
                     : SanitizePathSegment(options.FileNamePrefix);
                 string applicationDirectoryName = SanitizePathSegment(builder.Environment.ApplicationName);
                 string logDirectory = Path.Combine(
-                    logsRootDirectory,
-                    applicationDirectoryName);
+                    path1: logsRootDirectory,
+                    path2: applicationDirectoryName);
 
                 Directory.CreateDirectory(logDirectory);
 
                 loggerConfiguration.WriteTo.File(
-                    path: Path.Combine(logDirectory, $"{fileNamePrefix}-.log"),
+                    path: Path.Combine(
+                        path1: logDirectory,
+                        path2: $"{fileNamePrefix}-.log"),
                     restrictedToMinimumLevel: ParseLogEventLevel(options.RestrictedToMinimumLevel),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: GetRetainedFileCountLimit(options),
@@ -79,19 +85,21 @@ namespace Matrix.BuildingBlocks.Api.Logging
 
             if (!string.IsNullOrWhiteSpace(repositoryRoot) &&
                 !string.Equals(
-                    builder.Environment.ContentRootPath,
-                    repositoryRoot,
-                    StringComparison.OrdinalIgnoreCase))
+                    a: builder.Environment.ContentRootPath,
+                    b: repositoryRoot,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
             {
                 sharedConfigurationBuilder.AddJsonFile(
-                    path: Path.Combine(repositoryRoot, "appsettings.logging.json"),
+                    path: Path.Combine(
+                        path1: repositoryRoot,
+                        path2: "appsettings.logging.json"),
                     optional: true,
                     reloadOnChange: true);
 
                 sharedConfigurationBuilder.AddJsonFile(
                     path: Path.Combine(
-                        repositoryRoot,
-                        $"appsettings.logging.{builder.Environment.EnvironmentName}.json"),
+                        path1: repositoryRoot,
+                        path2: $"appsettings.logging.{builder.Environment.EnvironmentName}.json"),
                     optional: true,
                     reloadOnChange: true);
             }
@@ -128,7 +136,7 @@ namespace Matrix.BuildingBlocks.Api.Logging
 
         private static LogEventLevel ParseLogEventLevel(string value)
         {
-            return Enum.TryParse<LogEventLevel>(
+            return Enum.TryParse(
                 value: value,
                 ignoreCase: true,
                 result: out LogEventLevel parsed)
@@ -152,17 +160,20 @@ namespace Matrix.BuildingBlocks.Api.Logging
 
             return Path.GetFullPath(
                 path: Path.Combine(
-                    baseDirectory,
-                    relativeRootDirectory));
+                    path1: baseDirectory,
+                    path2: relativeRootDirectory));
         }
 
         private static string? FindRepositoryRoot(string startDirectory)
         {
-            DirectoryInfo? current = new DirectoryInfo(startDirectory);
+            var current = new DirectoryInfo(startDirectory);
 
             while (current is not null)
             {
-                if (Directory.Exists(Path.Combine(current.FullName, ".git")) ||
+                if (Directory.Exists(
+                        Path.Combine(
+                            path1: current.FullName,
+                            path2: ".git")) ||
                     current.EnumerateFiles("*.sln")
                        .Any())
                     return current.FullName;
@@ -179,11 +190,12 @@ namespace Matrix.BuildingBlocks.Api.Logging
                 return "unknown-service";
 
             char[] invalidChars = Path.GetInvalidFileNameChars();
-            var sanitized = new string(value
-               .Select(ch => invalidChars.Contains(ch)
-                    ? '-'
-                    : ch)
-               .ToArray());
+            string sanitized = new(
+                value
+                   .Select(ch => invalidChars.Contains(ch)
+                        ? '-'
+                        : ch)
+                   .ToArray());
 
             return string.IsNullOrWhiteSpace(sanitized)
                 ? "unknown-service"

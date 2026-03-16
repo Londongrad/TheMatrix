@@ -1,6 +1,6 @@
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
+using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
@@ -16,9 +16,15 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHousehol
             IssueHouseholdObligationChargeCommand request,
             CancellationToken cancellationToken)
         {
-            CityHouseholdObligation obligation = await obligationRepository.GetByIdAsync(request.ObligationId, cancellationToken)
-                ?? throw new InvalidOperationException($"Obligation '{request.ObligationId}' was not found.");
-            CityHouseholdAccountLedgerEntryDto result = await chargeSupport.ChargeAsync(obligation, request.Description, cancellationToken);
+            CityHouseholdObligation obligation =
+                await obligationRepository.GetByIdAsync(
+                    obligationId: request.ObligationId,
+                    cancellationToken: cancellationToken) ??
+                throw new InvalidOperationException($"Obligation '{request.ObligationId}' was not found.");
+            CityHouseholdAccountLedgerEntryDto result = await chargeSupport.ChargeAsync(
+                obligation: obligation,
+                description: request.Description,
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return result;
         }

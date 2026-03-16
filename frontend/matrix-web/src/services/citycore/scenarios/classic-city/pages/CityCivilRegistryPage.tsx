@@ -15,10 +15,7 @@ import {
     getClassicCityResidentDossierPath,
     getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
-import {
-    getCityStatusTone,
-    isArchivedCity,
-} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {CityCivilRegistryOperationResultDto, PersonDto} from "@services/population/person/api/personTypes";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
 import Button from "@shared/ui/controls/Button/Button";
@@ -68,17 +65,17 @@ function formatHouseholdLabel(householdId?: string | null) {
 }
 
 function SelectedResidentCard({
-    slotLabel,
-    residentId,
-    isLoading,
-    residentName,
-    residentStatus,
-    residentHousing,
-    residentSpouse,
-    residentLifecycle,
-    onClear,
-    cityId,
-}: SelectedResidentCardProps) {
+                                  slotLabel,
+                                  residentId,
+                                  isLoading,
+                                  residentName,
+                                  residentStatus,
+                                  residentHousing,
+                                  residentSpouse,
+                                  residentLifecycle,
+                                  onClear,
+                                  cityId,
+                              }: SelectedResidentCardProps) {
     return (
         <section className="city-civil-registry__selected-card">
             <div className="city-civil-registry__selected-header">
@@ -489,7 +486,8 @@ const CityCivilRegistryPage = () => {
                                                         <span className="city-civil-registry__tag">Resident A</span>
                                                     ) : null}
                                                     {isSelectedSecond ? (
-                                                        <span className="city-civil-registry__tag city-civil-registry__tag--muted">
+                                                        <span
+                                                            className="city-civil-registry__tag city-civil-registry__tag--muted">
                                                             Resident B
                                                         </span>
                                                     ) : null}

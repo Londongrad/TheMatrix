@@ -22,9 +22,13 @@ namespace Matrix.ApiGateway.Controllers.Economy
         }
 
         [HttpGet("cities/{cityId:guid}/summary")]
-        public async Task<IActionResult> GetCitySummary([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetCitySummary(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
         {
-            EconomySummaryDto? summary = await _economyClient.GetCitySummaryAsync(cityId, cancellationToken);
+            EconomySummaryDto? summary = await _economyClient.GetCitySummaryAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
 
             if (summary is null)
                 return StatusCode(StatusCodes.Status502BadGateway);

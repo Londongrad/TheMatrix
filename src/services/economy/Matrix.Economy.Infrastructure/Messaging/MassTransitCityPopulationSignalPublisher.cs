@@ -11,7 +11,9 @@ namespace Matrix.Economy.Infrastructure.Messaging
             ClassicCityHouseholdFinancialStressBatchV1 batch,
             CancellationToken cancellationToken = default)
         {
-            return publishEndpoint.Publish(batch, cancellationToken);
+            return publishEndpoint.Publish(
+                message: batch,
+                cancellationToken: cancellationToken);
         }
     }
 }

@@ -15,16 +15,18 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityBudgetAllocations.SingleOrDefaultAsync(
-                x => x.CityId == cityId && x.Category == category,
-                cancellationToken);
+                predicate: x => x.CityId == cityId && x.Category == category,
+                cancellationToken: cancellationToken);
         }
 
-        public async Task<IReadOnlyList<CityBudgetAllocation>> ListByCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<CityBudgetAllocation>> ListByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityBudgetAllocations
-                .Where(x => x.CityId == cityId)
-                .OrderBy(x => x.Category)
-                .ToListAsync(cancellationToken);
+               .Where(x => x.CityId == cityId)
+               .OrderBy(x => x.Category)
+               .ToListAsync(cancellationToken);
         }
 
         public void Add(CityBudgetAllocation allocation)

@@ -26,7 +26,8 @@ export default function ProvisioningTimeline({items}: ProvisioningTimelineProps)
                     <div className="scenario-setup__timeline-card">
                         <div className="scenario-setup__timeline-header">
                             <span className="scenario-setup__timeline-title">{item.title}</span>
-                            <span className={`scenario-setup__timeline-status scenario-setup__timeline-status--${item.status}`}>
+                            <span
+                                className={`scenario-setup__timeline-status scenario-setup__timeline-status--${item.status}`}>
                                 {item.status === "complete"
                                     ? "Complete"
                                     : item.status === "current"

@@ -13,40 +13,48 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
         {
             builder.ToTable("CityPopulationHouseholdFinancialStressStates");
 
-            builder.HasKey(x => new { x.CityId, x.HouseholdId });
+            builder.HasKey(x => new
+            {
+                x.CityId,
+                x.HouseholdId
+            });
 
             builder.Property(x => x.CityId)
-                .HasConversion(
+               .HasConversion(
                     convertToProviderExpression: id => id.Value,
                     convertFromProviderExpression: value => CityId.From(value));
 
             builder.Property(x => x.HouseholdId)
-                .HasConversion(
+               .HasConversion(
                     convertToProviderExpression: id => id.Value,
                     convertFromProviderExpression: value => HouseholdId.From(value));
 
             builder.Property(x => x.OverdueObligationCount)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.OverdueRentCount)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.OverdueUtilityCount)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.TotalOverdueAmount)
-                .HasPrecision(18, 2)
-                .IsRequired();
+               .HasPrecision(
+                    precision: 18,
+                    scale: 2)
+               .IsRequired();
 
             builder.Property(x => x.DistressScore)
-                .HasPrecision(8, 4)
-                .IsRequired();
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
 
             builder.Property(x => x.LastEvaluatedAtUtc)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.UpdatedAtUtc)
-                .IsRequired();
+               .IsRequired();
 
             builder.HasIndex(x => x.UpdatedAtUtc);
         }

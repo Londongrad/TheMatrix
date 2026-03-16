@@ -26,13 +26,13 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             CityBusinessLedgerEntryDto result = await _sender.Send(
-                new RecordCityBusinessRetailSaleCommand(
-                    businessId,
-                    request.GrossAmount,
-                    request.SalesTaxAmount,
-                    request.Title,
-                    request.Description),
-                cancellationToken);
+                request: new RecordCityBusinessRetailSaleCommand(
+                    BusinessId: businessId,
+                    GrossAmount: request.GrossAmount,
+                    SalesTaxAmount: request.SalesTaxAmount,
+                    Title: request.Title,
+                    Description: request.Description),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -44,12 +44,12 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             CityBusinessLedgerEntryDto result = await _sender.Send(
-                new RecordCityBusinessExpenseCommand(
-                    businessId,
-                    request.Amount,
-                    request.Title,
-                    request.Description),
-                cancellationToken);
+                request: new RecordCityBusinessExpenseCommand(
+                    BusinessId: businessId,
+                    Amount: request.Amount,
+                    Title: request.Title,
+                    Description: request.Description),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -61,14 +61,14 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             CityBusinessLedgerEntryDto result = await _sender.Send(
-                new RecordCityBusinessPayrollCommand(
+                request: new RecordCityBusinessPayrollCommand(
                     BusinessId: businessId,
                     HouseholdAccountId: request.HouseholdAccountId,
                     GrossAmount: request.GrossAmount,
                     IncomeTaxAmount: request.IncomeTaxAmount,
                     Title: request.Title,
                     Description: request.Description),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -81,20 +81,25 @@ namespace Matrix.Economy.Api.Controllers
         {
             CityBudgetCategory category = CityBudgetCategory.Taxation;
 
-            if (!string.IsNullOrWhiteSpace(request.BudgetCategory)
-                && !Enum.TryParse(request.BudgetCategory, ignoreCase: true, out category))
-            {
-                return BadRequest(new { error = $"Unsupported budget category '{request.BudgetCategory}'." });
-            }
+            if (!string.IsNullOrWhiteSpace(request.BudgetCategory) &&
+                !Enum.TryParse(
+                    value: request.BudgetCategory,
+                    ignoreCase: true,
+                    result: out category))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported budget category '{request.BudgetCategory}'."
+                    });
 
             CityBusinessLedgerEntryDto result = await _sender.Send(
-                new RemitCityBusinessTaxCommand(
+                request: new RemitCityBusinessTaxCommand(
                     BusinessId: businessId,
                     Amount: request.Amount,
                     BudgetCategory: category,
                     Title: request.Title,
                     Description: request.Description),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -107,15 +112,22 @@ namespace Matrix.Economy.Api.Controllers
         {
             CityBudgetCategory budgetCategory = CityBudgetCategory.Taxation;
 
-            if (!string.IsNullOrWhiteSpace(request?.BudgetCategory)
-                && !Enum.TryParse(request.BudgetCategory, ignoreCase: true, out budgetCategory))
-            {
-                return BadRequest(new { error = $"Unsupported budget category '{request.BudgetCategory}'." });
-            }
+            if (!string.IsNullOrWhiteSpace(request?.BudgetCategory) &&
+                !Enum.TryParse(
+                    value: request.BudgetCategory,
+                    ignoreCase: true,
+                    result: out budgetCategory))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported budget category '{request.BudgetCategory}'."
+                    });
 
             RunCityBusinessTaxCycleResultDto result = await _sender.Send(
-                new RunCityBusinessTaxCycleCommand(cityId, budgetCategory),
-                cancellationToken);
+                request: new RunCityBusinessTaxCycleCommand(
+                    CityId: cityId,
+                    BudgetCategory: budgetCategory),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }

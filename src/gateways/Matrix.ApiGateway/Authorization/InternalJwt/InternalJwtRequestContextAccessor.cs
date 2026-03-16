@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace Matrix.ApiGateway.Authorization.InternalJwt
 {
     public sealed record InternalJwtRequestContext(
@@ -48,9 +46,7 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
             public void Dispose()
             {
                 if (_disposed)
-                {
                     return;
-                }
 
                 owner._current.Value = previous;
                 _disposed = true;

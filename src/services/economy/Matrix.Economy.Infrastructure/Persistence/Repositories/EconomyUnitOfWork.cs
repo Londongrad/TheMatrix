@@ -7,6 +7,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
         private readonly EconomyDbContext _dbContext = dbContext;
 
         public Task SaveChangesAsync(CancellationToken cancellationToken = default)
-            => _dbContext.SaveChangesAsync(cancellationToken);
+        {
+            return _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

@@ -4,12 +4,12 @@ namespace Matrix.Population.Domain.ValueObjects
 {
     public sealed record EducationInstitutionId
     {
-        public Guid Value { get; }
-
         private EducationInstitutionId(Guid value)
         {
             Value = value;
         }
+
+        public Guid Value { get; }
 
         public static EducationInstitutionId New()
         {

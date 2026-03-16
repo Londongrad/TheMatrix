@@ -1,7 +1,9 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {HttpError} from "@shared/api/http";
 import {getCityPopulationSummary} from "@services/citycore/scenarios/classic-city/api/populationSummaryApi";
-import type {CityPopulationSummaryView} from "@services/citycore/scenarios/classic-city/contracts/populationSummaryContracts";
+import type {
+    CityPopulationSummaryView
+} from "@services/citycore/scenarios/classic-city/contracts/populationSummaryContracts";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0

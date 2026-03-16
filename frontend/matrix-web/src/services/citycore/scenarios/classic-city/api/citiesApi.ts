@@ -1,7 +1,7 @@
 import {apiRequest} from "@shared/api/http";
 import type {
-    CityListItemView,
     CityDashboardView,
+    CityListItemView,
     CityProvisioningStatusView,
     CityProvisioningView,
     CityView,

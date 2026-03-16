@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Domain;
-using Matrix.CityCore.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 
 namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities

@@ -120,7 +120,8 @@ export default function ScenarioCatalogPage() {
                                     )}
 
                                     {canOpen ? (
-                                        <Link className="scenario-card__action scenario-card__action--secondary" to={scenario.listPath}>
+                                        <Link className="scenario-card__action scenario-card__action--secondary"
+                                              to={scenario.listPath}>
                                             Open registry
                                         </Link>
                                     ) : (

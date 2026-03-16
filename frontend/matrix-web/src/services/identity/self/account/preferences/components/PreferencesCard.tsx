@@ -1,5 +1,5 @@
-import {Sparkles, LoaderCircle} from "lucide-react";
-import {useEffect, useState, type FormEvent} from "react";
+import {LoaderCircle, Sparkles} from "lucide-react";
+import {type FormEvent, useEffect, useState} from "react";
 import "@services/identity/self/account/preferences/styles/preferences-card.css";
 import {
     useWorkspacePreferences,
@@ -8,7 +8,7 @@ import {
     type WorkspaceTheme as Theme,
 } from "@shared/theme/workspacePreferences";
 
-const languageOptions: Array<{value: Language; label: string}> = [
+const languageOptions: Array<{ value: Language; label: string }> = [
     {value: "en", label: "English (EN)"},
     {value: "ru", label: "Русский (RU)"},
 ];

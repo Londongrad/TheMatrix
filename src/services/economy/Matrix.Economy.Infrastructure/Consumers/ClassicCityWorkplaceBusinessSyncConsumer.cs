@@ -4,7 +4,6 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
@@ -26,11 +25,11 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 unitOfWork: unitOfWork,
                 cancellationToken: context.CancellationToken);
 
-            Dictionary<string, CityBusiness> existingBusinessesByExternalReference = (await businessRepository.ListByCityAsync(
+            var existingBusinessesByExternalReference = (await businessRepository.ListByCityAsync(
                     cityId: message.CityId,
                     cancellationToken: context.CancellationToken))
-                .Where(x => !string.IsNullOrWhiteSpace(x.ExternalReferenceCode))
-                .ToDictionary(
+               .Where(x => !string.IsNullOrWhiteSpace(x.ExternalReferenceCode))
+               .ToDictionary(
                     keySelector: x => x.ExternalReferenceCode!,
                     elementSelector: x => x,
                     comparer: StringComparer.Ordinal);
@@ -39,7 +38,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
 
             foreach (ClassicCityWorkplaceBusinessSyncItemV1 workplace in message.Workplaces)
             {
-                if (existingBusinessesByExternalReference.TryGetValue(workplace.ExternalReferenceCode, out CityBusiness? existingBusiness))
+                if (existingBusinessesByExternalReference.TryGetValue(
+                        key: workplace.ExternalReferenceCode,
+                        value: out CityBusiness? existingBusiness))
                 {
                     existingBusiness.EnsureCompatibleUnit(budget.GetUnitProfile());
                     existingBusiness.EnsureCanIssuePayroll();
@@ -65,6 +66,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             if (createdBusinesses == 0)
             {
                 logger.LogDebug(
+                    message:
                     "Skipped classic city workplace business sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}; all workplace businesses already exist.",
                     message.CityId,
                     message.CorrelationId,
@@ -76,6 +78,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
+                message:
                 "Applied classic city workplace business sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, createdBusinesses={CreatedBusinesses}.",
                 message.CityId,
                 message.CorrelationId,
@@ -83,6 +86,5 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 message.TotalBatches,
                 createdBusinesses);
         }
-
     }
 }

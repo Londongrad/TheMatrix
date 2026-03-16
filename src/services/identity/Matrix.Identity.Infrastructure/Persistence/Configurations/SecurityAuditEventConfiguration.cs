@@ -13,37 +13,56 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.EventType)
-                .HasConversion<int>()
-                .IsRequired();
+               .HasConversion<int>()
+               .IsRequired();
 
             builder.Property(x => x.IsSuccessful)
-                .IsRequired();
+               .IsRequired();
 
             builder.Property(x => x.Subject)
-                .HasMaxLength(256);
+               .HasMaxLength(256);
 
             builder.Property(x => x.IpAddress)
-                .HasMaxLength(64);
+               .HasMaxLength(64);
 
             builder.Property(x => x.UserAgent)
-                .HasMaxLength(512);
+               .HasMaxLength(512);
 
             builder.Property(x => x.DeviceId)
-                .HasMaxLength(128);
+               .HasMaxLength(128);
 
             builder.Property(x => x.DeviceName)
-                .HasMaxLength(256);
+               .HasMaxLength(256);
 
             builder.Property(x => x.Details)
-                .HasMaxLength(512);
+               .HasMaxLength(512);
 
             builder.Property(x => x.OccurredAtUtc)
-                .IsRequired();
+               .IsRequired();
 
-            builder.HasIndex(x => new { x.EventType, x.OccurredAtUtc });
-            builder.HasIndex(x => new { x.EventType, x.Subject, x.OccurredAtUtc });
-            builder.HasIndex(x => new { x.EventType, x.IpAddress, x.OccurredAtUtc });
-            builder.HasIndex(x => new { x.EventType, x.IsSuccessful, x.OccurredAtUtc });
+            builder.HasIndex(x => new
+            {
+                x.EventType,
+                x.OccurredAtUtc
+            });
+            builder.HasIndex(x => new
+            {
+                x.EventType,
+                x.Subject,
+                x.OccurredAtUtc
+            });
+            builder.HasIndex(x => new
+            {
+                x.EventType,
+                x.IpAddress,
+                x.OccurredAtUtc
+            });
+            builder.HasIndex(x => new
+            {
+                x.EventType,
+                x.IsSuccessful,
+                x.OccurredAtUtc
+            });
             builder.HasIndex(x => x.UserId);
             builder.HasIndex(x => x.SessionId);
         }

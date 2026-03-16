@@ -5,6 +5,7 @@ using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Contracts.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
@@ -43,10 +44,10 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
 
             if (cityId is not null)
             {
-                var currentDate = (await cityPopulationProgressionStateRepository.GetByCityAsync(
-                    cityId: cityId.Value,
-                    cancellationToken: cancellationToken))?.LastProcessedDate ??
-                                  DateOnly.FromDateTime(DateTime.UtcNow);
+                DateOnly currentDate = (await cityPopulationProgressionStateRepository.GetByCityAsync(
+                                           cityId: cityId.Value,
+                                           cancellationToken: cancellationToken))?.LastProcessedDate ??
+                                       DateOnly.FromDateTime(DateTime.UtcNow);
 
                 await cityPopulationSummaryProjectionService.RebuildAsync(
                     cityId: cityId.Value,
@@ -58,7 +59,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
                         cityId: cityId.Value.Value,
                         currentDate: currentDate,
                         resident: person,
-                        source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
+                        source: CityPopulationActivitySource.Operator),
                     cancellationToken: cancellationToken);
             }
 

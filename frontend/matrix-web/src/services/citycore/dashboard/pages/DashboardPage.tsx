@@ -110,19 +110,22 @@ function MetricCard({metric}: MetricCardProps) {
                 <div className="dashboard-metric-card__delta-grid">
                     <div className="dashboard-metric-card__delta">
                         <span className="dashboard-metric-card__delta-label">Day</span>
-                        <span className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYesterday ?? 0)}`}>
+                        <span
+                            className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYesterday ?? 0)}`}>
                             {dayDelta ?? "--"}
                         </span>
                     </div>
                     <div className="dashboard-metric-card__delta">
                         <span className="dashboard-metric-card__delta-label">Month</span>
-                        <span className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaMonth ?? 0)}`}>
+                        <span
+                            className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaMonth ?? 0)}`}>
                             {monthDelta ?? "--"}
                         </span>
                     </div>
                     <div className="dashboard-metric-card__delta">
                         <span className="dashboard-metric-card__delta-label">Year</span>
-                        <span className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYear ?? 0)}`}>
+                        <span
+                            className={`dashboard-metric-card__delta-value dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYear ?? 0)}`}>
                             {yearDelta ?? "--"}
                         </span>
                     </div>
@@ -159,7 +162,8 @@ function ActivityRow({row}: ActivityRowProps) {
                             <span className="dashboard-activity-period__separator">/</span>
                             <span className="dashboard-activity-period__previous">{period.value.previous}</span>
                         </div>
-                        <div className={`dashboard-activity-period__delta dashboard-activity-period__delta--${getDeltaTone(period.value.delta)}`}>
+                        <div
+                            className={`dashboard-activity-period__delta dashboard-activity-period__delta--${getDeltaTone(period.value.delta)}`}>
                             {formatDelta(period.value.delta)}
                         </div>
                     </div>
@@ -252,7 +256,8 @@ function WatchlistSection({title, subtitle, cities, emptyText, actionLabel, onOp
                         const statusTone = getCityStatusTone(city.status, city.archivedAtUtc);
 
                         return (
-                            <article key={city.cityId} className={`dashboard-watch-item dashboard-watch-item--${statusTone}`}>
+                            <article key={city.cityId}
+                                     className={`dashboard-watch-item dashboard-watch-item--${statusTone}`}>
                                 <div className="dashboard-watch-item__main">
                                     <div className="dashboard-watch-item__topline">
                                         <span className={`cities-status-pill cities-status-pill--${statusTone}`}>
@@ -290,12 +295,12 @@ function WatchlistSection({title, subtitle, cities, emptyText, actionLabel, onOp
 }
 
 function DashboardContent({
-    dashboard,
-    canCreateCity,
-    isRefreshing,
-    onOpenCity,
-    onRefresh,
-}: {
+                              dashboard,
+                              canCreateCity,
+                              isRefreshing,
+                              onOpenCity,
+                              onRefresh,
+                          }: {
     dashboard: CityOperationsDashboardView;
     canCreateCity: boolean;
     isRefreshing: boolean;
@@ -323,7 +328,8 @@ function DashboardContent({
                     <h1 className="dashboard-header__title">Operations dashboard</h1>
                     <p className="dashboard-header__subtitle">
                         Monitor city throughput, compare current flow against yesterday, month, and year windows,
-                        and keep service health plus the latest lifecycle events visible without diving into each host first.
+                        and keep service health plus the latest lifecycle events visible without diving into each host
+                        first.
                     </p>
                     <div className="dashboard-header__meta">
                         <span className="settings-pill">Updated {formatDateTime(dashboard.generatedAtUtc)}</span>
@@ -333,7 +339,8 @@ function DashboardContent({
 
                 <div className="dashboard-header__actions">
                     {canCreateCity ? (
-                        <Link className="cities-page__header-link cities-page__header-link--primary" to={getClassicCitySetupPath()}>
+                        <Link className="cities-page__header-link cities-page__header-link--primary"
+                              to={getClassicCitySetupPath()}>
                             Compose Classic City
                         </Link>
                     ) : null}

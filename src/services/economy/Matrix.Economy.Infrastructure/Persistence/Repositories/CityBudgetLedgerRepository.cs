@@ -9,7 +9,9 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
     {
         private readonly EconomyDbContext _dbContext = dbContext;
 
-        public Task AddAsync(CityBudgetLedgerEntry entry, CancellationToken cancellationToken = default)
+        public Task AddAsync(
+            CityBudgetLedgerEntry entry,
+            CancellationToken cancellationToken = default)
         {
             _dbContext.CityBudgetLedgerEntries.Add(entry);
             return Task.CompletedTask;
@@ -21,21 +23,25 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             int pageSize,
             CancellationToken cancellationToken = default)
         {
-            int safePageNumber = pageNumber > 0 ? pageNumber : 1;
-            int safePageSize = pageSize > 0 ? pageSize : 50;
+            int safePageNumber = pageNumber > 0
+                ? pageNumber
+                : 1;
+            int safePageSize = pageSize > 0
+                ? pageSize
+                : 50;
 
             IQueryable<CityBudgetLedgerEntry> query = _dbContext.CityBudgetLedgerEntries
-                .AsNoTracking()
-                .Where(x => x.CityId == cityId)
-                .OrderByDescending(x => x.OccurredAtUtc)
-                .ThenByDescending(x => x.Id);
+               .AsNoTracking()
+               .Where(x => x.CityId == cityId)
+               .OrderByDescending(x => x.OccurredAtUtc)
+               .ThenByDescending(x => x.Id);
 
             int totalCount = await query.CountAsync(cancellationToken);
 
             List<CityBudgetLedgerEntry> items = await query
-                .Skip((safePageNumber - 1) * safePageSize)
-                .Take(safePageSize)
-                .ToListAsync(cancellationToken);
+               .Skip((safePageNumber - 1) * safePageSize)
+               .Take(safePageSize)
+               .ToListAsync(cancellationToken);
 
             return new PagedResult<CityBudgetLedgerEntry>(
                 items: items,

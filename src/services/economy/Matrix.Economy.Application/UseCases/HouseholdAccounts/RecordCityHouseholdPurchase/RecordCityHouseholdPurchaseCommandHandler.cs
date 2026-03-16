@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
@@ -21,25 +20,31 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseh
             RecordCityHouseholdPurchaseCommand request,
             CancellationToken cancellationToken)
         {
-            CityHouseholdAccount householdAccount = await householdAccountRepository.GetByIdAsync(request.HouseholdAccountId, cancellationToken)
-                ?? throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
-            CityBusiness business = await businessRepository.GetByIdAsync(request.BusinessId, cancellationToken)
-                ?? throw new InvalidOperationException($"Business '{request.BusinessId}' was not found.");
+            CityHouseholdAccount householdAccount =
+                await householdAccountRepository.GetByIdAsync(
+                    householdAccountId: request.HouseholdAccountId,
+                    cancellationToken: cancellationToken) ??
+                throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
+            CityBusiness business = await businessRepository.GetByIdAsync(
+                                        businessId: request.BusinessId,
+                                        cancellationToken: cancellationToken) ??
+                                    throw new InvalidOperationException(
+                                        $"Business '{request.BusinessId}' was not found.");
 
             business.EnsureCanRecordConsumerSale();
 
             if (business.CityId != householdAccount.CityId)
-            {
                 throw new InvalidOperationException("Household account and business must belong to the same city.");
-            }
 
             business.EnsureCompatibleUnit(householdAccount.GetUnitProfile());
 
-            Money grossAmount = Money.FromDecimal(request.GrossAmount);
-            Money salesTaxAmount = Money.FromDecimal(request.SalesTaxAmount);
+            var grossAmount = Money.FromDecimal(request.GrossAmount);
+            var salesTaxAmount = Money.FromDecimal(request.SalesTaxAmount);
 
             householdAccount.RecordConsumerPurchase(grossAmount);
-            business.RecordRetailSale(grossAmount, salesTaxAmount);
+            business.RecordRetailSale(
+                grossAmount: grossAmount,
+                salesTaxAmount: salesTaxAmount);
 
             DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
 
@@ -68,11 +73,17 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseh
                 source: CityBusinessLedgerEntrySource.RetailSale,
                 referenceCode: householdAccount.Id.ToString("N"));
 
-            await householdLedgerRepository.AddAsync(householdEntry, cancellationToken);
-            await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
+            await householdLedgerRepository.AddAsync(
+                entry: householdEntry,
+                cancellationToken: cancellationToken);
+            await businessLedgerRepository.AddAsync(
+                entry: businessEntry,
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Map(householdEntry, householdAccount.GetUnitProfile());
+            return Map(
+                entry: householdEntry,
+                unitProfile: householdAccount.GetUnitProfile());
         }
 
         private static CityHouseholdAccountLedgerEntryDto Map(

@@ -9,7 +9,8 @@ import CityEmploymentPage from "@services/citycore/scenarios/classic-city/pages/
 import CityResidentDossierPage from "@services/citycore/scenarios/classic-city/pages/CityResidentDossierPage";
 import CityResidentsPage from "@services/citycore/scenarios/classic-city/pages/CityResidentsPage";
 import ClassicCityProvisioningPage from "@services/citycore/scenarios/classic-city/pages/ClassicCityProvisioningPage";
-import ClassicCityProvisioningSessionPage from "@services/citycore/scenarios/classic-city/pages/ClassicCityProvisioningSessionPage";
+import ClassicCityProvisioningSessionPage
+    from "@services/citycore/scenarios/classic-city/pages/ClassicCityProvisioningSessionPage";
 import ClassicCitySetupPage from "@services/citycore/scenarios/classic-city/pages/ClassicCitySetupPage";
 import ScenarioCatalogPage from "@services/citycore/scenarios/pages/ScenarioCatalogPage";
 import {
@@ -20,11 +21,11 @@ import {
     CLASSIC_CITY_EDUCATION_PATH_PATTERN,
     CLASSIC_CITY_EMPLOYMENT_PATH_PATTERN,
     CLASSIC_CITY_LIST_PATH,
-    CLASSIC_CITY_RESIDENT_DOSSIER_PATH_PATTERN,
     CLASSIC_CITY_PROVISIONING_PATH_PATTERN,
+    CLASSIC_CITY_RESIDENT_DOSSIER_PATH_PATTERN,
     CLASSIC_CITY_RESIDENTS_PATH_PATTERN,
-    CLASSIC_CITY_SETUP_PROVISIONING_PATH_PATTERN,
     CLASSIC_CITY_SETUP_PATH,
+    CLASSIC_CITY_SETUP_PROVISIONING_PATH_PATTERN,
     CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN,
 } from "@services/citycore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";

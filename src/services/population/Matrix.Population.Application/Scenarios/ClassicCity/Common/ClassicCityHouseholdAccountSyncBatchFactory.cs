@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.Population.Domain.Entities;
-using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.ValueObjects;
@@ -19,9 +18,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
         {
             var placementsByHouseholdId = placements.ToDictionary(x => x.HouseholdId);
             ClassicCityHouseholdAccountSyncItemV1[] items = households
-                .OrderBy(x => x.CreatedAtUtc)
-                .ThenBy(x => x.Id.Value)
-                .Select(household =>
+               .OrderBy(x => x.CreatedAtUtc)
+               .ThenBy(x => x.Id.Value)
+               .Select(household =>
                 {
                     ClassicCityHouseholdPlacement placement = placementsByHouseholdId[household.Id];
                     return new ClassicCityHouseholdAccountSyncItemV1(
@@ -33,26 +32,29 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                         IsHoused: placement.HousingStatus == HousingStatus.Housed,
                         CreatedAtUtc: household.CreatedAtUtc);
                 })
-                .ToArray();
+               .ToArray();
 
             if (items.Length == 0)
                 return [];
 
             ClassicCityHouseholdAccountSyncBatchV1[] batches = items
-                .Chunk(batchSize)
-                .Select((chunk, index) => new ClassicCityHouseholdAccountSyncBatchV1(
+               .Chunk(batchSize)
+               .Select((
+                    chunk,
+                    index) => new ClassicCityHouseholdAccountSyncBatchV1(
                     CityId: cityId,
                     BatchNumber: index + 1,
                     TotalBatches: 0,
                     Households: chunk,
                     CorrelationId: correlationId,
                     OccurredAtUtc: occurredAtUtc))
-                .ToArray();
+               .ToArray();
 
             for (int i = 0; i < batches.Length; i++)
-            {
-                batches[i] = batches[i] with { TotalBatches = batches.Length };
-            }
+                batches[i] = batches[i] with
+                {
+                    TotalBatches = batches.Length
+                };
 
             return batches;
         }
@@ -64,7 +66,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
 
         private static string BuildAccountName(HouseholdId householdId)
         {
-            string shortCode = householdId.Value.ToString("N")[..8].ToUpperInvariant();
+            string shortCode = householdId.Value.ToString("N")[..8]
+               .ToUpperInvariant();
             return $"Household {shortCode}";
         }
     }

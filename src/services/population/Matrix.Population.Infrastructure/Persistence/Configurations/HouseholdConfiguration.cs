@@ -1,6 +1,6 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.ValueObjects;
-using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -34,7 +34,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                     convertToProviderExpression: value => value.Amount,
                     convertFromProviderExpression: value => Money.FromDecimal(value))
                .HasColumnName("CashReserve")
-               .HasPrecision(18, 2)
+               .HasPrecision(
+                    precision: 18,
+                    scale: 2)
                .IsRequired();
         }
     }

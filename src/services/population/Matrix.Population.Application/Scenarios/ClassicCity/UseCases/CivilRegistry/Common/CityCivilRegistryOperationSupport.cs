@@ -20,9 +20,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             CancellationToken cancellationToken)
         {
             Person resident = await personReadRepository.FindByIdAsync(
-                    id: PersonId.From(residentId),
-                    cancellationToken: cancellationToken) ??
-                throw ApplicationErrorsFactory.PersonNotFound(residentId);
+                                  id: PersonId.From(residentId),
+                                  cancellationToken: cancellationToken) ??
+                              throw ApplicationErrorsFactory.PersonNotFound(residentId);
 
             CityId? actualCityId = await cityPopulationPersonReadRepository.FindCityIdByPersonIdAsync(
                 personId: resident.Id,
@@ -41,11 +41,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             Person secondResident)
         {
             if (firstResident.SpouseId != secondResident.Id || secondResident.SpouseId != firstResident.Id)
-            {
                 throw ApplicationErrorsFactory.CivilRegistryResidentsAreNotCurrentSpouses(
                     firstResidentId: firstResident.Id.Value,
                     secondResidentId: secondResident.Id.Value);
-            }
         }
 
         public static CityCivilRegistryOperationResultDto CreateResult(
@@ -63,11 +61,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                 RecordedAtUtc: recordedAtUtc,
                 FirstResident: firstResident.ToResidentDetailsDto(
                     currentDate: currentDate,
-                    currentSpouse: includeSpouseLinks ? secondResident : null,
+                    currentSpouse: includeSpouseLinks
+                        ? secondResident
+                        : null,
                     currentHousing: firstHousing),
                 SecondResident: secondResident.ToResidentDetailsDto(
                     currentDate: currentDate,
-                    currentSpouse: includeSpouseLinks ? firstResident : null,
+                    currentSpouse: includeSpouseLinks
+                        ? firstResident
+                        : null,
                     currentHousing: secondHousing));
         }
     }

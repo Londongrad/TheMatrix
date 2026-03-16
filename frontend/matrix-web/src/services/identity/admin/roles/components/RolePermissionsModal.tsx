@@ -10,9 +10,9 @@ import type {
 } from "@services/identity/api/admin/adminTypes";
 
 export default function RolePermissionsModal({
-    role,
-    onClose,
-}: {
+                                                 role,
+                                                 onClose,
+                                             }: {
     role: RoleResponse;
     onClose: () => void;
 }) {

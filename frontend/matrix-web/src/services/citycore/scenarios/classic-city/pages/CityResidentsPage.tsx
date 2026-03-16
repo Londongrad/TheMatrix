@@ -11,10 +11,7 @@ import {
     getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
 } from "@services/citycore/scenarios/registry";
-import {
-    getCityStatusTone,
-    isArchivedCity,
-} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {PersonDto} from "@services/population/person/api/personTypes";
 import CitizenCard from "@services/population/person/components/CitizenCard";
 import CitizenDetailsModal from "@services/population/person/components/CitizenDetailsModal";

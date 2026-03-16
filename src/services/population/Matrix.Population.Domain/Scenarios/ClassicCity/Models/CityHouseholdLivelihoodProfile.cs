@@ -16,7 +16,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         double StabilityScore)
     {
         public bool IsHoused =>
-            HousingStatus == Matrix.Population.Domain.Scenarios.ClassicCity.Enums.HousingStatus.Housed;
+            HousingStatus == Enums.HousingStatus.Housed;
 
         public bool HasStructuredSupport =>
             AdultProviderCount > 0 ||

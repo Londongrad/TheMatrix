@@ -225,7 +225,8 @@ const SimulationPanel = ({
                     <div className="sim-panel__notice" role="status">
                         <div className="sim-panel__notice-title">View-only simulation access</div>
                         <div className="sim-panel__notice-text">
-                            You can monitor the simulation clock, but control actions require simulation control permission.
+                            You can monitor the simulation clock, but control actions require simulation control
+                            permission.
                         </div>
                     </div>
                 ) : null}

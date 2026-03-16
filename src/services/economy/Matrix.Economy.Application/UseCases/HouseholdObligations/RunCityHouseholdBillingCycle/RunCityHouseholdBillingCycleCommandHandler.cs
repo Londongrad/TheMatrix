@@ -1,8 +1,8 @@
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.HouseholdObligations.Common;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
-using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseholdBillingCycle
@@ -24,9 +24,9 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
             DateTimeOffset asOfUtc = request.AsOfUtc ?? DateTimeOffset.UtcNow;
 
             IReadOnlyList<CityHouseholdObligation> dueObligations = await obligationRepository.ListDueByCityAsync(
-                request.CityId,
-                asOfUtc,
-                cancellationToken);
+                cityId: request.CityId,
+                asOfUtc: asOfUtc,
+                cancellationToken: cancellationToken);
 
             decimal totalChargedAmount = 0m;
             decimal totalTaxAmount = 0m;
@@ -53,11 +53,9 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
                          dueObligations: dueObligations,
                          householdAccountRepository: householdAccountRepository,
                          cancellationToken: cancellationToken))
-            {
                 await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
                     batch: batch,
                     cancellationToken: cancellationToken);
-            }
 
             return new RunCityHouseholdBillingCycleResultDto(
                 CityId: request.CityId,
@@ -79,7 +77,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
 
             var items = new List<ClassicCityHouseholdFinancialStressItemV1>();
 
-            foreach (IGrouping<Guid, CityHouseholdObligation> group in dueObligations.GroupBy(x => x.HouseholdAccountId))
+            foreach (IGrouping<Guid, CityHouseholdObligation> group in
+                     dueObligations.GroupBy(x => x.HouseholdAccountId))
             {
                 CityHouseholdAccount? account = await householdAccountRepository.GetByIdAsync(
                     householdAccountId: group.Key,
@@ -89,18 +88,20 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
                     continue;
 
                 CityHouseholdObligation[] obligations = group
-                    .Where(x => x.IsActive && x.NextChargeDueAtUtc <= asOfUtc)
-                    .ToArray();
+                   .Where(x => x.IsActive && x.NextChargeDueAtUtc <= asOfUtc)
+                   .ToArray();
                 decimal overdueAmount = obligations.Sum(x => x.ChargeAmount.Amount);
                 int overdueRentCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Rent);
                 int overdueUtilityCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Utilities);
                 decimal distressScore = Math.Clamp(
-                    (obligations.Length * 0.18m)
-                    + (overdueRentCount * 0.22m)
-                    + (overdueUtilityCount * 0.12m)
-                    + Math.Min(0.40m, overdueAmount / 1000m),
-                    0m,
-                    1m);
+                    value: (obligations.Length * 0.18m) +
+                           (overdueRentCount * 0.22m) +
+                           (overdueUtilityCount * 0.12m) +
+                           Math.Min(
+                               val1: 0.40m,
+                               val2: overdueAmount / 1000m),
+                    min: 0m,
+                    max: 1m);
 
                 items.Add(
                     new ClassicCityHouseholdFinancialStressItemV1(
@@ -110,7 +111,10 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
                         OverdueRentCount: overdueRentCount,
                         OverdueUtilityCount: overdueUtilityCount,
                         TotalOverdueAmount: overdueAmount,
-                        DistressScore: decimal.Round(distressScore, 4, MidpointRounding.AwayFromZero)));
+                        DistressScore: decimal.Round(
+                            d: distressScore,
+                            decimals: 4,
+                            mode: MidpointRounding.AwayFromZero)));
             }
 
             if (items.Count == 0)
@@ -118,20 +122,23 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
 
             string correlationId = $"classic-city:{cityId:N}:household-financial-stress:{Guid.NewGuid():N}";
             ClassicCityHouseholdFinancialStressBatchV1[] batches = items
-                .Chunk(FinancialStressBatchSize)
-                .Select((chunk, index) => new ClassicCityHouseholdFinancialStressBatchV1(
+               .Chunk(FinancialStressBatchSize)
+               .Select((
+                    chunk,
+                    index) => new ClassicCityHouseholdFinancialStressBatchV1(
                     CityId: cityId,
                     BatchNumber: index + 1,
                     TotalBatches: 0,
                     Households: chunk,
                     CorrelationId: correlationId,
                     OccurredAtUtc: asOfUtc))
-                .ToArray();
+               .ToArray();
 
             for (int i = 0; i < batches.Length; i++)
-            {
-                batches[i] = batches[i] with { TotalBatches = batches.Length };
-            }
+                batches[i] = batches[i] with
+                {
+                    TotalBatches = batches.Length
+                };
 
             return batches;
         }

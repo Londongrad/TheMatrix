@@ -19,7 +19,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         {
             ArgumentNullException.ThrowIfNull(entry);
 
-            CityPopulationActivityEvent activityEvent = CityPopulationActivityEvent.Create(
+            var activityEvent = CityPopulationActivityEvent.Create(
                 cityId: CityId.From(entry.CityId),
                 currentDate: entry.CurrentDate,
                 occurredAtUtc: entry.OccurredAtUtc,
@@ -28,8 +28,12 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 severity: entry.Severity,
                 title: entry.Title,
                 summary: entry.Summary,
-                primaryResidentId: entry.PrimaryResidentId.HasValue ? PersonId.From(entry.PrimaryResidentId.Value) : null,
-                secondaryResidentId: entry.SecondaryResidentId.HasValue ? PersonId.From(entry.SecondaryResidentId.Value) : null);
+                primaryResidentId: entry.PrimaryResidentId.HasValue
+                    ? PersonId.From(entry.PrimaryResidentId.Value)
+                    : null,
+                secondaryResidentId: entry.SecondaryResidentId.HasValue
+                    ? PersonId.From(entry.SecondaryResidentId.Value)
+                    : null);
 
             await _dbContext.CityPopulationActivityEvents.AddAsync(
                 entity: activityEvent,

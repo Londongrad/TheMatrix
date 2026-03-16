@@ -6,7 +6,10 @@ namespace Matrix.Economy.Application.Abstractions
 {
     public interface ICityHouseholdAccountLedgerRepository
     {
-        Task AddAsync(CityHouseholdAccountLedgerEntry entry, CancellationToken cancellationToken = default);
+        Task AddAsync(
+            CityHouseholdAccountLedgerEntry entry,
+            CancellationToken cancellationToken = default);
+
         Task<bool> ExistsAsync(
             Guid householdAccountId,
             CityHouseholdAccountLedgerEntryKind kind,

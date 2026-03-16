@@ -11,6 +11,7 @@ namespace Matrix.CityCore.Application.Authorization.Permissions
         public const string CityCoreClassicCityUpdate = ContractPermissionKeys.CityCoreClassicCityUpdate;
         public const string CityCoreClassicCityArchive = ContractPermissionKeys.CityCoreClassicCityArchive;
         public const string CityCoreClassicCityDelete = ContractPermissionKeys.CityCoreClassicCityDelete;
+
         public const string CityCoreClassicCityPopulationBootstrapRetry =
             ContractPermissionKeys.CityCoreClassicCityPopulationBootstrapRetry;
 

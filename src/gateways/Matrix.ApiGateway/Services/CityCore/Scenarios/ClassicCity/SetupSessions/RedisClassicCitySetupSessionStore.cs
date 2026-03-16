@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Matrix.ApiGateway.Configurations.Options;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using Matrix.ApiGateway.Configurations.Options;
 using StackExchange.Redis;
 
 namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions
@@ -12,10 +12,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         IOptions<ClassicCitySetupSessionOptions> options)
         : IClassicCitySetupSessionStore
     {
-        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
         private const string RecoveryIndexKey = "citycore:classic-city:setup-session:recovery";
-        private readonly IDistributedCache _distributedCache = distributedCache;
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
         private readonly IConnectionMultiplexer _connectionMultiplexer = connectionMultiplexer;
+        private readonly IDistributedCache _distributedCache = distributedCache;
         private readonly ClassicCitySetupSessionOptions _options = options.Value;
 
         public async Task<ClassicCitySetupSessionState?> GetAsync(
@@ -28,14 +28,18 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             return string.IsNullOrWhiteSpace(payload)
                 ? null
-                : JsonSerializer.Deserialize<ClassicCitySetupSessionState>(payload, JsonOptions);
+                : JsonSerializer.Deserialize<ClassicCitySetupSessionState>(
+                    json: payload,
+                    options: JsonOptions);
         }
 
         public Task SaveAsync(
             ClassicCitySetupSessionState session,
             CancellationToken cancellationToken = default)
         {
-            string payload = JsonSerializer.Serialize(session, JsonOptions);
+            string payload = JsonSerializer.Serialize(
+                value: session,
+                options: JsonOptions);
 
             return SaveCoreAsync(
                 session: session,
@@ -51,8 +55,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             string lockKey = BuildLockKey(sessionId);
             string token = Guid.NewGuid()
                .ToString("N");
-            TimeSpan lease = TimeSpan.FromSeconds(_options.MutationLockLeaseSeconds);
-            DateTimeOffset deadline = DateTimeOffset.UtcNow.AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
+            var lease = TimeSpan.FromSeconds(_options.MutationLockLeaseSeconds);
+            DateTimeOffset deadline =
+                DateTimeOffset.UtcNow.AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
 
             while (true)
             {
@@ -88,8 +93,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 value: lockHandle.Token);
         }
 
-        public async Task<IReadOnlyList<Guid>> ListTrackedSessionIdsAsync(
-            CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<Guid>> ListTrackedSessionIdsAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -97,7 +101,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             RedisValue[] values = await database.SetMembersAsync(RecoveryIndexKey);
 
             return values
-               .Select(value => Guid.TryParse(value, out Guid sessionId)
+               .Select(value => Guid.TryParse(
+                    input: value,
+                    result: out Guid sessionId)
                     ? sessionId
                     : Guid.Empty)
                .Where(sessionId => sessionId != Guid.Empty)
@@ -145,10 +151,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
         private static bool ShouldTrackForRecovery(string status)
         {
-            return status is ClassicCitySetupSessionStatuses.LaunchQueued or
-                ClassicCitySetupSessionStatuses.CreatingCity or
-                ClassicCitySetupSessionStatuses.BootstrappingPopulation or
-                ClassicCitySetupSessionStatuses.ProvisioningFailed;
+            return status is ClassicCitySetupSessionStatuses.LaunchQueued
+             or ClassicCitySetupSessionStatuses.CreatingCity
+             or ClassicCitySetupSessionStatuses.BootstrappingPopulation
+             or ClassicCitySetupSessionStatuses.ProvisioningFailed;
         }
 
         private static string BuildCacheKey(Guid sessionId)

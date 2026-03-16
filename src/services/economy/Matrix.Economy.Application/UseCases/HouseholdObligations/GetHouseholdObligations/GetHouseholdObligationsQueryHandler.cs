@@ -1,4 +1,5 @@
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseholdObligations;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
@@ -12,12 +13,11 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.GetHouseholdO
             CancellationToken cancellationToken)
         {
             IReadOnlyList<CityHouseholdObligation> obligations = await obligationRepository.ListByHouseholdAsync(
-                request.HouseholdAccountId,
-                cancellationToken);
+                householdAccountId: request.HouseholdAccountId,
+                cancellationToken: cancellationToken);
 
-            return obligations.Select(
-                    Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseholdObligations.GetCityHouseholdObligationsQueryHandler.Map)
-                .ToArray();
+            return obligations.Select(GetCityHouseholdObligationsQueryHandler.Map)
+               .ToArray();
         }
     }
 }

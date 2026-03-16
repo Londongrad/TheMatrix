@@ -59,9 +59,9 @@
 .city-resident-dossier__tab--active {
     border-color: rgba(var(--shell-accent-rgb), 0.44);
     background: linear-gradient(
-        180deg,
-        rgba(var(--shell-accent-rgb), 0.16),
-        rgba(var(--shell-accent-rgb), 0.08)
+            180deg,
+            rgba(var(--shell-accent-rgb), 0.16),
+            rgba(var(--shell-accent-rgb), 0.08)
     );
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }

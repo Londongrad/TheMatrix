@@ -1,8 +1,5 @@
 import {useState} from "react";
-import {
-    createCity,
-    retryPopulationBootstrap,
-} from "@services/citycore/scenarios/classic-city/api/citiesApi";
+import {createCity, retryPopulationBootstrap,} from "@services/citycore/scenarios/classic-city/api/citiesApi";
 import type {
     CityProvisioningView,
     CreateCityRequest,

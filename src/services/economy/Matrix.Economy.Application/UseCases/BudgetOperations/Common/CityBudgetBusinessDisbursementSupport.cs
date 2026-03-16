@@ -24,11 +24,16 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
             string? description,
             CancellationToken cancellationToken)
         {
-            CityBudget budget = await budgetRepository.GetByCityAsync(business.CityId, cancellationToken)
-                ?? CreateBudget(business.CityId, business.GetUnitProfile(), budgetRepository);
+            CityBudget budget = await budgetRepository.GetByCityAsync(
+                                    cityId: business.CityId,
+                                    cancellationToken: cancellationToken) ??
+                                CreateBudget(
+                                    cityId: business.CityId,
+                                    unitProfile: business.GetUnitProfile(),
+                                    budgetRepository: budgetRepository);
             budget.EnsureCompatibleUnit(business.GetUnitProfile());
 
-            Money moneyAmount = Money.FromDecimal(amount);
+            var moneyAmount = Money.FromDecimal(amount);
             business.RecordMunicipalRevenue(moneyAmount);
 
             DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
@@ -60,13 +65,17 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
 
             budget.ApplyLedgerEntry(budgetEntry);
             await allocationExpenseSupport.RecordExpenseAsync(
-                business.CityId,
-                category,
-                budgetEntry.Amount,
-                budget.GetUnitProfile(),
-                cancellationToken);
-            await budgetLedgerRepository.AddAsync(budgetEntry, cancellationToken);
-            await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
+                cityId: business.CityId,
+                category: category,
+                amount: budgetEntry.Amount,
+                unitProfile: budget.GetUnitProfile(),
+                cancellationToken: cancellationToken);
+            await budgetLedgerRepository.AddAsync(
+                entry: budgetEntry,
+                cancellationToken: cancellationToken);
+            await businessLedgerRepository.AddAsync(
+                entry: businessEntry,
+                cancellationToken: cancellationToken);
 
             return new BudgetLedgerEntryDto(
                 EntryId: budgetEntry.Id,
@@ -89,7 +98,10 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
             CityBudgetUnitProfile unitProfile,
             ICityBudgetRepository budgetRepository)
         {
-            var budget = new CityBudget(CityBudgetId.New(), cityId, unitProfile);
+            var budget = new CityBudget(
+                id: CityBudgetId.New(),
+                cityId: cityId,
+                unitProfile: unitProfile);
             budgetRepository.Add(budget);
             return budget;
         }

@@ -12,10 +12,11 @@ namespace Matrix.Economy.Application.UseCases.Businesses.GetCityBusinesses
             CancellationToken cancellationToken)
         {
             IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(
-                request.CityId,
-                cancellationToken);
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
 
-            return businesses.Select(Map).ToArray();
+            return businesses.Select(Map)
+               .ToArray();
         }
 
         private static CityBusinessDto Map(CityBusiness business)

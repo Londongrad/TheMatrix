@@ -12,10 +12,7 @@ namespace Matrix.Economy.Application
     {
         public static void AddApplication(this IServiceCollection services)
         {
-            services.AddMediatR(cfg =>
-            {
-                cfg.RegisterServicesFromAssembly(typeof(ICityBudgetRepository).Assembly);
-            });
+            services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(typeof(ICityBudgetRepository).Assembly); });
 
             services.AddScoped<CityBudgetAllocationExpenseSupport>();
             services.AddScoped<CityBudgetBusinessDisbursementSupport>();

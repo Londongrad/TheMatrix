@@ -112,8 +112,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     DateTime.SpecifyKind(
                         value: occurredOnUtc,
                         kind: DateTimeKind.Utc)),
-                _ => throw new InvalidOperationException(
-                    "OccurredOnUtc must be validated before normalization.")
+                _ => throw new InvalidOperationException("OccurredOnUtc must be validated before normalization.")
             };
         }
 

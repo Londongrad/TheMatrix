@@ -58,7 +58,8 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
         {
             await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
 
-            ISimulationClockRepository repository = scope.ServiceProvider.GetRequiredService<ISimulationClockRepository>();
+            ISimulationClockRepository repository =
+                scope.ServiceProvider.GetRequiredService<ISimulationClockRepository>();
 
             return await repository.ListActiveRunningSimulationIdsAsync(cancellationToken);
         }
@@ -76,7 +77,8 @@ namespace Matrix.CityCore.Infrastructure.Services.Simulation
                 {
                     await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
 
-                    ISimulationAdvanceExecutor executor = scope.ServiceProvider.GetRequiredService<ISimulationAdvanceExecutor>();
+                    ISimulationAdvanceExecutor executor =
+                        scope.ServiceProvider.GetRequiredService<ISimulationAdvanceExecutor>();
 
                     SimulationAdvanceExecutionResult result = await executor.ExecuteAsync(
                         simulationId: simulationId,

@@ -18,10 +18,13 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpen
             RecordCityBusinessExpenseCommand request,
             CancellationToken cancellationToken)
         {
-            CityBusiness business = await businessRepository.GetByIdAsync(request.BusinessId, cancellationToken)
-                ?? throw new InvalidOperationException($"Business '{request.BusinessId}' was not found.");
+            CityBusiness business = await businessRepository.GetByIdAsync(
+                                        businessId: request.BusinessId,
+                                        cancellationToken: cancellationToken) ??
+                                    throw new InvalidOperationException(
+                                        $"Business '{request.BusinessId}' was not found.");
 
-            Money amount = Money.FromDecimal(request.Amount);
+            var amount = Money.FromDecimal(request.Amount);
             business.RecordOperatingExpense(amount);
 
             var entry = new CityBusinessLedgerEntry(
@@ -37,10 +40,14 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpen
                 source: CityBusinessLedgerEntrySource.Operations,
                 referenceCode: null);
 
-            await ledgerRepository.AddAsync(entry, cancellationToken);
+            await ledgerRepository.AddAsync(
+                entry: entry,
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Map(entry, business.GetUnitProfile());
+            return Map(
+                entry: entry,
+                unitProfile: business.GetUnitProfile());
         }
 
         private static CityBusinessLedgerEntryDto Map(

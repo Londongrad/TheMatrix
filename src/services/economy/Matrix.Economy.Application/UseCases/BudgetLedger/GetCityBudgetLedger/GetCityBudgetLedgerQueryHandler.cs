@@ -23,12 +23,19 @@ namespace Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedger
                 pageSize: request.PageSize,
                 cancellationToken: cancellationToken);
 
-            CityBudget budget = await budgetRepository.GetByCityAsync(request.CityId, cancellationToken)
-                ?? new CityBudget(CityBudgetId.New(), request.CityId);
+            CityBudget budget = await budgetRepository.GetByCityAsync(
+                                    cityId: request.CityId,
+                                    cancellationToken: cancellationToken) ??
+                                new CityBudget(
+                                    id: CityBudgetId.New(),
+                                    cityId: request.CityId);
             CityBudgetUnitProfile unitProfile = budget.GetUnitProfile();
 
             return new PagedResult<BudgetLedgerEntryDto>(
-                items: page.Items.Select(entry => Map(entry, unitProfile)).ToArray(),
+                items: page.Items.Select(entry => Map(
+                        entry: entry,
+                        unitProfile: unitProfile))
+                   .ToArray(),
                 totalCount: page.TotalCount,
                 pageNumber: page.PageNumber,
                 pageSize: page.PageSize);

@@ -2,9 +2,8 @@
     height: 60px;
     border-radius: 16px;
     border: 1px solid var(--shell-border);
-    background:
-        linear-gradient(120deg, rgba(var(--shell-accent-rgb), 0.08), transparent 60%),
-        var(--shell-surface);
+    background: linear-gradient(120deg, rgba(var(--shell-accent-rgb), 0.08), transparent 60%),
+    var(--shell-surface);
     color: var(--app-text);
     display: flex;
     align-items: center;
@@ -15,11 +14,10 @@
     backdrop-filter: blur(var(--glass-blur-strength));
     position: relative;
     z-index: 40;
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        color 0.2s ease;
+    transition: background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
 }
 
 .mx-topbar__left {
@@ -92,9 +90,8 @@
     font-weight: 600;
     font-size: 0.95rem;
     color: color-mix(in srgb, var(--app-bg) 86%, black);
-    box-shadow:
-        0 0 0 1px rgba(15, 23, 42, 0.25),
-        0 0 18px rgba(var(--shell-accent-rgb), 0.28);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.25),
+    0 0 18px rgba(var(--shell-accent-rgb), 0.28);
     overflow: hidden;
     flex-shrink: 0;
 }
@@ -147,9 +144,8 @@
 .mx-topbar__caret--open {
     transform: rotate(180deg);
     background: rgba(var(--shell-accent-rgb), 0.2);
-    box-shadow:
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.4),
-        0 0 12px rgba(var(--shell-accent-rgb), 0.25);
+    box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.4),
+    0 0 12px rgba(var(--shell-accent-rgb), 0.25);
 }
 
 .mx-topbar__dropdown {
@@ -211,24 +207,22 @@
 
 .mx-topbar__toggle--open {
     border: 1px solid transparent;
-    background-image:
-        linear-gradient(var(--shell-surface-solid), var(--shell-surface-solid)),
-        linear-gradient(
+    background-image: linear-gradient(var(--shell-surface-solid), var(--shell-surface-solid)),
+    linear-gradient(
             120deg,
             var(--shell-accent),
             var(--shell-accent-strong),
             color-mix(in srgb, var(--shell-accent) 70%, white),
             var(--shell-accent)
-        );
+    );
     background-origin: border-box;
     background-clip: padding-box, border-box;
     box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.24);
 }
 
 .mx-topbar__toggle--open:hover {
-    box-shadow:
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.55),
-        0 0 14px rgba(var(--shell-accent-rgb), 0.24);
+    box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.55),
+    0 0 14px rgba(var(--shell-accent-rgb), 0.24);
 }
 
 html[data-theme="matrix"] .mx-topbar__toggle--open {

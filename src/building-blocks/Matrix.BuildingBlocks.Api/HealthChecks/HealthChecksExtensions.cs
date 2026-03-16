@@ -26,15 +26,15 @@ namespace Matrix.BuildingBlocks.Api.HealthChecks
                     tags: ["live"]);
 
             RabbitMqHealthCheckOptions options = configuration
-               .GetSection(RabbitMqHealthCheckOptions.SectionName)
-               .Get<RabbitMqHealthCheckOptions>() ?? new RabbitMqHealthCheckOptions();
+                                                    .GetSection(RabbitMqHealthCheckOptions.SectionName)
+                                                    .Get<RabbitMqHealthCheckOptions>() ??
+                                                 new RabbitMqHealthCheckOptions();
 
             string? host = configuration["RabbitMq:Host"];
             ushort port = configuration.GetValue<ushort?>("RabbitMq:Port") ?? 5672;
 
             if (options.Enabled &&
                 !string.IsNullOrWhiteSpace(host))
-            {
                 builder.AddCheck(
                     name: "rabbitmq",
                     instance: new RabbitMqConnectivityHealthCheck(
@@ -43,7 +43,6 @@ namespace Matrix.BuildingBlocks.Api.HealthChecks
                         timeout: TimeSpan.FromSeconds(options.TimeoutSeconds)),
                     failureStatus: HealthStatus.Unhealthy,
                     tags: ["ready"]);
-            }
 
             return services;
         }

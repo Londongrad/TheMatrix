@@ -6,13 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Economy.Infrastructure.Persistence.Repositories
 {
-    public sealed class CityHouseholdAccountLedgerRepository(EconomyDbContext dbContext) : ICityHouseholdAccountLedgerRepository
+    public sealed class CityHouseholdAccountLedgerRepository(EconomyDbContext dbContext)
+        : ICityHouseholdAccountLedgerRepository
     {
         private readonly EconomyDbContext _dbContext = dbContext;
 
-        public async Task AddAsync(CityHouseholdAccountLedgerEntry entry, CancellationToken cancellationToken = default)
+        public async Task AddAsync(
+            CityHouseholdAccountLedgerEntry entry,
+            CancellationToken cancellationToken = default)
         {
-            await _dbContext.CityHouseholdAccountLedgerEntries.AddAsync(entry, cancellationToken);
+            await _dbContext.CityHouseholdAccountLedgerEntries.AddAsync(
+                entity: entry,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<bool> ExistsAsync(
@@ -22,10 +27,9 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityHouseholdAccountLedgerEntries.AnyAsync(
-                x => x.HouseholdAccountId == householdAccountId
-                    && x.Kind == kind
-                    && x.ReferenceCode == referenceCode,
-                cancellationToken);
+                predicate: x
+                    => x.HouseholdAccountId == householdAccountId && x.Kind == kind && x.ReferenceCode == referenceCode,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<PagedResult<CityHouseholdAccountLedgerEntry>> GetPageByHouseholdAccountAsync(
@@ -34,20 +38,28 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             int pageSize,
             CancellationToken cancellationToken = default)
         {
-            int normalizedPageNumber = pageNumber <= 0 ? 1 : pageNumber;
-            int normalizedPageSize = pageSize <= 0 ? 50 : pageSize;
+            int normalizedPageNumber = pageNumber <= 0
+                ? 1
+                : pageNumber;
+            int normalizedPageSize = pageSize <= 0
+                ? 50
+                : pageSize;
 
             IQueryable<CityHouseholdAccountLedgerEntry> query = _dbContext.CityHouseholdAccountLedgerEntries
-                .Where(x => x.HouseholdAccountId == householdAccountId)
-                .OrderByDescending(x => x.OccurredAtUtc);
+               .Where(x => x.HouseholdAccountId == householdAccountId)
+               .OrderByDescending(x => x.OccurredAtUtc);
 
             int totalCount = await query.CountAsync(cancellationToken);
             CityHouseholdAccountLedgerEntry[] items = await query
-                .Skip((normalizedPageNumber - 1) * normalizedPageSize)
-                .Take(normalizedPageSize)
-                .ToArrayAsync(cancellationToken);
+               .Skip((normalizedPageNumber - 1) * normalizedPageSize)
+               .Take(normalizedPageSize)
+               .ToArrayAsync(cancellationToken);
 
-            return new PagedResult<CityHouseholdAccountLedgerEntry>(items, totalCount, normalizedPageNumber, normalizedPageSize);
+            return new PagedResult<CityHouseholdAccountLedgerEntry>(
+                items: items,
+                totalCount: totalCount,
+                pageNumber: normalizedPageNumber,
+                pageSize: normalizedPageSize);
         }
     }
 }

@@ -5,8 +5,8 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.Services;
-using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
@@ -24,10 +24,13 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             CityEconomyDailySettlementV1 message = context.Message;
 
-            if (await settlementRepository.ExistsAsync(message.CityId, message.TickId, context.CancellationToken))
+            if (await settlementRepository.ExistsAsync(
+                    cityId: message.CityId,
+                    tickId: message.TickId,
+                    cancellationToken: context.CancellationToken))
             {
                 logger.LogDebug(
-                    "Skipped duplicate city economy settlement for cityId={CityId}, tickId={TickId}.",
+                    message: "Skipped duplicate city economy settlement for cityId={CityId}, tickId={TickId}.",
                     message.CityId,
                     message.TickId);
                 return;
@@ -56,7 +59,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 correlationId: message.CorrelationId,
                 occurredAtUtc: message.OccurredAtUtc);
 
-            var operatingExpense = operatingExpensePolicy.Build(settlement);
+            CityBudgetOperatingExpenseProfile operatingExpense = operatingExpensePolicy.Build(settlement);
 
             budget.ApplySettlement(
                 settlement: settlement,
@@ -91,10 +94,13 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 description: "Budget allocation for baseline city upkeep and operating services.",
                 referenceCode: $"{message.CorrelationId}:operations",
                 cancellationToken: context.CancellationToken);
-            await settlementRepository.AddAsync(settlement, context.CancellationToken);
+            await settlementRepository.AddAsync(
+                settlement: settlement,
+                cancellationToken: context.CancellationToken);
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
+                message:
                 "Applied city economy settlement for cityId={CityId}, tickId={TickId}, incomeTax={IncomeTax}, retailTax={RetailTax}, cityExpense={CityExpense}.",
                 message.CityId,
                 message.TickId,
@@ -138,7 +144,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             return amount.IsPositive
                 ? ledgerRepository.AddAsync(
-                    CreateLedgerEntry(
+                    entry: CreateLedgerEntry(
                         cityId: cityId,
                         kind: kind,
                         category: category,
@@ -146,7 +152,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                         title: title,
                         description: description,
                         referenceCode: referenceCode),
-                    cancellationToken)
+                    cancellationToken: cancellationToken)
                 : Task.CompletedTask;
         }
     }

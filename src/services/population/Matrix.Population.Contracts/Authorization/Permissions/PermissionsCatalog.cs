@@ -39,7 +39,8 @@ namespace Matrix.Population.Contracts.Authorization.Permissions
                     Key: PermissionKeys.PopulationEducationManage,
                     Service: PopulationService,
                     Group: EducationGroup,
-                    Description: "Manage enrollment, graduation, and study withdrawal inside classic city education services."),
+                    Description:
+                    "Manage enrollment, graduation, and study withdrawal inside classic city education services."),
                 new(
                     Key: PermissionKeys.PopulationPersonKill,
                     Service: PopulationService,

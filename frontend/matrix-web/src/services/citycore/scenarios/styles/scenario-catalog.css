@@ -10,13 +10,12 @@
     padding: 28px 30px;
     border-radius: 28px;
     border: 1px solid rgba(var(--shell-accent-rgb), 0.16);
-    background:
-        radial-gradient(
+    background: radial-gradient(
             480px 240px at 0% 0%,
             rgba(var(--shell-accent-rgb), 0.14),
             transparent 62%
-        ),
-        linear-gradient(140deg, var(--shell-surface-strong), var(--shell-surface));
+    ),
+    linear-gradient(140deg, var(--shell-surface-strong), var(--shell-surface));
     box-shadow: var(--shell-shadow-soft);
 }
 
@@ -154,13 +153,12 @@
     padding: 22px;
     border-radius: 24px;
     border: 1px solid rgba(var(--shell-accent-rgb), 0.16);
-    background:
-        radial-gradient(
+    background: radial-gradient(
             360px 180px at 100% 0%,
             rgba(var(--shell-accent-rgb), 0.12),
             transparent 60%
-        ),
-        var(--settings-card-bg);
+    ),
+    var(--settings-card-bg);
     box-shadow: var(--shell-shadow-soft);
 }
 
@@ -169,9 +167,8 @@
     min-height: 148px;
     border-radius: 22px;
     border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
-    background:
-        linear-gradient(135deg, rgba(var(--shell-accent-rgb), 0.16), rgba(255, 255, 255, 0.02)),
-        rgba(255, 255, 255, 0.02);
+    background: linear-gradient(135deg, rgba(var(--shell-accent-rgb), 0.16), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
     overflow: hidden;
 }
 

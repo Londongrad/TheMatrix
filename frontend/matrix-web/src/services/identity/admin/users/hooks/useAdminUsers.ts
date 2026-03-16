@@ -1,11 +1,6 @@
 import {useState} from "react";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
-import {
-    getUsersPage,
-    lockUser,
-    restoreUser,
-    unlockUser,
-} from "@services/identity/api/admin/adminApi";
+import {getUsersPage, lockUser, restoreUser, unlockUser,} from "@services/identity/api/admin/adminApi";
 import type {UserListItemResponse} from "@services/identity/api/admin/adminTypes";
 
 const PAGE_SIZE = 10;

@@ -20,10 +20,10 @@ using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Repositories;
 using Matrix.Identity.Infrastructure.Persistence.Repositories.Admin;
 using Matrix.Identity.Infrastructure.Persistence.Seed;
-using Matrix.Identity.Infrastructure.Security.PasswordHashing;
-using Matrix.Identity.Infrastructure.Security.Processor;
 using Matrix.Identity.Infrastructure.Security.Audit;
 using Matrix.Identity.Infrastructure.Security.Audit.Cleanup;
+using Matrix.Identity.Infrastructure.Security.PasswordHashing;
+using Matrix.Identity.Infrastructure.Security.Processor;
 using Matrix.Identity.Infrastructure.Security.Tokens;
 using Matrix.Identity.Infrastructure.Security.Tokens.Cleanup;
 using Matrix.Identity.Infrastructure.Storage;
@@ -46,8 +46,7 @@ namespace Matrix.Identity.Infrastructure
             string? connectionString = configuration.GetConnectionString("IdentityDb");
 
             if (string.IsNullOrWhiteSpace(connectionString))
-                throw new InvalidOperationException(
-                    "Connection string 'IdentityDb' is not configured.");
+                throw new InvalidOperationException("Connection string 'IdentityDb' is not configured.");
 
             services.AddPostgresResilienceOptions(configuration);
 
@@ -59,8 +58,8 @@ namespace Matrix.Identity.Infrastructure
                    .Value;
 
                 options.UseNpgsql(
-                    connectionString,
-                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                    connectionString: connectionString,
+                    npgsqlOptionsAction: npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
                         maxRetryCount: resilience.MaxRetryCount,
                         maxRetryDelay: TimeSpan.FromSeconds(resilience.MaxRetryDelaySeconds),
                         errorCodesToAdd: null));
@@ -252,19 +251,24 @@ namespace Matrix.Identity.Infrastructure
                     validation: o => Enum.IsDefined(o.DeliveryMode),
                     failureMessage: $"{EmailOptions.SectionName}:DeliveryMode is invalid.")
                .Validate(
-                    validation: o => o.DeliveryMode != EmailDeliveryMode.Smtp || !string.IsNullOrWhiteSpace(o.FromEmail),
+                    validation: o
+                        => o.DeliveryMode != EmailDeliveryMode.Smtp || !string.IsNullOrWhiteSpace(o.FromEmail),
                     failureMessage: $"{EmailOptions.SectionName}:FromEmail is required when SMTP delivery is enabled.")
                .Validate(
                     validation: o => o.DeliveryMode != EmailDeliveryMode.Smtp || !string.IsNullOrWhiteSpace(o.SmtpHost),
                     failureMessage: $"{EmailOptions.SectionName}:SmtpHost is required when SMTP delivery is enabled.")
                .Validate(
                     validation: o => o.DeliveryMode != EmailDeliveryMode.Smtp || o.SmtpPort > 0,
-                    failureMessage: $"{EmailOptions.SectionName}:SmtpPort must be greater than 0 when SMTP delivery is enabled.")
+                    failureMessage:
+                    $"{EmailOptions.SectionName}:SmtpPort must be greater than 0 when SMTP delivery is enabled.")
                .ValidateOnStart();
             services.AddOptions<FrontendLinksOptions>()
                .Bind(configuration.GetSection(FrontendLinksOptions.SectionName))
                .Validate(
-                    validation: o => Uri.TryCreate(o.BaseUrl, UriKind.Absolute, out _),
+                    validation: o => Uri.TryCreate(
+                        uriString: o.BaseUrl,
+                        uriKind: UriKind.Absolute,
+                        result: out _),
                     failureMessage: $"{FrontendLinksOptions.SectionName}:BaseUrl must be an absolute URI.")
                .Validate(
                     validation: o => !string.IsNullOrWhiteSpace(o.ConfirmEmailPath),

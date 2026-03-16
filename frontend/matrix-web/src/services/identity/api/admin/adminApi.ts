@@ -4,10 +4,10 @@ import {API_ADMIN_URL, API_ADMIN_USERS_URL} from "@shared/api/config";
 import type {
     CreateRoleRequest,
     PermissionCatalogItemResponse,
-    UpdateUserPermissionsRequest,
     RenameRoleRequest,
     RolePermissionsResponse,
     RoleResponse,
+    UpdateUserPermissionsRequest,
     UserDetailsResponse,
     UserListItemResponse,
     UserPermissionResponse,

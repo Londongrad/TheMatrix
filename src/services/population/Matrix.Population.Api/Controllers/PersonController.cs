@@ -37,6 +37,5 @@ namespace Matrix.Population.Api.Controllers
 
             return Ok(person);
         }
-
     }
 }

@@ -3,8 +3,8 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset
 {
-    public sealed class SendPasswordResetCommandHandler(
-        IOneTimeTokenDeliveryService oneTimeTokenDeliveryService) : IRequestHandler<SendPasswordResetCommand>
+    public sealed class SendPasswordResetCommandHandler(IOneTimeTokenDeliveryService oneTimeTokenDeliveryService)
+        : IRequestHandler<SendPasswordResetCommand>
     {
         public async Task Handle(
             SendPasswordResetCommand request,

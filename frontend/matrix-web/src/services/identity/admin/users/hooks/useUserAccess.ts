@@ -20,10 +20,7 @@ import type {
 import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import {canAll as canAllPermissions} from "@shared/permissions/can";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
-import {
-    filterVisibleAdminRoles,
-    isHiddenAdminRole,
-} from "@services/identity/admin/shared/utils/roleVisibility";
+import {filterVisibleAdminRoles, isHiddenAdminRole,} from "@services/identity/admin/shared/utils/roleVisibility";
 
 type PermissionDraftMap = Partial<Record<string, PermissionEffect>>;
 type PermissionGroup = {
@@ -222,9 +219,9 @@ export function useUserAccess(userId: string) {
         ? "You cannot manage your own access from the admin panel."
         : isDeletedUser
             ? "Restore the account before editing roles or direct permission overrides."
-        : isProtectedUser
-            ? "This account has protected system access that is not editable here."
-            : null;
+            : isProtectedUser
+                ? "This account has protected system access that is not editable here."
+                : null;
     const permissionEditReason = isAccessReadOnly
         ? readOnlyReason
         : !canEditPermissionOverrides

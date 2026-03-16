@@ -4,7 +4,6 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
@@ -42,9 +41,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                     cancellationToken: context.CancellationToken);
 
                 if (account is not null)
-                {
                     account.EnsureCompatibleUnit(budget.GetUnitProfile());
-                }
                 else
                 {
                     account = new CityHouseholdAccount(
@@ -60,9 +57,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 }
 
                 if (household.IsHoused)
-                {
                     housedAccounts.Add((account, household.MemberCount));
-                }
             }
 
             createdObligations += await EnsureStarterObligationsAsync(
@@ -74,6 +69,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             if (createdAccounts == 0 && createdObligations == 0)
             {
                 logger.LogDebug(
+                    message:
                     "Skipped classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}; all accounts already exist.",
                     message.CityId,
                     message.CorrelationId,
@@ -85,6 +81,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
+                message:
                 "Applied classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, createdAccounts={CreatedAccounts}, createdObligations={CreatedObligations}.",
                 message.CityId,
                 message.CorrelationId,
@@ -115,19 +112,23 @@ namespace Matrix.Economy.Infrastructure.Consumers
             if (landlord is null && utility is null)
                 return 0;
 
-            Guid[] householdIds = housedAccounts.Select(x => x.Account.Id).ToArray();
-            IReadOnlyList<CityHouseholdObligation> existingObligations = await householdObligationRepository.ListByHouseholdsAsync(
-                householdAccountIds: householdIds,
-                cancellationToken: cancellationToken);
-            ILookup<Guid, CityHouseholdObligation> obligationsByHouseholdId = existingObligations.ToLookup(x => x.HouseholdAccountId);
+            Guid[] householdIds = housedAccounts.Select(x => x.Account.Id)
+               .ToArray();
+            IReadOnlyList<CityHouseholdObligation> existingObligations =
+                await householdObligationRepository.ListByHouseholdsAsync(
+                    householdAccountIds: householdIds,
+                    cancellationToken: cancellationToken);
+            ILookup<Guid, CityHouseholdObligation> obligationsByHouseholdId =
+                existingObligations.ToLookup(x => x.HouseholdAccountId);
             int created = 0;
 
             foreach ((CityHouseholdAccount account, int memberCount) in housedAccounts)
             {
                 IEnumerable<CityHouseholdObligation> householdObligations = obligationsByHouseholdId[account.Id];
 
-                if (landlord is not null
-                    && !householdObligations.Any(x => x.ProviderBusinessId == landlord.Id && x.Kind == CityHouseholdObligationKind.Rent))
+                if (landlord is not null &&
+                    !householdObligations.Any(x
+                        => x.ProviderBusinessId == landlord.Id && x.Kind == CityHouseholdObligationKind.Rent))
                 {
                     landlord.EnsureCompatibleUnit(account.GetUnitProfile());
                     landlord.EnsureCanServeObligation(CityHouseholdObligationKind.Rent);
@@ -142,8 +143,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
                     created++;
                 }
 
-                if (utility is not null
-                    && !householdObligations.Any(x => x.ProviderBusinessId == utility.Id && x.Kind == CityHouseholdObligationKind.Utilities))
+                if (utility is not null &&
+                    !householdObligations.Any(x
+                        => x.ProviderBusinessId == utility.Id && x.Kind == CityHouseholdObligationKind.Utilities))
                 {
                     utility.EnsureCompatibleUnit(account.GetUnitProfile());
                     utility.EnsureCanServeObligation(CityHouseholdObligationKind.Utilities);
@@ -170,15 +172,30 @@ namespace Matrix.Economy.Infrastructure.Consumers
             CityHouseholdObligationKind kind,
             DateTimeOffset createdAtUtc)
         {
-            memberCount = Math.Max(1, memberCount);
+            memberCount = Math.Max(
+                val1: 1,
+                val2: memberCount);
             decimal chargeAmount = kind switch
             {
-                CityHouseholdObligationKind.Rent => 96m + (memberCount * 26m) + (Math.Max(0, memberCount - 3) * 18m),
-                CityHouseholdObligationKind.Utilities => 18m + (memberCount * 9m) + (Math.Max(0, memberCount - 2) * 4m),
+                CityHouseholdObligationKind.Rent => 96m +
+                (memberCount * 26m) +
+                (Math.Max(
+                     val1: 0,
+                     val2: memberCount - 3) *
+                 18m),
+                CityHouseholdObligationKind.Utilities => 18m +
+                (memberCount * 9m) +
+                (Math.Max(
+                     val1: 0,
+                     val2: memberCount - 2) *
+                 4m),
                 _ => 24m + (memberCount * 8m)
             };
             decimal taxAmount = kind == CityHouseholdObligationKind.Utilities
-                ? decimal.Round(chargeAmount * 0.08m, 2, MidpointRounding.AwayFromZero)
+                ? decimal.Round(
+                    d: chargeAmount * 0.08m,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero)
                 : 0m;
             string name = kind switch
             {

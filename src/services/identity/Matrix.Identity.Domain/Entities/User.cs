@@ -108,7 +108,7 @@ namespace Matrix.Identity.Domain.Entities
             if (string.IsNullOrWhiteSpace(PendingEmail))
                 throw new InvalidOperationException("Pending email is not set.");
 
-            Email = ValueObjects.Email.Create(PendingEmail);
+            Email = Email.Create(PendingEmail);
             PendingEmail = null;
             IsEmailConfirmed = true;
             EmailConfirmedAtUtc = confirmedAtUtc;

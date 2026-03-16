@@ -8,15 +8,16 @@ namespace Matrix.Economy.Domain.Services
     {
         public CityBudgetOperatingExpenseProfile Build(CityBudgetSettlement settlement)
         {
-            Money residentServicesExpense = Money.FromDecimal(settlement.ResidentCount * settlement.SettledDays * 1.25m);
-            Money householdInfrastructureExpense = Money.FromDecimal(settlement.HouseholdCount * settlement.SettledDays * 0.55m);
+            var residentServicesExpense = Money.FromDecimal(settlement.ResidentCount * settlement.SettledDays * 1.25m);
+            var householdInfrastructureExpense =
+                Money.FromDecimal(settlement.HouseholdCount * settlement.SettledDays * 0.55m);
             Money housingSupportExpense = settlement.HousingSpend.Multiply(0.04m);
             Money commerceSupportExpense = settlement.RetailTurnover.Multiply(0.015m);
 
             Money totalExpense = residentServicesExpense
-                .Add(householdInfrastructureExpense)
-                .Add(housingSupportExpense)
-                .Add(commerceSupportExpense);
+               .Add(householdInfrastructureExpense)
+               .Add(housingSupportExpense)
+               .Add(commerceSupportExpense);
 
             return new CityBudgetOperatingExpenseProfile(totalExpense);
         }

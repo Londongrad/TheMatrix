@@ -4,6 +4,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Models
 {
     public sealed class SecurityAuditEventRecord
     {
+        private SecurityAuditEventRecord() { }
         public Guid Id { get; private set; }
         public SecurityAuditEventType EventType { get; private set; }
         public bool IsSuccessful { get; private set; }
@@ -17,8 +18,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Models
         public string? Details { get; private set; }
         public DateTime OccurredAtUtc { get; private set; }
 
-        private SecurityAuditEventRecord() { }
-
         public static SecurityAuditEventRecord Create(
             SecurityAuditEntry entry,
             DateTime occurredAtUtc)
@@ -30,12 +29,24 @@ namespace Matrix.Identity.Infrastructure.Persistence.Models
                 IsSuccessful = entry.IsSuccessful,
                 UserId = entry.UserId,
                 SessionId = entry.SessionId,
-                Subject = Normalize(entry.Subject, 256),
-                IpAddress = Normalize(entry.IpAddress, 64),
-                UserAgent = Normalize(entry.UserAgent, 512),
-                DeviceId = Normalize(entry.DeviceId, 128),
-                DeviceName = Normalize(entry.DeviceName, 256),
-                Details = Normalize(entry.Details, 512),
+                Subject = Normalize(
+                    value: entry.Subject,
+                    maxLength: 256),
+                IpAddress = Normalize(
+                    value: entry.IpAddress,
+                    maxLength: 64),
+                UserAgent = Normalize(
+                    value: entry.UserAgent,
+                    maxLength: 512),
+                DeviceId = Normalize(
+                    value: entry.DeviceId,
+                    maxLength: 128),
+                DeviceName = Normalize(
+                    value: entry.DeviceName,
+                    maxLength: 256),
+                Details = Normalize(
+                    value: entry.Details,
+                    maxLength: 512),
                 OccurredAtUtc = occurredAtUtc
             };
         }

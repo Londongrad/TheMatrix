@@ -1,12 +1,14 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Errors;
-using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
@@ -67,21 +69,21 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     cityId: request.CityId,
                     currentDate: request.CurrentDate,
                     resident: resident,
-                    source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator),
                 cancellationToken: cancellationToken);
 
-            string workplaceSyncCorrelationId = $"classic-city:{request.CityId:N}:resident-hire:{resident.Id.Value:N}:workplaces";
-            foreach (var batch in ClassicCityWorkplaceBusinessSyncBatchFactory.Build(
+            string workplaceSyncCorrelationId =
+                $"classic-city:{request.CityId:N}:resident-hire:{resident.Id.Value:N}:workplaces";
+            foreach (ClassicCityWorkplaceBusinessSyncBatchV1 batch in
+                     ClassicCityWorkplaceBusinessSyncBatchFactory.Build(
                          cityId: request.CityId,
                          persons: [resident],
                          correlationId: workplaceSyncCorrelationId,
                          occurredAtUtc: DateTimeOffset.UtcNow,
                          batchSize: 1))
-            {
                 await cityEconomySettlementOutboxWriter.AddClassicCityWorkplaceBusinessSyncBatchAsync(
                     batch: batch,
                     cancellationToken: cancellationToken);
-            }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 

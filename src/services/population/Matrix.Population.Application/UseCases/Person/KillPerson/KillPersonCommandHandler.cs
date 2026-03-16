@@ -6,8 +6,9 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Contracts.Models;
-using Matrix.Population.Domain.Services;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.Services;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 
@@ -41,8 +42,8 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                 cancellationToken: cancellationToken);
             DateOnly currentDate = cityId is not null
                 ? (await cityPopulationProgressionStateRepository.GetByCityAsync(
-                    cityId: cityId.Value,
-                    cancellationToken: cancellationToken))?.LastProcessedDate ??
+                      cityId: cityId.Value,
+                      cancellationToken: cancellationToken))?.LastProcessedDate ??
                   DateOnly.FromDateTime(DateTime.UtcNow)
                 : DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -71,7 +72,7 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                                 currentDate: currentDate,
                                 resident: spouse,
                                 deceasedName: person.Name.ToString(),
-                                source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
+                                source: CityPopulationActivitySource.Operator),
                             cancellationToken: cancellationToken);
                 }
 
@@ -97,7 +98,7 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                         cityId: cityId.Value.Value,
                         currentDate: currentDate,
                         resident: person,
-                        source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
+                        source: CityPopulationActivitySource.Operator),
                     cancellationToken: cancellationToken);
             }
 

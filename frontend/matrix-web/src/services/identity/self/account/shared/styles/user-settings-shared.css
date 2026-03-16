@@ -2,12 +2,10 @@
     position: relative;
     border-radius: 18px;
     border: 1px solid var(--settings-card-border);
-    background:
-        linear-gradient(135deg, var(--settings-card-accent), transparent 60%),
-        var(--settings-card-bg);
-    box-shadow:
-        var(--settings-card-shadow),
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.06) inset;
+    background: linear-gradient(135deg, var(--settings-card-accent), transparent 60%),
+    var(--settings-card-bg);
+    box-shadow: var(--settings-card-shadow),
+    0 0 0 1px rgba(var(--shell-accent-rgb), 0.06) inset;
     backdrop-filter: blur(var(--glass-blur-strength));
     padding: 1.3rem 1.5rem 1.25rem;
     color: var(--app-text);
@@ -92,9 +90,9 @@
             color-mix(in srgb, var(--app-text-muted) 86%, transparent) 50%
     ),
     linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--app-text-muted) 86%, transparent) 50%,
-        transparent 50%
+            135deg,
+            color-mix(in srgb, var(--app-text-muted) 86%, transparent) 50%,
+            transparent 50%
     );
     background-position: calc(100% - 14px) 54%, calc(100% - 9px) 54%;
     background-size: 6px 6px, 6px 6px;
@@ -163,15 +161,13 @@
     background: var(--shell-surface);
     border: 1px solid var(--shell-border);
     color: var(--app-text);
-    box-shadow:
-        var(--shell-shadow-soft),
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.08);
+    box-shadow: var(--shell-shadow-soft),
+    0 0 0 1px rgba(var(--shell-accent-rgb), 0.08);
 }
 
 .settings-button--prompt-edit {
     border: 1px solid rgba(var(--shell-accent-rgb), 0.28);
-    background-image:
-        linear-gradient(
+    background-image: linear-gradient(
             120deg,
             transparent 0%,
             rgba(214, 255, 232, 0.03) 34%,
@@ -179,23 +175,21 @@
             rgba(214, 255, 232, 0.22) 52%,
             rgba(214, 255, 232, 0.08) 58%,
             transparent 76%
-        ),
-        var(--settings-button-gradient);
+    ),
+    var(--settings-button-gradient);
     background-size: 220% 100%, 100% 100%;
     background-position: 140% 0, 0 0;
-    box-shadow:
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
-        0 12px 28px rgba(var(--shell-accent-rgb), 0.22),
-        0 0 18px rgba(var(--shell-accent-rgb), 0.12);
+    box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
+    0 12px 28px rgba(var(--shell-accent-rgb), 0.22),
+    0 0 18px rgba(var(--shell-accent-rgb), 0.12);
     animation: settingsPromptEdit 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .settings-button--prompt-send {
     border: 1px solid color-mix(in srgb, var(--status-warning-border) 72%, transparent);
-    box-shadow:
-        0 0 0 1px color-mix(in srgb, var(--status-warning-border) 24%, transparent),
-        0 14px 34px color-mix(in srgb, var(--status-warning-fill-strong) 26%, transparent),
-        0 0 18px color-mix(in srgb, var(--status-warning-fill) 18%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-warning-border) 24%, transparent),
+    0 14px 34px color-mix(in srgb, var(--status-warning-fill-strong) 26%, transparent),
+    0 0 18px color-mix(in srgb, var(--status-warning-fill) 18%, transparent);
     animation: settingsPromptSend 2.4s ease-in-out infinite;
 }
 
@@ -204,8 +198,7 @@
     position: absolute;
     inset: 1px;
     border-radius: inherit;
-    background:
-        linear-gradient(
+    background: linear-gradient(
             105deg,
             transparent 0%,
             transparent 38%,
@@ -214,7 +207,7 @@
             rgba(255, 245, 209, 0.08) 54%,
             transparent 66%,
             transparent 100%
-        );
+    );
     background-size: 240% 100%;
     background-position: 140% 0;
     pointer-events: none;
@@ -246,9 +239,9 @@
 .settings-button--danger {
     background-image: none;
     background: linear-gradient(
-        135deg,
-        var(--status-danger-fill),
-        var(--status-danger-fill-strong)
+            135deg,
+            var(--status-danger-fill),
+            var(--status-danger-fill-strong)
     );
     color: var(--status-danger-on-fill);
     box-shadow: var(--status-danger-shadow);
@@ -256,9 +249,8 @@
 
 .settings-button--danger:hover {
     filter: brightness(1.03);
-    box-shadow:
-        0 18px 42px color-mix(in srgb, var(--status-danger-fill-strong) 45%, transparent),
-        0 0 0 1px var(--status-danger-border-strong);
+    box-shadow: 0 18px 42px color-mix(in srgb, var(--status-danger-fill-strong) 45%, transparent),
+    0 0 0 1px var(--status-danger-border-strong);
 }
 
 .settings-button--danger-outline {
@@ -345,42 +337,37 @@
     0%,
     100% {
         background-position: 140% 0, 0 0;
-        box-shadow:
-            0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
-            0 12px 28px rgba(var(--shell-accent-rgb), 0.22),
-            0 0 18px rgba(var(--shell-accent-rgb), 0.12);
+        box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
+        0 12px 28px rgba(var(--shell-accent-rgb), 0.22),
+        0 0 18px rgba(var(--shell-accent-rgb), 0.12);
     }
 
     38% {
         background-position: -30% 0, 0 0;
-        box-shadow:
-            0 0 0 1px rgba(var(--shell-accent-rgb), 0.24),
-            0 18px 38px rgba(var(--shell-accent-rgb), 0.3),
-            0 0 26px rgba(var(--shell-accent-rgb), 0.18);
+        box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.24),
+        0 18px 38px rgba(var(--shell-accent-rgb), 0.3),
+        0 0 26px rgba(var(--shell-accent-rgb), 0.18);
     }
 
     60% {
-        box-shadow:
-            0 0 0 1px rgba(var(--shell-accent-rgb), 0.2),
-            0 15px 32px rgba(var(--shell-accent-rgb), 0.24),
-            0 0 20px rgba(var(--shell-accent-rgb), 0.14);
+        box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.2),
+        0 15px 32px rgba(var(--shell-accent-rgb), 0.24),
+        0 0 20px rgba(var(--shell-accent-rgb), 0.14);
     }
 }
 
 @keyframes settingsPromptSend {
     0%,
     100% {
-        box-shadow:
-            0 0 0 1px color-mix(in srgb, var(--status-warning-border) 24%, transparent),
-            0 14px 34px color-mix(in srgb, var(--status-warning-fill-strong) 24%, transparent),
-            0 0 18px color-mix(in srgb, var(--status-warning-fill) 14%, transparent);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-warning-border) 24%, transparent),
+        0 14px 34px color-mix(in srgb, var(--status-warning-fill-strong) 24%, transparent),
+        0 0 18px color-mix(in srgb, var(--status-warning-fill) 14%, transparent);
     }
 
     50% {
-        box-shadow:
-            0 0 0 1px color-mix(in srgb, var(--status-warning-border-strong) 34%, transparent),
-            0 18px 42px color-mix(in srgb, var(--status-warning-fill-strong) 32%, transparent),
-            0 0 28px color-mix(in srgb, var(--status-warning-fill) 22%, transparent);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-warning-border-strong) 34%, transparent),
+        0 18px 42px color-mix(in srgb, var(--status-warning-fill-strong) 32%, transparent),
+        0 0 28px color-mix(in srgb, var(--status-warning-fill) 22%, transparent);
     }
 }
 

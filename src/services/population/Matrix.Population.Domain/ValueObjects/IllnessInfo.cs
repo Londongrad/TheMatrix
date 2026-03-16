@@ -24,10 +24,10 @@ namespace Matrix.Population.Domain.ValueObjects
             LastRecoveredOn = lastRecoveredOn;
         }
 
-        public IllnessKind? CurrentKind { get; private set; }
-        public IllnessSeverity? CurrentSeverity { get; private set; }
-        public DateOnly? DiagnosedOn { get; private set; }
-        public DateOnly? LastRecoveredOn { get; private set; }
+        public IllnessKind? CurrentKind { get; }
+        public IllnessSeverity? CurrentSeverity { get; }
+        public DateOnly? DiagnosedOn { get; }
+        public DateOnly? LastRecoveredOn { get; }
 
         public bool HasActiveIllness => CurrentKind.HasValue && CurrentSeverity.HasValue;
 
@@ -54,8 +54,7 @@ namespace Matrix.Population.Domain.ValueObjects
                 lastRecoveredOn: LastRecoveredOn);
         }
 
-        public IllnessInfo ProgressTo(
-            IllnessSeverity severity)
+        public IllnessInfo ProgressTo(IllnessSeverity severity)
         {
             if (!HasActiveIllness || CurrentKind is null)
                 return this;

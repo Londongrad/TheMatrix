@@ -14,9 +14,9 @@ import {useUserAccess} from "../hooks/useUserAccess";
 type ManualPermissionState = PermissionEffect | "Inherit";
 
 export default function UserAccessModal({
-    userId,
-    onClose,
-}: {
+                                            userId,
+                                            onClose,
+                                        }: {
     userId: string;
     onClose: () => void;
 }) {
@@ -251,7 +251,8 @@ export default function UserAccessModal({
                             {isDeletedUser ? (
                                 <div className="mx-admin-users__profileItem mx-admin-users__profileItem--full">
                                     <div className="mx-admin-users__muted">
-                                        Restore this account from the users list before changing roles or permission overrides.
+                                        Restore this account from the users list before changing roles or permission
+                                        overrides.
                                     </div>
                                 </div>
                             ) : null}

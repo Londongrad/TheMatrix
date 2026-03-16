@@ -84,10 +84,11 @@ namespace Matrix.Identity.Application.Services.Identity
 
             bool requestAllowed = purpose switch
             {
-                OneTimeTokenPurpose.EmailConfirmation => await securityAuditService.IsEmailConfirmationRequestAllowedAsync(
-                    normalizedEmail: subject,
-                    ipAddress: ipAddress,
-                    cancellationToken: cancellationToken),
+                OneTimeTokenPurpose.EmailConfirmation => await securityAuditService
+                   .IsEmailConfirmationRequestAllowedAsync(
+                        normalizedEmail: subject,
+                        ipAddress: ipAddress,
+                        cancellationToken: cancellationToken),
                 OneTimeTokenPurpose.PasswordReset => await securityAuditService.IsPasswordResetRequestAllowedAsync(
                     normalizedEmail: subject,
                     ipAddress: ipAddress,
@@ -96,7 +97,10 @@ namespace Matrix.Identity.Application.Services.Identity
                     normalizedEmail: subject,
                     ipAddress: ipAddress,
                     cancellationToken: cancellationToken),
-                _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null)
+                _ => throw new ArgumentOutOfRangeException(
+                    paramName: nameof(purpose),
+                    actualValue: purpose,
+                    message: null)
             };
 
             if (!requestAllowed)
@@ -127,7 +131,9 @@ namespace Matrix.Identity.Application.Services.Identity
                     subject: subject,
                     ipAddress: ipAddress,
                     userAgent: userAgent,
-                    details: user is null ? "UserNotFound" : "Skipped",
+                    details: user is null
+                        ? "UserNotFound"
+                        : "Skipped",
                     cancellationToken: cancellationToken);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 return;
@@ -214,13 +220,13 @@ namespace Matrix.Identity.Application.Services.Identity
             try
             {
                 string link = buildLink(
-                    user.Id,
-                    rawToken);
+                    arg1: user.Id,
+                    arg2: rawToken);
 
                 await sendEmail(
-                    user.Email.Value,
-                    link,
-                    cancellationToken);
+                    arg1: user.Email.Value,
+                    arg2: link,
+                    arg3: cancellationToken);
 
                 await WriteAuditAsync(
                     purpose: purpose,
@@ -264,7 +270,10 @@ namespace Matrix.Identity.Application.Services.Identity
                 OneTimeTokenPurpose.EmailConfirmation => SecurityAuditEventType.EmailConfirmationRequested,
                 OneTimeTokenPurpose.PasswordReset => SecurityAuditEventType.PasswordResetRequested,
                 OneTimeTokenPurpose.AccountRecovery => SecurityAuditEventType.AccountRecoveryRequested,
-                _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, null)
+                _ => throw new ArgumentOutOfRangeException(
+                    paramName: nameof(purpose),
+                    actualValue: purpose,
+                    message: null)
             };
 
             return securityAuditService.WriteAsync(

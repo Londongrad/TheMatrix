@@ -153,7 +153,8 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                         key: RedisCacheLogKeys.PvRedisReadSlow,
                         period: CacheLoggingDefaults.SlowPeriod))
                     logger.LogWarning(
-                        message: "Redis read is slow. CacheTier={CacheTier} CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs}",
+                        message:
+                        "Redis read is slow. CacheTier={CacheTier} CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs}",
                         cacheTier,
                         cacheKey,
                         userId,
@@ -189,12 +190,13 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                             cacheKey,
                             cached);
                 }
-                else if (logOnMiss &&
-                         logger.IsEnabled(LogLevel.Debug))
-                    logger.LogDebug(
-                        message: "PermissionsVersion {CacheTier} cache miss for user {UserId}.",
-                        cacheTier,
-                        userId);
+                else
+                    if (logOnMiss &&
+                        logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug(
+                            message: "PermissionsVersion {CacheTier} cache miss for user {UserId}.",
+                            cacheTier,
+                            userId);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

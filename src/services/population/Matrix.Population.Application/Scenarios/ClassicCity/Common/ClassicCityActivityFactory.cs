@@ -98,7 +98,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Success,
                 eventType: CityPopulationActivityEventType.ResidentEnrolled,
                 title: "Resident enrolled",
-                summary: $"{resident.Name} started studying at {HumanizeEducationLevel(resident.EducationLevel)} level.");
+                summary:
+                $"{resident.Name} started studying at {HumanizeEducationLevel(resident.EducationLevel)} level.");
         }
 
         public static CityPopulationActivityWriteModel ResidentGraduated(
@@ -170,7 +171,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 Source: source,
                 Severity: CityPopulationActivitySeverity.Warning,
                 Title: "Residents divorced",
-                Summary: $"{firstResident.Name} and {secondResident.Name} ended their marriage and separated households.",
+                Summary:
+                $"{firstResident.Name} and {secondResident.Name} ended their marriage and separated households.",
                 PrimaryResidentId: firstResident.Id.Value,
                 SecondaryResidentId: secondResident.Id.Value);
         }
@@ -269,7 +271,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Warning,
                 eventType: CityPopulationActivityEventType.ResidentBecameIll,
                 title: "Resident became ill",
-                summary: $"{resident.Name} developed {HumanizeIllnessKind(illnessKind)} ({severity.ToLowerInvariant()}).");
+                summary:
+                $"{resident.Name} developed {HumanizeIllnessKind(illnessKind)} ({severity.ToLowerInvariant()}).");
         }
 
         public static CityPopulationActivityWriteModel ResidentRecoveredFromIllness(

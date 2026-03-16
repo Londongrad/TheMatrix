@@ -69,9 +69,13 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 
             Dictionary<string, PermissionEffect> desired = permissionEffects.Count == 0
                 ? new Dictionary<string, PermissionEffect>(StringComparer.Ordinal)
-                : new Dictionary<string, PermissionEffect>(permissionEffects, StringComparer.Ordinal);
+                : new Dictionary<string, PermissionEffect>(
+                    collection: permissionEffects,
+                    comparer: StringComparer.Ordinal);
 
-            var existingByKey = existing.ToDictionary(x => x.PermissionKey, StringComparer.Ordinal);
+            var existingByKey = existing.ToDictionary(
+                keySelector: x => x.PermissionKey,
+                comparer: StringComparer.Ordinal);
 
             var toRemove = existing
                .Where(entry => !desired.ContainsKey(entry.PermissionKey))
@@ -87,7 +91,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 
             var toUpdate = existing
                .Where(entry =>
-                    desired.TryGetValue(entry.PermissionKey, out PermissionEffect desiredEffect) &&
+                    desired.TryGetValue(
+                        key: entry.PermissionKey,
+                        value: out PermissionEffect desiredEffect) &&
                     entry.Effect != desiredEffect)
                .ToList();
 

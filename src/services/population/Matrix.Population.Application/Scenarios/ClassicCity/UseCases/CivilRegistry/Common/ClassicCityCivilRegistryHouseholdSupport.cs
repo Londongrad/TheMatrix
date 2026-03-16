@@ -68,11 +68,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                 cancellationToken: cancellationToken);
 
             if (sourceCount <= 1)
-            {
                 await householdWriteRepository.DeleteAsync(
                     household: sourceHousehold,
                     cancellationToken: cancellationToken);
-            }
             else
             {
                 sourceHousehold.Resize(HouseholdSize.From(sourceCount - 1));
@@ -111,8 +109,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             if (sharedCount <= 1)
                 return false;
 
-            HouseholdId newHouseholdId = HouseholdId.New();
-            Household newHousehold = Household.Create(
+            var newHouseholdId = HouseholdId.New();
+            var newHousehold = Household.Create(
                 id: newHouseholdId,
                 size: HouseholdSize.From(1),
                 createdAtUtc: DateTimeOffset.UtcNow,
@@ -165,11 +163,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                 cancellationToken: cancellationToken);
 
             if (placement is null || placement.CityId != cityId)
-            {
                 throw ApplicationErrorsFactory.HouseholdPlacementNotFound(
                     householdId: householdId.Value,
                     cityId: cityId.Value);
-            }
 
             return placement;
         }

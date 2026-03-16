@@ -1,9 +1,5 @@
 import {useState} from "react";
-import {
-    archiveCity,
-    deleteCity,
-    renameCity,
-} from "@services/citycore/scenarios/classic-city/api/citiesApi";
+import {archiveCity, deleteCity, renameCity,} from "@services/citycore/scenarios/classic-city/api/citiesApi";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim().length > 0

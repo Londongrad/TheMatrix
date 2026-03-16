@@ -33,11 +33,10 @@
     color: var(--app-text);
     text-align: left;
     cursor: pointer;
-    transition:
-        border-color 0.18s ease,
-        background 0.18s ease,
-        transform 0.18s ease,
-        box-shadow 0.18s ease;
+    transition: border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .city-details-tabs__button:hover {
@@ -262,13 +261,12 @@
     overflow: hidden;
     border-radius: 24px;
     border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
-    background:
-        linear-gradient(
+    background: linear-gradient(
             180deg,
             color-mix(in srgb, var(--shell-surface-strong) 92%, rgba(var(--shell-accent-rgb), 0.06)),
             color-mix(in srgb, var(--shell-surface-soft) 92%, transparent)
-        ),
-        var(--shell-surface);
+    ),
+    var(--shell-surface);
 }
 
 .city-dashboard-hero::before,

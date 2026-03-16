@@ -66,7 +66,10 @@ namespace Matrix.Population.Domain.Entities
 
         public Money ReleasePositiveReserveShare(decimal share)
         {
-            decimal normalizedShare = Math.Clamp(share, 0m, 1m);
+            decimal normalizedShare = Math.Clamp(
+                value: share,
+                min: 0m,
+                max: 1m);
             if (normalizedShare <= 0m || !CashReserve.IsPositive)
                 return Money.Zero;
 

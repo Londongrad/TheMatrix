@@ -12,7 +12,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
         {
             builder.ToTable("CityPopulationDailySummarySnapshots");
 
-            builder.HasKey(x => new { x.CityId, x.SnapshotDate });
+            builder.HasKey(x => new
+            {
+                x.CityId,
+                x.SnapshotDate
+            });
 
             builder.Property(x => x.CityId)
                .HasConversion(
@@ -30,21 +34,35 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                .IsRequired();
 
             builder.Property(x => x.AverageHealth)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageHappiness)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageEnergy)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageStress)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageSocialNeed)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
-            builder.HasIndex(x => new { x.CityId, x.UpdatedAtUtc });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.UpdatedAtUtc
+            });
         }
     }
 }

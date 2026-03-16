@@ -7,9 +7,13 @@ namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
     {
         public InitializeCityEconomyCommandValidator()
         {
-            RuleFor(x => x.CityId).NotEmpty();
-            RuleFor(x => x.SimulationKind).NotEmpty().MaximumLength(64);
-            RuleFor(x => x.CreatedAtUtc).Must(x => x.Offset == TimeSpan.Zero);
+            RuleFor(x => x.CityId)
+               .NotEmpty();
+            RuleFor(x => x.SimulationKind)
+               .NotEmpty()
+               .MaximumLength(64);
+            RuleFor(x => x.CreatedAtUtc)
+               .Must(x => x.Offset == TimeSpan.Zero);
         }
     }
 }

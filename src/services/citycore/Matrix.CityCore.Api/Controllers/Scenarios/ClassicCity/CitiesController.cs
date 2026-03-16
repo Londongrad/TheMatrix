@@ -1,6 +1,6 @@
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.ArchiveCity;
-using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Common;
+using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.DeleteCity;
@@ -138,8 +138,7 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
         }
 
         [HttpGet("provisioning")]
-        public async Task<IResult> ListProvisioning(
-            CancellationToken cancellationToken)
+        public async Task<IResult> ListProvisioning(CancellationToken cancellationToken)
         {
             IReadOnlyList<CityDto> cities = await mediator.Send(
                 request: new ListProvisioningCitiesQuery(),

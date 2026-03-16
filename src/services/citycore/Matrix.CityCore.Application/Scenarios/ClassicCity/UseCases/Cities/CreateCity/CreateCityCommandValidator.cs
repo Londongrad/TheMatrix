@@ -88,8 +88,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Crea
                     from: TemperatureC.Min,
                     to: TemperatureC.Max)
                .When(x => x.InitialWeatherTemperatureC.HasValue)
-               .WithMessage(
-                    $"InitialWeatherTemperatureC must stay between {TemperatureC.Min} and {TemperatureC.Max}.");
+               .WithMessage($"InitialWeatherTemperatureC must stay between {TemperatureC.Min} and {TemperatureC.Max}.");
 
             RuleFor(x => x.StartSimTimeUtc)
                .Must(x => x.Offset == TimeSpan.Zero)

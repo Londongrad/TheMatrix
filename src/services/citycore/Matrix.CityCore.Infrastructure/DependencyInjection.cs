@@ -1,9 +1,9 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
-using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
+using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.CityCore.Application.Abstractions.Persistence;
 using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using Matrix.CityCore.Infrastructure.HostedServices;
@@ -29,8 +29,7 @@ namespace Matrix.CityCore.Infrastructure
             string? connectionString = configuration.GetConnectionString("CityCoreDb");
 
             if (string.IsNullOrWhiteSpace(connectionString))
-                throw new InvalidOperationException(
-                    "Connection string 'CityCoreDb' is not configured.");
+                throw new InvalidOperationException("Connection string 'CityCoreDb' is not configured.");
 
             services.AddPostgresResilienceOptions(configuration);
 
@@ -42,8 +41,8 @@ namespace Matrix.CityCore.Infrastructure
                    .Value;
 
                 options.UseNpgsql(
-                    connectionString,
-                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                    connectionString: connectionString,
+                    npgsqlOptionsAction: npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
                         maxRetryCount: resilience.MaxRetryCount,
                         maxRetryDelay: TimeSpan.FromSeconds(resilience.MaxRetryDelaySeconds),
                         errorCodesToAdd: null));

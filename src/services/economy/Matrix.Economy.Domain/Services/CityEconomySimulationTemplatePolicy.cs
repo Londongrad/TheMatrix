@@ -10,12 +10,13 @@ namespace Matrix.Economy.Domain.Services
             string? simulationKind,
             string? economyProfile)
         {
-            return simulationKind?.Trim().ToUpperInvariant() switch
-            {
-                "CLASSICCITY" => BuildClassicCityTemplate(economyProfile),
-                "METRO" => BuildMetroTemplate(),
-                _ => BuildFallbackTemplate()
-            };
+            return simulationKind?.Trim()
+                   .ToUpperInvariant() switch
+                {
+                    "CLASSICCITY" => BuildClassicCityTemplate(economyProfile),
+                    "METRO" => BuildMetroTemplate(),
+                    _ => BuildFallbackTemplate()
+                };
         }
 
         private static CityEconomySimulationTemplate BuildClassicCityTemplate(string? economyProfile)
@@ -30,85 +31,199 @@ namespace Matrix.Economy.Domain.Services
 
         private static CityEconomySimulationTemplate BuildClassicCityStrugglingTemplate()
         {
-            CityBudgetUnitProfile unitProfile = CityBudgetUnitProfile.DefaultMoney();
+            var unitProfile = CityBudgetUnitProfile.DefaultMoney();
 
             return new CityEconomySimulationTemplate(
                 UnitProfile: unitProfile,
                 InitialReserve: Money.FromDecimal(25_000m),
                 DefaultAllocations:
                 [
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.General, Money.FromDecimal(2_500m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Operations, Money.FromDecimal(8_500m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Housing, Money.FromDecimal(5_500m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Commerce, Money.FromDecimal(1_500m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Infrastructure, Money.FromDecimal(6_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Healthcare, Money.FromDecimal(3_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Education, Money.FromDecimal(3_000m))
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.General,
+                        TargetAmount: Money.FromDecimal(2_500m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Operations,
+                        TargetAmount: Money.FromDecimal(8_500m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Housing,
+                        TargetAmount: Money.FromDecimal(5_500m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Commerce,
+                        TargetAmount: Money.FromDecimal(1_500m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Infrastructure,
+                        TargetAmount: Money.FromDecimal(6_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Healthcare,
+                        TargetAmount: Money.FromDecimal(3_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Education,
+                        TargetAmount: Money.FromDecimal(3_000m))
                 ],
                 DefaultBusinesses:
                 [
-                    new CityEconomyBusinessTemplate("city-housing-authority", "City Housing Authority", CityBusinessKind.Landlord, Money.FromDecimal(7_500m)),
-                    new CityEconomyBusinessTemplate("city-utilities-board", "City Utilities Board", CityBusinessKind.Utility, Money.FromDecimal(6_000m)),
-                    new CityEconomyBusinessTemplate("municipal-services-desk", "Municipal Services Desk", CityBusinessKind.MunicipalVendor, Money.FromDecimal(5_000m)),
-                    new CityEconomyBusinessTemplate("corner-market-coop", "Corner Market Co-op", CityBusinessKind.RetailStore, Money.FromDecimal(3_500m)),
-                    new CityEconomyBusinessTemplate("repair-and-works-yard", "Repair and Works Yard", CityBusinessKind.Manufacturer, Money.FromDecimal(4_000m))
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "city-housing-authority",
+                        Name: "City Housing Authority",
+                        Kind: CityBusinessKind.Landlord,
+                        StartingCapital: Money.FromDecimal(7_500m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "city-utilities-board",
+                        Name: "City Utilities Board",
+                        Kind: CityBusinessKind.Utility,
+                        StartingCapital: Money.FromDecimal(6_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "municipal-services-desk",
+                        Name: "Municipal Services Desk",
+                        Kind: CityBusinessKind.MunicipalVendor,
+                        StartingCapital: Money.FromDecimal(5_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "corner-market-coop",
+                        Name: "Corner Market Co-op",
+                        Kind: CityBusinessKind.RetailStore,
+                        StartingCapital: Money.FromDecimal(3_500m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "repair-and-works-yard",
+                        Name: "Repair and Works Yard",
+                        Kind: CityBusinessKind.Manufacturer,
+                        StartingCapital: Money.FromDecimal(4_000m))
                 ]);
         }
 
         private static CityEconomySimulationTemplate BuildClassicCityBalancedTemplate()
         {
-            CityBudgetUnitProfile unitProfile = CityBudgetUnitProfile.DefaultMoney();
+            var unitProfile = CityBudgetUnitProfile.DefaultMoney();
 
             return new CityEconomySimulationTemplate(
                 UnitProfile: unitProfile,
                 InitialReserve: Money.FromDecimal(75_000m),
                 DefaultAllocations:
                 [
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.General, Money.FromDecimal(3_500m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Operations, Money.FromDecimal(12_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Housing, Money.FromDecimal(7_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Commerce, Money.FromDecimal(2_500m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Infrastructure, Money.FromDecimal(9_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Healthcare, Money.FromDecimal(5_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Education, Money.FromDecimal(5_000m))
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.General,
+                        TargetAmount: Money.FromDecimal(3_500m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Operations,
+                        TargetAmount: Money.FromDecimal(12_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Housing,
+                        TargetAmount: Money.FromDecimal(7_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Commerce,
+                        TargetAmount: Money.FromDecimal(2_500m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Infrastructure,
+                        TargetAmount: Money.FromDecimal(9_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Healthcare,
+                        TargetAmount: Money.FromDecimal(5_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Education,
+                        TargetAmount: Money.FromDecimal(5_000m))
                 ],
                 DefaultBusinesses:
                 [
-                    new CityEconomyBusinessTemplate("city-housing-authority", "City Housing Authority", CityBusinessKind.Landlord, Money.FromDecimal(18_000m)),
-                    new CityEconomyBusinessTemplate("city-utilities-board", "City Utilities Board", CityBusinessKind.Utility, Money.FromDecimal(15_000m)),
-                    new CityEconomyBusinessTemplate("municipal-services-desk", "Municipal Services Desk", CityBusinessKind.MunicipalVendor, Money.FromDecimal(12_000m)),
-                    new CityEconomyBusinessTemplate("market-square-retail", "Market Square Retail", CityBusinessKind.RetailStore, Money.FromDecimal(10_000m)),
-                    new CityEconomyBusinessTemplate("civic-services-guild", "Civic Services Guild", CityBusinessKind.Service, Money.FromDecimal(9_000m)),
-                    new CityEconomyBusinessTemplate("industrial-works-hub", "Industrial Works Hub", CityBusinessKind.Manufacturer, Money.FromDecimal(11_000m))
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "city-housing-authority",
+                        Name: "City Housing Authority",
+                        Kind: CityBusinessKind.Landlord,
+                        StartingCapital: Money.FromDecimal(18_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "city-utilities-board",
+                        Name: "City Utilities Board",
+                        Kind: CityBusinessKind.Utility,
+                        StartingCapital: Money.FromDecimal(15_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "municipal-services-desk",
+                        Name: "Municipal Services Desk",
+                        Kind: CityBusinessKind.MunicipalVendor,
+                        StartingCapital: Money.FromDecimal(12_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "market-square-retail",
+                        Name: "Market Square Retail",
+                        Kind: CityBusinessKind.RetailStore,
+                        StartingCapital: Money.FromDecimal(10_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "civic-services-guild",
+                        Name: "Civic Services Guild",
+                        Kind: CityBusinessKind.Service,
+                        StartingCapital: Money.FromDecimal(9_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "industrial-works-hub",
+                        Name: "Industrial Works Hub",
+                        Kind: CityBusinessKind.Manufacturer,
+                        StartingCapital: Money.FromDecimal(11_000m))
                 ]);
         }
 
         private static CityEconomySimulationTemplate BuildClassicCityAffluentTemplate()
         {
-            CityBudgetUnitProfile unitProfile = CityBudgetUnitProfile.DefaultMoney();
+            var unitProfile = CityBudgetUnitProfile.DefaultMoney();
 
             return new CityEconomySimulationTemplate(
                 UnitProfile: unitProfile,
                 InitialReserve: Money.FromDecimal(180_000m),
                 DefaultAllocations:
                 [
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.General, Money.FromDecimal(7_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Operations, Money.FromDecimal(18_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Housing, Money.FromDecimal(12_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Commerce, Money.FromDecimal(6_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Infrastructure, Money.FromDecimal(16_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Healthcare, Money.FromDecimal(11_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Education, Money.FromDecimal(11_000m))
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.General,
+                        TargetAmount: Money.FromDecimal(7_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Operations,
+                        TargetAmount: Money.FromDecimal(18_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Housing,
+                        TargetAmount: Money.FromDecimal(12_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Commerce,
+                        TargetAmount: Money.FromDecimal(6_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Infrastructure,
+                        TargetAmount: Money.FromDecimal(16_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Healthcare,
+                        TargetAmount: Money.FromDecimal(11_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Education,
+                        TargetAmount: Money.FromDecimal(11_000m))
                 ],
                 DefaultBusinesses:
                 [
-                    new CityEconomyBusinessTemplate("city-housing-authority", "City Housing Authority", CityBusinessKind.Landlord, Money.FromDecimal(36_000m)),
-                    new CityEconomyBusinessTemplate("city-utilities-board", "City Utilities Board", CityBusinessKind.Utility, Money.FromDecimal(30_000m)),
-                    new CityEconomyBusinessTemplate("municipal-services-desk", "Municipal Services Desk", CityBusinessKind.MunicipalVendor, Money.FromDecimal(24_000m)),
-                    new CityEconomyBusinessTemplate("market-square-retail", "Market Square Retail", CityBusinessKind.RetailStore, Money.FromDecimal(20_000m)),
-                    new CityEconomyBusinessTemplate("civic-services-guild", "Civic Services Guild", CityBusinessKind.Service, Money.FromDecimal(18_000m)),
-                    new CityEconomyBusinessTemplate("industrial-works-hub", "Industrial Works Hub", CityBusinessKind.Manufacturer, Money.FromDecimal(22_000m)),
-                    new CityEconomyBusinessTemplate("metropolitan-employment-exchange", "Metropolitan Employment Exchange", CityBusinessKind.Employer, Money.FromDecimal(16_000m))
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "city-housing-authority",
+                        Name: "City Housing Authority",
+                        Kind: CityBusinessKind.Landlord,
+                        StartingCapital: Money.FromDecimal(36_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "city-utilities-board",
+                        Name: "City Utilities Board",
+                        Kind: CityBusinessKind.Utility,
+                        StartingCapital: Money.FromDecimal(30_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "municipal-services-desk",
+                        Name: "Municipal Services Desk",
+                        Kind: CityBusinessKind.MunicipalVendor,
+                        StartingCapital: Money.FromDecimal(24_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "market-square-retail",
+                        Name: "Market Square Retail",
+                        Kind: CityBusinessKind.RetailStore,
+                        StartingCapital: Money.FromDecimal(20_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "civic-services-guild",
+                        Name: "Civic Services Guild",
+                        Kind: CityBusinessKind.Service,
+                        StartingCapital: Money.FromDecimal(18_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "industrial-works-hub",
+                        Name: "Industrial Works Hub",
+                        Kind: CityBusinessKind.Manufacturer,
+                        StartingCapital: Money.FromDecimal(22_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "metropolitan-employment-exchange",
+                        Name: "Metropolitan Employment Exchange",
+                        Kind: CityBusinessKind.Employer,
+                        StartingCapital: Money.FromDecimal(16_000m))
                 ]);
         }
 
@@ -125,15 +240,33 @@ namespace Matrix.Economy.Domain.Services
                 InitialReserve: Money.FromDecimal(12_000m),
                 DefaultAllocations:
                 [
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.General, Money.FromDecimal(1_500m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Operations, Money.FromDecimal(4_000m)),
-                    new CityEconomyAllocationTemplate(CityBudgetCategory.Infrastructure, Money.FromDecimal(3_000m))
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.General,
+                        TargetAmount: Money.FromDecimal(1_500m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Operations,
+                        TargetAmount: Money.FromDecimal(4_000m)),
+                    new CityEconomyAllocationTemplate(
+                        Category: CityBudgetCategory.Infrastructure,
+                        TargetAmount: Money.FromDecimal(3_000m))
                 ],
                 DefaultBusinesses:
                 [
-                    new CityEconomyBusinessTemplate("station-quartermaster", "Station Quartermaster", CityBusinessKind.MunicipalVendor, Money.FromDecimal(4_000m)),
-                    new CityEconomyBusinessTemplate("tunnel-maintenance-yard", "Tunnel Maintenance Yard", CityBusinessKind.Manufacturer, Money.FromDecimal(3_000m)),
-                    new CityEconomyBusinessTemplate("ration-and-supply-depot", "Ration and Supply Depot", CityBusinessKind.RetailStore, Money.FromDecimal(2_500m))
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "station-quartermaster",
+                        Name: "Station Quartermaster",
+                        Kind: CityBusinessKind.MunicipalVendor,
+                        StartingCapital: Money.FromDecimal(4_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "tunnel-maintenance-yard",
+                        Name: "Tunnel Maintenance Yard",
+                        Kind: CityBusinessKind.Manufacturer,
+                        StartingCapital: Money.FromDecimal(3_000m)),
+                    new CityEconomyBusinessTemplate(
+                        TemplateKey: "ration-and-supply-depot",
+                        Name: "Ration and Supply Depot",
+                        Kind: CityBusinessKind.RetailStore,
+                        StartingCapital: Money.FromDecimal(2_500m))
                 ]);
         }
 
@@ -148,7 +281,9 @@ namespace Matrix.Economy.Domain.Services
 
         private static string NormalizeEconomyProfile(string? economyProfile)
         {
-            return economyProfile?.Trim().ToUpperInvariant() ?? "BALANCED";
+            return economyProfile?.Trim()
+                      .ToUpperInvariant() ??
+                   "BALANCED";
         }
     }
 }

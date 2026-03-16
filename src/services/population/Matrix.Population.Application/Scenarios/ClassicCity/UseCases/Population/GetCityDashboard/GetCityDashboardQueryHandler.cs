@@ -15,7 +15,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             GetCityDashboardQuery request,
             CancellationToken cancellationToken)
         {
-            CityId cityId = CityId.From(request.CityId);
+            var cityId = CityId.From(request.CityId);
 
             await summaryProjectionService.EnsureExistsAsync(
                 cityId: cityId,
@@ -133,7 +133,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     new CityPopulationDashboardMetricDto(
                         Key: "stableHouseholds",
                         Label: "Stable households",
-                        Description: "Households whose current employment and dependency mix can comfortably support daily city living.",
+                        Description:
+                        "Households whose current employment and dependency mix can comfortably support daily city living.",
                         ValueKind: "count",
                         CurrentValue: economySnapshot.StableHouseholdCount,
                         DeltaYesterday: null,
@@ -142,7 +143,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     new CityPopulationDashboardMetricDto(
                         Key: "strainedHouseholds",
                         Label: "Strained households",
-                        Description: "Households currently under economic pressure from low support capacity, dependents, illness, or housing load.",
+                        Description:
+                        "Households currently under economic pressure from low support capacity, dependents, illness, or housing load.",
                         ValueKind: "count",
                         CurrentValue: economySnapshot.StrainedHouseholdCount,
                         DeltaYesterday: null,
@@ -151,7 +153,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CreateCountMetric(
                         key: "deficitHouseholds",
                         label: "Households in deficit",
-                        description: "Households whose current cash reserve or daily household net is already below zero.",
+                        description:
+                        "Households whose current cash reserve or daily household net is already below zero.",
                         currentValue: economySnapshot.DeficitHouseholdCount,
                         yesterdayValue: null,
                         monthValue: null,
@@ -171,7 +174,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         currentValue: economySnapshot.AverageDailyNetAmount,
                         yesterdayValue: null,
                         monthValue: null,
-                        yearValue: null),
+                        yearValue: null)
                 ],
                 RecentEvents: events
                    .Select(x => new CityPopulationActivityEventDto(
@@ -203,9 +206,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 Description: description,
                 ValueKind: "count",
                 CurrentValue: currentValue,
-                DeltaYesterday: CreateDelta(currentValue, yesterdayValue),
-                DeltaMonth: CreateDelta(currentValue, monthValue),
-                DeltaYear: CreateDelta(currentValue, yearValue));
+                DeltaYesterday: CreateDelta(
+                    currentValue: currentValue,
+                    previousValue: yesterdayValue),
+                DeltaMonth: CreateDelta(
+                    currentValue: currentValue,
+                    previousValue: monthValue),
+                DeltaYear: CreateDelta(
+                    currentValue: currentValue,
+                    previousValue: yearValue));
         }
 
         private static CityPopulationDashboardMetricDto CreateAverageMetric(
@@ -225,19 +234,29 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 Description: description,
                 ValueKind: "average",
                 CurrentValue: roundedCurrent,
-                DeltaYesterday: CreateDelta(roundedCurrent, RoundMetric(yesterdayValue)),
-                DeltaMonth: CreateDelta(roundedCurrent, RoundMetric(monthValue)),
-                DeltaYear: CreateDelta(roundedCurrent, RoundMetric(yearValue)));
+                DeltaYesterday: CreateDelta(
+                    currentValue: roundedCurrent,
+                    previousValue: RoundMetric(yesterdayValue)),
+                DeltaMonth: CreateDelta(
+                    currentValue: roundedCurrent,
+                    previousValue: RoundMetric(monthValue)),
+                DeltaYear: CreateDelta(
+                    currentValue: roundedCurrent,
+                    previousValue: RoundMetric(yearValue)));
         }
 
-        private static decimal? CreateDelta(decimal currentValue, decimal? previousValue)
+        private static decimal? CreateDelta(
+            decimal currentValue,
+            decimal? previousValue)
         {
             return previousValue.HasValue
                 ? RoundMetric(currentValue - previousValue.Value)
                 : null;
         }
 
-        private static decimal? CreateDelta(int currentValue, int? previousValue)
+        private static decimal? CreateDelta(
+            int currentValue,
+            int? previousValue)
         {
             return previousValue.HasValue
                 ? currentValue - previousValue.Value

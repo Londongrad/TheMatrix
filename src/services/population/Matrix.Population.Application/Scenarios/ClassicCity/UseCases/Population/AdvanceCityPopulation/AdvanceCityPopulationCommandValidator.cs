@@ -21,7 +21,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                .GreaterThanOrEqualTo(0);
 
             RuleFor(x => x)
-               .Must(x => DateOnly.FromDateTime(x.ToSimTimeUtc.UtcDateTime) >= DateOnly.FromDateTime(x.FromSimTimeUtc.UtcDateTime))
+               .Must(x => DateOnly.FromDateTime(x.ToSimTimeUtc.UtcDateTime) >=
+                          DateOnly.FromDateTime(x.FromSimTimeUtc.UtcDateTime))
                .WithMessage("ToSimTimeUtc date cannot be earlier than FromSimTimeUtc date.");
         }
     }

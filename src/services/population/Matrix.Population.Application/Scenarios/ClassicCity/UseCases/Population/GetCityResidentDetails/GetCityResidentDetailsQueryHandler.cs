@@ -20,24 +20,27 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             GetCityResidentDetailsQuery request,
             CancellationToken cancellationToken)
         {
-            CityId cityId = CityId.From(request.CityId);
+            var cityId = CityId.From(request.CityId);
             Person resident = await cityPopulationPersonReadRepository.FindByCityAndPersonIdAsync(
-                    cityId: cityId,
-                    personId: PersonId.From(request.PersonId),
-                    cancellationToken: cancellationToken) ??
-                throw ApplicationErrorsFactory.PersonNotFound(request.PersonId);
+                                  cityId: cityId,
+                                  personId: PersonId.From(request.PersonId),
+                                  cancellationToken: cancellationToken) ??
+                              throw ApplicationErrorsFactory.PersonNotFound(request.PersonId);
 
-            Person? currentSpouse = resident.SpouseId is not { } spouseId
+            Person? currentSpouse = resident.SpouseId is not
+                { } spouseId
                 ? null
                 : await personReadRepository.FindByIdAsync(
                     id: spouseId,
                     cancellationToken: cancellationToken);
-            Person? mother = resident.MotherId is not { } motherId
+            Person? mother = resident.MotherId is not
+                { } motherId
                 ? null
                 : await personReadRepository.FindByIdAsync(
                     id: motherId,
                     cancellationToken: cancellationToken);
-            Person? father = resident.FatherId is not { } fatherId
+            Person? father = resident.FatherId is not
+                { } fatherId
                 ? null
                 : await personReadRepository.FindByIdAsync(
                     id: fatherId,
@@ -46,10 +49,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 cityId: cityId,
                 parentId: resident.Id,
                 cancellationToken: cancellationToken);
-            CityResidentHousingSnapshot? housing = await cityPopulationPersonReadRepository.FindHousingSnapshotByPersonIdAsync(
-                cityId: cityId,
-                personId: resident.Id,
-                cancellationToken: cancellationToken);
+            CityResidentHousingSnapshot? housing =
+                await cityPopulationPersonReadRepository.FindHousingSnapshotByPersonIdAsync(
+                    cityId: cityId,
+                    personId: resident.Id,
+                    cancellationToken: cancellationToken);
 
             return resident.ToResidentDetailsDto(
                 currentDate: request.CurrentDate,

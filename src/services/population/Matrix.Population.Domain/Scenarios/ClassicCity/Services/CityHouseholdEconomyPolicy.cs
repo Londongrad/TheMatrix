@@ -23,7 +23,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .ToArray();
 
             if (activeResidents.Length == 0)
-            {
                 return new CityHouseholdEconomyProfile(
                     HousingStatus: housingStatus,
                     CashReserveAmount: household.CashReserve.Amount,
@@ -38,7 +37,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     EconomicBalance: 0d,
                     StrainScore: 1d,
                     GrowthReadinessScore: 0d);
-            }
 
             CityHouseholdLivelihoodProfile livelihood = householdLivelihoodPolicy.Build(
                 householdResidents: activeResidents,
@@ -53,28 +51,31 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 x.GetAgeGroup(currentDate) == AgeGroup.Senior &&
                 x.Employment.Status == EmploymentStatus.Retired);
 
-            double supportUnits = (double)(cashflow.TakeHomeIncome.Amount / 24m)
-                                  + (livelihood.AdultProviderCount * 0.25d)
-                                  + (livelihood.AdultStudentCount * 0.15d)
-                                  + (retiredAdults * 0.10d);
-            double livingCostUnits = (double)(cashflow.DailyExpenses.Amount / 26m)
-                                     + (livelihood.DependentCount * 0.06d)
-                                     + (livelihood.InfantCount * 0.08d)
-                                     + (livelihood.ActiveIllnessCount * 0.08d);
+            double supportUnits = (double)(cashflow.TakeHomeIncome.Amount / 24m) +
+                                  (livelihood.AdultProviderCount * 0.25d) +
+                                  (livelihood.AdultStudentCount * 0.15d) +
+                                  (retiredAdults * 0.10d);
+            double livingCostUnits = (double)(cashflow.DailyExpenses.Amount / 26m) +
+                                     (livelihood.DependentCount * 0.06d) +
+                                     (livelihood.InfantCount * 0.08d) +
+                                     (livelihood.ActiveIllnessCount * 0.08d);
 
             double reserveCoverageDays = cashflow.DailyExpenses.Amount <= 0m
                 ? 12d
                 : (double)(household.CashReserve.Amount / cashflow.DailyExpenses.Amount);
-            double reserveBufferUnits = Math.Clamp(reserveCoverageDays / 6d, -1.8d, 2.4d);
+            double reserveBufferUnits = Math.Clamp(
+                value: reserveCoverageDays / 6d,
+                min: -1.8d,
+                max: 2.4d);
             double netUnits = (double)(cashflow.DailyNet.Amount / 32m);
             double balance = reserveBufferUnits + netUnits;
 
-            double strain = 0.46d
-                            - (reserveBufferUnits * 0.16d)
-                            - (netUnits * 0.22d)
-                            - (livelihood.StabilityScore * 0.24d)
-                            + (livelihood.DependentCount * 0.03d)
-                            + (livelihood.ActiveIllnessCount * 0.04d);
+            double strain = 0.46d -
+                            (reserveBufferUnits * 0.16d) -
+                            (netUnits * 0.22d) -
+                            (livelihood.StabilityScore * 0.24d) +
+                            (livelihood.DependentCount * 0.03d) +
+                            (livelihood.ActiveIllnessCount * 0.04d);
 
             if (livelihood.AdultProviderCount == 0 && livelihood.AdultStudentCount == 0)
                 strain += 0.14d;
@@ -83,15 +84,24 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 strain += 0.18d;
 
             if (cashflow.DailyNet.Amount < 0m)
-                strain += Math.Min(0.18d, (double)(Math.Abs(cashflow.DailyNet.Amount) / 120m));
+                strain += Math.Min(
+                    val1: 0.18d,
+                    val2: (double)(Math.Abs(cashflow.DailyNet.Amount) / 120m));
 
             double growthReadiness = Math.Clamp(
-                (0.72d - strain)
-                + (livelihood.StabilityScore * 0.24d)
-                + Math.Clamp(reserveCoverageDays / 18d, -0.18d, 0.28d)
-                + Math.Max(0d, netUnits) * 0.08d,
-                0d,
-                1d);
+                value: 0.72d -
+                       strain +
+                       (livelihood.StabilityScore * 0.24d) +
+                       Math.Clamp(
+                           value: reserveCoverageDays / 18d,
+                           min: -0.18d,
+                           max: 0.28d) +
+                       (Math.Max(
+                            val1: 0d,
+                            val2: netUnits) *
+                        0.08d),
+                min: 0d,
+                max: 1d);
 
             return new CityHouseholdEconomyProfile(
                 HousingStatus: housingStatus,
@@ -105,7 +115,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 SupportUnits: supportUnits,
                 LivingCostUnits: livingCostUnits,
                 EconomicBalance: balance,
-                StrainScore: Math.Clamp(strain, 0d, 1d),
+                StrainScore: Math.Clamp(
+                    value: strain,
+                    min: 0d,
+                    max: 1d),
                 GrowthReadinessScore: growthReadiness);
         }
     }

@@ -21,7 +21,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             SecurityAuditEntry entry,
             CancellationToken cancellationToken)
         {
-            SecurityAuditEventRecord auditEvent = SecurityAuditEventRecord.Create(
+            var auditEvent = SecurityAuditEventRecord.Create(
                 entry: entry,
                 occurredAtUtc: clock.UtcNow);
 
@@ -90,7 +90,8 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             CancellationToken cancellationToken)
         {
             return IsRequestAllowedAsync(
-                eventTypes: [
+                eventTypes:
+                [
                     SecurityAuditEventType.EmailChangeRequested,
                     SecurityAuditEventType.EmailChangeConfirmationResent
                 ],
@@ -183,9 +184,9 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             CancellationToken cancellationToken)
         {
             IQueryable<SecurityAuditEventRecord> query = dbContext.Set<SecurityAuditEventRecord>()
-                .AsNoTracking()
-                .Where(x => eventTypes.Contains(x.EventType))
-                .Where(x => x.OccurredAtUtc >= sinceUtc);
+               .AsNoTracking()
+               .Where(x => eventTypes.Contains(x.EventType))
+               .Where(x => x.OccurredAtUtc >= sinceUtc);
 
             if (isSuccessful.HasValue)
                 query = query.Where(x => x.IsSuccessful == isSuccessful.Value);
@@ -203,7 +204,8 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             catch (PostgresException ex) when (IsMissingSecurityAuditTable(ex))
             {
                 logger.LogWarning(
-                    ex,
+                    exception: ex,
+                    message:
                     "Security audit table is missing. Rate-limit checks will be skipped until migrations are applied.");
                 return 0;
             }
@@ -212,7 +214,9 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
         private static bool IsMissingSecurityAuditTable(PostgresException exception)
         {
             return exception.SqlState == PostgresErrorCodes.UndefinedTable &&
-                   exception.MessageText.Contains("SecurityAuditEvents", StringComparison.Ordinal);
+                   exception.MessageText.Contains(
+                       value: "SecurityAuditEvents",
+                       comparisonType: StringComparison.Ordinal);
         }
     }
 }

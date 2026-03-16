@@ -23,9 +23,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
             CancellationToken cancellationToken)
         {
             Person resident = await personReadRepository.FindByIdAsync(
-                    id: PersonId.From(residentId),
-                    cancellationToken: cancellationToken) ??
-                throw ApplicationErrorsFactory.PersonNotFound(residentId);
+                                  id: PersonId.From(residentId),
+                                  cancellationToken: cancellationToken) ??
+                              throw ApplicationErrorsFactory.PersonNotFound(residentId);
 
             CityId? actualCityId = await cityPopulationPersonReadRepository.FindCityIdByPersonIdAsync(
                 personId: resident.Id,
@@ -44,11 +44,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
             CityEmploymentWorkplaceSnapshot? workplace = null)
         {
             if (workplace is not null)
-            {
                 return new Job(
                     workplaceId: workplace.WorkplaceId,
                     title: workplace.JobTitle);
-            }
 
             string normalizedTitle = GuardHelper.AgainstNullOrWhiteSpace(
                 value: jobTitle,

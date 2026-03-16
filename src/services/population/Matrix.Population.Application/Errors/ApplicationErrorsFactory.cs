@@ -167,7 +167,8 @@ namespace Matrix.Population.Application.Errors
         {
             return new MatrixApplicationException(
                 code: "Population.Education.Institution.LevelMismatch",
-                message: $"Education institution '{institutionId}' is registered for level '{actualEducationLevel}', but '{expectedEducationLevel}' is required.",
+                message:
+                $"Education institution '{institutionId}' is registered for level '{actualEducationLevel}', but '{expectedEducationLevel}' is required.",
                 errorType: ApplicationErrorType.BusinessRule);
         }
 
@@ -213,7 +214,8 @@ namespace Matrix.Population.Application.Errors
         {
             return new MatrixApplicationException(
                 code: "Population.Education.SeniorResidentCannotStudy",
-                message: $"Resident '{residentId}' is already in a senior age group and cannot start studying through this service.",
+                message:
+                $"Resident '{residentId}' is already in a senior age group and cannot start studying through this service.",
                 errorType: ApplicationErrorType.BusinessRule);
         }
 
@@ -236,6 +238,5 @@ namespace Matrix.Population.Application.Errors
                 message: $"Resident '{residentId}' is already at education level '{educationLevel}'.",
                 errorType: ApplicationErrorType.BusinessRule);
         }
-
     }
 }

@@ -1,4 +1,3 @@
-using Matrix.Economy.Application.UseCases.Businesses;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayroll

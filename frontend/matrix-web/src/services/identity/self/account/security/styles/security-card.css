@@ -9,12 +9,10 @@
     padding: 1rem 1.1rem;
     border-radius: 1rem;
     border: 1px solid var(--status-warning-border);
-    background:
-        linear-gradient(135deg, var(--status-warning-bg), transparent 68%),
-        color-mix(in srgb, var(--status-warning-bg) 52%, var(--settings-card-bg));
-    box-shadow:
-        var(--status-warning-shadow),
-        0 0 0 1px color-mix(in srgb, var(--status-warning-border-strong) 18%, transparent) inset;
+    background: linear-gradient(135deg, var(--status-warning-bg), transparent 68%),
+    color-mix(in srgb, var(--status-warning-bg) 52%, var(--settings-card-bg));
+    box-shadow: var(--status-warning-shadow),
+    0 0 0 1px color-mix(in srgb, var(--status-warning-border-strong) 18%, transparent) inset;
 }
 
 .settings-email-warning__content {
@@ -81,20 +79,18 @@
 
 .settings-button--warning {
     background-image: linear-gradient(
-        135deg,
-        var(--status-warning-fill),
-        var(--status-warning-fill-strong)
+            135deg,
+            var(--status-warning-fill),
+            var(--status-warning-fill-strong)
     );
     color: var(--status-warning-on-fill);
-    box-shadow:
-        0 12px 32px color-mix(in srgb, var(--status-warning-fill-strong) 28%, transparent),
-        0 0 0 1px color-mix(in srgb, var(--status-warning-border) 48%, transparent);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--status-warning-fill-strong) 28%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--status-warning-border) 48%, transparent);
 }
 
 .settings-button--warning:hover {
-    box-shadow:
-        0 16px 40px color-mix(in srgb, var(--status-warning-fill-strong) 36%, transparent),
-        0 0 0 1px var(--status-warning-border-strong);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--status-warning-fill-strong) 36%, transparent),
+    0 0 0 1px var(--status-warning-border-strong);
 }
 
 .settings-security-section {

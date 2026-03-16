@@ -1,4 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterDivorce;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterMarriage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.EnrollResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GetEducationCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GraduateResident;
@@ -7,13 +9,11 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Fi
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.GetEmploymentCatalog;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.HireResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.RetireResident;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterDivorce;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.RegisterMarriage;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
-using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.InitializeCityPopulation;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.SyncCityEnvironment;
 using Matrix.Population.Application.UseCases.Population.GetCitizenPage;

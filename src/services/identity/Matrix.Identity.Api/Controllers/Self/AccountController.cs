@@ -1,15 +1,15 @@
+using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeDisplayName;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangePassword;
-using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername;
-using Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar;
 using Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
+using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ResendPendingEmailChange;
-using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 using MediatR;
@@ -25,6 +25,21 @@ namespace Matrix.Identity.Api.Controllers.Self
     public class AccountController(ISender sender) : ControllerBase
     {
         private readonly ISender _sender = sender;
+
+        private string GetUserAgent()
+        {
+            return Request.Headers.UserAgent.ToString();
+        }
+
+        private string? GetIpAddress()
+        {
+            if (Request.Headers.TryGetValue(
+                    key: "X-Real-IP",
+                    value: out StringValues realIpHeader))
+                return realIpHeader.ToString();
+
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
 
         #region [ Profile ]
 
@@ -61,7 +76,10 @@ namespace Matrix.Identity.Api.Controllers.Self
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
-            var query = new GetMySecurityActivityQuery(new Pagination(pageNumber, pageSize));
+            var query = new GetMySecurityActivityQuery(
+                new Pagination(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize));
 
             PagedResult<SecurityActivityItemResult> result = await _sender.Send(
                 request: query,
@@ -69,16 +87,17 @@ namespace Matrix.Identity.Api.Controllers.Self
 
             var response = new PagedResult<SecurityActivityItemResponse>(
                 items: result.Items.Select(item => new SecurityActivityItemResponse
-                {
-                    EventType = item.EventType.ToString(),
-                    IsSuccessful = item.IsSuccessful,
-                    OccurredAtUtc = item.OccurredAtUtc,
-                    IpAddress = item.IpAddress,
-                    UserAgent = item.UserAgent,
-                    DeviceId = item.DeviceId,
-                    DeviceName = item.DeviceName,
-                    Details = item.Details
-                }).ToList(),
+                    {
+                        EventType = item.EventType.ToString(),
+                        IsSuccessful = item.IsSuccessful,
+                        OccurredAtUtc = item.OccurredAtUtc,
+                        IpAddress = item.IpAddress,
+                        UserAgent = item.UserAgent,
+                        DeviceId = item.DeviceId,
+                        DeviceName = item.DeviceName,
+                        Details = item.Details
+                    })
+                   .ToList(),
                 totalCount: result.TotalCount,
                 pageNumber: result.PageNumber,
                 pageSize: result.PageSize);
@@ -114,8 +133,8 @@ namespace Matrix.Identity.Api.Controllers.Self
         {
             string username = await _sender.Send(
                 request: new ChangeUsernameCommand(
-                    request.Username,
-                    request.CurrentPassword),
+                    Username: request.Username,
+                    CurrentPassword: request.CurrentPassword),
                 cancellationToken: cancellationToken);
 
             var response = new ChangeUsernameResponse
@@ -148,8 +167,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         [HttpPost("email/pending/resend")]
-        public async Task<IActionResult> ResendPendingEmailChange(
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> ResendPendingEmailChange(CancellationToken cancellationToken)
         {
             await _sender.Send(
                 request: new ResendPendingEmailChangeCommand(
@@ -161,8 +179,7 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         [HttpDelete("email/pending")]
-        public async Task<IActionResult> CancelPendingEmailChange(
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> CancelPendingEmailChange(CancellationToken cancellationToken)
         {
             await _sender.Send(
                 request: new CancelPendingEmailChangeCommand(
@@ -246,20 +263,5 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         #endregion [ Identity Updates ]
-
-        private string GetUserAgent()
-        {
-            return Request.Headers.UserAgent.ToString();
-        }
-
-        private string? GetIpAddress()
-        {
-            if (Request.Headers.TryGetValue(
-                    key: "X-Real-IP",
-                    value: out StringValues realIpHeader))
-                return realIpHeader.ToString();
-
-            return HttpContext.Connection.RemoteIpAddress?.ToString();
-        }
     }
 }

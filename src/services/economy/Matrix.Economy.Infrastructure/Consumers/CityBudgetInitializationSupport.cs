@@ -16,12 +16,16 @@ namespace Matrix.Economy.Infrastructure.Consumers
             IEconomyUnitOfWork unitOfWork,
             CancellationToken cancellationToken)
         {
-            CityBudget? existingBudget = await budgetRepository.GetByCityAsync(cityId, cancellationToken);
+            CityBudget? existingBudget = await budgetRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
 
             if (existingBudget is not null)
                 return existingBudget;
 
-            var newBudget = new CityBudget(CityBudgetId.New(), cityId);
+            var newBudget = new CityBudget(
+                id: CityBudgetId.New(),
+                cityId: cityId);
             budgetRepository.Add(newBudget);
 
             try
@@ -31,7 +35,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
             }
             catch (DbUpdateException ex) when (IsConcurrentCityBudgetInitialization(ex))
             {
-                CityBudget? concurrentBudget = await budgetRepository.GetByCityAsync(cityId, cancellationToken);
+                CityBudget? concurrentBudget = await budgetRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
 
                 if (concurrentBudget is not null)
                     return concurrentBudget;
@@ -44,8 +50,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             return exception.InnerException is PostgresException
             {
-                SqlState: PostgresErrorCodes.UniqueViolation,
-                ConstraintName: CityBudgetByCityConstraintName
+                SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: CityBudgetByCityConstraintName
             };
         }
     }

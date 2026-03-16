@@ -44,7 +44,7 @@ namespace Matrix.Identity.Infrastructure.Security.Audit.Cleanup
                     try
                     {
                         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-                        var cleaner = scope.ServiceProvider.GetRequiredService<SecurityAuditCleaner>();
+                        SecurityAuditCleaner cleaner = scope.ServiceProvider.GetRequiredService<SecurityAuditCleaner>();
 
                         int deletedCount = await cleaner.DeleteBatchAsync(
                             options: _options,

@@ -12,10 +12,11 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.GetCityHouseh
             CancellationToken cancellationToken)
         {
             IReadOnlyList<CityHouseholdObligation> obligations = await obligationRepository.ListByCityAsync(
-                request.CityId,
-                cancellationToken);
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
 
-            return obligations.Select(Map).ToArray();
+            return obligations.Select(Map)
+               .ToArray();
         }
 
         internal static CityHouseholdObligationDto Map(CityHouseholdObligation obligation)

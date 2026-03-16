@@ -1,9 +1,8 @@
 :root,
 :root[data-theme="matrix"] {
     --glass-blur-strength: 14px;
-    --app-background:
-        radial-gradient(circle at top, rgba(19, 78, 54, 0.26), transparent 32%),
-        linear-gradient(180deg, #08120f 0%, #05080b 68%);
+    --app-background: radial-gradient(circle at top, rgba(19, 78, 54, 0.26), transparent 32%),
+    linear-gradient(180deg, #08120f 0%, #05080b 68%);
     --app-bg: #05080b;
     --app-text: #e5fff5;
     --app-text-strong: rgba(240, 255, 247, 0.96);
@@ -43,8 +42,7 @@
     --ui-card-border: rgba(87, 255, 170, 0.14);
     --ui-card-header-border: rgba(87, 255, 170, 0.1);
     --ui-card-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-    --ui-card-highlight:
-        radial-gradient(300px 140px at 20% 0%, rgba(87, 255, 170, 0.1), transparent 65%);
+    --ui-card-highlight: radial-gradient(300px 140px at 20% 0%, rgba(87, 255, 170, 0.1), transparent 65%);
     --modal-bg: rgba(8, 12, 14, 0.96);
     --modal-border: rgba(87, 255, 170, 0.18);
     --modal-shadow: 0 30px 80px rgba(0, 0, 0, 0.46);
@@ -52,20 +50,17 @@
     --settings-input-bg: rgba(2, 8, 10, 0.85);
     --settings-input-border: rgba(15, 23, 42, 0.8);
     --settings-input-focus-border: rgba(87, 255, 170, 0.8);
-    --settings-input-focus-shadow:
-        0 0 0 1px rgba(87, 255, 170, 0.5),
-        0 12px 30px rgba(14, 38, 30, 0.8);
+    --settings-input-focus-shadow: 0 0 0 1px rgba(87, 255, 170, 0.5),
+    0 12px 30px rgba(14, 38, 30, 0.8);
     --settings-pill-bg: rgba(87, 255, 170, 0.12);
     --settings-pill-border: rgba(87, 255, 170, 0.55);
     --settings-pill-text: rgba(187, 247, 208, 0.95);
     --settings-button-gradient: linear-gradient(135deg, #1d5a45, #0f3f31);
     --settings-button-text: #dffbef;
-    --settings-button-shadow:
-        0 12px 32px rgba(4, 24, 18, 0.72),
-        0 0 0 1px rgba(26, 94, 71, 0.34);
-    --settings-button-shadow-hover:
-        0 16px 45px rgba(4, 24, 18, 0.88),
-        0 0 0 1px rgba(38, 122, 92, 0.42);
+    --settings-button-shadow: 0 12px 32px rgba(4, 24, 18, 0.72),
+    0 0 0 1px rgba(26, 94, 71, 0.34);
+    --settings-button-shadow-hover: 0 16px 45px rgba(4, 24, 18, 0.88),
+    0 0 0 1px rgba(38, 122, 92, 0.42);
     --status-danger-bg: rgba(255, 80, 135, 0.1);
     --status-danger-border: rgba(255, 80, 135, 0.35);
     --status-danger-border-strong: rgba(255, 80, 135, 0.65);
@@ -134,8 +129,7 @@
     --ui-card-border: rgba(75, 85, 99, 0.64);
     --ui-card-header-border: rgba(75, 85, 99, 0.46);
     --ui-card-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
-    --ui-card-highlight:
-        linear-gradient(135deg, rgba(96, 165, 250, 0.08), transparent 58%);
+    --ui-card-highlight: linear-gradient(135deg, rgba(96, 165, 250, 0.08), transparent 58%);
     --modal-bg: rgba(17, 24, 39, 0.98);
     --modal-border: rgba(75, 85, 99, 0.7);
     --modal-shadow: 0 30px 80px rgba(2, 6, 23, 0.48);
@@ -143,20 +137,17 @@
     --settings-input-bg: rgba(31, 41, 55, 0.98);
     --settings-input-border: rgba(75, 85, 99, 0.84);
     --settings-input-focus-border: rgba(96, 165, 250, 0.74);
-    --settings-input-focus-shadow:
-        0 0 0 1px rgba(96, 165, 250, 0.34),
-        0 12px 30px rgba(15, 23, 42, 0.55);
+    --settings-input-focus-shadow: 0 0 0 1px rgba(96, 165, 250, 0.34),
+    0 12px 30px rgba(15, 23, 42, 0.55);
     --settings-pill-bg: rgba(96, 165, 250, 0.12);
     --settings-pill-border: rgba(96, 165, 250, 0.34);
     --settings-pill-text: rgba(219, 234, 254, 0.94);
     --settings-button-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
     --settings-button-text: #eff6ff;
-    --settings-button-shadow:
-        0 12px 32px rgba(37, 99, 235, 0.24),
-        0 0 0 1px rgba(37, 99, 235, 0.18);
-    --settings-button-shadow-hover:
-        0 16px 45px rgba(37, 99, 235, 0.32),
-        0 0 0 1px rgba(37, 99, 235, 0.26);
+    --settings-button-shadow: 0 12px 32px rgba(37, 99, 235, 0.24),
+    0 0 0 1px rgba(37, 99, 235, 0.18);
+    --settings-button-shadow-hover: 0 16px 45px rgba(37, 99, 235, 0.32),
+    0 0 0 1px rgba(37, 99, 235, 0.26);
     --status-danger-bg: rgba(220, 38, 38, 0.16);
     --status-danger-border: rgba(248, 113, 113, 0.4);
     --status-danger-border-strong: rgba(248, 113, 113, 0.62);
@@ -225,8 +216,7 @@
     --ui-card-border: rgba(203, 213, 225, 0.82);
     --ui-card-header-border: rgba(226, 232, 240, 0.96);
     --ui-card-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-    --ui-card-highlight:
-        linear-gradient(135deg, rgba(37, 99, 235, 0.06), transparent 58%);
+    --ui-card-highlight: linear-gradient(135deg, rgba(37, 99, 235, 0.06), transparent 58%);
     --modal-bg: rgba(255, 255, 255, 1);
     --modal-border: rgba(203, 213, 225, 0.92);
     --modal-shadow: 0 30px 80px rgba(15, 23, 42, 0.14);
@@ -234,20 +224,17 @@
     --settings-input-bg: rgba(255, 255, 255, 1);
     --settings-input-border: rgba(203, 213, 225, 0.94);
     --settings-input-focus-border: rgba(37, 99, 235, 0.42);
-    --settings-input-focus-shadow:
-        0 0 0 1px rgba(37, 99, 235, 0.14),
-        0 12px 30px rgba(15, 23, 42, 0.08);
+    --settings-input-focus-shadow: 0 0 0 1px rgba(37, 99, 235, 0.14),
+    0 12px 30px rgba(15, 23, 42, 0.08);
     --settings-pill-bg: rgba(37, 99, 235, 0.08);
     --settings-pill-border: rgba(37, 99, 235, 0.2);
     --settings-pill-text: rgba(30, 64, 175, 0.9);
     --settings-button-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
     --settings-button-text: #eff6ff;
-    --settings-button-shadow:
-        0 12px 32px rgba(37, 99, 235, 0.14),
-        0 0 0 1px rgba(37, 99, 235, 0.1);
-    --settings-button-shadow-hover:
-        0 16px 45px rgba(37, 99, 235, 0.2),
-        0 0 0 1px rgba(37, 99, 235, 0.16);
+    --settings-button-shadow: 0 12px 32px rgba(37, 99, 235, 0.14),
+    0 0 0 1px rgba(37, 99, 235, 0.1);
+    --settings-button-shadow-hover: 0 16px 45px rgba(37, 99, 235, 0.2),
+    0 0 0 1px rgba(37, 99, 235, 0.16);
     --status-danger-bg: rgba(239, 68, 68, 0.1);
     --status-danger-border: rgba(239, 68, 68, 0.3);
     --status-danger-border-strong: rgba(220, 38, 38, 0.48);
@@ -311,44 +298,42 @@ html[data-theme="light"] {
 }
 
 *::-webkit-scrollbar-track {
-    background:
-        linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.16)),
-        linear-gradient(
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.16)),
+    linear-gradient(
             180deg,
             var(--scrollbar-track-edge),
             transparent 30%,
             transparent 70%,
             var(--scrollbar-track-edge)
-        ),
-        var(--scrollbar-track);
+    ),
+    var(--scrollbar-track);
 }
 
 *::-webkit-scrollbar-thumb {
     border: 2px solid var(--scrollbar-thumb-border);
     border-radius: 999px;
     background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--shell-accent) 68%, white),
-        color-mix(in srgb, var(--shell-accent-strong) 86%, transparent)
+            180deg,
+            color-mix(in srgb, var(--shell-accent) 68%, white),
+            color-mix(in srgb, var(--shell-accent-strong) 86%, transparent)
     );
-    box-shadow:
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.1),
-        inset 0 0 10px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 0 0 1px rgba(var(--shell-accent-rgb), 0.1),
+    inset 0 0 10px rgba(0, 0, 0, 0.16);
 }
 
 *::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--shell-accent) 80%, white),
-        color-mix(in srgb, var(--shell-accent-strong) 94%, transparent)
+            180deg,
+            color-mix(in srgb, var(--shell-accent) 80%, white),
+            color-mix(in srgb, var(--shell-accent-strong) 94%, transparent)
     );
 }
 
 *::-webkit-scrollbar-thumb:active {
     background: linear-gradient(
-        180deg,
-        var(--scrollbar-thumb-active),
-        color-mix(in srgb, var(--shell-accent-strong) 82%, transparent)
+            180deg,
+            var(--scrollbar-thumb-active),
+            color-mix(in srgb, var(--shell-accent-strong) 82%, transparent)
     );
 }
 

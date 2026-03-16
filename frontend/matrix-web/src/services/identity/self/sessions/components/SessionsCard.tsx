@@ -209,7 +209,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                 <div>
                     <h2 className="settings-card-title">Session access</h2>
                     <p className="settings-card-description">
-                        Review signed-in devices, keep the current session, and load old access history only when you need it.
+                        Review signed-in devices, keep the current session, and load old access history only when you
+                        need it.
                     </p>
                 </div>
 
@@ -348,7 +349,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
 
                             {otherActiveSessionsCount === 0 && historyTotalCount > 0 ? (
                                 <p className="settings-hint">
-                                    Other active sessions are already gone. The history below is loaded separately and kept only for audit purposes.
+                                    Other active sessions are already gone. The history below is loaded separately and
+                                    kept only for audit purposes.
                                 </p>
                             ) : null}
 
@@ -366,7 +368,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                     </div>
                                 ) : (
                                     <p className="settings-hint">
-                                        No active sessions were returned. This usually means the current access token is living through a very narrow refresh edge case.
+                                        No active sessions were returned. This usually means the current access token is
+                                        living through a very narrow refresh edge case.
                                     </p>
                                 )}
                             </div>
@@ -393,7 +396,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
 
                                 {!isEndedHistoryOpen ? (
                                     <p className="settings-hint">
-                                        Ended sessions are fetched only when you open history, so the screen stays fast even if the audit tail is large.
+                                        Ended sessions are fetched only when you open history, so the screen stays fast
+                                        even if the audit tail is large.
                                     </p>
                                 ) : endedHistoryQuery.isLoading ? (
                                     <div className="settings-session-skeleton">
@@ -410,7 +414,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                                     </p>
                                 ) : (
                                     <>
-                                        <div className="settings-session-section__controls settings-session-section__controls--history">
+                                        <div
+                                            className="settings-session-section__controls settings-session-section__controls--history">
                                             <div className="settings-session-meta">
                                                 <span className="settings-session-chip">
                                                     Showing {historyRange.start}-{historyRange.end} of {historyTotalCount}
@@ -419,7 +424,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
 
                                             <div className="settings-session-section__history-actions">
                                                 {shouldShowHistoryPagination && (
-                                                    <div className="settings-session-pagination settings-session-pagination--top">
+                                                    <div
+                                                        className="settings-session-pagination settings-session-pagination--top">
                                                         <Pagination
                                                             page={historyPageNumber}
                                                             totalPages={historyTotalPages}

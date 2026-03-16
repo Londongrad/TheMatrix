@@ -7,8 +7,10 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Comp
     {
         public CompleteCityEconomyBootstrapCommandValidator()
         {
-            RuleFor(x => x.CityId).NotEmpty();
-            RuleFor(x => x.OperationId).NotEmpty();
+            RuleFor(x => x.CityId)
+               .NotEmpty();
+            RuleFor(x => x.OperationId)
+               .NotEmpty();
         }
     }
 }

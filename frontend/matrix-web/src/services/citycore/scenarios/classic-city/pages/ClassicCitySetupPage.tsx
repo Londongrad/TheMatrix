@@ -21,8 +21,8 @@ import type {
 } from "@services/citycore/scenarios/classic-city/contracts/setupSessionContracts";
 import {
     CLASSIC_CITY_CLIMATE_OPTIONS,
-    CLASSIC_CITY_DEVELOPMENT_OPTIONS,
     CLASSIC_CITY_DENSITY_OPTIONS,
+    CLASSIC_CITY_DEVELOPMENT_OPTIONS,
     CLASSIC_CITY_ECONOMY_PROFILE_OPTIONS,
     CLASSIC_CITY_FORM_PRESET_OPTIONS,
     CLASSIC_CITY_HEMISPHERE_OPTIONS,
@@ -34,10 +34,7 @@ import {
     CLASSIC_CITY_SIZE_TIER_OPTIONS,
     type SetupOption,
 } from "@services/citycore/scenarios/classic-city/setupOptions";
-import {
-    getNowLocalDateTimeInputValue,
-    localDateTimeToUtcIso,
-} from "@services/citycore/simulation/utils/dateTime";
+import {getNowLocalDateTimeInputValue, localDateTimeToUtcIso,} from "@services/citycore/simulation/utils/dateTime";
 import {
     buildPopulationPlanningEstimate,
     formatOccupancyRateRange,
@@ -63,7 +60,13 @@ type ValidationErrors = {
 };
 
 type SetupDraft = ClassicCitySetupDraftView;
-type CityFormPresetValue = "CompactGrid" | "BalancedDistricts" | "VerticalCore" | "SprawlingSuburbs" | "PressureCooker" | "Custom";
+type CityFormPresetValue =
+    "CompactGrid"
+    | "BalancedDistricts"
+    | "VerticalCore"
+    | "SprawlingSuburbs"
+    | "PressureCooker"
+    | "Custom";
 
 type SessionSnapshot = {
     currentStepId: ClassicCitySetupStepId;
@@ -1035,7 +1038,8 @@ export default function ClassicCitySetupPage() {
                 <div className="scenario-setup__hero-grid">
                     <div className="scenario-setup__hero-copy">
                         <div className="scenario-setup__status-row">
-                            <span className={`scenario-setup__status-chip scenario-setup__status-chip--${sessionStatusTone}`}>
+                            <span
+                                className={`scenario-setup__status-chip scenario-setup__status-chip--${sessionStatusTone}`}>
                                 {sessionStatusLabel}
                             </span>
                             {session?.sessionId ? (
@@ -1116,7 +1120,8 @@ export default function ClassicCitySetupPage() {
                             <article className="scenario-setup__scenario-card">
                                 <div className="scenario-setup__scenario-topline">
                                     <span className="scenario-setup__scenario-chip">{CLASSIC_CITY_SCENARIO.kind}</span>
-                                    <span className="scenario-setup__scenario-chip scenario-setup__scenario-chip--accent">
+                                    <span
+                                        className="scenario-setup__scenario-chip scenario-setup__scenario-chip--accent">
                                         {CLASSIC_CITY_SCENARIO.availabilityLabel}
                                     </span>
                                 </div>
@@ -1175,7 +1180,8 @@ export default function ClassicCitySetupPage() {
                                         disabled={!canEditSession}
                                     />
                                     {validationErrors.startSimTimeLocal ? (
-                                        <div className="scenario-setup__error">{validationErrors.startSimTimeLocal}</div>
+                                        <div
+                                            className="scenario-setup__error">{validationErrors.startSimTimeLocal}</div>
                                     ) : null}
                                 </div>
 
@@ -1254,7 +1260,9 @@ export default function ClassicCitySetupPage() {
                             {showAdvancedProfile ? (
                                 <div className="scenario-setup__stack">
                                     <div className="scenario-setup__note">
-                                        Advanced tuning stays available when you want to move beyond presets. If the combination no longer matches a named preset, the launch review will label it as a custom city form.
+                                        Advanced tuning stays available when you want to move beyond presets. If the
+                                        combination no longer matches a named preset, the launch review will label it as
+                                        a custom city form.
                                     </div>
 
                                     <OptionGrid
@@ -1379,7 +1387,8 @@ export default function ClassicCitySetupPage() {
 
                                     <div className="scenario-setup__form-grid">
                                         <div className="scenario-setup__field">
-                                            <label className="scenario-setup__label" htmlFor="classic-city-initial-weather-temperature">
+                                            <label className="scenario-setup__label"
+                                                   htmlFor="classic-city-initial-weather-temperature">
                                                 Manual temperature (C)
                                             </label>
                                             <input
@@ -1392,10 +1401,12 @@ export default function ClassicCitySetupPage() {
                                                 disabled={!canEditSession}
                                             />
                                             {validationErrors.initialWeatherTemperatureC ? (
-                                                <div className="scenario-setup__error">{validationErrors.initialWeatherTemperatureC}</div>
+                                                <div
+                                                    className="scenario-setup__error">{validationErrors.initialWeatherTemperatureC}</div>
                                             ) : null}
                                             <div className="scenario-setup__hint">
-                                                Leave the suggested value or override it. This temperature becomes part of the launch contract and stays stable across retries.
+                                                Leave the suggested value or override it. This temperature becomes part
+                                                of the launch contract and stays stable across retries.
                                             </div>
                                         </div>
 
@@ -1436,7 +1447,8 @@ export default function ClassicCitySetupPage() {
                             {draft.populationTargetMode === "Manual" ? (
                                 <div className="scenario-setup__form-grid">
                                     <div className="scenario-setup__field">
-                                        <label className="scenario-setup__label" htmlFor="classic-city-planned-people-count">
+                                        <label className="scenario-setup__label"
+                                               htmlFor="classic-city-planned-people-count">
                                             Exact resident target
                                         </label>
                                         <input
@@ -1450,10 +1462,12 @@ export default function ClassicCitySetupPage() {
                                             disabled={!canEditSession}
                                         />
                                         {validationErrors.plannedPeopleCount ? (
-                                            <div className="scenario-setup__error">{validationErrors.plannedPeopleCount}</div>
+                                            <div
+                                                className="scenario-setup__error">{validationErrors.plannedPeopleCount}</div>
                                         ) : null}
                                         <div className="scenario-setup__hint">
-                                            This headcount is persisted in the setup session and becomes part of the launch contract, so retries keep the same opening population target.
+                                            This headcount is persisted in the setup session and becomes part of the
+                                            launch contract, so retries keep the same opening population target.
                                         </div>
                                     </div>
                                 </div>
@@ -1477,7 +1491,8 @@ export default function ClassicCitySetupPage() {
                             <div className="scenario-setup__stats-grid">
                                 <article className="scenario-setup__stat-card">
                                     <span className="scenario-setup__review-label">Target population</span>
-                                    <strong className="scenario-setup__stat-value">{resolvedPopulationTarget?.toLocaleString() ?? "--"}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{resolvedPopulationTarget?.toLocaleString() ?? "--"}</strong>
                                     <span className="scenario-setup__review-text">
                                         {draft.populationTargetMode === "Random"
                                             ? "Deterministic from the current seed."
@@ -1487,7 +1502,8 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__stat-card">
                                     <span className="scenario-setup__review-label">Estimated districts</span>
-                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.districtRange)}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.districtRange)}</strong>
                                     <span className="scenario-setup__review-text">
                                         Includes the central district and profile-driven expansion around the requested headcount.
                                     </span>
@@ -1495,7 +1511,8 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__stat-card">
                                     <span className="scenario-setup__review-label">Residential buildings</span>
-                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.residentialBuildingRange)}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.residentialBuildingRange)}</strong>
                                     <span className="scenario-setup__review-text">
                                         Estimated from the population target plus the chosen city footprint, density, and development profile.
                                     </span>
@@ -1503,7 +1520,8 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__stat-card">
                                     <span className="scenario-setup__review-label">Housing capacity</span>
-                                    <strong className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.capacityRange)}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.capacityRange)}</strong>
                                     <span className="scenario-setup__review-text">
                                         Expected housing coverage: {formatOccupancyRateRange(populationPlanningEstimate.housingCoverageRange)} of launch target once topology is generated.
                                     </span>
@@ -1542,7 +1560,8 @@ export default function ClassicCitySetupPage() {
                             <div className="scenario-setup__review-grid">
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">City identity</span>
-                                    <strong className="scenario-setup__review-value">{draft.name || "Unnamed city"}</strong>
+                                    <strong
+                                        className="scenario-setup__review-value">{draft.name || "Unnamed city"}</strong>
                                     <span className="scenario-setup__review-text">
                                         {getCityFormPresetLabel(cityFormPreset)}. {getCityFormDescription(draft)}
                                     </span>
@@ -1550,7 +1569,8 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Timeline</span>
-                                    <strong className="scenario-setup__review-value">{draft.startSimTimeLocal || "--"}</strong>
+                                    <strong
+                                        className="scenario-setup__review-value">{draft.startSimTimeLocal || "--"}</strong>
                                     <span className="scenario-setup__review-text">
                                         Local launch input is persisted in the setup session together with the derived UTC timestamp.
                                     </span>
@@ -1568,7 +1588,8 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Population bootstrap</span>
-                                    <strong className="scenario-setup__review-value">{getPopulationPlanLabel(draft, resolvedPopulationTarget)}</strong>
+                                    <strong
+                                        className="scenario-setup__review-value">{getPopulationPlanLabel(draft, resolvedPopulationTarget)}</strong>
                                     <span className="scenario-setup__review-text">
                                         {getPopulationPlanDescription(draft, resolvedPopulationTarget)}
                                     </span>
@@ -1576,7 +1597,8 @@ export default function ClassicCitySetupPage() {
 
                                 <article className="scenario-setup__review-card">
                                     <span className="scenario-setup__review-label">Economy</span>
-                                    <strong className="scenario-setup__review-value">{economyProfileOption.label}</strong>
+                                    <strong
+                                        className="scenario-setup__review-value">{economyProfileOption.label}</strong>
                                     <span className="scenario-setup__review-text">
                                         {economyProfileOption.description}
                                     </span>
@@ -1654,7 +1676,8 @@ export default function ClassicCitySetupPage() {
                 </div>
 
                 <aside className="scenario-setup__aside">
-                    <div className={`scenario-setup__aside-card scenario-setup__aside-card--status-${sessionStatusTone}`}>
+                    <div
+                        className={`scenario-setup__aside-card scenario-setup__aside-card--status-${sessionStatusTone}`}>
                         <div className="scenario-setup__aside-label">Setup session</div>
                         <div className="scenario-setup__aside-value">{sessionStatusLabel}</div>
                         <div className="scenario-setup__aside-list">

@@ -52,14 +52,30 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherClimateProfile climateProfile,
             WeatherState templateState)
         {
-            decimal typeRoll = GetSeededUnitValue(city, "initial-weather-type");
-            decimal detailRoll = GetSeededUnitValue(city, "initial-weather-detail");
-            decimal severityRoll = GetSeededUnitValue(city, "initial-weather-severity");
-            decimal temperatureRoll = GetSeededCenteredUnitValue(city, "initial-weather-temperature");
-            decimal humidityRoll = GetSeededCenteredUnitValue(city, "initial-weather-humidity");
-            decimal windRoll = GetSeededCenteredUnitValue(city, "initial-weather-wind");
-            decimal cloudRoll = GetSeededCenteredUnitValue(city, "initial-weather-clouds");
-            decimal pressureRoll = GetSeededCenteredUnitValue(city, "initial-weather-pressure");
+            decimal typeRoll = GetSeededUnitValue(
+                city: city,
+                salt: "initial-weather-type");
+            decimal detailRoll = GetSeededUnitValue(
+                city: city,
+                salt: "initial-weather-detail");
+            decimal severityRoll = GetSeededUnitValue(
+                city: city,
+                salt: "initial-weather-severity");
+            decimal temperatureRoll = GetSeededCenteredUnitValue(
+                city: city,
+                salt: "initial-weather-temperature");
+            decimal humidityRoll = GetSeededCenteredUnitValue(
+                city: city,
+                salt: "initial-weather-humidity");
+            decimal windRoll = GetSeededCenteredUnitValue(
+                city: city,
+                salt: "initial-weather-wind");
+            decimal cloudRoll = GetSeededCenteredUnitValue(
+                city: city,
+                salt: "initial-weather-clouds");
+            decimal pressureRoll = GetSeededCenteredUnitValue(
+                city: city,
+                salt: "initial-weather-pressure");
 
             WeatherType selectedType = DetermineRandomizedType(
                 templateState: templateState,
@@ -121,16 +137,31 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
         {
             bool baselineWet = templateState.Type is WeatherType.Rain or WeatherType.Snow or WeatherType.Storm;
 
-            if (typeRoll < (baselineWet ? 0.18m : 0.30m))
-                return SelectDryType(templateState, climateProfile, detailRoll);
+            if (typeRoll <
+                (baselineWet
+                    ? 0.18m
+                    : 0.30m))
+                return SelectDryType(
+                    templateState: templateState,
+                    climateProfile: climateProfile,
+                    detailRoll: detailRoll);
 
-            if (typeRoll < (baselineWet ? 0.54m : 0.64m))
+            if (typeRoll <
+                (baselineWet
+                    ? 0.54m
+                    : 0.64m))
                 return templateState.Type;
 
             if (typeRoll < 0.90m)
-                return SelectWetType(templateState, climateProfile, detailRoll);
+                return SelectWetType(
+                    templateState: templateState,
+                    climateProfile: climateProfile,
+                    detailRoll: detailRoll);
 
-            return SelectExtremeType(templateState, climateProfile, detailRoll);
+            return SelectExtremeType(
+                templateState: templateState,
+                climateProfile: climateProfile,
+                detailRoll: detailRoll);
         }
 
         private static WeatherType SelectDryType(
@@ -141,9 +172,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             if (templateState.Temperature.Value >= 24m &&
                 climateProfile.ExtremeWeatherProfile.SupportsHeatwaves &&
                 detailRoll >= 0.86m)
-            {
                 return WeatherType.Heatwave;
-            }
 
             if (templateState.Temperature.Value <= -8m && detailRoll >= 0.88m)
                 return WeatherType.ColdSnap;
@@ -151,9 +180,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             if (climateProfile.ExtremeWeatherProfile.SupportsFog &&
                 templateState.Humidity.Value >= 78m &&
                 detailRoll < 0.18m)
-            {
                 return WeatherType.Fog;
-            }
 
             if (templateState.WindSpeed.Value >= 18m && detailRoll < 0.35m)
                 return WeatherType.Windy;
@@ -169,11 +196,9 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             WeatherClimateProfile climateProfile,
             decimal detailRoll)
         {
-            if ((templateState.PrecipitationKind is PrecipitationKind.Snow or PrecipitationKind.Sleet) ||
+            if (templateState.PrecipitationKind is PrecipitationKind.Snow or PrecipitationKind.Sleet ||
                 templateState.Temperature.Value <= 1m)
-            {
                 return WeatherType.Snow;
-            }
 
             if (climateProfile.ExtremeWeatherProfile.SupportsThunderstorms && detailRoll >= 0.82m)
                 return WeatherType.Storm;
@@ -189,9 +214,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             if (templateState.Temperature.Value >= 24m &&
                 climateProfile.ExtremeWeatherProfile.SupportsHeatwaves &&
                 detailRoll < 0.34m)
-            {
                 return WeatherType.Heatwave;
-            }
 
             if (templateState.Temperature.Value <= -10m && detailRoll < 0.58m)
                 return WeatherType.ColdSnap;
@@ -199,9 +222,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             if (climateProfile.ExtremeWeatherProfile.SupportsThunderstorms &&
                 templateState.Temperature.Value >= 0m &&
                 detailRoll < 0.84m)
-            {
                 return WeatherType.Storm;
-            }
 
             if (templateState.WindSpeed.Value >= 16m || detailRoll < 0.92m)
                 return WeatherType.Windy;
@@ -258,7 +279,9 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             decimal temperatureRoll)
         {
             if (explicitTemperature.HasValue)
-                return Math.Round(explicitTemperature.Value, 2);
+                return Math.Round(
+                    d: explicitTemperature.Value,
+                    decimals: 2);
 
             int severityIndex = (int)severity;
             decimal value = type switch
@@ -266,18 +289,29 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
                 WeatherType.Clear => templateState.Temperature.Value + 2m + (severityIndex * 0.4m),
                 WeatherType.Overcast => templateState.Temperature.Value - 1m,
                 WeatherType.Rain => templateState.Temperature.Value - 2m - (severityIndex * 0.5m),
-                WeatherType.Snow => Math.Min(templateState.Temperature.Value - 4m - severityIndex, 1m),
+                WeatherType.Snow => Math.Min(
+                    val1: templateState.Temperature.Value - 4m - severityIndex,
+                    val2: 1m),
                 WeatherType.Storm => templateState.Temperature.Value - 3m - severityIndex,
                 WeatherType.Fog => templateState.Temperature.Value - 2m,
                 WeatherType.Windy => templateState.Temperature.Value - 1m + (severityIndex * 0.2m),
-                WeatherType.Heatwave => Math.Max(templateState.Temperature.Value + 8m + (severityIndex * 2m), 30m),
-                WeatherType.ColdSnap => Math.Min(templateState.Temperature.Value - 10m - (severityIndex * 2m), -5m),
+                WeatherType.Heatwave => Math.Max(
+                    val1: templateState.Temperature.Value + 8m + (severityIndex * 2m),
+                    val2: 30m),
+                WeatherType.ColdSnap => Math.Min(
+                    val1: templateState.Temperature.Value - 10m - (severityIndex * 2m),
+                    val2: -5m),
                 _ => templateState.Temperature.Value
             };
 
             value += temperatureRoll * 3m;
-            value = Math.Clamp(value, TemperatureC.Min, TemperatureC.Max);
-            return Math.Round(value, 2);
+            value = Math.Clamp(
+                value: value,
+                min: TemperatureC.Min,
+                max: TemperatureC.Max);
+            return Math.Round(
+                d: value,
+                decimals: 2);
         }
 
         private static WeatherState ComposeState(
@@ -362,20 +396,39 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
         {
             decimal value = selectedType switch
             {
-                WeatherType.Clear => Math.Min(templateState.Humidity.Value - 18m + (humidityRoll * 10m), 58m),
-                WeatherType.Overcast => Math.Max(templateState.Humidity.Value + 8m + (humidityRoll * 8m), 58m),
-                WeatherType.Rain => Math.Max(templateState.Humidity.Value + 18m + (severityIndex * 2m) + (humidityRoll * 6m), 72m),
-                WeatherType.Snow => Math.Max(templateState.Humidity.Value + 12m + (severityIndex * 2m) + (humidityRoll * 7m), 65m),
-                WeatherType.Storm => Math.Max(templateState.Humidity.Value + 22m + (severityIndex * 2m) + (humidityRoll * 5m), 78m),
-                WeatherType.Fog => Math.Max(templateState.Humidity.Value + 15m + (humidityRoll * 5m), 85m),
+                WeatherType.Clear => Math.Min(
+                    val1: templateState.Humidity.Value - 18m + (humidityRoll * 10m),
+                    val2: 58m),
+                WeatherType.Overcast => Math.Max(
+                    val1: templateState.Humidity.Value + 8m + (humidityRoll * 8m),
+                    val2: 58m),
+                WeatherType.Rain => Math.Max(
+                    val1: templateState.Humidity.Value + 18m + (severityIndex * 2m) + (humidityRoll * 6m),
+                    val2: 72m),
+                WeatherType.Snow => Math.Max(
+                    val1: templateState.Humidity.Value + 12m + (severityIndex * 2m) + (humidityRoll * 7m),
+                    val2: 65m),
+                WeatherType.Storm => Math.Max(
+                    val1: templateState.Humidity.Value + 22m + (severityIndex * 2m) + (humidityRoll * 5m),
+                    val2: 78m),
+                WeatherType.Fog => Math.Max(
+                    val1: templateState.Humidity.Value + 15m + (humidityRoll * 5m),
+                    val2: 85m),
                 WeatherType.Windy => templateState.Humidity.Value - 8m + (humidityRoll * 12m),
-                WeatherType.Heatwave => Math.Min(templateState.Humidity.Value - 24m + (humidityRoll * 8m), 45m),
+                WeatherType.Heatwave => Math.Min(
+                    val1: templateState.Humidity.Value - 24m + (humidityRoll * 8m),
+                    val2: 45m),
                 WeatherType.ColdSnap => templateState.Humidity.Value + 4m + (humidityRoll * 10m),
                 _ => templateState.Humidity.Value
             };
 
-            value = Math.Clamp(value, HumidityPercent.Min, HumidityPercent.Max);
-            return Math.Round(value, 2);
+            value = Math.Clamp(
+                value: value,
+                min: HumidityPercent.Min,
+                max: HumidityPercent.Max);
+            return Math.Round(
+                d: value,
+                decimals: 2);
         }
 
         private static decimal ResolveWindSpeed(
@@ -390,16 +443,29 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
                 WeatherType.Overcast => templateState.WindSpeed.Value + 2m + (windRoll * 4m),
                 WeatherType.Rain => templateState.WindSpeed.Value + 6m + (severityIndex * 3m) + (windRoll * 5m),
                 WeatherType.Snow => templateState.WindSpeed.Value + 5m + (severityIndex * 3m) + (windRoll * 5m),
-                WeatherType.Storm => Math.Max(templateState.WindSpeed.Value + 20m + (severityIndex * 7m) + (windRoll * 6m), 35m),
-                WeatherType.Fog => Math.Max(templateState.WindSpeed.Value - 5m + (windRoll * 3m), 0m),
-                WeatherType.Windy => Math.Max(templateState.WindSpeed.Value + 16m + (severityIndex * 5m) + (windRoll * 6m), 22m),
-                WeatherType.Heatwave => Math.Max(templateState.WindSpeed.Value - 2m + (windRoll * 4m), 0m),
+                WeatherType.Storm => Math.Max(
+                    val1: templateState.WindSpeed.Value + 20m + (severityIndex * 7m) + (windRoll * 6m),
+                    val2: 35m),
+                WeatherType.Fog => Math.Max(
+                    val1: templateState.WindSpeed.Value - 5m + (windRoll * 3m),
+                    val2: 0m),
+                WeatherType.Windy => Math.Max(
+                    val1: templateState.WindSpeed.Value + 16m + (severityIndex * 5m) + (windRoll * 6m),
+                    val2: 22m),
+                WeatherType.Heatwave => Math.Max(
+                    val1: templateState.WindSpeed.Value - 2m + (windRoll * 4m),
+                    val2: 0m),
                 WeatherType.ColdSnap => templateState.WindSpeed.Value + 8m + (severityIndex * 4m) + (windRoll * 5m),
                 _ => templateState.WindSpeed.Value
             };
 
-            value = Math.Clamp(value, WindSpeedKph.Min, WindSpeedKph.Max);
-            return Math.Round(value, 2);
+            value = Math.Clamp(
+                value: value,
+                min: WindSpeedKph.Min,
+                max: WindSpeedKph.Max);
+            return Math.Round(
+                d: value,
+                decimals: 2);
         }
 
         private static decimal ResolveCloudCoverage(
@@ -421,8 +487,13 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
                 _ => 50m
             };
 
-            value = Math.Clamp(value, CloudCoveragePercent.Min, CloudCoveragePercent.Max);
-            return Math.Round(value, 2);
+            value = Math.Clamp(
+                value: value,
+                min: CloudCoveragePercent.Min,
+                max: CloudCoveragePercent.Max);
+            return Math.Round(
+                d: value,
+                decimals: 2);
         }
 
         private static decimal ResolvePressure(
@@ -455,16 +526,27 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             };
 
             value += pressureRoll * 4m;
-            value = Math.Clamp(value, PressureHpa.Min, PressureHpa.Max);
-            return Math.Round(value, 2);
+            value = Math.Clamp(
+                value: value,
+                min: PressureHpa.Min,
+                max: PressureHpa.Max);
+            return Math.Round(
+                d: value,
+                decimals: 2);
         }
 
         private static decimal GetSeededUnitValue(
             City city,
             string salt)
         {
-            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(BuildSeedInput(city, salt)));
-            uint sample = BitConverter.ToUInt32(hash, 0);
+            byte[] hash = SHA256.HashData(
+                Encoding.UTF8.GetBytes(
+                    BuildSeedInput(
+                        city: city,
+                        salt: salt)));
+            uint sample = BitConverter.ToUInt32(
+                value: hash,
+                startIndex: 0);
             return sample / (decimal)uint.MaxValue;
         }
 
@@ -472,7 +554,11 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Weather
             City city,
             string salt)
         {
-            return (GetSeededUnitValue(city, salt) - 0.5m) * 2m;
+            return (GetSeededUnitValue(
+                        city: city,
+                        salt: salt) -
+                    0.5m) *
+                   2m;
         }
 
         private static string BuildSeedInput(

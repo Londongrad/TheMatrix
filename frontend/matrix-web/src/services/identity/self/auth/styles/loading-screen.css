@@ -6,9 +6,8 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, rgba(var(--shell-accent-rgb), 0.1) 72%, transparent), transparent 60%),
-        var(--app-background);
+    background: linear-gradient(135deg, color-mix(in srgb, rgba(var(--shell-accent-rgb), 0.1) 72%, transparent), transparent 60%),
+    var(--app-background);
 }
 
 .loading-core {
@@ -22,9 +21,8 @@
     border: 1px solid var(--settings-card-border);
     background: var(--settings-card-bg);
     backdrop-filter: blur(var(--glass-blur-strength));
-    box-shadow:
-        var(--settings-card-shadow),
-        0 0 0 1px rgba(var(--shell-accent-rgb), 0.06) inset;
+    box-shadow: var(--settings-card-shadow),
+    0 0 0 1px rgba(var(--shell-accent-rgb), 0.06) inset;
 }
 
 .loading-ring {

@@ -10,9 +10,13 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
     {
         private readonly EconomyDbContext _dbContext = dbContext;
 
-        public async Task AddAsync(CityBusinessLedgerEntry entry, CancellationToken cancellationToken = default)
+        public async Task AddAsync(
+            CityBusinessLedgerEntry entry,
+            CancellationToken cancellationToken = default)
         {
-            await _dbContext.CityBusinessLedgerEntries.AddAsync(entry, cancellationToken);
+            await _dbContext.CityBusinessLedgerEntries.AddAsync(
+                entity: entry,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<bool> ExistsAsync(
@@ -22,10 +26,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.CityBusinessLedgerEntries.AnyAsync(
-                x => x.BusinessId == businessId
-                    && x.Kind == kind
-                    && x.ReferenceCode == referenceCode,
-                cancellationToken);
+                predicate: x => x.BusinessId == businessId && x.Kind == kind && x.ReferenceCode == referenceCode,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<PagedResult<CityBusinessLedgerEntry>> GetPageByBusinessAsync(
@@ -34,20 +36,28 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             int pageSize,
             CancellationToken cancellationToken = default)
         {
-            int normalizedPageNumber = pageNumber <= 0 ? 1 : pageNumber;
-            int normalizedPageSize = pageSize <= 0 ? 50 : pageSize;
+            int normalizedPageNumber = pageNumber <= 0
+                ? 1
+                : pageNumber;
+            int normalizedPageSize = pageSize <= 0
+                ? 50
+                : pageSize;
 
             IQueryable<CityBusinessLedgerEntry> query = _dbContext.CityBusinessLedgerEntries
-                .Where(x => x.BusinessId == businessId)
-                .OrderByDescending(x => x.OccurredAtUtc);
+               .Where(x => x.BusinessId == businessId)
+               .OrderByDescending(x => x.OccurredAtUtc);
 
             int totalCount = await query.CountAsync(cancellationToken);
             CityBusinessLedgerEntry[] items = await query
-                .Skip((normalizedPageNumber - 1) * normalizedPageSize)
-                .Take(normalizedPageSize)
-                .ToArrayAsync(cancellationToken);
+               .Skip((normalizedPageNumber - 1) * normalizedPageSize)
+               .Take(normalizedPageSize)
+               .ToArrayAsync(cancellationToken);
 
-            return new PagedResult<CityBusinessLedgerEntry>(items, totalCount, normalizedPageNumber, normalizedPageSize);
+            return new PagedResult<CityBusinessLedgerEntry>(
+                items: items,
+                totalCount: totalCount,
+                pageNumber: normalizedPageNumber,
+                pageSize: normalizedPageSize);
         }
     }
 }

@@ -90,8 +90,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
                 requestUrl: EmailEndpoint);
         }
 
-        public async Task<ChangeAvatarResponse> ClearAvatarAsync(
-            CancellationToken cancellationToken = default)
+        public async Task<ChangeAvatarResponse> ClearAvatarAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _httpClient.DeleteAsync(
                 requestUri: AvatarEndpoint,
@@ -131,8 +130,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
                 cancellationToken: cancellationToken);
         }
 
-        public async Task ResendPendingEmailChangeAsync(
-            CancellationToken cancellationToken = default)
+        public async Task ResendPendingEmailChangeAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _httpClient.PostAsync(
                 requestUri: PendingEmailResendEndpoint,
@@ -144,8 +142,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
                 cancellationToken: cancellationToken);
         }
 
-        public async Task CancelPendingEmailChangeAsync(
-            CancellationToken cancellationToken = default)
+        public async Task CancelPendingEmailChangeAsync(CancellationToken cancellationToken = default)
         {
             using HttpResponseMessage response = await _httpClient.DeleteAsync(
                 requestUri: PendingEmailEndpoint,

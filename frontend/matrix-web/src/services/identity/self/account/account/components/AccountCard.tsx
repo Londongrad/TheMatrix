@@ -16,14 +16,14 @@ type Props = {
 };
 
 const AccountCard = ({
-    userId,
-    username,
-    pendingEmail,
-    isEmailConfirmed,
-    createdAtUtc,
-    emailConfirmedAtUtc,
-    patchUser,
-}: Props) => {
+                         userId,
+                         username,
+                         pendingEmail,
+                         isEmailConfirmed,
+                         createdAtUtc,
+                         emailConfirmedAtUtc,
+                         patchUser,
+                     }: Props) => {
     const [draftUsername, setDraftUsername] = useState(username);
     const [currentPassword, setCurrentPassword] = useState("");
     const [isSaving, setIsSaving] = useState(false);
@@ -59,9 +59,9 @@ const AccountCard = ({
             : "Needs confirmation";
     const emailStateDescription = pendingEmail
         ? "A replacement email is waiting for confirmation in Security."
-            : isEmailConfirmed
-                ? "Email sign-in and recovery are active."
-                : "Email sign-in exists, but verification still needs attention in Security.";
+        : isEmailConfirmed
+            ? "Email sign-in and recovery are active."
+            : "Email sign-in exists, but verification still needs attention in Security.";
     const formatUtc = (value?: string | null) => {
         if (!value) {
             return "--";
@@ -244,7 +244,8 @@ const AccountCard = ({
                         {formatUtc(createdAtUtc)}
                     </div>
                     <div className="settings-account-panel__meta">
-                        The operator account was first created at this time and keeps the same stable identifier afterwards.
+                        The operator account was first created at this time and keeps the same stable identifier
+                        afterwards.
                     </div>
                 </article>
 

@@ -30,19 +30,29 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                .IsRequired();
 
             builder.Property(x => x.AverageHealth)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageHappiness)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageEnergy)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageStress)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.Property(x => x.AverageSocialNeed)
-               .HasPrecision(10, 2);
+               .HasPrecision(
+                    precision: 10,
+                    scale: 2);
 
             builder.HasIndex(x => x.UpdatedAtUtc);
         }

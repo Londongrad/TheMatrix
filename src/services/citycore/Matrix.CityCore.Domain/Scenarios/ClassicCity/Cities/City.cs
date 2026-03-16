@@ -105,8 +105,12 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         public bool IsActive => Status == CityStatus.Active;
         public bool IsArchived => Status == CityStatus.Archived;
         public bool IsProvisioning => Status == CityStatus.Provisioning;
-        public bool HasPopulationBootstrapFailure => Status == CityStatus.ProvisioningFailed && PopulationBootstrapFailedAtUtc.HasValue;
-        public bool HasEconomyBootstrapFailure => Status == CityStatus.ProvisioningFailed && EconomyBootstrapFailedAtUtc.HasValue;
+
+        public bool HasPopulationBootstrapFailure
+            => Status == CityStatus.ProvisioningFailed && PopulationBootstrapFailedAtUtc.HasValue;
+
+        public bool HasEconomyBootstrapFailure
+            => Status == CityStatus.ProvisioningFailed && EconomyBootstrapFailedAtUtc.HasValue;
 
         public static City Create(
             CityName name,
@@ -128,7 +132,8 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                     propertyName: nameof(environment));
 
             if (generationSeed.Value is null)
-                throw ClassicCityDomainErrorsFactory.CityGenerationSeedNullOrEmpty(propertyName: nameof(generationSeed));
+                throw ClassicCityDomainErrorsFactory.CityGenerationSeedNullOrEmpty(
+                    propertyName: nameof(generationSeed));
 
             if (generationProfile is null)
                 throw ClassicCityDomainErrorsFactory.InvalidCityGenerationProfile(
@@ -149,8 +154,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
                 generationProfile: generationProfile,
                 initialWeatherProfile: initialWeatherProfile,
                 provisioningCorrelationId: provisioningCorrelationId,
-                status: requiresPopulationBootstrap
-                        || requiresEconomyBootstrap
+                status: requiresPopulationBootstrap || requiresEconomyBootstrap
                     ? CityStatus.Provisioning
                     : CityStatus.Active,
                 createdAtUtc: createdAtUtc,
@@ -452,9 +456,7 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities
         {
             if (PopulationBootstrapCompletedAtUtc.HasValue &&
                 EconomyBootstrapCompletedAtUtc.HasValue)
-            {
                 Status = CityStatus.Active;
-            }
         }
 
         private static string NormalizePopulationBootstrapFailureCode(string failureCode)

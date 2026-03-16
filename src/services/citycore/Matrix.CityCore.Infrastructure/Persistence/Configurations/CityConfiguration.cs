@@ -1,4 +1,5 @@
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -123,7 +124,7 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Configurations
                                 ? x.Value.Value
                                 : (decimal?)null,
                             convertFromProviderExpression: x => x.HasValue
-                                ? Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects.TemperatureC.From(x.Value)
+                                ? TemperatureC.From(x.Value)
                                 : null)
                        .HasColumnName("InitialWeatherManualTemperatureC")
                        .IsRequired(false);

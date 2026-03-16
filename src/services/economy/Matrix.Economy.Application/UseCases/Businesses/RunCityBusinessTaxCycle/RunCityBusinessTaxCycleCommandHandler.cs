@@ -15,7 +15,9 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle
             RunCityBusinessTaxCycleCommand request,
             CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(request.CityId, cancellationToken);
+            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
 
             int remittedBusinesses = 0;
             decimal totalRemittedAmount = 0m;
@@ -25,12 +27,12 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RunCityBusinessTaxCycle
                 decimal remittanceAmount = business.TaxReserve.Amount;
 
                 await taxRemittanceSupport.RemitAsync(
-                    business,
-                    business.TaxReserve,
-                    request.BudgetCategory,
-                    $"{business.Name} scheduled tax remittance",
-                    "Recurring city business tax cycle.",
-                    cancellationToken);
+                    business: business,
+                    amount: business.TaxReserve,
+                    budgetCategory: request.BudgetCategory,
+                    title: $"{business.Name} scheduled tax remittance",
+                    description: "Recurring city business tax cycle.",
+                    cancellationToken: cancellationToken);
 
                 remittedBusinesses++;
                 totalRemittedAmount += remittanceAmount;

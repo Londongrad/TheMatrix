@@ -1,11 +1,11 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityHealthcareAutonomyPolicy(
-        CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
+    public sealed class CityHealthcareAutonomyPolicy(CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
     {
         public double ResolveSupportStrength(
             Person resident,
@@ -19,17 +19,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (!resident.IsAlive)
                 return 0d;
 
-            var livelihood = householdLivelihoodPolicy.Build(
+            CityHouseholdLivelihoodProfile livelihood = householdLivelihoodPolicy.Build(
                 householdResidents: householdResidents,
                 housingStatus: housingStatus,
                 currentDate: currentDate);
 
-            double access = 0.02d
-                            + (livelihood.StabilityScore * 0.12d)
-                            + (livelihood.IsHoused ? 0.04d : 0d)
-                            + (livelihood.AdultProviderCount * 0.03d)
-                            + (livelihood.AdultStudentCount * 0.01d)
-                            - (livelihood.ActiveIllnessCount > 1 ? 0.03d : 0d);
+            double access = 0.02d +
+                            (livelihood.StabilityScore * 0.12d) +
+                            (livelihood.IsHoused
+                                ? 0.04d
+                                : 0d) +
+                            (livelihood.AdultProviderCount * 0.03d) +
+                            (livelihood.AdultStudentCount * 0.01d) -
+                            (livelihood.ActiveIllnessCount > 1
+                                ? 0.03d
+                                : 0d);
 
             if (resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior)
                 access += 0.03d;
@@ -43,7 +47,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (!livelihood.HasStructuredSupport)
                 access *= 0.60d;
 
-            return Math.Clamp(access, 0d, 0.28d);
+            return Math.Clamp(
+                value: access,
+                min: 0d,
+                max: 0.28d);
         }
     }
 }

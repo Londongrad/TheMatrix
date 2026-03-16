@@ -115,7 +115,8 @@ export default function CitiesPage() {
 
                 <div className="cities-page__header-actions">
                     {canCreateCity ? (
-                        <Link className="cities-page__header-link cities-page__header-link--primary" to={getClassicCitySetupPath()}>
+                        <Link className="cities-page__header-link cities-page__header-link--primary"
+                              to={getClassicCitySetupPath()}>
                             Compose Classic City
                         </Link>
                     ) : null}
@@ -130,7 +131,8 @@ export default function CitiesPage() {
                 <article className="cities-metric-card">
                     <span className="cities-metric-card__label">Visible now</span>
                     <strong className="cities-metric-card__value">{stats.visible}</strong>
-                    <span className="cities-metric-card__hint">Matches the current search query and archive scope.</span>
+                    <span
+                        className="cities-metric-card__hint">Matches the current search query and archive scope.</span>
                 </article>
 
                 <article className="cities-metric-card cities-metric-card--active">

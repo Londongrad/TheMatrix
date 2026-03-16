@@ -8,8 +8,8 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.SetupSess
     [Authorize]
     [ApiController]
     [Route("api/scenarios/classic-city/setup-sessions")]
-    public sealed class ClassicCitySetupSessionsController(
-        IClassicCitySetupSessionService setupSessionService) : ControllerBase
+    public sealed class ClassicCitySetupSessionsController(IClassicCitySetupSessionService setupSessionService)
+        : ControllerBase
     {
         [HttpPost]
         public async Task<ActionResult<ClassicCitySetupSessionView>> Create(
@@ -54,21 +54,25 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.SetupSess
             {
                 ClassicCitySetupSessionMutationStatus.Updated => Ok(result.Session),
                 ClassicCitySetupSessionMutationStatus.NotFound => NotFound(),
-                ClassicCitySetupSessionMutationStatus.Conflict => Conflict(new
-                {
-                    code = result.ErrorCode,
-                    message = result.ErrorMessage
-                }),
-                ClassicCitySetupSessionMutationStatus.Unavailable => StatusCode(StatusCodes.Status503ServiceUnavailable, new
-                {
-                    code = result.ErrorCode,
-                    message = result.ErrorMessage
-                }),
-                ClassicCitySetupSessionMutationStatus.Invalid => BadRequest(new
-                {
-                    code = result.ErrorCode,
-                    message = result.ErrorMessage
-                }),
+                ClassicCitySetupSessionMutationStatus.Conflict => Conflict(
+                    new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
+                ClassicCitySetupSessionMutationStatus.Unavailable => StatusCode(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    value: new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
+                ClassicCitySetupSessionMutationStatus.Invalid => BadRequest(
+                    new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
                 _ => StatusCode(StatusCodes.Status500InternalServerError)
             };
         }
@@ -86,21 +90,25 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.SetupSess
             {
                 ClassicCitySetupSessionMutationStatus.Updated => Accepted(result.Session),
                 ClassicCitySetupSessionMutationStatus.NotFound => NotFound(),
-                ClassicCitySetupSessionMutationStatus.Conflict => Conflict(new
-                {
-                    code = result.ErrorCode,
-                    message = result.ErrorMessage
-                }),
-                ClassicCitySetupSessionMutationStatus.Unavailable => StatusCode(StatusCodes.Status503ServiceUnavailable, new
-                {
-                    code = result.ErrorCode,
-                    message = result.ErrorMessage
-                }),
-                ClassicCitySetupSessionMutationStatus.Invalid => BadRequest(new
-                {
-                    code = result.ErrorCode,
-                    message = result.ErrorMessage
-                }),
+                ClassicCitySetupSessionMutationStatus.Conflict => Conflict(
+                    new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
+                ClassicCitySetupSessionMutationStatus.Unavailable => StatusCode(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    value: new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
+                ClassicCitySetupSessionMutationStatus.Invalid => BadRequest(
+                    new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
                 _ => StatusCode(StatusCodes.Status500InternalServerError)
             };
         }

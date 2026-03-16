@@ -68,21 +68,23 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 condition: atSimTimeUtc >= LastAppliedAtSimTimeUtc,
                 value: atSimTimeUtc,
                 errorFactory: (
-                    value,
-                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
-                    value: value,
-                    previous: LastAppliedAtSimTimeUtc,
-                    propertyName: propertyName));
+                        value,
+                        propertyName)
+                    => ClassicCityDomainErrorsFactory.CityPopulationWeatherImpactSimTimeCannotMoveBackwards(
+                        value: value,
+                        previous: LastAppliedAtSimTimeUtc,
+                        propertyName: propertyName));
 
             GuardHelper.Ensure(
                 condition: atSimTimeUtc != LastAppliedAtSimTimeUtc || occurredOnUtc > LastAppliedOccurredOnUtc,
                 value: occurredOnUtc,
                 errorFactory: (
-                    value,
-                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
-                    value: value,
-                    previous: LastAppliedOccurredOnUtc,
-                    propertyName: propertyName));
+                        value,
+                        propertyName)
+                    => ClassicCityDomainErrorsFactory.CityPopulationWeatherImpactOccurredOnCannotMoveBackwards(
+                        value: value,
+                        previous: LastAppliedOccurredOnUtc,
+                        propertyName: propertyName));
 
             LastAppliedAtSimTimeUtc = atSimTimeUtc;
             LastAppliedOccurredOnUtc = occurredOnUtc;

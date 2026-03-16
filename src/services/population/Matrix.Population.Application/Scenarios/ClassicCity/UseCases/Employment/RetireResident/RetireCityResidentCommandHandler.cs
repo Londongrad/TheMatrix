@@ -1,10 +1,11 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Population.Application.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Common;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
 
@@ -49,7 +50,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     cityId: request.CityId,
                     currentDate: request.CurrentDate,
                     resident: resident,
-                    source: Domain.Scenarios.ClassicCity.Enums.CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);

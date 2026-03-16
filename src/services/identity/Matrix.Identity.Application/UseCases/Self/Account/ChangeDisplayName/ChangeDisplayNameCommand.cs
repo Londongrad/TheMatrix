@@ -4,8 +4,7 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeDisplayName
 {
-    public sealed record ChangeDisplayNameCommand(
-        string? DisplayName) : IRequest<string?>, IRequirePermission
+    public sealed record ChangeDisplayNameCommand(string? DisplayName) : IRequest<string?>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.IdentityMeDisplayNameChange;
     }

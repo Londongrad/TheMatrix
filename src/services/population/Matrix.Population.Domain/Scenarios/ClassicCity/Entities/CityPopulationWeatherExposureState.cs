@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Errors;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -202,8 +202,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                     occurredOnUtc: occurredOnUtc),
                 value: currentWeatherEffectiveAtSimTimeUtc,
                 errorFactory: (
-                    _,
-                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherExposureStaleUpdate(propertyName));
+                        _,
+                        propertyName)
+                    => ClassicCityDomainErrorsFactory.CityPopulationWeatherExposureStaleUpdate(propertyName));
 
             WeatherImpactProfile previousCurrentWeather = CurrentWeather;
 
@@ -257,11 +258,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 condition: processedAtSimTimeUtc >= LastExposureProcessedAtSimTimeUtc,
                 value: processedAtSimTimeUtc,
                 errorFactory: (
-                    value,
-                    propertyName) => ClassicCityDomainErrorsFactory.CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
-                    value: value,
-                    previous: LastExposureProcessedAtSimTimeUtc,
-                    propertyName: propertyName));
+                        value,
+                        propertyName)
+                    => ClassicCityDomainErrorsFactory.CityPopulationWeatherExposureProcessedAtCannotMoveBackwards(
+                        value: value,
+                        previous: LastExposureProcessedAtSimTimeUtc,
+                        propertyName: propertyName));
 
             LastExposureProcessedAtSimTimeUtc = processedAtSimTimeUtc;
             UpdatedAtUtc = updatedAtUtc;

@@ -13,7 +13,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
             GetCityEducationCatalogQuery request,
             CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityEducationInstitutionDto> institutions = (await cityPopulationPersonReadRepository.ListEducationInstitutionsAsync(
+            IReadOnlyList<CityEducationInstitutionDto> institutions =
+                (await cityPopulationPersonReadRepository.ListEducationInstitutionsAsync(
                     cityId: CityId.From(request.CityId),
                     cancellationToken: cancellationToken))
                .Select(x => new CityEducationInstitutionDto(
@@ -22,8 +23,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                     ResidentCount: x.ResidentCount))
                .ToArray();
 
-            return new CityEducationCatalogDto(
-                CurrentInstitutions: institutions);
+            return new CityEducationCatalogDto(CurrentInstitutions: institutions);
         }
     }
 }

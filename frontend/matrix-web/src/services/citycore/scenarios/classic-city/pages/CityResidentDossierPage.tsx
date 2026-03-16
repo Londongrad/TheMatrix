@@ -13,10 +13,7 @@ import {
     getClassicCityResidentDossierPath,
     getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
-import {
-    getCityStatusTone,
-    isArchivedCity,
-} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import Button from "@shared/ui/controls/Button/Button";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";

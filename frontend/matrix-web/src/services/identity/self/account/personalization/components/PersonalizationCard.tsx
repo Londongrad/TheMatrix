@@ -1,9 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
-import {
-    changeDisplayName,
-    clearAvatar,
-    updateAvatar,
-} from "@services/identity/api/self/account/accountApi";
+import {changeDisplayName, clearAvatar, updateAvatar,} from "@services/identity/api/self/account/accountApi";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
@@ -21,13 +17,13 @@ type Props = {
 };
 
 const PersonalizationCard = ({
-    token,
-    avatarUrl,
-    displayName,
-    username,
-    email,
-    patchUser,
-}: Props) => {
+                                 token,
+                                 avatarUrl,
+                                 displayName,
+                                 username,
+                                 email,
+                                 patchUser,
+                             }: Props) => {
     const {can} = usePermissions();
     const canChangeDisplayName = can(PermissionKeys.IdentityMeDisplayNameChange);
     const canChangeAvatar = can(PermissionKeys.IdentityMeAvatarChange);
@@ -406,13 +402,13 @@ const PersonalizationCard = ({
                     perm={PermissionKeys.IdentityMeAvatarChange}
                     displayMode="disable"
                 >
-                        <button
-                            type="button"
-                            className="settings-button"
-                            onClick={handleChooseImageClick}
-                            disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
-                        >
-                            {hasPendingSelection ? "Choose another image" : "Choose image"}
+                    <button
+                        type="button"
+                        className="settings-button"
+                        onClick={handleChooseImageClick}
+                        disabled={!canChangeAvatar || isUploadingAvatar || isClearingAvatar}
+                    >
+                        {hasPendingSelection ? "Choose another image" : "Choose image"}
                     </button>
                 </RequirePermission>
 

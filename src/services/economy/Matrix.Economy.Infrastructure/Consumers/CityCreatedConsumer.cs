@@ -24,12 +24,14 @@ namespace Matrix.Economy.Infrastructure.Consumers
             if (!result.BudgetCreated && result.CreatedAllocations == 0 && result.CreatedBusinesses == 0)
             {
                 logger.LogDebug(
+                    message:
                     "Skipped city economy initialization for cityId={CityId}; budget, default allocations, and template businesses already exist.",
                     message.CityId);
                 return;
             }
 
             logger.LogInformation(
+                message:
                 "Initialized economy context for cityId={CityId}, simulationKind={SimulationKind}, economyProfile={EconomyProfile}, budgetCreated={BudgetCreated}, createdAllocations={CreatedAllocations}, createdBusinesses={CreatedBusinesses}.",
                 message.CityId,
                 message.SimulationKind,

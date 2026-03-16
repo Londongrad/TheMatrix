@@ -18,12 +18,17 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetai
             RecordCityBusinessRetailSaleCommand request,
             CancellationToken cancellationToken)
         {
-            CityBusiness business = await businessRepository.GetByIdAsync(request.BusinessId, cancellationToken)
-                ?? throw new InvalidOperationException($"Business '{request.BusinessId}' was not found.");
+            CityBusiness business = await businessRepository.GetByIdAsync(
+                                        businessId: request.BusinessId,
+                                        cancellationToken: cancellationToken) ??
+                                    throw new InvalidOperationException(
+                                        $"Business '{request.BusinessId}' was not found.");
 
-            Money grossAmount = Money.FromDecimal(request.GrossAmount);
-            Money salesTaxAmount = Money.FromDecimal(request.SalesTaxAmount);
-            business.RecordRetailSale(grossAmount, salesTaxAmount);
+            var grossAmount = Money.FromDecimal(request.GrossAmount);
+            var salesTaxAmount = Money.FromDecimal(request.SalesTaxAmount);
+            business.RecordRetailSale(
+                grossAmount: grossAmount,
+                salesTaxAmount: salesTaxAmount);
 
             var entry = new CityBusinessLedgerEntry(
                 id: Guid.NewGuid(),
@@ -38,10 +43,14 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetai
                 source: CityBusinessLedgerEntrySource.RetailSale,
                 referenceCode: null);
 
-            await ledgerRepository.AddAsync(entry, cancellationToken);
+            await ledgerRepository.AddAsync(
+                entry: entry,
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Map(entry, business.GetUnitProfile());
+            return Map(
+                entry: entry,
+                unitProfile: business.GetUnitProfile());
         }
 
         private static CityBusinessLedgerEntryDto Map(

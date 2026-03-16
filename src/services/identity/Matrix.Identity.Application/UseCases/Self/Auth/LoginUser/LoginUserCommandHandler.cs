@@ -5,6 +5,7 @@ using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.ValueObjects;
 using MediatR;
 
@@ -103,7 +104,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     isSuccessful: false,
                     userId: user.Id,
                     sessionId: null,
-                    details: isDeleted ? "AccountDeleted" : "UserBlocked",
+                    details: isDeleted
+                        ? "AccountDeleted"
+                        : "UserBlocked",
                     loginSubject: loginSubject,
                     cancellationToken: cancellationToken);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -147,13 +150,11 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     cancellationToken: cancellationToken);
             }
             else
-            {
                 session.Touch(
                     deviceInfo: deviceInfo,
                     geoLocation: geoLocation,
                     refreshTokenExpiresAtUtc: refreshDescriptor.ExpiresAtUtc,
                     isPersistent: request.RememberMe);
-            }
 
             IReadOnlyCollection<UserSession> deviceSessions =
                 await userSessionRepository.ListByUserIdAndDeviceIdAsync(
@@ -163,11 +164,11 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
 
             foreach (UserSession deviceSession in deviceSessions)
                 if (deviceSession.Id != session.Id && deviceSession.IsActive())
-                    deviceSession.Revoke(Domain.Enums.RefreshTokenRevocationReason.SessionReplaced);
+                    deviceSession.Revoke(RefreshTokenRevocationReason.SessionReplaced);
 
             user.RevokeActiveRefreshTokensByDevice(
                 deviceId: deviceInfo.DeviceId,
-                reason: Domain.Enums.RefreshTokenRevocationReason.SessionReplaced);
+                reason: RefreshTokenRevocationReason.SessionReplaced);
 
             user.IssueRefreshToken(
                 sessionId: session.Id,

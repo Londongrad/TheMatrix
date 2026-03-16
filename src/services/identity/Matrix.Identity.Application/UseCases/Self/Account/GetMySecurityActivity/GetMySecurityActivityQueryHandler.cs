@@ -19,9 +19,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivit
 
             (IReadOnlyCollection<SecurityActivityItemResult> items, int totalCount) =
                 await securityAuditReadRepository.GetPageByUserIdAsync(
-                userId: userId,
-                pagination: request.Pagination,
-                cancellationToken: cancellationToken);
+                    userId: userId,
+                    pagination: request.Pagination,
+                    cancellationToken: cancellationToken);
 
             return new PagedResult<SecurityActivityItemResult>(
                 items: items,

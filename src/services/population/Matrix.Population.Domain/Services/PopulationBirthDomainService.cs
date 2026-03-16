@@ -23,7 +23,7 @@ namespace Matrix.Population.Domain.Services
                 household: household,
                 currentDate: currentDate);
 
-            Person newbornResident = Person.CreatePerson(
+            var newbornResident = Person.CreatePerson(
                 id: newborn.PersonId,
                 householdId: household.Id,
                 name: newborn.Name,

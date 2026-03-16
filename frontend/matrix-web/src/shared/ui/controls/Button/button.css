@@ -45,33 +45,31 @@
 .ui-button--danger {
     border-color: transparent;
     background: linear-gradient(
-        135deg,
-        var(--status-danger-fill),
-        var(--status-danger-fill-strong)
+            135deg,
+            var(--status-danger-fill),
+            var(--status-danger-fill-strong)
     );
     color: var(--status-danger-on-fill);
     box-shadow: var(--status-danger-shadow);
 }
 
 .ui-button--danger:hover {
-    box-shadow:
-        0 18px 42px color-mix(in srgb, var(--status-danger-fill-strong) 42%, transparent),
-        0 0 0 1px var(--status-danger-border-strong);
+    box-shadow: 0 18px 42px color-mix(in srgb, var(--status-danger-fill-strong) 42%, transparent),
+    0 0 0 1px var(--status-danger-border-strong);
 }
 
 .ui-button--success {
     border-color: transparent;
     background: linear-gradient(
-        135deg,
-        var(--status-success-fill),
-        var(--status-success-fill-strong)
+            135deg,
+            var(--status-success-fill),
+            var(--status-success-fill-strong)
     );
     color: var(--status-success-on-fill);
     box-shadow: var(--status-success-shadow);
 }
 
 .ui-button--success:hover {
-    box-shadow:
-        0 18px 42px color-mix(in srgb, var(--status-success-fill-strong) 40%, transparent),
-        0 0 0 1px var(--status-success-border-strong);
+    box-shadow: 0 18px 42px color-mix(in srgb, var(--status-success-fill-strong) 40%, transparent),
+    0 0 0 1px var(--status-success-border-strong);
 }

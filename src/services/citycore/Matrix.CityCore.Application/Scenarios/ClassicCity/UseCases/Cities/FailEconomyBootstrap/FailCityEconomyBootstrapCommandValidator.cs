@@ -7,9 +7,13 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Cities.Fail
     {
         public FailCityEconomyBootstrapCommandValidator()
         {
-            RuleFor(x => x.CityId).NotEmpty();
-            RuleFor(x => x.OperationId).NotEmpty();
-            RuleFor(x => x.FailureCode).NotEmpty().MaximumLength(128);
+            RuleFor(x => x.CityId)
+               .NotEmpty();
+            RuleFor(x => x.OperationId)
+               .NotEmpty();
+            RuleFor(x => x.FailureCode)
+               .NotEmpty()
+               .MaximumLength(128);
         }
     }
 }

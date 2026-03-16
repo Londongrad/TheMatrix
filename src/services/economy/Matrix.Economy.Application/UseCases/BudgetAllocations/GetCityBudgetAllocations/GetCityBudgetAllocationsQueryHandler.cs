@@ -11,8 +11,11 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAll
             GetCityBudgetAllocationsQuery request,
             CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(request.CityId, cancellationToken);
-            return allocations.Select(Map).ToArray();
+            IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
+            return allocations.Select(Map)
+               .ToArray();
         }
 
         internal static CityBudgetAllocationDto Map(CityBudgetAllocation allocation)
@@ -29,7 +32,8 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAll
                 UnitSymbol: allocation.UnitSymbol,
                 TargetAmount: allocation.TargetAmount.Amount,
                 TotalSpent: allocation.TotalSpent.Amount,
-                AvailableAmount: allocation.GetAvailableAmount().Amount);
+                AvailableAmount: allocation.GetAvailableAmount()
+                   .Amount);
         }
     }
 }

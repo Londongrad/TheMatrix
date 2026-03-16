@@ -1,12 +1,11 @@
 using System.Reflection;
 using FluentValidation;
-using Matrix.CityCore.Application.Scenarios.ClassicCity;
-using Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
-using Matrix.CityCore.Application.Services.Simulation;
-using Matrix.CityCore.Application.Services.Simulation.Abstractions;
-using Matrix.CityCore.Application.Errors;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.CityCore.Application.Errors;
+using Matrix.CityCore.Application.Scenarios.ClassicCity;
+using Matrix.CityCore.Application.Services.Simulation;
+using Matrix.CityCore.Application.Services.Simulation.Abstractions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 

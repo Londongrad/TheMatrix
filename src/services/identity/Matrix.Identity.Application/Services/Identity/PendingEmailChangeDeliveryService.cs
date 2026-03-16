@@ -28,7 +28,8 @@ namespace Matrix.Identity.Application.Services.Identity
             SecurityAuditEventType eventType,
             CancellationToken cancellationToken)
         {
-            string normalizedPendingEmail = Email.Create(pendingEmail).Value;
+            string normalizedPendingEmail = Email.Create(pendingEmail)
+               .Value;
 
             bool isRequestAllowed = await securityAuditService.IsEmailChangeRequestAllowedAsync(
                 normalizedEmail: normalizedPendingEmail,

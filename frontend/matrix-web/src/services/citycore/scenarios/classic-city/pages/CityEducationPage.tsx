@@ -17,10 +17,7 @@ import {
     getClassicCityResidentDossierPath,
     getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
-import {
-    getCityStatusTone,
-    isArchivedCity,
-} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {
     CityEducationCatalogDto,
     CityEducationInstitutionDto,
@@ -102,7 +99,14 @@ type SelectedResidentCardProps = {
     onClear: () => void;
 };
 
-function SelectedResidentCard({cityId, residentId, resident, isLoading, nextLevels, onClear}: SelectedResidentCardProps) {
+function SelectedResidentCard({
+                                  cityId,
+                                  residentId,
+                                  resident,
+                                  isLoading,
+                                  nextLevels,
+                                  onClear
+                              }: SelectedResidentCardProps) {
     return (
         <section className="city-education__selected-card">
             <div className="city-education__selected-header">
@@ -675,7 +679,8 @@ const CityEducationPage = () => {
 
                             {relevantInstitutions.length > MAX_VISIBLE_INSTITUTIONS ? (
                                 <p className="card-sub">
-                                    {relevantInstitutions.length - MAX_VISIBLE_INSTITUTIONS} more institutions stay hidden
+                                    {relevantInstitutions.length - MAX_VISIBLE_INSTITUTIONS} more institutions stay
+                                    hidden
                                     for now so this workspace stays readable.
                                 </p>
                             ) : null}

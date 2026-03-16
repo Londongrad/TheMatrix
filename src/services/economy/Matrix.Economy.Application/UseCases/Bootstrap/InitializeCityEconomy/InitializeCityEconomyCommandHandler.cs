@@ -3,8 +3,7 @@ using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
 {
-    public sealed class InitializeCityEconomyCommandHandler(
-        ICityEconomyBootstrapService cityEconomyBootstrapService)
+    public sealed class InitializeCityEconomyCommandHandler(ICityEconomyBootstrapService cityEconomyBootstrapService)
         : IRequestHandler<InitializeCityEconomyCommand, CityEconomyBootstrapResultDto>
     {
         public async Task<CityEconomyBootstrapResultDto> Handle(

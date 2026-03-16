@@ -1,4 +1,3 @@
-using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Domain.Aggregates;
@@ -9,6 +8,7 @@ using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Domain.ValueObjects;
 using Matrix.Economy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Npgsql;
 
 namespace Matrix.Economy.Infrastructure.Services
@@ -24,7 +24,10 @@ namespace Matrix.Economy.Infrastructure.Services
         : ICityEconomyBootstrapService
     {
         private const string CityBudgetByCityConstraintName = "IX_City_Budget_city_id";
-        private const string CityBudgetAllocationByCityCategoryConstraintName = "IX_City_Budget_Allocation_city_id_category";
+
+        private const string CityBudgetAllocationByCityCategoryConstraintName =
+            "IX_City_Budget_Allocation_city_id_category";
+
         private const string CityBusinessByCityTemplateConstraintName = "IX_City_Business_city_id_template_key";
 
         public async Task<CityEconomyBootstrapResultDto> BootstrapAsync(
@@ -89,7 +92,9 @@ namespace Matrix.Economy.Infrastructure.Services
             CityEconomySimulationTemplate template,
             CancellationToken cancellationToken)
         {
-            CityBudget? existingBudget = await budgetRepository.GetByCityAsync(cityId, cancellationToken);
+            CityBudget? existingBudget = await budgetRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
 
             if (existingBudget is not null)
             {
@@ -97,7 +102,10 @@ namespace Matrix.Economy.Infrastructure.Services
                 return (existingBudget, false);
             }
 
-            var budget = new CityBudget(CityBudgetId.New(), cityId, template.UnitProfile);
+            var budget = new CityBudget(
+                id: CityBudgetId.New(),
+                cityId: cityId,
+                unitProfile: template.UnitProfile);
             budgetRepository.Add(budget);
             await ApplyInitialReserveAsync(
                 budget: budget,
@@ -111,10 +119,14 @@ namespace Matrix.Economy.Infrastructure.Services
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 return (budget, true);
             }
-            catch (DbUpdateException ex) when (IsConstraintViolation(ex, CityBudgetByCityConstraintName))
+            catch (DbUpdateException ex) when (IsConstraintViolation(
+                                                   exception: ex,
+                                                   constraintName: CityBudgetByCityConstraintName))
             {
                 DetachAddedEntities();
-                CityBudget? concurrentBudget = await budgetRepository.GetByCityAsync(cityId, cancellationToken);
+                CityBudget? concurrentBudget = await budgetRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
 
                 if (concurrentBudget is not null)
                 {
@@ -158,7 +170,9 @@ namespace Matrix.Economy.Infrastructure.Services
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 return true;
             }
-            catch (DbUpdateException ex) when (IsConstraintViolation(ex, CityBudgetAllocationByCityCategoryConstraintName))
+            catch (DbUpdateException ex) when (IsConstraintViolation(
+                                                   exception: ex,
+                                                   constraintName: CityBudgetAllocationByCityCategoryConstraintName))
             {
                 DetachAddedEntities();
                 return false;
@@ -200,7 +214,9 @@ namespace Matrix.Economy.Infrastructure.Services
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 return true;
             }
-            catch (DbUpdateException ex) when (IsConstraintViolation(ex, CityBusinessByCityTemplateConstraintName))
+            catch (DbUpdateException ex) when (IsConstraintViolation(
+                                                   exception: ex,
+                                                   constraintName: CityBusinessByCityTemplateConstraintName))
             {
                 DetachAddedEntities();
                 return false;
@@ -237,20 +253,23 @@ namespace Matrix.Economy.Infrastructure.Services
 
         private void DetachAddedEntities()
         {
-            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in dbContext.ChangeTracker.Entries()
-                         .Where(x => x.State == EntityState.Added))
-            {
+            foreach (EntityEntry entry in dbContext.ChangeTracker.Entries()
+                        .Where(x => x.State == EntityState.Added))
                 entry.State = EntityState.Detached;
-            }
         }
 
-        private static bool IsConstraintViolation(DbUpdateException exception, string constraintName)
+        private static bool IsConstraintViolation(
+            DbUpdateException exception,
+            string constraintName)
         {
             return exception.InnerException is PostgresException
-            {
-                SqlState: PostgresErrorCodes.UniqueViolation,
-                ConstraintName: var actualConstraintName
-            } && string.Equals(actualConstraintName, constraintName, StringComparison.Ordinal);
+                   {
+                       SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: var actualConstraintName
+                   } &&
+                   string.Equals(
+                       a: actualConstraintName,
+                       b: constraintName,
+                       comparisonType: StringComparison.Ordinal);
         }
     }
 }

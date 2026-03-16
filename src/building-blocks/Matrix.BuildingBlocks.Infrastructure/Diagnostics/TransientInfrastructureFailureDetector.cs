@@ -21,7 +21,10 @@ namespace Matrix.BuildingBlocks.Infrastructure.Diagnostics
                 if (current is SocketException or IOException or TimeoutException or TaskCanceledException)
                     return true;
 
-                if (TransientExceptionTypeNames.Contains(current.GetType().FullName ?? string.Empty))
+                if (TransientExceptionTypeNames.Contains(
+                        current.GetType()
+                           .FullName ??
+                        string.Empty))
                     return true;
             }
 

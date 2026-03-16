@@ -32,6 +32,18 @@ namespace Matrix.Population.Domain.Errors
 
         #endregion [ Common ]
 
+        #region [ Household ]
+
+        public static DomainException HouseholdSizeOutOfRange(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "Population.Household.Size.OutOfRange",
+                message: "Household size must be within the supported range.",
+                propertyName: propertyName);
+        }
+
+        #endregion [ Household ]
+
         #region [ Person - Life ]
 
         public static DomainException PersonAlreadyDead(string? propertyName = null)
@@ -565,17 +577,5 @@ namespace Matrix.Population.Domain.Errors
         }
 
         #endregion [ Person - Age ]
-
-        #region [ Household ]
-
-        public static DomainException HouseholdSizeOutOfRange(string? propertyName = null)
-        {
-            return new DomainException(
-                code: "Population.Household.Size.OutOfRange",
-                message: "Household size must be within the supported range.",
-                propertyName: propertyName);
-        }
-
-        #endregion [ Household ]
     }
 }

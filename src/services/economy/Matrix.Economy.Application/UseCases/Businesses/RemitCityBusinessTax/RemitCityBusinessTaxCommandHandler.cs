@@ -16,17 +16,20 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RemitCityBusinessTax
             RemitCityBusinessTaxCommand request,
             CancellationToken cancellationToken)
         {
-            CityBusiness business = await businessRepository.GetByIdAsync(request.BusinessId, cancellationToken)
-                ?? throw new InvalidOperationException($"Business '{request.BusinessId}' was not found.");
+            CityBusiness business = await businessRepository.GetByIdAsync(
+                                        businessId: request.BusinessId,
+                                        cancellationToken: cancellationToken) ??
+                                    throw new InvalidOperationException(
+                                        $"Business '{request.BusinessId}' was not found.");
 
-            Money amount = Money.FromDecimal(request.Amount);
+            var amount = Money.FromDecimal(request.Amount);
             CityBusinessLedgerEntryDto result = await taxRemittanceSupport.RemitAsync(
-                business,
-                amount,
-                request.BudgetCategory,
-                request.Title,
-                request.Description,
-                cancellationToken);
+                business: business,
+                amount: amount,
+                budgetCategory: request.BudgetCategory,
+                title: request.Title,
+                description: request.Description,
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return result;
         }

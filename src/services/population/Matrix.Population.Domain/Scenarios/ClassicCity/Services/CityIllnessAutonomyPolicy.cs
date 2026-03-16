@@ -22,7 +22,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (!person.IsAlive || currentDate <= previousDate)
                 return false;
 
-            int reviewWindows = ResolveDailyReviewWindows(previousDate, currentDate);
+            int reviewWindows = ResolveDailyReviewWindows(
+                previousDate: previousDate,
+                currentDate: currentDate);
             if (reviewWindows <= 0)
                 return false;
 
@@ -50,10 +52,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 }
             }
 
-            if (!person.HasActiveIllness || person.CurrentIllnessKind is not { } illnessKind)
+            if (!person.HasActiveIllness ||
+                person.CurrentIllnessKind is not
+                    { } illnessKind)
                 return changed;
 
-            if (!diagnosedThisPass && ShouldRecover(
+            if (!diagnosedThisPass &&
+                ShouldRecover(
                     person: person,
                     householdResidents: householdResidents,
                     currentDate: currentDate,
@@ -67,7 +72,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return true;
             }
 
-            if (!diagnosedThisPass && ShouldProgress(
+            if (!diagnosedThisPass &&
+                ShouldProgress(
                     person: person,
                     householdResidents: householdResidents,
                     currentDate: currentDate,
@@ -96,7 +102,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int previousStress = person.Stress.Value;
 
             if (burden.HealthDelta != 0)
-                person.ChangeHealth(burden.HealthDelta, currentDate);
+                person.ChangeHealth(
+                    delta: burden.HealthDelta,
+                    currentDate: currentDate);
 
             if (person.IsAlive)
             {
@@ -128,36 +136,38 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (hadAdverseWeatherExposure)
             {
-                double chance = ResolveExposureIllnessChance(person, currentDate, housingStatus);
+                double chance = ResolveExposureIllnessChance(
+                    person: person,
+                    currentDate: currentDate,
+                    housingStatus: housingStatus);
                 if (chance > 0d)
-                {
-                    candidates.Add(new IllnessDiagnosisCandidate(
-                        Kind: IllnessKind.Exposure,
-                        Severity: ResolveExposureSeverity(person, housingStatus),
-                        ChancePerReview: chance,
-                        Salt: 401));
-                }
+                    candidates.Add(
+                        new IllnessDiagnosisCandidate(
+                            Kind: IllnessKind.Exposure,
+                            Severity: ResolveExposureSeverity(
+                                person: person,
+                                housingStatus: housingStatus),
+                            ChancePerReview: chance,
+                            Salt: 401));
             }
 
             double exhaustionChance = ResolveExhaustionIllnessChance(person);
             if (exhaustionChance > 0d)
-            {
-                candidates.Add(new IllnessDiagnosisCandidate(
-                    Kind: IllnessKind.Exhaustion,
-                    Severity: ResolveExhaustionSeverity(person),
-                    ChancePerReview: exhaustionChance,
-                    Salt: 433));
-            }
+                candidates.Add(
+                    new IllnessDiagnosisCandidate(
+                        Kind: IllnessKind.Exhaustion,
+                        Severity: ResolveExhaustionSeverity(person),
+                        ChancePerReview: exhaustionChance,
+                        Salt: 433));
 
             double stressChance = ResolveStressIllnessChance(person);
             if (stressChance > 0d)
-            {
-                candidates.Add(new IllnessDiagnosisCandidate(
-                    Kind: IllnessKind.Stress,
-                    Severity: ResolveStressSeverity(person),
+                candidates.Add(
+                    new IllnessDiagnosisCandidate(
+                        Kind: IllnessKind.Stress,
+                        Severity: ResolveStressSeverity(person),
                         ChancePerReview: stressChance,
                         Salt: 467));
-            }
 
             double infectionChance = ResolveInfectionIllnessChance(
                 person: person,
@@ -165,16 +175,17 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 housingStatus: housingStatus);
             if (infectionChance > 0d)
-            {
-                candidates.Add(new IllnessDiagnosisCandidate(
-                    Kind: IllnessKind.Infection,
-                    Severity: ResolveInfectionSeverity(person, currentDate, housingStatus),
-                    ChancePerReview: infectionChance,
-                    Salt: 479));
-            }
+                candidates.Add(
+                    new IllnessDiagnosisCandidate(
+                        Kind: IllnessKind.Infection,
+                        Severity: ResolveInfectionSeverity(
+                            person: person,
+                            currentDate: currentDate,
+                            housingStatus: housingStatus),
+                        ChancePerReview: infectionChance,
+                        Salt: 479));
 
             foreach (IllnessDiagnosisCandidate candidate in candidates.OrderByDescending(x => x.ChancePerReview))
-            {
                 if (RollOccurs(
                         personId: person.Id,
                         currentDate: currentDate,
@@ -182,7 +193,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         chancePerReview: candidate.ChancePerReview,
                         reviewWindows: reviewWindows))
                     return candidate;
-            }
 
             return null;
         }
@@ -196,7 +206,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             bool hadAdverseWeatherExposure,
             double healthcareSupportStrength)
         {
-            if (!person.HasActiveIllness || person.CurrentIllnessSeverity is not { } severity)
+            if (!person.HasActiveIllness ||
+                person.CurrentIllnessSeverity is not
+                    { } severity)
                 return false;
 
             double health = Normalize(person.Health.Value);
@@ -217,15 +229,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0.04d
             };
 
-            double chance = baseChance
-                            + (health * 0.08d)
-                            + (energy * 0.04d)
-                            + (happiness * 0.02d)
-                            - (stress * 0.06d)
-                            + (housed ? 0.03d : -0.02d)
-                            + (careSupport * 0.08d)
-                            + (healthcareSupportStrength * 0.12d)
-                            - (hadAdverseWeatherExposure ? 0.04d : 0d);
+            double chance = baseChance +
+                            (health * 0.08d) +
+                            (energy * 0.04d) +
+                            (happiness * 0.02d) -
+                            (stress * 0.06d) +
+                            (housed
+                                ? 0.03d
+                                : -0.02d) +
+                            (careSupport * 0.08d) +
+                            (healthcareSupportStrength * 0.12d) -
+                            (hadAdverseWeatherExposure
+                                ? 0.04d
+                                : 0d);
 
             if (person.Health.Value < 35 || person.Energy.Value < 25)
                 chance *= 0.45d;
@@ -234,7 +250,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 personId: person.Id,
                 currentDate: currentDate,
                 salt: 503,
-                chancePerReview: Math.Clamp(chance, 0.005d, 0.35d),
+                chancePerReview: Math.Clamp(
+                    value: chance,
+                    min: 0.005d,
+                    max: 0.35d),
                 reviewWindows: reviewWindows);
         }
 
@@ -258,20 +277,27 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 householdResidents: householdResidents,
                 currentDate: currentDate);
 
-            double chance = 0.004d
-                            + (lowHealth * 0.030d)
-                            + (lowEnergy * 0.020d)
-                            + (stress * 0.016d)
-                            + (housingStatus == HousingStatus.Homeless ? 0.010d : 0d)
-                            + (hadAdverseWeatherExposure && person.CurrentIllnessKind == IllnessKind.Exposure ? 0.020d : 0d)
-                            - (careSupport * 0.045d)
-                            - (healthcareSupportStrength * 0.060d);
+            double chance = 0.004d +
+                            (lowHealth * 0.030d) +
+                            (lowEnergy * 0.020d) +
+                            (stress * 0.016d) +
+                            (housingStatus == HousingStatus.Homeless
+                                ? 0.010d
+                                : 0d) +
+                            (hadAdverseWeatherExposure && person.CurrentIllnessKind == IllnessKind.Exposure
+                                ? 0.020d
+                                : 0d) -
+                            (careSupport * 0.045d) -
+                            (healthcareSupportStrength * 0.060d);
 
             return RollOccurs(
                 personId: person.Id,
                 currentDate: currentDate,
                 salt: 541,
-                chancePerReview: Math.Clamp(chance, 0.002d, 0.18d),
+                chancePerReview: Math.Clamp(
+                    value: chance,
+                    min: 0.002d,
+                    max: 0.18d),
                 reviewWindows: reviewWindows);
         }
 
@@ -290,7 +316,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (caregiverCount == 0)
                 return 0d;
 
-            double strength = Math.Min(0.18d, caregiverCount * 0.06d);
+            double strength = Math.Min(
+                val1: 0.18d,
+                val2: caregiverCount * 0.06d);
 
             bool vulnerable = resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
             if (vulnerable)
@@ -306,7 +334,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (hasFamilyCaregiver)
                 strength += 0.03d;
 
-            return Math.Clamp(strength, 0d, 0.28d);
+            return Math.Clamp(
+                value: strength,
+                min: 0d,
+                max: 0.28d);
         }
 
         private static IllnessBurden ResolveBurden(
@@ -315,56 +346,118 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int reviewWindows,
             double healthcareSupportStrength)
         {
-            var daily = kind switch
+            IllnessBurden daily = kind switch
             {
                 IllnessKind.Exposure => severity switch
                 {
-                    IllnessSeverity.Mild => new IllnessBurden(-1, -1, -1, +1),
-                    IllnessSeverity.Moderate => new IllnessBurden(-2, -2, -1, +1),
-                    IllnessSeverity.Severe => new IllnessBurden(-3, -3, -2, +2),
+                    IllnessSeverity.Mild => new IllnessBurden(
+                        HealthDelta: -1,
+                        HappinessDelta: -1,
+                        EnergyDelta: -1,
+                        StressDelta: +1),
+                    IllnessSeverity.Moderate => new IllnessBurden(
+                        HealthDelta: -2,
+                        HappinessDelta: -2,
+                        EnergyDelta: -1,
+                        StressDelta: +1),
+                    IllnessSeverity.Severe => new IllnessBurden(
+                        HealthDelta: -3,
+                        HappinessDelta: -3,
+                        EnergyDelta: -2,
+                        StressDelta: +2),
                     _ => IllnessBurden.None
                 },
                 IllnessKind.Exhaustion => severity switch
                 {
-                    IllnessSeverity.Mild => new IllnessBurden(0, -1, -2, +1),
-                    IllnessSeverity.Moderate => new IllnessBurden(-1, -2, -3, +2),
-                    IllnessSeverity.Severe => new IllnessBurden(-2, -3, -4, +3),
+                    IllnessSeverity.Mild => new IllnessBurden(
+                        HealthDelta: 0,
+                        HappinessDelta: -1,
+                        EnergyDelta: -2,
+                        StressDelta: +1),
+                    IllnessSeverity.Moderate => new IllnessBurden(
+                        HealthDelta: -1,
+                        HappinessDelta: -2,
+                        EnergyDelta: -3,
+                        StressDelta: +2),
+                    IllnessSeverity.Severe => new IllnessBurden(
+                        HealthDelta: -2,
+                        HappinessDelta: -3,
+                        EnergyDelta: -4,
+                        StressDelta: +3),
                     _ => IllnessBurden.None
                 },
                 IllnessKind.Stress => severity switch
                 {
-                    IllnessSeverity.Mild => new IllnessBurden(0, -1, -1, +2),
-                    IllnessSeverity.Moderate => new IllnessBurden(-1, -2, -2, +3),
-                    IllnessSeverity.Severe => new IllnessBurden(-2, -3, -2, +4),
+                    IllnessSeverity.Mild => new IllnessBurden(
+                        HealthDelta: 0,
+                        HappinessDelta: -1,
+                        EnergyDelta: -1,
+                        StressDelta: +2),
+                    IllnessSeverity.Moderate => new IllnessBurden(
+                        HealthDelta: -1,
+                        HappinessDelta: -2,
+                        EnergyDelta: -2,
+                        StressDelta: +3),
+                    IllnessSeverity.Severe => new IllnessBurden(
+                        HealthDelta: -2,
+                        HappinessDelta: -3,
+                        EnergyDelta: -2,
+                        StressDelta: +4),
                     _ => IllnessBurden.None
                 },
                 IllnessKind.Infection => severity switch
                 {
-                    IllnessSeverity.Mild => new IllnessBurden(-1, -1, -1, +1),
-                    IllnessSeverity.Moderate => new IllnessBurden(-2, -2, -2, +2),
-                    IllnessSeverity.Severe => new IllnessBurden(-3, -3, -3, +3),
+                    IllnessSeverity.Mild => new IllnessBurden(
+                        HealthDelta: -1,
+                        HappinessDelta: -1,
+                        EnergyDelta: -1,
+                        StressDelta: +1),
+                    IllnessSeverity.Moderate => new IllnessBurden(
+                        HealthDelta: -2,
+                        HappinessDelta: -2,
+                        EnergyDelta: -2,
+                        StressDelta: +2),
+                    IllnessSeverity.Severe => new IllnessBurden(
+                        HealthDelta: -3,
+                        HappinessDelta: -3,
+                        EnergyDelta: -3,
+                        StressDelta: +3),
                     _ => IllnessBurden.None
                 },
                 _ => IllnessBurden.None
             };
 
-            IllnessBurden scaled = daily.Scale(Math.Clamp(reviewWindows, 1, 3));
+            IllnessBurden scaled = daily.Scale(
+                Math.Clamp(
+                    value: reviewWindows,
+                    min: 1,
+                    max: 3));
             return scaled.Relieve(healthcareSupportStrength);
         }
 
-        private static double ResolveExposureIllnessChance(Person person, DateOnly currentDate, HousingStatus? housingStatus)
+        private static double ResolveExposureIllnessChance(
+            Person person,
+            DateOnly currentDate,
+            HousingStatus? housingStatus)
         {
             double lowHealth = 1d - Normalize(person.Health.Value);
             double lowEnergy = 1d - Normalize(person.Energy.Value);
             bool sensitive = person.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
 
-            double chance = 0.002d
-                            + (housingStatus == HousingStatus.Homeless ? 0.024d : 0d)
-                            + (sensitive ? 0.012d : 0d)
-                            + (lowHealth * 0.018d)
-                            + (lowEnergy * 0.010d);
+            double chance = 0.002d +
+                            (housingStatus == HousingStatus.Homeless
+                                ? 0.024d
+                                : 0d) +
+                            (sensitive
+                                ? 0.012d
+                                : 0d) +
+                            (lowHealth * 0.018d) +
+                            (lowEnergy * 0.010d);
 
-            return Math.Clamp(chance, 0d, 0.120d);
+            return Math.Clamp(
+                value: chance,
+                min: 0d,
+                max: 0.120d);
         }
 
         private static double ResolveExhaustionIllnessChance(Person person)
@@ -380,13 +473,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0d
             };
 
-            double chance = 0.001d
-                            + (lowEnergy * 0.030d)
-                            + (stress * 0.016d)
-                            + (lowHealth * 0.008d)
-                            + activityModifier;
+            double chance = 0.001d + (lowEnergy * 0.030d) + (stress * 0.016d) + (lowHealth * 0.008d) + activityModifier;
 
-            return Math.Clamp(chance, 0d, 0.100d);
+            return Math.Clamp(
+                value: chance,
+                min: 0d,
+                max: 0.100d);
         }
 
         private static double ResolveStressIllnessChance(Person person)
@@ -395,12 +487,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double lowHappiness = 1d - Normalize(person.Happiness.Value);
             double socialNeed = Normalize(person.SocialNeed.Value);
 
-            double chance = 0.001d
-                            + (stress * 0.028d)
-                            + (lowHappiness * 0.018d)
-                            + (socialNeed * 0.012d);
+            double chance = 0.001d + (stress * 0.028d) + (lowHappiness * 0.018d) + (socialNeed * 0.012d);
 
-            return Math.Clamp(chance, 0d, 0.110d);
+            return Math.Clamp(
+                value: chance,
+                min: 0d,
+                max: 0.110d);
         }
 
         private static double ResolveInfectionIllnessChance(
@@ -419,21 +511,30 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double lowEnergy = 1d - Normalize(person.Energy.Value);
             double stress = Normalize(person.Stress.Value);
 
-            double chance = 0.0006d
-                            + (infectiousContacts * 0.020d)
-                            + (vulnerable ? 0.008d : 0d)
-                            + (housingStatus == HousingStatus.Homeless ? 0.006d : 0d)
-                            + (lowHealth * 0.012d)
-                            + (lowEnergy * 0.008d)
-                            + (stress * 0.006d);
+            double chance = 0.0006d +
+                            (infectiousContacts * 0.020d) +
+                            (vulnerable
+                                ? 0.008d
+                                : 0d) +
+                            (housingStatus == HousingStatus.Homeless
+                                ? 0.006d
+                                : 0d) +
+                            (lowHealth * 0.012d) +
+                            (lowEnergy * 0.008d) +
+                            (stress * 0.006d);
 
             if (householdResidents.Count >= 5)
                 chance += 0.006d;
 
-            return Math.Clamp(chance, 0d, 0.160d);
+            return Math.Clamp(
+                value: chance,
+                min: 0d,
+                max: 0.160d);
         }
 
-        private static IllnessSeverity ResolveExposureSeverity(Person person, HousingStatus? housingStatus)
+        private static IllnessSeverity ResolveExposureSeverity(
+            Person person,
+            HousingStatus? housingStatus)
         {
             if (housingStatus == HousingStatus.Homeless && person.Health.Value < 45)
                 return IllnessSeverity.Severe;
@@ -490,7 +591,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly previousDate,
             DateOnly currentDate)
         {
-            return Math.Clamp(currentDate.DayNumber - previousDate.DayNumber, 0, 7);
+            return Math.Clamp(
+                value: currentDate.DayNumber - previousDate.DayNumber,
+                min: 0,
+                max: 7);
         }
 
         private static IllnessSeverity NextSeverity(IllnessSeverity? severity)
@@ -513,13 +617,23 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (reviewWindows <= 0 || chancePerReview <= 0d)
                 return false;
 
-            double combinedChance = 1d - Math.Pow(1d - chancePerReview, reviewWindows);
-            return GetStableFraction(personId, currentDate, salt) < combinedChance;
+            double combinedChance = 1d -
+                Math.Pow(
+                    x: 1d - chancePerReview,
+                    y: reviewWindows);
+            return GetStableFraction(
+                       personId: personId,
+                       currentDate: currentDate,
+                       salt: salt) <
+                   combinedChance;
         }
 
         private static double Normalize(int value)
         {
-            return Math.Clamp(value / 100d, 0d, 1d);
+            return Math.Clamp(
+                value: value / 100d,
+                min: 0d,
+                max: 1d);
         }
 
         private static double GetStableFraction(
@@ -531,7 +645,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                        personId: personId,
                        currentDate: currentDate,
                        salt: salt,
-                       modulus: 10_000) / 10_000d;
+                       modulus: 10_000) /
+                   10_000d;
         }
 
         private static int GetStableInt(
@@ -569,7 +684,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int EnergyDelta,
             int StressDelta)
         {
-            public static IllnessBurden None => new(0, 0, 0, 0);
+            public static IllnessBurden None => new(
+                HealthDelta: 0,
+                HappinessDelta: 0,
+                EnergyDelta: 0,
+                StressDelta: 0);
 
             public bool HasAnyEffect =>
                 HealthDelta != 0 ||
@@ -588,24 +707,43 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             public IllnessBurden Relieve(double supportStrength)
             {
-                double reliefFactor = Math.Clamp(1d - (supportStrength * 0.65d), 0.60d, 1d);
+                double reliefFactor = Math.Clamp(
+                    value: 1d - (supportStrength * 0.65d),
+                    min: 0.60d,
+                    max: 1d);
 
                 return new IllnessBurden(
-                    HealthDelta: ScaleSigned(HealthDelta, reliefFactor),
-                    HappinessDelta: ScaleSigned(HappinessDelta, reliefFactor),
-                    EnergyDelta: ScaleSigned(EnergyDelta, reliefFactor),
-                    StressDelta: ScaleSigned(StressDelta, reliefFactor));
+                    HealthDelta: ScaleSigned(
+                        value: HealthDelta,
+                        factor: reliefFactor),
+                    HappinessDelta: ScaleSigned(
+                        value: HappinessDelta,
+                        factor: reliefFactor),
+                    EnergyDelta: ScaleSigned(
+                        value: EnergyDelta,
+                        factor: reliefFactor),
+                    StressDelta: ScaleSigned(
+                        value: StressDelta,
+                        factor: reliefFactor));
             }
 
-            private static int ScaleSigned(int value, double factor)
+            private static int ScaleSigned(
+                int value,
+                double factor)
             {
                 if (value == 0)
                     return 0;
 
-                int scaled = (int)Math.Round(value * factor, MidpointRounding.AwayFromZero);
+                int scaled = (int)Math.Round(
+                    value: value * factor,
+                    mode: MidpointRounding.AwayFromZero);
                 return value < 0
-                    ? Math.Min(-1, scaled)
-                    : Math.Max(1, scaled);
+                    ? Math.Min(
+                        val1: -1,
+                        val2: scaled)
+                    : Math.Max(
+                        val1: 1,
+                        val2: scaled);
             }
         }
     }

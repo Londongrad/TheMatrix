@@ -7,10 +7,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RequestAccountRecovery
         public RequestAccountRecoveryCommandValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty()
-                .WithMessage("Email is required.")
-                .EmailAddress()
-                .WithMessage("Email format is invalid.");
+               .NotEmpty()
+               .WithMessage("Email is required.")
+               .EmailAddress()
+               .WithMessage("Email format is invalid.");
         }
     }
 }

@@ -17,20 +17,26 @@ namespace Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedger
             CancellationToken cancellationToken)
         {
             PagedResult<CityBusinessLedgerEntry> page = await ledgerRepository.GetPageByBusinessAsync(
-                request.BusinessId,
-                request.PageNumber,
-                request.PageSize,
-                cancellationToken);
+                businessId: request.BusinessId,
+                pageNumber: request.PageNumber,
+                pageSize: request.PageSize,
+                cancellationToken: cancellationToken);
 
-            CityBusiness business = await businessRepository.GetByIdAsync(request.BusinessId, cancellationToken)
-                ?? throw new InvalidOperationException($"Business '{request.BusinessId}' was not found.");
+            CityBusiness business = await businessRepository.GetByIdAsync(
+                                        businessId: request.BusinessId,
+                                        cancellationToken: cancellationToken) ??
+                                    throw new InvalidOperationException(
+                                        $"Business '{request.BusinessId}' was not found.");
             CityBudgetUnitProfile unitProfile = business.GetUnitProfile();
 
             return new PagedResult<CityBusinessLedgerEntryDto>(
-                page.Items.Select(entry => Map(entry, unitProfile)).ToArray(),
-                page.TotalCount,
-                page.PageNumber,
-                page.PageSize);
+                items: page.Items.Select(entry => Map(
+                        entry: entry,
+                        unitProfile: unitProfile))
+                   .ToArray(),
+                totalCount: page.TotalCount,
+                pageNumber: page.PageNumber,
+                pageSize: page.PageSize);
         }
 
         private static CityBusinessLedgerEntryDto Map(

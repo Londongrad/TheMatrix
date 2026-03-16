@@ -73,7 +73,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
                                     message:
                                     "Outbox transport is temporarily unavailable while publishing message {MessageId}. Remaining leased messages in the current batch will be retried later. RemainingCount={RemainingCount} NextAttemptUtc={NextAttemptUtc}",
                                     msg.Id,
-                                    Math.Max(0, batch.Count - index - 1),
+                                    Math.Max(
+                                        val1: 0,
+                                        val2: batch.Count - index - 1),
                                     nextAttempt);
 
                             break;
@@ -108,8 +110,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Dispatching
         private int GetTransientLogPeriodSeconds()
         {
             return Math.Max(
-                30,
-                _options.PollIntervalSeconds * 10);
+                val1: 30,
+                val2: _options.PollIntervalSeconds * 10);
         }
 
         private async Task CleanupProcessedMessagesAsync(

@@ -4,8 +4,7 @@ using MediatR;
 
 namespace Matrix.CityCore.Application.UseCases.Simulation.AdvanceRunningSimulations
 {
-    public sealed class AdvanceRunningSimulationsCommandHandler(
-        ISimulationBatchAdvanceExecutor batchAdvanceExecutor)
+    public sealed class AdvanceRunningSimulationsCommandHandler(ISimulationBatchAdvanceExecutor batchAdvanceExecutor)
         : IRequestHandler<AdvanceRunningSimulationsCommand, AdvanceRunningSimulationsResult>
     {
         public async Task<AdvanceRunningSimulationsResult> Handle(

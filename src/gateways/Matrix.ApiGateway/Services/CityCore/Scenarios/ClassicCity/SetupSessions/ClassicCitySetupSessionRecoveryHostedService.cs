@@ -1,5 +1,4 @@
 using Matrix.ApiGateway.Configurations.Options;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions
@@ -36,8 +35,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private async Task ReconcileOnceAsync(CancellationToken cancellationToken)
         {
             await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-            IClassicCitySetupSessionStore store = scope.ServiceProvider.GetRequiredService<IClassicCitySetupSessionStore>();
-            IClassicCitySetupSessionService service = scope.ServiceProvider.GetRequiredService<IClassicCitySetupSessionService>();
+            IClassicCitySetupSessionStore store =
+                scope.ServiceProvider.GetRequiredService<IClassicCitySetupSessionStore>();
+            IClassicCitySetupSessionService service =
+                scope.ServiceProvider.GetRequiredService<IClassicCitySetupSessionService>();
 
             IReadOnlyList<Guid> sessionIds = await store.ListTrackedSessionIdsAsync(cancellationToken);
 

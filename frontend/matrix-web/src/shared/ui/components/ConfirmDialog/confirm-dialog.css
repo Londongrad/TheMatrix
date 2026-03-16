@@ -77,10 +77,9 @@
     background-image: var(--settings-button-gradient);
     color: var(--settings-button-text);
     box-shadow: var(--settings-button-shadow);
-    transition:
-        transform 0.08s ease-out,
-        box-shadow 0.12s ease-out,
-        filter 0.12s ease-out;
+    transition: transform 0.08s ease-out,
+    box-shadow 0.12s ease-out,
+    filter 0.12s ease-out;
 }
 
 .confirm-dialog-button:hover {
@@ -111,9 +110,9 @@
 .confirm-dialog-button--danger {
     background-image: none;
     background: linear-gradient(
-        135deg,
-        var(--status-danger-fill),
-        var(--status-danger-fill-strong)
+            135deg,
+            var(--status-danger-fill),
+            var(--status-danger-fill-strong)
     );
     color: var(--status-danger-on-fill);
     box-shadow: var(--status-danger-shadow);
@@ -121,9 +120,8 @@
 
 .confirm-dialog-button--danger:hover {
     filter: brightness(1.03);
-    box-shadow:
-        0 16px 45px color-mix(in srgb, var(--status-danger-fill-strong) 42%, transparent),
-        0 0 0 1px var(--status-danger-border-strong);
+    box-shadow: 0 16px 45px color-mix(in srgb, var(--status-danger-fill-strong) 42%, transparent),
+    0 0 0 1px var(--status-danger-border-strong);
 }
 
 .confirm-dialog-field {
@@ -147,11 +145,10 @@
     color: var(--app-text);
     font-size: 0.92rem;
     outline: none;
-    transition:
-        border-color 0.15s ease-out,
-        box-shadow 0.15s ease-out,
-        background-color 0.15s ease-out,
-        transform 0.08s ease-out;
+    transition: border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out,
+    transform 0.08s ease-out;
 }
 
 .confirm-dialog-input::placeholder {

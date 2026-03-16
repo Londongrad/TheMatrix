@@ -9,6 +9,7 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.Services;
+using Matrix.Population.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PersonEntity = Matrix.Population.Domain.Entities.Person;
@@ -155,7 +156,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
         private static bool ApplyWeatherImpact(
             PersonEntity person,
-            IReadOnlyDictionary<Matrix.Population.Domain.ValueObjects.PersonId, PersonEntity> residentsById,
+            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
             DateOnly currentDate,
             WeatherImpactProfile previousWeather,
             WeatherImpactProfile currentWeather,
@@ -243,8 +244,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     DateTime.SpecifyKind(
                         value: occurredOnUtc,
                         kind: DateTimeKind.Utc)),
-                _ => throw new InvalidOperationException(
-                    "OccurredOnUtc must be validated before normalization.")
+                _ => throw new InvalidOperationException("OccurredOnUtc must be validated before normalization.")
             };
         }
 

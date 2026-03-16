@@ -33,6 +33,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 if (account is null)
                 {
                     logger.LogWarning(
+                        message:
                         "Skipped workplace payroll settlement for cityId={CityId}, correlationId={CorrelationId}, householdRef={HouseholdRef}; account was not found.",
                         message.CityId,
                         message.CorrelationId,
@@ -48,6 +49,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 if (business is null)
                 {
                     logger.LogWarning(
+                        message:
                         "Skipped workplace payroll settlement for cityId={CityId}, correlationId={CorrelationId}, workplaceRef={WorkplaceRef}; employer business was not found.",
                         message.CityId,
                         message.CorrelationId,
@@ -77,9 +79,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 business.EnsureCompatibleUnit(account.GetUnitProfile());
                 business.EnsureCanIssuePayroll();
 
-                Money grossPayroll = Money.FromDecimal(payroll.GrossPayrollAmount);
-                Money incomeTax = Money.FromDecimal(payroll.IncomeTaxAmount);
-                Money netPayroll = Money.FromDecimal(payroll.NetPayrollAmount);
+                var grossPayroll = Money.FromDecimal(payroll.GrossPayrollAmount);
+                var incomeTax = Money.FromDecimal(payroll.IncomeTaxAmount);
+                var netPayroll = Money.FromDecimal(payroll.NetPayrollAmount);
 
                 if (!grossPayroll.IsPositive || !netPayroll.IsPositive)
                     continue;
@@ -88,7 +90,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 account.ReceivePayroll(netPayroll);
 
                 await businessLedgerRepository.AddAsync(
-                    new CityBusinessLedgerEntry(
+                    entry: new CityBusinessLedgerEntry(
                         id: Guid.NewGuid(),
                         businessId: business.Id,
                         cityId: business.CityId,
@@ -97,13 +99,14 @@ namespace Matrix.Economy.Infrastructure.Consumers
                         amount: grossPayroll,
                         taxAmount: incomeTax,
                         title: "Settled workplace payroll",
-                        description: $"Payroll settled from classic city workplace '{payroll.JobTitle}' for {message.SettledDays} day(s). Income tax was already transferred through aggregate city settlement.",
+                        description:
+                        $"Payroll settled from classic city workplace '{payroll.JobTitle}' for {message.SettledDays} day(s). Income tax was already transferred through aggregate city settlement.",
                         source: CityBusinessLedgerEntrySource.Settlement,
                         referenceCode: referenceCode),
-                    context.CancellationToken);
+                    cancellationToken: context.CancellationToken);
 
                 await householdLedgerRepository.AddAsync(
-                    new CityHouseholdAccountLedgerEntry(
+                    entry: new CityHouseholdAccountLedgerEntry(
                         id: Guid.NewGuid(),
                         householdAccountId: account.Id,
                         cityId: account.CityId,
@@ -111,10 +114,11 @@ namespace Matrix.Economy.Infrastructure.Consumers
                         kind: CityHouseholdAccountLedgerEntryKind.PayrollIncome,
                         amount: netPayroll,
                         title: "Settled workplace payroll",
-                        description: $"Take-home payroll settled from classic city workplace '{payroll.JobTitle}' for {message.SettledDays} day(s).",
+                        description:
+                        $"Take-home payroll settled from classic city workplace '{payroll.JobTitle}' for {message.SettledDays} day(s).",
                         source: CityHouseholdAccountLedgerEntrySource.Settlement,
                         referenceCode: referenceCode),
-                    context.CancellationToken);
+                    cancellationToken: context.CancellationToken);
 
                 settledPayrollEntries++;
             }
@@ -122,6 +126,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             if (settledPayrollEntries == 0)
             {
                 logger.LogDebug(
+                    message:
                     "Skipped classic city workplace payroll settlement for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}.",
                     message.CityId,
                     message.CorrelationId,
@@ -133,6 +138,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
+                message:
                 "Applied classic city workplace payroll settlement for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, settledPayrollEntries={SettledPayrollEntries}.",
                 message.CityId,
                 message.CorrelationId,

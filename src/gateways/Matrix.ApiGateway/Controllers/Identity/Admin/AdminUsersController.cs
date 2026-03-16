@@ -1,12 +1,12 @@
-using Matrix.ApiGateway.Common.Urls;
 using Matrix.ApiGateway.Authorization.Caching;
+using Matrix.ApiGateway.Common.Urls;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Admin.Users.Requests;
 using Matrix.Identity.Contracts.Admin.Users.Responses;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace Matrix.ApiGateway.Controllers.Identity.Admin
 {
@@ -17,8 +17,8 @@ namespace Matrix.ApiGateway.Controllers.Identity.Admin
         IIdentityAdminUsersClient usersClient,
         IDistributedCache distributedCache) : ControllerBase
     {
-        private readonly IIdentityAdminUsersClient _usersClient = usersClient;
         private readonly IDistributedCache _distributedCache = distributedCache;
+        private readonly IIdentityAdminUsersClient _usersClient = usersClient;
 
         [HttpGet]
         public async Task<ActionResult<PagedResult<UserListItemResponse>>> GetUsersPage(

@@ -15,97 +15,98 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
             builder.HasKey(b => b.Id);
 
             builder
-                .Property(b => b.Id)
-                .HasConversion(
-                    id => id.Value,
-                    value => new CityBudgetId(value))
-                .HasColumnName("id");
+               .Property(b => b.Id)
+               .HasConversion(
+                    convertToProviderExpression: id => id.Value,
+                    convertFromProviderExpression: value => new CityBudgetId(value))
+               .HasColumnName("id");
 
             builder
-                .Property(b => b.CityId)
-                .HasColumnName("city_id");
+               .Property(b => b.CityId)
+               .HasColumnName("city_id");
 
             builder
-                .Property(b => b.UnitKind)
-                .HasConversion<string>()
-                .HasColumnName("unit_kind");
+               .Property(b => b.UnitKind)
+               .HasConversion<string>()
+               .HasColumnName("unit_kind");
 
             builder
-                .Property(b => b.UnitCode)
-                .HasColumnName("unit_code");
+               .Property(b => b.UnitCode)
+               .HasColumnName("unit_code");
 
             builder
-                .Property(b => b.UnitDisplayName)
-                .HasColumnName("unit_display_name");
+               .Property(b => b.UnitDisplayName)
+               .HasColumnName("unit_display_name");
 
             builder
-                .Property(b => b.UnitSymbol)
-                .HasColumnName("unit_symbol");
+               .Property(b => b.UnitSymbol)
+               .HasColumnName("unit_symbol");
 
             builder
-                .Property(b => b.Balance)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("balance_amount");
+               .Property(b => b.Balance)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("balance_amount");
 
             builder
-                .Property(b => b.TotalTaxIncome)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_tax_income_amount");
+               .Property(b => b.TotalTaxIncome)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_tax_income_amount");
 
             builder
-                .Property(b => b.TotalIncomeTaxIncome)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_income_tax_income_amount");
+               .Property(b => b.TotalIncomeTaxIncome)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_income_tax_income_amount");
 
             builder
-                .Property(b => b.TotalSalesTaxIncome)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_sales_tax_income_amount");
+               .Property(b => b.TotalSalesTaxIncome)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_sales_tax_income_amount");
 
             builder
-                .Property(b => b.TotalDirectRevenue)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_direct_revenue_amount");
+               .Property(b => b.TotalDirectRevenue)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_direct_revenue_amount");
 
             builder
-                .Property(b => b.TotalCityExpenses)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_city_expenses_amount");
+               .Property(b => b.TotalCityExpenses)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_city_expenses_amount");
 
             builder
-                .Property(b => b.TotalRetailTurnover)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_retail_turnover_amount");
+               .Property(b => b.TotalRetailTurnover)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_retail_turnover_amount");
 
             builder
-                .Property(b => b.TotalGrossPayroll)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_gross_payroll_amount");
+               .Property(b => b.TotalGrossPayroll)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_gross_payroll_amount");
 
             builder
-                .Property(b => b.TotalNetPayroll)
-                .HasConversion(
-                    m => m.Amount,
-                    v => new Money(v))
-                .HasColumnName("total_net_payroll_amount");
+               .Property(b => b.TotalNetPayroll)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("total_net_payroll_amount");
 
-            builder.HasIndex(b => b.CityId).IsUnique();
+            builder.HasIndex(b => b.CityId)
+               .IsUnique();
         }
     }
 }

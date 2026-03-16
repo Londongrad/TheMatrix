@@ -5,17 +5,16 @@ import Button from "@shared/ui/controls/Button/Button";
 import ProvisioningTimeline, {
     type ProvisioningTimelineItem,
 } from "@services/citycore/scenarios/classic-city/components/ProvisioningTimeline";
-import {
-    getCity,
-    getCityProvisioning,
-} from "@services/citycore/scenarios/classic-city/api/citiesApi";
+import {getCity, getCityProvisioning,} from "@services/citycore/scenarios/classic-city/api/citiesApi";
 import {getClassicCitySetupSession} from "@services/citycore/scenarios/classic-city/api/setupSessionsApi";
 import type {
     CityPopulationBootstrapView,
     CityProvisioningStatusView,
     CityView,
 } from "@services/citycore/scenarios/classic-city/contracts/citiesContracts";
-import type {ClassicCitySetupSessionView} from "@services/citycore/scenarios/classic-city/contracts/setupSessionContracts";
+import type {
+    ClassicCitySetupSessionView
+} from "@services/citycore/scenarios/classic-city/contracts/setupSessionContracts";
 import {useCityProvisioning} from "@services/citycore/scenarios/classic-city/hooks/useCityProvisioning";
 import {
     formatCityStatusLabel,
@@ -573,11 +572,13 @@ export default function ClassicCityProvisioningSessionPage() {
                             <div className="scenario-setup__stats-grid">
                                 <div className="scenario-setup__stat-card">
                                     <span className="scenario-setup__stat-label">Requested people</span>
-                                    <strong className="scenario-setup__stat-value">{summary.requestedPeopleCount}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{summary.requestedPeopleCount}</strong>
                                 </div>
                                 <div className="scenario-setup__stat-card">
                                     <span className="scenario-setup__stat-label">Generated people</span>
-                                    <strong className="scenario-setup__stat-value">{summary.generatedPeopleCount}</strong>
+                                    <strong
+                                        className="scenario-setup__stat-value">{summary.generatedPeopleCount}</strong>
                                 </div>
                                 <div className="scenario-setup__stat-card">
                                     <span className="scenario-setup__stat-label">Households</span>

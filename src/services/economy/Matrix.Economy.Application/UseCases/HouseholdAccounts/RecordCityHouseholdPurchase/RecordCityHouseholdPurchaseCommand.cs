@@ -1,4 +1,3 @@
-using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase

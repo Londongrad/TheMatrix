@@ -79,19 +79,22 @@ function MetricCard({metric}: { metric: CityDashboardMetricView }) {
             <div className="city-dashboard-metric-card__delta-grid">
                 <div className="city-dashboard-metric-card__delta">
                     <span className="city-dashboard-metric-card__delta-label">Day</span>
-                    <span className={`city-dashboard-metric-card__delta-value city-dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYesterday)}`}>
+                    <span
+                        className={`city-dashboard-metric-card__delta-value city-dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYesterday)}`}>
                         {formatDelta(metric.deltaYesterday, metric.valueKind)}
                     </span>
                 </div>
                 <div className="city-dashboard-metric-card__delta">
                     <span className="city-dashboard-metric-card__delta-label">Month</span>
-                    <span className={`city-dashboard-metric-card__delta-value city-dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaMonth)}`}>
+                    <span
+                        className={`city-dashboard-metric-card__delta-value city-dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaMonth)}`}>
                         {formatDelta(metric.deltaMonth, metric.valueKind)}
                     </span>
                 </div>
                 <div className="city-dashboard-metric-card__delta">
                     <span className="city-dashboard-metric-card__delta-label">Year</span>
-                    <span className={`city-dashboard-metric-card__delta-value city-dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYear)}`}>
+                    <span
+                        className={`city-dashboard-metric-card__delta-value city-dashboard-metric-card__delta-value--${getDeltaTone(metric.deltaYear)}`}>
                         {formatDelta(metric.deltaYear, metric.valueKind)}
                     </span>
                 </div>
@@ -114,10 +117,12 @@ function ActivityItem({event}: { event: CityDashboardActivityEventView }) {
                 </div>
 
                 <div className="city-dashboard-event__pills">
-                    <span className={`city-dashboard-event__pill city-dashboard-event__pill--${event.source.toLowerCase()}`}>
+                    <span
+                        className={`city-dashboard-event__pill city-dashboard-event__pill--${event.source.toLowerCase()}`}>
                         {humanize(event.source)}
                     </span>
-                    <span className={`city-dashboard-event__pill city-dashboard-event__pill--${event.severity.toLowerCase()}`}>
+                    <span
+                        className={`city-dashboard-event__pill city-dashboard-event__pill--${event.severity.toLowerCase()}`}>
                         {humanize(event.severity)}
                     </span>
                 </div>
@@ -192,7 +197,8 @@ export function CityDashboardCard({
                                 </span>
                             </div>
                             <p className="city-dashboard-hero__summary">
-                                Metrics are compared against the previous simulation day, month, and year instead of real-world time.
+                                Metrics are compared against the previous simulation day, month, and year instead of
+                                real-world time.
                             </p>
                         </div>
 
@@ -224,7 +230,8 @@ export function CityDashboardCard({
                         {dashboard.recentEvents.length === 0 ? (
                             <div className="city-dashboard-empty city-dashboard-empty--inline" role="status">
                                 <div className="city-dashboard-empty__text">
-                                    Activity entries will appear here once operator or simulation-driven city events are recorded.
+                                    Activity entries will appear here once operator or simulation-driven city events are
+                                    recorded.
                                 </div>
                             </div>
                         ) : (

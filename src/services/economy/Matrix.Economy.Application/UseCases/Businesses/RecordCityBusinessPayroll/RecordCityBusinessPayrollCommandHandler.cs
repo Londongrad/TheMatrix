@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
@@ -24,35 +23,41 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayro
             RecordCityBusinessPayrollCommand request,
             CancellationToken cancellationToken)
         {
-            CityBusiness business = await businessRepository.GetByIdAsync(request.BusinessId, cancellationToken)
-                ?? throw new InvalidOperationException($"Business '{request.BusinessId}' was not found.");
-            CityHouseholdAccount householdAccount = await householdAccountRepository.GetByIdAsync(request.HouseholdAccountId, cancellationToken)
-                ?? throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
+            CityBusiness business = await businessRepository.GetByIdAsync(
+                                        businessId: request.BusinessId,
+                                        cancellationToken: cancellationToken) ??
+                                    throw new InvalidOperationException(
+                                        $"Business '{request.BusinessId}' was not found.");
+            CityHouseholdAccount householdAccount =
+                await householdAccountRepository.GetByIdAsync(
+                    householdAccountId: request.HouseholdAccountId,
+                    cancellationToken: cancellationToken) ??
+                throw new InvalidOperationException($"Household account '{request.HouseholdAccountId}' was not found.");
 
             business.EnsureCanIssuePayroll();
 
             if (business.CityId != householdAccount.CityId)
-            {
                 throw new InvalidOperationException("Business and household account must belong to the same city.");
-            }
 
             householdAccount.EnsureCompatibleUnit(business.GetUnitProfile());
 
-            Money grossAmount = Money.FromDecimal(request.GrossAmount);
-            Money incomeTaxAmount = Money.FromDecimal(request.IncomeTaxAmount);
+            var grossAmount = Money.FromDecimal(request.GrossAmount);
+            var incomeTaxAmount = Money.FromDecimal(request.IncomeTaxAmount);
 
             if (incomeTaxAmount.IsNegative || incomeTaxAmount.Amount > grossAmount.Amount)
-            {
                 throw new InvalidOperationException("Income tax amount must be between zero and gross payroll.");
-            }
 
             Money netAmount = grossAmount.Subtract(incomeTaxAmount);
 
             business.RecordOperatingExpense(grossAmount);
             householdAccount.ReceivePayroll(netAmount);
 
-            CityBudget budget = await budgetRepository.GetByCityAsync(business.CityId, cancellationToken)
-                ?? CreateBudget(business, budgetRepository);
+            CityBudget budget = await budgetRepository.GetByCityAsync(
+                                    cityId: business.CityId,
+                                    cancellationToken: cancellationToken) ??
+                                CreateBudget(
+                                    business: business,
+                                    budgetRepository: budgetRepository);
             budget.EnsureCompatibleUnit(business.GetUnitProfile());
 
             DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
@@ -82,8 +87,12 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayro
                 source: CityHouseholdAccountLedgerEntrySource.Payroll,
                 referenceCode: business.Id.ToString("N"));
 
-            await businessLedgerRepository.AddAsync(businessEntry, cancellationToken);
-            await householdLedgerRepository.AddAsync(householdEntry, cancellationToken);
+            await businessLedgerRepository.AddAsync(
+                entry: businessEntry,
+                cancellationToken: cancellationToken);
+            await householdLedgerRepository.AddAsync(
+                entry: householdEntry,
+                cancellationToken: cancellationToken);
 
             if (incomeTaxAmount.IsPositive)
             {
@@ -100,16 +109,25 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayro
                     referenceCode: business.Id.ToString("N"));
 
                 budget.ApplyLedgerEntry(budgetEntry);
-                await budgetLedgerRepository.AddAsync(budgetEntry, cancellationToken);
+                await budgetLedgerRepository.AddAsync(
+                    entry: budgetEntry,
+                    cancellationToken: cancellationToken);
             }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            return Map(businessEntry, business.GetUnitProfile());
+            return Map(
+                entry: businessEntry,
+                unitProfile: business.GetUnitProfile());
         }
 
-        private static CityBudget CreateBudget(CityBusiness business, ICityBudgetRepository budgetRepository)
+        private static CityBudget CreateBudget(
+            CityBusiness business,
+            ICityBudgetRepository budgetRepository)
         {
-            var budget = new CityBudget(CityBudgetId.New(), business.CityId, business.GetUnitProfile());
+            var budget = new CityBudget(
+                id: CityBudgetId.New(),
+                cityId: business.CityId,
+                unitProfile: business.GetUnitProfile());
             budgetRepository.Add(budget);
             return budget;
         }

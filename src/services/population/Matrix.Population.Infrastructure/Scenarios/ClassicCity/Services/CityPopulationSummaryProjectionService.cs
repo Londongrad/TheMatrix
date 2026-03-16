@@ -1,9 +1,9 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
-using Matrix.Population.Domain.ValueObjects;
 using Matrix.Population.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,7 +53,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
                     outerKeySelector: person => person.HouseholdId,
                     innerKeySelector: placement => placement.HouseholdId,
-                    resultSelector: (person, _) => person)
+                    resultSelector: (
+                        person,
+                        _) => person)
                .ToListAsync(cancellationToken);
 
             await UpsertAsync(
@@ -149,7 +151,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements)
         {
             DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
-            Dictionary<HouseholdId, HousingStatus> housingByHouseholdId = householdPlacements
+            var housingByHouseholdId = householdPlacements
                .ToDictionary(
                     keySelector: x => x.HouseholdId,
                     elementSelector: x => x.HousingStatus);
@@ -159,32 +161,41 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                .ToArray();
 
             return new CityPopulationSummarySnapshotValues(
-                currentDate,
-                updatedAtUtc,
-                householdPlacements.Count,
-                householdPlacements.Count(x => x.HousingStatus == HousingStatus.Housed),
-                householdPlacements.Count(x => x.HousingStatus == HousingStatus.Homeless),
-                aliveResidents.Length,
-                persons.Count - aliveResidents.Length,
-                aliveResidents.Count(x =>
-                    housingByHouseholdId.TryGetValue(x.HouseholdId, out HousingStatus status) &&
+                CurrentDate: currentDate,
+                UpdatedAtUtc: updatedAtUtc,
+                HouseholdCount: householdPlacements.Count,
+                HousedHouseholdCount: householdPlacements.Count(x => x.HousingStatus == HousingStatus.Housed),
+                HomelessHouseholdCount: householdPlacements.Count(x => x.HousingStatus == HousingStatus.Homeless),
+                ResidentCount: aliveResidents.Length,
+                DeceasedCount: persons.Count - aliveResidents.Length,
+                HousedResidentCount: aliveResidents.Count(x =>
+                    housingByHouseholdId.TryGetValue(
+                        key: x.HouseholdId,
+                        value: out HousingStatus status) &&
                     status == HousingStatus.Housed),
-                aliveResidents.Count(x =>
-                    housingByHouseholdId.TryGetValue(x.HouseholdId, out HousingStatus status) &&
+                HomelessResidentCount: aliveResidents.Count(x =>
+                    housingByHouseholdId.TryGetValue(
+                        key: x.HouseholdId,
+                        value: out HousingStatus status) &&
                     status == HousingStatus.Homeless),
-                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Child),
-                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Youth),
-                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Adult),
-                aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Senior),
-                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Employed),
-                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Student),
-                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Unemployed),
-                aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Retired),
-                aliveResidents.Select(x => (decimal?)x.Health.Value).Average(),
-                aliveResidents.Select(x => (decimal?)x.Happiness.Value).Average(),
-                aliveResidents.Select(x => (decimal?)x.Energy.Value).Average(),
-                aliveResidents.Select(x => (decimal?)x.Stress.Value).Average(),
-                aliveResidents.Select(x => (decimal?)x.SocialNeed.Value).Average());
+                ChildCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Child),
+                YouthCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Youth),
+                AdultCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Adult),
+                SeniorCount: aliveResidents.Count(x => x.GetAgeGroup(currentDate) == AgeGroup.Senior),
+                EmployedCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Employed),
+                StudentCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Student),
+                UnemployedCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Unemployed),
+                RetiredCount: aliveResidents.Count(x => x.Employment.Status == EmploymentStatus.Retired),
+                AverageHealth: aliveResidents.Select(x => (decimal?)x.Health.Value)
+                   .Average(),
+                AverageHappiness: aliveResidents.Select(x => (decimal?)x.Happiness.Value)
+                   .Average(),
+                AverageEnergy: aliveResidents.Select(x => (decimal?)x.Energy.Value)
+                   .Average(),
+                AverageStress: aliveResidents.Select(x => (decimal?)x.Stress.Value)
+                   .Average(),
+                AverageSocialNeed: aliveResidents.Select(x => (decimal?)x.SocialNeed.Value)
+                   .Average());
         }
 
         private Task UpsertSummaryProjectionAsync(
@@ -193,36 +204,36 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CancellationToken cancellationToken)
         {
             return _dbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"""
-                 INSERT INTO "CityPopulationSummaryProjections"
-                 ("CityId", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "CurrentDate", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "ResidentCount", "RetiredCount", "SeniorCount", "StudentCount", "UnemployedCount", "UpdatedAtUtc", "YouthCount")
-                 VALUES
-                 ({cityId.Value}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.CurrentDate}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.StudentCount}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.YouthCount})
-                 ON CONFLICT ("CityId") DO UPDATE SET
-                     "AdultCount" = EXCLUDED."AdultCount",
-                     "AverageEnergy" = EXCLUDED."AverageEnergy",
-                     "AverageHappiness" = EXCLUDED."AverageHappiness",
-                     "AverageHealth" = EXCLUDED."AverageHealth",
-                     "AverageSocialNeed" = EXCLUDED."AverageSocialNeed",
-                     "AverageStress" = EXCLUDED."AverageStress",
-                     "ChildCount" = EXCLUDED."ChildCount",
-                     "CurrentDate" = EXCLUDED."CurrentDate",
-                     "DeceasedCount" = EXCLUDED."DeceasedCount",
-                     "EmployedCount" = EXCLUDED."EmployedCount",
-                     "HomelessHouseholdCount" = EXCLUDED."HomelessHouseholdCount",
-                     "HomelessResidentCount" = EXCLUDED."HomelessResidentCount",
-                     "HousedHouseholdCount" = EXCLUDED."HousedHouseholdCount",
-                     "HousedResidentCount" = EXCLUDED."HousedResidentCount",
-                     "HouseholdCount" = EXCLUDED."HouseholdCount",
-                     "ResidentCount" = EXCLUDED."ResidentCount",
-                     "RetiredCount" = EXCLUDED."RetiredCount",
-                     "SeniorCount" = EXCLUDED."SeniorCount",
-                     "StudentCount" = EXCLUDED."StudentCount",
-                     "UnemployedCount" = EXCLUDED."UnemployedCount",
-                     "UpdatedAtUtc" = EXCLUDED."UpdatedAtUtc",
-                     "YouthCount" = EXCLUDED."YouthCount";
-                 """,
-                cancellationToken);
+                sql: $"""
+                      INSERT INTO "CityPopulationSummaryProjections"
+                      ("CityId", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "CurrentDate", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "ResidentCount", "RetiredCount", "SeniorCount", "StudentCount", "UnemployedCount", "UpdatedAtUtc", "YouthCount")
+                      VALUES
+                      ({cityId.Value}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.CurrentDate}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.StudentCount}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.YouthCount})
+                      ON CONFLICT ("CityId") DO UPDATE SET
+                          "AdultCount" = EXCLUDED."AdultCount",
+                          "AverageEnergy" = EXCLUDED."AverageEnergy",
+                          "AverageHappiness" = EXCLUDED."AverageHappiness",
+                          "AverageHealth" = EXCLUDED."AverageHealth",
+                          "AverageSocialNeed" = EXCLUDED."AverageSocialNeed",
+                          "AverageStress" = EXCLUDED."AverageStress",
+                          "ChildCount" = EXCLUDED."ChildCount",
+                          "CurrentDate" = EXCLUDED."CurrentDate",
+                          "DeceasedCount" = EXCLUDED."DeceasedCount",
+                          "EmployedCount" = EXCLUDED."EmployedCount",
+                          "HomelessHouseholdCount" = EXCLUDED."HomelessHouseholdCount",
+                          "HomelessResidentCount" = EXCLUDED."HomelessResidentCount",
+                          "HousedHouseholdCount" = EXCLUDED."HousedHouseholdCount",
+                          "HousedResidentCount" = EXCLUDED."HousedResidentCount",
+                          "HouseholdCount" = EXCLUDED."HouseholdCount",
+                          "ResidentCount" = EXCLUDED."ResidentCount",
+                          "RetiredCount" = EXCLUDED."RetiredCount",
+                          "SeniorCount" = EXCLUDED."SeniorCount",
+                          "StudentCount" = EXCLUDED."StudentCount",
+                          "UnemployedCount" = EXCLUDED."UnemployedCount",
+                          "UpdatedAtUtc" = EXCLUDED."UpdatedAtUtc",
+                          "YouthCount" = EXCLUDED."YouthCount";
+                      """,
+                cancellationToken: cancellationToken);
         }
 
         private Task UpsertDailySnapshotAsync(
@@ -231,35 +242,35 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CancellationToken cancellationToken)
         {
             return _dbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"""
-                 INSERT INTO "CityPopulationDailySummarySnapshots"
-                 ("CityId", "SnapshotDate", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "ResidentCount", "RetiredCount", "SeniorCount", "StudentCount", "UnemployedCount", "UpdatedAtUtc", "YouthCount")
-                 VALUES
-                 ({cityId.Value}, {snapshot.CurrentDate}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.StudentCount}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.YouthCount})
-                 ON CONFLICT ("CityId", "SnapshotDate") DO UPDATE SET
-                     "AdultCount" = EXCLUDED."AdultCount",
-                     "AverageEnergy" = EXCLUDED."AverageEnergy",
-                     "AverageHappiness" = EXCLUDED."AverageHappiness",
-                     "AverageHealth" = EXCLUDED."AverageHealth",
-                     "AverageSocialNeed" = EXCLUDED."AverageSocialNeed",
-                     "AverageStress" = EXCLUDED."AverageStress",
-                     "ChildCount" = EXCLUDED."ChildCount",
-                     "DeceasedCount" = EXCLUDED."DeceasedCount",
-                     "EmployedCount" = EXCLUDED."EmployedCount",
-                     "HomelessHouseholdCount" = EXCLUDED."HomelessHouseholdCount",
-                     "HomelessResidentCount" = EXCLUDED."HomelessResidentCount",
-                     "HousedHouseholdCount" = EXCLUDED."HousedHouseholdCount",
-                     "HousedResidentCount" = EXCLUDED."HousedResidentCount",
-                     "HouseholdCount" = EXCLUDED."HouseholdCount",
-                     "ResidentCount" = EXCLUDED."ResidentCount",
-                     "RetiredCount" = EXCLUDED."RetiredCount",
-                     "SeniorCount" = EXCLUDED."SeniorCount",
-                     "StudentCount" = EXCLUDED."StudentCount",
-                     "UnemployedCount" = EXCLUDED."UnemployedCount",
-                     "UpdatedAtUtc" = EXCLUDED."UpdatedAtUtc",
-                     "YouthCount" = EXCLUDED."YouthCount";
-                 """,
-                cancellationToken);
+                sql: $"""
+                      INSERT INTO "CityPopulationDailySummarySnapshots"
+                      ("CityId", "SnapshotDate", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "ResidentCount", "RetiredCount", "SeniorCount", "StudentCount", "UnemployedCount", "UpdatedAtUtc", "YouthCount")
+                      VALUES
+                      ({cityId.Value}, {snapshot.CurrentDate}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.StudentCount}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.YouthCount})
+                      ON CONFLICT ("CityId", "SnapshotDate") DO UPDATE SET
+                          "AdultCount" = EXCLUDED."AdultCount",
+                          "AverageEnergy" = EXCLUDED."AverageEnergy",
+                          "AverageHappiness" = EXCLUDED."AverageHappiness",
+                          "AverageHealth" = EXCLUDED."AverageHealth",
+                          "AverageSocialNeed" = EXCLUDED."AverageSocialNeed",
+                          "AverageStress" = EXCLUDED."AverageStress",
+                          "ChildCount" = EXCLUDED."ChildCount",
+                          "DeceasedCount" = EXCLUDED."DeceasedCount",
+                          "EmployedCount" = EXCLUDED."EmployedCount",
+                          "HomelessHouseholdCount" = EXCLUDED."HomelessHouseholdCount",
+                          "HomelessResidentCount" = EXCLUDED."HomelessResidentCount",
+                          "HousedHouseholdCount" = EXCLUDED."HousedHouseholdCount",
+                          "HousedResidentCount" = EXCLUDED."HousedResidentCount",
+                          "HouseholdCount" = EXCLUDED."HouseholdCount",
+                          "ResidentCount" = EXCLUDED."ResidentCount",
+                          "RetiredCount" = EXCLUDED."RetiredCount",
+                          "SeniorCount" = EXCLUDED."SeniorCount",
+                          "StudentCount" = EXCLUDED."StudentCount",
+                          "UnemployedCount" = EXCLUDED."UnemployedCount",
+                          "UpdatedAtUtc" = EXCLUDED."UpdatedAtUtc",
+                          "YouthCount" = EXCLUDED."YouthCount";
+                      """,
+                cancellationToken: cancellationToken);
         }
 
         private async Task<bool> HasAnyPopulationStateAsync(
@@ -267,18 +278,36 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CancellationToken cancellationToken)
         {
             if (await _dbContext.ClassicCityHouseholdPlacements
-               .AsNoTracking()
-               .AnyAsync(
-                    predicate: x => x.CityId == cityId,
-                    cancellationToken: cancellationToken))
+                   .AsNoTracking()
+                   .AnyAsync(
+                        predicate: x => x.CityId == cityId,
+                        cancellationToken: cancellationToken))
                 return true;
 
-            return await _dbContext.CityPopulationEnvironments.AsNoTracking().AnyAsync(x => x.CityId == cityId, cancellationToken) ||
-                   await _dbContext.CityPopulationProgressionStates.AsNoTracking().AnyAsync(x => x.CityId == cityId, cancellationToken) ||
-                   await _dbContext.CityPopulationWeatherExposureStates.AsNoTracking().AnyAsync(x => x.CityId == cityId, cancellationToken) ||
-                   await _dbContext.CityPopulationWeatherImpactStates.AsNoTracking().AnyAsync(x => x.CityId == cityId, cancellationToken) ||
-                   await _dbContext.CityPopulationArchiveStates.AsNoTracking().AnyAsync(x => x.CityId == cityId, cancellationToken) ||
-                   await _dbContext.CityPopulationDeletionStates.AsNoTracking().AnyAsync(x => x.CityId == cityId, cancellationToken);
+            return await _dbContext.CityPopulationEnvironments.AsNoTracking()
+                      .AnyAsync(
+                           predicate: x => x.CityId == cityId,
+                           cancellationToken: cancellationToken) ||
+                   await _dbContext.CityPopulationProgressionStates.AsNoTracking()
+                      .AnyAsync(
+                           predicate: x => x.CityId == cityId,
+                           cancellationToken: cancellationToken) ||
+                   await _dbContext.CityPopulationWeatherExposureStates.AsNoTracking()
+                      .AnyAsync(
+                           predicate: x => x.CityId == cityId,
+                           cancellationToken: cancellationToken) ||
+                   await _dbContext.CityPopulationWeatherImpactStates.AsNoTracking()
+                      .AnyAsync(
+                           predicate: x => x.CityId == cityId,
+                           cancellationToken: cancellationToken) ||
+                   await _dbContext.CityPopulationArchiveStates.AsNoTracking()
+                      .AnyAsync(
+                           predicate: x => x.CityId == cityId,
+                           cancellationToken: cancellationToken) ||
+                   await _dbContext.CityPopulationDeletionStates.AsNoTracking()
+                      .AnyAsync(
+                           predicate: x => x.CityId == cityId,
+                           cancellationToken: cancellationToken);
         }
 
         private async Task<DateOnly> ResolveCurrentDateAsync(

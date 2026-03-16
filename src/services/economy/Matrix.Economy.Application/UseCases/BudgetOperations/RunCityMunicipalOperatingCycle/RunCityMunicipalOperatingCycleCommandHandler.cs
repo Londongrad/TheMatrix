@@ -20,8 +20,12 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalO
             RunCityMunicipalOperatingCycleCommand request,
             CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(request.CityId, cancellationToken);
-            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(request.CityId, cancellationToken);
+            IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
 
             int allocationCategoriesTouched = 0;
             int providerPayments = 0;
@@ -29,11 +33,12 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalO
 
             foreach (CityBudgetAllocation allocation in allocations)
             {
-                IReadOnlyList<CityMunicipalOperatingDisbursementDecision> decisions = policy.BuildDisbursements(allocation, businesses);
+                IReadOnlyList<CityMunicipalOperatingDisbursementDecision> decisions =
+                    policy.BuildDisbursements(
+                        allocation: allocation,
+                        businesses: businesses);
                 if (decisions.Count == 0)
-                {
                     continue;
-                }
 
                 allocationCategoriesTouched++;
 
@@ -41,17 +46,15 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalO
                 {
                     CityBusiness? business = businesses.FirstOrDefault(x => x.Id == decision.BusinessId);
                     if (business is null)
-                    {
                         continue;
-                    }
 
                     await disbursementSupport.DisburseAsync(
-                        business,
-                        allocation.Category,
-                        decision.Amount,
-                        $"{allocation.Category} operating disbursement",
-                        "Recurring municipal operating cycle.",
-                        cancellationToken);
+                        business: business,
+                        category: allocation.Category,
+                        amount: decision.Amount,
+                        title: $"{allocation.Category} operating disbursement",
+                        description: "Recurring municipal operating cycle.",
+                        cancellationToken: cancellationToken);
 
                     providerPayments++;
                     totalDisbursedAmount += decision.Amount;

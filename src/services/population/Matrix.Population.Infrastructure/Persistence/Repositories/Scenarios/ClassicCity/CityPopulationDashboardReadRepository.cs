@@ -1,8 +1,10 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
-using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
@@ -104,38 +106,38 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .ToArrayAsync(cancellationToken);
 
             if (placements.Length == 0)
-            {
                 return new CityPopulationDashboardEconomyReadModel(
                     StableHouseholdCount: 0,
                     StrainedHouseholdCount: 0,
                     DeficitHouseholdCount: 0,
                     AverageCashReserveAmount: null,
                     AverageDailyNetAmount: null);
-            }
 
             HouseholdId[] householdIds = placements
                .Select(x => x.HouseholdId)
                .Distinct()
                .ToArray();
 
-            Matrix.Population.Domain.Entities.Household[] households = await _dbContext.Households
+            Household[] households = await _dbContext.Households
                .AsNoTracking()
                .Where(x => householdIds.Contains(x.Id))
                .ToArrayAsync(cancellationToken);
-            Dictionary<HouseholdId, Matrix.Population.Domain.Entities.Household> householdsById = households.ToDictionary(
+            var householdsById = households.ToDictionary(
                 keySelector: x => x.Id,
                 elementSelector: x => x);
 
-            Matrix.Population.Domain.Entities.Person[] persons = await _dbContext.Persons
+            Person[] persons = await _dbContext.Persons
                .AsNoTracking()
                .Join(
                     inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
                     outerKeySelector: person => person.HouseholdId,
                     innerKeySelector: placement => placement.HouseholdId,
-                    resultSelector: (person, _) => person)
+                    resultSelector: (
+                        person,
+                        _) => person)
                .ToArrayAsync(cancellationToken);
 
-            Dictionary<HouseholdId, Matrix.Population.Domain.Entities.Person[]> residentsByHousehold = persons
+            var residentsByHousehold = persons
                .Where(x => x.IsAlive)
                .GroupBy(x => x.HouseholdId)
                .ToDictionary(
@@ -151,15 +153,19 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             foreach (ClassicCityHouseholdPlacement placement in placements)
             {
-                if (!householdsById.TryGetValue(placement.HouseholdId, out Matrix.Population.Domain.Entities.Household? household))
+                if (!householdsById.TryGetValue(
+                        key: placement.HouseholdId,
+                        value: out Household? household))
                     continue;
 
-                if (!residentsByHousehold.TryGetValue(placement.HouseholdId, out Matrix.Population.Domain.Entities.Person[]? householdResidents) ||
+                if (!residentsByHousehold.TryGetValue(
+                        key: placement.HouseholdId,
+                        value: out Person[]? householdResidents) ||
                     householdResidents is null ||
                     householdResidents.Length == 0)
                     continue;
 
-                var economyProfile = _householdEconomyPolicy.Build(
+                CityHouseholdEconomyProfile economyProfile = _householdEconomyPolicy.Build(
                     household: household,
                     householdResidents: householdResidents,
                     housingStatus: placement.HousingStatus,
@@ -167,8 +173,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
                 if (economyProfile.StrainScore >= 0.55d)
                     strainedHouseholdCount++;
-                else if (economyProfile.GrowthReadinessScore >= 0.60d && economyProfile.EconomicBalance >= 0d)
-                    stableHouseholdCount++;
+                else
+                    if (economyProfile.GrowthReadinessScore >= 0.60d && economyProfile.EconomicBalance >= 0d)
+                        stableHouseholdCount++;
 
                 if (economyProfile.HasCashDeficit || economyProfile.DailyNetAmount < 0m)
                     deficitHouseholdCount++;
@@ -183,10 +190,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 StrainedHouseholdCount: strainedHouseholdCount,
                 DeficitHouseholdCount: deficitHouseholdCount,
                 AverageCashReserveAmount: measuredHouseholdCount > 0
-                    ? decimal.Round(cashReserveTotal / measuredHouseholdCount, 2, MidpointRounding.AwayFromZero)
+                    ? decimal.Round(
+                        d: cashReserveTotal / measuredHouseholdCount,
+                        decimals: 2,
+                        mode: MidpointRounding.AwayFromZero)
                     : null,
                 AverageDailyNetAmount: measuredHouseholdCount > 0
-                    ? decimal.Round(dailyNetTotal / measuredHouseholdCount, 2, MidpointRounding.AwayFromZero)
+                    ? decimal.Round(
+                        d: dailyNetTotal / measuredHouseholdCount,
+                        decimals: 2,
+                        mode: MidpointRounding.AwayFromZero)
                     : null);
         }
 
@@ -209,8 +222,12 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     x.Severity.ToString(),
                     x.Title,
                     x.Summary,
-                    x.PrimaryResidentId == null ? null : x.PrimaryResidentId.Value.Value,
-                    x.SecondaryResidentId == null ? null : x.SecondaryResidentId.Value.Value))
+                    x.PrimaryResidentId == null
+                        ? null
+                        : x.PrimaryResidentId.Value.Value,
+                    x.SecondaryResidentId == null
+                        ? null
+                        : x.SecondaryResidentId.Value.Value))
                .ToArrayAsync(cancellationToken);
         }
 

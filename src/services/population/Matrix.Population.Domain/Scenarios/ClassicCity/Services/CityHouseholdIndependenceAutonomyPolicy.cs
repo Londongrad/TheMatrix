@@ -6,8 +6,7 @@ using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityHouseholdIndependenceAutonomyPolicy(
-        CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
+    public sealed class CityHouseholdIndependenceAutonomyPolicy(CityHouseholdLivelihoodPolicy householdLivelihoodPolicy)
     {
         public IReadOnlyList<CityHouseholdIndependenceAutonomyDecision> Plan(
             IReadOnlyCollection<Person> residents,
@@ -28,8 +27,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (reviewWindows <= 0)
                 return [];
 
-            Dictionary<PersonId, Person> residentsById = residents.ToDictionary(x => x.Id);
-            Dictionary<HouseholdId, List<Person>> householdResidents = residents
+            var residentsById = residents.ToDictionary(x => x.Id);
+            var householdResidents = residents
                .Where(x => x.IsAlive)
                .GroupBy(x => x.HouseholdId)
                .ToDictionary(
@@ -41,7 +40,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             foreach ((HouseholdId householdId, List<Person> members) in householdResidents)
             {
                 if (members.Count <= 1 ||
-                    !housingStatuses.TryGetValue(householdId, out HousingStatus housingStatus) ||
+                    !housingStatuses.TryGetValue(
+                        key: householdId,
+                        value: out HousingStatus housingStatus) ||
                     housingStatus != HousingStatus.Housed)
                     continue;
 
@@ -63,9 +64,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         reviewWindows: reviewWindows))
                     continue;
 
-                decisions.Add(new CityHouseholdIndependenceAutonomyDecision(
-                    ResidentId: candidate.Id,
-                    SourceHouseholdId: householdId));
+                decisions.Add(
+                    new CityHouseholdIndependenceAutonomyDecision(
+                        ResidentId: candidate.Id,
+                        SourceHouseholdId: householdId));
             }
 
             return decisions;
@@ -87,7 +89,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             foreach (Person member in members)
             {
-                if (member.GetAge(currentDate).Years == 0)
+                if (member.GetAge(currentDate)
+                       .Years ==
+                    0)
                     hasInfant = true;
 
                 if (member.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Youth)
@@ -107,12 +111,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             averageStress /= members.Count;
             averageHappiness /= members.Count;
 
-            var candidates = members
-               .Where(x => IsEligibleForIndependence(x, currentDate))
-               .Where(x => !HasChildInSameHousehold(x, members))
+            HouseholdIndependenceCandidate[] candidates = members
+               .Where(x => IsEligibleForIndependence(
+                    resident: x,
+                    currentDate: currentDate))
+               .Where(x => !HasChildInSameHousehold(
+                    resident: x,
+                    householdResidents: members))
                .Select(x => new HouseholdIndependenceCandidate(
                     Resident: x,
-                    LivesWithParent: LivesWithParent(x, members, residentsById)))
+                    LivesWithParent: LivesWithParent(
+                        resident: x,
+                        householdResidents: members,
+                        residentsById: residentsById)))
                .ToArray();
 
             CityHouseholdLivelihoodProfile livelihoodProfile = householdLivelihoodPolicy.Build(
@@ -159,42 +170,55 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     ? 0.006d
                     : -0.006d;
 
-            double ageFactor = resident.GetAge(currentDate).Years switch
-            {
-                <= 21 => 0.010d,
-                <= 27 => 0.024d,
-                <= 34 => 0.018d,
-                <= 42 => 0.010d,
-                _ => 0.004d
-            };
+            double ageFactor = resident.GetAge(currentDate)
+                   .Years switch
+                {
+                    <= 21 => 0.010d,
+                    <= 27 => 0.024d,
+                    <= 34 => 0.018d,
+                    <= 42 => 0.010d,
+                    _ => 0.004d
+                };
 
             double stress = Normalize(resident.Stress.Value);
             double lowHappiness = 1d - Normalize(resident.Happiness.Value);
             double lowHealth = 1d - Normalize(resident.Health.Value);
-            double householdCrowding = Math.Clamp((profile.Size - 2) / 4d, 0d, 1d);
+            double householdCrowding = Math.Clamp(
+                value: (profile.Size - 2) / 4d,
+                min: 0d,
+                max: 1d);
             double householdStress = Normalize(profile.AverageStress);
             double householdLowHappiness = 1d - Normalize(profile.AverageHappiness);
             double selfReliance = householdLivelihoodPolicy.ResolveResidentSelfReliance(resident);
             double launchReadiness = Math.Clamp(
-                (profile.LivelihoodProfile.StabilityScore * 0.40d) +
-                (selfReliance * 0.60d),
-                0d,
-                1d);
+                value: (profile.LivelihoodProfile.StabilityScore * 0.40d) +
+                       (selfReliance * 0.60d),
+                min: 0d,
+                max: 1d);
 
-            double chance = 0.001d
-                            + ageFactor
-                            + employmentStrength
-                            + (candidate.LivesWithParent ? 0.018d : 0d)
-                            + (householdCrowding * 0.024d)
-                            + (stress * 0.018d)
-                            + (lowHappiness * 0.012d)
-                            + (householdStress * 0.010d)
-                            + (householdLowHappiness * 0.008d)
-                            - (lowHealth * 0.010d)
-                            - (profile.HasInfant ? 0.008d : 0d)
-                            - (profile.ActiveIllnessCount > 0 ? 0.006d : 0d);
+            double chance = 0.001d +
+                            ageFactor +
+                            employmentStrength +
+                            (candidate.LivesWithParent
+                                ? 0.018d
+                                : 0d) +
+                            (householdCrowding * 0.024d) +
+                            (stress * 0.018d) +
+                            (lowHappiness * 0.012d) +
+                            (householdStress * 0.010d) +
+                            (householdLowHappiness * 0.008d) -
+                            (lowHealth * 0.010d) -
+                            (profile.HasInfant
+                                ? 0.008d
+                                : 0d) -
+                            (profile.ActiveIllnessCount > 0
+                                ? 0.006d
+                                : 0d);
 
-            chance *= Math.Clamp(0.30d + launchReadiness, 0.25d, 1.10d);
+            chance *= Math.Clamp(
+                value: 0.30d + launchReadiness,
+                min: 0.25d,
+                max: 1.10d);
 
             if (selfReliance < 0.25d)
                 chance *= 0.45d;
@@ -206,7 +230,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 residentId: resident.Id,
                 currentDate: currentDate,
                 salt: 1_277,
-                chancePerReview: Math.Clamp(chance, 0.0005d, 0.100d),
+                chancePerReview: Math.Clamp(
+                    value: chance,
+                    min: 0.0005d,
+                    max: 0.100d),
                 reviewWindows: reviewWindows);
         }
 
@@ -235,15 +262,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> householdResidents,
             IReadOnlyDictionary<PersonId, Person> residentsById)
         {
-            if (resident.MotherId is { } motherId &&
-                residentsById.TryGetValue(motherId, out Person? mother) &&
+            if (resident.MotherId is
+                    { } motherId &&
+                residentsById.TryGetValue(
+                    key: motherId,
+                    value: out Person? mother) &&
                 mother.HouseholdId == resident.HouseholdId &&
                 mother.IsAlive &&
                 householdResidents.Any(x => x.Id == motherId))
                 return true;
 
-            if (resident.FatherId is { } fatherId &&
-                residentsById.TryGetValue(fatherId, out Person? father) &&
+            if (resident.FatherId is
+                    { } fatherId &&
+                residentsById.TryGetValue(
+                    key: fatherId,
+                    value: out Person? father) &&
                 father.HouseholdId == resident.HouseholdId &&
                 father.IsAlive &&
                 householdResidents.Any(x => x.Id == fatherId))
@@ -258,7 +291,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             int previousWindow = previousDate.DayNumber / 30;
             int currentWindow = currentDate.DayNumber / 30;
-            return Math.Clamp(currentWindow - previousWindow, 0, 6);
+            return Math.Clamp(
+                value: currentWindow - previousWindow,
+                min: 0,
+                max: 6);
         }
 
         private static bool RollOccurs(
@@ -271,16 +307,23 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (reviewWindows <= 0 || chancePerReview <= 0d)
                 return false;
 
-            double combinedChance = 1d - Math.Pow(1d - chancePerReview, reviewWindows);
+            double combinedChance = 1d -
+                Math.Pow(
+                    x: 1d - chancePerReview,
+                    y: reviewWindows);
             return GetStableFraction(
-                residentId: residentId,
-                currentDate: currentDate,
-                salt: salt) < combinedChance;
+                       residentId: residentId,
+                       currentDate: currentDate,
+                       salt: salt) <
+                   combinedChance;
         }
 
         private static double Normalize(double value)
         {
-            return Math.Clamp(value / 100d, 0d, 1d);
+            return Math.Clamp(
+                value: value / 100d,
+                min: 0d,
+                max: 1d);
         }
 
         private static int GetStableInt(
@@ -315,7 +358,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                        residentId: residentId,
                        currentDate: currentDate,
                        salt: salt,
-                       modulus: 10_000) / 10_000d;
+                       modulus: 10_000) /
+                   10_000d;
         }
 
         private sealed record HouseholdIndependenceProfile(

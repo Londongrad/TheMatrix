@@ -8,6 +8,10 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
 
         public static Money Zero => new(0m);
 
+        public bool IsZero => Amount == 0m;
+        public bool IsPositive => Amount > 0m;
+        public bool IsNegative => Amount < 0m;
+
         public static Money FromDecimal(decimal amount)
         {
             return new Money(amount);
@@ -25,15 +29,12 @@ namespace Matrix.BuildingBlocks.Domain.ValueObjects
 
         public Money Multiply(decimal factor)
         {
-            return new Money(decimal.Round(
-                d: Amount * factor,
-                decimals: 2,
-                mode: MidpointRounding.AwayFromZero));
+            return new Money(
+                decimal.Round(
+                    d: Amount * factor,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero));
         }
-
-        public bool IsZero => Amount == 0m;
-        public bool IsPositive => Amount > 0m;
-        public bool IsNegative => Amount < 0m;
 
         public override string ToString()
         {

@@ -49,8 +49,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
         {
             int targetPopulation = ResolveTargetPopulation(profile);
             int topologyPopulationBasis = Math.Max(
-                targetPopulation,
-                GetTopologyPopulationFloor(profile.SizeTier));
+                val1: targetPopulation,
+                val2: GetTopologyPopulationFloor(profile.SizeTier));
             int targetResidentialCapacity = ResolveResidentialCapacityTarget(
                 profile: profile,
                 topologyPopulationBasis: topologyPopulationBasis,
@@ -212,8 +212,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             };
 
             return Math.Max(
-                100,
-                (int)Math.Round(
+                val1: 100,
+                val2: (int)Math.Round(
                     d: basePopulation * densityFactor * developmentFactor,
                     mode: MidpointRounding.AwayFromZero));
         }
@@ -248,8 +248,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                 max: 1.45m);
 
             return Math.Max(
-                40,
-                (int)Math.Round(
+                val1: 40,
+                val2: (int)Math.Round(
                     d: topologyPopulationBasis * ratio,
                     mode: MidpointRounding.AwayFromZero));
         }
@@ -365,53 +365,54 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             {
                 if (profile.UrbanDensity == UrbanDensity.Dense)
                     return random.NextInt(
-                        minInclusive: 0,
-                        maxExclusive: 100) < 60
+                               minInclusive: 0,
+                               maxExclusive: 100) <
+                           60
                         ? DistrictArchetype.VerticalCore
                         : DistrictArchetype.CivicCore;
 
                 return random.NextInt(
-                    minInclusive: 0,
-                    maxExclusive: 100) < 75
+                           minInclusive: 0,
+                           maxExclusive: 100) <
+                       75
                     ? DistrictArchetype.CivicCore
                     : DistrictArchetype.MixedBlocks;
             }
 
             if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling &&
                 profile.UrbanDensity == UrbanDensity.Dense)
-            {
                 return random.NextInt(
-                    minInclusive: 0,
-                    maxExclusive: 100) < 55
+                           minInclusive: 0,
+                           maxExclusive: 100) <
+                       55
                     ? DistrictArchetype.DormitoryBelt
                     : DistrictArchetype.MixedBlocks;
-            }
 
             if (profile.UrbanDensity == UrbanDensity.Sparse)
-            {
                 return random.NextInt(
-                    minInclusive: 0,
-                    maxExclusive: 100) < 70
+                           minInclusive: 0,
+                           maxExclusive: 100) <
+                       70
                     ? DistrictArchetype.CottageRing
                     : DistrictArchetype.MixedBlocks;
-            }
 
             if (profile.UrbanDensity == UrbanDensity.Dense)
-            {
                 return random.NextInt(
-                    minInclusive: 0,
-                    maxExclusive: 100) < 35
+                           minInclusive: 0,
+                           maxExclusive: 100) <
+                       35
                     ? DistrictArchetype.VerticalCore
                     : random.NextInt(
-                        minInclusive: 0,
-                        maxExclusive: 100) < 50
+                          minInclusive: 0,
+                          maxExclusive: 100) <
+                      50
                         ? DistrictArchetype.DormitoryBelt
                         : DistrictArchetype.MixedBlocks;
-            }
 
             return random.NextInt(
-                minInclusive: 0,
-                maxExclusive: 100) < 65
+                       minInclusive: 0,
+                       maxExclusive: 100) <
+                   65
                 ? DistrictArchetype.MixedBlocks
                 : DistrictArchetype.CottageRing;
         }
@@ -423,7 +424,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             DistrictArchetype[] districtArchetypes,
             DeterministicRandom random)
         {
-            var weights = new decimal[districtCount];
+            decimal[] weights = new decimal[districtCount];
             decimal weightTotal = 0.0m;
 
             for (int i = 0; i < districtCount; i++)
@@ -445,7 +446,7 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                 weightTotal += weight;
             }
 
-            var capacities = new int[districtCount];
+            int[] capacities = new int[districtCount];
             int allocated = 0;
 
             for (int i = 0; i < districtCount; i++)
@@ -455,8 +456,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     ? 250
                     : 120;
                 capacities[i] = Math.Max(
-                    minimumDistrictCapacity,
-                    (int)Math.Round(
+                    val1: minimumDistrictCapacity,
+                    val2: (int)Math.Round(
                         d: totalCapacityTarget * ratio,
                         mode: MidpointRounding.AwayFromZero));
                 allocated += capacities[i];
@@ -465,8 +466,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             int delta = totalCapacityTarget - allocated;
             if (delta != 0)
                 capacities[^1] = Math.Max(
-                    60,
-                    capacities[^1] + delta);
+                    val1: 60,
+                    val2: capacities[^1] + delta);
 
             return capacities;
         }
@@ -544,13 +545,14 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
                     val1: 2,
                     val2: towerWeight - 10);
             }
-            else if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
-            {
-                towerWeight += 10;
-                houseWeight = Math.Max(
-                    val1: 2,
-                    val2: houseWeight - 5);
-            }
+            else
+                if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
+                {
+                    towerWeight += 10;
+                    houseWeight = Math.Max(
+                        val1: 2,
+                        val2: houseWeight - 5);
+                }
 
             if (profile.SizeTier == CitySizeTier.Small && !isCentral)
                 towerWeight = Math.Max(
@@ -639,7 +641,12 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
             int rawCapacity = random.NextInt(
                 minInclusive: minCapacity,
                 maxExclusive: maxCapacity + 1);
-            decimal adjustedCapacity = rawCapacity * densityFactor * developmentFactor * centralFactor * archetypeFactor * populationScale;
+            decimal adjustedCapacity = rawCapacity *
+                                       densityFactor *
+                                       developmentFactor *
+                                       centralFactor *
+                                       archetypeFactor *
+                                       populationScale;
 
             return Math.Max(
                 val1: ResidentCapacity.Min,
@@ -662,18 +669,21 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
 
             if (profile.UrbanDensity == UrbanDensity.Dense)
                 scale += 0.10m;
-            else if (profile.UrbanDensity == UrbanDensity.Sparse)
-                scale -= 0.05m;
+            else
+                if (profile.UrbanDensity == UrbanDensity.Sparse)
+                    scale -= 0.05m;
 
             if (profile.DevelopmentLevel == CityDevelopmentLevel.Advanced)
                 scale += 0.08m;
-            else if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling)
-                scale -= 0.05m;
+            else
+                if (profile.DevelopmentLevel == CityDevelopmentLevel.Struggling)
+                    scale -= 0.05m;
 
             if (profile.SizeTier == CitySizeTier.Large)
                 scale += 0.06m;
-            else if (profile.SizeTier == CitySizeTier.Small)
-                scale -= 0.03m;
+            else
+                if (profile.SizeTier == CitySizeTier.Small)
+                    scale -= 0.03m;
 
             return Math.Clamp(
                 value: scale,
@@ -787,8 +797,9 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.Services.Topology
 
                 const decimal denominator = 1_000_000m;
                 decimal normalized = NextInt(
-                    minInclusive: 0,
-                    maxExclusive: 1_000_001) / denominator;
+                                         minInclusive: 0,
+                                         maxExclusive: 1_000_001) /
+                                     denominator;
 
                 return minInclusive + ((maxInclusive - minInclusive) * normalized);
             }

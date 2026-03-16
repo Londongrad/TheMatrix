@@ -1,5 +1,4 @@
 using Matrix.BuildingBlocks.Domain.Exceptions;
-using Matrix.CityCore.Domain.Simulation;
 
 namespace Matrix.CityCore.Domain.Errors
 {
@@ -40,6 +39,5 @@ namespace Matrix.CityCore.Domain.Errors
         }
 
         #endregion [ Simulation ]
-
     }
 }

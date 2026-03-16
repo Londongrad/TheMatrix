@@ -18,9 +18,13 @@ namespace Matrix.Economy.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpGet("cities/{cityId:guid}")]
-        public async Task<IActionResult> ListCityHouseholdAccounts([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ListCityHouseholdAccounts(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityHouseholdAccountDto> result = await _sender.Send(new GetCityHouseholdAccountsQuery(cityId), cancellationToken);
+            IReadOnlyList<CityHouseholdAccountDto> result = await _sender.Send(
+                request: new GetCityHouseholdAccountsQuery(cityId),
+                cancellationToken: cancellationToken);
             return Ok(result);
         }
 
@@ -31,7 +35,7 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             CityHouseholdAccountDto result = await _sender.Send(
-                new RegisterCityHouseholdAccountCommand(
+                request: new RegisterCityHouseholdAccountCommand(
                     CityId: cityId,
                     Name: request.Name,
                     ExternalReferenceCode: request.ExternalReferenceCode,
@@ -40,7 +44,7 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -53,8 +57,11 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             PagedResult<CityHouseholdAccountLedgerEntryDto> result = await _sender.Send(
-                new GetCityHouseholdAccountLedgerQuery(householdAccountId, pageNumber, pageSize),
-                cancellationToken);
+                request: new GetCityHouseholdAccountLedgerQuery(
+                    HouseholdAccountId: householdAccountId,
+                    PageNumber: pageNumber,
+                    PageSize: pageSize),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }

@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Population.Domain.Entities;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;

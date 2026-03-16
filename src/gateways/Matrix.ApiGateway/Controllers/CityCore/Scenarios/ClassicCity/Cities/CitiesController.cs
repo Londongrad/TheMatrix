@@ -4,8 +4,8 @@ using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
-using Matrix.BuildingBlocks.Application.Models;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Weather.Views;
@@ -123,15 +123,13 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                     cancellationToken: cancellationToken);
 
                 if (economySummary is not null)
-                {
                     metrics.AddRange(BuildEconomyMetrics(economySummary));
-                }
             }
             catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
             {
                 _logger.LogWarning(
-                    exception,
-                    "Failed to attach economy metrics to classic city dashboard for cityId={CityId}.",
+                    exception: exception,
+                    message: "Failed to attach economy metrics to classic city dashboard for cityId={CityId}.",
                     cityId);
             }
 
@@ -544,7 +542,8 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
                 new CityPopulationDashboardMetricDto(
                     Key: "economyCityExpenses",
                     Label: "City expenses",
-                    Description: "Cumulative municipal operating expenses allocated back into city upkeep and services.",
+                    Description:
+                    "Cumulative municipal operating expenses allocated back into city upkeep and services.",
                     ValueKind: "money",
                     CurrentValue: summary.TotalCityExpenses,
                     DeltaYesterday: null,

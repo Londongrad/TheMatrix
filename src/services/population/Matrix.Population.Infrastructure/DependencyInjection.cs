@@ -1,13 +1,13 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
-using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
-using Matrix.Population.Infrastructure.Messaging.Cleanup;
+using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Infrastructure.Messaging;
+using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Outbox;
 using Matrix.Population.Infrastructure.Outbox.RabbitMq;
 using Matrix.Population.Infrastructure.Persistence;
@@ -30,8 +30,7 @@ namespace Matrix.Population.Infrastructure
             string? connectionString = configuration.GetConnectionString("PopulationDb");
 
             if (string.IsNullOrWhiteSpace(connectionString))
-                throw new InvalidOperationException(
-                    "Connection string 'PopulationDb' is not configured.");
+                throw new InvalidOperationException("Connection string 'PopulationDb' is not configured.");
 
             services.AddPostgresResilienceOptions(configuration);
 
@@ -43,8 +42,8 @@ namespace Matrix.Population.Infrastructure
                    .Value;
 
                 options.UseNpgsql(
-                    connectionString,
-                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                    connectionString: connectionString,
+                    npgsqlOptionsAction: npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
                         maxRetryCount: resilience.MaxRetryCount,
                         maxRetryDelay: TimeSpan.FromSeconds(resilience.MaxRetryDelaySeconds),
                         errorCodesToAdd: null));

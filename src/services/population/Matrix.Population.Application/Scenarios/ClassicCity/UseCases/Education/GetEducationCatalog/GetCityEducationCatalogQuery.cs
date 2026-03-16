@@ -5,7 +5,8 @@ using MediatR;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education.GetEducationCatalog
 {
-    public sealed record GetCityEducationCatalogQuery(Guid CityId) : IRequest<CityEducationCatalogDto>, IRequirePermission
+    public sealed record GetCityEducationCatalogQuery(Guid CityId)
+        : IRequest<CityEducationCatalogDto>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.PopulationEducationManage;
     }

@@ -292,7 +292,8 @@ export default function SecurityActivityCard({token}: Props) {
                 <div>
                     <h2 className="settings-card-title">Recent security activity</h2>
                     <p className="settings-card-description">
-                        Review recent sign-ins, recovery flows, and session actions for your account without loading the audit feed until you need it.
+                        Review recent sign-ins, recovery flows, and session actions for your account without loading the
+                        audit feed until you need it.
                     </p>
                 </div>
 
@@ -326,7 +327,8 @@ export default function SecurityActivityCard({token}: Props) {
             ) : !isActivityOpen ? (
                 <div className="settings-security-activity__summary">
                     <p className="settings-muted">
-                        Recent security activity stays collapsed until you open it. Entries are fetched page by page only when you need them.
+                        Recent security activity stays collapsed until you open it. Entries are fetched page by page
+                        only when you need them.
                     </p>
                     {hasLoaded && items.length > 0 && (
                         <div className="settings-security-activity__meta">

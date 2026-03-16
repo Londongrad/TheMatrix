@@ -5,6 +5,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Enums
         Operator = 0,
         Autonomy = 1,
         System = 2,
-        Bootstrap = 3,
+        Bootstrap = 3
     }
 }

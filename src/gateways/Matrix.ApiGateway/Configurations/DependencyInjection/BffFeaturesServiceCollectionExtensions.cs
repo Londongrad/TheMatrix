@@ -64,7 +64,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     failureMessage: "PermissionsVersion:StaleCacheTtlSeconds must be greater than 0.")
                .Validate(
                     validation: o => o.StaleCacheTtlSeconds >= o.CacheTtlSeconds,
-                    failureMessage: "PermissionsVersion:StaleCacheTtlSeconds must be greater than or equal to CacheTtlSeconds.")
+                    failureMessage:
+                    "PermissionsVersion:StaleCacheTtlSeconds must be greater than or equal to CacheTtlSeconds.")
                .ValidateOnStart();
 
             return services;
@@ -84,13 +85,16 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     failureMessage: "ClassicCitySetupSessions:MutationLockLeaseSeconds must be greater than 0.")
                .Validate(
                     validation: o => o.MutationLockAcquireTimeoutMilliseconds > 0,
-                    failureMessage: "ClassicCitySetupSessions:MutationLockAcquireTimeoutMilliseconds must be greater than 0.")
+                    failureMessage:
+                    "ClassicCitySetupSessions:MutationLockAcquireTimeoutMilliseconds must be greater than 0.")
                .Validate(
                     validation: o => o.MutationLockRetryDelayMilliseconds > 0,
-                    failureMessage: "ClassicCitySetupSessions:MutationLockRetryDelayMilliseconds must be greater than 0.")
+                    failureMessage:
+                    "ClassicCitySetupSessions:MutationLockRetryDelayMilliseconds must be greater than 0.")
                .Validate(
                     validation: o => o.MutationLockAcquireTimeoutMilliseconds >= o.MutationLockRetryDelayMilliseconds,
-                    failureMessage: "ClassicCitySetupSessions:MutationLockAcquireTimeoutMilliseconds must be greater than or equal to MutationLockRetryDelayMilliseconds.")
+                    failureMessage:
+                    "ClassicCitySetupSessions:MutationLockAcquireTimeoutMilliseconds must be greater than or equal to MutationLockRetryDelayMilliseconds.")
                .Validate(
                     validation: o => o.ReconciliationIntervalSeconds > 0,
                     failureMessage: "ClassicCitySetupSessions:ReconciliationIntervalSeconds must be greater than 0.")
@@ -137,9 +141,10 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 string? connectionString = configuration["Redis:ConnectionString"];
 
                 if (string.IsNullOrWhiteSpace(connectionString))
-                    throw new InvalidOperationException("Redis:ConnectionString is required for gateway session orchestration.");
+                    throw new InvalidOperationException(
+                        "Redis:ConnectionString is required for gateway session orchestration.");
 
-                ConfigurationOptions options = ConfigurationOptions.Parse(connectionString);
+                var options = ConfigurationOptions.Parse(connectionString);
                 options.AbortOnConnectFail = false;
 
                 return ConnectionMultiplexer.Connect(options);

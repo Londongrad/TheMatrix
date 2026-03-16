@@ -12,13 +12,12 @@
     padding: 18px;
     border-radius: 22px;
     border: 1px solid rgba(var(--shell-accent-rgb), 0.14);
-    background:
-        linear-gradient(
+    background: linear-gradient(
             180deg,
             color-mix(in srgb, var(--shell-surface-strong) 88%, rgba(var(--shell-accent-rgb), 0.11)),
             color-mix(in srgb, var(--shell-surface-soft) 92%, transparent)
-        ),
-        var(--shell-surface);
+    ),
+    var(--shell-surface);
 }
 
 .city-weather-hero__content {
@@ -226,13 +225,12 @@
 .city-weather-skeleton__hero,
 .city-weather-skeleton__tile {
     border-radius: 18px;
-    background:
-        linear-gradient(
+    background: linear-gradient(
             90deg,
             rgba(255, 255, 255, 0.04),
             rgba(255, 255, 255, 0.1),
             rgba(255, 255, 255, 0.04)
-        );
+    );
     background-size: 200% 100%;
     animation: city-weather-skeleton-shimmer 1.6s linear infinite;
 }

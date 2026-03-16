@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
@@ -21,15 +22,20 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
         {
             CityBudgetUnitProfile requestedUnit = ResolveRequestedUnit(request);
 
-            CityBudget budget = await budgetRepository.GetByCityAsync(request.CityId, cancellationToken)
-                ?? CreateBudget(request.CityId, requestedUnit, budgetRepository);
+            CityBudget budget = await budgetRepository.GetByCityAsync(
+                                    cityId: request.CityId,
+                                    cancellationToken: cancellationToken) ??
+                                CreateBudget(
+                                    cityId: request.CityId,
+                                    requestedUnit: requestedUnit,
+                                    budgetRepository: budgetRepository);
             budget.EnsureCompatibleUnit(requestedUnit);
 
             DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
             CityBudgetAllocation? allocation = await allocationRepository.GetByCityAndCategoryAsync(
-                request.CityId,
-                request.Category,
-                cancellationToken);
+                cityId: request.CityId,
+                category: request.Category,
+                cancellationToken: cancellationToken);
 
             if (allocation is null)
             {
@@ -46,11 +52,13 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
             else
             {
                 allocation.EnsureCompatibleUnit(budget.GetUnitProfile());
-                allocation.SetTargetAmount(Money.FromDecimal(request.TargetAmount), updatedAtUtc);
+                allocation.SetTargetAmount(
+                    targetAmount: Money.FromDecimal(request.TargetAmount),
+                    updatedAtUtc: updatedAtUtc);
             }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            return GetCityBudgetAllocations.GetCityBudgetAllocationsQueryHandler.Map(allocation);
+            return GetCityBudgetAllocationsQueryHandler.Map(allocation);
         }
 
         private static CityBudget CreateBudget(
@@ -58,25 +66,27 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
             CityBudgetUnitProfile requestedUnit,
             ICityBudgetRepository budgetRepository)
         {
-            var budget = new CityBudget(CityBudgetId.New(), cityId, requestedUnit);
+            var budget = new CityBudget(
+                id: CityBudgetId.New(),
+                cityId: cityId,
+                unitProfile: requestedUnit);
             budgetRepository.Add(budget);
             return budget;
         }
 
         private static CityBudgetUnitProfile ResolveRequestedUnit(SetCityBudgetAllocationCommand request)
         {
-            if (string.IsNullOrWhiteSpace(request.UnitCode)
-                && string.IsNullOrWhiteSpace(request.UnitDisplayName)
-                && string.IsNullOrWhiteSpace(request.UnitSymbol)
-                && string.IsNullOrWhiteSpace(request.UnitKind))
-            {
+            if (string.IsNullOrWhiteSpace(request.UnitCode) &&
+                string.IsNullOrWhiteSpace(request.UnitDisplayName) &&
+                string.IsNullOrWhiteSpace(request.UnitSymbol) &&
+                string.IsNullOrWhiteSpace(request.UnitKind))
                 return CityBudgetUnitProfile.DefaultMoney();
-            }
 
-            if (!Enum.TryParse(request.UnitKind, ignoreCase: true, out CityBudgetUnitKind unitKind))
-            {
+            if (!Enum.TryParse(
+                    value: request.UnitKind,
+                    ignoreCase: true,
+                    result: out CityBudgetUnitKind unitKind))
                 throw new InvalidOperationException($"Unsupported unit kind '{request.UnitKind}'.");
-            }
 
             return new CityBudgetUnitProfile(
                 Kind: unitKind,

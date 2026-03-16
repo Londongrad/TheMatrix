@@ -15,7 +15,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             ArgumentNullException.ThrowIfNull(resident);
 
             AgeGroup ageGroup = resident.GetAgeGroup(currentDate);
-            Money grossIncome = ResolveResidentGrossIncome(resident, ageGroup);
+            Money grossIncome = ResolveResidentGrossIncome(
+                resident: resident,
+                ageGroup: ageGroup);
             Money taxWithheld = grossIncome.Multiply(ResolveTaxRate(resident));
 
             return new CityResidentIncomeSettlementProfile(
@@ -36,7 +38,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .ToArray();
 
             if (activeResidents.Length == 0)
-            {
                 return new CityHouseholdCashflowProfile(
                     ResidentCount: 0,
                     GrossIncome: Money.Zero,
@@ -46,7 +47,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     HousingExpense: Money.Zero,
                     DailyExpenses: Money.Zero,
                     DailyNet: Money.Zero);
-            }
 
             Money grossIncome = Money.Zero;
             Money taxWithheld = Money.Zero;
@@ -60,7 +60,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
                     childCount++;
 
-                if (resident.GetAge(currentDate).Years == 0)
+                if (resident.GetAge(currentDate)
+                       .Years ==
+                    0)
                     infantCount++;
 
                 CityResidentIncomeSettlementProfile residentIncome = BuildResidentIncome(
@@ -103,7 +105,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             decimal amount = resident.Employment.Status switch
             {
-                EmploymentStatus.Employed => ResolveEmploymentIncome(resident, ageGroup),
+                EmploymentStatus.Employed => ResolveEmploymentIncome(
+                    resident: resident,
+                    ageGroup: ageGroup),
                 EmploymentStatus.Retired => 26m,
                 EmploymentStatus.Student when ageGroup is AgeGroup.Adult or AgeGroup.Senior => 10m,
                 EmploymentStatus.Student => 4m,
@@ -137,16 +141,17 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             };
 
             decimal traitBonus =
-                (decimal)(resident.Personality.Discipline / 12d)
-                + (decimal)(resident.Personality.Optimism / 20d);
+                (decimal)(resident.Personality.Discipline / 12d) + (decimal)(resident.Personality.Optimism / 20d);
             decimal wellbeingBonus =
-                (decimal)(resident.Health.Value / 18d)
-                + (decimal)(resident.Energy.Value / 22d)
-                - (decimal)(resident.Stress.Value / 28d);
+                (decimal)(resident.Health.Value / 18d) +
+                (decimal)(resident.Energy.Value / 22d) -
+                (decimal)(resident.Stress.Value / 28d);
             decimal jobVariance = ResolveJobVariance(resident.Employment.Job?.Title);
 
             return decimal.Round(
-                d: Math.Max(12m, ageBase + educationBonus + traitBonus + wellbeingBonus + jobVariance),
+                d: Math.Max(
+                    val1: 12m,
+                    val2: ageBase + educationBonus + traitBonus + wellbeingBonus + jobVariance),
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
         }
@@ -187,11 +192,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 6m
             };
 
-            if (resident.GetAge(currentDate).Years == 0)
+            if (resident.GetAge(currentDate)
+                   .Years ==
+                0)
                 amount += 2m;
 
             if (resident.HasActiveIllness)
-            {
                 amount += resident.CurrentIllnessSeverity switch
                 {
                     IllnessSeverity.Mild => 3m,
@@ -199,7 +205,6 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     IllnessSeverity.Severe => 14m,
                     _ => 4m
                 };
-            }
 
             return Money.FromDecimal(amount);
         }
@@ -211,13 +216,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             HousingStatus? housingStatus)
         {
             decimal amount = housingStatus == HousingStatus.Housed
-                ? 10m + (residentCount * 3m) + (Math.Max(0, residentCount - 3) * 2m) + childCount + (infantCount * 2m)
+                ? 10m +
+                  (residentCount * 3m) +
+                  (Math.Max(
+                       val1: 0,
+                       val2: residentCount - 3) *
+                   2m) +
+                  childCount +
+                  (infantCount * 2m)
                 : 6m + (residentCount * 1.5m);
 
-            return Money.FromDecimal(decimal.Round(
-                d: amount,
-                decimals: 2,
-                mode: MidpointRounding.AwayFromZero));
+            return Money.FromDecimal(
+                decimal.Round(
+                    d: amount,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero));
         }
     }
 }

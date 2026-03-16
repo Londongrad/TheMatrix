@@ -15,43 +15,49 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             int batchSize)
         {
             ClassicCityWorkplaceBusinessSyncItemV1[] items = persons
-                .Where(x => x.Employment.Status == EmploymentStatus.Employed && x.Employment.Job is not null)
-                .GroupBy(
+               .Where(x => x.Employment.Status == EmploymentStatus.Employed && x.Employment.Job is not null)
+               .GroupBy(
                     keySelector: x => x.Employment.Job!.WorkplaceId,
                     elementSelector: x => x)
-                .OrderBy(x => x.Key.Value)
-                .Select(group =>
+               .OrderBy(x => x.Key.Value)
+               .Select(group =>
                 {
-                    string jobTitle = group.First().Employment.Job!.Title;
+                    string jobTitle = group.First()
+                       .Employment.Job!.Title;
                     WorkplaceId workplaceId = group.Key;
 
                     return new ClassicCityWorkplaceBusinessSyncItemV1(
                         WorkplaceId: workplaceId.Value,
                         ExternalReferenceCode: BuildExternalReferenceCode(workplaceId),
-                        Name: BuildBusinessName(workplaceId, jobTitle),
+                        Name: BuildBusinessName(
+                            workplaceId: workplaceId,
+                            jobTitle: jobTitle),
                         JobTitle: jobTitle,
                         ActiveWorkerCount: group.Count());
                 })
-                .ToArray();
+               .ToArray();
 
             if (items.Length == 0)
                 return [];
 
             ClassicCityWorkplaceBusinessSyncBatchV1[] batches = items
-                .Chunk(batchSize)
-                .Select((chunk, index) => new ClassicCityWorkplaceBusinessSyncBatchV1(
+               .Chunk(batchSize)
+               .Select((
+                    chunk,
+                    index) => new ClassicCityWorkplaceBusinessSyncBatchV1(
                     CityId: cityId,
                     BatchNumber: index + 1,
                     TotalBatches: 0,
                     Workplaces: chunk,
                     CorrelationId: correlationId,
                     OccurredAtUtc: occurredAtUtc))
-                .ToArray();
+               .ToArray();
 
             for (int i = 0; i < batches.Length; i++)
-            {
-                batches[i] = batches[i] with { TotalBatches = batches.Length };
-            }
+                batches[i] = batches[i] with
+                {
+                    TotalBatches = batches.Length
+                };
 
             return batches;
         }
@@ -61,12 +67,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             return $"classic-city-workplace:{workplaceId.Value:N}";
         }
 
-        private static string BuildBusinessName(WorkplaceId workplaceId, string jobTitle)
+        private static string BuildBusinessName(
+            WorkplaceId workplaceId,
+            string jobTitle)
         {
             string title = string.IsNullOrWhiteSpace(jobTitle)
                 ? "Workplace"
                 : jobTitle.Trim();
-            string shortCode = workplaceId.Value.ToString("N")[..8].ToUpperInvariant();
+            string shortCode = workplaceId.Value.ToString("N")[..8]
+               .ToUpperInvariant();
             return $"{title} employer {shortCode}";
         }
     }

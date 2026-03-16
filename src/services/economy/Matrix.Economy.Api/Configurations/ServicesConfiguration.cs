@@ -1,8 +1,8 @@
-using Matrix.Economy.Application;
-using Matrix.Economy.Infrastructure;
 using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.Economy.Application;
+using Matrix.Economy.Infrastructure;
 
 namespace Matrix.Economy.Api.Configurations
 {
@@ -10,21 +10,23 @@ namespace Matrix.Economy.Api.Configurations
     {
         public static void ConfigureApplicationServices(this WebApplicationBuilder builder)
         {
-            var services = builder.Services;
-            var configuration = builder.Configuration;
+            IServiceCollection services = builder.Services;
+            ConfigurationManager configuration = builder.Configuration;
 
             builder.AddSerilogLogging();
 
             builder.Services.AddControllers();
 
             services.AddJwtBearerAuthentication<InternalJwtOptions>(
-                configuration,
-                InternalJwtOptions.SectionName);
+                configuration: configuration,
+                sectionName: InternalJwtOptions.SectionName);
 
             services.AddAuthorization();
 
             services.AddApplication();
-            services.AddInfrastructure(configuration, builder.Environment);
+            services.AddInfrastructure(
+                configuration: configuration,
+                environment: builder.Environment);
         }
     }
 }

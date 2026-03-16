@@ -1,8 +1,8 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Api.Contracts.Business;
 using Matrix.Economy.Application.UseCases.Businesses;
-using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedger;
 using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinesses;
+using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedger;
 using Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
@@ -19,9 +19,13 @@ namespace Matrix.Economy.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpGet("cities/{cityId:guid}")]
-        public async Task<IActionResult> ListCityBusinesses([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ListCityBusinesses(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityBusinessDto> result = await _sender.Send(new GetCityBusinessesQuery(cityId), cancellationToken);
+            IReadOnlyList<CityBusinessDto> result = await _sender.Send(
+                request: new GetCityBusinessesQuery(cityId),
+                cancellationToken: cancellationToken);
             return Ok(result);
         }
 
@@ -31,13 +35,18 @@ namespace Matrix.Economy.Api.Controllers
             [FromBody] RegisterCityBusinessRequest request,
             CancellationToken cancellationToken)
         {
-            if (!Enum.TryParse(request.Kind, ignoreCase: true, out CityBusinessKind kind))
-            {
-                return BadRequest(new { error = $"Unsupported business kind '{request.Kind}'." });
-            }
+            if (!Enum.TryParse(
+                    value: request.Kind,
+                    ignoreCase: true,
+                    result: out CityBusinessKind kind))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported business kind '{request.Kind}'."
+                    });
 
             CityBusinessDto result = await _sender.Send(
-                new RegisterCityBusinessCommand(
+                request: new RegisterCityBusinessCommand(
                     CityId: cityId,
                     Name: request.Name,
                     Kind: kind,
@@ -46,7 +55,7 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -59,8 +68,11 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             PagedResult<CityBusinessLedgerEntryDto> result = await _sender.Send(
-                new GetCityBusinessLedgerQuery(businessId, pageNumber, pageSize),
-                cancellationToken);
+                request: new GetCityBusinessLedgerQuery(
+                    BusinessId: businessId,
+                    PageNumber: pageNumber,
+                    PageSize: pageSize),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }

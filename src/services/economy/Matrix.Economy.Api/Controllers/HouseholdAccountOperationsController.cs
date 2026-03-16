@@ -21,14 +21,14 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             CityHouseholdAccountLedgerEntryDto result = await _sender.Send(
-                new RecordCityHouseholdPurchaseCommand(
+                request: new RecordCityHouseholdPurchaseCommand(
                     HouseholdAccountId: householdAccountId,
                     BusinessId: request.BusinessId,
                     GrossAmount: request.GrossAmount,
                     SalesTaxAmount: request.SalesTaxAmount,
                     Title: request.Title,
                     Description: request.Description),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }

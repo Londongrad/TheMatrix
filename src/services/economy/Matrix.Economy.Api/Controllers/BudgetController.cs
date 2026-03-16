@@ -29,15 +29,21 @@ namespace Matrix.Economy.Api.Controllers
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
         {
-            BudgetSummaryDto result = await _sender.Send(new GetBudgetSummaryQuery(), cancellationToken);
+            BudgetSummaryDto result = await _sender.Send(
+                request: new GetBudgetSummaryQuery(),
+                cancellationToken: cancellationToken);
 
             return Ok(MapSummary(result));
         }
 
         [HttpGet("cities/{cityId:guid}/summary")]
-        public async Task<IActionResult> GetCitySummary([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetCitySummary(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
         {
-            BudgetSummaryDto result = await _sender.Send(new GetCityBudgetSummaryQuery(cityId), cancellationToken);
+            BudgetSummaryDto result = await _sender.Send(
+                request: new GetCityBudgetSummaryQuery(cityId),
+                cancellationToken: cancellationToken);
 
             return Ok(MapSummary(result));
         }
@@ -49,24 +55,25 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             CityEconomyBootstrapResultDto result = await _sender.Send(
-                new InitializeCityEconomyCommand(
+                request: new InitializeCityEconomyCommand(
                     CityId: cityId,
                     SimulationKind: request.SimulationKind,
                     EconomyProfile: request.EconomyProfile,
                     CreatedAtUtc: request.CreatedAtUtc),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
-            return Ok(new
-            {
-                cityId = result.CityId,
-                budgetCreated = result.BudgetCreated,
-                createdAllocations = result.CreatedAllocations,
-                createdBusinesses = result.CreatedBusinesses,
-                unitKind = result.UnitKind,
-                unitCode = result.UnitCode,
-                unitDisplayName = result.UnitDisplayName,
-                unitSymbol = result.UnitSymbol
-            });
+            return Ok(
+                new
+                {
+                    cityId = result.CityId,
+                    budgetCreated = result.BudgetCreated,
+                    createdAllocations = result.CreatedAllocations,
+                    createdBusinesses = result.CreatedBusinesses,
+                    unitKind = result.UnitKind,
+                    unitCode = result.UnitCode,
+                    unitDisplayName = result.UnitDisplayName,
+                    unitSymbol = result.UnitSymbol
+                });
         }
 
         [HttpGet("cities/{cityId:guid}/ledger")]
@@ -77,21 +84,23 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             PagedResult<BudgetLedgerEntryDto> result = await _sender.Send(
-                new GetCityBudgetLedgerQuery(
+                request: new GetCityBudgetLedgerQuery(
                     CityId: cityId,
                     PageNumber: pageNumber,
                     PageSize: pageSize),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
 
         [HttpGet("cities/{cityId:guid}/allocations")]
-        public async Task<IActionResult> GetCityAllocations([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetCityAllocations(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
         {
             IReadOnlyList<CityBudgetAllocationDto> result = await _sender.Send(
-                new GetCityBudgetAllocationsQuery(cityId),
-                cancellationToken);
+                request: new GetCityBudgetAllocationsQuery(cityId),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -102,13 +111,17 @@ namespace Matrix.Economy.Api.Controllers
             [FromBody] RecordBudgetEntryRequest request,
             CancellationToken cancellationToken)
         {
-            if (!TryParseCategory(request.Category, out CityBudgetCategory category))
-            {
-                return BadRequest(new { error = $"Unsupported budget category '{request.Category}'." });
-            }
+            if (!TryParseCategory(
+                    rawCategory: request.Category,
+                    category: out CityBudgetCategory category))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported budget category '{request.Category}'."
+                    });
 
             BudgetLedgerEntryDto result = await _sender.Send(
-                new RecordCityBudgetRevenueCommand(
+                request: new RecordCityBudgetRevenueCommand(
                     CityId: cityId,
                     Category: category,
                     Amount: request.Amount,
@@ -118,7 +131,7 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -129,13 +142,17 @@ namespace Matrix.Economy.Api.Controllers
             [FromBody] RecordBudgetEntryRequest request,
             CancellationToken cancellationToken)
         {
-            if (!TryParseCategory(request.Category, out CityBudgetCategory category))
-            {
-                return BadRequest(new { error = $"Unsupported budget category '{request.Category}'." });
-            }
+            if (!TryParseCategory(
+                    rawCategory: request.Category,
+                    category: out CityBudgetCategory category))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported budget category '{request.Category}'."
+                    });
 
             BudgetLedgerEntryDto result = await _sender.Send(
-                new RecordCityBudgetExpenseCommand(
+                request: new RecordCityBudgetExpenseCommand(
                     CityId: cityId,
                     Category: category,
                     Amount: request.Amount,
@@ -145,7 +162,7 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -156,20 +173,24 @@ namespace Matrix.Economy.Api.Controllers
             [FromBody] DisburseBudgetToBusinessRequest request,
             CancellationToken cancellationToken)
         {
-            if (!TryParseCategory(request.Category, out CityBudgetCategory category))
-            {
-                return BadRequest(new { error = $"Unsupported budget category '{request.Category}'." });
-            }
+            if (!TryParseCategory(
+                    rawCategory: request.Category,
+                    category: out CityBudgetCategory category))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported budget category '{request.Category}'."
+                    });
 
             BudgetLedgerEntryDto result = await _sender.Send(
-                new DisburseCityBudgetToBusinessCommand(
+                request: new DisburseCityBudgetToBusinessCommand(
                     CityId: cityId,
                     BusinessId: request.BusinessId,
                     Category: category,
                     Amount: request.Amount,
                     Title: request.Title,
                     Description: request.Description),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -181,13 +202,17 @@ namespace Matrix.Economy.Api.Controllers
             [FromBody] SetBudgetAllocationRequest request,
             CancellationToken cancellationToken)
         {
-            if (!TryParseCategory(category, out CityBudgetCategory parsedCategory))
-            {
-                return BadRequest(new { error = $"Unsupported budget category '{category}'." });
-            }
+            if (!TryParseCategory(
+                    rawCategory: category,
+                    category: out CityBudgetCategory parsedCategory))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported budget category '{category}'."
+                    });
 
             CityBudgetAllocationDto result = await _sender.Send(
-                new SetCityBudgetAllocationCommand(
+                request: new SetCityBudgetAllocationCommand(
                     CityId: cityId,
                     Category: parsedCategory,
                     TargetAmount: request.TargetAmount,
@@ -195,7 +220,7 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -206,18 +231,30 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             RunCityMunicipalOperatingCycleResultDto result = await _sender.Send(
-                new RunCityMunicipalOperatingCycleCommand(cityId),
-                cancellationToken);
+                request: new RunCityMunicipalOperatingCycleCommand(cityId),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
 
         [HttpGet("health")]
-        public IActionResult Health() => Ok(new { status = "ok" });
-
-        private static bool TryParseCategory(string rawCategory, out CityBudgetCategory category)
+        public IActionResult Health()
         {
-            return Enum.TryParse(rawCategory, ignoreCase: true, out category);
+            return Ok(
+                new
+                {
+                    status = "ok"
+                });
+        }
+
+        private static bool TryParseCategory(
+            string rawCategory,
+            out CityBudgetCategory category)
+        {
+            return Enum.TryParse(
+                value: rawCategory,
+                ignoreCase: true,
+                result: out category);
         }
 
         private static object MapSummary(BudgetSummaryDto result)

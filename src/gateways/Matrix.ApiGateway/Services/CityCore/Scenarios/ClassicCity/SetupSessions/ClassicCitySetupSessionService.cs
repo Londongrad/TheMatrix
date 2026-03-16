@@ -1,19 +1,20 @@
-using System.Net;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
+using System.Text;
 using MassTransit;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.InternalJwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
+using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.SetupSessions;
-using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
-using Matrix.Identity.Contracts.Internal.Responses;
 using Matrix.CityCore.Contracts.Scenarios.ClassicCity.Cities.Views;
-using Microsoft.AspNetCore.Http;
+using Matrix.Identity.Contracts.Internal.Responses;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions
@@ -54,13 +55,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private const string EconomyBootstrapStatusPending = "Pending";
         private const string EconomyBootstrapStatusCompleted = "Completed";
         private const string EconomyBootstrapStatusFailed = "Failed";
-        private readonly ClassicCitySetupSessionOptions _options = options.Value;
 
         private static readonly string[] MutableStatuses =
         [
             ClassicCitySetupSessionStatuses.Draft,
             ClassicCitySetupSessionStatuses.LaunchFailed
         ];
+
+        private readonly ClassicCitySetupSessionOptions _options = options.Value;
 
         public async Task<ClassicCitySetupSessionView> CreateAsync(
             CreateClassicCitySetupSessionRequestDto request,
@@ -128,11 +130,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     if (!TryAttachOrValidateOwner(session))
                         return NotFound();
 
-                    if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
+                    if (!MutableStatuses.Contains(
+                            value: session.Status,
+                            comparer: StringComparer.Ordinal))
                         return Conflict(
-                            session,
+                            session: session,
                             code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
-                            message: "This setup session can no longer be edited because launch orchestration is already in progress or completed.");
+                            message:
+                            "This setup session can no longer be edited because launch orchestration is already in progress or completed.");
 
                     session.CurrentStepId = NormalizeStepId(request.CurrentStepId);
                     session.Draft = NormalizeDraft(
@@ -168,9 +173,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     if (!TryAttachOrValidateOwner(session))
                         return NotFound();
 
-                    if (!MutableStatuses.Contains(session.Status, StringComparer.Ordinal))
+                    if (!MutableStatuses.Contains(
+                            value: session.Status,
+                            comparer: StringComparer.Ordinal))
                         return Conflict(
-                            session,
+                            session: session,
                             code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
                             message: "This setup session is already queued, running, or attached to a launched city.");
 
@@ -191,7 +198,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                             cancellationToken: cancellationToken);
 
                         return Invalid(
-                            session,
+                            session: session,
                             code: "Gateway.ClassicCitySetup.ValidationFailed",
                             message: errorMessage ?? "Setup draft is incomplete.");
                     }
@@ -206,17 +213,20 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     {
                         launchAuthContext = await CaptureLaunchAuthSnapshotAsync(cancellationToken);
                     }
-                    catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                    catch (Exception ex) when (ex is not OperationCanceledException ||
+                                               !cancellationToken.IsCancellationRequested)
                     {
                         logger.LogWarning(
                             exception: ex,
-                            message: "Classic City setup launch auth context could not be captured for sessionId={SessionId}.",
+                            message:
+                            "Classic City setup launch auth context could not be captured for sessionId={SessionId}.",
                             session.SessionId);
 
                         return Unavailable(
-                            session,
+                            session: session,
                             code: ClassicCitySetupSessionFailureCodes.LaunchAuthContextUnavailable,
-                            message: "Launch auth context could not be captured. Retry when gateway identity context is healthy.");
+                            message:
+                            "Launch auth context could not be captured. Retry when gateway identity context is healthy.");
                     }
 
                     DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -245,7 +255,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                             message: new ClassicCitySetupLaunchRequested(session.SessionId),
                             cancellationToken: cancellationToken);
                     }
-                    catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                    catch (Exception ex) when (ex is not OperationCanceledException ||
+                                               !cancellationToken.IsCancellationRequested)
                     {
                         logger.LogWarning(
                             exception: ex,
@@ -257,11 +268,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                             failureCode: ClassicCitySetupSessionFailureCodes.LaunchQueueUnavailable,
                             failureMessage: BuildSafeFailureMessage(
                                 exception: ex,
-                                fallback: "Launch request could not be queued. Retry when gateway messaging is healthy."),
+                                fallback:
+                                "Launch request could not be queued. Retry when gateway messaging is healthy."),
                             cancellationToken: cancellationToken);
 
                         return Unavailable(
-                            session,
+                            session: session,
                             code: ClassicCitySetupSessionFailureCodes.LaunchQueueUnavailable,
                             message: session.FailureMessage ?? "Launch request could not be queued.");
                     }
@@ -282,12 +294,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 {
                     if (session is null ||
                         !string.Equals(
-                            session.Status,
-                            ClassicCitySetupSessionStatuses.LaunchQueued,
-                            StringComparison.Ordinal))
-                    {
+                            a: session.Status,
+                            b: ClassicCitySetupSessionStatuses.LaunchQueued,
+                            comparisonType: StringComparison.Ordinal))
                         return;
-                    }
 
                     await ProcessLaunchCoreAsync(
                         session: session,
@@ -324,7 +334,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     if (ShouldRecoverQueuedLaunch(session))
                     {
                         logger.LogInformation(
-                            message: "Classic City setup session recovery is resuming a stale queued launch for sessionId={SessionId}.",
+                            message:
+                            "Classic City setup session recovery is resuming a stale queued launch for sessionId={SessionId}.",
                             session.SessionId);
 
                         await ProcessLaunchCoreAsync(
@@ -336,7 +347,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     if (ShouldRecoverCreatingCity(session))
                     {
                         logger.LogInformation(
-                            message: "Classic City setup session recovery is replaying city creation for stale sessionId={SessionId}.",
+                            message:
+                            "Classic City setup session recovery is replaying city creation for stale sessionId={SessionId}.",
                             session.SessionId);
 
                         await ProcessLaunchCoreAsync(
@@ -348,12 +360,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     if (!session.CityId.HasValue)
                     {
                         if (IsCreatingCityWithoutCorrelationStale(session))
-                        {
                             logger.LogWarning(
                                 message:
                                 "Classic City setup session reconciliation detected a stale creating-city state without a city correlation for sessionId={SessionId}. Manual review may be required.",
                                 session.SessionId);
-                        }
 
                         return;
                     }
@@ -377,8 +387,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 Name = draft.Name?.Trim() ?? string.Empty,
                 StartSimTimeLocal = draft.StartSimTimeLocal?.Trim() ?? string.Empty,
                 SpeedMultiplier = draft.SpeedMultiplier?.Trim() ?? string.Empty,
-                ClimateZone = string.IsNullOrWhiteSpace(draft.ClimateZone) ? "Temperate" : draft.ClimateZone.Trim(),
-                Hemisphere = string.IsNullOrWhiteSpace(draft.Hemisphere) ? "Northern" : draft.Hemisphere.Trim(),
+                ClimateZone = string.IsNullOrWhiteSpace(draft.ClimateZone)
+                    ? "Temperate"
+                    : draft.ClimateZone.Trim(),
+                Hemisphere = string.IsNullOrWhiteSpace(draft.Hemisphere)
+                    ? "Northern"
+                    : draft.Hemisphere.Trim(),
                 UtcOffsetMinutes = draft.UtcOffsetMinutes?.Trim() ?? string.Empty,
                 GenerationSeed = string.IsNullOrWhiteSpace(draft.GenerationSeed)
                     ? fallbackSeed
@@ -391,9 +405,15 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     value: draft.PopulationTargetMode,
                     plannedPeopleCount: draft.PlannedPeopleCount,
                     sizeTier: draft.SizeTier),
-                SizeTier = string.IsNullOrWhiteSpace(draft.SizeTier) ? "Medium" : draft.SizeTier.Trim(),
-                UrbanDensity = string.IsNullOrWhiteSpace(draft.UrbanDensity) ? "Balanced" : draft.UrbanDensity.Trim(),
-                DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel) ? "Balanced" : draft.DevelopmentLevel.Trim(),
+                SizeTier = string.IsNullOrWhiteSpace(draft.SizeTier)
+                    ? "Medium"
+                    : draft.SizeTier.Trim(),
+                UrbanDensity = string.IsNullOrWhiteSpace(draft.UrbanDensity)
+                    ? "Balanced"
+                    : draft.UrbanDensity.Trim(),
+                DevelopmentLevel = string.IsNullOrWhiteSpace(draft.DevelopmentLevel)
+                    ? "Balanced"
+                    : draft.DevelopmentLevel.Trim(),
                 EconomyProfile = NormalizeEconomyProfile(draft.EconomyProfile),
                 PopulationOccupancyProfile = NormalizePopulationOccupancyProfile(draft.PopulationOccupancyProfile),
                 PlannedPeopleCount = draft.PlannedPeopleCount?.Trim() ?? string.Empty
@@ -415,7 +435,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
         private static string NormalizeStepId(string? currentStepId)
         {
-            string normalized = currentStepId?.Trim().ToLowerInvariant() ?? ClassicCitySetupSteps.Scenario;
+            string normalized = currentStepId?.Trim()
+                                   .ToLowerInvariant() ??
+                                ClassicCitySetupSteps.Scenario;
             return ClassicCitySetupSteps.IsKnown(normalized)
                 ? normalized
                 : ClassicCitySetupSteps.Scenario;
@@ -443,8 +465,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             if (!decimal.TryParse(
                     s: draft.SpeedMultiplier,
-                    style: System.Globalization.NumberStyles.Number,
-                    provider: System.Globalization.CultureInfo.InvariantCulture,
+                    style: NumberStyles.Number,
+                    provider: CultureInfo.InvariantCulture,
                     result: out decimal speedMultiplier) ||
                 speedMultiplier <= 0)
             {
@@ -454,8 +476,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             if (!int.TryParse(
                     s: draft.UtcOffsetMinutes,
-                    style: System.Globalization.NumberStyles.Integer,
-                    provider: System.Globalization.CultureInfo.InvariantCulture,
+                    style: NumberStyles.Integer,
+                    provider: CultureInfo.InvariantCulture,
                     result: out int utcOffsetMinutes) ||
                 utcOffsetMinutes < -14 * 60 ||
                 utcOffsetMinutes > 14 * 60)
@@ -471,17 +493,13 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     draft: draft,
                     plannedPeopleCount: out plannedPeopleCount,
                     errorMessage: out errorMessage))
-            {
                 return false;
-            }
 
             if (!TryResolveInitialWeatherTemperature(
                     draft: draft,
                     initialWeatherTemperatureC: out initialWeatherTemperatureC,
                     errorMessage: out errorMessage))
-            {
                 return false;
-            }
 
             launchRequest = new CreateCityRequestDto(
                 Name: draft.Name,
@@ -491,7 +509,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 ClimateZone: draft.ClimateZone,
                 Hemisphere: draft.Hemisphere,
                 UtcOffsetMinutes: utcOffsetMinutes,
-                GenerationSeed: string.IsNullOrWhiteSpace(draft.GenerationSeed) ? null : draft.GenerationSeed,
+                GenerationSeed: string.IsNullOrWhiteSpace(draft.GenerationSeed)
+                    ? null
+                    : draft.GenerationSeed,
                 SizeTier: draft.SizeTier,
                 UrbanDensity: draft.UrbanDensity,
                 DevelopmentLevel: draft.DevelopmentLevel,
@@ -601,14 +621,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             errorMessage = null;
 
             if (string.Equals(
-                    draft.PopulationTargetMode,
-                    PopulationTargetModeManual,
-                    StringComparison.Ordinal))
+                    a: draft.PopulationTargetMode,
+                    b: PopulationTargetModeManual,
+                    comparisonType: StringComparison.Ordinal))
             {
                 if (!int.TryParse(
                         s: draft.PlannedPeopleCount,
-                        style: System.Globalization.NumberStyles.Integer,
-                        provider: System.Globalization.CultureInfo.InvariantCulture,
+                        style: NumberStyles.Integer,
+                        provider: CultureInfo.InvariantCulture,
                         result: out int parsedPeopleCount) ||
                     parsedPeopleCount < 0 ||
                     parsedPeopleCount > MaxPlannedPeopleCount)
@@ -633,12 +653,10 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             errorMessage = null;
 
             if (!string.Equals(
-                    draft.InitialWeatherMode,
-                    InitialWeatherModeManual,
-                    StringComparison.Ordinal))
-            {
+                    a: draft.InitialWeatherMode,
+                    b: InitialWeatherModeManual,
+                    comparisonType: StringComparison.Ordinal))
                 return true;
-            }
 
             if (string.IsNullOrWhiteSpace(draft.InitialWeatherType))
             {
@@ -657,8 +675,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
 
             if (!decimal.TryParse(
                     s: draft.InitialWeatherTemperatureC,
-                    style: System.Globalization.NumberStyles.Number,
-                    provider: System.Globalization.CultureInfo.InvariantCulture,
+                    style: NumberStyles.Number,
+                    provider: CultureInfo.InvariantCulture,
                     result: out decimal parsedTemperature))
             {
                 errorMessage = "Initial weather temperature must be a valid number.";
@@ -685,11 +703,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 PopulationTargetPreset100K
             ];
             int anchor = anchors[(int)(hash % (uint)anchors.Length)];
-            int jitterBasis = (int)((hash / (uint)anchors.Length) % 41U);
+            int jitterBasis = (int)(hash / (uint)anchors.Length % 41U);
             decimal jitterPercent = (jitterBasis - 20) / 100.0m;
             int rawTarget = Math.Max(
-                100,
-                (int)Math.Round(
+                val1: 100,
+                val2: (int)Math.Round(
                     d: anchor * (1.0m + jitterPercent),
                     mode: MidpointRounding.AwayFromZero));
 
@@ -714,7 +732,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             const uint prime = 16777619;
             uint hash = offsetBasis;
 
-            foreach (byte b in System.Text.Encoding.UTF8.GetBytes(value))
+            foreach (byte b in Encoding.UTF8.GetBytes(value))
             {
                 hash ^= b;
                 hash *= prime;
@@ -728,10 +746,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             int step)
         {
             return Math.Max(
-                step,
-                (int)Math.Round(
-                    d: value / (decimal)step,
-                    mode: MidpointRounding.AwayFromZero)) * step;
+                       val1: step,
+                       val2: (int)Math.Round(
+                           d: value / (decimal)step,
+                           mode: MidpointRounding.AwayFromZero)) *
+                   step;
         }
 
         private static CityProvisioningView BuildPendingProvisioning(
@@ -819,7 +838,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                         request: session.LaunchRequest,
                         cancellationToken: cancellationToken));
             }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException ||
+                                       !cancellationToken.IsCancellationRequested)
             {
                 logger.LogWarning(
                     exception: ex,
@@ -829,7 +849,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 await FailLaunchAsync(
                     session: session,
                     failureCode: DetermineCityCreateFailureCode(ex),
-                    failureMessage: BuildSafeFailureMessage(ex, "City creation failed before provisioning could start."),
+                    failureMessage: BuildSafeFailureMessage(
+                        exception: ex,
+                        fallback: "City creation failed before provisioning could start."),
                     cancellationToken: cancellationToken);
                 return;
             }
@@ -859,17 +881,21 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                         economyOperationId: created.EconomyBootstrapOperationId,
                         cancellationToken: cancellationToken));
 
-                FinalizeFromProvisioning(session, provisioning);
+                FinalizeFromProvisioning(
+                    session: session,
+                    provisioning: provisioning);
 
                 await sessionStore.SaveAsync(
                     session: session,
                     cancellationToken: cancellationToken);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException ||
+                                       !cancellationToken.IsCancellationRequested)
             {
                 logger.LogWarning(
                     exception: ex,
-                    message: "Classic City setup launch failed after city creation for sessionId={SessionId} cityId={CityId}.",
+                    message:
+                    "Classic City setup launch failed after city creation for sessionId={SessionId} cityId={CityId}.",
                     session.SessionId,
                     created.CityId);
 
@@ -931,12 +957,13 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 session: session,
                 cancellationToken: cancellationToken);
 
-            if (string.Equals(session.Status, ClassicCitySetupSessionStatuses.Ready, StringComparison.Ordinal))
-            {
+            if (string.Equals(
+                    a: session.Status,
+                    b: ClassicCitySetupSessionStatuses.Ready,
+                    comparisonType: StringComparison.Ordinal))
                 await sessionStore.UntrackAsync(
                     sessionId: session.SessionId,
                     cancellationToken: cancellationToken);
-            }
         }
 
         private static void ApplyProvisioningStatus(
@@ -960,16 +987,23 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 PopulationBootstrap: new CityPopulationBootstrapView(
                     OperationId: provisioningStatus.PopulationBootstrapOperationId,
                     Status: populationBootstrapStatus,
-                    PlannedPeopleCount: existingBootstrap?.PlannedPeopleCount ?? session.LaunchRequest?.PlannedPeopleCount,
+                    PlannedPeopleCount: existingBootstrap?.PlannedPeopleCount ??
+                                        session.LaunchRequest?.PlannedPeopleCount,
                     ResidentialCapacity: existingBootstrap?.ResidentialCapacity,
                     Summary: existingBootstrap?.Summary,
-                    FailureCode: string.Equals(populationBootstrapStatus, PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase)
+                    FailureCode: string.Equals(
+                        a: populationBootstrapStatus,
+                        b: PopulationBootstrapStatusFailed,
+                        comparisonType: StringComparison.OrdinalIgnoreCase)
                         ? provisioningStatus.PopulationBootstrapFailureCode ?? existingBootstrap?.FailureCode
                         : null),
                 EconomyBootstrap: new CityEconomyBootstrapView(
                     OperationId: provisioningStatus.EconomyBootstrapOperationId,
                     Status: economyBootstrapStatus,
-                    FailureCode: string.Equals(economyBootstrapStatus, EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase)
+                    FailureCode: string.Equals(
+                        a: economyBootstrapStatus,
+                        b: EconomyBootstrapStatusFailed,
+                        comparisonType: StringComparison.OrdinalIgnoreCase)
                         ? provisioningStatus.EconomyBootstrapFailureCode ?? existingEconomyBootstrap?.FailureCode
                         : null,
                     UnitKind: existingEconomyBootstrap?.UnitKind,
@@ -978,8 +1012,14 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     UnitSymbol: existingEconomyBootstrap?.UnitSymbol));
             session.UpdatedAtUtc = updatedAtUtc;
 
-            if (string.Equals(populationBootstrapStatus, PopulationBootstrapStatusCompleted, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(economyBootstrapStatus, EconomyBootstrapStatusCompleted, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(
+                    a: populationBootstrapStatus,
+                    b: PopulationBootstrapStatusCompleted,
+                    comparisonType: StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(
+                    a: economyBootstrapStatus,
+                    b: EconomyBootstrapStatusCompleted,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
             {
                 session.Status = ClassicCitySetupSessionStatuses.Ready;
                 session.FailureCode = null;
@@ -991,11 +1031,20 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 return;
             }
 
-            if (string.Equals(populationBootstrapStatus, PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(economyBootstrapStatus, EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(
+                    a: populationBootstrapStatus,
+                    b: PopulationBootstrapStatusFailed,
+                    comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    a: economyBootstrapStatus,
+                    b: EconomyBootstrapStatusFailed,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
             {
                 session.Status = ClassicCitySetupSessionStatuses.ProvisioningFailed;
-                bool economyFailed = string.Equals(economyBootstrapStatus, EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase);
+                bool economyFailed = string.Equals(
+                    a: economyBootstrapStatus,
+                    b: EconomyBootstrapStatusFailed,
+                    comparisonType: StringComparison.OrdinalIgnoreCase);
                 session.FailureCode = economyFailed
                     ? provisioningStatus.EconomyBootstrapFailureCode ??
                       existingEconomyBootstrap?.FailureCode ??
@@ -1023,25 +1072,21 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         {
             if (provisioningStatus.PopulationBootstrapFailedAtUtc.HasValue ||
                 string.Equals(
-                    provisioningStatus.Status,
-                    "ProvisioningFailed",
-                    StringComparison.OrdinalIgnoreCase))
-            {
+                    a: provisioningStatus.Status,
+                    b: "ProvisioningFailed",
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 return PopulationBootstrapStatusFailed;
-            }
 
             if (provisioningStatus.PopulationBootstrapCompletedAtUtc.HasValue ||
                 string.Equals(
-                    provisioningStatus.Status,
-                    "Active",
-                    StringComparison.OrdinalIgnoreCase) ||
+                    a: provisioningStatus.Status,
+                    b: "Active",
+                    comparisonType: StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(
-                    provisioningStatus.Status,
-                    "Archived",
-                    StringComparison.OrdinalIgnoreCase))
-            {
+                    a: provisioningStatus.Status,
+                    b: "Archived",
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 return PopulationBootstrapStatusCompleted;
-            }
 
             return PopulationBootstrapStatusPending;
         }
@@ -1049,47 +1094,41 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private static string DetermineEconomyBootstrapStatus(CityProvisioningStatusView provisioningStatus)
         {
             if (provisioningStatus.EconomyBootstrapFailedAtUtc.HasValue ||
-                string.Equals(
-                    provisioningStatus.Status,
-                    "ProvisioningFailed",
-                    StringComparison.OrdinalIgnoreCase) &&
-                !string.IsNullOrWhiteSpace(provisioningStatus.EconomyBootstrapFailureCode))
-            {
+                (string.Equals(
+                     a: provisioningStatus.Status,
+                     b: "ProvisioningFailed",
+                     comparisonType: StringComparison.OrdinalIgnoreCase) &&
+                 !string.IsNullOrWhiteSpace(provisioningStatus.EconomyBootstrapFailureCode)))
                 return EconomyBootstrapStatusFailed;
-            }
 
             if (provisioningStatus.EconomyBootstrapCompletedAtUtc.HasValue ||
                 string.Equals(
-                    provisioningStatus.Status,
-                    "Active",
-                    StringComparison.OrdinalIgnoreCase) ||
+                    a: provisioningStatus.Status,
+                    b: "Active",
+                    comparisonType: StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(
-                    provisioningStatus.Status,
-                    "Archived",
-                    StringComparison.OrdinalIgnoreCase))
-            {
+                    a: provisioningStatus.Status,
+                    b: "Archived",
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 return EconomyBootstrapStatusCompleted;
-            }
 
             return EconomyBootstrapStatusPending;
         }
 
         private static bool ShouldStopTracking(string status)
         {
-            return status is ClassicCitySetupSessionStatuses.Draft or
-                ClassicCitySetupSessionStatuses.LaunchFailed or
-                ClassicCitySetupSessionStatuses.Ready;
+            return status is ClassicCitySetupSessionStatuses.Draft
+             or ClassicCitySetupSessionStatuses.LaunchFailed
+             or ClassicCitySetupSessionStatuses.Ready;
         }
 
         private bool ShouldRecoverQueuedLaunch(ClassicCitySetupSessionState session)
         {
             if (!string.Equals(
-                    session.Status,
-                    ClassicCitySetupSessionStatuses.LaunchQueued,
-                    StringComparison.Ordinal))
-            {
+                    a: session.Status,
+                    b: ClassicCitySetupSessionStatuses.LaunchQueued,
+                    comparisonType: StringComparison.Ordinal))
                 return false;
-            }
 
             DateTimeOffset queuedAtUtc = session.LaunchQueuedAtUtc ?? session.UpdatedAtUtc;
             TimeSpan age = DateTimeOffset.UtcNow - queuedAtUtc;
@@ -1100,13 +1139,11 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private bool IsCreatingCityWithoutCorrelationStale(ClassicCitySetupSessionState session)
         {
             if (!string.Equals(
-                    session.Status,
-                    ClassicCitySetupSessionStatuses.CreatingCity,
-                    StringComparison.Ordinal) ||
+                    a: session.Status,
+                    b: ClassicCitySetupSessionStatuses.CreatingCity,
+                    comparisonType: StringComparison.Ordinal) ||
                 session.CityId.HasValue)
-            {
                 return false;
-            }
 
             DateTimeOffset referenceTimestamp = session.StartedAtUtc ?? session.UpdatedAtUtc;
             TimeSpan age = DateTimeOffset.UtcNow - referenceTimestamp;
@@ -1117,14 +1154,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
         private bool ShouldRecoverCreatingCity(ClassicCitySetupSessionState session)
         {
             if (!string.Equals(
-                    session.Status,
-                    ClassicCitySetupSessionStatuses.CreatingCity,
-                    StringComparison.Ordinal) ||
+                    a: session.Status,
+                    b: ClassicCitySetupSessionStatuses.CreatingCity,
+                    comparisonType: StringComparison.Ordinal) ||
                 session.CityId.HasValue ||
                 session.LaunchRequest?.ProvisioningCorrelationId is null)
-            {
                 return false;
-            }
 
             return IsCreatingCityWithoutCorrelationStale(session);
         }
@@ -1139,8 +1174,12 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             session.CityId = provisioning.CityId;
             session.SimulationKind = provisioning.SimulationKind;
             session.Provisioning = provisioning;
-            bool economyFailed = economyBootstrapStatus.Equals(EconomyBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase);
-            bool populationFailed = populationBootstrapStatus.Equals(PopulationBootstrapStatusFailed, StringComparison.OrdinalIgnoreCase);
+            bool economyFailed = economyBootstrapStatus.Equals(
+                value: EconomyBootstrapStatusFailed,
+                comparisonType: StringComparison.OrdinalIgnoreCase);
+            bool populationFailed = populationBootstrapStatus.Equals(
+                value: PopulationBootstrapStatusFailed,
+                comparisonType: StringComparison.OrdinalIgnoreCase);
 
             session.FailureCode = economyFailed
                 ? provisioning.EconomyBootstrap.FailureCode
@@ -1149,7 +1188,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 ? "Economy bootstrap failed and requires operator review."
                 : populationFailed
                     ? "Population bootstrap failed and requires operator review."
-                : null;
+                    : null;
             session.Status = economyFailed || populationFailed
                 ? ClassicCitySetupSessionStatuses.ProvisioningFailed
                 : ClassicCitySetupSessionStatuses.Ready;
@@ -1183,7 +1222,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 DownstreamServiceException downstreamException when
                     downstreamException.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity =>
                     ClassicCitySetupSessionFailureCodes.CityCreateValidationFailed,
-                DownstreamServiceException downstreamException when downstreamException.StatusCode == HttpStatusCode.Conflict =>
+                DownstreamServiceException downstreamException when downstreamException.StatusCode ==
+                                                                    HttpStatusCode.Conflict =>
                     ClassicCitySetupSessionFailureCodes.CityCreateConflict,
                 DownstreamServiceException => ClassicCitySetupSessionFailureCodes.CityCreateUnexpectedError,
                 HttpRequestException => ClassicCitySetupSessionFailureCodes.CityCreateTransportError,
@@ -1191,25 +1231,34 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             };
         }
 
-        private static string BuildSafeFailureMessage(Exception exception, string fallback)
+        private static string BuildSafeFailureMessage(
+            Exception exception,
+            string fallback)
         {
             if (exception is DownstreamServiceException downstreamException &&
                 !string.IsNullOrWhiteSpace(downstreamException.Message))
-            {
-                return FirstLineOrFallback(downstreamException.Message, fallback);
-            }
+                return FirstLineOrFallback(
+                    value: downstreamException.Message,
+                    fallback: fallback);
 
-            return FirstLineOrFallback(exception.Message, fallback);
+            return FirstLineOrFallback(
+                value: exception.Message,
+                fallback: fallback);
         }
 
-        private static string FirstLineOrFallback(string? value, string fallback)
+        private static string FirstLineOrFallback(
+            string? value,
+            string fallback)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return fallback;
 
             string firstLine = value
-               .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-               .FirstOrDefault() ?? fallback;
+                                  .Split(
+                                       separator: '\n',
+                                       options: StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                  .FirstOrDefault() ??
+                               fallback;
 
             return firstLine.Length <= 220
                 ? firstLine
@@ -1243,12 +1292,13 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 user?.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
                 user?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (Guid.TryParse(sub, out Guid userId))
-            {
+            if (Guid.TryParse(
+                    input: sub,
+                    result: out Guid userId))
                 return userId;
-            }
 
-            throw new InvalidOperationException("A current authenticated gateway user is required for setup session mutation.");
+            throw new InvalidOperationException(
+                "A current authenticated gateway user is required for setup session mutation.");
         }
 
         private Guid? TryGetCurrentUserId()
@@ -1258,7 +1308,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 user?.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
                 user?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            return Guid.TryParse(sub, out Guid userId)
+            return Guid.TryParse(
+                input: sub,
+                result: out Guid userId)
                 ? userId
                 : null;
         }
@@ -1297,9 +1349,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             if (snapshot is null)
             {
                 if (session.OwnerUserId is not Guid ownerUserId)
-                {
                     throw new InvalidOperationException("Setup session launch auth context is missing.");
-                }
 
                 snapshot = await BuildLaunchAuthSnapshotAsync(
                     userId: ownerUserId,
@@ -1333,7 +1383,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             return new ClassicCitySetupSessionLaunchAuthSnapshot
             {
                 UserId = userId,
-                Jti = string.IsNullOrWhiteSpace(jti) ? null : jti.Trim(),
+                Jti = string.IsNullOrWhiteSpace(jti)
+                    ? null
+                    : jti.Trim(),
                 PermissionsVersion = authContext.PermissionsVersion,
                 EffectivePermissions = authContext.EffectivePermissions
                    .Where(permission => !string.IsNullOrWhiteSpace(permission))
@@ -1431,7 +1483,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     sessionId: sessionId,
                     cancellationToken: cancellationToken);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException ||
+                                       !cancellationToken.IsCancellationRequested)
             {
                 logger.LogWarning(
                     exception: ex,
@@ -1447,11 +1500,9 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             if (lockHandle is null)
             {
                 if (string.IsNullOrWhiteSpace(unavailableFallbackMessage))
-                {
                     logger.LogDebug(
                         message: "Classic City setup session is already locked for sessionId={SessionId}.",
                         sessionId);
-                }
 
                 return;
             }
@@ -1487,7 +1538,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     sessionId: sessionId,
                     cancellationToken: cancellationToken);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException ||
+                                       !cancellationToken.IsCancellationRequested)
             {
                 logger.LogWarning(
                     exception: ex,
@@ -1501,7 +1553,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 return session is null
                     ? NotFound()
                     : Unavailable(
-                        session,
+                        session: session,
                         code: ClassicCitySetupSessionFailureCodes.SessionLockUnavailable,
                         message: unavailableFallbackMessage);
             }
@@ -1515,7 +1567,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                 return session is null
                     ? NotFound()
                     : Conflict(
-                        session,
+                        session: session,
                         code: ClassicCitySetupSessionFailureCodes.SessionBusy,
                         message: "This setup session is already being modified by another request. Retry in a moment.");
             }
@@ -1545,7 +1597,8 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
                     lockHandle: lockHandle,
                     cancellationToken: cancellationToken);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            catch (Exception ex) when (ex is not OperationCanceledException ||
+                                       !cancellationToken.IsCancellationRequested)
             {
                 logger.LogWarning(
                     exception: ex,

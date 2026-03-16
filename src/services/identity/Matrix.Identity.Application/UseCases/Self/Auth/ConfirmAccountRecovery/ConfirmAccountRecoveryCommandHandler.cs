@@ -2,10 +2,9 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
-using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
-using Matrix.Identity.Domain.Errors;
 using Matrix.Identity.Domain.Enums;
+using Matrix.Identity.Domain.Errors;
 using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Auth.ConfirmAccountRecovery

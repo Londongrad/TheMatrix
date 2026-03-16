@@ -14,7 +14,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         public async Task Consume(ConsumeContext<ClassicCityHouseholdFinancialStressBatchV1> context)
         {
             if (context.MessageId is null)
-                throw new InvalidOperationException("ClassicCityHouseholdFinancialStress message must have a MessageId.");
+                throw new InvalidOperationException(
+                    "ClassicCityHouseholdFinancialStress message must have a MessageId.");
 
             ClassicCityHouseholdFinancialStressBatchV1 message = context.Message;
 
@@ -25,20 +26,21 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     ConsumerName: ClassicCityHouseholdFinancialStressConsumerDefinition.EndpointNameValue,
                     OccurredAtUtc: message.OccurredAtUtc,
                     Households: message.Households
-                        .Select(x => new HouseholdFinancialStressSnapshotInput(
+                       .Select(x => new HouseholdFinancialStressSnapshotInput(
                             HouseholdExternalReferenceCode: x.HouseholdExternalReferenceCode,
                             OverdueObligationCount: x.OverdueObligationCount,
                             OverdueRentCount: x.OverdueRentCount,
                             OverdueUtilityCount: x.OverdueUtilityCount,
                             TotalOverdueAmount: x.TotalOverdueAmount,
                             DistressScore: x.DistressScore))
-                        .ToArray()),
+                       .ToArray()),
                 cancellationToken: context.CancellationToken);
 
             switch (result.Status)
             {
                 case ApplyCityHouseholdFinancialStressStatus.Applied:
                     logger.LogInformation(
+                        message:
                         "Applied classic city household financial stress batch for cityId={CityId}, messageId={MessageId}, households={Households}, batch={BatchNumber}/{TotalBatches}.",
                         message.CityId,
                         context.MessageId,
@@ -49,6 +51,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 
                 case ApplyCityHouseholdFinancialStressStatus.Duplicate:
                     logger.LogDebug(
+                        message:
                         "Skipped duplicate classic city household financial stress batch for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
@@ -56,6 +59,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 
                 case ApplyCityHouseholdFinancialStressStatus.CityDeleted:
                     logger.LogDebug(
+                        message:
                         "Skipped classic city household financial stress batch for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
@@ -63,6 +67,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
 
                 case ApplyCityHouseholdFinancialStressStatus.CityArchived:
                     logger.LogDebug(
+                        message:
                         "Skipped classic city household financial stress batch for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);

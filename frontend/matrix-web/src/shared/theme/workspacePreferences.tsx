@@ -1,11 +1,4 @@
-import {
-    createContext,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-    type ReactNode,
-} from "react";
+import {createContext, type ReactNode, useContext, useEffect, useMemo, useState,} from "react";
 
 export type WorkspaceLanguage = "en" | "ru";
 export type WorkspaceTheme = "matrix" | "dark" | "light";
@@ -79,8 +72,8 @@ const applyDocumentPreferences = (preferences: WorkspacePreferences) => {
 };
 
 export function WorkspacePreferencesProvider({
-    children,
-}: {
+                                                 children,
+                                             }: {
     children: ReactNode;
 }) {
     const [preferences, setPreferences] = useState<WorkspacePreferences>(() =>

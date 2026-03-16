@@ -9,10 +9,16 @@ namespace Matrix.Economy.Application.UseCases.GetCityBudgetSummary
     public sealed class GetCityBudgetSummaryQueryHandler(ICityBudgetRepository budgetRepository)
         : IRequestHandler<GetCityBudgetSummaryQuery, BudgetSummaryDto>
     {
-        public async Task<BudgetSummaryDto> Handle(GetCityBudgetSummaryQuery request, CancellationToken cancellationToken)
+        public async Task<BudgetSummaryDto> Handle(
+            GetCityBudgetSummaryQuery request,
+            CancellationToken cancellationToken)
         {
-            CityBudget budget = await budgetRepository.GetByCityAsync(request.CityId, cancellationToken)
-                ?? new CityBudget(CityBudgetId.New(), request.CityId);
+            CityBudget budget = await budgetRepository.GetByCityAsync(
+                                    cityId: request.CityId,
+                                    cancellationToken: cancellationToken) ??
+                                new CityBudget(
+                                    id: CityBudgetId.New(),
+                                    cityId: request.CityId);
 
             return new BudgetSummaryDto(
                 UnitKind: budget.UnitKind.ToString(),

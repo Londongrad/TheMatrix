@@ -8,16 +8,24 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         public CityPopulationBootstrapTuningInputValidator()
         {
             RuleFor(x => x.HousingPressurePercent)
-               .InclusiveBetween(0, 100);
+               .InclusiveBetween(
+                    from: 0,
+                    to: 100);
 
             RuleFor(x => x.EconomicStabilityPercent)
-               .InclusiveBetween(0, 100);
+               .InclusiveBetween(
+                    from: 0,
+                    to: 100);
 
             RuleFor(x => x.SocialVolatilityPercent)
-               .InclusiveBetween(0, 100);
+               .InclusiveBetween(
+                    from: 0,
+                    to: 100);
 
             RuleFor(x => x.FamilyFormationPercent)
-               .InclusiveBetween(0, 100);
+               .InclusiveBetween(
+                    from: 0,
+                    to: 100);
         }
     }
 }

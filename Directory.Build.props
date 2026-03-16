@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
-    <Content Include="$(MSBuildThisFileDirectory)appsettings.logging.json" Link="appsettings.logging.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(MSBuildThisFileDirectory)appsettings.logging.Development.json" Link="appsettings.logging.Development.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(MSBuildThisFileDirectory)appsettings.logging.json" Link="appsettings.logging.json" CopyToOutputDirectory="PreserveNewest"/>
+    <Content Include="$(MSBuildThisFileDirectory)appsettings.logging.Development.json" Link="appsettings.logging.Development.json" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 </Project>

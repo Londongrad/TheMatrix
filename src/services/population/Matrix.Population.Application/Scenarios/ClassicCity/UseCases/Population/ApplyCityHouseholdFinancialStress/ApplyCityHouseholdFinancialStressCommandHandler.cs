@@ -36,25 +36,23 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cancellationToken: ct);
 
                     if (!markedAsProcessed)
-                    {
                         return new ApplyCityHouseholdFinancialStressResult(
                             Status: ApplyCityHouseholdFinancialStressStatus.Duplicate,
                             AppliedHouseholdCount: 0);
-                    }
 
-                    if (await cityPopulationDeletionStateRepository.GetByCityAsync(cityId, ct) is not null)
-                    {
+                    if (await cityPopulationDeletionStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct) is not null)
                         return new ApplyCityHouseholdFinancialStressResult(
                             Status: ApplyCityHouseholdFinancialStressStatus.CityDeleted,
                             AppliedHouseholdCount: 0);
-                    }
 
-                    if (await cityPopulationArchiveStateRepository.GetByCityAsync(cityId, ct) is not null)
-                    {
+                    if (await cityPopulationArchiveStateRepository.GetByCityAsync(
+                            cityId: cityId,
+                            cancellationToken: ct) is not null)
                         return new ApplyCityHouseholdFinancialStressResult(
                             Status: ApplyCityHouseholdFinancialStressStatus.CityArchived,
                             AppliedHouseholdCount: 0);
-                    }
 
                     int appliedHouseholdCount = 0;
 
@@ -63,9 +61,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         if (!TryParseHouseholdId(
                                 externalReferenceCode: household.HouseholdExternalReferenceCode,
                                 householdId: out HouseholdId householdId))
-                        {
                             continue;
-                        }
 
                         CityPopulationHouseholdFinancialStressState? state =
                             await householdFinancialStressStateRepository.GetByCityAndHouseholdAsync(
@@ -91,10 +87,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 lastEvaluatedAtUtc: occurredAtUtc,
                                 updatedAtUtc: updatedAtUtc);
 
-                            await householdFinancialStressStateRepository.AddAsync(state, ct);
+                            await householdFinancialStressStateRepository.AddAsync(
+                                state: state,
+                                cancellationToken: ct);
                         }
                         else
-                        {
                             state.ApplySnapshot(
                                 overdueObligationCount: household.OverdueObligationCount,
                                 overdueRentCount: household.OverdueRentCount,
@@ -103,7 +100,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 distressScore: household.DistressScore,
                                 lastEvaluatedAtUtc: occurredAtUtc,
                                 updatedAtUtc: updatedAtUtc);
-                        }
 
                         appliedHouseholdCount++;
                     }
@@ -121,18 +117,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             string externalReferenceCode,
             out HouseholdId householdId)
         {
-            householdId = default;
+            householdId = default(HouseholdId);
 
             if (string.IsNullOrWhiteSpace(externalReferenceCode) ||
                 !externalReferenceCode.StartsWith(
-                    HouseholdExternalReferencePrefix,
-                    StringComparison.OrdinalIgnoreCase))
-            {
+                    value: HouseholdExternalReferencePrefix,
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
                 return false;
-            }
 
             string value = externalReferenceCode[HouseholdExternalReferencePrefix.Length..];
-            if (!Guid.TryParseExact(value, "N", out Guid parsed))
+            if (!Guid.TryParseExact(
+                    input: value,
+                    format: "N",
+                    result: out Guid parsed))
                 return false;
 
             householdId = HouseholdId.From(parsed);

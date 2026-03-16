@@ -1,6 +1,7 @@
-using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.GetEmploymentCatalog
@@ -26,10 +27,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
             IReadOnlyList<string> titles = contentCatalog.Professions
                .Select(x => x.Title)
                .Distinct(StringComparer.OrdinalIgnoreCase)
-               .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+               .OrderBy(
+                    keySelector: x => x,
+                    comparer: StringComparer.OrdinalIgnoreCase)
                .ToArray();
-            IReadOnlyList<CityEmploymentWorkplaceDto> workplaces = (await cityPopulationPersonReadRepository.ListEmploymentWorkplacesAsync(
-                    cityId: Domain.Scenarios.ClassicCity.ValueObjects.CityId.From(request.CityId),
+            IReadOnlyList<CityEmploymentWorkplaceDto> workplaces =
+                (await cityPopulationPersonReadRepository.ListEmploymentWorkplacesAsync(
+                    cityId: CityId.From(request.CityId),
                     cancellationToken: cancellationToken))
                .Select(x => new CityEmploymentWorkplaceDto(
                     WorkplaceId: x.WorkplaceId.Value,

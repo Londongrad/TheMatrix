@@ -31,11 +31,11 @@ const renderDisabled = (children: ReactElement, tooltip: string) => (
 );
 
 export const RequirePermission = ({
-    perm,
-    displayMode = "hide",
-    tooltip = "Not enough permissions",
-    children,
-}: RequirePermissionProps) => {
+                                      perm,
+                                      displayMode = "hide",
+                                      tooltip = "Not enough permissions",
+                                      children,
+                                  }: RequirePermissionProps) => {
     const {can} = usePermissions();
     const allowed = can(perm);
 
@@ -46,12 +46,12 @@ export const RequirePermission = ({
 };
 
 export const RequirePermissions = ({
-    perms,
-    displayMode = "hide",
-    permissionMatchMode = "any",
-    tooltip = "Not enough permissions",
-    children,
-}: RequirePermissionsProps) => {
+                                       perms,
+                                       displayMode = "hide",
+                                       permissionMatchMode = "any",
+                                       tooltip = "Not enough permissions",
+                                       children,
+                                   }: RequirePermissionsProps) => {
     const {canAll, canAny} = usePermissions();
     const allowed = permissionMatchMode === "all" ? canAll(perms) : canAny(perms);
 

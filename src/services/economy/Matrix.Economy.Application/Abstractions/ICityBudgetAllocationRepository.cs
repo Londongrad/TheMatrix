@@ -10,7 +10,9 @@ namespace Matrix.Economy.Application.Abstractions
             CityBudgetCategory category,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<CityBudgetAllocation>> ListByCityAsync(Guid cityId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<CityBudgetAllocation>> ListByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
 
         void Add(CityBudgetAllocation allocation);
     }

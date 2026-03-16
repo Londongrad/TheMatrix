@@ -42,8 +42,7 @@ namespace Matrix.CityCore.Infrastructure.Persistence.Repositories
                .ToListAsync(cancellationToken);
         }
 
-        public async Task<IReadOnlyList<City>> ListProvisioningAsync(
-            CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<City>> ListProvisioningAsync(CancellationToken cancellationToken)
         {
             return await dbContext.Cities
                .AsNoTracking()

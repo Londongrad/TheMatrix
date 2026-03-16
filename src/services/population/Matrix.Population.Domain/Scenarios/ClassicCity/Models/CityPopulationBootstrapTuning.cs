@@ -6,11 +6,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         int SocialVolatilityPercent,
         int FamilyFormationPercent)
     {
-        public static CityPopulationBootstrapTuning Default() =>
-            new(
+        public static CityPopulationBootstrapTuning Default()
+        {
+            return new CityPopulationBootstrapTuning(
                 HousingPressurePercent: 50,
                 EconomicStabilityPercent: 50,
                 SocialVolatilityPercent: 50,
                 FamilyFormationPercent: 50);
+        }
     }
 }

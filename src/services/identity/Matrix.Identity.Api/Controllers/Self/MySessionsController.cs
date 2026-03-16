@@ -1,11 +1,11 @@
 using System.Security.Claims;
-using Matrix.BuildingBlocks.Application.Models;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistoryPage;
 using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions;
-using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeOtherMySessions;
 using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession;
+using Matrix.Identity.Application.UseCases.Self.Sessions.RevokeOtherMySessions;
 using Matrix.Identity.Contracts.Self.Sessions.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

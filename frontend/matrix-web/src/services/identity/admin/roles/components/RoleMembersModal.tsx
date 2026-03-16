@@ -4,10 +4,7 @@ import Pagination from "@shared/ui/components/Pagination/Pagination";
 import Button from "@shared/ui/controls/Button/Button";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
 import {getRoleMembersPage} from "@services/identity/api/admin/adminApi";
-import {
-    formatAdminRelativeVisit,
-    formatAdminVisitUtc,
-} from "@services/identity/admin/shared/utils/dateTime";
+import {formatAdminRelativeVisit, formatAdminVisitUtc,} from "@services/identity/admin/shared/utils/dateTime";
 import type {RoleResponse, UserListItemResponse,} from "@services/identity/api/admin/adminTypes";
 
 function RoleMemberCard({member}: { member: UserListItemResponse }) {

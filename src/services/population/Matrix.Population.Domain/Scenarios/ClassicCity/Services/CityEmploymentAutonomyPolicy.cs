@@ -1,7 +1,7 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -72,7 +72,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityHouseholdEconomyProfile householdEconomy,
             IDictionary<string, List<WorkplaceId>> workplacePools)
         {
-            double chancePerReview = ResolveHireChancePerReview(person, householdEconomy);
+            double chancePerReview = ResolveHireChancePerReview(
+                person: person,
+                householdEconomy: householdEconomy);
             if (!RollOccurs(
                     personId: person.Id,
                     currentDate: currentDate,
@@ -105,7 +107,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int reviewWindows,
             CityHouseholdEconomyProfile householdEconomy)
         {
-            double chancePerReview = ResolveJobLossChancePerReview(person, householdEconomy);
+            double chancePerReview = ResolveJobLossChancePerReview(
+                person: person,
+                householdEconomy: householdEconomy);
             if (!RollOccurs(
                     personId: person.Id,
                     currentDate: currentDate,
@@ -124,7 +128,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             string jobTitle,
             IDictionary<string, List<WorkplaceId>> workplacePools)
         {
-            if (!workplacePools.TryGetValue(jobTitle, out List<WorkplaceId>? titlePool))
+            if (!workplacePools.TryGetValue(
+                    key: jobTitle,
+                    value: out List<WorkplaceId>? titlePool))
             {
                 titlePool = [];
                 workplacePools[jobTitle] = titlePool;
@@ -135,11 +141,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                     GetStableFraction(
                                         personId: person.Id,
                                         currentDate: currentDate,
-                                        salt: 73) < 0.18d);
+                                        salt: 73) <
+                                    0.18d);
 
             if (shouldCreateNew)
             {
-                WorkplaceId created = WorkplaceId.New();
+                var created = WorkplaceId.New();
                 titlePool.Add(created);
                 return created;
             }
@@ -185,7 +192,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             int previousWindow = previousDate.DayNumber / 7;
             int currentWindow = currentDate.DayNumber / 7;
-            return Math.Clamp(currentWindow - previousWindow, 0, 8);
+            return Math.Clamp(
+                value: currentWindow - previousWindow,
+                min: 0,
+                max: 8);
         }
 
         private static double ResolveHireChancePerReview(
@@ -211,21 +221,27 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 0.006d
             };
 
-            double chance = 0.010d
-                            + (discipline * 0.030d)
-                            + (optimism * 0.015d)
-                            + (health * 0.020d)
-                            + (energy * 0.020d)
-                            - (stress * 0.030d)
-                            + educationBonus;
+            double chance = 0.010d +
+                            (discipline * 0.030d) +
+                            (optimism * 0.015d) +
+                            (health * 0.020d) +
+                            (energy * 0.020d) -
+                            (stress * 0.030d) +
+                            educationBonus;
 
             chance += householdEconomy.StrainScore * 0.030d;
-            chance -= Math.Max(0d, householdEconomy.EconomicBalance) * 0.006d;
+            chance -= Math.Max(
+                          val1: 0d,
+                          val2: householdEconomy.EconomicBalance) *
+                      0.006d;
 
             if (person.Health.Value < 25 || person.Energy.Value < 20)
                 chance *= 0.40d;
 
-            return Math.Clamp(chance, 0.003d, 0.120d);
+            return Math.Clamp(
+                value: chance,
+                min: 0.003d,
+                max: 0.120d);
         }
 
         private static double ResolveJobLossChancePerReview(
@@ -238,20 +254,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double lowHealth = 1d - Normalize(person.Health.Value);
             double lowEnergy = 1d - Normalize(person.Energy.Value);
 
-            double chance = 0.002d
-                            + (stress * 0.020d)
-                            + (lowHealth * 0.015d)
-                            + (lowEnergy * 0.012d)
-                            - (discipline * 0.010d)
-                            - (optimism * 0.005d);
+            double chance = 0.002d +
+                            (stress * 0.020d) +
+                            (lowHealth * 0.015d) +
+                            (lowEnergy * 0.012d) -
+                            (discipline * 0.010d) -
+                            (optimism * 0.005d);
 
             chance -= householdEconomy.StrainScore * 0.010d;
-            chance += Math.Max(0d, householdEconomy.EconomicBalance) * 0.004d;
+            chance += Math.Max(
+                          val1: 0d,
+                          val2: householdEconomy.EconomicBalance) *
+                      0.004d;
 
             if (person.Health.Value < 20 || person.Energy.Value < 15 || person.Stress.Value > 90)
                 chance += 0.020d;
 
-            return Math.Clamp(chance, 0.001d, 0.090d);
+            return Math.Clamp(
+                value: chance,
+                min: 0.001d,
+                max: 0.090d);
         }
 
         private static bool RollOccurs(
@@ -264,16 +286,23 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (reviewWindows <= 0 || chancePerReview <= 0d)
                 return false;
 
-            double combinedChance = 1d - Math.Pow(1d - chancePerReview, reviewWindows);
+            double combinedChance = 1d -
+                Math.Pow(
+                    x: 1d - chancePerReview,
+                    y: reviewWindows);
             return GetStableFraction(
-                personId: personId,
-                currentDate: currentDate,
-                salt: salt) < combinedChance;
+                       personId: personId,
+                       currentDate: currentDate,
+                       salt: salt) <
+                   combinedChance;
         }
 
         private static double Normalize(int value)
         {
-            return Math.Clamp(value / 100d, 0d, 1d);
+            return Math.Clamp(
+                value: value / 100d,
+                min: 0d,
+                max: 1d);
         }
 
         private static int GetStableInt(
@@ -308,7 +337,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                        personId: personId,
                        currentDate: currentDate,
                        salt: salt,
-                       modulus: 10_000) / 10_000d;
+                       modulus: 10_000) /
+                   10_000d;
         }
     }
 }

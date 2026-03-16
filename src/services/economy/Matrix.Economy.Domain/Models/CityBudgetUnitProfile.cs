@@ -8,10 +8,13 @@ namespace Matrix.Economy.Domain.Models
         string DisplayName,
         string Symbol)
     {
-        public static CityBudgetUnitProfile DefaultMoney() => new(
-            Kind: CityBudgetUnitKind.Currency,
-            Code: "MNY",
-            DisplayName: "Money",
-            Symbol: "¤");
+        public static CityBudgetUnitProfile DefaultMoney()
+        {
+            return new CityBudgetUnitProfile(
+                Kind: CityBudgetUnitKind.Currency,
+                Code: "MNY",
+                DisplayName: "Money",
+                Symbol: "¤");
+        }
     }
 }

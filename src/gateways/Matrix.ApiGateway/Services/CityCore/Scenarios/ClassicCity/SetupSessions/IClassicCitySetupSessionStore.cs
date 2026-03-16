@@ -19,8 +19,7 @@ namespace Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSession
             ClassicCitySetupSessionLockHandle lockHandle,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<Guid>> ListTrackedSessionIdsAsync(
-            CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<Guid>> ListTrackedSessionIdsAsync(CancellationToken cancellationToken = default);
 
         Task UntrackAsync(
             Guid sessionId,

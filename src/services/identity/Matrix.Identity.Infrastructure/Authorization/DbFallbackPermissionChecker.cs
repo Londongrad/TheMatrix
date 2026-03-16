@@ -49,10 +49,9 @@ namespace Matrix.Identity.Infrastructure.Authorization
                 userId: userId,
                 cancellationToken: ct);
 
-            return permissionKeys.Any(
-                permissionKey => ctx.Permissions.Contains(
-                    value: permissionKey,
-                    comparer: StringComparer.Ordinal));
+            return permissionKeys.Any(permissionKey => ctx.Permissions.Contains(
+                value: permissionKey,
+                comparer: StringComparer.Ordinal));
         }
 
         public async Task<bool> HasAllAsync(
@@ -73,10 +72,9 @@ namespace Matrix.Identity.Infrastructure.Authorization
                 userId: userId,
                 cancellationToken: ct);
 
-            return permissionKeys.All(
-                permissionKey => ctx.Permissions.Contains(
-                    value: permissionKey,
-                    comparer: StringComparer.Ordinal));
+            return permissionKeys.All(permissionKey => ctx.Permissions.Contains(
+                value: permissionKey,
+                comparer: StringComparer.Ordinal));
         }
     }
 }

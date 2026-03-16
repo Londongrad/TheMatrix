@@ -12,13 +12,13 @@ type PermissionItem = {
 };
 
 export default function PermissionsMatrix({
-    grouped,
-    activeRole,
-    rolePermissions,
-    roleLoading,
-    loading,
-    onToggle,
-}: {
+                                              grouped,
+                                              activeRole,
+                                              rolePermissions,
+                                              roleLoading,
+                                              loading,
+                                              onToggle,
+                                          }: {
     grouped: PermissionSection[];
     activeRole: RoleResponse | null;
     rolePermissions: Set<string>;

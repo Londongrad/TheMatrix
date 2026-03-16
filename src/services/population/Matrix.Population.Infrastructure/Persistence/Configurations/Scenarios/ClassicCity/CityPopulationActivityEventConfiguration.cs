@@ -1,5 +1,4 @@
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
-using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -53,16 +52,32 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
 
             builder.Property(x => x.PrimaryResidentId)
                .HasConversion(
-                    convertToProviderExpression: id => id == null ? (Guid?)null : id.Value.Value,
-                    convertFromProviderExpression: value => value.HasValue ? PersonId.From(value.Value) : null);
+                    convertToProviderExpression: id => id == null
+                        ? (Guid?)null
+                        : id.Value.Value,
+                    convertFromProviderExpression: value => value.HasValue
+                        ? PersonId.From(value.Value)
+                        : null);
 
             builder.Property(x => x.SecondaryResidentId)
                .HasConversion(
-                    convertToProviderExpression: id => id == null ? (Guid?)null : id.Value.Value,
-                    convertFromProviderExpression: value => value.HasValue ? PersonId.From(value.Value) : null);
+                    convertToProviderExpression: id => id == null
+                        ? (Guid?)null
+                        : id.Value.Value,
+                    convertFromProviderExpression: value => value.HasValue
+                        ? PersonId.From(value.Value)
+                        : null);
 
-            builder.HasIndex(x => new { x.CityId, x.OccurredAtUtc });
-            builder.HasIndex(x => new { x.CityId, x.CurrentDate });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.OccurredAtUtc
+            });
+            builder.HasIndex(x => new
+            {
+                x.CityId,
+                x.CurrentDate
+            });
             builder.HasIndex(x => x.EventType);
         }
     }

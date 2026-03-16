@@ -17,15 +17,12 @@ import {
     getClassicCityResidentDossierPath,
     getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
-import {
-    getCityStatusTone,
-    isArchivedCity,
-} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {
     CityEmploymentCatalogDto,
     CityEmploymentOperationResultDto,
-    CityResidentDetailsDto,
     CityEmploymentWorkplaceDto,
+    CityResidentDetailsDto,
     PersonDto,
 } from "@services/population/person/api/personTypes";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
@@ -88,12 +85,12 @@ type SelectedResidentCardProps = {
 };
 
 function SelectedResidentCard({
-    cityId,
-    residentId,
-    resident,
-    isLoading,
-    onClear,
-}: SelectedResidentCardProps) {
+                                  cityId,
+                                  residentId,
+                                  resident,
+                                  isLoading,
+                                  onClear,
+                              }: SelectedResidentCardProps) {
     return (
         <section className="city-employment__selected-card">
             <div className="city-employment__selected-header">
@@ -610,7 +607,8 @@ const CityEmploymentPage = () => {
 
                             {currentWorkplaces.length > MAX_VISIBLE_WORKPLACES ? (
                                 <p className="card-sub">
-                                    {currentWorkplaces.length - MAX_VISIBLE_WORKPLACES} more workplaces stay hidden for now so
+                                    {currentWorkplaces.length - MAX_VISIBLE_WORKPLACES} more workplaces stay hidden for
+                                    now so
                                     this service workspace stays readable.
                                 </p>
                             ) : null}

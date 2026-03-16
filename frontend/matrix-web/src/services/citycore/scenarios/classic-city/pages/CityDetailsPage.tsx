@@ -3,14 +3,13 @@ import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-do
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {CityDashboardCard} from "@services/citycore/scenarios/classic-city/components/CityDashboardCard";
 import {CityOverviewCard} from "@services/citycore/scenarios/classic-city/components/CityOverviewCard";
-import {CityPopulationSummaryCard} from "@services/citycore/scenarios/classic-city/components/CityPopulationSummaryCard";
+import {
+    CityPopulationSummaryCard
+} from "@services/citycore/scenarios/classic-city/components/CityPopulationSummaryCard";
 import {CityWeatherCard} from "@services/citycore/scenarios/classic-city/components/CityWeatherCard";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityLifecycleMutations} from "@services/citycore/scenarios/classic-city/hooks/useCityLifecycleMutations";
-import {
-    getCityStatusTone,
-    isArchivedCity,
-} from "@services/citycore/scenarios/classic-city/utils/presentation";
+import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityProvisioningPath,

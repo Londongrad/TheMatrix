@@ -3,8 +3,7 @@ using Microsoft.Extensions.Options;
 
 namespace Matrix.Identity.Infrastructure.Integration.Links
 {
-    public sealed class FrontendLinkBuilder(
-        IOptions<FrontendLinksOptions> options) : IFrontendLinkBuilder
+    public sealed class FrontendLinkBuilder(IOptions<FrontendLinksOptions> options) : IFrontendLinkBuilder
     {
         public string BuildConfirmEmailLink(
             Guid userId,
@@ -51,12 +50,16 @@ namespace Matrix.Identity.Infrastructure.Integration.Links
             Guid userId,
             string rawToken)
         {
-            var baseUri = new Uri(options.Value.BaseUrl, UriKind.Absolute);
+            var baseUri = new Uri(
+                uriString: options.Value.BaseUrl,
+                uriKind: UriKind.Absolute);
             string normalizedPath = path.StartsWith('/')
                 ? path[1..]
                 : path;
 
-            var targetUri = new Uri(baseUri, normalizedPath);
+            var targetUri = new Uri(
+                baseUri: baseUri,
+                relativeUri: normalizedPath);
             var builder = new UriBuilder(targetUri)
             {
                 Query =

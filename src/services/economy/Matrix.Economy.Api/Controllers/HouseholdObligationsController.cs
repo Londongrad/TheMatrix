@@ -21,16 +21,24 @@ namespace Matrix.Economy.Api.Controllers
         private readonly ISender _sender = sender;
 
         [HttpGet("cities/{cityId:guid}")]
-        public async Task<IActionResult> ListCityObligations([FromRoute] Guid cityId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ListCityObligations(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityHouseholdObligationDto> result = await _sender.Send(new GetCityHouseholdObligationsQuery(cityId), cancellationToken);
+            IReadOnlyList<CityHouseholdObligationDto> result = await _sender.Send(
+                request: new GetCityHouseholdObligationsQuery(cityId),
+                cancellationToken: cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("households/{householdAccountId:guid}")]
-        public async Task<IActionResult> ListHouseholdObligations([FromRoute] Guid householdAccountId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ListHouseholdObligations(
+            [FromRoute] Guid householdAccountId,
+            CancellationToken cancellationToken)
         {
-            IReadOnlyList<CityHouseholdObligationDto> result = await _sender.Send(new GetHouseholdObligationsQuery(householdAccountId), cancellationToken);
+            IReadOnlyList<CityHouseholdObligationDto> result = await _sender.Send(
+                request: new GetHouseholdObligationsQuery(householdAccountId),
+                cancellationToken: cancellationToken);
             return Ok(result);
         }
 
@@ -40,20 +48,30 @@ namespace Matrix.Economy.Api.Controllers
             [FromBody] RegisterCityHouseholdObligationRequest request,
             CancellationToken cancellationToken)
         {
-            if (!Enum.TryParse(request.Kind, ignoreCase: true, out CityHouseholdObligationKind kind))
-            {
-                return BadRequest(new { error = $"Unsupported obligation kind '{request.Kind}'." });
-            }
+            if (!Enum.TryParse(
+                    value: request.Kind,
+                    ignoreCase: true,
+                    result: out CityHouseholdObligationKind kind))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported obligation kind '{request.Kind}'."
+                    });
 
             CityHouseholdObligationBillingCadence billingCadence = CityHouseholdObligationBillingCadence.Monthly;
-            if (!string.IsNullOrWhiteSpace(request.BillingCadence)
-                && !Enum.TryParse(request.BillingCadence, ignoreCase: true, out billingCadence))
-            {
-                return BadRequest(new { error = $"Unsupported billing cadence '{request.BillingCadence}'." });
-            }
+            if (!string.IsNullOrWhiteSpace(request.BillingCadence) &&
+                !Enum.TryParse(
+                    value: request.BillingCadence,
+                    ignoreCase: true,
+                    result: out billingCadence))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported billing cadence '{request.BillingCadence}'."
+                    });
 
             CityHouseholdObligationDto result = await _sender.Send(
-                new RegisterCityHouseholdObligationCommand(
+                request: new RegisterCityHouseholdObligationCommand(
                     CityId: cityId,
                     HouseholdAccountId: request.HouseholdAccountId,
                     ProviderBusinessId: request.ProviderBusinessId,
@@ -63,7 +81,7 @@ namespace Matrix.Economy.Api.Controllers
                     ChargeAmount: request.ChargeAmount,
                     TaxAmount: request.TaxAmount,
                     FirstChargeDueAtUtc: request.FirstChargeDueAtUtc),
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -75,8 +93,10 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             CityHouseholdAccountLedgerEntryDto result = await _sender.Send(
-                new IssueHouseholdObligationChargeCommand(obligationId, request.Description),
-                cancellationToken);
+                request: new IssueHouseholdObligationChargeCommand(
+                    ObligationId: obligationId,
+                    Description: request.Description),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }
@@ -88,8 +108,10 @@ namespace Matrix.Economy.Api.Controllers
             CancellationToken cancellationToken)
         {
             RunCityHouseholdBillingCycleResultDto result = await _sender.Send(
-                new RunCityHouseholdBillingCycleCommand(cityId, request?.AsOfUtc),
-                cancellationToken);
+                request: new RunCityHouseholdBillingCycleCommand(
+                    CityId: cityId,
+                    AsOfUtc: request?.AsOfUtc),
+                cancellationToken: cancellationToken);
 
             return Ok(result);
         }

@@ -62,19 +62,21 @@ namespace Matrix.ApiGateway.DownstreamClients.HttpHandlers
                             parameter: internalJwt);
                 }
             }
-            else if (_requestContextAccessor.Current is { } requestContext)
-            {
-                string internalJwt = _internalJwtIssuer.Issue(
-                    userId: requestContext.UserId,
-                    jti: requestContext.Jti,
-                    permissionsVersion: requestContext.PermissionsVersion,
-                    permissions: requestContext.EffectivePermissions);
+            else
+                if (_requestContextAccessor.Current is
+                    { } requestContext)
+                {
+                    string internalJwt = _internalJwtIssuer.Issue(
+                        userId: requestContext.UserId,
+                        jti: requestContext.Jti,
+                        permissionsVersion: requestContext.PermissionsVersion,
+                        permissions: requestContext.EffectivePermissions);
 
-                request.Headers.Authorization =
-                    new AuthenticationHeaderValue(
-                        scheme: "Bearer",
-                        parameter: internalJwt);
-            }
+                    request.Headers.Authorization =
+                        new AuthenticationHeaderValue(
+                            scheme: "Bearer",
+                            parameter: internalJwt);
+                }
 
             return await base.SendAsync(
                 request: request,

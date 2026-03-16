@@ -1,16 +1,16 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Matrix.ApiGateway.Authorization.Caching;
 using Matrix.ApiGateway.Common.Urls;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
-using Matrix.ApiGateway.Authorization.Caching;
 using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace Matrix.ApiGateway.Controllers.Identity.Self
 {
@@ -22,9 +22,9 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
         IIdentityAssetsClient identityAssetsClient,
         IDistributedCache distributedCache) : ControllerBase
     {
+        private readonly IDistributedCache _distributedCache = distributedCache;
         private readonly IIdentityAccountClient _identityAccountClient = identityAccountClient;
         private readonly IIdentityAssetsClient _identityAssetsClient = identityAssetsClient;
-        private readonly IDistributedCache _distributedCache = distributedCache;
 
         [HttpGet("profile")]
         public async Task<ActionResult<UserProfileResponse>> GetProfile(CancellationToken cancellationToken)
@@ -92,8 +92,7 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
         }
 
         [HttpDelete("avatar")]
-        public async Task<ActionResult<ChangeAvatarResponse>> ClearAvatar(
-            CancellationToken cancellationToken)
+        public async Task<ActionResult<ChangeAvatarResponse>> ClearAvatar(CancellationToken cancellationToken)
         {
             ChangeAvatarResponse dto =
                 await _identityAccountClient.ClearAvatarAsync(cancellationToken);
@@ -130,16 +129,14 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
         }
 
         [HttpPost("email/pending/resend")]
-        public async Task<IActionResult> ResendPendingEmailChange(
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> ResendPendingEmailChange(CancellationToken cancellationToken)
         {
             await _identityAccountClient.ResendPendingEmailChangeAsync(cancellationToken);
             return NoContent();
         }
 
         [HttpDelete("email/pending")]
-        public async Task<IActionResult> CancelPendingEmailChange(
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> CancelPendingEmailChange(CancellationToken cancellationToken)
         {
             await _identityAccountClient.CancelPendingEmailChangeAsync(cancellationToken);
             return NoContent();

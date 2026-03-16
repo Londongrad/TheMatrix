@@ -22,9 +22,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
             CancellationToken cancellationToken)
         {
             Person resident = await personReadRepository.FindByIdAsync(
-                    id: PersonId.From(residentId),
-                    cancellationToken: cancellationToken) ??
-                throw ApplicationErrorsFactory.PersonNotFound(residentId);
+                                  id: PersonId.From(residentId),
+                                  cancellationToken: cancellationToken) ??
+                              throw ApplicationErrorsFactory.PersonNotFound(residentId);
 
             CityId? actualCityId = await cityPopulationPersonReadRepository.FindCityIdByPersonIdAsync(
                 personId: resident.Id,
@@ -81,9 +81,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                     value: normalizedValue.Trim(),
                     ignoreCase: true,
                     result: out EducationLevel parsedLevel))
-            {
                 throw ApplicationErrorsFactory.InvalidEducationLevel(normalizedValue);
-            }
 
             return parsedLevel;
         }
@@ -118,10 +116,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
             if (!institutionId.HasValue)
                 return null;
 
-            CityEducationInstitutionSnapshot? institution = await cityPopulationPersonReadRepository.FindEducationInstitutionByIdAsync(
-                cityId: CityId.From(cityId),
-                institutionId: EducationInstitutionId.From(institutionId.Value),
-                cancellationToken: cancellationToken);
+            CityEducationInstitutionSnapshot? institution =
+                await cityPopulationPersonReadRepository.FindEducationInstitutionByIdAsync(
+                    cityId: CityId.From(cityId),
+                    institutionId: EducationInstitutionId.From(institutionId.Value),
+                    cancellationToken: cancellationToken);
 
             if (institution is null)
                 throw ApplicationErrorsFactory.EducationInstitutionNotFound(

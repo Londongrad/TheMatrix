@@ -10,7 +10,8 @@ namespace Matrix.Identity.Infrastructure.Security.Audit.Cleanup
             SecurityAuditCleanupOptions options,
             CancellationToken cancellationToken)
         {
-            DateTime utcNow = timeProvider.GetUtcNow().UtcDateTime;
+            DateTime utcNow = timeProvider.GetUtcNow()
+               .UtcDateTime;
             DateTime occurredBeforeUtc = options.RetentionDays <= 0
                 ? utcNow
                 : utcNow.AddDays(-options.RetentionDays);

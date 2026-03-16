@@ -164,7 +164,8 @@ namespace Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather
             EnsureEvaluationTimeNotGoingBackwards(cancelledAt);
 
             WeatherOverride activeOverride = ActiveOverride ??
-                                             throw ClassicCityDomainErrorsFactory.NoActiveOverrideToCancel(nameof(ActiveOverride));
+                                             throw ClassicCityDomainErrorsFactory.NoActiveOverrideToCancel(
+                                                 nameof(ActiveOverride));
 
             ActiveOverride = null;
 

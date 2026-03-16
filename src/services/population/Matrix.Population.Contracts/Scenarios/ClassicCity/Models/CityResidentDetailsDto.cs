@@ -7,8 +7,7 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         string HousingStatus,
         Guid? ResidentialBuildingId);
 
-    public sealed record class CityResidentWorkplaceDto(
-        Guid WorkplaceId);
+    public sealed record class CityResidentWorkplaceDto(Guid WorkplaceId);
 
     public sealed record class CityResidentEducationInstitutionDto(
         Guid InstitutionId,
