@@ -1,110 +1,27 @@
 using MassTransit;
 using Matrix.CityCore.Contracts.Events;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Domain.Aggregates;
-using Matrix.Economy.Domain.Entities;
-using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.Models;
-using Matrix.Economy.Domain.Services;
-using Matrix.Economy.Domain.ValueObjects;
+using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
 {
     public sealed class CityCreatedConsumer(
-        ICityBudgetRepository budgetRepository,
-        ICityBudgetAllocationRepository allocationRepository,
-        ICityBudgetLedgerRepository budgetLedgerRepository,
-        ICityBusinessRepository businessRepository,
-        IEconomyUnitOfWork unitOfWork,
-        CityEconomySimulationTemplatePolicy simulationTemplatePolicy,
+        ICityEconomyBootstrapService cityEconomyBootstrapService,
         ILogger<CityCreatedConsumer> logger)
         : IConsumer<CityCreatedV1>
     {
         public async Task Consume(ConsumeContext<CityCreatedV1> context)
         {
             CityCreatedV1 message = context.Message;
-            var template = simulationTemplatePolicy.Resolve(
+            CityEconomyBootstrapResultDto result = await cityEconomyBootstrapService.BootstrapAsync(
+                cityId: message.CityId,
                 simulationKind: message.SimulationKind,
-                economyProfile: message.EconomyProfile);
+                economyProfile: message.EconomyProfile,
+                createdAtUtc: message.CreatedAtUtc,
+                cancellationToken: context.CancellationToken);
 
-            CityBudget? budget = await budgetRepository.GetByCityAsync(message.CityId, context.CancellationToken);
-            bool budgetCreated = false;
-            int createdAllocations = 0;
-            int createdBusinesses = 0;
-
-            if (budget is null)
-            {
-                budget = new CityBudget(CityBudgetId.New(), message.CityId, template.UnitProfile);
-                budgetRepository.Add(budget);
-                await ApplyInitialReserveAsync(
-                    budget: budget,
-                    cityId: message.CityId,
-                    createdAtUtc: message.CreatedAtUtc,
-                    template: template,
-                    budgetLedgerRepository: budgetLedgerRepository,
-                    cancellationToken: context.CancellationToken);
-                budgetCreated = true;
-            }
-            else
-            {
-                budget.EnsureCompatibleUnit(template.UnitProfile);
-            }
-
-            foreach (CityEconomyAllocationTemplate allocationTemplate in template.DefaultAllocations)
-            {
-                CityBudgetAllocation? existing = await allocationRepository.GetByCityAndCategoryAsync(
-                    cityId: message.CityId,
-                    category: allocationTemplate.Category,
-                    cancellationToken: context.CancellationToken);
-
-                if (existing is not null)
-                {
-                    existing.EnsureCompatibleUnit(template.UnitProfile);
-                    continue;
-                }
-
-                allocationRepository.Add(
-                    new CityBudgetAllocation(
-                        id: Guid.NewGuid(),
-                        cityId: message.CityId,
-                        category: allocationTemplate.Category,
-                        createdAtUtc: message.CreatedAtUtc,
-                        unitProfile: template.UnitProfile,
-                        targetAmount: allocationTemplate.TargetAmount));
-
-                createdAllocations++;
-            }
-
-            foreach (CityEconomyBusinessTemplate businessTemplate in template.DefaultBusinesses)
-            {
-                CityBusiness? existing = await businessRepository.GetByCityAndTemplateKeyAsync(
-                    cityId: message.CityId,
-                    templateKey: businessTemplate.TemplateKey,
-                    cancellationToken: context.CancellationToken);
-
-                if (existing is not null)
-                {
-                    existing.EnsureCompatibleUnit(template.UnitProfile);
-                    continue;
-                }
-
-                businessRepository.Add(
-                    new CityBusiness(
-                        id: Guid.NewGuid(),
-                        cityId: message.CityId,
-                        name: businessTemplate.Name,
-                        externalReferenceCode: null,
-                        templateKey: businessTemplate.TemplateKey,
-                        kind: businessTemplate.Kind,
-                        createdAtUtc: message.CreatedAtUtc,
-                        unitProfile: template.UnitProfile,
-                        initialCapital: businessTemplate.StartingCapital));
-
-                createdBusinesses++;
-            }
-
-            if (!budgetCreated && createdAllocations == 0 && createdBusinesses == 0)
+            if (!result.BudgetCreated && result.CreatedAllocations == 0 && result.CreatedBusinesses == 0)
             {
                 logger.LogDebug(
                     "Skipped city economy initialization for cityId={CityId}; budget, default allocations, and template businesses already exist.",
@@ -112,45 +29,14 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 return;
             }
 
-            await unitOfWork.SaveChangesAsync(context.CancellationToken);
-
             logger.LogInformation(
                 "Initialized economy context for cityId={CityId}, simulationKind={SimulationKind}, economyProfile={EconomyProfile}, budgetCreated={BudgetCreated}, createdAllocations={CreatedAllocations}, createdBusinesses={CreatedBusinesses}.",
                 message.CityId,
                 message.SimulationKind,
                 message.EconomyProfile,
-                budgetCreated,
-                createdAllocations,
-                createdBusinesses);
-        }
-
-        private static async Task ApplyInitialReserveAsync(
-            CityBudget budget,
-            Guid cityId,
-            DateTimeOffset createdAtUtc,
-            CityEconomySimulationTemplate template,
-            ICityBudgetLedgerRepository budgetLedgerRepository,
-            CancellationToken cancellationToken)
-        {
-            if (template.InitialReserve.Amount <= 0m)
-                return;
-
-            var ledgerEntry = new CityBudgetLedgerEntry(
-                id: Guid.NewGuid(),
-                cityId: cityId,
-                occurredAtUtc: createdAtUtc,
-                kind: CityBudgetLedgerEntryKind.Revenue,
-                category: CityBudgetCategory.General,
-                amount: template.InitialReserve,
-                title: "Initial treasury reserve",
-                description: "Seeded from the city economy profile during simulation initialization.",
-                source: CityBudgetLedgerEntrySource.Initialization,
-                referenceCode: $"city-init-reserve:{cityId}");
-
-            budget.ApplyLedgerEntry(ledgerEntry);
-            await budgetLedgerRepository.AddAsync(
-                entry: ledgerEntry,
-                cancellationToken: cancellationToken);
+                result.BudgetCreated,
+                result.CreatedAllocations,
+                result.CreatedBusinesses);
         }
     }
 }

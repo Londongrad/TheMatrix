@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Api.Contracts.Budget;
+using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation;
@@ -39,6 +40,33 @@ namespace Matrix.Economy.Api.Controllers
             BudgetSummaryDto result = await _sender.Send(new GetCityBudgetSummaryQuery(cityId), cancellationToken);
 
             return Ok(MapSummary(result));
+        }
+
+        [HttpPost("cities/{cityId:guid}/bootstrap")]
+        public async Task<IActionResult> InitializeCityEconomy(
+            [FromRoute] Guid cityId,
+            [FromBody] InitializeCityEconomyRequest request,
+            CancellationToken cancellationToken)
+        {
+            CityEconomyBootstrapResultDto result = await _sender.Send(
+                new InitializeCityEconomyCommand(
+                    CityId: cityId,
+                    SimulationKind: request.SimulationKind,
+                    EconomyProfile: request.EconomyProfile,
+                    CreatedAtUtc: request.CreatedAtUtc),
+                cancellationToken);
+
+            return Ok(new
+            {
+                cityId = result.CityId,
+                budgetCreated = result.BudgetCreated,
+                createdAllocations = result.CreatedAllocations,
+                createdBusinesses = result.CreatedBusinesses,
+                unitKind = result.UnitKind,
+                unitCode = result.UnitCode,
+                unitDisplayName = result.UnitDisplayName,
+                unitSymbol = result.UnitSymbol
+            });
         }
 
         [HttpGet("cities/{cityId:guid}/ledger")]

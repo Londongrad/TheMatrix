@@ -5,6 +5,7 @@ using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Messaging;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
+using Matrix.Economy.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,6 +66,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityHouseholdAccountLedgerRepository, CityHouseholdAccountLedgerRepository>();
             services.AddScoped<ICityHouseholdObligationRepository, CityHouseholdObligationRepository>();
             services.AddScoped<ICityPopulationSignalPublisher, MassTransitCityPopulationSignalPublisher>();
+            services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
             services.AddSingleton<CityEconomySimulationTemplatePolicy>();
