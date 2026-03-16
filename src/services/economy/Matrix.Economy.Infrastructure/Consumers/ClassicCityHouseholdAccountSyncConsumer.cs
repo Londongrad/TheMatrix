@@ -25,9 +25,8 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             ClassicCityHouseholdAccountSyncBatchV1 message = context.Message;
 
-            CityBudget? existingBudget = await budgetRepository.GetByCityAsync(message.CityId, context.CancellationToken);
-            bool budgetCreated = existingBudget is null;
-            CityBudget budget = existingBudget ?? CreateBudget(message.CityId, budgetRepository);
+            CityBudget budget = await budgetRepository.GetByCityAsync(message.CityId, context.CancellationToken)
+                ?? throw CreateMissingBudgetException(message.CityId);
             int createdAccounts = 0;
             int createdObligations = 0;
             var housedAccounts = new List<(CityHouseholdAccount Account, int MemberCount)>(message.Households.Count);
@@ -69,7 +68,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 housedAccounts: housedAccounts,
                 cancellationToken: context.CancellationToken);
 
-            if (!budgetCreated && createdAccounts == 0 && createdObligations == 0)
+            if (createdAccounts == 0 && createdObligations == 0)
             {
                 logger.LogDebug(
                     "Skipped classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}; all accounts already exist.",
@@ -83,21 +82,19 @@ namespace Matrix.Economy.Infrastructure.Consumers
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             logger.LogInformation(
-                "Applied classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, budgetCreated={BudgetCreated}, createdAccounts={CreatedAccounts}, createdObligations={CreatedObligations}.",
+                "Applied classic city household account sync for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, createdAccounts={CreatedAccounts}, createdObligations={CreatedObligations}.",
                 message.CityId,
                 message.CorrelationId,
                 message.BatchNumber,
                 message.TotalBatches,
-                budgetCreated,
                 createdAccounts,
                 createdObligations);
         }
 
-        private static CityBudget CreateBudget(Guid cityId, ICityBudgetRepository budgetRepository)
+        private static InvalidOperationException CreateMissingBudgetException(Guid cityId)
         {
-            var budget = new CityBudget(CityBudgetId.New(), cityId);
-            budgetRepository.Add(budget);
-            return budget;
+            return new InvalidOperationException(
+                $"Economy budget for city '{cityId}' is not initialized yet. Classic city household account sync requires CityCreatedV1 to be processed first.");
         }
 
         private async Task<int> EnsureStarterObligationsAsync(

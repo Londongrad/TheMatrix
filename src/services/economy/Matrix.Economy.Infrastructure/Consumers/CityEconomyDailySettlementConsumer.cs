@@ -34,7 +34,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             }
 
             CityBudget budget = await budgetRepository.GetByCityAsync(message.CityId, context.CancellationToken)
-                ?? CreateBudget(message.CityId, budgetRepository);
+                ?? throw CreateMissingBudgetException(message.CityId);
 
             var settlement = new CityBudgetSettlement(
                 id: Guid.NewGuid(),
@@ -100,11 +100,10 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 operatingExpense.TotalExpense.Amount);
         }
 
-        private static CityBudget CreateBudget(Guid cityId, ICityBudgetRepository budgetRepository)
+        private static InvalidOperationException CreateMissingBudgetException(Guid cityId)
         {
-            var budget = new CityBudget(CityBudgetId.New(), cityId);
-            budgetRepository.Add(budget);
-            return budget;
+            return new InvalidOperationException(
+                $"Economy budget for city '{cityId}' is not initialized yet. Daily city settlement requires CityCreatedV1 to be processed first.");
         }
 
         private static CityBudgetLedgerEntry CreateLedgerEntry(
