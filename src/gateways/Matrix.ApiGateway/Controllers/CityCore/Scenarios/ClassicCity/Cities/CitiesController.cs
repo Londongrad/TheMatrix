@@ -1,6 +1,7 @@
 using Matrix.ApiGateway.Contracts.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
+using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
@@ -124,6 +125,15 @@ namespace Matrix.ApiGateway.Controllers.CityCore.Scenarios.ClassicCity.Cities
 
                 if (economySummary is not null)
                     metrics.AddRange(BuildEconomyMetrics(economySummary));
+            }
+            catch (DownstreamServiceException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Skipped economy metrics for classic city dashboard because Economy returned status {StatusCode} for cityId={CityId}.",
+                    (int)exception.StatusCode,
+                    cityId);
             }
             catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
             {
