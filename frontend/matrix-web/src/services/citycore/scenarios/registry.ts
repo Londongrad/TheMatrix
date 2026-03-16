@@ -12,6 +12,20 @@ export type CityCoreScenarioDefinition = {
     buildProvisioningPath?: (hostId: string) => string;
 };
 
+export type ClassicCityWorkspaceSection =
+    | "overview"
+    | "dashboard"
+    | "population"
+    | "weather"
+    | "simulation";
+
+export type ClassicCityResidentSection =
+    | "overview"
+    | "relationships"
+    | "career"
+    | "education"
+    | "health";
+
 export const CITYCORE_SCENARIO_CATALOG_PATH = "/scenarios";
 export const CITYCORE_NEW_SIMULATION_PATH = "/simulations/new";
 export const CLASSIC_CITY_LIST_PATH = "/cities";
@@ -26,16 +40,35 @@ export const CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN = "/scenarios/classic-city/
 export const CLASSIC_CITY_SETUP_PROVISIONING_PATH_PATTERN = "/scenarios/classic-city/setup/:sessionId/provisioning";
 export const CLASSIC_CITY_PROVISIONING_PATH_PATTERN = "/cities/:cityId/provisioning";
 
-export function getClassicCityDetailsPath(cityId: string): string {
-    return `/cities/${cityId}`;
+export function getClassicCityDetailsPath(
+    cityId: string,
+    section?: ClassicCityWorkspaceSection,
+): string {
+    const basePath = `/cities/${cityId}`;
+
+    if (!section) {
+        return basePath;
+    }
+
+    return `${basePath}?tab=${encodeURIComponent(section)}`;
 }
 
 export function getClassicCityResidentsPath(cityId: string): string {
     return `/cities/${cityId}/residents`;
 }
 
-export function getClassicCityResidentDossierPath(cityId: string, residentId: string): string {
-    return `/cities/${cityId}/residents/${residentId}`;
+export function getClassicCityResidentDossierPath(
+    cityId: string,
+    residentId: string,
+    section?: ClassicCityResidentSection,
+): string {
+    const basePath = `/cities/${cityId}/residents/${residentId}`;
+
+    if (!section) {
+        return basePath;
+    }
+
+    return `${basePath}?tab=${encodeURIComponent(section)}`;
 }
 
 export function getClassicCityCivilRegistryPath(cityId: string, residentId?: string): string {

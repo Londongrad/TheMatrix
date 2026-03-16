@@ -30,7 +30,7 @@ import {
 } from "@services/citycore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
-export const cityCoreRoutes = (
+export const cityCoreCatalogRoutes = (
     <Fragment>
         <Route
             path={CITYCORE_SCENARIO_CATALOG_PATH}
@@ -46,6 +46,11 @@ export const cityCoreRoutes = (
             path={CITYCORE_NEW_SIMULATION_PATH}
             element={<Navigate to={CITYCORE_SCENARIO_CATALOG_PATH} replace/>}
         />
+    </Fragment>
+);
+
+export const classicCityRoutes = (
+    <Fragment>
         <Route
             path={CLASSIC_CITY_SETUP_PATH}
             element={

@@ -27,12 +27,13 @@ import {ResetPasswordPage} from "@services/identity/self/auth/pages/ResetPasswor
 import {RecoverAccountPage} from "@services/identity/self/auth/pages/RecoverAccountPage";
 import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
-import {cityCoreRoutes} from "@app/router/CityCoreRoutes";
+import {cityCoreCatalogRoutes, classicCityRoutes} from "@app/router/CityCoreRoutes";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 import MainLayout from "./layouts/main/MainLayout";
 import AdminLayout from "./layouts/admin/AdminLayout";
 import UserSettingsLayout from "./layouts/user-settings/UserSettingsLayout";
+import ClassicCityLayout from "./layouts/classic-city/ClassicCityLayout";
 
 const App = () => {
     return (
@@ -60,7 +61,17 @@ const App = () => {
                             }
                         >
                             <Route path="/" element={<DashboardPage/>}/>
-                            {cityCoreRoutes}
+                            {cityCoreCatalogRoutes}
+                        </Route>
+
+                        <Route
+                            element={
+                                <RequireAuth>
+                                    <ClassicCityLayout/>
+                                </RequireAuth>
+                            }
+                        >
+                            {classicCityRoutes}
                         </Route>
 
                         {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ user settings СЃС‚СЂР°РЅРёС†С‹ - СЃ UserSettingsLayout */}

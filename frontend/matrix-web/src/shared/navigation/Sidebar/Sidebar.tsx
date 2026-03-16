@@ -1,8 +1,49 @@
-import {NavLink, useLocation} from "react-router-dom";
+import {NavLink, useLocation, useResolvedPath} from "react-router-dom";
 import type {NavItem} from "./types";
 import {ArrowLeft, ChevronLeft} from "lucide-react";
 import {IconLock} from "@shared/ui/icons/icons";
 import "./sidebar.css";
+
+function SidebarNavLink({
+                            item,
+                            onNavigate,
+                        }: {
+    item: NavItem;
+    onNavigate?: () => void;
+}) {
+    const location = useLocation();
+    const resolvedPath = useResolvedPath(item.to);
+
+    const isSearchAwareActive = ({isActive}: { isActive: boolean }) => {
+        if (!resolvedPath.search) {
+            return isActive;
+        }
+
+        const pathMatches = item.end
+            ? location.pathname === resolvedPath.pathname
+            : location.pathname === resolvedPath.pathname ||
+            location.pathname.startsWith(`${resolvedPath.pathname}/`);
+
+        return pathMatches && location.search === resolvedPath.search;
+    };
+
+    return (
+        <NavLink
+            to={item.to}
+            end={item.end}
+            state={item.getState ? item.getState(location.pathname) : undefined}
+            className={(state) =>
+                `mx-sb__item${isSearchAwareActive(state) ? " is-active" : ""}`
+            }
+            onClick={onNavigate}
+            title={item.label}
+        >
+            {item.icon ? <span className="mx-sb__icon">{item.icon}</span> : null}
+            <span className="mx-sb__label">{item.label}</span>
+            <span className="mx-sb__glow" aria-hidden="true"/>
+        </NavLink>
+    );
+}
 
 export default function MatrixSidebar({
                                           title,
@@ -20,8 +61,6 @@ export default function MatrixSidebar({
     onCollapse?: () => void; // ← Collapse sidebar
     brandRight?: React.ReactNode;
 }) {
-    const location = useLocation();
-
     return (
         <div className="mx-sb">
             <div className="mx-sb__brand">
@@ -79,21 +118,11 @@ export default function MatrixSidebar({
                                 <span className="mx-sb__glow" aria-hidden="true"/>
                             </div>
                         ) : (
-                            <NavLink
+                            <SidebarNavLink
                                 key={x.to}
-                                to={x.to}
-                                end={x.end}
-                                state={x.getState ? x.getState(location.pathname) : undefined}
-                                className={({isActive}) =>
-                                    `mx-sb__item${isActive ? " is-active" : ""}`
-                                }
-                                onClick={onNavigate}
-                                title={x.label}
-                            >
-                                {x.icon ? <span className="mx-sb__icon">{x.icon}</span> : null}
-                                <span className="mx-sb__label">{x.label}</span>
-                                <span className="mx-sb__glow" aria-hidden="true"/>
-                            </NavLink>
+                                item={x}
+                                onNavigate={onNavigate}
+                            />
                         ),
                 )}
             </nav>
