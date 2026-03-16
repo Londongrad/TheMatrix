@@ -163,33 +163,32 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CityId cityId,
             CancellationToken cancellationToken = default)
         {
-            var snapshots = await (
+            var rows = await (
                     from person in _dbContext.Persons.AsNoTracking()
                     join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
                         on person.HouseholdId equals placement.HouseholdId
                     where placement.CityId == cityId &&
                           person.Employment.Status == EmploymentStatus.Employed &&
                           person.Employment.Job != null
-                    group person by new
+                    select new
                     {
                         WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
                         JobTitle = person.Employment.Job.Title
-                    }
-                    into workplaceGroup
-                    orderby workplaceGroup.Count() descending, workplaceGroup.Key.JobTitle
-                    select new
-                    {
-                        workplaceGroup.Key.WorkplaceId,
-                        workplaceGroup.Key.JobTitle,
-                        ResidentCount = workplaceGroup.Count()
                     })
-               .ToListAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
 
-            return snapshots
+            return rows
+               .GroupBy(x => new
+                {
+                    x.WorkplaceId,
+                    x.JobTitle
+                })
+               .OrderByDescending(x => x.Count())
+               .ThenBy(x => x.Key.JobTitle, StringComparer.OrdinalIgnoreCase)
                .Select(x => new CityEmploymentWorkplaceSnapshot(
-                    WorkplaceId: WorkplaceId.From(x.WorkplaceId),
-                    JobTitle: x.JobTitle,
-                    ResidentCount: x.ResidentCount))
+                    WorkplaceId: WorkplaceId.From(x.Key.WorkplaceId),
+                    JobTitle: x.Key.JobTitle,
+                    ResidentCount: x.Count()))
                .ToArray();
         }
 
@@ -198,7 +197,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             WorkplaceId workplaceId,
             CancellationToken cancellationToken = default)
         {
-            var snapshot = await (
+            var rows = await (
                     from person in _dbContext.Persons.AsNoTracking()
                     join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
                         on person.HouseholdId equals placement.HouseholdId
@@ -206,19 +205,28 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                           person.Employment.Status == EmploymentStatus.Employed &&
                           person.Employment.Job != null &&
                           person.Employment.Job.WorkplaceId.Value == workplaceId.Value
-                    group person by new
+                    select new
                     {
                         WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
                         JobTitle = person.Employment.Job.Title
-                    }
-                    into workplaceGroup
-                    select new
-                    {
-                        workplaceGroup.Key.WorkplaceId,
-                        workplaceGroup.Key.JobTitle,
-                        ResidentCount = workplaceGroup.Count()
                     })
-               .FirstOrDefaultAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
+
+            var snapshot = rows
+               .GroupBy(x => new
+                {
+                    x.WorkplaceId,
+                    x.JobTitle
+                })
+               .OrderByDescending(x => x.Count())
+               .ThenBy(x => x.Key.JobTitle, StringComparer.OrdinalIgnoreCase)
+               .Select(x => new
+                {
+                    x.Key.WorkplaceId,
+                    x.Key.JobTitle,
+                    ResidentCount = x.Count()
+                })
+               .FirstOrDefault();
 
             return snapshot is null
                 ? null
@@ -232,33 +240,32 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CityId cityId,
             CancellationToken cancellationToken = default)
         {
-            var snapshots = await (
+            var rows = await (
                     from person in _dbContext.Persons.AsNoTracking()
                     join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
                         on person.HouseholdId equals placement.HouseholdId
                     where placement.CityId == cityId &&
                           person.Employment.Status == EmploymentStatus.Student &&
                           person.Education.CurrentInstitutionId != null
-                    group person by new
+                    select new
                     {
                         InstitutionId = person.Education.CurrentInstitutionId!.Value,
                         person.Education.Level
-                    }
-                    into institutionGroup
-                    orderby institutionGroup.Count() descending, institutionGroup.Key.Level
-                    select new
-                    {
-                        institutionGroup.Key.InstitutionId,
-                        institutionGroup.Key.Level,
-                        ResidentCount = institutionGroup.Count()
                     })
-               .ToListAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
 
-            return snapshots
+            return rows
+               .GroupBy(x => new
+                {
+                    x.InstitutionId,
+                    x.Level
+                })
+               .OrderByDescending(x => x.Count())
+               .ThenBy(x => x.Key.Level)
                .Select(x => new CityEducationInstitutionSnapshot(
-                    InstitutionId: EducationInstitutionId.From(x.InstitutionId),
-                    EducationLevel: x.Level,
-                    ResidentCount: x.ResidentCount))
+                    InstitutionId: EducationInstitutionId.From(x.Key.InstitutionId),
+                    EducationLevel: x.Key.Level,
+                    ResidentCount: x.Count()))
                .ToArray();
         }
 
@@ -267,7 +274,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             EducationInstitutionId institutionId,
             CancellationToken cancellationToken = default)
         {
-            var snapshot = await (
+            var rows = await (
                     from person in _dbContext.Persons.AsNoTracking()
                     join placement in _dbContext.ClassicCityHouseholdPlacements.AsNoTracking()
                         on person.HouseholdId equals placement.HouseholdId
@@ -275,19 +282,28 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                           person.Employment.Status == EmploymentStatus.Student &&
                           person.Education.CurrentInstitutionId != null &&
                           person.Education.CurrentInstitutionId.Value == institutionId.Value
-                    group person by new
+                    select new
                     {
                         InstitutionId = person.Education.CurrentInstitutionId!.Value,
                         person.Education.Level
-                    }
-                    into institutionGroup
-                    select new
-                    {
-                        institutionGroup.Key.InstitutionId,
-                        institutionGroup.Key.Level,
-                        ResidentCount = institutionGroup.Count()
                     })
-               .FirstOrDefaultAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
+
+            var snapshot = rows
+               .GroupBy(x => new
+                {
+                    x.InstitutionId,
+                    x.Level
+                })
+               .OrderByDescending(x => x.Count())
+               .ThenBy(x => x.Key.Level)
+               .Select(x => new
+                {
+                    x.Key.InstitutionId,
+                    x.Key.Level,
+                    ResidentCount = x.Count()
+                })
+               .FirstOrDefault();
 
             return snapshot is null
                 ? null
