@@ -10,7 +10,7 @@ interface CitizenCardProps {
 }
 
 const CitizenCard = ({person, onOpen}: CitizenCardProps) => {
-    const handleOpenEditor = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
         onOpen?.(person);
     };
@@ -44,9 +44,9 @@ const CitizenCard = ({person, onOpen}: CitizenCardProps) => {
                 {onOpen ? (
                     <IconButton
                         size="sm"
-                        aria-label="Open resident details"
-                        title="Open resident details"
-                        onClick={handleOpenEditor}
+                        aria-label="Open resident dossier"
+                        title="Open resident dossier"
+                        onClick={handleOpen}
                     >
                         <PencilLine size={14}/>
                     </IconButton>

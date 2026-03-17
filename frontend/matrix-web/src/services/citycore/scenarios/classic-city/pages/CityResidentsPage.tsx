@@ -1,16 +1,13 @@
-import {useState} from "react";
-import {Navigate, useParams} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router-dom";
 import {getCityResidentsPage} from "@services/citycore/scenarios/classic-city/api/residentsApi";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {
     getClassicCityProvisioningPath,
+    getClassicCityResidentDossierPath,
 } from "@services/citycore/scenarios/registry";
 import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {PersonDto} from "@services/population/person/api/personTypes";
 import CitizenCard from "@services/population/person/components/CitizenCard";
-import CitizenDetailsModal from "@services/population/person/components/CitizenDetailsModal";
-import {PermissionKeys} from "@shared/permissions/permissionKeys";
-import {usePermissions} from "@shared/permissions/usePermissions";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
 import {getPageRange} from "@shared/lib/paging/pageRange";
@@ -24,15 +21,13 @@ const PAGE_SIZE = 100;
 const CityResidentsPage = () => {
     const params = useParams<{ cityId: string }>();
     const cityId = params.cityId ?? "";
+    const navigate = useNavigate();
     const cityQuery = useCityDetails(cityId);
-    const {can} = usePermissions();
-    const [refreshNonce, setRefreshNonce] = useState(0);
-    const [selectedPerson, setSelectedPerson] = useState<PersonDto | null>(null);
 
     const residentsQuery = usePagedQuery<PersonDto>(
         (pageNumber, pageSize) => getCityResidentsPage(cityId, pageNumber, pageSize),
         PAGE_SIZE,
-        [cityId, refreshNonce],
+        [cityId],
         {
             enabled: cityId.length > 0,
             errorMessage: "Failed to load city residents.",
@@ -41,8 +36,6 @@ const CityResidentsPage = () => {
 
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
-    const canKill = can(PermissionKeys.PopulationPersonKill) && !isArchived;
-    const canResurrect = can(PermissionKeys.PopulationPersonResurrect) && !isArchived;
     if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
         return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
     }
@@ -121,7 +114,9 @@ const CityResidentsPage = () => {
                                 <CitizenCard
                                     key={resident.id}
                                     person={resident}
-                                    onOpen={setSelectedPerson}
+                                    onOpen={(selectedResident) => {
+                                        navigate(getClassicCityResidentDossierPath(cityId, selectedResident.id));
+                                    }}
                                 />
                             ))}
                         </div>
@@ -145,24 +140,6 @@ const CityResidentsPage = () => {
                     </div>
                 ) : null}
             </section>
-
-            <CitizenDetailsModal
-                cityId={cityId}
-                person={selectedPerson}
-                isOpen={selectedPerson !== null}
-                onClose={() => setSelectedPerson(null)}
-                canKill={canKill}
-                canResurrect={canResurrect}
-                readOnlyMessage={
-                    isArchived
-                        ? "Archived cities are read-only snapshots. Resident actions are disabled."
-                        : null
-                }
-                onPersonUpdated={(updatedPerson) => {
-                    setSelectedPerson(updatedPerson);
-                    setRefreshNonce((value) => value + 1);
-                }}
-            />
         </div>
     );
 };
