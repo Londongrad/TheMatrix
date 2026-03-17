@@ -12,6 +12,8 @@ export interface CityWeatherOverrideView {
 export interface CityWeatherView {
     cityId: string;
     climateZone: string;
+    hemisphere: string;
+    utcOffsetMinutes: number;
     currentType: string;
     severity: string;
     precipitationKind: string;

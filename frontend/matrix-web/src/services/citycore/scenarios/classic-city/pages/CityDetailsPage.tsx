@@ -164,7 +164,11 @@ const CityDetailsPage = () => {
 
             case "weather":
                 return cityQuery.data ? (
-                    <CityWeatherCard cityId={cityQuery.data.cityId}/>
+                    <CityWeatherCard
+                        cityId={cityQuery.data.cityId}
+                        cityName={cityQuery.data.name}
+                        isArchived={isArchived}
+                    />
                 ) : null;
 
             case "simulation":

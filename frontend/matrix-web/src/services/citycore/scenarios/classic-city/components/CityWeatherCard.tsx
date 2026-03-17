@@ -6,9 +6,6 @@ import "@services/citycore/scenarios/classic-city/styles/city-weather.css";
 type Props = {
     cityId: string;
     cityName?: string;
-    climateZone?: string;
-    hemisphere?: string;
-    utcOffsetMinutes?: number;
     isArchived?: boolean;
 };
 
@@ -97,9 +94,6 @@ function formatUtcOffset(minutes: number | undefined): string {
 export function CityWeatherCard({
                                     cityId,
                                     cityName,
-                                    climateZone,
-                                    hemisphere,
-                                    utcOffsetMinutes,
                                     isArchived = false,
                                 }: Props) {
     const weatherQuery = useCityWeather(cityId, isArchived ? 0 : 15000);
@@ -158,18 +152,6 @@ export function CityWeatherCard({
                         {cityName
                             ? `The city "${cityName}" does not have a weather snapshot yet.`
                             : "This city does not have a weather snapshot yet."}
-                    </div>
-
-                    <div className="city-weather-facts">
-                        <span className="city-weather-fact-chip">
-                            Climate zone: {humanize(climateZone)}
-                        </span>
-                        <span className="city-weather-fact-chip">
-                            Hemisphere: {humanize(hemisphere)}
-                        </span>
-                        <span className="city-weather-fact-chip">
-                            Offset: {formatUtcOffset(utcOffsetMinutes)}
-                        </span>
                     </div>
                 </div>
             ) : null}
@@ -241,10 +223,10 @@ export function CityWeatherCard({
                             Climate zone: {humanize(weather.climateZone)}
                         </span>
                         <span className="city-weather-fact-chip">
-                            Hemisphere: {humanize(hemisphere)}
+                            Hemisphere: {humanize(weather.hemisphere)}
                         </span>
                         <span className="city-weather-fact-chip">
-                            Offset: {formatUtcOffset(utcOffsetMinutes)}
+                            Offset: {formatUtcOffset(weather.utcOffsetMinutes)}
                         </span>
                     </section>
 
