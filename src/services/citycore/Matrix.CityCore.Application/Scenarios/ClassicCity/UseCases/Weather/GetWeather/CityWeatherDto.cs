@@ -1,3 +1,4 @@
+using Matrix.CityCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.CityCore.Domain.Scenarios.ClassicCity.Weather;
 
 namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather
@@ -5,6 +6,8 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Weather.Get
     public sealed record CityWeatherDto(
         Guid CityId,
         string ClimateZone,
+        string Hemisphere,
+        int UtcOffsetMinutes,
         string CurrentType,
         string Severity,
         string PrecipitationKind,
@@ -19,11 +22,13 @@ namespace Matrix.CityCore.Application.Scenarios.ClassicCity.UseCases.Weather.Get
         DateTimeOffset LastTransitionAtUtc,
         CityWeatherOverrideDto? ActiveOverride)
     {
-        public static CityWeatherDto FromDomain(CityWeather weather)
+        public static CityWeatherDto FromDomain(CityWeather weather, City city)
         {
             return new CityWeatherDto(
                 CityId: weather.CityId.Value,
                 ClimateZone: weather.ClimateProfile.ClimateZone.ToString(),
+                Hemisphere: city.Environment.Hemisphere.ToString(),
+                UtcOffsetMinutes: city.Environment.UtcOffset.TotalMinutes,
                 CurrentType: weather.CurrentState.Type.ToString(),
                 Severity: weather.CurrentState.Severity.ToString(),
                 PrecipitationKind: weather.CurrentState.PrecipitationKind.ToString(),

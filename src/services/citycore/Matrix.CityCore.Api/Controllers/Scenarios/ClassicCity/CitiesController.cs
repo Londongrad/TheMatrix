@@ -480,6 +480,8 @@ namespace Matrix.CityCore.Api.Controllers.Scenarios.ClassicCity
             return new CityWeatherView(
                 CityId: dto.CityId,
                 ClimateZone: dto.ClimateZone,
+                Hemisphere: dto.Hemisphere,
+                UtcOffsetMinutes: dto.UtcOffsetMinutes,
                 CurrentType: dto.CurrentType,
                 Severity: dto.Severity,
                 PrecipitationKind: dto.PrecipitationKind,

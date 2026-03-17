@@ -3,6 +3,8 @@ namespace Matrix.CityCore.Contracts.Scenarios.ClassicCity.Weather.Views
     public sealed record CityWeatherView(
         Guid CityId,
         string ClimateZone,
+        string Hemisphere,
+        int UtcOffsetMinutes,
         string CurrentType,
         string Severity,
         string PrecipitationKind,
