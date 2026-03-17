@@ -143,8 +143,7 @@ export function CityDashboardCard({
 
     return (
         <Card
-            title="Dashboard"
-            subtitle="City-scale metrics with recent life events, compared against the previous simulation day, month, and year."
+            title="Metrics & activity"
             right={(
                 <Button
                     size="sm"
@@ -187,7 +186,6 @@ export function CityDashboardCard({
                 <div className="city-dashboard">
                     <section className="city-dashboard-hero">
                         <div className="city-dashboard-hero__content">
-                            <div className="city-dashboard-hero__eyebrow">Classic City dashboard</div>
                             <div className="city-dashboard-hero__title-row">
                                 <h3 className="city-dashboard-hero__title">
                                     Sim date {dashboard.currentDate}
@@ -196,10 +194,6 @@ export function CityDashboardCard({
                                     {isArchived ? "Archived snapshot" : "Live city view"}
                                 </span>
                             </div>
-                            <p className="city-dashboard-hero__summary">
-                                Metrics are compared against the previous simulation day, month, and year instead of
-                                real-world time.
-                            </p>
                         </div>
 
                         <div className="city-dashboard-hero__aside">
@@ -218,12 +212,7 @@ export function CityDashboardCard({
 
                     <section className="city-dashboard-events-panel">
                         <div className="city-dashboard-events-panel__header">
-                            <div>
-                                <h3 className="city-dashboard-events-panel__title">Recent city activity</h3>
-                                <p className="city-dashboard-events-panel__subtitle">
-                                    Latest resident and household changes currently visible from the population layer.
-                                </p>
-                            </div>
+                            <h3 className="city-dashboard-events-panel__title">Recent city activity</h3>
                             <span className="city-dashboard-events-panel__count">{dashboard.recentEvents.length}</span>
                         </div>
 

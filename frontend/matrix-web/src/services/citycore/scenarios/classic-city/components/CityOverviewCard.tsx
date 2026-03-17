@@ -5,7 +5,6 @@ import type {CityView} from "@services/citycore/scenarios/classic-city/contracts
 import {
     describeCityLifecycle,
     formatCityStatusLabel,
-    formatSimulationKindLabel,
     getCityStatusTone,
     isArchivedCity,
 } from "@services/citycore/scenarios/classic-city/utils/presentation";
@@ -120,7 +119,6 @@ export function CityOverviewCard({
     return (
         <Card
             title="Lifecycle"
-            subtitle="Identity, archival state, and management actions"
             right={<span className={`cities-status-pill cities-status-pill--${statusTone}`}>{statusLabel}</span>}
         >
             {isLoading && !city ? <p className="card-sub">Loading city...</p> : null}
@@ -139,14 +137,6 @@ export function CityOverviewCard({
                             {city.cityId}
                         </strong>
                     </div>
-
-                    <div className="city-overview-stat">
-                        <span className="city-overview-stat__label">Simulation type</span>
-                        <strong className="city-overview-stat__value">
-                            {formatSimulationKindLabel(city.simulationKind)}
-                        </strong>
-                    </div>
-
                     <div className="city-overview-stat">
                         <span className="city-overview-stat__label">Created</span>
                         <strong className="city-overview-stat__value">{formatDateTime(city.createdAtUtc)}</strong>

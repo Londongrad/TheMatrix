@@ -1,4 +1,4 @@
-import {useEffect, useMemo} from "react";
+import {useEffect} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {CityDashboardCard} from "@services/citycore/scenarios/classic-city/components/CityDashboardCard";
@@ -13,7 +13,6 @@ import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/c
 import {
     CLASSIC_CITY_LIST_PATH,
     getClassicCityProvisioningPath,
-    getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
 import SimulationPanel from "@services/citycore/simulation/components/SimulationPanel";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
@@ -71,15 +70,11 @@ const CityDetailsPage = () => {
     const canArchiveCity = can(PermissionKeys.CityCoreClassicCityArchive);
     const canDeleteCity = can(PermissionKeys.CityCoreClassicCityDelete);
     const canControlSimulation = can(PermissionKeys.CityCoreSimulationControl);
-    const canReadResidents = can(PermissionKeys.PopulationPeopleRead);
     const rawTab = searchParams.get("tab");
     const activeTab: CityDetailsTabId = isCityDetailsTab(rawTab)
         ? rawTab
         : "overview";
-    const activeTabMeta = useMemo(
-        () => CITY_DETAILS_TABS.find((tab) => tab.id === activeTab) ?? CITY_DETAILS_TABS[0],
-        [activeTab]
-    );
+    const activeTabLabel = CITY_DETAILS_TABS.find((tab) => tab.id === activeTab)?.label ?? "Workspace";
 
     useEffect(() => {
         if (rawTab === activeTab) {
@@ -192,16 +187,9 @@ const CityDetailsPage = () => {
         <div className="cities-page city-details-page">
             <CityDetailsHeader
                 title={cityQuery.data?.name ?? "City details"}
-                cityId={cityQuery.data?.cityId ?? cityId}
-                simulationKind={cityQuery.data?.simulationKind}
                 status={cityQuery.data?.status}
                 archivedAtUtc={cityQuery.data?.archivedAtUtc}
-                links={[
-                    ...(cityQuery.data && canReadResidents
-                        ? [{to: getClassicCityResidentsPath(cityQuery.data.cityId), label: "Residents"}]
-                        : []),
-                    {to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"},
-                ]}
+                links={[{to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"}]}
             />
 
             {cityQuery.error ? (
@@ -219,17 +207,9 @@ const CityDetailsPage = () => {
                 </div>
             ) : null}
 
-            <section className="city-details-tabs" aria-label="City monitoring workspace">
-                <div className="city-details-tabs__subtitle">
-                    <strong>{activeTabMeta.label}</strong>
-                    <span>{activeTabMeta.subtitle}</span>
-                </div>
-            </section>
-
             <div
-                id={`city-details-panel-${activeTab}`}
-                role="tabpanel"
-                aria-labelledby={`city-details-tab-${activeTab}`}
+                role="region"
+                aria-label={`${activeTabLabel} panel`}
                 className="city-details-page__tab-panel"
             >
                 {renderActiveTab()}
