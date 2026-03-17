@@ -1,11 +1,8 @@
 import {useState} from "react";
-import {Navigate, useNavigate, useParams} from "react-router-dom";
+import {Navigate, useParams} from "react-router-dom";
 import {getCityResidentsPage} from "@services/citycore/scenarios/classic-city/api/residentsApi";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {
-    getClassicCityCivilRegistryPath,
-    getClassicCityEducationPath,
-    getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
 } from "@services/citycore/scenarios/registry";
 import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
@@ -26,7 +23,6 @@ const PAGE_SIZE = 100;
 
 const CityResidentsPage = () => {
     const params = useParams<{ cityId: string }>();
-    const navigate = useNavigate();
     const cityId = params.cityId ?? "";
     const cityQuery = useCityDetails(cityId);
     const {can} = usePermissions();
@@ -47,10 +43,6 @@ const CityResidentsPage = () => {
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const canKill = can(PermissionKeys.PopulationPersonKill) && !isArchived;
     const canResurrect = can(PermissionKeys.PopulationPersonResurrect) && !isArchived;
-    const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
-    const canManageEmployment = can(PermissionKeys.PopulationEmploymentManage) && !isArchived;
-    const canManageEducation = can(PermissionKeys.PopulationEducationManage) && !isArchived;
-
     if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
         return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
     }
@@ -86,38 +78,6 @@ const CityResidentsPage = () => {
                         <p className="cities-card__subtitle">
                             Browse and inspect only the people assigned to this simulation host.
                         </p>
-                    </div>
-
-                    <div className="city-residents-page__header-actions">
-                        {canManageEducation ? (
-                            <Button
-                                type="button"
-                                variant="primary"
-                                onClick={() => navigate(getClassicCityEducationPath(cityId))}
-                            >
-                                Open education service
-                            </Button>
-                        ) : null}
-
-                        {canManageEmployment ? (
-                            <Button
-                                type="button"
-                                variant="primary"
-                                onClick={() => navigate(getClassicCityEmploymentPath(cityId))}
-                            >
-                                Open employment service
-                            </Button>
-                        ) : null}
-
-                        {canManageCivilRegistry ? (
-                            <Button
-                                type="button"
-                                variant="primary"
-                                onClick={() => navigate(getClassicCityCivilRegistryPath(cityId))}
-                            >
-                                Open civil registry
-                            </Button>
-                        ) : null}
                     </div>
                 </div>
 
