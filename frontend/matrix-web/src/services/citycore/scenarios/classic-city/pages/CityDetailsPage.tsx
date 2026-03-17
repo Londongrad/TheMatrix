@@ -96,16 +96,6 @@ const CityDetailsPage = () => {
         scrollContainer?.scrollTo({top: 0, behavior: "auto"});
     }, [activeTab]);
 
-    const setActiveTab = (nextTab: CityDetailsTabId) => {
-        if (nextTab === activeTab) {
-            return;
-        }
-
-        const next = new URLSearchParams(searchParams);
-        next.set("tab", nextTab);
-        setSearchParams(next);
-    };
-
     async function handleRename(name: string) {
         if (!cityId) {
             return;
@@ -230,30 +220,6 @@ const CityDetailsPage = () => {
             ) : null}
 
             <section className="city-details-tabs" aria-label="City monitoring workspace">
-                <div className="city-details-tabs__list" role="tablist" aria-label="City workspace sections">
-                    {CITY_DETAILS_TABS.map((tab) => {
-                        const isActive = tab.id === activeTab;
-
-                        return (
-                            <button
-                                key={tab.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={isActive}
-                                aria-controls={`city-details-panel-${tab.id}`}
-                                id={`city-details-tab-${tab.id}`}
-                                className={`city-details-tabs__button${isActive ? " is-active" : ""}`}
-                                onClick={() => {
-                                    setActiveTab(tab.id);
-                                }}
-                            >
-                                <span className="city-details-tabs__button-label">{tab.label}</span>
-                                <span className="city-details-tabs__button-hint">{tab.subtitle}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-
                 <div className="city-details-tabs__subtitle">
                     <strong>{activeTabMeta.label}</strong>
                     <span>{activeTabMeta.subtitle}</span>

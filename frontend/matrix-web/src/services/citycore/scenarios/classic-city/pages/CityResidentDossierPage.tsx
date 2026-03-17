@@ -1,5 +1,5 @@
-import {useMemo, useState} from "react";
-import {Link, Navigate, useNavigate, useParams} from "react-router-dom";
+import {useEffect, useMemo} from "react";
+import {Link, Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityResidentDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityResidentDetails";
@@ -30,6 +30,10 @@ const DOSSIER_TABS: ReadonlyArray<{ key: ResidentDossierTabKey; label: string; h
     {key: "education", label: "Education", helper: "Current level until education history arrives."},
     {key: "health", label: "Health", helper: "Live wellbeing and pressure metrics."},
 ];
+
+function isResidentDossierTabKey(value: string | null): value is ResidentDossierTabKey {
+    return DOSSIER_TABS.some((tab) => tab.key === value);
+}
 
 function renderLifecycleHint(text: string) {
     return <div className="city-resident-dossier__hint">{text}</div>;
@@ -114,13 +118,20 @@ function renderResidentReferenceList(
 const CityResidentDossierPage = () => {
     const params = useParams<{ cityId: string; residentId: string }>();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const {can} = usePermissions();
     const cityId = params.cityId ?? "";
     const residentId = params.residentId ?? "";
-
-    const [activeTab, setActiveTab] = useState<ResidentDossierTabKey>("overview");
     const cityQuery = useCityDetails(cityId);
     const residentQuery = useCityResidentDetails(cityId, residentId, cityId.length > 0 && residentId.length > 0);
+    const rawTab = searchParams.get("tab");
+    const activeTab: ResidentDossierTabKey = isResidentDossierTabKey(rawTab)
+        ? rawTab
+        : "overview";
+    const activeTabMeta = useMemo(
+        () => DOSSIER_TABS.find((tab) => tab.key === activeTab) ?? DOSSIER_TABS[0],
+        [activeTab],
+    );
 
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
@@ -128,6 +139,16 @@ const CityResidentDossierPage = () => {
     const canManageCivilRegistry = can(PermissionKeys.PopulationCivilRegistryManage) && !isArchived;
     const canManageEmployment = can(PermissionKeys.PopulationEmploymentManage) && !isArchived;
     const canManageEducation = can(PermissionKeys.PopulationEducationManage) && !isArchived;
+
+    useEffect(() => {
+        if (rawTab === activeTab) {
+            return;
+        }
+
+        const next = new URLSearchParams(searchParams);
+        next.set("tab", activeTab);
+        setSearchParams(next, {replace: true});
+    }, [activeTab, rawTab, searchParams, setSearchParams]);
 
     if (!cityId || !residentId) {
         return <Navigate to={CLASSIC_CITY_LIST_PATH} replace/>;
@@ -214,26 +235,6 @@ const CityResidentDossierPage = () => {
                     </div>
                 </div>
 
-                <div className="city-resident-dossier__tablist" role="tablist" aria-label="Resident dossier sections">
-                    {DOSSIER_TABS.map((tab) => {
-                        const isSelected = tab.key === activeTab;
-
-                        return (
-                            <button
-                                key={tab.key}
-                                type="button"
-                                role="tab"
-                                aria-selected={isSelected}
-                                className={`city-resident-dossier__tab${isSelected ? " city-resident-dossier__tab--active" : ""}`}
-                                onClick={() => setActiveTab(tab.key)}
-                            >
-                                <span className="city-resident-dossier__tab-label">{tab.label}</span>
-                                <span className="city-resident-dossier__tab-helper">{tab.helper}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-
                 {residentQuery.isLoading && !resident ? (
                     <div className="city-state-banner city-state-banner--active">
                         <div className="city-state-banner__title">Loading resident dossier</div>
@@ -245,6 +246,7 @@ const CityResidentDossierPage = () => {
 
                 {resident ? (
                     <div className="city-resident-dossier__panel" role="tabpanel">
+                        <div className="city-resident-dossier__hint">{activeTabMeta.helper}</div>
                         {activeTab === "overview" ? (
                             <div className="city-resident-dossier__grid">
                                 <section className="city-resident-dossier__section-card">
