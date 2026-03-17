@@ -180,10 +180,11 @@ const CityResidentDossierPage = () => {
             <section className="cities-card">
                 <div className="cities-card__header city-resident-dossier__header">
                     <div>
-                        <h2 className="cities-card__title">Resident dossier</h2>
+                        <h2 className="cities-card__title">
+                            {resident?.fullName ?? "Resident dossier"}
+                        </h2>
                         <p className="cities-card__subtitle">
-                            Keep the quick modal for inspection, then use this workspace to navigate a fuller snapshot
-                            of the resident until dedicated city services start writing real histories.
+                            City-scoped resident snapshot, family links, household context, and current lifecycle state.
                         </p>
                     </div>
 

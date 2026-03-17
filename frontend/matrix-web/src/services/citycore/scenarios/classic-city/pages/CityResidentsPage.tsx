@@ -1,3 +1,4 @@
+import {useEffect, useMemo, useRef} from "react";
 import {Navigate, useNavigate, useParams} from "react-router-dom";
 import {getCityResidentsPage} from "@services/citycore/scenarios/classic-city/api/residentsApi";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
@@ -17,12 +18,75 @@ import "@services/citycore/scenarios/classic-city/styles/city-details.css";
 import "@services/citycore/scenarios/classic-city/styles/city-residents.css";
 
 const PAGE_SIZE = 100;
+const RESIDENTS_RETURN_STORAGE_KEY_PREFIX = "classic-city.residents.return";
+
+type ResidentsReturnSnapshot = {
+    pageNumber: number;
+    scrollTop: number;
+};
+
+function getResidentsReturnStorageKey(cityId: string) {
+    return `${RESIDENTS_RETURN_STORAGE_KEY_PREFIX}.${cityId}`;
+}
+
+function readResidentsReturnSnapshot(cityId: string): ResidentsReturnSnapshot | null {
+    if (!cityId || typeof window === "undefined") {
+        return null;
+    }
+
+    try {
+        const rawValue = window.sessionStorage.getItem(getResidentsReturnStorageKey(cityId));
+
+        if (!rawValue) {
+            return null;
+        }
+
+        const parsed = JSON.parse(rawValue) as Partial<ResidentsReturnSnapshot>;
+        const pageNumber = Number(parsed.pageNumber);
+        const scrollTop = Number(parsed.scrollTop);
+
+        if (!Number.isFinite(pageNumber) || pageNumber < 1 || !Number.isFinite(scrollTop) || scrollTop < 0) {
+            return null;
+        }
+
+        return {pageNumber, scrollTop};
+    } catch {
+        return null;
+    }
+}
+
+function clearResidentsReturnSnapshot(cityId: string) {
+    if (!cityId || typeof window === "undefined") {
+        return;
+    }
+
+    try {
+        window.sessionStorage.removeItem(getResidentsReturnStorageKey(cityId));
+    } catch {
+    }
+}
+
+function saveResidentsReturnSnapshot(cityId: string, snapshot: ResidentsReturnSnapshot) {
+    if (!cityId || typeof window === "undefined") {
+        return;
+    }
+
+    try {
+        window.sessionStorage.setItem(
+            getResidentsReturnStorageKey(cityId),
+            JSON.stringify(snapshot),
+        );
+    } catch {
+    }
+}
 
 const CityResidentsPage = () => {
     const params = useParams<{ cityId: string }>();
     const cityId = params.cityId ?? "";
     const navigate = useNavigate();
     const cityQuery = useCityDetails(cityId);
+    const residentsReturnSnapshot = useMemo(() => readResidentsReturnSnapshot(cityId), [cityId]);
+    const hasRestoredScrollRef = useRef(false);
 
     const residentsQuery = usePagedQuery<PersonDto>(
         (pageNumber, pageSize) => getCityResidentsPage(cityId, pageNumber, pageSize),
@@ -30,6 +94,7 @@ const CityResidentsPage = () => {
         [cityId],
         {
             enabled: cityId.length > 0,
+            initialPage: residentsReturnSnapshot?.pageNumber ?? 1,
             errorMessage: "Failed to load city residents.",
         },
     );
@@ -46,6 +111,35 @@ const CityResidentsPage = () => {
     const currentPage = residentsQuery.data?.pageNumber ?? residentsQuery.pageNumber;
     const pageSize = residentsQuery.data?.pageSize ?? PAGE_SIZE;
     const range = getPageRange(currentPage, pageSize, total);
+
+    useEffect(() => {
+        if (hasRestoredScrollRef.current) {
+            return;
+        }
+
+        if (!residentsReturnSnapshot) {
+            hasRestoredScrollRef.current = true;
+            return;
+        }
+
+        if (residentsQuery.isLoading) {
+            return;
+        }
+
+        const scrollContainer = document.querySelector<HTMLElement>(".mx-shell__content");
+        const frameId = window.requestAnimationFrame(() => {
+            scrollContainer?.scrollTo({
+                top: residentsReturnSnapshot.scrollTop,
+                behavior: "auto",
+            });
+            clearResidentsReturnSnapshot(cityId);
+            hasRestoredScrollRef.current = true;
+        });
+
+        return () => {
+            window.cancelAnimationFrame(frameId);
+        };
+    }, [cityId, residentsQuery.isLoading, residentsReturnSnapshot]);
 
     return (
         <div className="cities-page city-residents-page">
@@ -115,6 +209,11 @@ const CityResidentsPage = () => {
                                     key={resident.id}
                                     person={resident}
                                     onOpen={(selectedResident) => {
+                                        const scrollContainer = document.querySelector<HTMLElement>(".mx-shell__content");
+                                        saveResidentsReturnSnapshot(cityId, {
+                                            pageNumber: currentPage,
+                                            scrollTop: scrollContainer?.scrollTop ?? 0,
+                                        });
                                         navigate(getClassicCityResidentDossierPath(cityId, selectedResident.id));
                                     }}
                                 />
