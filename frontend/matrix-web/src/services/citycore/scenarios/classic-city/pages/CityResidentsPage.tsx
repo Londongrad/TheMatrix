@@ -1,12 +1,9 @@
-import {useMemo, useState} from "react";
+import {useState} from "react";
 import {Navigate, useNavigate, useParams} from "react-router-dom";
-import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {getCityResidentsPage} from "@services/citycore/scenarios/classic-city/api/residentsApi";
 import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityDetails";
 import {
-    CLASSIC_CITY_LIST_PATH,
     getClassicCityCivilRegistryPath,
-    getClassicCityDetailsPath,
     getClassicCityEducationPath,
     getClassicCityEmploymentPath,
     getClassicCityProvisioningPath,
@@ -65,32 +62,8 @@ const CityResidentsPage = () => {
     const pageSize = residentsQuery.data?.pageSize ?? PAGE_SIZE;
     const range = getPageRange(currentPage, pageSize, total);
 
-    const headerLinks = useMemo(() => {
-        if (!cityId) {
-            return [{to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"}];
-        }
-
-        return [
-            {to: getClassicCityDetailsPath(cityId), label: "Back to city"},
-            {to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"},
-        ];
-    }, [cityId]);
-
-    const pageTitle = cityQuery.data?.name
-        ? `${cityQuery.data.name} residents`
-        : "City residents";
-
     return (
         <div className="cities-page city-residents-page">
-            <CityDetailsHeader
-                title={pageTitle}
-                cityId={cityQuery.data?.cityId ?? cityId}
-                simulationKind={cityQuery.data?.simulationKind}
-                status={cityQuery.data?.status}
-                archivedAtUtc={cityQuery.data?.archivedAtUtc}
-                links={headerLinks}
-            />
-
             {cityQuery.error ? (
                 <div className="citycore-error-banner" role="alert">
                     <span>{cityQuery.error}</span>

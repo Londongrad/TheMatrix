@@ -1,6 +1,5 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Link, Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
-import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {
     fireCityResident,
     getCityEmploymentCatalog,
@@ -12,10 +11,8 @@ import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/us
 import {useCityResidentDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityResidentDetails";
 import {
     CLASSIC_CITY_LIST_PATH,
-    getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
     getClassicCityResidentDossierPath,
-    getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
 import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {
@@ -308,26 +305,6 @@ const CityEmploymentPage = () => {
         !isArchived &&
         !isSubmitting;
 
-    const headerLinks = useMemo(() => {
-        const links: Array<{ to: string; label: string }> = [];
-
-        if (focusResidentId) {
-            links.push({to: getClassicCityResidentDossierPath(cityId, focusResidentId), label: "Back to resident"});
-        }
-
-        links.push(
-            {to: getClassicCityResidentsPath(cityId), label: "Back to residents"},
-            {to: getClassicCityDetailsPath(cityId), label: "Back to city"},
-            {to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"},
-        );
-
-        return links;
-    }, [cityId, focusResidentId]);
-
-    const pageTitle = cityQuery.data?.name
-        ? `${cityQuery.data.name} employment service`
-        : "Employment service";
-
     async function refreshSnapshots() {
         await residentQuery.refetch();
         setRefreshNonce((value) => value + 1);
@@ -386,15 +363,6 @@ const CityEmploymentPage = () => {
 
     return (
         <div className="cities-page city-employment-page">
-            <CityDetailsHeader
-                title={pageTitle}
-                cityId={cityQuery.data?.cityId ?? cityId}
-                simulationKind={cityQuery.data?.simulationKind}
-                status={cityQuery.data?.status}
-                archivedAtUtc={cityQuery.data?.archivedAtUtc}
-                links={headerLinks}
-            />
-
             {cityQuery.error ? (
                 <div className="citycore-error-banner" role="alert">
                     <span>{cityQuery.error}</span>

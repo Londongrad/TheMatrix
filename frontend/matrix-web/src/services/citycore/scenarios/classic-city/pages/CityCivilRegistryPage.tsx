@@ -1,6 +1,5 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useState} from "react";
 import {Link, Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
-import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {
     getCityResidentsPage,
     registerCityDivorce,
@@ -10,10 +9,8 @@ import {useCityDetails} from "@services/citycore/scenarios/classic-city/hooks/us
 import {useCityResidentDetails} from "@services/citycore/scenarios/classic-city/hooks/useCityResidentDetails";
 import {
     CLASSIC_CITY_LIST_PATH,
-    getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
     getClassicCityResidentDossierPath,
-    getClassicCityResidentsPath,
 } from "@services/citycore/scenarios/registry";
 import {getCityStatusTone, isArchivedCity,} from "@services/citycore/scenarios/classic-city/utils/presentation";
 import type {CityCivilRegistryOperationResultDto, PersonDto} from "@services/population/person/api/personTypes";
@@ -195,26 +192,6 @@ const CityCivilRegistryPage = () => {
     const pageSize = residentsQuery.data?.pageSize ?? PAGE_SIZE;
     const range = getPageRange(currentPage, pageSize, total);
 
-    const headerLinks = useMemo(() => {
-        const links: Array<{ to: string; label: string }> = [];
-
-        if (focusResidentId) {
-            links.push({to: getClassicCityResidentDossierPath(cityId, focusResidentId), label: "Back to resident"});
-        }
-
-        links.push(
-            {to: getClassicCityResidentsPath(cityId), label: "Back to residents"},
-            {to: getClassicCityDetailsPath(cityId), label: "Back to city"},
-            {to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"},
-        );
-
-        return links;
-    }, [cityId, focusResidentId]);
-
-    const pageTitle = cityQuery.data?.name
-        ? `${cityQuery.data.name} civil registry`
-        : "Civil registry";
-
     const canSubmitOperation =
         selectedFirstResidentId.length > 0 &&
         selectedSecondResidentId.length > 0 &&
@@ -300,15 +277,6 @@ const CityCivilRegistryPage = () => {
 
     return (
         <div className="cities-page city-civil-registry-page">
-            <CityDetailsHeader
-                title={pageTitle}
-                cityId={cityQuery.data?.cityId ?? cityId}
-                simulationKind={cityQuery.data?.simulationKind}
-                status={cityQuery.data?.status}
-                archivedAtUtc={cityQuery.data?.archivedAtUtc}
-                links={headerLinks}
-            />
-
             {cityQuery.error ? (
                 <div className="citycore-error-banner" role="alert">
                     <span>{cityQuery.error}</span>
