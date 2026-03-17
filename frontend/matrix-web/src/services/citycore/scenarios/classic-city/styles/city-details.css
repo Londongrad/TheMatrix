@@ -109,6 +109,12 @@
     gap: 14px;
 }
 
+.city-overview-card .ui-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
 .city-overview-stat {
     display: flex;
     flex-direction: column;
@@ -170,12 +176,16 @@
 .city-rename-form {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 14px;
+    gap: 16px;
     align-items: end;
 }
 
 .city-rename-form__field {
     margin: 0;
+}
+
+.city-actions-row {
+    padding-top: 4px;
 }
 
 .city-dashboard {

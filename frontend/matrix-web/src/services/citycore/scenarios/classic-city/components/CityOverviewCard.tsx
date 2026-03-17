@@ -119,6 +119,7 @@ export function CityOverviewCard({
     return (
         <Card
             title="Lifecycle"
+            className="city-overview-card"
             right={<span className={`cities-status-pill cities-status-pill--${statusTone}`}>{statusLabel}</span>}
         >
             {isLoading && !city ? <p className="card-sub">Loading city...</p> : null}

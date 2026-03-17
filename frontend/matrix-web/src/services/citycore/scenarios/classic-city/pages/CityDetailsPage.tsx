@@ -1,6 +1,5 @@
 import {useEffect} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
-import {CityDetailsHeader} from "@services/citycore/scenarios/classic-city/components/CityDetailsHeader";
 import {CityDashboardCard} from "@services/citycore/scenarios/classic-city/components/CityDashboardCard";
 import {CityOverviewCard} from "@services/citycore/scenarios/classic-city/components/CityOverviewCard";
 import {
@@ -185,13 +184,6 @@ const CityDetailsPage = () => {
 
     return (
         <div className="cities-page city-details-page">
-            <CityDetailsHeader
-                title={cityQuery.data?.name ?? "City details"}
-                status={cityQuery.data?.status}
-                archivedAtUtc={cityQuery.data?.archivedAtUtc}
-                links={[{to: CLASSIC_CITY_LIST_PATH, label: "Back to cities"}]}
-            />
-
             {cityQuery.error ? (
                 <div className="citycore-error-banner" role="alert">
                     <span>{cityQuery.error}</span>
