@@ -38,6 +38,7 @@
 
 .mx-sb__markBtn,
 .mx-sb__iconBtn {
+    position: relative;
     display: grid;
     place-items: center;
     border-radius: 14px;
@@ -60,6 +61,7 @@
 .mx-sb__markBtn {
     width: 44px;
     height: 44px;
+    overflow: visible;
 }
 
 .mx-sb__iconBtn {
@@ -87,8 +89,29 @@
     0 0 30px rgba(var(--shell-accent-rgb), 0.22);
 }
 
+.mx-sb__markBtnIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .mx-sb__markBtn--animated {
     animation: mxSidebarBackPulse 2.7s ease-in-out infinite;
+}
+
+.mx-sb__markBtn--animated::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 18px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.28);
+    box-shadow: 0 0 20px rgba(var(--shell-accent-rgb), 0.16);
+    pointer-events: none;
+    animation: mxSidebarBackHalo 2.7s ease-in-out infinite;
+}
+
+.mx-sb__markBtn--animated .mx-sb__markBtnIcon {
+    animation: mxSidebarBackIconDrift 1.6s ease-in-out infinite;
 }
 
 .mx-sb__markBtn:active,
@@ -209,14 +232,40 @@
 @keyframes mxSidebarBackPulse {
     0%,
     100% {
+        transform: translateY(0);
         box-shadow: var(--shell-shadow-soft),
         0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
         0 0 26px rgba(var(--shell-accent-rgb), 0.18);
     }
 
     50% {
+        transform: translateY(-1px);
         box-shadow: var(--shell-shadow-soft),
         0 0 0 1px rgba(var(--shell-accent-rgb), 0.24),
-        0 0 40px rgba(var(--shell-accent-rgb), 0.32);
+        0 0 44px rgba(var(--shell-accent-rgb), 0.34);
+    }
+}
+
+@keyframes mxSidebarBackHalo {
+    0%,
+    100% {
+        opacity: 0.26;
+        transform: scale(0.96);
+    }
+
+    50% {
+        opacity: 0.88;
+        transform: scale(1.08);
+    }
+}
+
+@keyframes mxSidebarBackIconDrift {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(-2px);
     }
 }

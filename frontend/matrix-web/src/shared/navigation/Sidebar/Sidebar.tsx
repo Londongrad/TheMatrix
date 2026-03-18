@@ -83,7 +83,9 @@ export default function MatrixSidebar({
                         aria-label="Back"
                         title="Back"
                     >
-                        <ArrowLeft size={18}/>
+                        <span className="mx-sb__markBtnIcon" aria-hidden="true">
+                            <ArrowLeft size={18}/>
+                        </span>
                     </button>
                 ) : (
                     <div className="mx-sb__mark" aria-hidden="true"/>
