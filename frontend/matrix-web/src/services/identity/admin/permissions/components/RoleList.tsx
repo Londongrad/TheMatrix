@@ -1,31 +1,31 @@
-import type {RoleResponse} from "@services/identity/api/admin/adminTypes";
+import type {PermissionScope} from "../hooks/useAdminPermissions";
 
 export default function RoleList({
-                                     roles,
-                                     activeRoleId,
+                                     scopes,
+                                     activeScopeId,
                                      onSelect,
                                  }: {
-    roles: RoleResponse[];
-    activeRoleId: string | null;
+    scopes: PermissionScope[];
+    activeScopeId: string | null;
     onSelect: (id: string) => void;
 }) {
     return (
         <div className="mx-admin-perm__roles">
-            <div className="mx-admin-perm__sideTitle">Role</div>
+            <div className="mx-admin-perm__sideTitle">Scope</div>
             <div className="mx-admin-perm__roleList">
-                {roles.map((role) => (
+                {scopes.map((scope) => (
                     <button
-                        key={role.id}
+                        key={scope.id}
                         type="button"
                         className={`mx-admin-perm__roleBtn${
-                            role.id === activeRoleId ? " is-active" : ""
+                            scope.id === activeScopeId ? " is-active" : ""
+                        }${
+                            scope.kind === "default-user-access" ? " is-baseline" : ""
                         }`}
-                        onClick={() => onSelect(role.id)}
+                        onClick={() => onSelect(scope.id)}
                     >
-                        <div className="mx-admin-perm__roleName">{role.name}</div>
-                        <div className="mx-admin-perm__roleMeta">
-                            {role.isSystem ? "System" : "Custom"}
-                        </div>
+                        <div className="mx-admin-perm__roleName">{scope.name}</div>
+                        <div className="mx-admin-perm__roleMeta">{scope.meta}</div>
                     </button>
                 ))}
             </div>

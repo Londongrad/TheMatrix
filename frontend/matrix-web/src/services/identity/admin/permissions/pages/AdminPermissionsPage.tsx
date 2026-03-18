@@ -15,10 +15,10 @@ export default function AdminPermissionsPage() {
         roleLoading,
         saving,
         error,
-        roles,
-        activeRoleId,
-        setActiveRoleId,
-        activeRole,
+        scopes,
+        activeScopeId,
+        setActiveScopeId,
+        activeScope,
         grouped,
         rolePermissions,
         dirty,
@@ -31,7 +31,7 @@ export default function AdminPermissionsPage() {
         <div className="mx-admin-page">
             <Card
                 title="Permissions"
-                subtitle="Configure permissions inside roles"
+                subtitle="Configure the default user baseline and inspect role grants"
                 right={
                     <div className="mx-admin-perm__headerRight">
                         <RequirePermission
@@ -48,10 +48,12 @@ export default function AdminPermissionsPage() {
                         >
                             <Button
                                 variant="primary"
-                                disabled={!activeRole || !dirty || saving}
+                                disabled={!activeScope?.editable || !dirty || saving}
                                 onClick={() => void saveChanges()}
                             >
-                                Save changes
+                                {activeScope?.kind === "default-user-access"
+                                    ? "Save baseline"
+                                    : "Save changes"}
                             </Button>
                         </RequirePermission>
                     </div>
@@ -61,22 +63,23 @@ export default function AdminPermissionsPage() {
 
                 {loading ? (
                     <div className="mx-admin-perm__loading">
-                        <LoadingIndicator label="Loading roles and permissions"/>
+                        <LoadingIndicator label="Loading permission scopes"/>
                     </div>
                 ) : null}
 
                 <div className="mx-admin-perm__layout">
                     <RoleList
-                        roles={roles}
-                        activeRoleId={activeRoleId}
-                        onSelect={setActiveRoleId}
+                        scopes={scopes}
+                        activeScopeId={activeScopeId}
+                        onSelect={setActiveScopeId}
                     />
                     <PermissionsMatrix
                         grouped={grouped}
-                        activeRole={activeRole}
+                        activeScope={activeScope}
                         rolePermissions={rolePermissions}
                         roleLoading={roleLoading}
                         loading={loading}
+                        dirty={dirty}
                         onToggle={togglePermission}
                     />
                 </div>

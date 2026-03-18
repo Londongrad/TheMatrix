@@ -1,10 +1,9 @@
 import {useEffect, useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
-import type {RoleResponse} from "@services/identity/api/admin/adminTypes";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
-import type {PermissionSection} from "../hooks/useAdminPermissions";
+import type {PermissionScope, PermissionSection} from "../hooks/useAdminPermissions";
 
 type PermissionItem = {
     key: string;
@@ -13,21 +12,23 @@ type PermissionItem = {
 
 export default function PermissionsMatrix({
                                               grouped,
-                                              activeRole,
+                                              activeScope,
                                               rolePermissions,
                                               roleLoading,
                                               loading,
+                                              dirty,
                                               onToggle,
                                           }: {
     grouped: PermissionSection[];
-    activeRole: RoleResponse | null;
+    activeScope: PermissionScope | null;
     rolePermissions: Set<string>;
     roleLoading: boolean;
     loading: boolean;
+    dirty: boolean;
     onToggle: (key: string) => void;
 }) {
     const {can} = usePermissions();
-    const canUpdate = can(PermissionKeys.IdentityRolePermissionsUpdate);
+    const canUpdate = can(PermissionKeys.IdentityRolePermissionsUpdate) && !!activeScope?.editable;
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
@@ -94,9 +95,13 @@ export default function PermissionsMatrix({
                         <input
                             type="checkbox"
                             checked={isAllowed}
-                            disabled={!activeRole || roleLoading || loading || !canUpdate}
+                            disabled={!activeScope || roleLoading || loading || !canUpdate}
                             onChange={() => onToggle(permission.key)}
-                            title={canUpdate ? undefined : "Недостаточно прав"}
+                            title={
+                                canUpdate
+                                    ? undefined
+                                    : "Permission editing is unavailable for this scope"
+                            }
                         />
                         <span/>
                     </span>
@@ -110,10 +115,12 @@ export default function PermissionsMatrix({
             <div className="mx-admin-perm__matrixHead">
                 <div>
                     <div className="mx-admin-perm__matrixTitle">
-                        {activeRole ? `Role: ${activeRole.name}` : "Select a role"}
+                        {activeScope ? activeScope.name : "Select a scope"}
                     </div>
                     <div className="mx-admin-perm__matrixSub">
-                        Toggle permissions for the selected role.
+                        {activeScope?.kind === "default-user-access"
+                            ? "Grant or deny the mutable baseline inherited by ordinary users."
+                            : "Inspect or edit the selected role permissions."}
                     </div>
                 </div>
                 <div className="mx-admin-perm__matrixActions">
@@ -121,10 +128,44 @@ export default function PermissionsMatrix({
                         {anyExpanded ? "Collapse all" : "Expand all"}
                     </Button>
                     {roleLoading ? (
-                        <LoadingIndicator label="Loading role permissions"/>
+                        <LoadingIndicator label="Loading scope permissions"/>
                     ) : null}
                 </div>
             </div>
+
+            {activeScope ? (
+                <div className="mx-admin-perm__scopeBanner">
+                    <div className="mx-admin-perm__scopeMeta">
+                        <span
+                            className={`mx-admin-perm__scopeKind ${
+                                activeScope.editable
+                                    ? "mx-admin-perm__scopeKind--editable"
+                                    : "mx-admin-perm__scopeKind--readonly"
+                            }`}
+                        >
+                            {activeScope.kind === "default-user-access"
+                                ? "Baseline"
+                                : activeScope.role?.isSystem
+                                    ? "System role"
+                                    : "Custom role"}
+                        </span>
+                        {activeScope.version !== null ? (
+                            <span className="mx-admin-perm__scopeVersion">
+                                Version {activeScope.version}
+                            </span>
+                        ) : null}
+                        {dirty ? (
+                            <span className="mx-admin-perm__scopeVersion mx-admin-perm__scopeVersion--dirty">
+                                Unsaved
+                            </span>
+                        ) : null}
+                    </div>
+
+                    {activeScope.note ? (
+                        <div className="mx-admin-perm__scopeNote">{activeScope.note}</div>
+                    ) : null}
+                </div>
+            ) : null}
 
             <div className="mx-admin-perm__groups">
                 {grouped.map((section) => (
