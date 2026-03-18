@@ -186,6 +186,10 @@ export function useAdminPermissions() {
     }, [perms]);
 
     const togglePermission = (key: string) => {
+        if (!activeScope?.editable) {
+            return;
+        }
+
         setRolePermissions((prev) => {
             const next = new Set(prev);
             if (next.has(key)) next.delete(key);
@@ -196,7 +200,7 @@ export function useAdminPermissions() {
     };
 
     const saveChanges = async () => {
-        if (!activeScope) return;
+        if (!activeScope?.editable) return;
         setSaving(true);
         setError(null);
         try {
