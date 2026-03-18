@@ -18,5 +18,15 @@
         {
             return $"ac:{userId:N}:{permissionsVersion}";
         }
+
+        public static string DefaultUserAccessVersion()
+        {
+            return "pv:default-user-access";
+        }
+
+        public static string DefaultUserAccessVersionStale()
+        {
+            return "pv:stale:default-user-access";
+        }
     }
 }

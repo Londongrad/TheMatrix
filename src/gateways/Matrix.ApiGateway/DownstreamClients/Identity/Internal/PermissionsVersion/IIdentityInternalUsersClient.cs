@@ -8,6 +8,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersi
             Guid userId,
             CancellationToken cancellationToken);
 
+        Task<int> GetDefaultUserAccessVersionAsync(CancellationToken cancellationToken);
+
         Task<UserAuthContextResponse> GetAuthContextAsync(
             Guid userId,
             CancellationToken cancellationToken);

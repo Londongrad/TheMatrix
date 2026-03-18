@@ -183,6 +183,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddConsumer<ClassicCitySetupLaunchRequestedConsumer>();
                 x.AddConsumer<UserSecurityStateChangedConsumer>();
+                x.AddConsumer<DefaultUserAccessPolicyChangedConsumer>();
 
                 x.UsingRabbitMq((
                     context,
