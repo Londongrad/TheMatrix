@@ -1,5 +1,7 @@
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
+using Matrix.Identity.Contracts.Internal.Authorization;
 using Matrix.Identity.Domain.Authorization;
+using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +64,34 @@ namespace Matrix.Identity.Infrastructure.Authorization
 
             if (!isSuperAdmin)
             {
+                bool hasUserRole = roles.Any(role => string.Equals(
+                    a: role,
+                    b: SystemRoleNames.User,
+                    comparisonType: StringComparison.Ordinal));
+
+                if (hasUserRole)
+                {
+                    var defaultUserOverrides = await (from policyOverride in _db.DefaultUserAccessOverrides.AsNoTracking()
+                                                      join permission in _db.Permissions.AsNoTracking()
+                                                          on policyOverride.PermissionKey equals permission.Key
+                                                      where policyOverride.PolicyId == DefaultUserAccessPolicy.SingletonId &&
+                                                            !permission.IsDeprecated
+                                                      select new
+                                                      {
+                                                          policyOverride.PermissionKey,
+                                                          policyOverride.Effect
+                                                      })
+                       .ToListAsync(cancellationToken);
+
+                    foreach (var policyOverride in defaultUserOverrides)
+                        if (policyOverride.Effect == PermissionEffect.Deny)
+                            effective.Remove(policyOverride.PermissionKey);
+
+                    foreach (var policyOverride in defaultUserOverrides)
+                        if (policyOverride.Effect == PermissionEffect.Allow)
+                            effective.Add(policyOverride.PermissionKey);
+                }
+
                 var overrides = await (from userOverride in _db.UserPermissionOverrides.AsNoTracking()
                                        join permission in _db.Permissions.AsNoTracking()
                                            on userOverride.PermissionKey equals permission.Key
@@ -82,11 +112,21 @@ namespace Matrix.Identity.Infrastructure.Authorization
                         effective.Add(userOverride.PermissionKey);
             }
 
-            int permissionsVersion = await _db.Users
+            int userPermissionsVersion = await _db.Users
                .AsNoTracking()
                .Where(user => user.Id == userId && !user.IsDeleted)
                .Select(user => user.PermissionsVersion)
                .SingleAsync(cancellationToken);
+
+            int defaultUserAccessVersion = await _db.DefaultUserAccessPolicies
+               .AsNoTracking()
+               .Where(policy => policy.Id == DefaultUserAccessPolicy.SingletonId)
+               .Select(policy => (int?)policy.Version)
+               .FirstOrDefaultAsync(cancellationToken) ?? 1;
+
+            int permissionsVersion = PermissionsVersionComposer.Compose(
+                userPermissionsVersion: userPermissionsVersion,
+                defaultUserAccessVersion: defaultUserAccessVersion);
 
             return new AuthorizationContext(
                 Roles: roles,

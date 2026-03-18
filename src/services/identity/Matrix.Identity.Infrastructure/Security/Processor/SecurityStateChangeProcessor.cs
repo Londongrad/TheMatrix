@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Contracts.Internal.Events;
 using Matrix.Identity.Infrastructure.Persistence;
@@ -14,6 +15,7 @@ namespace Matrix.Identity.Infrastructure.Security.Processor
     /// </summary>
     public sealed class SecurityStateChangeProcessor(
         IdentityDbContext dbContext,
+        IDefaultUserAccessPolicyRepository defaultUserAccessPolicyRepository,
         ISecurityStateChangeCollector collector,
         IClock clock,
         ILogger<SecurityStateChangeProcessor> logger)
@@ -25,8 +27,9 @@ namespace Matrix.Identity.Infrastructure.Security.Processor
         public async Task ProcessAsync(CancellationToken cancellationToken)
         {
             IReadOnlyCollection<Guid> changedUserIds = collector.DrainUsers();
+            bool defaultUserAccessChanged = collector.DrainDefaultUserAccessChanged();
 
-            if (changedUserIds.Count == 0)
+            if (changedUserIds.Count == 0 && !defaultUserAccessChanged)
                 return;
 
             Guid[] userIds = changedUserIds.ToArray();
@@ -93,6 +96,19 @@ namespace Matrix.Identity.Infrastructure.Security.Processor
                         payload: payload,
                         jsonOptions: JsonOptions));
             }
+
+            if (!defaultUserAccessChanged)
+                return;
+
+            int defaultUserAccessVersion = await defaultUserAccessPolicyRepository.GetVersionAsync(cancellationToken);
+            var defaultUserAccessPayload = new DefaultUserAccessPolicyChangedV1(defaultUserAccessVersion);
+
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: InternalEventTypes.DefaultUserAccessPolicyChangedV1,
+                    occurredOnUtc: occurredOnUtc,
+                    payload: defaultUserAccessPayload,
+                    jsonOptions: JsonOptions));
         }
     }
 }

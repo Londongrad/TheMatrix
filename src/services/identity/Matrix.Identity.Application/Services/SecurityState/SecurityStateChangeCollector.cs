@@ -10,6 +10,7 @@ namespace Matrix.Identity.Application.Services.SecurityState
     public sealed class SecurityStateChangeCollector : ISecurityStateChangeCollector
     {
         private readonly HashSet<Guid> _changedUsers = new();
+        private bool _defaultUserAccessChanged;
 
         /// <inheritdoc />
         public void MarkUserChanged(Guid userId)
@@ -21,6 +22,12 @@ namespace Matrix.Identity.Application.Services.SecurityState
         }
 
         /// <inheritdoc />
+        public void MarkDefaultUserAccessChanged()
+        {
+            _defaultUserAccessChanged = true;
+        }
+
+        /// <inheritdoc />
         public IReadOnlyCollection<Guid> DrainUsers()
         {
             if (_changedUsers.Count == 0)
@@ -29,6 +36,14 @@ namespace Matrix.Identity.Application.Services.SecurityState
             Guid[] snapshot = _changedUsers.ToArray();
             _changedUsers.Clear();
             return snapshot;
+        }
+
+        /// <inheritdoc />
+        public bool DrainDefaultUserAccessChanged()
+        {
+            bool changed = _defaultUserAccessChanged;
+            _defaultUserAccessChanged = false;
+            return changed;
         }
     }
 }

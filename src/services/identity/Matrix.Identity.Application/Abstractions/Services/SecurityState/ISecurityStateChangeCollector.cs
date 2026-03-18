@@ -11,8 +11,18 @@ namespace Matrix.Identity.Application.Abstractions.Services.SecurityState
         void MarkUserChanged(Guid userId);
 
         /// <summary>
+        ///     Marks the shared default user access baseline as changed.
+        /// </summary>
+        void MarkDefaultUserAccessChanged();
+
+        /// <summary>
         ///     Drains all collected user IDs and clears the internal buffer.
         /// </summary>
         IReadOnlyCollection<Guid> DrainUsers();
+
+        /// <summary>
+        ///     Returns whether the shared default user access baseline changed and clears the flag.
+        /// </summary>
+        bool DrainDefaultUserAccessChanged();
     }
 }
