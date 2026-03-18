@@ -82,8 +82,25 @@
     );
 }
 
+.mx-admin-perm__roleLine {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
 .mx-admin-perm__roleName {
     font-weight: 900;
+}
+
+.mx-admin-perm__roleLock {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--app-text-muted) 45%, transparent);
+    color: var(--app-text-muted);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .mx-admin-perm__roleMeta {
@@ -173,6 +190,78 @@
     line-height: 1.45;
 }
 
+.mx-admin-perm__readonlyPanel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
+    background:
+        radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.12), transparent 46%),
+        linear-gradient(135deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 90%, black 10%));
+    overflow: hidden;
+}
+
+.mx-admin-perm__readonlyArtwork {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.2);
+    background: color-mix(in srgb, var(--settings-card-bg) 78%, black 22%);
+    box-shadow: inset 0 0 30px rgba(var(--shell-accent-rgb), 0.08);
+}
+
+.mx-admin-perm__readonlyOrb {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(var(--shell-accent-rgb), 0.7);
+    top: 14px;
+    left: 14px;
+    box-shadow: 0 0 18px rgba(var(--shell-accent-rgb), 0.28);
+}
+
+.mx-admin-perm__readonlyGrid {
+    position: absolute;
+    inset: 10px;
+    border-radius: 14px;
+    background:
+        linear-gradient(rgba(var(--shell-accent-rgb), 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.08) 1px, transparent 1px);
+    background-size: 12px 12px;
+    mask-image: linear-gradient(135deg, black, transparent 85%);
+}
+
+.mx-admin-perm__readonlyCopy {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.mx-admin-perm__readonlyTitle {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--app-text-strong);
+}
+
+.mx-admin-perm__readonlyText {
+    color: var(--app-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 72ch;
+}
+
+.mx-admin-perm__readonlyActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
 .mx-admin-perm__groups {
     padding: 12px;
     display: flex;
@@ -248,6 +337,12 @@
     background: color-mix(in srgb, var(--settings-card-bg) 82%, black 18%);
 }
 
+.mx-admin-perm__row--readonly {
+    background:
+        linear-gradient(135deg, rgba(var(--shell-accent-rgb), 0.04), transparent 45%),
+        color-mix(in srgb, var(--settings-card-bg) 82%, black 18%);
+}
+
 .mx-admin-perm__permCopy {
     min-width: 0;
     display: flex;
@@ -281,6 +376,12 @@
     align-items: center;
     justify-content: flex-end;
     gap: 0.55rem;
+}
+
+.mx-admin-perm__readonlyBadgeWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .mx-admin-perm__toggleState {
@@ -360,6 +461,14 @@
     }
 
     .mx-admin-perm__matrixActions {
+        justify-content: flex-start;
+    }
+
+    .mx-admin-perm__readonlyPanel {
+        grid-template-columns: 1fr;
+    }
+
+    .mx-admin-perm__readonlyActions {
         justify-content: flex-start;
     }
 }

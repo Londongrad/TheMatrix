@@ -8,6 +8,7 @@ import PermissionsMatrix from "../components/PermissionsMatrix";
 import RoleList from "../components/RoleList";
 
 import "../styles/admin-permissions-page.css";
+import {DEFAULT_USER_ACCESS_SCOPE_ID} from "../hooks/useAdminPermissions";
 
 export default function AdminPermissionsPage() {
     const {
@@ -46,15 +47,28 @@ export default function AdminPermissionsPage() {
                             perm={PermissionKeys.IdentityRolePermissionsUpdate}
                             displayMode="disable"
                         >
-                            <Button
-                                variant="primary"
-                                disabled={!activeScope?.editable || !dirty || saving}
-                                onClick={() => void saveChanges()}
-                            >
-                                {activeScope?.kind === "default-user-access"
-                                    ? "Save baseline"
-                                    : "Save changes"}
-                            </Button>
+                            <span>
+                                {activeScope?.editable ? (
+                                    <Button
+                                        variant="primary"
+                                        disabled={!dirty || saving}
+                                        onClick={() => void saveChanges()}
+                                    >
+                                        {activeScope.kind === "default-user-access"
+                                            ? "Save baseline"
+                                            : "Save changes"}
+                                    </Button>
+                                ) : activeScope?.role?.name === "User" ? (
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => setActiveScopeId(DEFAULT_USER_ACCESS_SCOPE_ID)}
+                                    >
+                                        Open default user access
+                                    </Button>
+                                ) : (
+                                    <></>
+                                )}
+                            </span>
                         </RequirePermission>
                     </div>
                 }
@@ -80,6 +94,7 @@ export default function AdminPermissionsPage() {
                         roleLoading={roleLoading}
                         loading={loading}
                         dirty={dirty}
+                        onOpenDefaultUserAccess={() => setActiveScopeId(DEFAULT_USER_ACCESS_SCOPE_ID)}
                         onToggle={togglePermission}
                     />
                 </div>

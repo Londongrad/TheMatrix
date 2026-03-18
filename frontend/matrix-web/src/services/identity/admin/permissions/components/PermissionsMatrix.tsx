@@ -17,6 +17,7 @@ export default function PermissionsMatrix({
                                               roleLoading,
                                               loading,
                                               dirty,
+                                              onOpenDefaultUserAccess,
                                               onToggle,
                                           }: {
     grouped: PermissionSection[];
@@ -25,6 +26,7 @@ export default function PermissionsMatrix({
     roleLoading: boolean;
     loading: boolean;
     dirty: boolean;
+    onOpenDefaultUserAccess: () => void;
     onToggle: (key: string) => void;
 }) {
     const {can} = usePermissions();
@@ -72,6 +74,29 @@ export default function PermissionsMatrix({
 
     const renderPermissionRow = (permission: PermissionItem) => {
         const isAllowed = rolePermissions.has(permission.key);
+
+        if (!activeScope?.editable) {
+            return (
+                <div key={permission.key} className="mx-admin-perm__row mx-admin-perm__row--readonly">
+                    <div className="mx-admin-perm__permCopy">
+                        <div className="mx-admin-perm__permKey">{permission.key}</div>
+                        <div className="mx-admin-perm__permDesc">{permission.description}</div>
+                    </div>
+
+                    <div className="mx-admin-perm__readonlyBadgeWrap">
+                        <span
+                            className={`mx-admin-perm__toggleState ${
+                                isAllowed
+                                    ? "mx-admin-perm__toggleState--allow"
+                                    : "mx-admin-perm__toggleState--deny"
+                            }`}
+                        >
+                            {isAllowed ? "Granted" : "Not granted"}
+                        </span>
+                    </div>
+                </div>
+            );
+        }
 
         return (
             <label key={permission.key} className="mx-admin-perm__row">
@@ -127,6 +152,11 @@ export default function PermissionsMatrix({
                     <Button onClick={toggleAll} disabled={grouped.length === 0}>
                         {anyExpanded ? "Collapse all" : "Expand all"}
                     </Button>
+                    {!activeScope?.editable && activeScope?.role?.name === "User" ? (
+                        <Button variant="primary" onClick={onOpenDefaultUserAccess}>
+                            Open default user access
+                        </Button>
+                    ) : null}
                     {roleLoading ? (
                         <LoadingIndicator label="Loading scope permissions"/>
                     ) : null}
@@ -163,6 +193,34 @@ export default function PermissionsMatrix({
 
                     {activeScope.note ? (
                         <div className="mx-admin-perm__scopeNote">{activeScope.note}</div>
+                    ) : null}
+
+                    {!activeScope.editable ? (
+                        <div className="mx-admin-perm__readonlyPanel">
+                            <div className="mx-admin-perm__readonlyArtwork" aria-hidden="true">
+                                <span className="mx-admin-perm__readonlyOrb"/>
+                                <span className="mx-admin-perm__readonlyGrid"/>
+                            </div>
+                            <div className="mx-admin-perm__readonlyCopy">
+                                <div className="mx-admin-perm__readonlyTitle">
+                                    {activeScope.role?.name === "User"
+                                        ? "System role blueprint"
+                                        : "Immutable system role"}
+                                </div>
+                                <div className="mx-admin-perm__readonlyText">
+                                    {activeScope.role?.name === "User"
+                                        ? "The built-in User role stays seeded and read-only. Change the ordinary-user experience through Default user access, then use this screen to inspect the resulting baseline blueprint."
+                                        : "This role is intentionally locked so the platform always has a stable administrative blueprint. You can inspect its grants here, but edits stay disabled by design."}
+                                </div>
+                            </div>
+                            {activeScope.role?.name === "User" ? (
+                                <div className="mx-admin-perm__readonlyActions">
+                                    <Button variant="primary" onClick={onOpenDefaultUserAccess}>
+                                        Edit default user access
+                                    </Button>
+                                </div>
+                            ) : null}
+                        </div>
                     ) : null}
                 </div>
             ) : null}

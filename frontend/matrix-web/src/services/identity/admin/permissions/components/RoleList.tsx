@@ -24,7 +24,12 @@ export default function RoleList({
                         }`}
                         onClick={() => onSelect(scope.id)}
                     >
-                        <div className="mx-admin-perm__roleName">{scope.name}</div>
+                        <div className="mx-admin-perm__roleLine">
+                            <div className="mx-admin-perm__roleName">{scope.name}</div>
+                            {!scope.editable ? (
+                                <span className="mx-admin-perm__roleLock">Read-only</span>
+                            ) : null}
+                        </div>
                         <div className="mx-admin-perm__roleMeta">{scope.meta}</div>
                     </button>
                 ))}
