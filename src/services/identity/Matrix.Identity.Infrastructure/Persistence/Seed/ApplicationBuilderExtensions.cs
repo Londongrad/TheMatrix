@@ -28,6 +28,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             RolesSeeder rolesSeeder = scope.ServiceProvider.GetRequiredService<RolesSeeder>();
             await rolesSeeder.SeedSystemRolesAsync(cancellationToken);
 
+            DefaultUserAccessPolicySeeder defaultUserAccessPolicySeeder =
+                scope.ServiceProvider.GetRequiredService<DefaultUserAccessPolicySeeder>();
+            await defaultUserAccessPolicySeeder.SeedAsync(cancellationToken);
+
             BootstrapSuperAdminSeeder bootstrapSuperAdminSeeder =
                 scope.ServiceProvider.GetRequiredService<BootstrapSuperAdminSeeder>();
             await bootstrapSuperAdminSeeder.EnsureAtLeastOneSuperAdminAsync(cancellationToken);

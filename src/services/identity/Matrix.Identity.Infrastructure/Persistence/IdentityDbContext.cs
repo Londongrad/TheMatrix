@@ -22,6 +22,8 @@ namespace Matrix.Identity.Infrastructure.Persistence
 
         public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
         public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
+        public DbSet<DefaultUserAccessPolicy> DefaultUserAccessPolicies => Set<DefaultUserAccessPolicy>();
+        public DbSet<DefaultUserAccessOverride> DefaultUserAccessOverrides => Set<DefaultUserAccessOverride>();
 
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 

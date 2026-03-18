@@ -107,6 +107,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddScoped<IUserSessionRepository, UserSessionRepository>();
             services.AddScoped<IUserAdminReadRepository, UserAdminReadRepository>();
             services.AddScoped<IRoleMembersReadRepository, UserAdminReadRepository>();
+            services.AddScoped<IDefaultUserAccessPolicyRepository, DefaultUserAccessPolicyRepository>();
 
             // Outbox pattern
             services.AddOutbox<IdentityDbContext>(configuration);
@@ -288,6 +289,7 @@ namespace Matrix.Identity.Infrastructure
             // Seeding
             services.AddScoped<PermissionsSeeder>();
             services.AddScoped<RolesSeeder>();
+            services.AddScoped<DefaultUserAccessPolicySeeder>();
             services.AddScoped<BootstrapSuperAdminSeeder>();
 
             // External services
