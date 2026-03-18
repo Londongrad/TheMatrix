@@ -74,6 +74,23 @@
     transform: translateY(-1px);
 }
 
+.mx-sb__markBtn--active {
+    border-color: rgba(var(--shell-accent-rgb), 0.42);
+    background: radial-gradient(
+            140px 90px at 30% 30%,
+            rgba(var(--shell-accent-rgb), 0.28),
+            transparent 72%
+    ),
+    linear-gradient(180deg, var(--shell-surface-strong), var(--shell-surface-soft));
+    box-shadow: var(--shell-shadow-soft),
+    0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
+    0 0 30px rgba(var(--shell-accent-rgb), 0.22);
+}
+
+.mx-sb__markBtn--animated {
+    animation: mxSidebarBackPulse 2.7s ease-in-out infinite;
+}
+
 .mx-sb__markBtn:active,
 .mx-sb__iconBtn:active {
     transform: translateY(0) scale(0.98);
@@ -187,4 +204,19 @@
 
 .mx-sb__item.is-active .mx-sb__glow {
     opacity: 1;
+}
+
+@keyframes mxSidebarBackPulse {
+    0%,
+    100% {
+        box-shadow: var(--shell-shadow-soft),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.16),
+        0 0 26px rgba(var(--shell-accent-rgb), 0.18);
+    }
+
+    50% {
+        box-shadow: var(--shell-shadow-soft),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.24),
+        0 0 40px rgba(var(--shell-accent-rgb), 0.32);
+    }
 }

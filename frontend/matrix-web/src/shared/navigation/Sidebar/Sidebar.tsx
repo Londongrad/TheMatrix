@@ -2,6 +2,7 @@ import {NavLink, useLocation, useResolvedPath} from "react-router-dom";
 import type {NavItem} from "./types";
 import {ArrowLeft, ChevronLeft} from "lucide-react";
 import {IconLock} from "@shared/ui/icons/icons";
+import {useWorkspacePreferences} from "@shared/theme/workspacePreferences";
 import "./sidebar.css";
 
 function SidebarNavLink({
@@ -61,6 +62,15 @@ export default function MatrixSidebar({
     onCollapse?: () => void; // ← Collapse sidebar
     brandRight?: React.ReactNode;
 }) {
+    const {preferences} = useWorkspacePreferences();
+    const backButtonClassName = [
+        "mx-sb__markBtn",
+        onBack ? "mx-sb__markBtn--active" : "",
+        onBack && preferences.animateSidebarBackButton ? "mx-sb__markBtn--animated" : "",
+    ]
+        .filter(Boolean)
+        .join(" ");
+
     return (
         <div className="mx-sb">
             <div className="mx-sb__brand">
@@ -68,10 +78,10 @@ export default function MatrixSidebar({
                 {onBack ? (
                     <button
                         type="button"
-                        className="mx-sb__markBtn"
+                        className={backButtonClassName}
                         onClick={onBack}
-                        aria-label="Back to app"
-                        title="Back to app"
+                        aria-label="Back"
+                        title="Back"
                     >
                         <ArrowLeft size={18}/>
                     </button>
@@ -93,8 +103,8 @@ export default function MatrixSidebar({
                             type="button"
                             className="mx-sb__iconBtn"
                             onClick={onCollapse}
-                            aria-label="Collapse sidebar"
-                            title="Collapse"
+                            aria-label="Collapse this menu"
+                            title="Collapse this menu"
                         >
                             <ChevronLeft size={18}/>
                         </button>

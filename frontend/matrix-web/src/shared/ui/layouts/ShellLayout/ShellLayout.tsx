@@ -84,8 +84,8 @@ export default function MatrixShellLayout({
                         type="button"
                         className="mx-shell__handle"
                         onClick={() => setCollapsed(false)}
-                        aria-label="Expand sidebar"
-                        title="Expand"
+                        aria-label="Expand this menu"
+                        title="Expand this menu"
                     >
                         <ChevronRight size={18}/>
                     </button>
