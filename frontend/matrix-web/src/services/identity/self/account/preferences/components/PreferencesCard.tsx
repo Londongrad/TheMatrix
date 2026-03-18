@@ -63,7 +63,8 @@ const PreferencesCard = () => {
 
     const isDirty =
         preferences.language !== savedPreferences.language ||
-        preferences.theme !== savedPreferences.theme;
+        preferences.theme !== savedPreferences.theme ||
+        preferences.animateSidebarBackButton !== savedPreferences.animateSidebarBackButton;
     const preferencesApplyButtonClassName = isDirty && !isSavingPreferences
         ? "settings-button settings-button--preferences settings-button--prompt-edit"
         : "settings-button settings-button--preferences";
@@ -141,6 +142,9 @@ const PreferencesCard = () => {
                     <span className="preferences-spotlight__meta-item">
                         Scope: This device
                     </span>
+                    <span className="preferences-spotlight__meta-item">
+                        Back cue: {storedPreferences.animateSidebarBackButton ? "Animated" : "Static"}
+                    </span>
                 </div>
             </div>
 
@@ -201,6 +205,47 @@ const PreferencesCard = () => {
                         Matrix keeps the animated shell. Dark and Light stay deliberately
                         plain and static, like classic application themes.
                     </p>
+                </div>
+
+                <div className="settings-field">
+                    <div className="settings-toggle-card">
+                        <div className="settings-toggle-card__copy">
+                            <div className="settings-label-row settings-label-row--stacked">
+                                <label className="settings-label" htmlFor="animateSidebarBackButton">
+                                    Sidebar back cue
+                                </label>
+                                <span>
+                                    Highlight the sidebar back button when contextual return navigation is available.
+                                </span>
+                            </div>
+
+                            <p className="settings-hint">
+                                Turn this off if you want the back button to stay highlighted but without the animated
+                                pulse.
+                            </p>
+                        </div>
+
+                        <label className="settings-toggle" htmlFor="animateSidebarBackButton">
+                            <input
+                                id="animateSidebarBackButton"
+                                className="settings-toggle__input"
+                                type="checkbox"
+                                checked={preferences.animateSidebarBackButton}
+                                onChange={(event) =>
+                                    setPreferences((current) => ({
+                                        ...current,
+                                        animateSidebarBackButton: event.target.checked,
+                                    }))
+                                }
+                            />
+                            <span className="settings-toggle__track" aria-hidden="true">
+                                <span className="settings-toggle__thumb"/>
+                            </span>
+                            <span className="settings-toggle__state">
+                                {preferences.animateSidebarBackButton ? "Animated" : "Static"}
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
                 <div className="preferences-actions">

@@ -6,6 +6,7 @@ export type WorkspaceTheme = "matrix" | "dark" | "light";
 export type WorkspacePreferences = {
     language: WorkspaceLanguage;
     theme: WorkspaceTheme;
+    animateSidebarBackButton: boolean;
 };
 
 type WorkspacePreferencesContextValue = {
@@ -18,6 +19,7 @@ const STORAGE_KEY = "matrix.identity.preferences";
 export const defaultWorkspacePreferences: WorkspacePreferences = {
     language: "en",
     theme: "matrix",
+    animateSidebarBackButton: true,
 };
 
 const WorkspacePreferencesContext =
@@ -45,6 +47,10 @@ export const readStoredWorkspacePreferences = (): WorkspacePreferences => {
                 parsed.theme === "matrix"
                     ? parsed.theme
                     : defaultWorkspacePreferences.theme,
+            animateSidebarBackButton:
+                typeof parsed.animateSidebarBackButton === "boolean"
+                    ? parsed.animateSidebarBackButton
+                    : defaultWorkspacePreferences.animateSidebarBackButton,
         };
     } catch {
         return defaultWorkspacePreferences;

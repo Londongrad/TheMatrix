@@ -135,6 +135,96 @@
     animation: preferencesSpin 0.9s linear infinite;
 }
 
+.settings-label-row--stacked {
+    align-items: flex-start;
+    gap: 0.35rem;
+    flex-direction: column;
+}
+
+.settings-toggle-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
+    background: color-mix(in srgb, var(--settings-card-bg) 90%, var(--app-bg) 10%);
+    box-shadow: var(--shell-shadow-soft),
+    0 0 0 1px rgba(var(--shell-accent-rgb), 0.05) inset;
+}
+
+.settings-toggle-card__copy {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.settings-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.settings-toggle__input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.settings-toggle__track {
+    position: relative;
+    width: 3.2rem;
+    height: 1.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.2);
+    background: color-mix(in srgb, var(--settings-input-bg) 84%, var(--app-bg) 16%);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.24);
+    transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.settings-toggle__thumb {
+    position: absolute;
+    top: 0.18rem;
+    left: 0.18rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(214, 255, 232, 0.84));
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+    transition: transform 0.16s ease;
+}
+
+.settings-toggle__state {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--app-text-strong);
+}
+
+.settings-toggle__input:checked + .settings-toggle__track {
+    background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--shell-accent) 28%, transparent),
+            color-mix(in srgb, var(--shell-accent-strong) 36%, transparent)
+    );
+    border-color: rgba(var(--shell-accent-rgb), 0.34);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(var(--shell-accent-rgb), 0.12);
+}
+
+.settings-toggle__input:checked + .settings-toggle__track .settings-toggle__thumb {
+    transform: translateX(1.35rem);
+}
+
+.settings-toggle__input:focus-visible + .settings-toggle__track {
+    box-shadow: var(--settings-input-focus-shadow);
+    border-color: var(--settings-input-focus-border);
+}
+
 @keyframes preferencesSpin {
     from {
         transform: rotate(0deg);
@@ -147,6 +237,11 @@
 @media (max-width: 720px) {
     .preferences-spotlight__headline,
     .preferences-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .settings-toggle-card {
         flex-direction: column;
         align-items: stretch;
     }
