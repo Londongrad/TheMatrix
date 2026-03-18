@@ -51,6 +51,15 @@ export interface RolePermissionsResponse {
     permissionKeys: string[];
 }
 
+export interface DefaultUserAccessPermissionsResponse {
+    version: number;
+    permissionKeys: string[];
+}
+
+export interface UpdateDefaultUserAccessPermissionsRequest {
+    permissionKeys: string[];
+}
+
 export type PermissionEffect = "Allow" | "Deny";
 
 export interface UserPermissionResponse {

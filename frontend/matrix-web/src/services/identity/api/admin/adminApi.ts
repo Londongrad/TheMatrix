@@ -3,10 +3,12 @@ import {apiRequest} from "@shared/api/http";
 import {API_ADMIN_URL, API_ADMIN_USERS_URL} from "@shared/api/config";
 import type {
     CreateRoleRequest,
+    DefaultUserAccessPermissionsResponse,
     PermissionCatalogItemResponse,
     RenameRoleRequest,
     RolePermissionsResponse,
     RoleResponse,
+    UpdateDefaultUserAccessPermissionsRequest,
     UpdateUserPermissionsRequest,
     UserDetailsResponse,
     UserListItemResponse,
@@ -172,4 +174,19 @@ export async function getPermissionsCatalog(): Promise<
     return await apiRequest<PermissionCatalogItemResponse[]>(
         `${API_ADMIN_URL}/permissions`
     );
+}
+
+export async function getDefaultUserAccessPermissions(): Promise<DefaultUserAccessPermissionsResponse> {
+    return await apiRequest<DefaultUserAccessPermissionsResponse>(
+        `${API_ADMIN_URL}/permissions/default-user-access`
+    );
+}
+
+export async function updateDefaultUserAccessPermissions(
+    payload: UpdateDefaultUserAccessPermissionsRequest
+): Promise<void> {
+    await apiRequest<void>(`${API_ADMIN_URL}/permissions/default-user-access`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
 }

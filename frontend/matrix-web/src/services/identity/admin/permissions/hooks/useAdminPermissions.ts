@@ -1,8 +1,10 @@
 import {useEffect, useMemo, useState} from "react";
 import {
+    getDefaultUserAccessPermissions,
     getPermissionsCatalog,
     getRolePermissions,
     getRolesCatalog,
+    updateDefaultUserAccessPermissions,
     updateRolePermissions,
 } from "@services/identity/api/admin/adminApi";
 import type {PermissionCatalogItemResponse, RoleResponse,} from "@services/identity/api/admin/adminTypes";
@@ -18,6 +20,19 @@ export type PermissionSection = {
     groups: PermissionGroup[];
 };
 
+export const DEFAULT_USER_ACCESS_SCOPE_ID = "default-user-access";
+
+export type PermissionScope = {
+    id: string;
+    name: string;
+    kind: "default-user-access" | "role";
+    meta: string;
+    editable: boolean;
+    note: string | null;
+    version: number | null;
+    role: RoleResponse | null;
+};
+
 export function useAdminPermissions() {
     const [loading, setLoading] = useState(false);
     const [roleLoading, setRoleLoading] = useState(false);
@@ -26,7 +41,8 @@ export function useAdminPermissions() {
 
     const [roles, setRoles] = useState<RoleResponse[]>([]);
     const [perms, setPerms] = useState<PermissionCatalogItemResponse[]>([]);
-    const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
+    const [activeScopeId, setActiveScopeId] = useState<string | null>(DEFAULT_USER_ACCESS_SCOPE_ID);
+    const [defaultUserAccessVersion, setDefaultUserAccessVersion] = useState<number | null>(null);
 
     const [rolePermissions, setRolePermissions] = useState<Set<string>>(
         new Set()
@@ -44,10 +60,11 @@ export function useAdminPermissions() {
             const visibleRoles = filterVisibleAdminRoles(rolesResponse);
             setRoles(visibleRoles);
             setPerms(permsResponse.filter((x) => !x.isDeprecated));
-            setActiveRoleId((prev) =>
-                prev && visibleRoles.some((role) => role.id === prev)
+            setActiveScopeId((prev) =>
+                prev === DEFAULT_USER_ACCESS_SCOPE_ID ||
+                (prev && visibleRoles.some((role) => role.id === prev))
                     ? prev
-                    : visibleRoles[0]?.id ?? null
+                    : DEFAULT_USER_ACCESS_SCOPE_ID
             );
         } catch (error: any) {
             setError(error?.message ?? "Failed to load catalog");
@@ -61,21 +78,35 @@ export function useAdminPermissions() {
     }, []);
 
     useEffect(() => {
-        if (!activeRoleId) return;
+        if (!activeScopeId) return;
         let active = true;
         setRoleLoading(true);
         setError(null);
 
-        getRolePermissions(activeRoleId)
-            .then((response) => {
-                if (!active) return;
-                setRolePermissions(new Set(response.permissionKeys));
-                setDirty(false);
-            })
+        const loadPermissions: Promise<void> =
+            activeScopeId === DEFAULT_USER_ACCESS_SCOPE_ID
+                ? getDefaultUserAccessPermissions().then((response) => {
+                    if (!active) return;
+                    setDefaultUserAccessVersion(response.version);
+                    setRolePermissions(new Set(response.permissionKeys));
+                    setDirty(false);
+                })
+                : getRolePermissions(activeScopeId).then((response) => {
+                    if (!active) return;
+                    setDefaultUserAccessVersion(null);
+                    setRolePermissions(new Set(response.permissionKeys));
+                    setDirty(false);
+                });
+
+        loadPermissions
             .catch((error) => {
                 console.error(error);
                 if (!active) return;
-                setError("Failed to load role permissions");
+                setError(
+                    activeScopeId === DEFAULT_USER_ACCESS_SCOPE_ID
+                        ? "Failed to load default user access"
+                        : "Failed to load role permissions"
+                );
             })
             .finally(() => {
                 if (!active) return;
@@ -85,11 +116,43 @@ export function useAdminPermissions() {
         return () => {
             active = false;
         };
-    }, [activeRoleId]);
+    }, [activeScopeId]);
 
-    const activeRole = useMemo(
-        () => roles.find((role) => role.id === activeRoleId) ?? null,
-        [roles, activeRoleId]
+    const scopes = useMemo<PermissionScope[]>(() => {
+        const base: PermissionScope[] = [
+            {
+                id: DEFAULT_USER_ACCESS_SCOPE_ID,
+                name: "Default user access",
+                kind: "default-user-access",
+                meta: "Mutable baseline for all User accounts",
+                editable: true,
+                note: "Use this to grant or deny the default access inherited by ordinary users without editing the immutable system role User.",
+                version: defaultUserAccessVersion,
+                role: null,
+            },
+        ];
+
+        return base.concat(
+            roles.map((role) => ({
+                id: role.id,
+                name: role.name,
+                kind: "role" as const,
+                meta: role.isSystem ? "System role" : "Custom role",
+                editable: !role.isSystem,
+                note: role.isSystem
+                    ? role.name === "User"
+                        ? "System role User is read-only. Change ordinary-user defaults through Default user access."
+                        : `System role ${role.name} is read-only.`
+                    : null,
+                version: null,
+                role,
+            }))
+        );
+    }, [roles, defaultUserAccessVersion]);
+
+    const activeScope = useMemo(
+        () => scopes.find((scope) => scope.id === activeScopeId) ?? null,
+        [scopes, activeScopeId]
     );
 
     const grouped = useMemo<PermissionSection[]>(() => {
@@ -133,15 +196,27 @@ export function useAdminPermissions() {
     };
 
     const saveChanges = async () => {
-        if (!activeRoleId) return;
+        if (!activeScope) return;
         setSaving(true);
         setError(null);
         try {
-            await updateRolePermissions(activeRoleId, Array.from(rolePermissions));
+            const permissionKeys = Array.from(rolePermissions);
+            if (activeScope.kind === "default-user-access") {
+                await updateDefaultUserAccessPermissions({permissionKeys});
+                const response = await getDefaultUserAccessPermissions();
+                setDefaultUserAccessVersion(response.version);
+                setRolePermissions(new Set(response.permissionKeys));
+            } else {
+                await updateRolePermissions(activeScope.id, permissionKeys);
+            }
             setDirty(false);
         } catch (error) {
             console.error(error);
-            setError("Failed to update role permissions");
+            setError(
+                activeScope.kind === "default-user-access"
+                    ? "Failed to update default user access"
+                    : "Failed to update role permissions"
+            );
         } finally {
             setSaving(false);
         }
@@ -152,10 +227,10 @@ export function useAdminPermissions() {
         roleLoading,
         saving,
         error,
-        roles,
-        activeRoleId,
-        setActiveRoleId,
-        activeRole,
+        scopes,
+        activeScopeId,
+        setActiveScopeId,
+        activeScope,
         grouped,
         rolePermissions,
         dirty,
