@@ -5,6 +5,5 @@ namespace Matrix.BuildingBlocks.Infrastructure.Messaging
         public const string SectionName = "RabbitMq:EndpointHygiene";
 
         public bool DiscardSkippedMessages { get; init; } = true;
-        public int UnusedQueueExpirationHours { get; init; } = 168;
     }
 }

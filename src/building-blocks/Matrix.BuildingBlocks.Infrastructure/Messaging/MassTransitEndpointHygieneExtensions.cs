@@ -1,5 +1,4 @@
 using MassTransit;
-using MassTransit.RabbitMqTransport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -14,9 +13,6 @@ namespace Matrix.BuildingBlocks.Infrastructure.Messaging
         {
             services.AddOptions<MassTransitEndpointHygieneOptions>()
                .Bind(configuration.GetSection(MassTransitEndpointHygieneOptions.SectionName))
-               .Validate(
-                    validation: options => options.UnusedQueueExpirationHours >= 0,
-                    failureMessage: $"{MassTransitEndpointHygieneOptions.SectionName}:UnusedQueueExpirationHours must be greater than or equal to 0.")
                .ValidateOnStart();
 
             return services;
@@ -32,14 +28,6 @@ namespace Matrix.BuildingBlocks.Infrastructure.Messaging
 
                 if (options.DiscardSkippedMessages)
                     cfg.DiscardSkippedMessages();
-
-                if (options.UnusedQueueExpirationHours <= 0 ||
-                    cfg is not IRabbitMqReceiveEndpointConfigurator rabbitMqEndpoint)
-                    return;
-
-                rabbitMqEndpoint.SetQueueArgument(
-                    key: "x-expires",
-                    value: checked((int)TimeSpan.FromHours(options.UnusedQueueExpirationHours).TotalMilliseconds));
             });
 
             return configurator;
