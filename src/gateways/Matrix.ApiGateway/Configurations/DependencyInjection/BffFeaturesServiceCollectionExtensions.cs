@@ -6,6 +6,7 @@ using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
+using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -20,6 +21,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
         {
             services.AddPermissionsVersionOptions(configuration);
             services.AddRabbitMqOptions(configuration);
+            services.AddMassTransitEndpointHygieneOptions(configuration);
             services.AddClassicCitySetupSessionOptions(configuration);
             services.AddGatewayRedisCache(configuration);
             services.AddIdentityInternalUsersClient();
@@ -181,6 +183,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddRabbitMqEndpointHygiene();
                 x.AddConsumer<ClassicCitySetupLaunchRequestedConsumer>();
                 x.AddConsumer<UserSecurityStateChangedConsumer>();
                 x.AddConsumer<DefaultUserAccessPolicyChangedConsumer>();

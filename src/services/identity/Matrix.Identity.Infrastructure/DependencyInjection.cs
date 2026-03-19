@@ -2,6 +2,7 @@ using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
@@ -124,6 +125,7 @@ namespace Matrix.Identity.Infrastructure
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
+            services.AddMassTransitEndpointHygieneOptions(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
             // Permission checker
@@ -299,6 +301,7 @@ namespace Matrix.Identity.Infrastructure
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddRabbitMqEndpointHygiene();
 
                 x.UsingRabbitMq((
                     context,

@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Messaging;
@@ -52,6 +53,7 @@ namespace Matrix.Economy.Infrastructure
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
+            services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();
             services.AddScoped<ICityBudgetAllocationRepository, CityBudgetAllocationRepository>();
@@ -71,6 +73,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddRabbitMqEndpointHygiene();
                 x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
                 x.AddConsumer<ClassicCityHouseholdAccountSyncConsumer,

@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
@@ -63,6 +64,7 @@ namespace Matrix.CityCore.Infrastructure
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
+            services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
             services.AddClassicCityScenarioInfrastructure();
@@ -79,6 +81,7 @@ namespace Matrix.CityCore.Infrastructure
             services.AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
+                x.AddRabbitMqEndpointHygiene();
 
                 x.UsingRabbitMq((
                     context,
