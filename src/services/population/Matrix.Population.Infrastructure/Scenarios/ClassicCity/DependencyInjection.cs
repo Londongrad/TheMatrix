@@ -17,6 +17,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityPopulationActivityJournalService, CityPopulationActivityJournalService>();
             services.AddScoped<ICityPopulationDashboardReadRepository, CityPopulationDashboardReadRepository>();
             services.AddScoped<ICityPopulationDeletionStateRepository, CityPopulationDeletionStateRepository>();
+            services.AddScoped<ICityPopulationEmployerFinancialStressStateRepository,
+                CityPopulationEmployerFinancialStressStateRepository>();
             services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
             services.AddScoped<ICityPopulationHouseholdFinancialStressStateRepository,
                 CityPopulationHouseholdFinancialStressStateRepository>();
@@ -33,6 +35,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
 
         public static void AddClassicCityScenarioConsumers(this IBusRegistrationConfigurator configurator)
         {
+            configurator.AddConsumer<ClassicCityEmployerFinancialStressConsumer,
+                ClassicCityEmployerFinancialStressConsumerDefinition>();
             configurator.AddConsumer<ClassicCityHouseholdFinancialStressConsumer,
                 ClassicCityHouseholdFinancialStressConsumerDefinition>();
             configurator.AddConsumer<CityArchivedConsumer, CityArchivedConsumerDefinition>();
