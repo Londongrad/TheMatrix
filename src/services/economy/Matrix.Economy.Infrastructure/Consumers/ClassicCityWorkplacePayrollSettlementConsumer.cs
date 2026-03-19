@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
@@ -14,14 +15,19 @@ namespace Matrix.Economy.Infrastructure.Consumers
         ICityBusinessLedgerRepository businessLedgerRepository,
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityHouseholdAccountLedgerRepository householdLedgerRepository,
+        ICityPopulationSignalPublisher cityPopulationSignalPublisher,
         IEconomyUnitOfWork unitOfWork,
         ILogger<ClassicCityWorkplacePayrollSettlementConsumer> logger)
         : IConsumer<ClassicCityWorkplacePayrollSettlementBatchV1>
     {
+        private const int EmployerStressBatchSize = 250;
+
         public async Task Consume(ConsumeContext<ClassicCityWorkplacePayrollSettlementBatchV1> context)
         {
             ClassicCityWorkplacePayrollSettlementBatchV1 message = context.Message;
             int settledPayrollEntries = 0;
+            var employerPayrollByReference = new Dictionary<string, EmployerPayrollSnapshot>(
+                comparer: StringComparer.Ordinal);
 
             foreach (ClassicCityWorkplacePayrollSettlementItemV1 payroll in message.Payrolls)
             {
@@ -89,6 +95,20 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 business.RecordOperatingExpense(grossPayroll);
                 account.ReceivePayroll(netPayroll);
 
+                if (employerPayrollByReference.TryGetValue(
+                        key: payroll.WorkplaceExternalReferenceCode,
+                        value: out EmployerPayrollSnapshot? payrollSnapshot))
+                    employerPayrollByReference[payroll.WorkplaceExternalReferenceCode] = payrollSnapshot with
+                    {
+                        GrossPayrollAmount = payrollSnapshot.GrossPayrollAmount + grossPayroll.Amount
+                    };
+                else
+                    employerPayrollByReference[payroll.WorkplaceExternalReferenceCode] = new EmployerPayrollSnapshot(
+                        BusinessId: business.Id,
+                        WorkplaceExternalReferenceCode: payroll.WorkplaceExternalReferenceCode,
+                        Business: business,
+                        GrossPayrollAmount: grossPayroll.Amount);
+
                 await businessLedgerRepository.AddAsync(
                     entry: new CityBusinessLedgerEntry(
                         id: Guid.NewGuid(),
@@ -137,6 +157,13 @@ namespace Matrix.Economy.Infrastructure.Consumers
 
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
+            foreach (ClassicCityEmployerFinancialStressBatchV1 batch in BuildEmployerStressBatches(
+                         message: message,
+                         employerSnapshots: employerPayrollByReference.Values))
+                await cityPopulationSignalPublisher.PublishClassicCityEmployerFinancialStressBatchAsync(
+                    batch: batch,
+                    cancellationToken: context.CancellationToken);
+
             logger.LogInformation(
                 message:
                 "Applied classic city workplace payroll settlement for cityId={CityId}, correlationId={CorrelationId}, batch={BatchNumber}/{TotalBatches}, settledPayrollEntries={SettledPayrollEntries}.",
@@ -147,6 +174,98 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 settledPayrollEntries);
         }
 
+        private static ClassicCityEmployerFinancialStressBatchV1[] BuildEmployerStressBatches(
+            ClassicCityWorkplacePayrollSettlementBatchV1 message,
+            IEnumerable<EmployerPayrollSnapshot> employerSnapshots)
+        {
+            ClassicCityEmployerFinancialStressItemV1[] items = employerSnapshots
+               .Select(snapshot =>
+                {
+                    decimal distressScore = CalculateDistressScore(
+                        currentBalanceAmount: snapshot.Business.Balance.Amount,
+                        recentGrossPayrollAmount: snapshot.GrossPayrollAmount);
+                    bool hasHiringFreeze = distressScore >= 0.55m;
+                    bool hasLayoffPressure = distressScore >= 0.72m;
+
+                    return new ClassicCityEmployerFinancialStressItemV1(
+                        EmployerBusinessId: snapshot.BusinessId,
+                        WorkplaceExternalReferenceCode: snapshot.WorkplaceExternalReferenceCode,
+                        RecentGrossPayrollAmount: decimal.Round(
+                            d: snapshot.GrossPayrollAmount,
+                            decimals: 2,
+                            mode: MidpointRounding.AwayFromZero),
+                        CurrentBalanceAmount: decimal.Round(
+                            d: snapshot.Business.Balance.Amount,
+                            decimals: 2,
+                            mode: MidpointRounding.AwayFromZero),
+                        DistressScore: decimal.Round(
+                            d: distressScore,
+                            decimals: 4,
+                            mode: MidpointRounding.AwayFromZero),
+                        HasHiringFreeze: hasHiringFreeze,
+                        HasLayoffPressure: hasLayoffPressure);
+                })
+               .OrderBy(x => x.WorkplaceExternalReferenceCode, StringComparer.Ordinal)
+               .ToArray();
+
+            if (items.Length == 0)
+                return [];
+
+            ClassicCityEmployerFinancialStressBatchV1[] batches = items
+               .Chunk(EmployerStressBatchSize)
+               .Select((chunk, index) => new ClassicCityEmployerFinancialStressBatchV1(
+                    CityId: message.CityId,
+                    BatchNumber: index + 1,
+                    TotalBatches: 0,
+                    Employers: chunk,
+                    CorrelationId: $"{message.CorrelationId}:employer-stress",
+                    OccurredAtUtc: message.OccurredAtUtc))
+               .ToArray();
+
+            for (int i = 0; i < batches.Length; i++)
+                batches[i] = batches[i] with
+                {
+                    TotalBatches = batches.Length
+                };
+
+            return batches;
+        }
+
+        private static decimal CalculateDistressScore(
+            decimal currentBalanceAmount,
+            decimal recentGrossPayrollAmount)
+        {
+            if (recentGrossPayrollAmount <= 0m)
+                return currentBalanceAmount < 0m
+                    ? 0.60m
+                    : 0m;
+
+            decimal distressScore = 0m;
+            decimal nonNegativeBalance = Math.Max(
+                val1: 0m,
+                val2: currentBalanceAmount);
+            decimal uncoveredPayrollRatio = Math.Clamp(
+                value: (recentGrossPayrollAmount - nonNegativeBalance) / recentGrossPayrollAmount,
+                min: 0m,
+                max: 1m);
+
+            distressScore += uncoveredPayrollRatio * 0.45m;
+
+            if (currentBalanceAmount <= recentGrossPayrollAmount * 0.25m)
+                distressScore += 0.20m;
+
+            if (currentBalanceAmount <= recentGrossPayrollAmount * 0.10m)
+                distressScore += 0.10m;
+
+            if (currentBalanceAmount < 0m)
+                distressScore += 0.25m;
+
+            return Math.Clamp(
+                value: distressScore,
+                min: 0m,
+                max: 1m);
+        }
+
         private static string BuildReferenceCode(
             string correlationId,
             Guid householdId,
@@ -154,5 +273,11 @@ namespace Matrix.Economy.Infrastructure.Consumers
         {
             return $"{correlationId}:household:{householdId:N}:workplace:{workplaceId:N}:payroll";
         }
+
+        private sealed record EmployerPayrollSnapshot(
+            Guid BusinessId,
+            string WorkplaceExternalReferenceCode,
+            CityBusiness Business,
+            decimal GrossPayrollAmount);
     }
 }
