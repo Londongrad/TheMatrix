@@ -32,6 +32,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
+        ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
@@ -165,6 +166,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cityId: cityId,
                                     cancellationToken: ct))
                                .ToDictionary(x => x.HouseholdId);
+                        IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState>
+                            employerStressByWorkplaceId =
+                                (await employerFinancialStressStateRepository.ListByCityAsync(
+                                    cityId: cityId,
+                                    cancellationToken: ct))
+                               .ToDictionary(x => x.WorkplaceId);
                         var householdsById = (await householdWriteRepository.ListByCityAsync(
                             cityId: cityId,
                             cancellationToken: ct)).ToDictionary(
@@ -192,6 +199,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     environment: environment,
                                     exposureSegments: exposureSegments,
                                     housingByHouseholdId: housingByHouseholdId,
+                                    employerStressByWorkplaceId: employerStressByWorkplaceId,
                                     financialStressByHouseholdId: financialStressByHouseholdId,
                                     marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
@@ -423,6 +431,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationEnvironment? environment,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
+            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
             MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
@@ -453,11 +462,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     householdsById: householdsById,
                     residentsByHouseholdId: residentsByHouseholdId,
                     previousDate: previousDate,
-                    currentDate: currentDate,
-                    housingByHouseholdId: housingByHouseholdId,
-                    educationAutonomyPolicy: educationAutonomyPolicy,
-                    employmentAutonomyPolicy: employmentAutonomyPolicy,
-                    institutionPools: institutionPools,
+                currentDate: currentDate,
+                housingByHouseholdId: housingByHouseholdId,
+                employerStressByWorkplaceId: employerStressByWorkplaceId,
+                educationAutonomyPolicy: educationAutonomyPolicy,
+                employmentAutonomyPolicy: employmentAutonomyPolicy,
+                institutionPools: institutionPools,
                     workplacePools: workplacePools))
                 changed = true;
             if (requiresDateProgression &&
@@ -531,6 +541,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly previousDate,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
+            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
             IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
@@ -566,7 +577,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     previousDate: previousDate,
                     currentDate: currentDate,
                     housingStatus: housingStatus,
-                    workplacePools: workplacePools))
+                    workplacePools: workplacePools,
+                    employerStressByWorkplaceId: employerStressByWorkplaceId))
                 changed = true;
             if (person.GetAgeGroup(currentDate) != AgeGroup.Senior)
                 return changed;
