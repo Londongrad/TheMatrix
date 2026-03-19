@@ -61,6 +61,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityBudgetSettlementRepository, CityBudgetSettlementRepository>();
             services.AddScoped<ICityBusinessRepository, CityBusinessRepository>();
             services.AddScoped<ICityBusinessLedgerRepository, CityBusinessLedgerRepository>();
+            services.AddScoped<ICityEconomyProgressionStateRepository, CityEconomyProgressionStateRepository>();
             services.AddScoped<ICityHouseholdAccountRepository, CityHouseholdAccountRepository>();
             services.AddScoped<ICityHouseholdAccountLedgerRepository, CityHouseholdAccountLedgerRepository>();
             services.AddScoped<ICityHouseholdObligationRepository, CityHouseholdObligationRepository>();
@@ -75,6 +76,7 @@ namespace Matrix.Economy.Infrastructure
                 x.SetKebabCaseEndpointNameFormatter();
                 x.AddRabbitMqEndpointHygiene();
                 x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
+                x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
                 x.AddConsumer<ClassicCityHouseholdAccountSyncConsumer,
                     ClassicCityHouseholdAccountSyncConsumerDefinition>();
