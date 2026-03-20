@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
@@ -11,7 +12,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person resident,
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            CityPopulationServiceQualityState? serviceQualityState = null)
         {
             ArgumentNullException.ThrowIfNull(resident);
             ArgumentNullException.ThrowIfNull(householdResidents);
@@ -47,10 +49,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (!livelihood.HasStructuredSupport)
                 access *= 0.60d;
 
+            decimal healthcareQualityIndex = serviceQualityState?.HealthcareQualityIndex ?? 1m;
+            access += (double)((healthcareQualityIndex - 1m) * 0.14m);
+
+            if (healthcareQualityIndex < 0.85m)
+                access *= 0.92d;
+
             return Math.Clamp(
                 value: access,
                 min: 0d,
-                max: 0.28d);
+                max: 0.36d);
         }
     }
 }

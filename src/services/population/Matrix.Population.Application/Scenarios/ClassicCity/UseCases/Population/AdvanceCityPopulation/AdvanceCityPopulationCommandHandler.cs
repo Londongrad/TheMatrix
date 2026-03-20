@@ -32,6 +32,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
+        ICityPopulationServiceQualityStateRepository cityPopulationServiceQualityStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
@@ -80,6 +81,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 cancellationToken: cancellationToken);
             CityPopulationCostOfLivingState? costOfLivingState =
                 await cityPopulationCostOfLivingStateRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+            CityPopulationServiceQualityState? serviceQualityState =
+                await cityPopulationServiceQualityStateRepository.GetByCityAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
             CityPopulationDeletionState? deletionState =
@@ -207,6 +212,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                                     financialStressByHouseholdId: financialStressByHouseholdId,
                                     costOfLivingState: costOfLivingState,
+                                    serviceQualityState: serviceQualityState,
                                     marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
                                     employmentAutonomyPolicy: employmentAutonomyPolicy,
@@ -286,6 +292,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 householdWriteRepository: householdWriteRepository,
                                 financialStressByHouseholdId: financialStressByHouseholdId,
                                 costOfLivingState: costOfLivingState,
+                                serviceQualityState: serviceQualityState,
                                 housingAutonomyPolicy: housingAutonomyPolicy,
                                 activityEntries: pendingActivityEntries,
                                 cancellationToken: ct);
@@ -442,6 +449,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
             CityPopulationCostOfLivingState? costOfLivingState,
+            CityPopulationServiceQualityState? serviceQualityState,
             MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
@@ -475,6 +483,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     housingByHouseholdId: housingByHouseholdId,
                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                     costOfLivingState: costOfLivingState,
+                    serviceQualityState: serviceQualityState,
                     educationAutonomyPolicy: educationAutonomyPolicy,
                     employmentAutonomyPolicy: employmentAutonomyPolicy,
                     institutionPools: institutionPools,
@@ -508,6 +517,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     currentDate: currentDate,
                     housingByHouseholdId: housingByHouseholdId,
                     exposureSegments: exposureSegments,
+                    serviceQualityState: serviceQualityState,
                     marriageDomainService: marriageDomainService,
                     illnessAutonomyPolicy: illnessAutonomyPolicy,
                     healthcareAutonomyPolicy: healthcareAutonomyPolicy))
@@ -553,6 +563,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             CityPopulationCostOfLivingState? costOfLivingState,
+            CityPopulationServiceQualityState? serviceQualityState,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
             IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
@@ -579,7 +590,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     person: person,
                     previousDate: previousDate,
                     currentDate: currentDate,
-                    institutionPools: institutionPools))
+                    institutionPools: institutionPools,
+                    serviceQualityState: serviceQualityState))
                 changed = true;
             if (employmentAutonomyPolicy.Apply(
                     person: person,
@@ -899,6 +911,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
+            CityPopulationServiceQualityState? serviceQualityState,
             MarriageDomainService marriageDomainService,
             CityIllnessAutonomyPolicy illnessAutonomyPolicy,
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy)
@@ -917,7 +930,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 resident: person,
                 householdResidents: householdResidents,
                 housingStatus: housingStatus,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                serviceQualityState: serviceQualityState);
 
             bool changed = illnessAutonomyPolicy.Apply(
                 person: person,
@@ -1160,6 +1174,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IHouseholdWriteRepository householdWriteRepository,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
             CityPopulationCostOfLivingState? costOfLivingState,
+            CityPopulationServiceQualityState? serviceQualityState,
             CityHousingAutonomyPolicy housingAutonomyPolicy,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
             CancellationToken cancellationToken)
@@ -1188,7 +1203,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 financialStressStates: financialStressByHouseholdId,
                 previousDate: previousDate,
                 currentDate: currentDate,
-                costOfLivingState: costOfLivingState);
+                costOfLivingState: costOfLivingState,
+                serviceQualityState: serviceQualityState);
 
             if (decisions.Count == 0)
                 return 0;

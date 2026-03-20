@@ -24,6 +24,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityPopulationHouseholdFinancialStressStateRepository,
                 CityPopulationHouseholdFinancialStressStateRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
+            services.AddScoped<ICityPopulationServiceQualityStateRepository, CityPopulationServiceQualityStateRepository>();
             services.AddScoped<ICityPopulationSummaryProjectionService, CityPopulationSummaryProjectionService>();
             services.AddScoped<ICityPopulationSummaryReadRepository, CityPopulationSummaryReadRepository>();
             services
@@ -38,6 +39,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
         {
             configurator.AddConsumer<ClassicCityCostOfLivingSnapshotConsumer,
                 ClassicCityCostOfLivingSnapshotConsumerDefinition>();
+            configurator.AddConsumer<ClassicCityServiceQualitySnapshotConsumer,
+                ClassicCityServiceQualitySnapshotConsumerDefinition>();
             configurator.AddConsumer<ClassicCityEmployerFinancialStressConsumer,
                 ClassicCityEmployerFinancialStressConsumerDefinition>();
             configurator.AddConsumer<ClassicCityHouseholdFinancialStressConsumer,
