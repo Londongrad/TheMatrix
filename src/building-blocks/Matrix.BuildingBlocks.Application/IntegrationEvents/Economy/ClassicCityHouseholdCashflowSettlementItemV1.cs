@@ -7,5 +7,8 @@ namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Economy
         decimal IncomeTaxAmount,
         decimal NetPayrollAmount,
         decimal RetailTurnoverAmount,
-        decimal RetailTaxAmount);
+        decimal RetailTaxAmount,
+        decimal RetailStoreSpendAmount = 0m,
+        decimal ServiceSpendAmount = 0m,
+        decimal MunicipalSpendAmount = 0m);
 }

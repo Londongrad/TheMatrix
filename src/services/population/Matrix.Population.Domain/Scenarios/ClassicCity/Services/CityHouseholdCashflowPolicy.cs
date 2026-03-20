@@ -47,6 +47,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Money grossIncome = Money.Zero;
             Money taxWithheld = Money.Zero;
             Money retailTurnover = Money.Zero;
+            Money retailStoreSpend = Money.Zero;
+            Money serviceSpend = Money.Zero;
+            Money municipalSpend = Money.Zero;
             int childCount = 0;
             int infantCount = 0;
 
@@ -66,12 +69,20 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
                 grossIncome = grossIncome.Add(residentIncome.GrossIncome);
                 taxWithheld = taxWithheld.Add(residentIncome.TaxWithheld);
-                retailTurnover = retailTurnover.Add(
-                    ResolveResidentDailyExpense(
-                        resident: resident,
-                        ageGroup: ageGroup,
-                        currentDate: currentDate,
-                        costOfLivingState: costOfLivingState));
+                (
+                    Money residentRetailTurnover,
+                    Money residentRetailStoreSpend,
+                    Money residentServiceSpend,
+                    Money residentMunicipalSpend) = ResolveResidentDailyExpenseBreakdown(
+                    resident: resident,
+                    ageGroup: ageGroup,
+                    currentDate: currentDate,
+                    costOfLivingState: costOfLivingState);
+
+                retailTurnover = retailTurnover.Add(residentRetailTurnover);
+                retailStoreSpend = retailStoreSpend.Add(residentRetailStoreSpend);
+                serviceSpend = serviceSpend.Add(residentServiceSpend);
+                municipalSpend = municipalSpend.Add(residentMunicipalSpend);
             }
 
             Money housingExpense = ResolveHousingExpense(
@@ -91,6 +102,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 TaxWithheld: taxWithheld,
                 TakeHomeIncome: takeHomeIncome,
                 RetailTurnover: retailTurnover,
+                RetailStoreSpend: retailStoreSpend,
+                ServiceSpend: serviceSpend,
+                MunicipalSpend: municipalSpend,
                 HousingExpense: housingExpense,
                 DailyExpenses: dailyExpenses,
                 DailyNet: dailyNet,
@@ -111,6 +125,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 TaxWithheld: Money.Zero,
                 TakeHomeIncome: Money.Zero,
                 RetailTurnover: Money.Zero,
+                RetailStoreSpend: Money.Zero,
+                ServiceSpend: Money.Zero,
+                MunicipalSpend: Money.Zero,
                 HousingExpense: Money.Zero,
                 DailyExpenses: Money.Zero,
                 DailyNet: Money.Zero,
@@ -208,7 +225,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 : 0m;
         }
 
-        private static Money ResolveResidentDailyExpense(
+        private static (Money total, Money retailStore, Money service, Money municipal) ResolveResidentDailyExpenseBreakdown(
             Person resident,
             AgeGroup ageGroup,
             DateOnly currentDate,
@@ -235,11 +252,126 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     _ => 4m
                 };
 
-            return Money.FromDecimal(
-                decimal.Round(
-                    d: amount * ResolveRetailPriceMultiplier(costOfLivingState),
+            decimal totalAmount = decimal.Round(
+                d: amount * ResolveRetailPriceMultiplier(costOfLivingState),
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+
+            if (totalAmount <= 0m)
+                return (Money.Zero, Money.Zero, Money.Zero, Money.Zero);
+
+            (
+                decimal retailStoreShare,
+                decimal serviceShare,
+                decimal municipalShare) = ResolveSpendShares(
+                resident: resident,
+                ageGroup: ageGroup,
+                currentDate: currentDate);
+
+            decimal retailStoreAmount = decimal.Round(
+                d: totalAmount * retailStoreShare,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            decimal serviceAmount = decimal.Round(
+                d: totalAmount * serviceShare,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            decimal municipalAmount = decimal.Round(
+                d: totalAmount - retailStoreAmount - serviceAmount,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+
+            if (municipalAmount < 0m)
+            {
+                serviceAmount = decimal.Max(
+                    0m,
+                    serviceAmount + municipalAmount);
+                municipalAmount = decimal.Round(
+                    d: totalAmount - retailStoreAmount - serviceAmount,
                     decimals: 2,
-                    mode: MidpointRounding.AwayFromZero));
+                    mode: MidpointRounding.AwayFromZero);
+            }
+
+            return (
+                Money.FromDecimal(totalAmount),
+                Money.FromDecimal(retailStoreAmount),
+                Money.FromDecimal(serviceAmount),
+                Money.FromDecimal(municipalAmount));
+        }
+
+        private static (decimal retailStoreShare, decimal serviceShare, decimal municipalShare) ResolveSpendShares(
+            Person resident,
+            AgeGroup ageGroup,
+            DateOnly currentDate)
+        {
+            decimal retailStoreShare = 0.72m;
+            decimal serviceShare = 0.18m;
+            decimal municipalShare = 0.10m;
+
+            switch (ageGroup)
+            {
+                case AgeGroup.Child:
+                case AgeGroup.Youth:
+                    retailStoreShare += 0.08m;
+                    serviceShare -= 0.05m;
+                    municipalShare -= 0.03m;
+                    break;
+
+                case AgeGroup.Senior:
+                    retailStoreShare -= 0.04m;
+                    serviceShare += 0.06m;
+                    municipalShare -= 0.02m;
+                    break;
+            }
+
+            if (resident.GetAge(currentDate).Years == 0)
+            {
+                retailStoreShare += 0.06m;
+                serviceShare -= 0.03m;
+                municipalShare -= 0.03m;
+            }
+
+            switch (resident.Employment.Status)
+            {
+                case EmploymentStatus.Employed:
+                    retailStoreShare -= 0.03m;
+                    serviceShare += 0.04m;
+                    municipalShare -= 0.01m;
+                    break;
+
+                case EmploymentStatus.Student:
+                    retailStoreShare -= 0.03m;
+                    serviceShare -= 0.01m;
+                    municipalShare += 0.04m;
+                    break;
+            }
+
+            if (resident.HasActiveIllness)
+            {
+                retailStoreShare -= 0.12m;
+                serviceShare += resident.CurrentIllnessSeverity switch
+                {
+                    IllnessSeverity.Severe => 0.10m,
+                    IllnessSeverity.Moderate => 0.08m,
+                    _ => 0.06m
+                };
+                municipalShare += resident.CurrentIllnessSeverity switch
+                {
+                    IllnessSeverity.Severe => 0.02m,
+                    IllnessSeverity.Moderate => 0.03m,
+                    _ => 0.06m
+                };
+            }
+
+            retailStoreShare = decimal.Max(0.15m, retailStoreShare);
+            serviceShare = decimal.Max(0.05m, serviceShare);
+            municipalShare = decimal.Max(0.03m, municipalShare);
+
+            decimal total = retailStoreShare + serviceShare + municipalShare;
+            return (
+                decimal.Round(retailStoreShare / total, 4, MidpointRounding.AwayFromZero),
+                decimal.Round(serviceShare / total, 4, MidpointRounding.AwayFromZero),
+                decimal.Round(municipalShare / total, 4, MidpointRounding.AwayFromZero));
         }
 
         private static Money ResolveHousingExpense(

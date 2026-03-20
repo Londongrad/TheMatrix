@@ -712,7 +712,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             IncomeTaxAmount: supportIncomeTaxForPeriod.Amount,
                             NetPayrollAmount: supportNetIncomeForPeriod.Amount,
                             RetailTurnoverAmount: retailTurnoverForPeriod.Amount,
-                            RetailTaxAmount: retailTaxForPeriod.Amount));
+                            RetailTaxAmount: retailTaxForPeriod.Amount,
+                            RetailStoreSpendAmount: cashflow.RetailStoreSpend.Multiply(daysElapsed).Amount,
+                            ServiceSpendAmount: cashflow.ServiceSpend.Multiply(daysElapsed).Amount,
+                            MunicipalSpendAmount: cashflow.MunicipalSpend.Multiply(daysElapsed).Amount));
 
                 grossPayroll = grossPayroll.Add(supportGrossIncomeForPeriod);
                 incomeTax = incomeTax.Add(supportIncomeTaxForPeriod);
