@@ -10,6 +10,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     public sealed class DeleteCityPopulationDataCommandHandler(
         IHouseholdWriteRepository householdWriteRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
+        ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
         ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
@@ -55,6 +56,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId,
                         cancellationToken: ct);
                     await cityPopulationArchiveStateRepository.DeleteByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+                    await cityPopulationCostOfLivingStateRepository.DeleteByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
                     await employerFinancialStressStateRepository.DeleteByCityAsync(

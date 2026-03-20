@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
@@ -10,14 +11,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
     {
         public CityResidentIncomeSettlementProfile BuildResidentIncome(
             Person resident,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
         {
             ArgumentNullException.ThrowIfNull(resident);
 
             AgeGroup ageGroup = resident.GetAgeGroup(currentDate);
             Money grossIncome = ResolveResidentGrossIncome(
                 resident: resident,
-                ageGroup: ageGroup);
+                ageGroup: ageGroup,
+                costOfLivingState: costOfLivingState);
             Money taxWithheld = grossIncome.Multiply(ResolveTaxRate(resident));
 
             return new CityResidentIncomeSettlementProfile(
@@ -29,7 +32,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         public CityHouseholdCashflowProfile Build(
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
         {
             ArgumentNullException.ThrowIfNull(householdResidents);
 
@@ -38,15 +42,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                .ToArray();
 
             if (activeResidents.Length == 0)
-                return new CityHouseholdCashflowProfile(
-                    ResidentCount: 0,
-                    GrossIncome: Money.Zero,
-                    TaxWithheld: Money.Zero,
-                    TakeHomeIncome: Money.Zero,
-                    RetailTurnover: Money.Zero,
-                    HousingExpense: Money.Zero,
-                    DailyExpenses: Money.Zero,
-                    DailyNet: Money.Zero);
+                return CreateEmptyProfile(costOfLivingState);
 
             Money grossIncome = Money.Zero;
             Money taxWithheld = Money.Zero;
@@ -60,14 +56,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 if (ageGroup is AgeGroup.Child or AgeGroup.Youth)
                     childCount++;
 
-                if (resident.GetAge(currentDate)
-                       .Years ==
-                    0)
+                if (resident.GetAge(currentDate).Years == 0)
                     infantCount++;
 
                 CityResidentIncomeSettlementProfile residentIncome = BuildResidentIncome(
                     resident: resident,
-                    currentDate: currentDate);
+                    currentDate: currentDate,
+                    costOfLivingState: costOfLivingState);
 
                 grossIncome = grossIncome.Add(residentIncome.GrossIncome);
                 taxWithheld = taxWithheld.Add(residentIncome.TaxWithheld);
@@ -75,14 +70,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     ResolveResidentDailyExpense(
                         resident: resident,
                         ageGroup: ageGroup,
-                        currentDate: currentDate));
+                        currentDate: currentDate,
+                        costOfLivingState: costOfLivingState));
             }
 
             Money housingExpense = ResolveHousingExpense(
                 residentCount: activeResidents.Length,
                 childCount: childCount,
                 infantCount: infantCount,
-                housingStatus: housingStatus);
+                housingStatus: housingStatus,
+                costOfLivingState: costOfLivingState);
             Money dailyExpenses = retailTurnover.Add(housingExpense);
 
             Money takeHomeIncome = grossIncome.Subtract(taxWithheld);
@@ -96,18 +93,46 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 RetailTurnover: retailTurnover,
                 HousingExpense: housingExpense,
                 DailyExpenses: dailyExpenses,
-                DailyNet: dailyNet);
+                DailyNet: dailyNet,
+                WageMultiplier: ResolveWageMultiplier(costOfLivingState),
+                RetailPriceMultiplier: ResolveRetailPriceMultiplier(costOfLivingState),
+                HousingCostMultiplier: ResolveHousingCostMultiplier(costOfLivingState),
+                UtilityCostMultiplier: ResolveUtilityCostMultiplier(costOfLivingState),
+                CostOfLivingIndex: ResolveCostOfLivingIndex(costOfLivingState),
+                AffordabilityIndex: ResolveAffordabilityIndex(costOfLivingState));
+        }
+
+        private static CityHouseholdCashflowProfile CreateEmptyProfile(
+            CityPopulationCostOfLivingState? costOfLivingState)
+        {
+            return new CityHouseholdCashflowProfile(
+                ResidentCount: 0,
+                GrossIncome: Money.Zero,
+                TaxWithheld: Money.Zero,
+                TakeHomeIncome: Money.Zero,
+                RetailTurnover: Money.Zero,
+                HousingExpense: Money.Zero,
+                DailyExpenses: Money.Zero,
+                DailyNet: Money.Zero,
+                WageMultiplier: ResolveWageMultiplier(costOfLivingState),
+                RetailPriceMultiplier: ResolveRetailPriceMultiplier(costOfLivingState),
+                HousingCostMultiplier: ResolveHousingCostMultiplier(costOfLivingState),
+                UtilityCostMultiplier: ResolveUtilityCostMultiplier(costOfLivingState),
+                CostOfLivingIndex: ResolveCostOfLivingIndex(costOfLivingState),
+                AffordabilityIndex: ResolveAffordabilityIndex(costOfLivingState));
         }
 
         private static Money ResolveResidentGrossIncome(
             Person resident,
-            AgeGroup ageGroup)
+            AgeGroup ageGroup,
+            CityPopulationCostOfLivingState? costOfLivingState)
         {
             decimal amount = resident.Employment.Status switch
             {
                 EmploymentStatus.Employed => ResolveEmploymentIncome(
                     resident: resident,
-                    ageGroup: ageGroup),
+                    ageGroup: ageGroup,
+                    costOfLivingState: costOfLivingState),
                 EmploymentStatus.Retired => 26m,
                 EmploymentStatus.Student when ageGroup is AgeGroup.Adult or AgeGroup.Senior => 10m,
                 EmploymentStatus.Student => 4m,
@@ -119,7 +144,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static decimal ResolveEmploymentIncome(
             Person resident,
-            AgeGroup ageGroup)
+            AgeGroup ageGroup,
+            CityPopulationCostOfLivingState? costOfLivingState)
         {
             decimal ageBase = ageGroup switch
             {
@@ -147,11 +173,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 (decimal)(resident.Energy.Value / 22d) -
                 (decimal)(resident.Stress.Value / 28d);
             decimal jobVariance = ResolveJobVariance(resident.Employment.Job?.Title);
-
-            return decimal.Round(
+            decimal baseAmount = decimal.Round(
                 d: Math.Max(
                     val1: 12m,
                     val2: ageBase + educationBonus + traitBonus + wellbeingBonus + jobVariance),
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+
+            return decimal.Round(
+                d: baseAmount * ResolveWageMultiplier(costOfLivingState),
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
         }
@@ -181,7 +211,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private static Money ResolveResidentDailyExpense(
             Person resident,
             AgeGroup ageGroup,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState)
         {
             decimal amount = ageGroup switch
             {
@@ -192,9 +223,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 _ => 6m
             };
 
-            if (resident.GetAge(currentDate)
-                   .Years ==
-                0)
+            if (resident.GetAge(currentDate).Years == 0)
                 amount += 2m;
 
             if (resident.HasActiveIllness)
@@ -206,16 +235,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     _ => 4m
                 };
 
-            return Money.FromDecimal(amount);
+            return Money.FromDecimal(
+                decimal.Round(
+                    d: amount * ResolveRetailPriceMultiplier(costOfLivingState),
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero));
         }
 
         private static Money ResolveHousingExpense(
             int residentCount,
             int childCount,
             int infantCount,
-            HousingStatus? housingStatus)
+            HousingStatus? housingStatus,
+            CityPopulationCostOfLivingState? costOfLivingState)
         {
-            decimal amount = housingStatus == HousingStatus.Housed
+            decimal baseAmount = housingStatus == HousingStatus.Housed
                 ? 10m +
                   (residentCount * 3m) +
                   (Math.Max(
@@ -226,11 +260,48 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                   (infantCount * 2m)
                 : 6m + (residentCount * 1.5m);
 
+            decimal housingShare = housingStatus == HousingStatus.Housed
+                ? 0.74m
+                : 0.58m;
+            decimal utilityShare = 1m - housingShare;
+            decimal repricedAmount = (baseAmount * housingShare * ResolveHousingCostMultiplier(costOfLivingState)) +
+                                     (baseAmount * utilityShare * ResolveUtilityCostMultiplier(costOfLivingState));
+
             return Money.FromDecimal(
                 decimal.Round(
-                    d: amount,
+                    d: repricedAmount,
                     decimals: 2,
                     mode: MidpointRounding.AwayFromZero));
+        }
+
+        private static decimal ResolveWageMultiplier(CityPopulationCostOfLivingState? costOfLivingState)
+        {
+            return costOfLivingState?.WageMultiplier ?? 1m;
+        }
+
+        private static decimal ResolveRetailPriceMultiplier(CityPopulationCostOfLivingState? costOfLivingState)
+        {
+            return costOfLivingState?.RetailPriceMultiplier ?? 1m;
+        }
+
+        private static decimal ResolveHousingCostMultiplier(CityPopulationCostOfLivingState? costOfLivingState)
+        {
+            return costOfLivingState?.HousingCostMultiplier ?? 1m;
+        }
+
+        private static decimal ResolveUtilityCostMultiplier(CityPopulationCostOfLivingState? costOfLivingState)
+        {
+            return costOfLivingState?.UtilityCostMultiplier ?? 1m;
+        }
+
+        private static decimal ResolveCostOfLivingIndex(CityPopulationCostOfLivingState? costOfLivingState)
+        {
+            return costOfLivingState?.CostOfLivingIndex ?? 1m;
+        }
+
+        private static decimal ResolveAffordabilityIndex(CityPopulationCostOfLivingState? costOfLivingState)
+        {
+            return costOfLivingState?.AffordabilityIndex ?? 1m;
         }
     }
 }

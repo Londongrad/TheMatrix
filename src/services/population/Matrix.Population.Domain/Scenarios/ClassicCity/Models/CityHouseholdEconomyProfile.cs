@@ -15,7 +15,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         double LivingCostUnits,
         double EconomicBalance,
         double StrainScore,
-        double GrowthReadinessScore)
+        double GrowthReadinessScore,
+        decimal CostOfLivingIndex,
+        decimal AffordabilityIndex)
     {
         public bool IsStrained => StrainScore >= 0.55d;
         public bool HasCashDeficit => CashReserveAmount < 0m;

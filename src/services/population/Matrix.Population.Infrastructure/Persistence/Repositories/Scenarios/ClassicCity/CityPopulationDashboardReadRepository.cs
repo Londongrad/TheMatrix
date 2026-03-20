@@ -143,6 +143,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .ToDictionary(
                     keySelector: x => x.Key,
                     elementSelector: x => x.ToArray());
+            CityPopulationCostOfLivingState? costOfLivingState = await _dbContext.CityPopulationCostOfLivingStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             int stableHouseholdCount = 0;
             int strainedHouseholdCount = 0;
@@ -169,7 +174,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     household: household,
                     householdResidents: householdResidents,
                     housingStatus: placement.HousingStatus,
-                    currentDate: currentDate);
+                    currentDate: currentDate,
+                    costOfLivingState: costOfLivingState);
 
                 if (economyProfile.StrainScore >= 0.55d)
                     strainedHouseholdCount++;

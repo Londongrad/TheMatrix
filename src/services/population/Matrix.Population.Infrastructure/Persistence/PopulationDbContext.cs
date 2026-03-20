@@ -11,6 +11,7 @@ namespace Matrix.Population.Infrastructure.Persistence
         : DbContext(options)
     {
         public DbSet<CityPopulationArchiveState> CityPopulationArchiveStates => Set<CityPopulationArchiveState>();
+        public DbSet<CityPopulationCostOfLivingState> CityPopulationCostOfLivingStates => Set<CityPopulationCostOfLivingState>();
         public DbSet<CityPopulationDeletionState> CityPopulationDeletionStates => Set<CityPopulationDeletionState>();
         public DbSet<CityPopulationEnvironment> CityPopulationEnvironments => Set<CityPopulationEnvironment>();
 

@@ -15,7 +15,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressStates,
             DateOnly previousDate,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
         {
             ArgumentNullException.ThrowIfNull(households);
             ArgumentNullException.ThrowIfNull(residents);
@@ -68,7 +69,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     household: household,
                     householdResidents: members,
                     housingStatus: housingStatus,
-                    currentDate: currentDate);
+                    currentDate: currentDate,
+                    costOfLivingState: costOfLivingState);
 
                 if (housingStatus == HousingStatus.Housed &&
                     ShouldForceLoseHousing(

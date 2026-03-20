@@ -10,5 +10,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         Money RetailTurnover,
         Money HousingExpense,
         Money DailyExpenses,
-        Money DailyNet);
+        Money DailyNet,
+        decimal WageMultiplier,
+        decimal RetailPriceMultiplier,
+        decimal HousingCostMultiplier,
+        decimal UtilityCostMultiplier,
+        decimal CostOfLivingIndex,
+        decimal AffordabilityIndex);
 }

@@ -25,7 +25,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             HousingStatus? housingStatus,
             IDictionary<string, List<WorkplaceId>> workplacePools,
-            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
+            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
         {
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(householdResidents);
@@ -48,7 +49,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 household: household,
                 householdResidents: householdResidents,
                 housingStatus: housingStatus,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                costOfLivingState: costOfLivingState);
 
             return person.Employment.Status switch
             {

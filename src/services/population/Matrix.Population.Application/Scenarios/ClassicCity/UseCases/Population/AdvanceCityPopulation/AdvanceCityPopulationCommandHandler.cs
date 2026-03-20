@@ -31,6 +31,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     public sealed class AdvanceCityPopulationCommandHandler(
         ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
+        ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
@@ -77,6 +78,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationArchiveState? archiveState = await cityPopulationArchiveStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
+            CityPopulationCostOfLivingState? costOfLivingState =
+                await cityPopulationCostOfLivingStateRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
             CityPopulationDeletionState? deletionState =
                 await cityPopulationDeletionStateRepository.GetByCityAsync(
                     cityId: cityId,
@@ -201,6 +206,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     housingByHouseholdId: housingByHouseholdId,
                                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                                     financialStressByHouseholdId: financialStressByHouseholdId,
+                                    costOfLivingState: costOfLivingState,
                                     marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
                                     employmentAutonomyPolicy: employmentAutonomyPolicy,
@@ -231,6 +237,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 previousDate: previousDate,
                                 currentDate: toDate,
                                 householdCashflowPolicy: householdCashflowPolicy,
+                                costOfLivingState: costOfLivingState,
                                 cashflowItems: pendingHouseholdCashflowItems,
                                 workplacePayrollItems: pendingWorkplacePayrollItems);
 
@@ -278,6 +285,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 currentDate: toDate,
                                 householdWriteRepository: householdWriteRepository,
                                 financialStressByHouseholdId: financialStressByHouseholdId,
+                                costOfLivingState: costOfLivingState,
                                 housingAutonomyPolicy: housingAutonomyPolicy,
                                 activityEntries: pendingActivityEntries,
                                 cancellationToken: ct);
@@ -433,6 +441,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
+            CityPopulationCostOfLivingState? costOfLivingState,
             MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
@@ -462,12 +471,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     householdsById: householdsById,
                     residentsByHouseholdId: residentsByHouseholdId,
                     previousDate: previousDate,
-                currentDate: currentDate,
-                housingByHouseholdId: housingByHouseholdId,
-                employerStressByWorkplaceId: employerStressByWorkplaceId,
-                educationAutonomyPolicy: educationAutonomyPolicy,
-                employmentAutonomyPolicy: employmentAutonomyPolicy,
-                institutionPools: institutionPools,
+                    currentDate: currentDate,
+                    housingByHouseholdId: housingByHouseholdId,
+                    employerStressByWorkplaceId: employerStressByWorkplaceId,
+                    costOfLivingState: costOfLivingState,
+                    educationAutonomyPolicy: educationAutonomyPolicy,
+                    employmentAutonomyPolicy: employmentAutonomyPolicy,
+                    institutionPools: institutionPools,
                     workplacePools: workplacePools))
                 changed = true;
             if (requiresDateProgression &&
@@ -542,6 +552,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
+            CityPopulationCostOfLivingState? costOfLivingState,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
             IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
@@ -578,7 +589,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     currentDate: currentDate,
                     housingStatus: housingStatus,
                     workplacePools: workplacePools,
-                    employerStressByWorkplaceId: employerStressByWorkplaceId))
+                    employerStressByWorkplaceId: employerStressByWorkplaceId,
+                    costOfLivingState: costOfLivingState))
                 changed = true;
             if (person.GetAgeGroup(currentDate) != AgeGroup.Senior)
                 return changed;
@@ -595,6 +607,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly previousDate,
             DateOnly currentDate,
             CityHouseholdCashflowPolicy householdCashflowPolicy,
+            CityPopulationCostOfLivingState? costOfLivingState,
             ICollection<ClassicCityHouseholdCashflowSettlementItemV1> cashflowItems,
             ICollection<ClassicCityWorkplacePayrollSettlementItemV1> workplacePayrollItems)
         {
@@ -629,7 +642,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 CityHouseholdCashflowProfile cashflow = householdCashflowPolicy.Build(
                     householdResidents: residents,
                     housingStatus: housingStatus,
-                    currentDate: currentDate);
+                    currentDate: currentDate,
+                    costOfLivingState: costOfLivingState);
 
                 Money retailTurnoverForPeriod = cashflow.RetailTurnover.Multiply(daysElapsed);
                 retailTurnover = retailTurnover.Add(retailTurnoverForPeriod);
@@ -647,7 +661,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 {
                     CityResidentIncomeSettlementProfile residentIncome = householdCashflowPolicy.BuildResidentIncome(
                         resident: resident,
-                        currentDate: currentDate);
+                        currentDate: currentDate,
+                        costOfLivingState: costOfLivingState);
                     Money residentGrossIncomeForPeriod = residentIncome.GrossIncome.Multiply(daysElapsed);
                     Money residentTaxForPeriod = residentIncome.TaxWithheld.Multiply(daysElapsed);
                     Money residentNetIncomeForPeriod = residentIncome.NetIncome.Multiply(daysElapsed);
@@ -1144,6 +1159,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly currentDate,
             IHouseholdWriteRepository householdWriteRepository,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
+            CityPopulationCostOfLivingState? costOfLivingState,
             CityHousingAutonomyPolicy housingAutonomyPolicy,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
             CancellationToken cancellationToken)
@@ -1171,7 +1187,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 housingStatuses: housingStatuses,
                 financialStressStates: financialStressByHouseholdId,
                 previousDate: previousDate,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                costOfLivingState: costOfLivingState);
 
             if (decisions.Count == 0)
                 return 0;

@@ -1,5 +1,6 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
@@ -13,7 +14,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Household household,
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
-            DateOnly currentDate)
+            DateOnly currentDate,
+            CityPopulationCostOfLivingState? costOfLivingState = null)
         {
             ArgumentNullException.ThrowIfNull(household);
             ArgumentNullException.ThrowIfNull(householdResidents);
@@ -36,7 +38,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     LivingCostUnits: 0d,
                     EconomicBalance: 0d,
                     StrainScore: 1d,
-                    GrowthReadinessScore: 0d);
+                    GrowthReadinessScore: 0d,
+                    CostOfLivingIndex: costOfLivingState?.CostOfLivingIndex ?? 1m,
+                    AffordabilityIndex: costOfLivingState?.AffordabilityIndex ?? 1m);
 
             CityHouseholdLivelihoodProfile livelihood = householdLivelihoodPolicy.Build(
                 householdResidents: activeResidents,
@@ -45,7 +49,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityHouseholdCashflowProfile cashflow = householdCashflowPolicy.Build(
                 householdResidents: activeResidents,
                 housingStatus: housingStatus,
-                currentDate: currentDate);
+                currentDate: currentDate,
+                costOfLivingState: costOfLivingState);
 
             int retiredAdults = activeResidents.Count(x =>
                 x.GetAgeGroup(currentDate) == AgeGroup.Senior &&
@@ -55,10 +60,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                   (livelihood.AdultProviderCount * 0.25d) +
                                   (livelihood.AdultStudentCount * 0.15d) +
                                   (retiredAdults * 0.10d);
+            double costOfLivingPressure = Math.Max(
+                val1: 0d,
+                val2: (double)(cashflow.CostOfLivingIndex - 1m));
+            double affordabilityPressure = Math.Max(
+                val1: 0d,
+                val2: (double)(1m - cashflow.AffordabilityIndex));
             double livingCostUnits = (double)(cashflow.DailyExpenses.Amount / 26m) +
                                      (livelihood.DependentCount * 0.06d) +
                                      (livelihood.InfantCount * 0.08d) +
-                                     (livelihood.ActiveIllnessCount * 0.08d);
+                                     (livelihood.ActiveIllnessCount * 0.08d) +
+                                     (costOfLivingPressure * 0.40d) +
+                                     (affordabilityPressure * 0.55d);
 
             double reserveCoverageDays = cashflow.DailyExpenses.Amount <= 0m
                 ? 12d
@@ -75,7 +88,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (netUnits * 0.22d) -
                             (livelihood.StabilityScore * 0.24d) +
                             (livelihood.DependentCount * 0.03d) +
-                            (livelihood.ActiveIllnessCount * 0.04d);
+                            (livelihood.ActiveIllnessCount * 0.04d) +
+                            (costOfLivingPressure * 0.14d) +
+                            (affordabilityPressure * 0.18d);
 
             if (livelihood.AdultProviderCount == 0 && livelihood.AdultStudentCount == 0)
                 strain += 0.14d;
@@ -92,6 +107,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 value: 0.72d -
                        strain +
                        (livelihood.StabilityScore * 0.24d) +
+                       (Math.Max(
+                            val1: 0d,
+                            val2: (double)(cashflow.AffordabilityIndex - 1m)) *
+                        0.12d) -
+                       (costOfLivingPressure * 0.08d) +
                        Math.Clamp(
                            value: reserveCoverageDays / 18d,
                            min: -0.18d,
@@ -119,7 +139,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     value: strain,
                     min: 0d,
                     max: 1d),
-                GrowthReadinessScore: growthReadiness);
+                GrowthReadinessScore: growthReadiness,
+                CostOfLivingIndex: cashflow.CostOfLivingIndex,
+                AffordabilityIndex: cashflow.AffordabilityIndex);
         }
     }
 }
