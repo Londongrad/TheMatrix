@@ -31,6 +31,11 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                             OverdueObligationCount: x.OverdueObligationCount,
                             OverdueRentCount: x.OverdueRentCount,
                             OverdueUtilityCount: x.OverdueUtilityCount,
+                            ArrearsObligationCount: x.ArrearsObligationCount,
+                            ServiceCutoffCount: x.ServiceCutoffCount,
+                            EvictionNoticeCount: x.EvictionNoticeCount,
+                            EvictionEligibleCount: x.EvictionEligibleCount,
+                            OldestOverdueAgeDays: x.OldestOverdueAgeDays,
                             TotalOverdueAmount: x.TotalOverdueAmount,
                             DistressScore: x.DistressScore))
                        .ToArray()),

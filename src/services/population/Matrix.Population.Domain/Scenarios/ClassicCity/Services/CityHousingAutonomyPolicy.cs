@@ -244,19 +244,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     currentDate: currentDate))
                 return false;
 
-            if (financialStressState!.OverdueRentCount <= 0)
+            if (financialStressState!.EvictionEligibleCount <= 0)
                 return false;
 
-            if (financialStressState.DistressScore < 0.58m)
+            if (financialStressState.OverdueRentCount <= 0 &&
+                financialStressState.TotalOverdueAmount <= 0m)
                 return false;
 
-            if (economyProfile.StrainScore < 0.72d)
+            if (financialStressState.DistressScore < 0.58m &&
+                financialStressState.OldestOverdueAgeDays < 60)
                 return false;
 
-            if (economyProfile.CashReserveAmount > 0m && economyProfile.DailyNetAmount >= 0m)
+            if (economyProfile.StrainScore < 0.72d &&
+                financialStressState.OldestOverdueAgeDays < 75)
                 return false;
 
-            if (profile.HasInfant && financialStressState.DistressScore < 0.80m)
+            if (economyProfile.CashReserveAmount > 0m &&
+                economyProfile.DailyNetAmount >= 0m &&
+                financialStressState.OldestOverdueAgeDays < 90)
+                return false;
+
+            if (profile.HasInfant &&
+                financialStressState.DistressScore < 0.80m &&
+                financialStressState.OldestOverdueAgeDays < 90)
                 return false;
 
             return true;
@@ -307,6 +317,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int overdueUtilityCount = ResolveRecentOverdueUtilityCount(
                 state: financialStressState,
                 currentDate: currentDate);
+            int arrearsObligationCount = ResolveRecentArrearsObligationCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int serviceCutoffCount = ResolveRecentServiceCutoffCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int evictionNoticeCount = ResolveRecentEvictionNoticeCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int evictionEligibleCount = ResolveRecentEvictionEligibleCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int oldestOverdueAgeDays = ResolveRecentOldestOverdueAgeDays(
+                state: financialStressState,
+                currentDate: currentDate);
             decimal overdueAmount = ResolveRecentOverdueAmount(
                 state: financialStressState,
                 currentDate: currentDate);
@@ -324,6 +349,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             chance -= Math.Min(
                 val1: 0.010d,
                 val2: overdueUtilityCount * 0.004d);
+            chance -= Math.Min(
+                val1: 0.012d,
+                val2: arrearsObligationCount * 0.004d);
+            chance -= Math.Min(
+                val1: 0.016d,
+                val2: serviceCutoffCount * 0.008d);
+            chance -= Math.Min(
+                val1: 0.028d,
+                val2: evictionNoticeCount * 0.014d);
+            chance -= Math.Min(
+                val1: 0.050d,
+                val2: evictionEligibleCount * 0.025d);
+            chance -= Math.Min(
+                val1: 0.020d,
+                val2: oldestOverdueAgeDays / 240d);
             chance -= Math.Min(
                 val1: 0.018d,
                 val2: (double)(overdueAmount / 2_500m));
@@ -378,6 +418,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int overdueUtilityCount = ResolveRecentOverdueUtilityCount(
                 state: financialStressState,
                 currentDate: currentDate);
+            int arrearsObligationCount = ResolveRecentArrearsObligationCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int serviceCutoffCount = ResolveRecentServiceCutoffCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int evictionNoticeCount = ResolveRecentEvictionNoticeCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int evictionEligibleCount = ResolveRecentEvictionEligibleCount(
+                state: financialStressState,
+                currentDate: currentDate);
+            int oldestOverdueAgeDays = ResolveRecentOldestOverdueAgeDays(
+                state: financialStressState,
+                currentDate: currentDate);
             decimal overdueAmount = ResolveRecentOverdueAmount(
                 state: financialStressState,
                 currentDate: currentDate);
@@ -394,6 +449,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             chance += Math.Min(
                 val1: 0.012d,
                 val2: overdueUtilityCount * 0.005d);
+            chance += Math.Min(
+                val1: 0.012d,
+                val2: arrearsObligationCount * 0.005d);
+            chance += Math.Min(
+                val1: 0.018d,
+                val2: serviceCutoffCount * 0.009d);
+            chance += Math.Min(
+                val1: 0.028d,
+                val2: evictionNoticeCount * 0.014d);
+            chance += Math.Min(
+                val1: 0.050d,
+                val2: evictionEligibleCount * 0.025d);
+            chance += Math.Min(
+                val1: 0.022d,
+                val2: oldestOverdueAgeDays / 180d);
             chance += Math.Min(
                 val1: 0.018d,
                 val2: (double)(overdueAmount / 1_800m));
@@ -490,6 +560,61 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 currentDate: currentDate)
                 ? state!.TotalOverdueAmount
                 : 0m;
+        }
+
+        private static int ResolveRecentArrearsObligationCount(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(
+                state: state,
+                currentDate: currentDate)
+                ? state!.ArrearsObligationCount
+                : 0;
+        }
+
+        private static int ResolveRecentServiceCutoffCount(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(
+                state: state,
+                currentDate: currentDate)
+                ? state!.ServiceCutoffCount
+                : 0;
+        }
+
+        private static int ResolveRecentEvictionNoticeCount(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(
+                state: state,
+                currentDate: currentDate)
+                ? state!.EvictionNoticeCount
+                : 0;
+        }
+
+        private static int ResolveRecentEvictionEligibleCount(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(
+                state: state,
+                currentDate: currentDate)
+                ? state!.EvictionEligibleCount
+                : 0;
+        }
+
+        private static int ResolveRecentOldestOverdueAgeDays(
+            CityPopulationHouseholdFinancialStressState? state,
+            DateOnly currentDate)
+        {
+            return IsRecentFinancialStress(
+                state: state,
+                currentDate: currentDate)
+                ? state!.OldestOverdueAgeDays
+                : 0;
         }
 
         private static bool IsRecentFinancialStress(

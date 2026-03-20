@@ -15,6 +15,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             int overdueObligationCount,
             int overdueRentCount,
             int overdueUtilityCount,
+            int arrearsObligationCount,
+            int serviceCutoffCount,
+            int evictionNoticeCount,
+            int evictionEligibleCount,
+            int oldestOverdueAgeDays,
             decimal totalOverdueAmount,
             decimal distressScore,
             DateTimeOffset lastEvaluatedAtUtc,
@@ -23,7 +28,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             ValidateCounts(
                 overdueObligationCount: overdueObligationCount,
                 overdueRentCount: overdueRentCount,
-                overdueUtilityCount: overdueUtilityCount);
+                overdueUtilityCount: overdueUtilityCount,
+                arrearsObligationCount: arrearsObligationCount,
+                serviceCutoffCount: serviceCutoffCount,
+                evictionNoticeCount: evictionNoticeCount,
+                evictionEligibleCount: evictionEligibleCount,
+                oldestOverdueAgeDays: oldestOverdueAgeDays);
             ValidateAmounts(
                 totalOverdueAmount: totalOverdueAmount,
                 distressScore: distressScore);
@@ -39,6 +49,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             OverdueObligationCount = overdueObligationCount;
             OverdueRentCount = overdueRentCount;
             OverdueUtilityCount = overdueUtilityCount;
+            ArrearsObligationCount = arrearsObligationCount;
+            ServiceCutoffCount = serviceCutoffCount;
+            EvictionNoticeCount = evictionNoticeCount;
+            EvictionEligibleCount = evictionEligibleCount;
+            OldestOverdueAgeDays = oldestOverdueAgeDays;
             TotalOverdueAmount = decimal.Round(
                 d: totalOverdueAmount,
                 decimals: 2,
@@ -56,6 +71,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         public int OverdueObligationCount { get; private set; }
         public int OverdueRentCount { get; private set; }
         public int OverdueUtilityCount { get; private set; }
+        public int ArrearsObligationCount { get; private set; }
+        public int ServiceCutoffCount { get; private set; }
+        public int EvictionNoticeCount { get; private set; }
+        public int EvictionEligibleCount { get; private set; }
+        public int OldestOverdueAgeDays { get; private set; }
         public decimal TotalOverdueAmount { get; private set; }
         public decimal DistressScore { get; private set; }
         public DateTimeOffset LastEvaluatedAtUtc { get; private set; }
@@ -63,6 +83,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 
         public bool HasActiveDistress =>
             OverdueObligationCount > 0 ||
+            ArrearsObligationCount > 0 ||
+            ServiceCutoffCount > 0 ||
+            EvictionNoticeCount > 0 ||
+            EvictionEligibleCount > 0 ||
             TotalOverdueAmount > 0m ||
             DistressScore > 0m;
 
@@ -72,6 +96,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             int overdueObligationCount,
             int overdueRentCount,
             int overdueUtilityCount,
+            int arrearsObligationCount,
+            int serviceCutoffCount,
+            int evictionNoticeCount,
+            int evictionEligibleCount,
+            int oldestOverdueAgeDays,
             decimal totalOverdueAmount,
             decimal distressScore,
             DateTimeOffset lastEvaluatedAtUtc,
@@ -83,6 +112,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 overdueObligationCount: overdueObligationCount,
                 overdueRentCount: overdueRentCount,
                 overdueUtilityCount: overdueUtilityCount,
+                arrearsObligationCount: arrearsObligationCount,
+                serviceCutoffCount: serviceCutoffCount,
+                evictionNoticeCount: evictionNoticeCount,
+                evictionEligibleCount: evictionEligibleCount,
+                oldestOverdueAgeDays: oldestOverdueAgeDays,
                 totalOverdueAmount: totalOverdueAmount,
                 distressScore: distressScore,
                 lastEvaluatedAtUtc: lastEvaluatedAtUtc,
@@ -93,6 +127,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             int overdueObligationCount,
             int overdueRentCount,
             int overdueUtilityCount,
+            int arrearsObligationCount,
+            int serviceCutoffCount,
+            int evictionNoticeCount,
+            int evictionEligibleCount,
+            int oldestOverdueAgeDays,
             decimal totalOverdueAmount,
             decimal distressScore,
             DateTimeOffset lastEvaluatedAtUtc,
@@ -101,7 +140,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             ValidateCounts(
                 overdueObligationCount: overdueObligationCount,
                 overdueRentCount: overdueRentCount,
-                overdueUtilityCount: overdueUtilityCount);
+                overdueUtilityCount: overdueUtilityCount,
+                arrearsObligationCount: arrearsObligationCount,
+                serviceCutoffCount: serviceCutoffCount,
+                evictionNoticeCount: evictionNoticeCount,
+                evictionEligibleCount: evictionEligibleCount,
+                oldestOverdueAgeDays: oldestOverdueAgeDays);
             ValidateAmounts(
                 totalOverdueAmount: totalOverdueAmount,
                 distressScore: distressScore);
@@ -115,6 +159,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             OverdueObligationCount = overdueObligationCount;
             OverdueRentCount = overdueRentCount;
             OverdueUtilityCount = overdueUtilityCount;
+            ArrearsObligationCount = arrearsObligationCount;
+            ServiceCutoffCount = serviceCutoffCount;
+            EvictionNoticeCount = evictionNoticeCount;
+            EvictionEligibleCount = evictionEligibleCount;
+            OldestOverdueAgeDays = oldestOverdueAgeDays;
             TotalOverdueAmount = decimal.Round(
                 d: totalOverdueAmount,
                 decimals: 2,
@@ -130,11 +179,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         private static void ValidateCounts(
             int overdueObligationCount,
             int overdueRentCount,
-            int overdueUtilityCount)
+            int overdueUtilityCount,
+            int arrearsObligationCount,
+            int serviceCutoffCount,
+            int evictionNoticeCount,
+            int evictionEligibleCount,
+            int oldestOverdueAgeDays)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(value: overdueObligationCount);
             ArgumentOutOfRangeException.ThrowIfNegative(value: overdueRentCount);
             ArgumentOutOfRangeException.ThrowIfNegative(value: overdueUtilityCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(value: arrearsObligationCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(value: serviceCutoffCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(value: evictionNoticeCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(value: evictionEligibleCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(value: oldestOverdueAgeDays);
         }
 
         private static void ValidateAmounts(

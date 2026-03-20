@@ -200,6 +200,37 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     energyDelta -= 1;
                     stressDelta += 1;
                 }
+
+                if (financialStressState.ArrearsObligationCount > 0)
+                {
+                    happinessDelta -= 1;
+                    stressDelta += 1;
+                }
+
+                if (financialStressState.ServiceCutoffCount > 0)
+                {
+                    energyDelta -= 2;
+                    happinessDelta -= 1;
+                    stressDelta += 2;
+                }
+
+                if (financialStressState.EvictionNoticeCount > 0)
+                {
+                    happinessDelta -= 1;
+                    stressDelta += 2;
+                }
+
+                if (financialStressState.EvictionEligibleCount > 0)
+                {
+                    happinessDelta -= 2;
+                    stressDelta += 3;
+                }
+
+                if (financialStressState.OldestOverdueAgeDays >= 30)
+                    stressDelta += 1;
+
+                if (financialStressState.OldestOverdueAgeDays >= 60)
+                    happinessDelta -= 1;
             }
 
             return new HouseholdPressureEffect(

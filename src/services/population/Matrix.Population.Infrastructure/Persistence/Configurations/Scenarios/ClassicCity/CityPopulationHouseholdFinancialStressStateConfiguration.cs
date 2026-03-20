@@ -38,6 +38,21 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
             builder.Property(x => x.OverdueUtilityCount)
                .IsRequired();
 
+            builder.Property(x => x.ArrearsObligationCount)
+               .IsRequired();
+
+            builder.Property(x => x.ServiceCutoffCount)
+               .IsRequired();
+
+            builder.Property(x => x.EvictionNoticeCount)
+               .IsRequired();
+
+            builder.Property(x => x.EvictionEligibleCount)
+               .IsRequired();
+
+            builder.Property(x => x.OldestOverdueAgeDays)
+               .IsRequired();
+
             builder.Property(x => x.TotalOverdueAmount)
                .HasPrecision(
                     precision: 18,
