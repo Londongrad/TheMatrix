@@ -24,6 +24,7 @@ namespace Matrix.Economy.Application.UseCases.Simulation.Common
         HouseholdObligationChargeSupport chargeSupport,
         CityBusinessTaxRemittanceSupport taxRemittanceSupport,
         CityEconomyCostProfilePolicy costProfilePolicy,
+        CityEconomyServiceQualityPolicy serviceQualityPolicy,
         CityMunicipalOperatingCyclePolicy municipalOperatingCyclePolicy,
         CityBudgetBusinessDisbursementSupport disbursementSupport)
     {
@@ -76,6 +77,35 @@ namespace Matrix.Economy.Application.UseCases.Simulation.Common
                 UtilityCostMultiplier: snapshot.UtilityCostMultiplier,
                 CostOfLivingIndex: snapshot.CostOfLivingIndex,
                 AffordabilityIndex: snapshot.AffordabilityIndex,
+                OccurredAtUtc: snapshot.EvaluatedAtUtc);
+        }
+
+        public async Task<ClassicCityServiceQualitySnapshotV1> ExecuteServiceQualityAsync(
+            Guid cityId,
+            DateTimeOffset asOfUtc,
+            CancellationToken cancellationToken)
+        {
+            CityBudget? budget = await budgetRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            CityEconomyServiceQualitySnapshot snapshot = serviceQualityPolicy.Evaluate(
+                budget: budget,
+                allocations: allocations,
+                businesses: businesses,
+                asOfUtc: asOfUtc);
+
+            return new ClassicCityServiceQualitySnapshotV1(
+                CityId: cityId,
+                HealthcareQualityIndex: snapshot.HealthcareQualityIndex,
+                EducationQualityIndex: snapshot.EducationQualityIndex,
+                HousingSupportIndex: snapshot.HousingSupportIndex,
                 OccurredAtUtc: snapshot.EvaluatedAtUtc);
         }
 

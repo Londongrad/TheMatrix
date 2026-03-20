@@ -71,6 +71,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
             services.AddSingleton<CityEconomyCostProfilePolicy>();
+            services.AddSingleton<CityEconomyServiceQualityPolicy>();
             services.AddSingleton<CityEconomySimulationTemplatePolicy>();
 
             services.AddMassTransit(x =>

@@ -80,6 +80,11 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
                 var municipalResult = await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
                     cityId: request.CityId,
                     cancellationToken: cancellationToken);
+                ClassicCityServiceQualitySnapshotV1 serviceQualitySnapshot =
+                    await recurringCycleExecutionService.ExecuteServiceQualityAsync(
+                        cityId: request.CityId,
+                        asOfUtc: cycleAsOfUtc,
+                        cancellationToken: cancellationToken);
 
                 chargedObligations += billingResult.Result.ChargedObligations;
                 remittedBusinesses += taxResult.RemittedBusinesses;
@@ -97,6 +102,10 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
                     await cityPopulationSignalPublisher.PublishClassicCityCostOfLivingSnapshotAsync(
                         snapshot: costOfLivingSnapshot,
                         cancellationToken: cancellationToken);
+
+                await cityPopulationSignalPublisher.PublishClassicCityServiceQualitySnapshotAsync(
+                    snapshot: serviceQualitySnapshot,
+                    cancellationToken: cancellationToken);
 
                 foreach (var batch in billingResult.FinancialStressBatches)
                     await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(

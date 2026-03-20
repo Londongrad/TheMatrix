@@ -8,6 +8,10 @@ namespace Matrix.Economy.Application.Abstractions
             ClassicCityCostOfLivingSnapshotV1 snapshot,
             CancellationToken cancellationToken = default);
 
+        Task PublishClassicCityServiceQualitySnapshotAsync(
+            ClassicCityServiceQualitySnapshotV1 snapshot,
+            CancellationToken cancellationToken = default);
+
         Task PublishClassicCityEmployerFinancialStressBatchAsync(
             ClassicCityEmployerFinancialStressBatchV1 batch,
             CancellationToken cancellationToken = default);

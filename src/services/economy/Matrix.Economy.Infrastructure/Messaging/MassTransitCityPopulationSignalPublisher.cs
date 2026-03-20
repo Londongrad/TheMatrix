@@ -16,6 +16,15 @@ namespace Matrix.Economy.Infrastructure.Messaging
                 cancellationToken: cancellationToken);
         }
 
+        public Task PublishClassicCityServiceQualitySnapshotAsync(
+            ClassicCityServiceQualitySnapshotV1 snapshot,
+            CancellationToken cancellationToken = default)
+        {
+            return publishEndpoint.Publish(
+                message: snapshot,
+                cancellationToken: cancellationToken);
+        }
+
         public Task PublishClassicCityEmployerFinancialStressBatchAsync(
             ClassicCityEmployerFinancialStressBatchV1 batch,
             CancellationToken cancellationToken = default)
