@@ -8,6 +8,7 @@ namespace Matrix.Economy.Domain.Enums
         TaxRemittance = 3,
         PayrollExpense = 4,
         ObligationRevenue = 5,
-        MunicipalRevenue = 6
+        MunicipalRevenue = 6,
+        PayrollShortfall = 7
     }
 }

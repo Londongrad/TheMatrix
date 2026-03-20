@@ -236,6 +236,66 @@ namespace Matrix.Economy.Domain.Aggregates
             TotalOperatingExpenses = TotalOperatingExpenses.Add(amount);
         }
 
+        public CityBusinessPayrollSettlementOutcome SettlePayroll(
+            Money requestedGrossPayroll,
+            Money requestedIncomeTax)
+        {
+            if (!requestedGrossPayroll.IsPositive)
+                throw new ArgumentOutOfRangeException(
+                    paramName: nameof(requestedGrossPayroll),
+                    message: "Requested payroll must be positive.");
+
+            if (requestedIncomeTax.IsNegative || requestedIncomeTax.Amount > requestedGrossPayroll.Amount)
+                throw new ArgumentOutOfRangeException(
+                    paramName: nameof(requestedIncomeTax),
+                    message: "Requested income tax must be between zero and requested gross payroll.");
+
+            decimal availableBalanceAmount = Math.Max(
+                val1: 0m,
+                val2: Balance.Amount);
+            decimal paidGrossAmount = Math.Min(
+                val1: requestedGrossPayroll.Amount,
+                val2: availableBalanceAmount);
+
+            if (paidGrossAmount <= 0m)
+                return new CityBusinessPayrollSettlementOutcome(
+                    RequestedGrossPayroll: requestedGrossPayroll,
+                    RequestedIncomeTax: requestedIncomeTax,
+                    PaidGrossPayroll: Money.Zero,
+                    PaidIncomeTax: Money.Zero,
+                    PaidNetPayroll: Money.Zero,
+                    GrossShortfall: requestedGrossPayroll,
+                    FulfillmentRatio: 0m);
+
+            decimal fulfillmentRatio = requestedGrossPayroll.Amount <= 0m
+                ? 0m
+                : paidGrossAmount / requestedGrossPayroll.Amount;
+            decimal paidIncomeTaxAmount = Math.Min(
+                val1: paidGrossAmount,
+                val2: decimal.Round(
+                    d: requestedIncomeTax.Amount * fulfillmentRatio,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero));
+            var paidGrossPayroll = Money.FromDecimal(paidGrossAmount);
+            var paidIncomeTax = Money.FromDecimal(paidIncomeTaxAmount);
+            Money paidNetPayroll = paidGrossPayroll.Subtract(paidIncomeTax);
+            Money grossShortfall = requestedGrossPayroll.Subtract(paidGrossPayroll);
+
+            RecordOperatingExpense(paidGrossPayroll);
+
+            return new CityBusinessPayrollSettlementOutcome(
+                RequestedGrossPayroll: requestedGrossPayroll,
+                RequestedIncomeTax: requestedIncomeTax,
+                PaidGrossPayroll: paidGrossPayroll,
+                PaidIncomeTax: paidIncomeTax,
+                PaidNetPayroll: paidNetPayroll,
+                GrossShortfall: grossShortfall,
+                FulfillmentRatio: decimal.Round(
+                    d: fulfillmentRatio,
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero));
+        }
+
         public void RemitTax(Money amount)
         {
             if (!amount.IsPositive)
