@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Simulation.Common;
 using Matrix.Economy.Domain.Entities;
@@ -61,6 +62,11 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
                     cycleDate: cycleDate,
                     finalDate: toDate,
                     finalSimTimeUtc: request.ToSimTimeUtc);
+                ClassicCityCostOfLivingSnapshotV1? costOfLivingSnapshot =
+                    await recurringCycleExecutionService.ExecuteCostOfLivingAsync(
+                        cityId: request.CityId,
+                        asOfUtc: cycleAsOfUtc,
+                        cancellationToken: cancellationToken);
 
                 CityEconomyBillingCycleExecutionResult billingResult =
                     await recurringCycleExecutionService.ExecuteBillingAsync(
@@ -86,6 +92,11 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
                     processedDate: cycleDate,
                     updatedAtUtc: DateTimeOffset.UtcNow);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                if (costOfLivingSnapshot is not null)
+                    await cityPopulationSignalPublisher.PublishClassicCityCostOfLivingSnapshotAsync(
+                        snapshot: costOfLivingSnapshot,
+                        cancellationToken: cancellationToken);
 
                 foreach (var batch in billingResult.FinancialStressBatches)
                     await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(

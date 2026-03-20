@@ -16,15 +16,68 @@ namespace Matrix.Economy.Application.UseCases.Simulation.Common
 {
     public sealed class CityEconomyRecurringCycleExecutionService(
         ICityBudgetAllocationRepository allocationRepository,
+        ICityBudgetRepository budgetRepository,
         ICityBusinessRepository businessRepository,
+        ICityEconomyCostProfileStateRepository costProfileStateRepository,
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityHouseholdObligationRepository obligationRepository,
         HouseholdObligationChargeSupport chargeSupport,
         CityBusinessTaxRemittanceSupport taxRemittanceSupport,
+        CityEconomyCostProfilePolicy costProfilePolicy,
         CityMunicipalOperatingCyclePolicy municipalOperatingCyclePolicy,
         CityBudgetBusinessDisbursementSupport disbursementSupport)
     {
         private const int FinancialStressBatchSize = 500;
+
+        public async Task<ClassicCityCostOfLivingSnapshotV1?> ExecuteCostOfLivingAsync(
+            Guid cityId,
+            DateTimeOffset asOfUtc,
+            CancellationToken cancellationToken)
+        {
+            CityEconomyCostProfileState? state = await costProfileStateRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            if (state is null)
+                return null;
+
+            CityBudget? budget = await budgetRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityBusiness> businesses = await businessRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityHouseholdObligation> obligations = await obligationRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            CityEconomyCostProfileSnapshot snapshot = costProfilePolicy.Recalculate(
+                state: state,
+                budget: budget,
+                allocations: allocations,
+                businesses: businesses,
+                asOfUtc: asOfUtc);
+
+            state.ApplySnapshot(
+                snapshot: snapshot,
+                updatedAtUtc: asOfUtc);
+
+            foreach (CityHouseholdObligation obligation in obligations.Where(x => x.IsActive))
+                obligation.Reprice(snapshot.ResolveObligationPriceMultiplier(obligation.Kind));
+
+            return new ClassicCityCostOfLivingSnapshotV1(
+                CityId: cityId,
+                WageMultiplier: snapshot.WageMultiplier,
+                RetailPriceMultiplier: snapshot.RetailPriceMultiplier,
+                HousingCostMultiplier: snapshot.HousingCostMultiplier,
+                UtilityCostMultiplier: snapshot.UtilityCostMultiplier,
+                CostOfLivingIndex: snapshot.CostOfLivingIndex,
+                AffordabilityIndex: snapshot.AffordabilityIndex,
+                OccurredAtUtc: snapshot.EvaluatedAtUtc);
+        }
 
         public async Task<CityEconomyBillingCycleExecutionResult> ExecuteBillingAsync(
             Guid cityId,

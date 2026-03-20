@@ -7,6 +7,15 @@ namespace Matrix.Economy.Infrastructure.Messaging
     public sealed class MassTransitCityPopulationSignalPublisher(IPublishEndpoint publishEndpoint)
         : ICityPopulationSignalPublisher
     {
+        public Task PublishClassicCityCostOfLivingSnapshotAsync(
+            ClassicCityCostOfLivingSnapshotV1 snapshot,
+            CancellationToken cancellationToken = default)
+        {
+            return publishEndpoint.Publish(
+                message: snapshot,
+                cancellationToken: cancellationToken);
+        }
+
         public Task PublishClassicCityEmployerFinancialStressBatchAsync(
             ClassicCityEmployerFinancialStressBatchV1 batch,
             CancellationToken cancellationToken = default)

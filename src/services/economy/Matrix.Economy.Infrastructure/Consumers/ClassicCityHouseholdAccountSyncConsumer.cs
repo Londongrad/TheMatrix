@@ -3,7 +3,9 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Domain.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers
@@ -11,6 +13,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
     public sealed class ClassicCityHouseholdAccountSyncConsumer(
         ICityBudgetRepository budgetRepository,
         ICityBusinessRepository businessRepository,
+        ICityEconomyCostProfileStateRepository costProfileStateRepository,
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityHouseholdObligationRepository householdObligationRepository,
         IEconomyUnitOfWork unitOfWork,
@@ -108,6 +111,11 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 cityId: cityId,
                 templateKey: DefaultUtilityTemplateKey,
                 cancellationToken: cancellationToken);
+            CityEconomyCostProfileState? costProfileState = await costProfileStateRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            CityEconomyCostProfileSnapshot costProfile = costProfileState?.ToSnapshot() ??
+                                                         CityEconomyCostProfileSnapshot.Neutral(occurredAtUtc);
 
             if (landlord is null && utility is null)
                 return 0;
@@ -139,6 +147,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                             provider: landlord,
                             memberCount: memberCount,
                             kind: CityHouseholdObligationKind.Rent,
+                            costProfile: costProfile,
                             createdAtUtc: occurredAtUtc));
                     created++;
                 }
@@ -156,6 +165,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                             provider: utility,
                             memberCount: memberCount,
                             kind: CityHouseholdObligationKind.Utilities,
+                            costProfile: costProfile,
                             createdAtUtc: occurredAtUtc));
                     created++;
                 }
@@ -170,6 +180,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             CityBusiness provider,
             int memberCount,
             CityHouseholdObligationKind kind,
+            CityEconomyCostProfileSnapshot costProfile,
             DateTimeOffset createdAtUtc)
         {
             memberCount = Math.Max(
@@ -203,8 +214,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 CityHouseholdObligationKind.Utilities => "Starter utility service",
                 _ => "Starter household obligation"
             };
+            decimal priceMultiplier = costProfile.ResolveObligationPriceMultiplier(kind);
 
-            return new CityHouseholdObligation(
+            var obligation = new CityHouseholdObligation(
                 id: Guid.NewGuid(),
                 cityId: cityId,
                 householdAccountId: account.Id,
@@ -217,6 +229,9 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 unitProfile: account.GetUnitProfile(),
                 chargeAmount: Money.FromDecimal(chargeAmount),
                 taxAmount: Money.FromDecimal(taxAmount));
+
+            obligation.Reprice(priceMultiplier);
+            return obligation;
         }
     }
 }

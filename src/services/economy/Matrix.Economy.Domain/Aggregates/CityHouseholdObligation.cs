@@ -58,6 +58,8 @@ namespace Matrix.Economy.Domain.Aggregates
 
             ChargeAmount = chargeAmount;
             TaxAmount = taxAmount;
+            BaseChargeAmount = chargeAmount;
+            BaseTaxAmount = taxAmount;
             NextChargeDueAtUtc = firstChargeDueAtUtc;
             ChargeCount = 0;
             MissedChargeCount = 0;
@@ -76,6 +78,8 @@ namespace Matrix.Economy.Domain.Aggregates
         public string UnitCode { get; private set; } = string.Empty;
         public string UnitDisplayName { get; private set; } = string.Empty;
         public string UnitSymbol { get; private set; } = string.Empty;
+        public Money BaseChargeAmount { get; private set; } = null!;
+        public Money BaseTaxAmount { get; private set; } = null!;
         public Money ChargeAmount { get; private set; } = null!;
         public Money TaxAmount { get; private set; } = null!;
         public DateTimeOffset NextChargeDueAtUtc { get; private set; }
@@ -223,6 +227,15 @@ namespace Matrix.Economy.Domain.Aggregates
         public void Deactivate()
         {
             IsActive = false;
+        }
+
+        public void Reprice(decimal multiplier)
+        {
+            if (multiplier is <= 0m or > 3m)
+                throw new ArgumentOutOfRangeException(nameof(multiplier));
+
+            ChargeAmount = BaseChargeAmount.Multiply(multiplier);
+            TaxAmount = BaseTaxAmount.Multiply(multiplier);
         }
 
         private void ResetDelinquency()

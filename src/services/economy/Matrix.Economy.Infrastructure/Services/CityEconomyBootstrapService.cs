@@ -19,8 +19,10 @@ namespace Matrix.Economy.Infrastructure.Services
         ICityBudgetAllocationRepository allocationRepository,
         ICityBudgetLedgerRepository budgetLedgerRepository,
         ICityBusinessRepository businessRepository,
+        ICityEconomyCostProfileStateRepository costProfileStateRepository,
         IEconomyUnitOfWork unitOfWork,
-        CityEconomySimulationTemplatePolicy simulationTemplatePolicy)
+        CityEconomySimulationTemplatePolicy simulationTemplatePolicy,
+        CityEconomyCostProfilePolicy costProfilePolicy)
         : ICityEconomyBootstrapService
     {
         private const string CityBudgetByCityConstraintName = "IX_City_Budget_city_id";
@@ -75,6 +77,13 @@ namespace Matrix.Economy.Infrastructure.Services
                     createdBusinesses++;
             }
 
+            await EnsureCostProfileStateAsync(
+                cityId: cityId,
+                simulationKind: simulationKind,
+                economyProfile: economyProfile,
+                createdAtUtc: createdAtUtc,
+                cancellationToken: cancellationToken);
+
             return new CityEconomyBootstrapResultDto(
                 CityId: cityId,
                 BudgetCreated: budgetCreated,
@@ -84,6 +93,34 @@ namespace Matrix.Economy.Infrastructure.Services
                 UnitCode: budget.UnitCode,
                 UnitDisplayName: budget.UnitDisplayName,
                 UnitSymbol: budget.UnitSymbol);
+        }
+
+        private async Task EnsureCostProfileStateAsync(
+            Guid cityId,
+            string simulationKind,
+            string? economyProfile,
+            DateTimeOffset createdAtUtc,
+            CancellationToken cancellationToken)
+        {
+            CityEconomyCostProfileState? existingState = await costProfileStateRepository.GetByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            if (existingState is not null)
+                return;
+
+            CityEconomyCostProfileSnapshot seed = costProfilePolicy.CreateSeed(
+                simulationKind: simulationKind,
+                economyProfile: economyProfile,
+                asOfUtc: createdAtUtc);
+
+            await costProfileStateRepository.AddAsync(
+                state: CityEconomyCostProfileState.Create(
+                    cityId: cityId,
+                    seed: seed,
+                    updatedAtUtc: createdAtUtc),
+                cancellationToken: cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         private async Task<(CityBudget Budget, bool Created)> EnsureBudgetAsync(

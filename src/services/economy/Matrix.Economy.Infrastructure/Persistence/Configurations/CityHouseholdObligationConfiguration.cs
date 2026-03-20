@@ -42,6 +42,16 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                .HasColumnName("unit_display_name");
             builder.Property(x => x.UnitSymbol)
                .HasColumnName("unit_symbol");
+            builder.Property(x => x.BaseChargeAmount)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("base_charge_amount");
+            builder.Property(x => x.BaseTaxAmount)
+               .HasConversion(
+                    convertToProviderExpression: m => m.Amount,
+                    convertFromProviderExpression: v => new Money(v))
+               .HasColumnName("base_tax_amount");
 
             builder.Property(x => x.ChargeAmount)
                .HasConversion(

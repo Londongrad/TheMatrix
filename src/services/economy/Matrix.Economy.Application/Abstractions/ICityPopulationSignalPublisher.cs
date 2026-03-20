@@ -4,6 +4,10 @@ namespace Matrix.Economy.Application.Abstractions
 {
     public interface ICityPopulationSignalPublisher
     {
+        Task PublishClassicCityCostOfLivingSnapshotAsync(
+            ClassicCityCostOfLivingSnapshotV1 snapshot,
+            CancellationToken cancellationToken = default);
+
         Task PublishClassicCityEmployerFinancialStressBatchAsync(
             ClassicCityEmployerFinancialStressBatchV1 batch,
             CancellationToken cancellationToken = default);
