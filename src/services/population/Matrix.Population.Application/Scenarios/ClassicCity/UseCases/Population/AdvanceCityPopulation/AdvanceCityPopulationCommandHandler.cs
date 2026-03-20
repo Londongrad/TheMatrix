@@ -631,9 +631,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     housingStatus: housingStatus,
                     currentDate: currentDate);
 
-                grossPayroll = grossPayroll.Add(cashflow.GrossIncome.Multiply(daysElapsed));
-                incomeTax = incomeTax.Add(cashflow.TaxWithheld.Multiply(daysElapsed));
-                netPayroll = netPayroll.Add(cashflow.TakeHomeIncome.Multiply(daysElapsed));
                 Money retailTurnoverForPeriod = cashflow.RetailTurnover.Multiply(daysElapsed);
                 retailTurnover = retailTurnover.Add(retailTurnoverForPeriod);
                 Money retailTaxForPeriod = retailTurnoverForPeriod.Multiply(ResolveRetailTaxRate());
@@ -689,6 +686,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             NetPayrollAmount: supportNetIncomeForPeriod.Amount,
                             RetailTurnoverAmount: retailTurnoverForPeriod.Amount,
                             RetailTaxAmount: retailTaxForPeriod.Amount));
+
+                grossPayroll = grossPayroll.Add(supportGrossIncomeForPeriod);
+                incomeTax = incomeTax.Add(supportIncomeTaxForPeriod);
+                netPayroll = netPayroll.Add(supportNetIncomeForPeriod);
 
                 household.ApplyDailyCashflow(
                     takeHomeIncome: cashflow.TakeHomeIncome,

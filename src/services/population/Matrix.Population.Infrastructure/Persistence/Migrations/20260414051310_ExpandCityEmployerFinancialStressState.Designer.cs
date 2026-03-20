@@ -3,17 +3,20 @@ using System;
 using Matrix.Population.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Matrix.Population.Infrastructure.Migrations
+namespace Matrix.Population.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PopulationDbContext))]
-    partial class PopulationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414051310_ExpandCityEmployerFinancialStressState")]
+    partial class ExpandCityEmployerFinancialStressState
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -760,7 +763,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("Persons", (string)null);
+                            b1.ToTable("Persons");
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
@@ -778,7 +781,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("Persons", (string)null);
+                            b1.ToTable("Persons");
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
@@ -800,7 +803,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                                     b2.HasKey("EmploymentInfoPersonId");
 
-                                    b2.ToTable("Persons", (string)null);
+                                    b2.ToTable("Persons");
 
                                     b2.WithOwner()
                                         .HasForeignKey("EmploymentInfoPersonId");
@@ -832,7 +835,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("Persons", (string)null);
+                            b1.ToTable("Persons");
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
@@ -854,7 +857,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("Persons", (string)null);
+                            b1.ToTable("Persons");
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
@@ -874,7 +877,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                                     b2.HasKey("LifeStatePersonId");
 
-                                    b2.ToTable("Persons", (string)null);
+                                    b2.ToTable("Persons");
 
                                     b2.WithOwner()
                                         .HasForeignKey("LifeStatePersonId");
@@ -900,7 +903,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("Persons", (string)null);
+                            b1.ToTable("Persons");
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
@@ -927,7 +930,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("Persons", (string)null);
+                            b1.ToTable("Persons");
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
@@ -956,7 +959,7 @@ namespace Matrix.Population.Infrastructure.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("Persons", (string)null);
+                            b1.ToTable("Persons");
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");

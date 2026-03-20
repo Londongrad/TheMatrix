@@ -327,12 +327,29 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (employerStressState is not null)
             {
                 chance += (double)employerStressState.DistressScore * 0.050d;
+                chance += (double)(1m - employerStressState.PayrollFulfillmentRatio) * 0.070d;
 
                 if (employerStressState.HasHiringFreeze)
                     chance += 0.010d;
 
                 if (employerStressState.HasLayoffPressure)
                     chance += 0.035d;
+
+                if (employerStressState.PartialPayrollCount > 0)
+                    chance += Math.Min(
+                        val1: 0.030d,
+                        val2: employerStressState.PartialPayrollCount * 0.010d);
+
+                if (employerStressState.FailedPayrollCount > 0)
+                    chance += Math.Min(
+                        val1: 0.060d,
+                        val2: employerStressState.FailedPayrollCount * 0.020d);
+
+                if (employerStressState.MissedGrossPayrollAmount > 0m)
+                    chance += Math.Min(
+                        val1: 0.030d,
+                        val2: (double)(employerStressState.MissedGrossPayrollAmount /
+                                       Math.Max(1m, employerStressState.RequestedGrossPayrollAmount)) * 0.030d);
 
                 if (employerStressState.CurrentBalanceAmount < 0m)
                     chance += 0.020d;
@@ -359,7 +376,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 !employerStressByWorkplaceId.TryGetValue(
                     key: workplaceId,
                     value: out CityPopulationEmployerFinancialStressState? stressState) ||
-                !stressState.HasHiringFreeze);
+                (!stressState.HasHiringFreeze &&
+                 stressState.PayrollFulfillmentRatio >= 0.85m &&
+                 stressState.FailedPayrollCount == 0));
 
             return new EmployerMarketAvailability(
                 TotalEmployers: titlePool.Count,

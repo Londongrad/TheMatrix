@@ -26,13 +26,18 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     ConsumerName: ClassicCityEmployerFinancialStressConsumerDefinition.EndpointNameValue,
                     OccurredAtUtc: message.OccurredAtUtc,
                     Employers: message.Employers
-                       .Select(x => new EmployerFinancialStressSnapshotInput(
-                            WorkplaceExternalReferenceCode: x.WorkplaceExternalReferenceCode,
-                            RecentGrossPayrollAmount: x.RecentGrossPayrollAmount,
-                            CurrentBalanceAmount: x.CurrentBalanceAmount,
-                            DistressScore: x.DistressScore,
-                            HasHiringFreeze: x.HasHiringFreeze,
-                            HasLayoffPressure: x.HasLayoffPressure))
+                        .Select(x => new EmployerFinancialStressSnapshotInput(
+                            x.WorkplaceExternalReferenceCode,
+                            x.RequestedGrossPayrollAmount,
+                            x.PaidGrossPayrollAmount,
+                            x.MissedGrossPayrollAmount,
+                            x.PayrollFulfillmentRatio,
+                            x.FailedPayrollCount,
+                            x.PartialPayrollCount,
+                            x.CurrentBalanceAmount,
+                            x.DistressScore,
+                            x.HasHiringFreeze,
+                            x.HasLayoffPressure))
                        .ToArray()),
                 cancellationToken: context.CancellationToken);
 

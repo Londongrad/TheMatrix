@@ -12,7 +12,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         private CityPopulationEmployerFinancialStressState(
             CityId cityId,
             WorkplaceId workplaceId,
-            decimal recentGrossPayrollAmount,
+            decimal requestedGrossPayrollAmount,
+            decimal paidGrossPayrollAmount,
+            decimal missedGrossPayrollAmount,
+            decimal payrollFulfillmentRatio,
+            int failedPayrollCount,
+            int partialPayrollCount,
             decimal currentBalanceAmount,
             decimal distressScore,
             bool hasHiringFreeze,
@@ -21,7 +26,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             DateTimeOffset updatedAtUtc)
         {
             ValidateAmounts(
-                recentGrossPayrollAmount: recentGrossPayrollAmount,
+                requestedGrossPayrollAmount: requestedGrossPayrollAmount,
+                paidGrossPayrollAmount: paidGrossPayrollAmount,
+                missedGrossPayrollAmount: missedGrossPayrollAmount,
+                payrollFulfillmentRatio: payrollFulfillmentRatio,
+                failedPayrollCount: failedPayrollCount,
+                partialPayrollCount: partialPayrollCount,
                 distressScore: distressScore);
             EnsureUtc(
                 value: lastEvaluatedAtUtc,
@@ -32,10 +42,24 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 
             CityId = cityId;
             WorkplaceId = workplaceId;
-            RecentGrossPayrollAmount = decimal.Round(
-                d: recentGrossPayrollAmount,
+            RequestedGrossPayrollAmount = decimal.Round(
+                d: requestedGrossPayrollAmount,
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
+            PaidGrossPayrollAmount = decimal.Round(
+                d: paidGrossPayrollAmount,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            MissedGrossPayrollAmount = decimal.Round(
+                d: missedGrossPayrollAmount,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            PayrollFulfillmentRatio = decimal.Round(
+                d: payrollFulfillmentRatio,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+            FailedPayrollCount = failedPayrollCount;
+            PartialPayrollCount = partialPayrollCount;
             CurrentBalanceAmount = decimal.Round(
                 d: currentBalanceAmount,
                 decimals: 2,
@@ -52,7 +76,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 
         public CityId CityId { get; private set; }
         public WorkplaceId WorkplaceId { get; private set; }
-        public decimal RecentGrossPayrollAmount { get; private set; }
+        public decimal RequestedGrossPayrollAmount { get; private set; }
+        public decimal PaidGrossPayrollAmount { get; private set; }
+        public decimal MissedGrossPayrollAmount { get; private set; }
+        public decimal PayrollFulfillmentRatio { get; private set; }
+        public int FailedPayrollCount { get; private set; }
+        public int PartialPayrollCount { get; private set; }
         public decimal CurrentBalanceAmount { get; private set; }
         public decimal DistressScore { get; private set; }
         public bool HasHiringFreeze { get; private set; }
@@ -62,6 +91,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
 
         public bool HasActiveDistress =>
             DistressScore > 0m ||
+            FailedPayrollCount > 0 ||
+            PartialPayrollCount > 0 ||
+            MissedGrossPayrollAmount > 0m ||
             HasHiringFreeze ||
             HasLayoffPressure ||
             CurrentBalanceAmount < 0m;
@@ -69,7 +101,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         public static CityPopulationEmployerFinancialStressState Create(
             CityId cityId,
             WorkplaceId workplaceId,
-            decimal recentGrossPayrollAmount,
+            decimal requestedGrossPayrollAmount,
+            decimal paidGrossPayrollAmount,
+            decimal missedGrossPayrollAmount,
+            decimal payrollFulfillmentRatio,
+            int failedPayrollCount,
+            int partialPayrollCount,
             decimal currentBalanceAmount,
             decimal distressScore,
             bool hasHiringFreeze,
@@ -80,7 +117,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             return new CityPopulationEmployerFinancialStressState(
                 cityId: cityId,
                 workplaceId: workplaceId,
-                recentGrossPayrollAmount: recentGrossPayrollAmount,
+                requestedGrossPayrollAmount: requestedGrossPayrollAmount,
+                paidGrossPayrollAmount: paidGrossPayrollAmount,
+                missedGrossPayrollAmount: missedGrossPayrollAmount,
+                payrollFulfillmentRatio: payrollFulfillmentRatio,
+                failedPayrollCount: failedPayrollCount,
+                partialPayrollCount: partialPayrollCount,
                 currentBalanceAmount: currentBalanceAmount,
                 distressScore: distressScore,
                 hasHiringFreeze: hasHiringFreeze,
@@ -90,7 +132,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         }
 
         public void ApplySnapshot(
-            decimal recentGrossPayrollAmount,
+            decimal requestedGrossPayrollAmount,
+            decimal paidGrossPayrollAmount,
+            decimal missedGrossPayrollAmount,
+            decimal payrollFulfillmentRatio,
+            int failedPayrollCount,
+            int partialPayrollCount,
             decimal currentBalanceAmount,
             decimal distressScore,
             bool hasHiringFreeze,
@@ -99,7 +146,12 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             DateTimeOffset updatedAtUtc)
         {
             ValidateAmounts(
-                recentGrossPayrollAmount: recentGrossPayrollAmount,
+                requestedGrossPayrollAmount: requestedGrossPayrollAmount,
+                paidGrossPayrollAmount: paidGrossPayrollAmount,
+                missedGrossPayrollAmount: missedGrossPayrollAmount,
+                payrollFulfillmentRatio: payrollFulfillmentRatio,
+                failedPayrollCount: failedPayrollCount,
+                partialPayrollCount: partialPayrollCount,
                 distressScore: distressScore);
             EnsureUtc(
                 value: lastEvaluatedAtUtc,
@@ -108,10 +160,24 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
                 value: updatedAtUtc,
                 paramName: nameof(updatedAtUtc));
 
-            RecentGrossPayrollAmount = decimal.Round(
-                d: recentGrossPayrollAmount,
+            RequestedGrossPayrollAmount = decimal.Round(
+                d: requestedGrossPayrollAmount,
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
+            PaidGrossPayrollAmount = decimal.Round(
+                d: paidGrossPayrollAmount,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            MissedGrossPayrollAmount = decimal.Round(
+                d: missedGrossPayrollAmount,
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            PayrollFulfillmentRatio = decimal.Round(
+                d: payrollFulfillmentRatio,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+            FailedPayrollCount = failedPayrollCount;
+            PartialPayrollCount = partialPayrollCount;
             CurrentBalanceAmount = decimal.Round(
                 d: currentBalanceAmount,
                 decimals: 2,
@@ -127,11 +193,40 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         }
 
         private static void ValidateAmounts(
-            decimal recentGrossPayrollAmount,
+            decimal requestedGrossPayrollAmount,
+            decimal paidGrossPayrollAmount,
+            decimal missedGrossPayrollAmount,
+            decimal payrollFulfillmentRatio,
+            int failedPayrollCount,
+            int partialPayrollCount,
             decimal distressScore)
         {
-            if (recentGrossPayrollAmount < 0m)
-                throw new ArgumentOutOfRangeException(nameof(recentGrossPayrollAmount));
+            if (requestedGrossPayrollAmount < 0m)
+                throw new ArgumentOutOfRangeException(nameof(requestedGrossPayrollAmount));
+
+            if (paidGrossPayrollAmount < 0m)
+                throw new ArgumentOutOfRangeException(nameof(paidGrossPayrollAmount));
+
+            if (missedGrossPayrollAmount < 0m)
+                throw new ArgumentOutOfRangeException(nameof(missedGrossPayrollAmount));
+
+            if (payrollFulfillmentRatio is < 0m or > 1m)
+                throw new ArgumentOutOfRangeException(nameof(payrollFulfillmentRatio));
+
+            if (failedPayrollCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(failedPayrollCount));
+
+            if (partialPayrollCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(partialPayrollCount));
+
+            if (paidGrossPayrollAmount > requestedGrossPayrollAmount)
+                throw new ArgumentOutOfRangeException(nameof(paidGrossPayrollAmount));
+
+            if (decimal.Round(
+                    d: paidGrossPayrollAmount + missedGrossPayrollAmount,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero) > requestedGrossPayrollAmount + 0.01m)
+                throw new ArgumentOutOfRangeException(nameof(missedGrossPayrollAmount));
 
             if (distressScore is < 0m or > 1m)
                 throw new ArgumentOutOfRangeException(nameof(distressScore));

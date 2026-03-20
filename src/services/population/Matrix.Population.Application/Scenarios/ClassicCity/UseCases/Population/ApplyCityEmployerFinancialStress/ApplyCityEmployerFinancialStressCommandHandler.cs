@@ -79,7 +79,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             state = CityPopulationEmployerFinancialStressState.Create(
                                 cityId: cityId,
                                 workplaceId: workplaceId,
-                                recentGrossPayrollAmount: employer.RecentGrossPayrollAmount,
+                                requestedGrossPayrollAmount: employer.RequestedGrossPayrollAmount,
+                                paidGrossPayrollAmount: employer.PaidGrossPayrollAmount,
+                                missedGrossPayrollAmount: employer.MissedGrossPayrollAmount,
+                                payrollFulfillmentRatio: employer.PayrollFulfillmentRatio,
+                                failedPayrollCount: employer.FailedPayrollCount,
+                                partialPayrollCount: employer.PartialPayrollCount,
                                 currentBalanceAmount: employer.CurrentBalanceAmount,
                                 distressScore: employer.DistressScore,
                                 hasHiringFreeze: employer.HasHiringFreeze,
@@ -93,7 +98,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         }
                         else
                             state.ApplySnapshot(
-                                recentGrossPayrollAmount: employer.RecentGrossPayrollAmount,
+                                requestedGrossPayrollAmount: employer.RequestedGrossPayrollAmount,
+                                paidGrossPayrollAmount: employer.PaidGrossPayrollAmount,
+                                missedGrossPayrollAmount: employer.MissedGrossPayrollAmount,
+                                payrollFulfillmentRatio: employer.PayrollFulfillmentRatio,
+                                failedPayrollCount: employer.FailedPayrollCount,
+                                partialPayrollCount: employer.PartialPayrollCount,
                                 currentBalanceAmount: employer.CurrentBalanceAmount,
                                 distressScore: employer.DistressScore,
                                 hasHiringFreeze: employer.HasHiringFreeze,

@@ -29,10 +29,34 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                     convertToProviderExpression: id => id.Value,
                     convertFromProviderExpression: value => WorkplaceId.From(value));
 
-            builder.Property(x => x.RecentGrossPayrollAmount)
+            builder.Property(x => x.RequestedGrossPayrollAmount)
                .HasPrecision(
                     precision: 18,
                     scale: 2)
+               .IsRequired();
+
+            builder.Property(x => x.PaidGrossPayrollAmount)
+               .HasPrecision(
+                    precision: 18,
+                    scale: 2)
+               .IsRequired();
+
+            builder.Property(x => x.MissedGrossPayrollAmount)
+               .HasPrecision(
+                    precision: 18,
+                    scale: 2)
+               .IsRequired();
+
+            builder.Property(x => x.PayrollFulfillmentRatio)
+               .HasPrecision(
+                    precision: 8,
+                    scale: 4)
+               .IsRequired();
+
+            builder.Property(x => x.FailedPayrollCount)
+               .IsRequired();
+
+            builder.Property(x => x.PartialPayrollCount)
                .IsRequired();
 
             builder.Property(x => x.CurrentBalanceAmount)

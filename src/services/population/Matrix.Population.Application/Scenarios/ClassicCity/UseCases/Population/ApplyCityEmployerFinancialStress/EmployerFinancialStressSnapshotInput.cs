@@ -2,7 +2,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     public sealed record EmployerFinancialStressSnapshotInput(
         string WorkplaceExternalReferenceCode,
-        decimal RecentGrossPayrollAmount,
+        decimal RequestedGrossPayrollAmount,
+        decimal PaidGrossPayrollAmount,
+        decimal MissedGrossPayrollAmount,
+        decimal PayrollFulfillmentRatio,
+        int FailedPayrollCount,
+        int PartialPayrollCount,
         decimal CurrentBalanceAmount,
         decimal DistressScore,
         bool HasHiringFreeze,
