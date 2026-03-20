@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 
 namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
@@ -5,14 +6,24 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
     public sealed record HouseholdObligationChargeAttemptResult(
         bool Succeeded,
         string? FailureCode,
-        CityHouseholdAccountLedgerEntryDto? LedgerEntry)
+        CityHouseholdAccountLedgerEntryDto? LedgerEntry,
+        Money ChargedAmount,
+        Money ChargedTaxAmount,
+        int SettledInstallmentCount)
     {
-        public static HouseholdObligationChargeAttemptResult Success(CityHouseholdAccountLedgerEntryDto ledgerEntry)
+        public static HouseholdObligationChargeAttemptResult Success(
+            CityHouseholdAccountLedgerEntryDto ledgerEntry,
+            Money chargedAmount,
+            Money chargedTaxAmount,
+            int settledInstallmentCount)
         {
             return new HouseholdObligationChargeAttemptResult(
                 Succeeded: true,
                 FailureCode: null,
-                LedgerEntry: ledgerEntry);
+                LedgerEntry: ledgerEntry,
+                ChargedAmount: chargedAmount,
+                ChargedTaxAmount: chargedTaxAmount,
+                SettledInstallmentCount: settledInstallmentCount);
         }
 
         public static HouseholdObligationChargeAttemptResult Failure(string failureCode)
@@ -20,7 +31,10 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
             return new HouseholdObligationChargeAttemptResult(
                 Succeeded: false,
                 FailureCode: failureCode,
-                LedgerEntry: null);
+                LedgerEntry: null,
+                ChargedAmount: Money.Zero,
+                ChargedTaxAmount: Money.Zero,
+                SettledInstallmentCount: 0);
         }
     }
 }

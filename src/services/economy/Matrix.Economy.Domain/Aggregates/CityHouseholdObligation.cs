@@ -60,6 +60,7 @@ namespace Matrix.Economy.Domain.Aggregates
             TaxAmount = taxAmount;
             NextChargeDueAtUtc = firstChargeDueAtUtc;
             ChargeCount = 0;
+            MissedChargeCount = 0;
         }
 
         public Guid Id { get; private set; }
@@ -79,7 +80,17 @@ namespace Matrix.Economy.Domain.Aggregates
         public Money TaxAmount { get; private set; } = null!;
         public DateTimeOffset NextChargeDueAtUtc { get; private set; }
         public DateTimeOffset? LastChargedAtUtc { get; private set; }
+        public DateTimeOffset? LastChargeAttemptedAtUtc { get; private set; }
+        public DateTimeOffset? FirstMissedChargeDueAtUtc { get; private set; }
+        public DateTimeOffset? ServiceCutoffAtUtc { get; private set; }
+        public DateTimeOffset? EvictionNoticeIssuedAtUtc { get; private set; }
+        public DateTimeOffset? EvictionEligibleAtUtc { get; private set; }
         public int ChargeCount { get; private set; }
+        public int MissedChargeCount { get; private set; }
+        public bool HasActiveDelinquency => FirstMissedChargeDueAtUtc.HasValue;
+        public bool HasServiceCutoff => ServiceCutoffAtUtc.HasValue;
+        public bool HasEvictionNotice => EvictionNoticeIssuedAtUtc.HasValue;
+        public bool IsEvictionEligible => EvictionEligibleAtUtc.HasValue;
 
         public CityBudgetUnitProfile GetUnitProfile()
         {
@@ -109,19 +120,99 @@ namespace Matrix.Economy.Domain.Aggregates
                     $"Obligation unit mismatch. Existing={UnitKind}:{UnitCode}, requested={requestedUnitProfile.Kind}:{requestedUnitProfile.Code}.");
         }
 
+        public int ResolveDueInstallmentCount(DateTimeOffset asOfUtc)
+        {
+            if (!IsActive)
+                return 0;
+
+            DateTimeOffset dueAnchor = FirstMissedChargeDueAtUtc ?? NextChargeDueAtUtc;
+            if (dueAnchor > asOfUtc)
+                return 0;
+
+            return BillingCadence switch
+            {
+                CityHouseholdObligationBillingCadence.Daily => Math.Max(
+                    val1: 1,
+                    val2: (asOfUtc.UtcDateTime.Date - dueAnchor.UtcDateTime.Date).Days + 1),
+                CityHouseholdObligationBillingCadence.Weekly => Math.Max(
+                    val1: 1,
+                    val2: ((asOfUtc.UtcDateTime.Date - dueAnchor.UtcDateTime.Date).Days / 7) + 1),
+                _ => ResolveMonthlyDueInstallmentCount(
+                    dueAnchor: dueAnchor,
+                    asOfUtc: asOfUtc)
+            };
+        }
+
+        public int ResolveDelinquentBillingCycles(DateTimeOffset asOfUtc)
+        {
+            return !HasActiveDelinquency
+                ? 0
+                : ResolveDueInstallmentCount(asOfUtc);
+        }
+
+        public int ResolveDelinquencyAgeDays(DateTimeOffset asOfUtc)
+        {
+            if (!FirstMissedChargeDueAtUtc.HasValue)
+                return 0;
+
+            return Math.Max(
+                val1: 0,
+                val2: (asOfUtc.UtcDateTime.Date - FirstMissedChargeDueAtUtc.Value.UtcDateTime.Date).Days);
+        }
+
+        public Money ResolveCurrentDueAmount(DateTimeOffset asOfUtc)
+        {
+            int installmentCount = ResolveDueInstallmentCount(asOfUtc);
+            return installmentCount <= 0
+                ? Money.Zero
+                : ChargeAmount.Multiply(installmentCount);
+        }
+
+        public Money ResolveCurrentDueTaxAmount(DateTimeOffset asOfUtc)
+        {
+            int installmentCount = ResolveDueInstallmentCount(asOfUtc);
+            return installmentCount <= 0
+                ? Money.Zero
+                : TaxAmount.Multiply(installmentCount);
+        }
+
         public void MarkCharged(DateTimeOffset chargedAtUtc)
         {
             if (!IsActive)
                 throw new InvalidOperationException("Cannot charge an inactive obligation.");
 
+            int settledInstallmentCount = ResolveDueInstallmentCount(chargedAtUtc);
+            if (settledInstallmentCount <= 0)
+                settledInstallmentCount = 1;
+
+            DateTimeOffset dueAnchor = FirstMissedChargeDueAtUtc ?? NextChargeDueAtUtc;
             LastChargedAtUtc = chargedAtUtc;
-            ChargeCount++;
-            NextChargeDueAtUtc = BillingCadence switch
+            ChargeCount += settledInstallmentCount;
+            NextChargeDueAtUtc = AddCadence(
+                value: dueAnchor,
+                periods: settledInstallmentCount);
+            ResetDelinquency();
+        }
+
+        public void MarkChargeMissed(DateTimeOffset attemptedAtUtc)
+        {
+            if (!IsActive)
+                throw new InvalidOperationException("Cannot miss an inactive obligation charge.");
+
+            if (LastChargeAttemptedAtUtc.HasValue &&
+                LastChargeAttemptedAtUtc.Value.UtcDateTime.Date == attemptedAtUtc.UtcDateTime.Date)
             {
-                CityHouseholdObligationBillingCadence.Daily => chargedAtUtc.AddDays(1),
-                CityHouseholdObligationBillingCadence.Weekly => chargedAtUtc.AddDays(7),
-                _ => chargedAtUtc.AddMonths(1)
-            };
+                LastChargeAttemptedAtUtc = attemptedAtUtc;
+                ApplyDelinquencyEscalation(attemptedAtUtc);
+                return;
+            }
+
+            LastChargeAttemptedAtUtc = attemptedAtUtc;
+            FirstMissedChargeDueAtUtc ??= NextChargeDueAtUtc <= attemptedAtUtc
+                ? NextChargeDueAtUtc
+                : attemptedAtUtc;
+            MissedChargeCount++;
+            ApplyDelinquencyEscalation(attemptedAtUtc);
         }
 
         public bool IsDue(DateTimeOffset asOfUtc)
@@ -132,6 +223,73 @@ namespace Matrix.Economy.Domain.Aggregates
         public void Deactivate()
         {
             IsActive = false;
+        }
+
+        private void ResetDelinquency()
+        {
+            LastChargeAttemptedAtUtc = null;
+            FirstMissedChargeDueAtUtc = null;
+            ServiceCutoffAtUtc = null;
+            EvictionNoticeIssuedAtUtc = null;
+            EvictionEligibleAtUtc = null;
+            MissedChargeCount = 0;
+        }
+
+        private void ApplyDelinquencyEscalation(DateTimeOffset asOfUtc)
+        {
+            int delinquencyAgeDays = ResolveDelinquencyAgeDays(asOfUtc);
+            int delinquentBillingCycles = ResolveDelinquentBillingCycles(asOfUtc);
+
+            switch (Kind)
+            {
+                case CityHouseholdObligationKind.Utilities:
+                    if (!ServiceCutoffAtUtc.HasValue &&
+                        (delinquentBillingCycles >= 2 || delinquencyAgeDays >= 21))
+                        ServiceCutoffAtUtc = asOfUtc;
+                    break;
+
+                case CityHouseholdObligationKind.Rent:
+                    if (!EvictionNoticeIssuedAtUtc.HasValue &&
+                        (delinquentBillingCycles >= 2 || delinquencyAgeDays >= 35))
+                        EvictionNoticeIssuedAtUtc = asOfUtc;
+
+                    if (!EvictionEligibleAtUtc.HasValue &&
+                        (delinquentBillingCycles >= 3 || delinquencyAgeDays >= 60))
+                        EvictionEligibleAtUtc = asOfUtc;
+                    break;
+            }
+        }
+
+        private int ResolveMonthlyDueInstallmentCount(
+            DateTimeOffset dueAnchor,
+            DateTimeOffset asOfUtc)
+        {
+            int installmentCount = 1;
+            DateTimeOffset probe = dueAnchor;
+
+            while (AddCadence(
+                       value: probe,
+                       periods: 1) <= asOfUtc)
+            {
+                probe = AddCadence(
+                    value: probe,
+                    periods: 1);
+                installmentCount++;
+            }
+
+            return installmentCount;
+        }
+
+        private DateTimeOffset AddCadence(
+            DateTimeOffset value,
+            int periods)
+        {
+            return BillingCadence switch
+            {
+                CityHouseholdObligationBillingCadence.Daily => value.AddDays(periods),
+                CityHouseholdObligationBillingCadence.Weekly => value.AddDays(7 * periods),
+                _ => value.AddMonths(periods)
+            };
         }
 
         private void ApplyUnitProfile(CityBudgetUnitProfile unitProfile)

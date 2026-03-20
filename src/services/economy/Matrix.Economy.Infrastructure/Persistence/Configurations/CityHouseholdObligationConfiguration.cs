@@ -59,8 +59,20 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
                .HasColumnName("next_charge_due_at_utc");
             builder.Property(x => x.LastChargedAtUtc)
                .HasColumnName("last_charged_at_utc");
+            builder.Property(x => x.LastChargeAttemptedAtUtc)
+               .HasColumnName("last_charge_attempted_at_utc");
+            builder.Property(x => x.FirstMissedChargeDueAtUtc)
+               .HasColumnName("first_missed_charge_due_at_utc");
+            builder.Property(x => x.ServiceCutoffAtUtc)
+               .HasColumnName("service_cutoff_at_utc");
+            builder.Property(x => x.EvictionNoticeIssuedAtUtc)
+               .HasColumnName("eviction_notice_issued_at_utc");
+            builder.Property(x => x.EvictionEligibleAtUtc)
+               .HasColumnName("eviction_eligible_at_utc");
             builder.Property(x => x.ChargeCount)
                .HasColumnName("charge_count");
+            builder.Property(x => x.MissedChargeCount)
+               .HasColumnName("missed_charge_count");
 
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => x.HouseholdAccountId);

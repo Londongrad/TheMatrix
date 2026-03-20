@@ -35,36 +35,42 @@ namespace Matrix.Economy.Application.UseCases.Simulation.Common
                 cityId: cityId,
                 asOfUtc: asOfUtc,
                 cancellationToken: cancellationToken);
+            IReadOnlyList<CityHouseholdObligation> cityObligations = await obligationRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
 
             decimal totalChargedAmount = 0m;
             decimal totalTaxAmount = 0m;
+            int chargedObligations = 0;
 
             foreach (CityHouseholdObligation obligation in dueObligations)
             {
                 HouseholdObligationChargeAttemptResult attempt = await chargeSupport.TryChargeAsync(
                     obligation: obligation,
                     description: "Recurring billing cycle.",
+                    occurredAtUtc: asOfUtc,
                     cancellationToken: cancellationToken);
 
                 if (!attempt.Succeeded)
                     continue;
 
-                totalChargedAmount += obligation.ChargeAmount.Amount;
-                totalTaxAmount += obligation.TaxAmount.Amount;
+                totalChargedAmount += attempt.ChargedAmount.Amount;
+                totalTaxAmount += attempt.ChargedTaxAmount.Amount;
+                chargedObligations += attempt.SettledInstallmentCount;
             }
 
             ClassicCityHouseholdFinancialStressBatchV1[] financialStressBatches =
                 await BuildFinancialStressBatchesAsync(
                     cityId: cityId,
                     asOfUtc: asOfUtc,
-                    dueObligations: dueObligations,
+                    cityObligations: cityObligations,
                     cancellationToken: cancellationToken);
 
             return new CityEconomyBillingCycleExecutionResult(
                 Result: new RunCityHouseholdBillingCycleResultDto(
                     CityId: cityId,
                     AsOfUtc: asOfUtc.ToString("O"),
-                    ChargedObligations: dueObligations.Count,
+                    ChargedObligations: chargedObligations,
                     TotalChargedAmount: totalChargedAmount,
                     TotalTaxAmount: totalTaxAmount),
                 FinancialStressBatches: financialStressBatches);
@@ -160,16 +166,20 @@ namespace Matrix.Economy.Application.UseCases.Simulation.Common
         private async Task<ClassicCityHouseholdFinancialStressBatchV1[]> BuildFinancialStressBatchesAsync(
             Guid cityId,
             DateTimeOffset asOfUtc,
-            IReadOnlyList<CityHouseholdObligation> dueObligations,
+            IReadOnlyList<CityHouseholdObligation> cityObligations,
             CancellationToken cancellationToken)
         {
-            if (dueObligations.Count == 0)
+            CityHouseholdObligation[] activeObligations = cityObligations
+               .Where(x => x.IsActive)
+               .ToArray();
+
+            if (activeObligations.Length == 0)
                 return [];
 
             var items = new List<ClassicCityHouseholdFinancialStressItemV1>();
 
             foreach (IGrouping<Guid, CityHouseholdObligation> group in
-                     dueObligations.GroupBy(x => x.HouseholdAccountId))
+                     activeObligations.GroupBy(x => x.HouseholdAccountId))
             {
                 CityHouseholdAccount? account = await householdAccountRepository.GetByIdAsync(
                     householdAccountId: group.Key,
@@ -179,15 +189,31 @@ namespace Matrix.Economy.Application.UseCases.Simulation.Common
                     continue;
 
                 CityHouseholdObligation[] obligations = group
-                   .Where(x => x.IsActive && x.NextChargeDueAtUtc <= asOfUtc)
+                   .Where(x => x.IsActive && x.ResolveDueInstallmentCount(asOfUtc) > 0)
                    .ToArray();
-                decimal overdueAmount = obligations.Sum(x => x.ChargeAmount.Amount);
+                decimal overdueAmount = obligations.Sum(x => x.ResolveCurrentDueAmount(asOfUtc).Amount);
                 int overdueRentCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Rent);
                 int overdueUtilityCount = obligations.Count(x => x.Kind == CityHouseholdObligationKind.Utilities);
+                int arrearsObligationCount = obligations.Count(x =>
+                    x.ResolveDelinquentBillingCycles(asOfUtc) >= 2 ||
+                    x.ResolveDelinquencyAgeDays(asOfUtc) >= 30);
+                int serviceCutoffCount = obligations.Count(x => x.HasServiceCutoff);
+                int evictionNoticeCount = obligations.Count(x => x.HasEvictionNotice);
+                int evictionEligibleCount = obligations.Count(x => x.IsEvictionEligible);
+                int oldestOverdueAgeDays = obligations.Length == 0
+                    ? 0
+                    : obligations.Max(x => x.ResolveDelinquencyAgeDays(asOfUtc));
                 decimal distressScore = Math.Clamp(
                     value: (obligations.Length * 0.18m) +
                            (overdueRentCount * 0.22m) +
                            (overdueUtilityCount * 0.12m) +
+                           (arrearsObligationCount * 0.10m) +
+                           (serviceCutoffCount * 0.18m) +
+                           (evictionNoticeCount * 0.24m) +
+                           (evictionEligibleCount * 0.30m) +
+                           Math.Min(
+                               val1: 0.24m,
+                               val2: oldestOverdueAgeDays / 120m) +
                            Math.Min(
                                val1: 0.40m,
                                val2: overdueAmount / 1000m),
@@ -201,6 +227,11 @@ namespace Matrix.Economy.Application.UseCases.Simulation.Common
                         OverdueObligationCount: obligations.Length,
                         OverdueRentCount: overdueRentCount,
                         OverdueUtilityCount: overdueUtilityCount,
+                        ArrearsObligationCount: arrearsObligationCount,
+                        ServiceCutoffCount: serviceCutoffCount,
+                        EvictionNoticeCount: evictionNoticeCount,
+                        EvictionEligibleCount: evictionEligibleCount,
+                        OldestOverdueAgeDays: oldestOverdueAgeDays,
                         TotalOverdueAmount: overdueAmount,
                         DistressScore: decimal.Round(
                             d: distressScore,

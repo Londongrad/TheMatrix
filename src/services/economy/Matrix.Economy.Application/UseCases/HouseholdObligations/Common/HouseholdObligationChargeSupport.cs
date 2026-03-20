@@ -3,6 +3,7 @@ using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.BuildingBlocks.Domain.ValueObjects;
 
 namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
 {
@@ -15,6 +16,7 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
         public async Task<HouseholdObligationChargeAttemptResult> TryChargeAsync(
             CityHouseholdObligation obligation,
             string? description,
+            DateTimeOffset? occurredAtUtc,
             CancellationToken cancellationToken)
         {
             CityHouseholdAccount householdAccount =
@@ -35,16 +37,25 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
             householdAccount.EnsureCompatibleUnit(obligation.GetUnitProfile());
             providerBusiness.EnsureCompatibleUnit(obligation.GetUnitProfile());
 
-            if (obligation.ChargeAmount.Amount > householdAccount.Balance.Amount)
+            DateTimeOffset effectiveOccurredAtUtc = occurredAtUtc?.ToUniversalTime() ?? DateTimeOffset.UtcNow;
+            Money currentDueAmount = obligation.ResolveCurrentDueAmount(effectiveOccurredAtUtc);
+            Money currentDueTaxAmount = obligation.ResolveCurrentDueTaxAmount(effectiveOccurredAtUtc);
+            int settledInstallmentCount = obligation.ResolveDueInstallmentCount(effectiveOccurredAtUtc);
+
+            if (!currentDueAmount.IsPositive || settledInstallmentCount <= 0)
+                return HouseholdObligationChargeAttemptResult.Failure("NotDue");
+
+            if (currentDueAmount.Amount > householdAccount.Balance.Amount)
+            {
+                obligation.MarkChargeMissed(effectiveOccurredAtUtc);
                 return HouseholdObligationChargeAttemptResult.Failure("InsufficientBalance");
+            }
 
-            householdAccount.RecordObligationCharge(obligation.ChargeAmount);
+            householdAccount.RecordObligationCharge(currentDueAmount);
             providerBusiness.RecordObligationRevenue(
-                grossAmount: obligation.ChargeAmount,
-                salesTaxAmount: obligation.TaxAmount);
-
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
-            obligation.MarkCharged(occurredAtUtc);
+                grossAmount: currentDueAmount,
+                salesTaxAmount: currentDueTaxAmount);
+            obligation.MarkCharged(effectiveOccurredAtUtc);
 
             string title = obligation.Kind switch
             {
@@ -59,9 +70,9 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
                 id: Guid.NewGuid(),
                 householdAccountId: householdAccount.Id,
                 cityId: householdAccount.CityId,
-                occurredAtUtc: occurredAtUtc,
+                occurredAtUtc: effectiveOccurredAtUtc,
                 kind: CityHouseholdAccountLedgerEntryKind.ObligationCharge,
-                amount: obligation.ChargeAmount,
+                amount: currentDueAmount,
                 title: title,
                 description: normalizedDescription,
                 source: CityHouseholdAccountLedgerEntrySource.Obligation,
@@ -71,10 +82,10 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
                 id: Guid.NewGuid(),
                 businessId: providerBusiness.Id,
                 cityId: providerBusiness.CityId,
-                occurredAtUtc: occurredAtUtc,
+                occurredAtUtc: effectiveOccurredAtUtc,
                 kind: CityBusinessLedgerEntryKind.ObligationRevenue,
-                amount: obligation.ChargeAmount,
-                taxAmount: obligation.TaxAmount,
+                amount: currentDueAmount,
+                taxAmount: currentDueTaxAmount,
                 title: title,
                 description: normalizedDescription,
                 source: CityBusinessLedgerEntrySource.Obligation,
@@ -88,7 +99,7 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
                 cancellationToken: cancellationToken);
 
             return HouseholdObligationChargeAttemptResult.Success(
-                new CityHouseholdAccountLedgerEntryDto(
+                ledgerEntry: new CityHouseholdAccountLedgerEntryDto(
                     EntryId: householdEntry.Id,
                     OccurredAtUtc: householdEntry.OccurredAtUtc.ToString("O"),
                     UnitKind: householdAccount.UnitKind.ToString(),
@@ -100,7 +111,10 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
                     Title: householdEntry.Title,
                     Description: householdEntry.Description,
                     Source: householdEntry.Source.ToString(),
-                    ReferenceCode: householdEntry.ReferenceCode));
+                    ReferenceCode: householdEntry.ReferenceCode),
+                chargedAmount: currentDueAmount,
+                chargedTaxAmount: currentDueTaxAmount,
+                settledInstallmentCount: settledInstallmentCount);
         }
 
         public async Task<CityHouseholdAccountLedgerEntryDto> ChargeAsync(
@@ -111,6 +125,7 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
             HouseholdObligationChargeAttemptResult result = await TryChargeAsync(
                 obligation: obligation,
                 description: description,
+                occurredAtUtc: null,
                 cancellationToken: cancellationToken);
 
             return result.Succeeded
