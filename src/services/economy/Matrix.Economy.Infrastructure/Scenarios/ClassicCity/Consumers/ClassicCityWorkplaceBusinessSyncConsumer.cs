@@ -4,9 +4,10 @@ using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Infrastructure.Consumers;
 using Microsoft.Extensions.Logging;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class ClassicCityWorkplaceBusinessSyncConsumer(
         ICityBudgetRepository budgetRepository,

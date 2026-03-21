@@ -9,7 +9,7 @@ using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.Logging;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class ClassicCityHouseholdCashflowSettlementConsumer(
         ICityBusinessRepository businessRepository,

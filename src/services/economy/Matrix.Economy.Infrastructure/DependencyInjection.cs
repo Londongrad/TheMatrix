@@ -1,12 +1,12 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
-using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Messaging;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
+using Matrix.Economy.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Economy.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -71,10 +71,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
-            services.AddSingleton<CityEconomyCostProfilePolicy>();
-            services.AddSingleton<CityHouseholdConsumerSpendAllocationPolicy>();
-            services.AddSingleton<CityEconomyServiceQualityPolicy>();
-            services.AddSingleton<CityEconomySimulationTemplatePolicy>();
+            services.AddClassicCityScenarioInfrastructure();
 
             services.AddMassTransit(x =>
             {
@@ -83,14 +80,7 @@ namespace Matrix.Economy.Infrastructure
                 x.AddConsumer<CityCreatedConsumer, CityCreatedConsumerDefinition>();
                 x.AddConsumer<CityTimeAdvancedConsumer, CityTimeAdvancedConsumerDefinition>();
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
-                x.AddConsumer<ClassicCityHouseholdAccountSyncConsumer,
-                    ClassicCityHouseholdAccountSyncConsumerDefinition>();
-                x.AddConsumer<ClassicCityWorkplaceBusinessSyncConsumer,
-                    ClassicCityWorkplaceBusinessSyncConsumerDefinition>();
-                x.AddConsumer<ClassicCityWorkplacePayrollSettlementConsumer,
-                    ClassicCityWorkplacePayrollSettlementConsumerDefinition>();
-                x.AddConsumer<ClassicCityHouseholdCashflowSettlementConsumer,
-                    ClassicCityHouseholdCashflowSettlementConsumerDefinition>();
+                x.AddClassicCityScenarioConsumers();
 
                 x.UsingRabbitMq((
                     context,

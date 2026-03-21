@@ -1,9 +1,9 @@
 using MassTransit;
 
-namespace Matrix.Economy.Infrastructure.Consumers
+namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
 {
-    public sealed class ClassicCityWorkplaceBusinessSyncConsumerDefinition
-        : ConsumerDefinition<ClassicCityWorkplaceBusinessSyncConsumer>
+    public sealed class ClassicCityHouseholdAccountSyncConsumerDefinition
+        : ConsumerDefinition<ClassicCityHouseholdAccountSyncConsumer>
     {
         private static readonly TimeSpan[] RetryIntervals =
         [
@@ -12,15 +12,15 @@ namespace Matrix.Economy.Infrastructure.Consumers
             TimeSpan.FromSeconds(10)
         ];
 
-        public ClassicCityWorkplaceBusinessSyncConsumerDefinition()
+        public ClassicCityHouseholdAccountSyncConsumerDefinition()
         {
-            EndpointName = "economy-classic-city-workplace-business-sync";
+            EndpointName = "economy-classic-city-household-account-sync";
             ConcurrentMessageLimit = 1;
         }
 
         protected override void ConfigureConsumer(
             IReceiveEndpointConfigurator endpointConfigurator,
-            IConsumerConfigurator<ClassicCityWorkplaceBusinessSyncConsumer> consumerConfigurator,
+            IConsumerConfigurator<ClassicCityHouseholdAccountSyncConsumer> consumerConfigurator,
             IRegistrationContext context)
         {
             endpointConfigurator.UseMessageRetry(retry => retry.Intervals(RetryIntervals));
