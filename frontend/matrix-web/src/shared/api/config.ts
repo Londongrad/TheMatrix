@@ -15,4 +15,4 @@ export const API_ADMIN_USERS_URL = API_ADMIN_URL + "/users";
 export const API_CITY_URL = API_BASE_URL + "/api/cities";
 export const API_SIMULATION_URL = API_BASE_URL + "/api/simulations";
 export const API_CLASSIC_CITY_SETUP_SESSIONS_URL = API_BASE_URL + "/api/scenarios/classic-city/setup-sessions";
-export const API_CITYCORE_DASHBOARD_URL = API_BASE_URL + "/api/dashboard/citycore";
+export const API_SIMULATIONCORE_DASHBOARD_URL = API_BASE_URL + "/api/dashboard/simulationcore";

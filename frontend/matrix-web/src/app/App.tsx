@@ -1,6 +1,6 @@
 import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 
-import DashboardPage from "@services/citycore/dashboard/pages/DashboardPage";
+import DashboardPage from "@services/simulationcore/dashboard/pages/DashboardPage";
 import ForbiddenPage from "@pages/forbidden-page/ForbiddenPage";
 
 import AdminUsersPage from "@services/identity/admin/users/pages/AdminUsersPage";
@@ -27,7 +27,7 @@ import {ResetPasswordPage} from "@services/identity/self/auth/pages/ResetPasswor
 import {RecoverAccountPage} from "@services/identity/self/auth/pages/RecoverAccountPage";
 import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
-import {cityCoreCatalogRoutes, classicCityRoutes} from "@app/router/CityCoreRoutes";
+import {simulationCoreCatalogRoutes, classicCityRoutes} from "@app/router/SimulationCoreRoutes";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 import MainLayout from "./layouts/main/MainLayout";
@@ -61,7 +61,7 @@ const App = () => {
                             }
                         >
                             <Route path="/" element={<DashboardPage/>}/>
-                            {cityCoreCatalogRoutes}
+                            {simulationCoreCatalogRoutes}
                         </Route>
 
                         <Route

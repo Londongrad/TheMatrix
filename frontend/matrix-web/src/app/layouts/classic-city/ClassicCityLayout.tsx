@@ -5,7 +5,7 @@ import {filterNavItems} from "@shared/permissions/filterNavItems";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import type {NavItem} from "@shared/navigation/Sidebar/types";
 import {
-    CITYCORE_SCENARIO_CATALOG_PATH,
+    SIMULATIONCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_LIST_PATH,
     getClassicCityCivilRegistryPath,
     getClassicCityDetailsPath,
@@ -17,7 +17,7 @@ import {
     getClassicCitySetupPath,
     type ClassicCityResidentSection,
     type ClassicCityWorkspaceSection,
-} from "@services/citycore/scenarios/registry";
+} from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 const CITY_WORKSPACE_META: Record<ClassicCityWorkspaceSection, { label: string; subtitle: string }> = {
@@ -109,13 +109,13 @@ export default function ClassicCityLayout() {
                 to: CLASSIC_CITY_LIST_PATH,
                 label: "Cities",
                 end: true,
-                requiredPermissions: [PermissionKeys.CityCoreClassicCityRead],
+                requiredPermissions: [PermissionKeys.SimulationCoreClassicCityRead],
                 permissionDisplay: "disable",
             },
             {
                 to: getClassicCitySetupPath(),
                 label: "Compose city",
-                requiredPermissions: [PermissionKeys.CityCoreClassicCityCreate],
+                requiredPermissions: [PermissionKeys.SimulationCoreClassicCityCreate],
                 permissionDisplay: "disable",
             },
         ];
@@ -126,8 +126,8 @@ export default function ClassicCityLayout() {
                 label: "Provisioning",
                 end: true,
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
-                    PermissionKeys.CityCoreSimulationRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreSimulationRead,
                 ],
                 requiredPermissionsMode: "all",
                 permissionDisplay: "disable",
@@ -148,8 +148,8 @@ export default function ClassicCityLayout() {
                 label: "Overview",
                 end: true,
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
-                    PermissionKeys.CityCoreSimulationRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreSimulationRead,
                 ],
                 requiredPermissionsMode: "all",
                 permissionDisplay: "disable",
@@ -159,8 +159,8 @@ export default function ClassicCityLayout() {
                 label: "Dashboard",
                 end: true,
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
-                    PermissionKeys.CityCoreSimulationRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreSimulationRead,
                     PermissionKeys.PopulationPeopleRead,
                 ],
                 requiredPermissionsMode: "all",
@@ -171,7 +171,7 @@ export default function ClassicCityLayout() {
                 label: "Population",
                 end: true,
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
                     PermissionKeys.PopulationPeopleRead,
                 ],
                 requiredPermissionsMode: "all",
@@ -182,8 +182,8 @@ export default function ClassicCityLayout() {
                 label: "Weather",
                 end: true,
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
-                    PermissionKeys.CityCoreSimulationRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreSimulationRead,
                 ],
                 requiredPermissionsMode: "all",
                 permissionDisplay: "disable",
@@ -193,8 +193,8 @@ export default function ClassicCityLayout() {
                 label: "Simulation",
                 end: true,
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
-                    PermissionKeys.CityCoreSimulationRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreSimulationRead,
                 ],
                 requiredPermissionsMode: "all",
                 permissionDisplay: "disable",
@@ -203,7 +203,7 @@ export default function ClassicCityLayout() {
                 to: getClassicCityResidentsPath(cityId),
                 label: "Residents",
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
                     PermissionKeys.PopulationPeopleRead,
                 ],
                 requiredPermissionsMode: "all",
@@ -213,7 +213,7 @@ export default function ClassicCityLayout() {
                 to: getClassicCityCivilRegistryPath(cityId),
                 label: "Civil registry",
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
                     PermissionKeys.PopulationPeopleRead,
                     PermissionKeys.PopulationCivilRegistryManage,
                 ],
@@ -224,7 +224,7 @@ export default function ClassicCityLayout() {
                 to: getClassicCityEmploymentPath(cityId),
                 label: "Employment",
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
                     PermissionKeys.PopulationPeopleRead,
                     PermissionKeys.PopulationEmploymentManage,
                 ],
@@ -235,7 +235,7 @@ export default function ClassicCityLayout() {
                 to: getClassicCityEducationPath(cityId),
                 label: "Education",
                 requiredPermissions: [
-                    PermissionKeys.CityCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreClassicCityRead,
                     PermissionKeys.PopulationPeopleRead,
                     PermissionKeys.PopulationEducationManage,
                 ],
@@ -326,7 +326,7 @@ export default function ClassicCityLayout() {
             return;
         }
 
-        navigate(CITYCORE_SCENARIO_CATALOG_PATH, {replace: true});
+        navigate(SIMULATIONCORE_SCENARIO_CATALOG_PATH, {replace: true});
     };
 
     return (

@@ -1,13 +1,13 @@
 import type {NavItem} from "@shared/navigation/Sidebar/types";
-import {CITYCORE_SCENARIO_CATALOG_PATH} from "@services/citycore/scenarios/registry";
+import {SIMULATIONCORE_SCENARIO_CATALOG_PATH} from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 export const mainNavItems: NavItem[] = [
     {to: "/", label: "Dashboard", end: true},
     {
-        to: CITYCORE_SCENARIO_CATALOG_PATH,
+        to: SIMULATIONCORE_SCENARIO_CATALOG_PATH,
         label: "Scenarios",
-        requiredPermissions: [PermissionKeys.CityCoreScenariosCatalogRead],
+        requiredPermissions: [PermissionKeys.SimulationCoreScenariosCatalogRead],
         permissionDisplay: "disable",
     },
     // важное: сохраняем "откуда пришёл" при входе в /admin
