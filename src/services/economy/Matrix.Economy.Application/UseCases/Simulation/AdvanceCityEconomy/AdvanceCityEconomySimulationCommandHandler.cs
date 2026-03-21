@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Application.Abstractions;
-using Matrix.Economy.Application.UseCases.Simulation.Common;
+using Matrix.Economy.Application.Scenarios.ClassicCity.Models;
+using Matrix.Economy.Application.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
