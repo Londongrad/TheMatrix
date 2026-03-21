@@ -1,9 +1,9 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.Models;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
 
-namespace Matrix.Economy.Domain.Services
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Services
 {
     public sealed class CityHouseholdConsumerSpendAllocationPolicy
     {

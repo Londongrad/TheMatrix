@@ -1,7 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Domain.Aggregates;
 
-namespace Matrix.Economy.Domain.Models
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record CityHouseholdConsumerSpendAllocation(
         CityBusiness Business,

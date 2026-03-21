@@ -5,8 +5,8 @@ using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
-using Matrix.Economy.Domain.Models;
-using Matrix.Economy.Domain.Services;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Consumers

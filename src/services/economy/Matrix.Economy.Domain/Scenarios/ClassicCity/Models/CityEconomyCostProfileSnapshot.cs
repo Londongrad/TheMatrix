@@ -1,6 +1,6 @@
 using Matrix.Economy.Domain.Enums;
 
-namespace Matrix.Economy.Domain.Models
+namespace Matrix.Economy.Domain.Scenarios.ClassicCity.Models
 {
     public sealed record CityEconomyCostProfileSnapshot(
         decimal WageMultiplier,

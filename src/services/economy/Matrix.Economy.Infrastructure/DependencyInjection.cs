@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
+using Matrix.Economy.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Messaging;
