@@ -6,6 +6,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public sealed record GetGenerationCatalogQuery : IRequest<CityGenerationCatalogDto>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityCreate;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityCreate;
     }
 }

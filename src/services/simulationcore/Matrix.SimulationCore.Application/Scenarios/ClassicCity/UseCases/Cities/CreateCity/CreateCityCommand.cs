@@ -25,6 +25,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         int? PlannedPeopleCount = null,
         Guid? ProvisioningCorrelationId = null) : IRequest<CityCreatedDto>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityCreate;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityCreate;
     }
 }

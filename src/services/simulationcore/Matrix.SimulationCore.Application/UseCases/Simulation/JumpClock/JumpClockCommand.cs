@@ -10,8 +10,8 @@ namespace Matrix.SimulationCore.Application.UseCases.Simulation.JumpClock
     {
         public IReadOnlyCollection<string> PermissionKeys =>
         [
-            AppPermissionKeys.CityCoreSimulationRead,
-            AppPermissionKeys.CityCoreSimulationControl
+            AppPermissionKeys.SimulationCoreSimulationRead,
+            AppPermissionKeys.SimulationCoreSimulationControl
         ];
 
         public PermissionMatchMode PermissionMatchMode => PermissionMatchMode.All;

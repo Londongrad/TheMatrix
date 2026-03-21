@@ -8,6 +8,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         Guid CityId,
         Guid? DistrictId) : IRequest<IReadOnlyList<ResidentialBuildingDto>>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityRead;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityRead;
     }
 }

@@ -6,6 +6,6 @@ namespace Matrix.SimulationCore.Application.UseCases.Simulation.GetClock
 {
     public sealed record GetClockQuery(Guid SimulationId) : IRequest<ClockDto?>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreSimulationRead;
+        public string PermissionKey => PermissionKeys.SimulationCoreSimulationRead;
     }
 }

@@ -4,18 +4,18 @@ namespace Matrix.SimulationCore.Application.Authorization.Permissions
 {
     public static class PermissionKeys
     {
-        public const string CityCoreScenariosCatalogRead = ContractPermissionKeys.CityCoreScenariosCatalogRead;
+        public const string SimulationCoreScenariosCatalogRead = ContractPermissionKeys.SimulationCoreScenariosCatalogRead;
 
-        public const string CityCoreClassicCityRead = ContractPermissionKeys.CityCoreClassicCityRead;
-        public const string CityCoreClassicCityCreate = ContractPermissionKeys.CityCoreClassicCityCreate;
-        public const string CityCoreClassicCityUpdate = ContractPermissionKeys.CityCoreClassicCityUpdate;
-        public const string CityCoreClassicCityArchive = ContractPermissionKeys.CityCoreClassicCityArchive;
-        public const string CityCoreClassicCityDelete = ContractPermissionKeys.CityCoreClassicCityDelete;
+        public const string SimulationCoreClassicCityRead = ContractPermissionKeys.SimulationCoreClassicCityRead;
+        public const string SimulationCoreClassicCityCreate = ContractPermissionKeys.SimulationCoreClassicCityCreate;
+        public const string SimulationCoreClassicCityUpdate = ContractPermissionKeys.SimulationCoreClassicCityUpdate;
+        public const string SimulationCoreClassicCityArchive = ContractPermissionKeys.SimulationCoreClassicCityArchive;
+        public const string SimulationCoreClassicCityDelete = ContractPermissionKeys.SimulationCoreClassicCityDelete;
 
-        public const string CityCoreClassicCityPopulationBootstrapRetry =
-            ContractPermissionKeys.CityCoreClassicCityPopulationBootstrapRetry;
+        public const string SimulationCoreClassicCityPopulationBootstrapRetry =
+            ContractPermissionKeys.SimulationCoreClassicCityPopulationBootstrapRetry;
 
-        public const string CityCoreSimulationRead = ContractPermissionKeys.CityCoreSimulationRead;
-        public const string CityCoreSimulationControl = ContractPermissionKeys.CityCoreSimulationControl;
+        public const string SimulationCoreSimulationRead = ContractPermissionKeys.SimulationCoreSimulationRead;
+        public const string SimulationCoreSimulationControl = ContractPermissionKeys.SimulationCoreSimulationControl;
     }
 }

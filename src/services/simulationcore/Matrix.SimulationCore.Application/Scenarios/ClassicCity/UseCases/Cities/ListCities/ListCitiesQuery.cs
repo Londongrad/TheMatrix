@@ -8,6 +8,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
     public sealed record ListCitiesQuery(bool IncludeArchived)
         : IRequest<IReadOnlyList<CityDto>>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityRead;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityRead;
     }
 }

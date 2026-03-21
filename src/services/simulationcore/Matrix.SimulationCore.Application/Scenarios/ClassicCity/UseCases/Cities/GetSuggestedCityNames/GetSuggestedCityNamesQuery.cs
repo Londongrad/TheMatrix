@@ -8,6 +8,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         string? Seed,
         int Count = 12) : IRequest<SuggestedCityNamesDto>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityCreate;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityCreate;
     }
 }

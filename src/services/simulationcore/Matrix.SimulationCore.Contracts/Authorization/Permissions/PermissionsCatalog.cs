@@ -4,7 +4,7 @@ namespace Matrix.SimulationCore.Contracts.Authorization.Permissions
 {
     public static class PermissionsCatalog
     {
-        private const string CityCoreService = "CityCore";
+        private const string SimulationCoreService = "SimulationCore";
 
         private const string ScenariosGroup = "Scenarios";
         private const string ClassicCityGroup = "Classic City";
@@ -14,48 +14,48 @@ namespace Matrix.SimulationCore.Contracts.Authorization.Permissions
             new List<PermissionDefinition>
             {
                 new(
-                    Key: PermissionKeys.CityCoreScenariosCatalogRead,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreScenariosCatalogRead,
+                    Service: SimulationCoreService,
                     Group: ScenariosGroup,
                     Description: "View available simulation scenarios."),
                 new(
-                    Key: PermissionKeys.CityCoreClassicCityRead,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreClassicCityRead,
+                    Service: SimulationCoreService,
                     Group: ClassicCityGroup,
                     Description: "View classic city workspaces, topology, weather, and provisioning state."),
                 new(
-                    Key: PermissionKeys.CityCoreClassicCityCreate,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreClassicCityCreate,
+                    Service: SimulationCoreService,
                     Group: ClassicCityGroup,
                     Description: "Create new classic city simulations."),
                 new(
-                    Key: PermissionKeys.CityCoreClassicCityUpdate,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreClassicCityUpdate,
+                    Service: SimulationCoreService,
                     Group: ClassicCityGroup,
                     Description: "Rename cities and update classic city environment settings."),
                 new(
-                    Key: PermissionKeys.CityCoreClassicCityArchive,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreClassicCityArchive,
+                    Service: SimulationCoreService,
                     Group: ClassicCityGroup,
                     Description: "Archive classic city simulations."),
                 new(
-                    Key: PermissionKeys.CityCoreClassicCityDelete,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreClassicCityDelete,
+                    Service: SimulationCoreService,
                     Group: ClassicCityGroup,
                     Description: "Delete archived classic city simulations."),
                 new(
-                    Key: PermissionKeys.CityCoreClassicCityPopulationBootstrapRetry,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreClassicCityPopulationBootstrapRetry,
+                    Service: SimulationCoreService,
                     Group: ClassicCityGroup,
                     Description: "Retry failed classic city population bootstrap."),
                 new(
-                    Key: PermissionKeys.CityCoreSimulationRead,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreSimulationRead,
+                    Service: SimulationCoreService,
                     Group: SimulationsGroup,
                     Description: "View simulation clock state."),
                 new(
-                    Key: PermissionKeys.CityCoreSimulationControl,
-                    Service: CityCoreService,
+                    Key: PermissionKeys.SimulationCoreSimulationControl,
+                    Service: SimulationCoreService,
                     Group: SimulationsGroup,
                     Description: "Pause, resume, retime, and change simulation speed.")
             };

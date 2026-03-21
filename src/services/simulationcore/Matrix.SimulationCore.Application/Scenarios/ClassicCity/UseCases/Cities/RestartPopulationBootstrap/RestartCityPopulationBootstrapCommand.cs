@@ -9,8 +9,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
     {
         public IReadOnlyCollection<string> PermissionKeys =>
         [
-            AppPermissionKeys.CityCoreClassicCityRead,
-            AppPermissionKeys.CityCoreClassicCityPopulationBootstrapRetry
+            AppPermissionKeys.SimulationCoreClassicCityRead,
+            AppPermissionKeys.SimulationCoreClassicCityPopulationBootstrapRetry
         ];
 
         public PermissionMatchMode PermissionMatchMode => PermissionMatchMode.All;

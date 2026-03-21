@@ -6,6 +6,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weath
 {
     public sealed record GetWeatherQuery(Guid CityId) : IRequest<CityWeatherDto?>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityRead;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityRead;
     }
 }

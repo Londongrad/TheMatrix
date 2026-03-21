@@ -2,7 +2,7 @@ using Matrix.Identity.Contracts.Authorization.Permissions;
 using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using CityCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
+using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Seed
@@ -177,15 +177,15 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 PermissionKeys.IdentityMeSessionsRead,
                 PermissionKeys.IdentityMeSessionsRevoke,
                 PermissionKeys.IdentityMeSessionsRevokeAll,
-                CityCorePermissionKeys.CityCoreScenariosCatalogRead,
-                CityCorePermissionKeys.CityCoreClassicCityRead,
-                CityCorePermissionKeys.CityCoreClassicCityCreate,
-                CityCorePermissionKeys.CityCoreClassicCityUpdate,
-                CityCorePermissionKeys.CityCoreClassicCityArchive,
-                CityCorePermissionKeys.CityCoreClassicCityDelete,
-                CityCorePermissionKeys.CityCoreClassicCityPopulationBootstrapRetry,
-                CityCorePermissionKeys.CityCoreSimulationRead,
-                CityCorePermissionKeys.CityCoreSimulationControl,
+                SimulationCorePermissionKeys.SimulationCoreScenariosCatalogRead,
+                SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
+                SimulationCorePermissionKeys.SimulationCoreClassicCityCreate,
+                SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate,
+                SimulationCorePermissionKeys.SimulationCoreClassicCityArchive,
+                SimulationCorePermissionKeys.SimulationCoreClassicCityDelete,
+                SimulationCorePermissionKeys.SimulationCoreClassicCityPopulationBootstrapRetry,
+                SimulationCorePermissionKeys.SimulationCoreSimulationRead,
+                SimulationCorePermissionKeys.SimulationCoreSimulationControl,
                 PopulationPermissionKeys.PopulationPeopleRead,
                 PopulationPermissionKeys.PopulationCivilRegistryManage,
                 PopulationPermissionKeys.PopulationEmploymentManage,

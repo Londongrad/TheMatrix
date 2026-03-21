@@ -7,6 +7,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public sealed record GetCityQuery(Guid CityId) : IRequest<CityDto?>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityRead;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityRead;
     }
 }

@@ -7,6 +7,6 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
     public sealed record GetCityDistrictsQuery(Guid CityId)
         : IRequest<IReadOnlyList<DistrictDto>>, IRequirePermission
     {
-        public string PermissionKey => PermissionKeys.CityCoreClassicCityRead;
+        public string PermissionKey => PermissionKeys.SimulationCoreClassicCityRead;
     }
 }
