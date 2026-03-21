@@ -10,7 +10,7 @@ namespace Matrix.SimulationCore.Application.Errors
             Type requestType,
             IReadOnlyDictionary<string, string[]> errors)
         {
-            string code = $"CityCore.{requestType.Name}.ValidationFailed";
+            string code = $"SimulationCore.{requestType.Name}.ValidationFailed";
 
             return new MatrixApplicationException(
                 code: code,

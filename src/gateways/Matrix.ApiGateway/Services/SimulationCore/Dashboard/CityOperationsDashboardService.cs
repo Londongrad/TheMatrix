@@ -255,7 +255,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CancellationToken cancellationToken)
         {
             Task<DashboardServiceHealthView> gatewayTask = ProbeGatewayHealthAsync(cancellationToken);
-            Task<DashboardServiceHealthView> cityCoreTask = ProbeRemoteHealthAsync(
+            Task<DashboardServiceHealthView> simulationCoreTask = ProbeRemoteHealthAsync(
                 service: "SimulationCore",
                 baseUrl: _downstreamOptions.SimulationCore,
                 cancellationToken: cancellationToken);
@@ -270,7 +270,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
             return await Task.WhenAll(
                 gatewayTask,
-                cityCoreTask,
+                simulationCoreTask,
                 populationTask,
                 identityTask);
         }

@@ -27,10 +27,10 @@ namespace Matrix.SimulationCore.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            string? connectionString = configuration.GetConnectionString("CityCoreDb");
+            string? connectionString = configuration.GetConnectionString("SimulationCoreDb");
 
             if (string.IsNullOrWhiteSpace(connectionString))
-                throw new InvalidOperationException("Connection string 'CityCoreDb' is not configured.");
+                throw new InvalidOperationException("Connection string 'SimulationCoreDb' is not configured.");
 
             services.AddPostgresResilienceOptions(configuration);
 

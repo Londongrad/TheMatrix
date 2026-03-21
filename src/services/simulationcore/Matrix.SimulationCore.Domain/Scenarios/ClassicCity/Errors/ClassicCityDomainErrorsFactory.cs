@@ -10,7 +10,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
         public static DomainException CityNameNullOrEmpty(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.Name.NullOrEmpty",
+                code: "SimulationCore.City.Name.NullOrEmpty",
                 message: "City name cannot be null or empty.",
                 propertyName: propertyName);
         }
@@ -21,7 +21,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.Name.TooLong",
+                code: "SimulationCore.City.Name.TooLong",
                 message: $"City name cannot be longer than {max} characters.",
                 propertyName: propertyName);
         }
@@ -31,7 +31,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.Timestamp.NotUtc",
+                code: "SimulationCore.City.Timestamp.NotUtc",
                 message: "City timestamps must be in UTC (Offset=00:00).",
                 propertyName: propertyName);
         }
@@ -41,7 +41,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.Archived",
+                code: "SimulationCore.City.Archived",
                 message: "Operation is not allowed for an archived city.",
                 propertyName: propertyName);
         }
@@ -51,7 +51,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.Environment.Invalid",
+                code: "SimulationCore.City.Environment.Invalid",
                 message: $"City environment is invalid. {reason}",
                 propertyName: propertyName);
         }
@@ -63,7 +63,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.UtcOffset.OutOfRange",
+                code: "SimulationCore.City.UtcOffset.OutOfRange",
                 message: $"City UTC offset must be in range [{minMinutes}; {maxMinutes}] minutes.",
                 propertyName: propertyName);
         }
@@ -74,7 +74,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.UtcOffset.InvalidStep",
+                code: "SimulationCore.City.UtcOffset.InvalidStep",
                 message: $"City UTC offset must align to {stepMinutes}-minute increments.",
                 propertyName: propertyName);
         }
@@ -82,7 +82,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
         public static DomainException CityGenerationSeedNullOrEmpty(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.GenerationSeed.NullOrEmpty",
+                code: "SimulationCore.City.GenerationSeed.NullOrEmpty",
                 message: "City generation seed cannot be null or empty.",
                 propertyName: propertyName);
         }
@@ -93,7 +93,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.GenerationSeed.TooLong",
+                code: "SimulationCore.City.GenerationSeed.TooLong",
                 message: $"City generation seed cannot be longer than {max} characters.",
                 propertyName: propertyName);
         }
@@ -103,7 +103,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.GenerationProfile.Invalid",
+                code: "SimulationCore.City.GenerationProfile.Invalid",
                 message: $"City generation profile is invalid. {reason}",
                 propertyName: propertyName);
         }
@@ -111,7 +111,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
         public static DomainException CityPopulationBootstrapFailureCodeNullOrEmpty(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.PopulationBootstrap.FailureCode.NullOrEmpty",
+                code: "SimulationCore.City.PopulationBootstrap.FailureCode.NullOrEmpty",
                 message: "Population bootstrap failure code cannot be null or empty.",
                 propertyName: propertyName);
         }
@@ -122,7 +122,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.PopulationBootstrap.FailureCode.TooLong",
+                code: "SimulationCore.City.PopulationBootstrap.FailureCode.TooLong",
                 message: $"Population bootstrap failure code cannot be longer than {max} characters.",
                 propertyName: propertyName);
         }
@@ -132,7 +132,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.City.PopulationBootstrap.FailureCode.Invalid",
+                code: "SimulationCore.City.PopulationBootstrap.FailureCode.Invalid",
                 message:
                 $"Population bootstrap failure code '{value}' must contain only ASCII letters, digits, or underscores.",
                 propertyName: propertyName);
@@ -143,7 +143,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Topology.Timestamp.NotUtc",
+                code: "SimulationCore.Topology.Timestamp.NotUtc",
                 message: "Topology timestamps must be in UTC (Offset=00:00).",
                 propertyName: propertyName);
         }
@@ -151,7 +151,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
         public static DomainException DistrictNameNullOrEmpty(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Topology.District.Name.NullOrEmpty",
+                code: "SimulationCore.Topology.District.Name.NullOrEmpty",
                 message: "District name cannot be null or empty.",
                 propertyName: propertyName);
         }
@@ -162,7 +162,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Topology.District.Name.TooLong",
+                code: "SimulationCore.Topology.District.Name.TooLong",
                 message: $"District name cannot be longer than {max} characters.",
                 propertyName: propertyName);
         }
@@ -170,7 +170,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
         public static DomainException ResidentialBuildingNameNullOrEmpty(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Topology.ResidentialBuilding.Name.NullOrEmpty",
+                code: "SimulationCore.Topology.ResidentialBuilding.Name.NullOrEmpty",
                 message: "Residential building name cannot be null or empty.",
                 propertyName: propertyName);
         }
@@ -181,7 +181,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Topology.ResidentialBuilding.Name.TooLong",
+                code: "SimulationCore.Topology.ResidentialBuilding.Name.TooLong",
                 message: $"Residential building name cannot be longer than {max} characters.",
                 propertyName: propertyName);
         }
@@ -193,7 +193,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Topology.ResidentialBuilding.Capacity.OutOfRange",
+                code: "SimulationCore.Topology.ResidentialBuilding.Capacity.OutOfRange",
                 message: $"Resident capacity must be in range [{min}; {max}].",
                 propertyName: propertyName);
         }
@@ -205,7 +205,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Temperature.OutOfRange",
+                code: "SimulationCore.Weather.Temperature.OutOfRange",
                 message: $"Temperature must be in range [{min}; {max}] degrees Celsius.",
                 propertyName: propertyName);
         }
@@ -217,7 +217,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Humidity.OutOfRange",
+                code: "SimulationCore.Weather.Humidity.OutOfRange",
                 message: "Humidity must be in range [0; 100] percent.",
                 propertyName: propertyName);
         }
@@ -229,7 +229,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.WindSpeed.OutOfRange",
+                code: "SimulationCore.Weather.WindSpeed.OutOfRange",
                 message: $"Wind speed must be in range [{min}; {max}] kph.",
                 propertyName: propertyName);
         }
@@ -241,7 +241,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.CloudCoverage.OutOfRange",
+                code: "SimulationCore.Weather.CloudCoverage.OutOfRange",
                 message: "Cloud coverage must be in range [0; 100] percent.",
                 propertyName: propertyName);
         }
@@ -253,7 +253,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Pressure.OutOfRange",
+                code: "SimulationCore.Weather.Pressure.OutOfRange",
                 message: $"Pressure must be in range [{min}; {max}] hPa.",
                 propertyName: propertyName);
         }
@@ -265,7 +265,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Volatility.OutOfRange",
+                code: "SimulationCore.Weather.Volatility.OutOfRange",
                 message: "Weather volatility must be in range [0; 1].",
                 propertyName: propertyName);
         }
@@ -276,7 +276,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.State.TimeRange.Invalid",
+                code: "SimulationCore.Weather.State.TimeRange.Invalid",
                 message: $"Weather state ExpectedUntil ({expectedUntil}) must be greater than StartedAt ({startedAt}).",
                 propertyName: propertyName);
         }
@@ -287,7 +287,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Override.TimeRange.Invalid",
+                code: "SimulationCore.Weather.Override.TimeRange.Invalid",
                 message: $"Weather override EndsAt ({endsAt}) must be greater than StartsAt ({startsAt}).",
                 propertyName: propertyName);
         }
@@ -295,7 +295,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
         public static DomainException OverrideAlreadyActive(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Override.AlreadyActive",
+                code: "SimulationCore.Weather.Override.AlreadyActive",
                 message: "Only one active weather override is allowed per city.",
                 propertyName: propertyName);
         }
@@ -303,7 +303,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
         public static DomainException NoActiveOverrideToCancel(string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Override.NotActive",
+                code: "SimulationCore.Weather.Override.NotActive",
                 message: "There is no active weather override to cancel or expire.",
                 propertyName: propertyName);
         }
@@ -314,7 +314,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Evaluation.Time.Backwards",
+                code: "SimulationCore.Weather.Evaluation.Time.Backwards",
                 message:
                 $"Weather evaluation time ({value}) cannot be earlier than the last evaluated time ({previous}).",
                 propertyName: propertyName);
@@ -325,7 +325,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.ClimateProfile.Invalid",
+                code: "SimulationCore.Weather.ClimateProfile.Invalid",
                 message: $"Weather climate profile is invalid. {reason}",
                 propertyName: propertyName);
         }
@@ -337,7 +337,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Transition.Timing.Invalid",
+                code: "SimulationCore.Weather.Transition.Timing.Invalid",
                 message:
                 $"Weather state must be active at evaluation time ({evaluatedAt}); active range is [{startedAt}; {expectedUntil}).",
                 propertyName: propertyName);
@@ -349,7 +349,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.Weather.Precipitation.Incoherent",
+                code: "SimulationCore.Weather.Precipitation.Incoherent",
                 message: $"Precipitation kind '{precipitationKind}' is not coherent with weather type '{type}'.",
                 propertyName: propertyName);
         }

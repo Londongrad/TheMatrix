@@ -14,7 +14,7 @@ import ClassicCityProvisioningSessionPage
 import ClassicCitySetupPage from "@services/simulationcore/scenarios/classic-city/pages/ClassicCitySetupPage";
 import ScenarioCatalogPage from "@services/simulationcore/scenarios/pages/ScenarioCatalogPage";
 import {
-    CITYCORE_NEW_SIMULATION_PATH,
+    SIMULATIONCORE_NEW_SIMULATION_PATH,
     SIMULATIONCORE_SCENARIO_CATALOG_PATH,
     CLASSIC_CITY_CIVIL_REGISTRY_PATH_PATTERN,
     CLASSIC_CITY_DETAILS_PATH_PATTERN,
@@ -43,7 +43,7 @@ export const simulationCoreCatalogRoutes = (
             }
         />
         <Route
-            path={CITYCORE_NEW_SIMULATION_PATH}
+            path={SIMULATIONCORE_NEW_SIMULATION_PATH}
             element={<Navigate to={SIMULATIONCORE_SCENARIO_CATALOG_PATH} replace/>}
         />
     </Fragment>

@@ -24,9 +24,9 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence
                .AddEnvironmentVariables()
                .Build();
 
-            string connectionString = configuration.GetConnectionString("CityCoreDb") ??
+            string connectionString = configuration.GetConnectionString("SimulationCoreDb") ??
                                       throw new InvalidOperationException(
-                                          "Connection string 'CityCoreDb' was not found.");
+                                          "Connection string 'SimulationCoreDb' was not found.");
 
             var optionsBuilder = new DbContextOptionsBuilder<SimulationCoreDbContext>();
             optionsBuilder.UseNpgsql(connectionString);
@@ -43,7 +43,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence
                 current,
                 "src",
                 "services",
-                "citycore",
+                "simulationcore",
                 "Matrix.SimulationCore.Api");
 
             if (Directory.Exists(fromSolutionRoot))

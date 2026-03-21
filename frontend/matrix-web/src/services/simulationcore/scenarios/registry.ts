@@ -27,7 +27,7 @@ export type ClassicCityResidentSection =
     | "health";
 
 export const SIMULATIONCORE_SCENARIO_CATALOG_PATH = "/scenarios";
-export const CITYCORE_NEW_SIMULATION_PATH = "/simulations/new";
+export const SIMULATIONCORE_NEW_SIMULATION_PATH = "/simulations/new";
 export const CLASSIC_CITY_LIST_PATH = "/cities";
 export const CLASSIC_CITY_DETAILS_PATH_PATTERN = "/cities/:cityId";
 export const CLASSIC_CITY_RESIDENTS_PATH_PATTERN = "/cities/:cityId/residents";

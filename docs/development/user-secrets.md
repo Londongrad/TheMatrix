@@ -6,7 +6,7 @@ ASP.NET Core now loads local secrets automatically for these entrypoint projects
 
 - `src/services/identity/Matrix.Identity.Api/Matrix.Identity.Api.csproj`
 - `src/gateways/Matrix.ApiGateway/Matrix.ApiGateway.csproj`
-- `src/services/citycore/Matrix.CityCore.Api/Matrix.CityCore.Api.csproj`
+- `src/services/simulationcore/Matrix.SimulationCore.Api/Matrix.SimulationCore.Api.csproj`
 - `src/services/population/Matrix.Population.Api/Matrix.Population.Api.csproj`
 
 ## Typical setup
@@ -32,13 +32,13 @@ dotnet user-secrets set "RabbitMq:Password" "<rabbitmq-password>" --project src/
 dotnet user-secrets set "InternalJwt:SigningKey" "<internal-jwt-signing-key>" --project src/gateways/Matrix.ApiGateway/Matrix.ApiGateway.csproj
 ```
 
-### CityCore API
+### SimulationCore API
 
 ```powershell
-dotnet user-secrets set "ConnectionStrings:CityCoreDb" "<citycore-db-connection-string>" --project src/services/citycore/Matrix.CityCore.Api/Matrix.CityCore.Api.csproj
-dotnet user-secrets set "InternalJwt:SigningKey" "<internal-jwt-signing-key>" --project src/services/citycore/Matrix.CityCore.Api/Matrix.CityCore.Api.csproj
-dotnet user-secrets set "RabbitMq:Username" "<rabbitmq-username>" --project src/services/citycore/Matrix.CityCore.Api/Matrix.CityCore.Api.csproj
-dotnet user-secrets set "RabbitMq:Password" "<rabbitmq-password>" --project src/services/citycore/Matrix.CityCore.Api/Matrix.CityCore.Api.csproj
+dotnet user-secrets set "ConnectionStrings:SimulationCoreDb" "<simulationcore-db-connection-string>" --project src/services/simulationcore/Matrix.SimulationCore.Api/Matrix.SimulationCore.Api.csproj
+dotnet user-secrets set "InternalJwt:SigningKey" "<internal-jwt-signing-key>" --project src/services/simulationcore/Matrix.SimulationCore.Api/Matrix.SimulationCore.Api.csproj
+dotnet user-secrets set "RabbitMq:Username" "<rabbitmq-username>" --project src/services/simulationcore/Matrix.SimulationCore.Api/Matrix.SimulationCore.Api.csproj
+dotnet user-secrets set "RabbitMq:Password" "<rabbitmq-password>" --project src/services/simulationcore/Matrix.SimulationCore.Api/Matrix.SimulationCore.Api.csproj
 ```
 
 ### Population API

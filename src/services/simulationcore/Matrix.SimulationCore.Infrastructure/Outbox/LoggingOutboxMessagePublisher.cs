@@ -13,7 +13,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             CancellationToken cancellationToken)
         {
             logger.LogInformation(
-                message: "CityCore outbox publish messageId={MessageId}, type={Type}",
+                message: "SimulationCore outbox publish messageId={MessageId}, type={Type}",
                 messageId,
                 type);
 

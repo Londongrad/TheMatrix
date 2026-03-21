@@ -19,7 +19,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
             SimulationTickOptions tickOptions = options.Value;
 
             if (tickOptions.PeriodMilliseconds <= 0)
-                throw new InvalidOperationException("CityCore:Tick:PeriodMilliseconds must be > 0.");
+                throw new InvalidOperationException("SimulationCore:Tick:PeriodMilliseconds must be > 0.");
 
             using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(tickOptions.PeriodMilliseconds));
             var stopwatch = Stopwatch.StartNew();
@@ -42,7 +42,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
 
                     logger.LogDebug(
                         message:
-                        "CityCore tick processed {ProcessedCount} cities. Advanced: {AdvancedCount}, skipped: {SkippedCount}, failed: {FailedCount}.",
+                        "SimulationCore tick processed {ProcessedCount} cities. Advanced: {AdvancedCount}, skipped: {SkippedCount}, failed: {FailedCount}.",
                         result.ProcessedCount,
                         result.AdvancedCount,
                         result.SkippedCount,
@@ -52,7 +52,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
                 {
                     logger.LogError(
                         exception: ex,
-                        message: "CityCore tick loop iteration failed.");
+                        message: "SimulationCore tick loop iteration failed.");
                 }
             }
         }

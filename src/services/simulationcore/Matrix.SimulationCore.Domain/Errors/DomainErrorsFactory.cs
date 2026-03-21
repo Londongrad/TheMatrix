@@ -11,7 +11,7 @@ namespace Matrix.SimulationCore.Domain.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.SimTime.NotUtc",
+                code: "SimulationCore.SimTime.NotUtc",
                 message: "SimTime must be in UTC (Offset=00:00).",
                 propertyName: propertyName);
         }
@@ -23,7 +23,7 @@ namespace Matrix.SimulationCore.Domain.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.SimSpeed.Multiplier.OutOfRange",
+                code: "SimulationCore.SimSpeed.Multiplier.OutOfRange",
                 message: $"SimSpeed multiplier must be in range [{min}; {max}].",
                 propertyName: propertyName);
         }
@@ -33,7 +33,7 @@ namespace Matrix.SimulationCore.Domain.Errors
             string? propertyName = null)
         {
             return new DomainException(
-                code: "CityCore.SimSpeed.RealDelta.NotPositive",
+                code: "SimulationCore.SimSpeed.RealDelta.NotPositive",
                 message: "realDelta must be positive.",
                 propertyName: propertyName);
         }

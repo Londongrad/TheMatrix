@@ -252,7 +252,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 RestartCityPopulationBootstrapStatus.NotAllowed => Results.Conflict(
                     new
                     {
-                        code = "CityCore.City.PopulationBootstrapRetryNotAllowed",
+                        code = "SimulationCore.City.PopulationBootstrapRetryNotAllowed",
                         message = "Population bootstrap retry is allowed only after a failed bootstrap attempt."
                     }),
                 _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
@@ -395,7 +395,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 DeleteCityResult.NotAllowed => Results.Conflict(
                     new
                     {
-                        code = "CityCore.City.DeleteNotAllowed",
+                        code = "SimulationCore.City.DeleteNotAllowed",
                         message = "City must be archived before deletion."
                     }),
                 _ => Results.StatusCode(StatusCodes.Status500InternalServerError)

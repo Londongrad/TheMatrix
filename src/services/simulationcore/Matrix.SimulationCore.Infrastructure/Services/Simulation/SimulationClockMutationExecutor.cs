@@ -40,7 +40,7 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
 
                     if (host.IsArchived && !allowArchivedHost)
                         throw new MatrixApplicationException(
-                            code: "CityCore.Simulation.ArchivedHost",
+                            code: "SimulationCore.Simulation.ArchivedHost",
                             message: "Archived simulation hosts are read-only. Simulation controls are unavailable.",
                             errorType: ApplicationErrorType.Conflict);
 
@@ -93,7 +93,7 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
                 ]);
 
             throw new MatrixApplicationException(
-                code: "CityCore.SimulationClockConflict",
+                code: "SimulationCore.SimulationClockConflict",
                 message: "Simulation clock was updated concurrently. Please retry the action.",
                 errorType: ApplicationErrorType.Conflict,
                 innerException: lastException);
