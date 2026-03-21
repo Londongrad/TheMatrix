@@ -1,5 +1,5 @@
 using Matrix.PermissionCatalog.Abstractions;
-using CityCorePermissionsCatalog = Matrix.CityCore.Contracts.Authorization.Permissions.PermissionsCatalog;
+using CityCorePermissionsCatalog = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionsCatalog;
 using IdentityPermissionsCatalog = Matrix.Identity.Contracts.Authorization.Permissions.PermissionsCatalog;
 using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
 

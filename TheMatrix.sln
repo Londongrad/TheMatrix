@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36511.14
@@ -33,15 +33,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.BuildingBlocks.Api",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.Identity.Contracts", "src\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj", "{D3E1C099-E0C1-49B3-9EE1-DC98785E31EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Api", "src\services\citycore\Matrix.CityCore.Api\Matrix.CityCore.Api.csproj", "{56CC7A08-FEDC-48A6-8777-E9129E202D1D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.SimulationCore.Api", "src\services\simulationcore\Matrix.SimulationCore.Api\Matrix.SimulationCore.Api.csproj", "{56CC7A08-FEDC-48A6-8777-E9129E202D1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Application", "src\services\citycore\Matrix.CityCore.Application\Matrix.CityCore.Application.csproj", "{D3A76344-4211-4DA2-80EA-2D625C8BD3AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.SimulationCore.Application", "src\services\simulationcore\Matrix.SimulationCore.Application\Matrix.SimulationCore.Application.csproj", "{D3A76344-4211-4DA2-80EA-2D625C8BD3AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Domain", "src\services\citycore\Matrix.CityCore.Domain\Matrix.CityCore.Domain.csproj", "{E6749B40-8034-4442-AB6B-691C6AD49565}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.SimulationCore.Domain", "src\services\simulationcore\Matrix.SimulationCore.Domain\Matrix.SimulationCore.Domain.csproj", "{E6749B40-8034-4442-AB6B-691C6AD49565}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Infrastructure", "src\services\citycore\Matrix.CityCore.Infrastructure\Matrix.CityCore.Infrastructure.csproj", "{408A62BB-A146-4D05-BBA9-243C499E39AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.SimulationCore.Infrastructure", "src\services\simulationcore\Matrix.SimulationCore.Infrastructure\Matrix.SimulationCore.Infrastructure.csproj", "{408A62BB-A146-4D05-BBA9-243C499E39AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.CityCore.Contracts", "src\services\citycore\Matrix.CityCore.Contracts\Matrix.CityCore.Contracts.csproj", "{46813950-3F54-489D-AAEC-6F2E22F1486C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Matrix.SimulationCore.Contracts", "src\services\simulationcore\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj", "{46813950-3F54-489D-AAEC-6F2E22F1486C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
@@ -61,7 +61,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "population", "population", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{BF4408C8-5818-4D22-8F16-2E8127781EC4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "citycore", "citycore", "{EFE1247A-2AD4-46FA-9AC1-3E5C1BB6E48E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "simulationcore", "simulationcore", "{EFE1247A-2AD4-46FA-9AC1-3E5C1BB6E48E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "economy", "economy", "{FE7305C8-F183-FF1D-8380-38F3341A3BD9}"
 EndProject

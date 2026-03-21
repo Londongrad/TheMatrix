@@ -1,5 +1,5 @@
 using MassTransit;
-using Matrix.CityCore.Contracts.Events;
+using Matrix.SimulationCore.Contracts.Events;
 using Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy;
 using MediatR;
 using Microsoft.Extensions.Logging;

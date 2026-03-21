@@ -1,0 +1,36 @@
+using Matrix.BuildingBlocks.Domain;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors;
+
+namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects
+{
+    /// <summary>
+    ///     Atmospheric pressure in hectopascals.
+    /// </summary>
+    public readonly record struct PressureHpa
+    {
+        public const decimal Min = 870m;
+        public const decimal Max = 1085m;
+
+        public PressureHpa(decimal value)
+        {
+            Value = GuardHelper.AgainstOutOfRange(
+                value: value,
+                min: Min,
+                max: Max,
+                errorFactory: ClassicCityDomainErrorsFactory.PressureHpaOutOfRange,
+                propertyName: nameof(Value));
+        }
+
+        public decimal Value { get; }
+
+        public static PressureHpa From(decimal value)
+        {
+            return new PressureHpa(value);
+        }
+
+        public override string ToString()
+        {
+            return Value.ToString("0.##");
+        }
+    }
+}

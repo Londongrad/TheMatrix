@@ -1,0 +1,27 @@
+using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
+using MediatR;
+
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings
+{
+    public sealed class GetCityResidentialBuildingsQueryHandler(IResidentialBuildingRepository repository)
+        : IRequestHandler<GetCityResidentialBuildingsQuery, IReadOnlyList<ResidentialBuildingDto>>
+    {
+        public async Task<IReadOnlyList<ResidentialBuildingDto>> Handle(
+            GetCityResidentialBuildingsQuery request,
+            CancellationToken cancellationToken)
+        {
+            DistrictId? districtId = request.DistrictId.HasValue
+                ? new DistrictId(request.DistrictId.Value)
+                : null;
+
+            return (await repository.ListByCityIdAsync(
+                    cityId: new CityId(request.CityId),
+                    districtId: districtId,
+                    cancellationToken: cancellationToken))
+               .Select(ResidentialBuildingDto.FromDomain)
+               .ToArray();
+        }
+    }
+}

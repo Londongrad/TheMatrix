@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1"/>
+    <PackageReference Include="MediatR" Version="14.0.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
+    <ProjectReference Include="..\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>
+    <ProjectReference Include="..\Matrix.SimulationCore.Domain\Matrix.SimulationCore.Domain.csproj"/>
+  </ItemGroup>
+
+</Project>

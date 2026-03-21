@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\services\citycore\Matrix.CityCore.Contracts\Matrix.CityCore.Contracts.csproj"/>
+    <ProjectReference Include="..\..\services\simulationcore\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.PermissionCatalog.Abstractions\Matrix.PermissionCatalog.Abstractions.csproj"/>
     <ProjectReference Include="..\..\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj"/>

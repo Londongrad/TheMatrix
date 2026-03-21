@@ -1,0 +1,46 @@
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
+using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
+using Matrix.SimulationCore.Domain.Events.Simulation;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
+using Matrix.SimulationCore.Domain.Simulation;
+
+namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation
+{
+    public sealed class ClassicCitySimulationAdvanceHandler(
+        IWeatherAdvanceExecutor weatherAdvanceExecutor,
+        ISimulationCoreOutboxWriter outboxWriter) : ISimulationScenarioAdvanceHandler
+    {
+        public SimulationHostKind HostKind => SimulationHostKind.City;
+
+        public async Task HandleAdvancedAsync(
+            SimulationHost host,
+            SimulationTimeAdvancedDomainEvent advancedEvent,
+            CancellationToken cancellationToken)
+        {
+            CityId cityId = new(host.HostId.Value);
+
+            CityWeather? cityWeather = await weatherAdvanceExecutor.AdvanceAsync(
+                cityId: cityId,
+                evaluatedAt: advancedEvent.To,
+                cancellationToken: cancellationToken);
+
+            await outboxWriter.AddCityTimeAdvancedAsync(
+                cityId: cityId,
+                from: advancedEvent.From,
+                to: advancedEvent.To,
+                tickId: advancedEvent.TickId,
+                speed: advancedEvent.Speed,
+                cancellationToken: cancellationToken);
+
+            if (cityWeather is null || cityWeather.DomainEvents.Count == 0)
+                return;
+
+            await outboxWriter.AddWeatherEventsAsync(
+                domainEvents: cityWeather.DomainEvents,
+                cancellationToken: cancellationToken);
+            cityWeather.ClearDomainEvents();
+        }
+    }
+}

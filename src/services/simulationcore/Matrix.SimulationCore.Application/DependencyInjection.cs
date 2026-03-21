@@ -1,0 +1,39 @@
+using System.Reflection;
+using FluentValidation;
+using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.SimulationCore.Application.Errors;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity;
+using Matrix.SimulationCore.Application.Services.Simulation;
+using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Matrix.SimulationCore.Application
+{
+    public static class DependencyInjection
+    {
+        public static IServiceCollection AddApplication(this IServiceCollection services)
+        {
+            Assembly assembly = typeof(DependencyInjection).Assembly;
+            services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
+            services.AddValidatorsFromAssembly(assembly);
+
+            services.AddScoped<ISimulationAdvanceExecutor, SimulationAdvanceExecutor>();
+            services.AddScoped<IValidationExceptionFactory, SimulationCoreValidationErrorFactory>();
+            services.AddClassicCityScenarioApplication();
+
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(LoggingBehavior<,>));
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(ValidationBehavior<,>));
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(PermissionBehavior<,>));
+
+            return services;
+        }
+    }
+}
