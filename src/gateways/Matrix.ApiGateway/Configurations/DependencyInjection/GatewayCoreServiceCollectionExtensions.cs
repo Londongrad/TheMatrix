@@ -1,6 +1,6 @@
-using Matrix.ApiGateway.Services.CityCore.Dashboard;
-using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions;
+using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Mvc;
 

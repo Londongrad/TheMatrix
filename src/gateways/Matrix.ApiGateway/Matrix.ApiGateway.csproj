@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj"/>
-    <ProjectReference Include="..\..\services\citycore\Matrix.CityCore.Contracts\Matrix.CityCore.Contracts.csproj"/>
+    <ProjectReference Include="..\..\services\simulationcore\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj"/>
   </ItemGroup>

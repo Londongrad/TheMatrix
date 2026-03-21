@@ -1,6 +1,6 @@
-﻿using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.DownstreamClients.CityCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.DownstreamClients.CityCore.Simulation;
+using Matrix.ApiGateway.Configurations.Options;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.HttpHandlers;
@@ -26,8 +26,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddOptions<DownstreamServicesOptions>()
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName))
                .Validate(
-                    validation: o => IsAbsoluteUri(o.CityCore),
-                    failureMessage: $"{DownstreamServicesOptions.SectionName}:CityCore must be an absolute URI.")
+                    validation: o => IsAbsoluteUri(o.SimulationCore),
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:SimulationCore must be an absolute URI.")
                .Validate(
                     validation: o => IsAbsoluteUri(o.Economy),
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Economy must be an absolute URI.")
@@ -44,7 +44,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
             services.AddTransient<InternalJwtExchangeHandler>();
 
-            services.AddCityCoreClients();
+            services.AddSimulationCoreClients();
             services.AddEconomyClients();
             services.AddPopulationClients();
             services.AddIdentityClients();
@@ -52,7 +52,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddCityCoreClients(this IServiceCollection services)
+        private static IServiceCollection AddSimulationCoreClients(this IServiceCollection services)
         {
             services.AddHttpClient<ISimulationApiClient, SimulationApiClient>((
                         sp,
@@ -60,7 +60,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     ConfigureServiceBaseAddress(
                         sp: sp,
                         client: client,
-                        serviceName: DownstreamServiceNames.CityCore))
+                        serviceName: DownstreamServiceNames.SimulationCore))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -70,7 +70,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     ConfigureServiceBaseAddress(
                         sp: sp,
                         client: client,
-                        serviceName: DownstreamServiceNames.CityCore))
+                        serviceName: DownstreamServiceNames.SimulationCore))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -203,7 +203,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
             string baseAddress = serviceName switch
             {
-                DownstreamServiceNames.CityCore => options.CityCore,
+                DownstreamServiceNames.SimulationCore => options.SimulationCore,
                 DownstreamServiceNames.Economy => options.Economy,
                 DownstreamServiceNames.Population => options.Population,
                 DownstreamServiceNames.Identity => options.Identity,

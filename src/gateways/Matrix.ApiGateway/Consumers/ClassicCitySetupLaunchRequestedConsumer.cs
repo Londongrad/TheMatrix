@@ -1,5 +1,5 @@
 using MassTransit;
-using Matrix.ApiGateway.Services.CityCore.Scenarios.ClassicCity.SetupSessions;
+using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 
 namespace Matrix.ApiGateway.Consumers
 {
