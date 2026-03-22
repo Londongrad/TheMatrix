@@ -1,3 +1,6 @@
+using Matrix.BuildingBlocks.Domain;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
+
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
 {
     /// <summary>
@@ -31,11 +34,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects
             decimal value,
             string paramName)
         {
-            if (value is < Min or > Max)
-                throw new ArgumentOutOfRangeException(paramName);
-
             return decimal.Round(
-                d: value,
+                d: GuardHelper.AgainstOutOfRange(
+                    value: value,
+                    min: Min,
+                    max: Max,
+                    errorFactory: ClassicCityDomainErrorsFactory.CityNormalizedIndexOutOfRange,
+                    propertyName: paramName),
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
         }

@@ -1,4 +1,6 @@
+using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.SimulationSystems.Domain.Simulation;
@@ -53,7 +55,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SimulationHostId simulationHostId,
             CityEnvironmentalConditionSnapshot seed)
         {
-            ArgumentNullException.ThrowIfNull(seed);
+            GuardHelper.AgainstNull(
+                value: seed,
+                errorFactory: ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired);
 
             return new CityEnvironmentalConditionState(
                 simulationHostId: simulationHostId,
@@ -68,12 +72,15 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
 
         public void ApplySnapshot(CityEnvironmentalConditionSnapshot snapshot)
         {
-            ArgumentNullException.ThrowIfNull(snapshot);
+            GuardHelper.AgainstNull(
+                value: snapshot,
+                errorFactory: ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired);
 
             if (snapshot.EvaluatedAtUtc < LastEvaluatedAtUtc)
-                throw new ArgumentException(
-                    message: "Environmental condition snapshots cannot move backwards in time.",
-                    paramName: nameof(snapshot));
+                throw ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotCannotMoveBackwards(
+                    value: snapshot.EvaluatedAtUtc,
+                    previous: LastEvaluatedAtUtc,
+                    propertyName: nameof(snapshot));
 
             Drainage.ApplySnapshot(snapshot.Drainage);
             SnowRemoval.ApplySnapshot(snapshot.SnowRemoval);
@@ -102,9 +109,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         {
             return value.Offset == TimeSpan.Zero
                 ? value
-                : throw new ArgumentException(
-                    message: "Timestamp must be UTC.",
-                    paramName: paramName);
+                : throw ClassicCityDomainErrorsFactory.CityEnvironmentalTimestampMustBeUtc(
+                    value: value,
+                    propertyName: paramName);
         }
     }
 }

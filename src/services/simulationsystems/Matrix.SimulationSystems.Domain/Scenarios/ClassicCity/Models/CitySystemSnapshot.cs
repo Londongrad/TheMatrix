@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
 {
@@ -17,6 +18,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         {
             Kind = GuardHelper.AgainstInvalidEnum(
                 value: kind,
+                errorFactory: ClassicCityDomainErrorsFactory.InvalidCitySystemKind,
                 propertyName: nameof(kind));
             LoadIndex = NormalizeIndex(
                 value: loadIndex,
@@ -42,11 +44,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             decimal value,
             string paramName)
         {
-            if (value is < 0m or > 1m)
-                throw new ArgumentOutOfRangeException(paramName);
-
             return decimal.Round(
-                d: value,
+                d: GuardHelper.AgainstOutOfRange(
+                    value: value,
+                    min: 0m,
+                    max: 1m,
+                    errorFactory: ClassicCityDomainErrorsFactory.CityNormalizedIndexOutOfRange,
+                    propertyName: paramName),
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
         }

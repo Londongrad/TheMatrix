@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Domain;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
@@ -16,9 +18,21 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             RoadAccessibilityIndex roadAccessibilityIndex,
             DateTimeOffset evaluatedAtUtc)
         {
-            Drainage = drainage ?? throw new ArgumentNullException(nameof(drainage));
-            SnowRemoval = snowRemoval ?? throw new ArgumentNullException(nameof(snowRemoval));
-            RoadAccess = roadAccess ?? throw new ArgumentNullException(nameof(roadAccess));
+            Drainage = GuardHelper.AgainstNull(
+                value: drainage,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
+                    systemName: "drainage",
+                    propertyName: nameof(drainage)));
+            SnowRemoval = GuardHelper.AgainstNull(
+                value: snowRemoval,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
+                    systemName: "snowRemoval",
+                    propertyName: nameof(snowRemoval)));
+            RoadAccess = GuardHelper.AgainstNull(
+                value: roadAccess,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
+                    systemName: "roadAccess",
+                    propertyName: nameof(roadAccess)));
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
@@ -41,9 +55,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         {
             return value.Offset == TimeSpan.Zero
                 ? value
-                : throw new ArgumentException(
-                    message: "Timestamp must be UTC.",
-                    paramName: paramName);
+                : throw ClassicCityDomainErrorsFactory.CityEnvironmentalTimestampMustBeUtc(
+                    value: value,
+                    propertyName: paramName);
         }
     }
 }

@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Domain;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
@@ -47,8 +49,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySystemPressureProfile pressure,
             DateTimeOffset asOfUtc)
         {
-            ArgumentNullException.ThrowIfNull(state);
-            ArgumentNullException.ThrowIfNull(pressure);
+            GuardHelper.AgainstNull(
+                value: state,
+                errorFactory: ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired);
+            GuardHelper.AgainstNull(
+                value: pressure,
+                errorFactory: ClassicCityDomainErrorsFactory.CityEnvironmentalConditionPressureRequired);
             EnsureUtc(
                 value: asOfUtc,
                 paramName: nameof(asOfUtc));
@@ -249,9 +255,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             string paramName)
         {
             if (value.Offset != TimeSpan.Zero)
-                throw new ArgumentException(
-                    message: "Timestamp must be UTC.",
-                    paramName: paramName);
+                throw ClassicCityDomainErrorsFactory.CityEnvironmentalTimestampMustBeUtc(
+                    value: value,
+                    propertyName: paramName);
         }
     }
 }

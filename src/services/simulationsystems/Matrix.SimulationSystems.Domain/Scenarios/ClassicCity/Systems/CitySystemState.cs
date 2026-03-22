@@ -1,4 +1,6 @@
+using Matrix.BuildingBlocks.Domain;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
@@ -32,7 +34,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
 
         public static CitySystemState Create(CitySystemSnapshot snapshot)
         {
-            ArgumentNullException.ThrowIfNull(snapshot);
+            GuardHelper.AgainstNull(
+                value: snapshot,
+                errorFactory: ClassicCityDomainErrorsFactory.CitySystemSnapshotRequired);
 
             return new CitySystemState(
                 kind: snapshot.Kind,
@@ -44,12 +48,15 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
 
         public void ApplySnapshot(CitySystemSnapshot snapshot)
         {
-            ArgumentNullException.ThrowIfNull(snapshot);
+            GuardHelper.AgainstNull(
+                value: snapshot,
+                errorFactory: ClassicCityDomainErrorsFactory.CitySystemSnapshotRequired);
 
             if (snapshot.Kind != Kind)
-                throw new ArgumentException(
-                    message: $"System snapshot kind '{snapshot.Kind}' cannot be applied to '{Kind}'.",
-                    paramName: nameof(snapshot));
+                throw ClassicCityDomainErrorsFactory.CitySystemSnapshotKindMismatch(
+                    value: snapshot.Kind,
+                    expected: Kind,
+                    propertyName: nameof(snapshot));
 
             LoadIndex = snapshot.LoadIndex;
             ServiceQualityIndex = snapshot.ServiceQualityIndex;

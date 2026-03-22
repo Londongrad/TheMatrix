@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain;
+using Matrix.SimulationSystems.Domain.Errors;
 
 namespace Matrix.SimulationSystems.Domain.Simulation
 {
@@ -12,6 +13,7 @@ namespace Matrix.SimulationSystems.Domain.Simulation
         {
             Value = GuardHelper.AgainstEmptyGuid(
                 id: value,
+                errorFactory: SimulationSystemsDomainErrorsFactory.SimulationHostIdEmpty,
                 propertyName: nameof(Value));
         }
 
