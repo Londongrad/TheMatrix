@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Infrastructure.Exceptions;
@@ -116,6 +117,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 
         private bool TryTranslateKnownDbException(
             DbUpdateException exception,
+            [NotNullWhen(true)]
             out MatrixApplicationException? translated)
         {
             if (exception.InnerException is PostgresException
