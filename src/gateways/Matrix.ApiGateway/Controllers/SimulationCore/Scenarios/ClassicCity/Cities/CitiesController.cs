@@ -3,10 +3,10 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.C
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
-using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Weather.Views;
@@ -119,7 +119,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
 
             try
             {
-                EconomySummaryDto? economySummary = await _economyClient.GetCitySummaryAsync(
+                EconomySummaryView? economySummary = await _economyClient.GetCitySummaryAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
 
@@ -500,7 +500,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
             return NoContent();
         }
 
-        private static IReadOnlyList<CityPopulationDashboardMetricDto> BuildEconomyMetrics(EconomySummaryDto summary)
+        private static IReadOnlyList<CityPopulationDashboardMetricDto> BuildEconomyMetrics(EconomySummaryView summary)
         {
             return
             [

@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Requests;
+using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
@@ -63,17 +64,15 @@ namespace Matrix.Economy.Api.Controllers
                 cancellationToken: cancellationToken);
 
             return Ok(
-                new
-                {
-                    cityId = result.CityId,
-                    budgetCreated = result.BudgetCreated,
-                    createdAllocations = result.CreatedAllocations,
-                    createdBusinesses = result.CreatedBusinesses,
-                    unitKind = result.UnitKind,
-                    unitCode = result.UnitCode,
-                    unitDisplayName = result.UnitDisplayName,
-                    unitSymbol = result.UnitSymbol
-                });
+                new CityEconomyBootstrapResultView(
+                    CityId: result.CityId,
+                    BudgetCreated: result.BudgetCreated,
+                    CreatedAllocations: result.CreatedAllocations,
+                    CreatedBusinesses: result.CreatedBusinesses,
+                    UnitKind: result.UnitKind,
+                    UnitCode: result.UnitCode,
+                    UnitDisplayName: result.UnitDisplayName,
+                    UnitSymbol: result.UnitSymbol));
         }
 
         [HttpGet("cities/{cityId:guid}/ledger")]
@@ -247,24 +246,22 @@ namespace Matrix.Economy.Api.Controllers
                 result: out category);
         }
 
-        private static object MapSummary(BudgetSummaryDto result)
+        private static EconomySummaryView MapSummary(BudgetSummaryDto result)
         {
-            return new
-            {
-                unitKind = result.UnitKind,
-                unitCode = result.UnitCode,
-                unitDisplayName = result.UnitDisplayName,
-                unitSymbol = result.UnitSymbol,
-                balance = result.Balance.Amount,
-                totalTaxIncome = result.TotalTaxIncome.Amount,
-                totalIncomeTaxIncome = result.TotalIncomeTaxIncome.Amount,
-                totalSalesTaxIncome = result.TotalSalesTaxIncome.Amount,
-                totalDirectRevenue = result.TotalDirectRevenue.Amount,
-                totalCityExpenses = result.TotalCityExpenses.Amount,
-                totalRetailTurnover = result.TotalRetailTurnover.Amount,
-                totalGrossPayroll = result.TotalGrossPayroll.Amount,
-                totalNetPayroll = result.TotalNetPayroll.Amount
-            };
+            return new EconomySummaryView(
+                UnitKind: result.UnitKind,
+                UnitCode: result.UnitCode,
+                UnitDisplayName: result.UnitDisplayName,
+                UnitSymbol: result.UnitSymbol,
+                Balance: result.Balance.Amount,
+                TotalTaxIncome: result.TotalTaxIncome.Amount,
+                TotalIncomeTaxIncome: result.TotalIncomeTaxIncome.Amount,
+                TotalSalesTaxIncome: result.TotalSalesTaxIncome.Amount,
+                TotalDirectRevenue: result.TotalDirectRevenue.Amount,
+                TotalCityExpenses: result.TotalCityExpenses.Amount,
+                TotalRetailTurnover: result.TotalRetailTurnover.Amount,
+                TotalGrossPayroll: result.TotalGrossPayroll.Amount,
+                TotalNetPayroll: result.TotalNetPayroll.Amount);
         }
     }
 }

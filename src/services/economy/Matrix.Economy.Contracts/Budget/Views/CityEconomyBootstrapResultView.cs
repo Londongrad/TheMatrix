@@ -1,6 +1,6 @@
-namespace Matrix.ApiGateway.DownstreamClients.Economy.Models
+namespace Matrix.Economy.Contracts.Budget.Views
 {
-    public sealed record CityEconomyBootstrapResultDto(
+    public sealed record CityEconomyBootstrapResultView(
         Guid CityId,
         bool BudgetCreated,
         int CreatedAllocations,

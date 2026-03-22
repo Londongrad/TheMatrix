@@ -1,5 +1,5 @@
 using Matrix.ApiGateway.DownstreamClients.Economy;
-using Matrix.ApiGateway.DownstreamClients.Economy.Models;
+using Matrix.Economy.Contracts.Budget.Views;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Controllers.Economy
@@ -13,7 +13,7 @@ namespace Matrix.ApiGateway.Controllers.Economy
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
         {
-            EconomySummaryDto? summary = await _economyClient.GetSummaryAsync(cancellationToken);
+            EconomySummaryView? summary = await _economyClient.GetSummaryAsync(cancellationToken);
 
             if (summary is null)
                 return StatusCode(StatusCodes.Status502BadGateway);
@@ -26,7 +26,7 @@ namespace Matrix.ApiGateway.Controllers.Economy
             [FromRoute] Guid cityId,
             CancellationToken cancellationToken)
         {
-            EconomySummaryDto? summary = await _economyClient.GetCitySummaryAsync(
+            EconomySummaryView? summary = await _economyClient.GetCitySummaryAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
 

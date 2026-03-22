@@ -1,18 +1,19 @@
-using Matrix.ApiGateway.DownstreamClients.Economy.Models;
+using Matrix.Economy.Contracts.Budget.Requests;
+using Matrix.Economy.Contracts.Budget.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.Economy
 {
     public interface IEconomyApiClient
     {
-        Task<EconomySummaryDto?> GetSummaryAsync(CancellationToken cancellationToken = default);
+        Task<EconomySummaryView?> GetSummaryAsync(CancellationToken cancellationToken = default);
 
-        Task<EconomySummaryDto?> GetCitySummaryAsync(
+        Task<EconomySummaryView?> GetCitySummaryAsync(
             Guid cityId,
             CancellationToken cancellationToken = default);
 
-        Task<CityEconomyBootstrapResultDto> InitializeCityEconomyAsync(
+        Task<CityEconomyBootstrapResultView> InitializeCityEconomyAsync(
             Guid cityId,
-            InitializeCityEconomyRequestDto request,
+            InitializeCityEconomyRequest request,
             CancellationToken cancellationToken = default);
 
         Task<bool> HealthAsync(CancellationToken cancellationToken = default);

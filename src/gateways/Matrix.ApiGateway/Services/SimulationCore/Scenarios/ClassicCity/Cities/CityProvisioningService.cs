@@ -7,9 +7,10 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.C
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
-using Matrix.ApiGateway.DownstreamClients.Economy.Models;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.BuildingBlocks.Api.Errors;
+using Matrix.Economy.Contracts.Budget.Requests;
+using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
@@ -176,9 +177,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities
                     cityId: cityId,
                     cancellationToken: cancellationToken);
 
-                CityEconomyBootstrapResultDto result = await economyApiClient.InitializeCityEconomyAsync(
+                CityEconomyBootstrapResultView result = await economyApiClient.InitializeCityEconomyAsync(
                     cityId: cityId,
-                    request: new InitializeCityEconomyRequestDto(
+                    request: new InitializeCityEconomyRequest(
                         SimulationKind: simulationKind,
                         EconomyProfile: city.EconomyProfile,
                         CreatedAtUtc: city.CreatedAtUtc),

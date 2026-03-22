@@ -1,6 +1,7 @@
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
-using Matrix.ApiGateway.DownstreamClients.Economy.Models;
+using Matrix.Economy.Contracts.Budget.Requests;
+using Matrix.Economy.Contracts.Budget.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.Economy
 {
@@ -15,20 +16,20 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
         private readonly HttpClient _client = client;
         private readonly ILogger<EconomyApiClient> _logger = logger;
 
-        public async Task<EconomySummaryDto?> GetSummaryAsync(CancellationToken cancellationToken = default)
+        public async Task<EconomySummaryView?> GetSummaryAsync(CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response =
                 await _client.GetAsync(
                     requestUri: SummaryEndpoint,
                     cancellationToken: cancellationToken);
 
-            return await response.ReadJsonOrThrowDownstreamAsync<EconomySummaryDto>(
+            return await response.ReadJsonOrThrowDownstreamAsync<EconomySummaryView>(
                 serviceName: DownstreamServiceNames.Economy,
                 cancellationToken: cancellationToken,
                 requestUrl: SummaryEndpoint);
         }
 
-        public async Task<EconomySummaryDto?> GetCitySummaryAsync(
+        public async Task<EconomySummaryView?> GetCitySummaryAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
@@ -43,15 +44,15 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
                 format: CitySummaryEndpointTemplate,
                 arg0: cityId);
 
-            return await response.ReadJsonOrThrowDownstreamAsync<EconomySummaryDto>(
+            return await response.ReadJsonOrThrowDownstreamAsync<EconomySummaryView>(
                 serviceName: DownstreamServiceNames.Economy,
                 cancellationToken: cancellationToken,
                 requestUrl: url);
         }
 
-        public async Task<CityEconomyBootstrapResultDto> InitializeCityEconomyAsync(
+        public async Task<CityEconomyBootstrapResultView> InitializeCityEconomyAsync(
             Guid cityId,
-            InitializeCityEconomyRequestDto request,
+            InitializeCityEconomyRequest request,
             CancellationToken cancellationToken = default)
         {
             string url = string.Format(
@@ -63,7 +64,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
                 value: request,
                 cancellationToken: cancellationToken);
 
-            return await response.ReadJsonOrThrowDownstreamAsync<CityEconomyBootstrapResultDto>(
+            return await response.ReadJsonOrThrowDownstreamAsync<CityEconomyBootstrapResultView>(
                 serviceName: DownstreamServiceNames.Economy,
                 cancellationToken: cancellationToken,
                 requestUrl: url);
