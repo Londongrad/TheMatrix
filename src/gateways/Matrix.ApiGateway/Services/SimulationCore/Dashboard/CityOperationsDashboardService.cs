@@ -263,6 +263,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 service: "Population",
                 baseUrl: _downstreamOptions.Population,
                 cancellationToken: cancellationToken);
+            Task<DashboardServiceHealthView> economyTask = ProbeRemoteHealthAsync(
+                service: "Economy",
+                baseUrl: _downstreamOptions.Economy,
+                cancellationToken: cancellationToken);
             Task<DashboardServiceHealthView> identityTask = ProbeRemoteHealthAsync(
                 service: "Identity",
                 baseUrl: _downstreamOptions.Identity,
@@ -272,6 +276,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 gatewayTask,
                 simulationCoreTask,
                 populationTask,
+                economyTask,
                 identityTask);
         }
 

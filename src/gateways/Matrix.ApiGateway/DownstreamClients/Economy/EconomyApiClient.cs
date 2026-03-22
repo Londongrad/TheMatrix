@@ -11,7 +11,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
         private const string SummaryEndpoint = "/api/economy/Budget/summary";
         private const string CitySummaryEndpointTemplate = "/api/economy/Budget/cities/{0}/summary";
         private const string CityBootstrapEndpointTemplate = "/api/economy/Budget/cities/{0}/bootstrap";
-        private const string HealthEndpoint = "/api/economy/Budget/health";
+        private const string ReadyEndpoint = "/health/ready";
         private readonly HttpClient _client = client;
         private readonly ILogger<EconomyApiClient> _logger = logger;
 
@@ -73,13 +73,13 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
         {
             HttpResponseMessage response =
                 await _client.GetAsync(
-                    requestUri: HealthEndpoint,
+                    requestUri: ReadyEndpoint,
                     cancellationToken: cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning(
-                    message: "Economy health check failed with status code {StatusCode}",
+                    message: "Economy ready probe failed with status code {StatusCode}",
                     response.StatusCode);
                 return false;
             }

@@ -237,16 +237,6 @@ namespace Matrix.Economy.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("health")]
-        public IActionResult Health()
-        {
-            return Ok(
-                new
-                {
-                    status = "ok"
-                });
-        }
-
         private static bool TryParseCategory(
             string rawCategory,
             out CityBudgetCategory category)
