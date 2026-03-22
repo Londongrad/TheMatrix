@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.Economy.Application;
@@ -16,6 +17,7 @@ namespace Matrix.Economy.Api.Configurations
             builder.AddSerilogLogging();
 
             builder.Services.AddControllers();
+            builder.Services.AddOperationalHealthChecks(configuration);
 
             services.AddJwtBearerAuthentication<InternalJwtOptions>(
                 configuration: configuration,
