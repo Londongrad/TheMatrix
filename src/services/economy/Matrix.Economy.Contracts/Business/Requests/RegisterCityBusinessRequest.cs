@@ -1,10 +1,10 @@
-namespace Matrix.Economy.Api.Contracts.HouseholdAccounts
+namespace Matrix.Economy.Contracts.Business.Requests
 {
-    public sealed class RegisterCityHouseholdAccountRequest
+    public sealed class RegisterCityBusinessRequest
     {
         public string Name { get; set; } = string.Empty;
-        public string? ExternalReferenceCode { get; set; }
-        public decimal OpeningBalance { get; set; }
+        public string Kind { get; set; } = string.Empty;
+        public decimal StartingCapital { get; set; }
         public string? UnitKind { get; set; }
         public string? UnitCode { get; set; }
         public string? UnitDisplayName { get; set; }

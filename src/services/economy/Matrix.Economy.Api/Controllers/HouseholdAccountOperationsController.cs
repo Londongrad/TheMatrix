@@ -1,4 +1,4 @@
-using Matrix.Economy.Api.Contracts.HouseholdAccounts;
+using Matrix.Economy.Contracts.HouseholdAccounts.Requests;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseholdPurchase;
 using MediatR;

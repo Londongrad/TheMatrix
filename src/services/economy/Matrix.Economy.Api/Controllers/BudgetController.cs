@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Api.Contracts.Budget;
+using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;

@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Api.Contracts.Business
+namespace Matrix.Economy.Contracts.Business.Requests
 {
     public sealed class RecordBusinessPayrollRequest
     {

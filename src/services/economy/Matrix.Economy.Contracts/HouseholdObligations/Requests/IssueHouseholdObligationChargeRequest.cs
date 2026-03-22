@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Api.Contracts.HouseholdObligations
+namespace Matrix.Economy.Contracts.HouseholdObligations.Requests
 {
     public sealed class IssueHouseholdObligationChargeRequest
     {

@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Application.Models;
-using Matrix.Economy.Api.Contracts.Business;
+using Matrix.Economy.Contracts.Business.Requests;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinesses;
 using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedger;

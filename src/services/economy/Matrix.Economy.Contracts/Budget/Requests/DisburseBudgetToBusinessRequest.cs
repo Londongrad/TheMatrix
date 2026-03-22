@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Api.Contracts.Budget
+namespace Matrix.Economy.Contracts.Budget.Requests
 {
     public sealed record DisburseBudgetToBusinessRequest(
         Guid BusinessId,
