@@ -1,7 +1,10 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
+using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
+using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -9,14 +12,18 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 {
     public sealed class CityOperationsDashboardService(
         ICitiesApiClient citiesClient,
+        IEnvironmentalConditionsApiClient environmentalConditionsClient,
         HealthCheckService healthCheckService,
         IHttpClientFactory httpClientFactory,
-        IOptions<DownstreamServicesOptions> downstreamOptions) : ICityOperationsDashboardService
+        IOptions<DownstreamServicesOptions> downstreamOptions,
+        ILogger<CityOperationsDashboardService> logger) : ICityOperationsDashboardService
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
+        private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
         private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+        private readonly ILogger<CityOperationsDashboardService> _logger = logger;
 
         public async Task<CityOperationsDashboardView> GetAsync(CancellationToken cancellationToken)
         {
@@ -34,6 +41,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
             IReadOnlyList<CityListItemView> allCities = allCitiesTask.Result;
             IReadOnlyList<CityListItemView> attentionCities = provisioningTask.Result;
+            DashboardEnvironmentalAlertView[] environmentalAlerts =
+                await BuildEnvironmentalAlertsAsync(
+                    allCities: allCities,
+                    cancellationToken: cancellationToken);
             DateTimeOffset now = DateTimeOffset.Now;
 
             CityListItemView[] readyCities = allCities
@@ -92,6 +103,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     DeltaMonth: null,
                     DeltaYear: null,
                     DeltaMode: "live"),
+                EnvironmentalAlerts: new DashboardMetricView(
+                    Label: "Environmental alerts",
+                    Current: environmentalAlerts.Length,
+                    Description:
+                    "Ready classic-city simulations currently showing flooding, snow pressure, or degraded road access.",
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null,
+                    DeltaMode: "live"),
                 NewCities: BuildPeriodComparisonRow(
                     label: "New cities",
                     description: "Fresh hosts entering the system through the setup and provisioning pipeline.",
@@ -118,6 +138,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     source: allCities),
                 Services: healthTask.Result,
                 Events: BuildRecentEvents(allCities),
+                EnvironmentalCities: environmentalAlerts.Take(8)
+                   .ToArray(),
                 AttentionCities: rankedAttentionCities.Take(8)
                    .ToArray(),
                 ReadyCities: readyCities,
@@ -259,6 +281,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 service: "SimulationCore",
                 baseUrl: _downstreamOptions.SimulationCore,
                 cancellationToken: cancellationToken);
+            Task<DashboardServiceHealthView> simulationSystemsTask = ProbeRemoteHealthAsync(
+                service: "SimulationSystems",
+                baseUrl: _downstreamOptions.SimulationSystems,
+                cancellationToken: cancellationToken);
             Task<DashboardServiceHealthView> populationTask = ProbeRemoteHealthAsync(
                 service: "Population",
                 baseUrl: _downstreamOptions.Population,
@@ -275,9 +301,90 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             return await Task.WhenAll(
                 gatewayTask,
                 simulationCoreTask,
+                simulationSystemsTask,
                 populationTask,
                 economyTask,
                 identityTask);
+        }
+
+        private async Task<DashboardEnvironmentalAlertView[]> BuildEnvironmentalAlertsAsync(
+            IReadOnlyList<CityListItemView> allCities,
+            CancellationToken cancellationToken)
+        {
+            CityListItemView[] readyClassicCities = allCities
+               .Where(city => IsReady(city) && IsClassicCity(city))
+               .ToArray();
+
+            if (readyClassicCities.Length == 0)
+                return [];
+
+            Task<DashboardEnvironmentalAlertView?>[] alertTasks = readyClassicCities
+               .Select(city => BuildEnvironmentalAlertAsync(
+                    city: city,
+                    cancellationToken: cancellationToken))
+               .ToArray();
+
+            DashboardEnvironmentalAlertView?[] alerts = await Task.WhenAll(alertTasks);
+
+            return alerts
+               .Where(alert => alert is not null)
+               .Select(alert => alert!)
+               .OrderByDescending(alert => alert.AlertScore)
+               .ThenBy(
+                    keySelector: alert => alert.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
+               .ToArray();
+        }
+
+        private async Task<DashboardEnvironmentalAlertView?> BuildEnvironmentalAlertAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                CityEnvironmentalConditionsView? conditions =
+                    await _environmentalConditionsClient.GetCityEnvironmentalConditionsAsync(
+                        cityId: city.CityId,
+                        cancellationToken: cancellationToken);
+
+                if (conditions is null)
+                    return null;
+
+                decimal alertScore = CalculateEnvironmentalAlertScore(conditions);
+
+                if (alertScore < 0.1800m)
+                    return null;
+
+                return new DashboardEnvironmentalAlertView(
+                    CityId: city.CityId,
+                    CityName: city.Name,
+                    CityStatus: city.Status,
+                    Severity: GetEnvironmentalSeverity(alertScore),
+                    Summary: BuildEnvironmentalSummary(conditions),
+                    AlertScore: alertScore,
+                    Conditions: conditions);
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Failed to attach simulation systems metrics to city operations dashboard for cityId={CityId}.",
+                    city.CityId);
+
+                return null;
+            }
+            catch (DownstreamServiceException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Skipped simulation systems metrics for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                    (int)exception.StatusCode,
+                    city.CityId);
+
+                return null;
+            }
         }
 
         private async Task<DashboardServiceHealthView> ProbeGatewayHealthAsync(CancellationToken cancellationToken)
@@ -491,6 +598,103 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 "provisioning" => 1,
                 _ => 2
             };
+        }
+
+        private static bool IsClassicCity(CityListItemView city)
+        {
+            return city.SimulationKind.Equals(
+                value: "ClassicCity",
+                comparisonType: StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static decimal CalculateEnvironmentalAlertScore(CityEnvironmentalConditionsView conditions)
+        {
+            decimal floodingPressure = conditions.FloodingIndex;
+            decimal snowPressure = conditions.SnowAccumulationIndex;
+            decimal roadDisruption = 1m - conditions.RoadAccessibilityIndex;
+            decimal failureRisk = Math.Max(
+                val1: conditions.Drainage.FailureRiskIndex,
+                val2: Math.Max(
+                    val1: conditions.SnowRemoval.FailureRiskIndex,
+                    val2: conditions.RoadAccess.FailureRiskIndex));
+            decimal maintenanceBacklog = Math.Max(
+                val1: conditions.Drainage.BacklogIndex,
+                val2: Math.Max(
+                    val1: conditions.SnowRemoval.BacklogIndex,
+                    val2: conditions.RoadAccess.BacklogIndex));
+
+            decimal composite = (floodingPressure * 0.35m) +
+                                (snowPressure * 0.30m) +
+                                (roadDisruption * 0.25m) +
+                                (failureRisk * 0.07m) +
+                                (maintenanceBacklog * 0.03m);
+
+            return decimal.Round(
+                d: ClampUnit(composite),
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static string GetEnvironmentalSeverity(decimal alertScore)
+        {
+            return alertScore switch
+            {
+                >= 0.6500m => "danger",
+                >= 0.4000m => "warning",
+                _ => "info"
+            };
+        }
+
+        private static string BuildEnvironmentalSummary(CityEnvironmentalConditionsView conditions)
+        {
+            decimal floodingPressure = conditions.FloodingIndex;
+            decimal snowPressure = conditions.SnowAccumulationIndex;
+            decimal roadDisruption = 1m - conditions.RoadAccessibilityIndex;
+            decimal drainagePressure = Math.Max(
+                val1: conditions.Drainage.BacklogIndex,
+                val2: conditions.Drainage.FailureRiskIndex);
+            decimal snowRemovalPressure = Math.Max(
+                val1: conditions.SnowRemoval.BacklogIndex,
+                val2: conditions.SnowRemoval.FailureRiskIndex);
+            decimal roadSupportPressure = Math.Max(
+                val1: conditions.RoadAccess.BacklogIndex,
+                val2: conditions.RoadAccess.FailureRiskIndex);
+
+            if (floodingPressure >= snowPressure &&
+                floodingPressure >= roadDisruption &&
+                floodingPressure >= drainagePressure &&
+                floodingPressure >= snowRemovalPressure &&
+                floodingPressure >= roadSupportPressure)
+                return "Flooding pressure is climbing and drainage capacity is starting to stretch.";
+
+            if (snowPressure >= roadDisruption &&
+                snowPressure >= drainagePressure &&
+                snowPressure >= snowRemovalPressure &&
+                snowPressure >= roadSupportPressure)
+                return "Snow accumulation is rising and cleanup throughput is falling behind.";
+
+            if (roadDisruption >= drainagePressure &&
+                roadDisruption >= snowRemovalPressure &&
+                roadDisruption >= roadSupportPressure)
+                return "Road accessibility is slipping as weather pressure reaches transport routes.";
+
+            if (drainagePressure >= snowRemovalPressure &&
+                drainagePressure >= roadSupportPressure)
+                return "Drainage backlog is building up and raises flood recovery risk.";
+
+            if (snowRemovalPressure >= roadSupportPressure)
+                return "Snow-removal backlog is building up and keeps snow pressure elevated.";
+
+            return "Road access maintenance pressure is rising and threatens city mobility.";
+        }
+
+        private static decimal ClampUnit(decimal value)
+        {
+            return Math.Min(
+                val1: 1m,
+                val2: Math.Max(
+                    val1: 0m,
+                    val2: value));
         }
     }
 }

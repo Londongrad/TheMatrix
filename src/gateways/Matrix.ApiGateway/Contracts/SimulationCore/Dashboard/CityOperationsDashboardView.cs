@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 
 namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
 {
@@ -8,12 +9,14 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         DashboardMetricView ReadyHosts,
         DashboardMetricView ArchivedRecords,
         DashboardMetricView AttentionQueue,
+        DashboardMetricView EnvironmentalAlerts,
         DashboardPeriodComparisonRowView NewCities,
         DashboardPeriodComparisonRowView ArchivedCities,
         DashboardPeriodComparisonRowView FailedBootstraps,
         DashboardPeriodComparisonRowView ReadyHandOffs,
         IReadOnlyList<DashboardServiceHealthView> Services,
         IReadOnlyList<DashboardRecentEventView> Events,
+        IReadOnlyList<DashboardEnvironmentalAlertView> EnvironmentalCities,
         IReadOnlyList<CityListItemView> AttentionCities,
         IReadOnlyList<CityListItemView> ReadyCities,
         IReadOnlyList<CityListItemView> ArchivedCitiesList);
@@ -54,4 +57,13 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         string CityName,
         string CityStatus,
         DateTimeOffset OccurredAtUtc);
+
+    public sealed record DashboardEnvironmentalAlertView(
+        Guid CityId,
+        string CityName,
+        string CityStatus,
+        string Severity,
+        string Summary,
+        decimal AlertScore,
+        CityEnvironmentalConditionsView Conditions);
 }
