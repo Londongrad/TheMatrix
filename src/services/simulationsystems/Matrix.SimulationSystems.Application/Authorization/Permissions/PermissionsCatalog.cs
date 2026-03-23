@@ -14,7 +14,12 @@ namespace Matrix.SimulationSystems.Application.Authorization.Permissions
                     Key: PermissionKeys.SimulationSystemsClassicCityRead,
                     Service: SimulationSystemsService,
                     Group: ClassicCityGroup,
-                    Description: "View classic city environmental systems and physical conditions.")
+                    Description: "View classic city environmental systems and physical conditions."),
+                new(
+                    Key: PermissionKeys.SimulationSystemsClassicCityManage,
+                    Service: SimulationSystemsService,
+                    Group: ClassicCityGroup,
+                    Description: "Manage classic city drainage response and emergency operations.")
             };
     }
 }

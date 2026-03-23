@@ -11,6 +11,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
     {
         public CityEnvironmentalConditionSnapshot(
             CitySystemSnapshot drainage,
+            CityDrainageInfrastructureSnapshot drainageInfrastructure,
             CitySystemSnapshot snowRemoval,
             CitySystemSnapshot roadAccess,
             FloodingIndex floodingIndex,
@@ -23,6 +24,10 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
                     systemName: "drainage",
                     propertyName: nameof(drainage)));
+            DrainageInfrastructure = GuardHelper.AgainstNull(
+                value: drainageInfrastructure,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
+                    propertyName: nameof(drainageInfrastructure)));
             SnowRemoval = GuardHelper.AgainstNull(
                 value: snowRemoval,
                 errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
@@ -42,6 +47,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         }
 
         public CitySystemSnapshot Drainage { get; }
+        public CityDrainageInfrastructureSnapshot DrainageInfrastructure { get; }
         public CitySystemSnapshot SnowRemoval { get; }
         public CitySystemSnapshot RoadAccess { get; }
         public FloodingIndex FloodingIndex { get; }

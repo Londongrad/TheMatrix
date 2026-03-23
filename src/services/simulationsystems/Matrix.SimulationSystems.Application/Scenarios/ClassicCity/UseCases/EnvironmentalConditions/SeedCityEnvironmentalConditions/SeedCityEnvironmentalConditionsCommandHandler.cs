@@ -30,7 +30,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     LastEvaluatedAtUtc: existing.LastEvaluatedAtUtc);
             }
 
-            var seed = policy.CreateSeed(request.CreatedAtUtc);
+            var seed = policy.CreateSeed(
+                cityId: request.CityId,
+                developmentLevel: request.DevelopmentLevel,
+                asOfUtc: request.CreatedAtUtc);
             var state = CityEnvironmentalConditionState.Create(
                 simulationHostId: simulationHostId,
                 seed: seed);

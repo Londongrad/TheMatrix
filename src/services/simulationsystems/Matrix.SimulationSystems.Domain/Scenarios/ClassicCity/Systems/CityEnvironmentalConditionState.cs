@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.BuildingBlocks.Domain.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.SimulationSystems.Domain.Simulation;
 
@@ -15,6 +16,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         private CityEnvironmentalConditionState(
             SimulationHostId simulationHostId,
             CitySystemState drainage,
+            CityDrainageInfrastructureState drainageInfrastructure,
             CitySystemState snowRemoval,
             CitySystemState roadAccess,
             CityWeatherPressureProfile weatherPressure,
@@ -25,6 +27,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             : base(simulationHostId)
         {
             Drainage = drainage;
+            DrainageInfrastructure = drainageInfrastructure;
             SnowRemoval = snowRemoval;
             RoadAccess = roadAccess;
             WeatherPressure = weatherPressure;
@@ -40,6 +43,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             : base(default(SimulationHostId))
         {
             Drainage = null!;
+            DrainageInfrastructure = null!;
             SnowRemoval = null!;
             RoadAccess = null!;
             WeatherPressure = null!;
@@ -47,6 +51,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
 
         public SimulationHostId SimulationHostId => Id;
         public CitySystemState Drainage { get; private set; }
+        public CityDrainageInfrastructureState DrainageInfrastructure { get; private set; }
         public CitySystemState SnowRemoval { get; private set; }
         public CitySystemState RoadAccess { get; private set; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
@@ -66,6 +71,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             return new CityEnvironmentalConditionState(
                 simulationHostId: simulationHostId,
                 drainage: CitySystemState.Create(seed.Drainage),
+                drainageInfrastructure: CityDrainageInfrastructureState.Create(seed.DrainageInfrastructure),
                 snowRemoval: CitySystemState.Create(seed.SnowRemoval),
                 roadAccess: CitySystemState.Create(seed.RoadAccess),
                 weatherPressure: CityWeatherPressureProfile.Neutral(),
@@ -97,6 +103,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                     propertyName: nameof(snapshot));
 
             Drainage.ApplySnapshot(snapshot.Drainage);
+            DrainageInfrastructure.ApplySnapshot(snapshot.DrainageInfrastructure);
             SnowRemoval.ApplySnapshot(snapshot.SnowRemoval);
             RoadAccess.ApplySnapshot(snapshot.RoadAccess);
             FloodingIndex = snapshot.FloodingIndex;
@@ -109,12 +116,27 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         {
             return new CityEnvironmentalConditionSnapshot(
                 drainage: Drainage.ToSnapshot(),
+                drainageInfrastructure: DrainageInfrastructure.ToSnapshot(),
                 snowRemoval: SnowRemoval.ToSnapshot(),
                 roadAccess: RoadAccess.ToSnapshot(),
                 floodingIndex: FloodingIndex,
                 snowAccumulationIndex: SnowAccumulationIndex,
                 roadAccessibilityIndex: RoadAccessibilityIndex,
                 evaluatedAtUtc: LastEvaluatedAtUtc);
+        }
+
+        public void SetDrainageEmergencyMode(bool enabled)
+        {
+            DrainageInfrastructure.SetEmergencyMode(enabled);
+        }
+
+        public void DispatchDrainageMaintenance(
+            DrainageMaintenanceFocus focus,
+            DrainageMaintenanceIntensity intensity)
+        {
+            DrainageInfrastructure.DispatchMaintenance(
+                focus: focus,
+                intensity: intensity);
         }
 
         private static DateTimeOffset EnsureUtc(
