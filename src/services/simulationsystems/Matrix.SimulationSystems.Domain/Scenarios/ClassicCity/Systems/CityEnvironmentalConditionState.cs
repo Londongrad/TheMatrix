@@ -18,6 +18,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             CitySystemState drainage,
             CityDrainageInfrastructureState drainageInfrastructure,
             CitySystemState snowRemoval,
+            CitySnowRemovalInfrastructureState snowRemovalInfrastructure,
             CitySystemState roadAccess,
             CityWeatherPressureProfile weatherPressure,
             FloodingIndex floodingIndex,
@@ -29,6 +30,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             Drainage = drainage;
             DrainageInfrastructure = drainageInfrastructure;
             SnowRemoval = snowRemoval;
+            SnowRemovalInfrastructure = snowRemovalInfrastructure;
             RoadAccess = roadAccess;
             WeatherPressure = weatherPressure;
             FloodingIndex = floodingIndex;
@@ -45,6 +47,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             Drainage = null!;
             DrainageInfrastructure = null!;
             SnowRemoval = null!;
+            SnowRemovalInfrastructure = null!;
             RoadAccess = null!;
             WeatherPressure = null!;
         }
@@ -53,6 +56,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public CitySystemState Drainage { get; private set; }
         public CityDrainageInfrastructureState DrainageInfrastructure { get; private set; }
         public CitySystemState SnowRemoval { get; private set; }
+        public CitySnowRemovalInfrastructureState SnowRemovalInfrastructure { get; private set; }
         public CitySystemState RoadAccess { get; private set; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
         public FloodingIndex FloodingIndex { get; private set; }
@@ -73,6 +77,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 drainage: CitySystemState.Create(seed.Drainage),
                 drainageInfrastructure: CityDrainageInfrastructureState.Create(seed.DrainageInfrastructure),
                 snowRemoval: CitySystemState.Create(seed.SnowRemoval),
+                snowRemovalInfrastructure: CitySnowRemovalInfrastructureState.Create(seed.SnowRemovalInfrastructure),
                 roadAccess: CitySystemState.Create(seed.RoadAccess),
                 weatherPressure: CityWeatherPressureProfile.Neutral(),
                 floodingIndex: seed.FloodingIndex,
@@ -105,6 +110,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             Drainage.ApplySnapshot(snapshot.Drainage);
             DrainageInfrastructure.ApplySnapshot(snapshot.DrainageInfrastructure);
             SnowRemoval.ApplySnapshot(snapshot.SnowRemoval);
+            SnowRemovalInfrastructure.ApplySnapshot(snapshot.SnowRemovalInfrastructure);
             RoadAccess.ApplySnapshot(snapshot.RoadAccess);
             FloodingIndex = snapshot.FloodingIndex;
             SnowAccumulationIndex = snapshot.SnowAccumulationIndex;
@@ -118,6 +124,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 drainage: Drainage.ToSnapshot(),
                 drainageInfrastructure: DrainageInfrastructure.ToSnapshot(),
                 snowRemoval: SnowRemoval.ToSnapshot(),
+                snowRemovalInfrastructure: SnowRemovalInfrastructure.ToSnapshot(),
                 roadAccess: RoadAccess.ToSnapshot(),
                 floodingIndex: FloodingIndex,
                 snowAccumulationIndex: SnowAccumulationIndex,
@@ -135,6 +142,20 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             DrainageMaintenanceIntensity intensity)
         {
             DrainageInfrastructure.DispatchMaintenance(
+                focus: focus,
+                intensity: intensity);
+        }
+
+        public void SetSnowRemovalEmergencyMode(bool enabled)
+        {
+            SnowRemovalInfrastructure.SetEmergencyMode(enabled);
+        }
+
+        public void DispatchSnowRemovalMaintenance(
+            SnowRemovalMaintenanceFocus focus,
+            SnowRemovalMaintenanceIntensity intensity)
+        {
+            SnowRemovalInfrastructure.DispatchMaintenance(
                 focus: focus,
                 intensity: intensity);
         }
