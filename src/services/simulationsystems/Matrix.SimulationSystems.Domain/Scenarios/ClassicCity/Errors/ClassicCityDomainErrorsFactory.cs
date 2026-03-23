@@ -51,6 +51,14 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException CityWeatherPressureProfileRequired(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationSystems.ClassicCity.Environment.WeatherPressure.Required",
+                message: "City environmental weather pressure profile is required.",
+                propertyName: propertyName);
+        }
+
         public static DomainException CityEnvironmentalConditionSystemSnapshotRequired(
             string systemName,
             string? propertyName = null)
@@ -79,6 +87,17 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors
             return new DomainException(
                 code: "SimulationSystems.ClassicCity.Environment.Snapshot.Backwards",
                 message: $"Environmental condition snapshot '{value:O}' cannot move backwards from '{previous:O}'.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityEnvironmentalConditionAdvanceWindowInvalid(
+            DateTimeOffset from,
+            DateTimeOffset to,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationSystems.ClassicCity.Environment.AdvanceWindow.Invalid",
+                message: $"Environmental advance window '{from:O}' -> '{to:O}' must move forward.",
                 propertyName: propertyName);
         }
 

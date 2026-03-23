@@ -17,6 +17,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             CitySystemState drainage,
             CitySystemState snowRemoval,
             CitySystemState roadAccess,
+            CityWeatherPressureProfile weatherPressure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
             RoadAccessibilityIndex roadAccessibilityIndex,
@@ -26,6 +27,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             Drainage = drainage;
             SnowRemoval = snowRemoval;
             RoadAccess = roadAccess;
+            WeatherPressure = weatherPressure;
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
@@ -40,12 +42,14 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             Drainage = null!;
             SnowRemoval = null!;
             RoadAccess = null!;
+            WeatherPressure = null!;
         }
 
         public SimulationHostId SimulationHostId => Id;
         public CitySystemState Drainage { get; private set; }
         public CitySystemState SnowRemoval { get; private set; }
         public CitySystemState RoadAccess { get; private set; }
+        public CityWeatherPressureProfile WeatherPressure { get; private set; }
         public FloodingIndex FloodingIndex { get; private set; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; private set; }
         public RoadAccessibilityIndex RoadAccessibilityIndex { get; private set; }
@@ -64,10 +68,20 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 drainage: CitySystemState.Create(seed.Drainage),
                 snowRemoval: CitySystemState.Create(seed.SnowRemoval),
                 roadAccess: CitySystemState.Create(seed.RoadAccess),
+                weatherPressure: CityWeatherPressureProfile.Neutral(),
                 floodingIndex: seed.FloodingIndex,
                 snowAccumulationIndex: seed.SnowAccumulationIndex,
                 roadAccessibilityIndex: seed.RoadAccessibilityIndex,
                 lastEvaluatedAtUtc: seed.EvaluatedAtUtc);
+        }
+
+        public void ApplyWeatherPressure(CityWeatherPressureProfile weatherPressure)
+        {
+            GuardHelper.AgainstNull(
+                value: weatherPressure,
+                errorFactory: ClassicCityDomainErrorsFactory.CityWeatherPressureProfileRequired);
+
+            WeatherPressure = weatherPressure;
         }
 
         public void ApplySnapshot(CityEnvironmentalConditionSnapshot snapshot)

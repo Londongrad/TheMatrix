@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
@@ -34,19 +35,24 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     RoadAccessibilityIndex: 0m);
             }
 
-            if (request.AtSimTimeUtc == state.LastEvaluatedAtUtc)
-                return CreateResult(
-                    status: RecalculateCityEnvironmentalConditionsStatus.Duplicate,
-                    state: state);
-
             if (request.AtSimTimeUtc < state.LastEvaluatedAtUtc)
                 return CreateResult(
                     status: RecalculateCityEnvironmentalConditionsStatus.Stale,
                     state: state);
 
-            var pressure = pressureProfileFactory.Create(
-                state: state,
-                weather: request.Weather);
+            CityWeatherPressureProfile weatherPressure = pressureProfileFactory.CreateWeatherPressure(request.Weather);
+            state.ApplyWeatherPressure(weatherPressure);
+
+            if (request.AtSimTimeUtc == state.LastEvaluatedAtUtc)
+            {
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return CreateResult(
+                    status: RecalculateCityEnvironmentalConditionsStatus.Duplicate,
+                    state: state);
+            }
+
+            var pressure = pressureProfileFactory.Create(state);
 
             var snapshot = policy.Recalculate(
                 state: state,

@@ -6,9 +6,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 {
     public sealed class ClassicCityWeatherPressureProfileFactory
     {
-        public CitySystemPressureProfile Create(
-            CityEnvironmentalConditionState state,
-            CityWeatherSystemInput weather)
+        public CityWeatherPressureProfile CreateWeatherPressure(CityWeatherSystemInput weather)
         {
             decimal severity = MapSeverity(weather.Severity);
             decimal humidity = Normalize(weather.HumidityPercent, 0m, 100m);
@@ -71,12 +69,22 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (rainLike ? 0.08m : 0m) -
                        (snowLike ? 0.12m : 0m));
 
-            return new CitySystemPressureProfile(
+            return new CityWeatherPressureProfile(
                 rainPressure: rainPressure,
                 snowPressure: snowPressure,
                 stormPressure: stormPressure,
                 freezePressure: freezePressure,
-                thawRelief: thawRelief,
+                thawRelief: thawRelief);
+        }
+
+        public CitySystemPressureProfile Create(CityEnvironmentalConditionState state)
+        {
+            return new CitySystemPressureProfile(
+                rainPressure: state.WeatherPressure.RainPressure,
+                snowPressure: state.WeatherPressure.SnowPressure,
+                stormPressure: state.WeatherPressure.StormPressure,
+                freezePressure: state.WeatherPressure.FreezePressure,
+                thawRelief: state.WeatherPressure.ThawRelief,
                 drainageSupport: CreateSupport(state.Drainage),
                 snowRemovalSupport: CreateSupport(state.SnowRemoval),
                 roadSupport: CreateSupport(state.RoadAccess));

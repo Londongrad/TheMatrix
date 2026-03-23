@@ -24,6 +24,49 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
             builder.Property(x => x.LastEvaluatedAtUtc)
                .IsRequired();
 
+            builder.OwnsOne(
+                navigationExpression: x => x.WeatherPressure,
+                buildAction: pressure =>
+                {
+                    pressure.Property(x => x.RainPressure)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WeatherRainPressure")
+                       .IsRequired();
+
+                    pressure.Property(x => x.SnowPressure)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WeatherSnowPressure")
+                       .IsRequired();
+
+                    pressure.Property(x => x.StormPressure)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WeatherStormPressure")
+                       .IsRequired();
+
+                    pressure.Property(x => x.FreezePressure)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WeatherFreezePressure")
+                       .IsRequired();
+
+                    pressure.Property(x => x.ThawRelief)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WeatherThawRelief")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.WeatherPressure)
+               .IsRequired();
+
             builder.Property(x => x.FloodingIndex)
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
