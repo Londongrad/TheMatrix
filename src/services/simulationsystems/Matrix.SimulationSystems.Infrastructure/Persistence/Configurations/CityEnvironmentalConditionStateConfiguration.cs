@@ -104,6 +104,53 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.DrainageInfrastructure,
+                buildAction: drainage =>
+                {
+                    drainage.Property(x => x.PumpCapacityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("DrainagePumpCapacityIndex")
+                       .IsRequired();
+
+                    drainage.Property(x => x.NetworkIntegrityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("DrainageNetworkIntegrityIndex")
+                       .IsRequired();
+
+                    drainage.Property(x => x.BlockageIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("DrainageBlockageIndex")
+                       .IsRequired();
+
+                    drainage.Property(x => x.CrewReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("DrainageCrewReadinessIndex")
+                       .IsRequired();
+
+                    drainage.Property(x => x.IncidentPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("DrainageIncidentPressureIndex")
+                       .IsRequired();
+
+                    drainage.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("DrainageEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.DrainageInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.SnowRemoval,
                 buildAction: state => ConfigureSystemState(
                     builder: state,
