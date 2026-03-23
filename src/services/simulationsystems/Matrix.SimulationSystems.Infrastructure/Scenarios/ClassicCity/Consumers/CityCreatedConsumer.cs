@@ -17,7 +17,8 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
             SeedCityEnvironmentalConditionsResult result = await mediator.Send(
                 request: new SeedCityEnvironmentalConditionsCommand(
                     CityId: message.CityId,
-                    CreatedAtUtc: message.CreatedAtUtc),
+                    CreatedAtUtc: message.CreatedAtUtc,
+                    DevelopmentLevel: message.DevelopmentLevel),
                 cancellationToken: context.CancellationToken);
 
             switch (result.Status)

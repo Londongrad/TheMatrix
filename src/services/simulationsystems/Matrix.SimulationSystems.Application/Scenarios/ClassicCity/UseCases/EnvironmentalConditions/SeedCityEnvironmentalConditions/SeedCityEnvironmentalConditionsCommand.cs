@@ -4,5 +4,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
 {
     public sealed record SeedCityEnvironmentalConditionsCommand(
         Guid CityId,
-        DateTimeOffset CreatedAtUtc) : IRequest<SeedCityEnvironmentalConditionsResult>;
+        DateTimeOffset CreatedAtUtc,
+        string DevelopmentLevel) : IRequest<SeedCityEnvironmentalConditionsResult>;
 }

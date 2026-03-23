@@ -5,5 +5,6 @@ namespace Matrix.SimulationCore.Contracts.Events
         string Name,
         string SimulationKind,
         DateTimeOffset CreatedAtUtc,
+        string DevelopmentLevel,
         string? EconomyProfile = null);
 }
