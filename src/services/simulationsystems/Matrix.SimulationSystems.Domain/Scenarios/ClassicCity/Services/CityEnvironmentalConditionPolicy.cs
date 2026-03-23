@@ -9,7 +9,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
 {
     /// <summary>
     ///     First-pass environmental condition policy for Classic City.
-    ///     Converts daily weather/system pressure into normalized flooding, snow and access outcomes.
+    ///     Converts weather/system pressure into normalized flooding, snow and access outcomes.
     /// </summary>
     public sealed class CityEnvironmentalConditionPolicy
     {
@@ -49,6 +49,56 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySystemPressureProfile pressure,
             DateTimeOffset asOfUtc)
         {
+            return RecalculateCore(
+                state: state,
+                pressure: pressure,
+                asOfUtc: asOfUtc,
+                responseScale: 1m);
+        }
+
+        public CityEnvironmentalConditionSnapshot Advance(
+            CityEnvironmentalConditionState state,
+            CitySystemPressureProfile pressure,
+            DateTimeOffset fromUtc,
+            DateTimeOffset toUtc)
+        {
+            GuardHelper.AgainstNull(
+                value: state,
+                errorFactory: ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired);
+            GuardHelper.AgainstNull(
+                value: pressure,
+                errorFactory: ClassicCityDomainErrorsFactory.CityEnvironmentalConditionPressureRequired);
+            EnsureUtc(
+                value: fromUtc,
+                paramName: nameof(fromUtc));
+            EnsureUtc(
+                value: toUtc,
+                paramName: nameof(toUtc));
+
+            if (toUtc < fromUtc)
+                throw ClassicCityDomainErrorsFactory.CityEnvironmentalConditionAdvanceWindowInvalid(
+                    from: fromUtc,
+                    to: toUtc,
+                    propertyName: nameof(toUtc));
+
+            decimal responseScale = CalculateAdvanceResponseScale(toUtc - fromUtc);
+
+            if (responseScale <= 0m)
+                return state.ToSnapshot();
+
+            return RecalculateCore(
+                state: state,
+                pressure: pressure,
+                asOfUtc: toUtc,
+                responseScale: responseScale);
+        }
+
+        private static CityEnvironmentalConditionSnapshot RecalculateCore(
+            CityEnvironmentalConditionState state,
+            CitySystemPressureProfile pressure,
+            DateTimeOffset asOfUtc,
+            decimal responseScale)
+        {
             GuardHelper.AgainstNull(
                 value: state,
                 errorFactory: ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired);
@@ -70,7 +120,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.StormPressure * 0.33m) +
                            (state.FloodingIndex.Value * 0.18m) -
                            (pressure.DrainageSupport * 0.28m)),
-                factor: 0.45m);
+                factor: 0.45m,
+                responseScale: responseScale);
             decimal drainageService = Smooth(
                 current: currentDrainage.ServiceQualityIndex,
                 target: Clamp(
@@ -80,7 +131,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.StormPressure * 0.08m),
                     min: 0.05m,
                     max: 1m),
-                factor: 0.35m);
+                factor: 0.35m,
+                responseScale: responseScale);
             decimal drainageBacklog = Smooth(
                 current: currentDrainage.BacklogIndex,
                 target: Clamp(
@@ -88,14 +140,16 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (drainageLoad * 0.22m) -
                            (drainageService * 0.18m) -
                            (pressure.ThawRelief * 0.05m)),
-                factor: 0.40m);
+                factor: 0.40m,
+                responseScale: responseScale);
             decimal drainageFailureRisk = Smooth(
                 current: currentDrainage.FailureRiskIndex,
                 target: Clamp(
                     value: (drainageLoad * 0.44m) +
                            (drainageBacklog * 0.34m) +
                            ((1m - drainageService) * 0.30m)),
-                factor: 0.30m);
+                factor: 0.30m,
+                responseScale: responseScale);
 
             decimal flooding = Smooth(
                 current: state.FloodingIndex.Value,
@@ -106,7 +160,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (drainageBacklog * 0.14m) -
                            (drainageService * 0.24m) -
                            (pressure.DrainageSupport * 0.08m)),
-                factor: 0.42m);
+                factor: 0.42m,
+                responseScale: responseScale);
 
             decimal snowLoad = Smooth(
                 current: currentSnowRemoval.LoadIndex,
@@ -115,7 +170,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.FreezePressure * 0.20m) +
                            (state.SnowAccumulationIndex.Value * 0.22m) -
                            (pressure.SnowRemovalSupport * 0.25m)),
-                factor: 0.45m);
+                factor: 0.45m,
+                responseScale: responseScale);
             decimal snowService = Smooth(
                 current: currentSnowRemoval.ServiceQualityIndex,
                 target: Clamp(
@@ -125,7 +181,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.FreezePressure * 0.08m),
                     min: 0.05m,
                     max: 1m),
-                factor: 0.35m);
+                factor: 0.35m,
+                responseScale: responseScale);
             decimal snowBacklog = Smooth(
                 current: currentSnowRemoval.BacklogIndex,
                 target: Clamp(
@@ -133,14 +190,16 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (snowLoad * 0.24m) -
                            (snowService * 0.16m) -
                            (pressure.ThawRelief * 0.12m)),
-                factor: 0.40m);
+                factor: 0.40m,
+                responseScale: responseScale);
             decimal snowFailureRisk = Smooth(
                 current: currentSnowRemoval.FailureRiskIndex,
                 target: Clamp(
                     value: (snowLoad * 0.40m) +
                            (snowBacklog * 0.32m) +
                            ((1m - snowService) * 0.28m)),
-                factor: 0.30m);
+                factor: 0.30m,
+                responseScale: responseScale);
 
             decimal snowAccumulation = Smooth(
                 current: state.SnowAccumulationIndex.Value,
@@ -151,7 +210,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (snowBacklog * 0.10m) -
                            (snowService * 0.22m) -
                            (pressure.ThawRelief * 0.20m)),
-                factor: 0.42m);
+                factor: 0.42m,
+                responseScale: responseScale);
 
             decimal roadLoad = Smooth(
                 current: currentRoadAccess.LoadIndex,
@@ -161,7 +221,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.FreezePressure * 0.14m) +
                            (pressure.StormPressure * 0.10m) -
                            (pressure.RoadSupport * 0.18m)),
-                factor: 0.45m);
+                factor: 0.45m,
+                responseScale: responseScale);
             decimal roadService = Smooth(
                 current: currentRoadAccess.ServiceQualityIndex,
                 target: Clamp(
@@ -171,7 +232,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            ((snowAccumulation + flooding) * 0.10m),
                     min: 0.05m,
                     max: 1m),
-                factor: 0.35m);
+                factor: 0.35m,
+                responseScale: responseScale);
             decimal roadBacklog = Smooth(
                 current: currentRoadAccess.BacklogIndex,
                 target: Clamp(
@@ -179,14 +241,16 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (roadLoad * 0.16m) -
                            (roadService * 0.14m) -
                            (pressure.ThawRelief * 0.04m)),
-                factor: 0.40m);
+                factor: 0.40m,
+                responseScale: responseScale);
             decimal roadFailureRisk = Smooth(
                 current: currentRoadAccess.FailureRiskIndex,
                 target: Clamp(
                     value: (roadLoad * 0.38m) +
                            (roadBacklog * 0.30m) +
                            ((1m - roadService) * 0.25m)),
-                factor: 0.30m);
+                factor: 0.30m,
+                responseScale: responseScale);
 
             decimal roadAccessibility = Smooth(
                 current: state.RoadAccessibilityIndex.Value,
@@ -200,7 +264,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.ThawRelief * 0.06m),
                     min: 0.15m,
                     max: 1m),
-                factor: 0.50m);
+                factor: 0.50m,
+                responseScale: responseScale);
 
             return new CityEnvironmentalConditionSnapshot(
                 drainage: new CitySystemSnapshot(
@@ -230,10 +295,58 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
         private static decimal Smooth(
             decimal current,
             decimal target,
-            decimal factor)
+            decimal factor,
+            decimal responseScale)
         {
+            decimal effectiveFactor = CalculateEffectiveFactor(
+                baseFactor: factor,
+                responseScale: responseScale);
+
             return decimal.Round(
-                d: current + ((target - current) * factor),
+                d: current + ((target - current) * effectiveFactor),
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal CalculateAdvanceResponseScale(TimeSpan elapsed)
+        {
+            if (elapsed <= TimeSpan.Zero)
+                return 0m;
+
+            decimal elapsedMinutes = (decimal)elapsed.TotalMinutes;
+            decimal scale = elapsedMinutes / 10m;
+
+            return decimal.Round(
+                d: Math.Min(
+                    val1: 144m,
+                    val2: Math.Max(
+                        val1: 0m,
+                        val2: scale)),
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal CalculateEffectiveFactor(
+            decimal baseFactor,
+            decimal responseScale)
+        {
+            if (responseScale <= 0m)
+                return 0m;
+
+            decimal normalizedBaseFactor = Clamp(
+                value: baseFactor,
+                min: 0m,
+                max: 1m);
+
+            double scaledFactor = 1d - Math.Pow(
+                x: 1d - (double)normalizedBaseFactor,
+                y: (double)responseScale);
+
+            return decimal.Round(
+                d: Clamp(
+                    value: (decimal)scaledFactor,
+                    min: 0m,
+                    max: 1m),
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
         }
