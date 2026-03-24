@@ -215,6 +215,53 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
             builder.Navigation(x => x.RoadAccess)
                .IsRequired();
 
+            builder.OwnsOne(
+                navigationExpression: x => x.RoadAccessInfrastructure,
+                buildAction: roadAccess =>
+                {
+                    roadAccess.Property(x => x.CorridorAvailabilityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("RoadAccessCorridorAvailabilityIndex")
+                       .IsRequired();
+
+                    roadAccess.Property(x => x.SurfaceIntegrityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("RoadAccessSurfaceIntegrityIndex")
+                       .IsRequired();
+
+                    roadAccess.Property(x => x.TrafficControlReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("RoadAccessTrafficControlReadinessIndex")
+                       .IsRequired();
+
+                    roadAccess.Property(x => x.CrewReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("RoadAccessCrewReadinessIndex")
+                       .IsRequired();
+
+                    roadAccess.Property(x => x.IncidentPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("RoadAccessIncidentPressureIndex")
+                       .IsRequired();
+
+                    roadAccess.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("RoadAccessEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.RoadAccessInfrastructure)
+               .IsRequired();
+
             builder.Ignore(x => x.DomainEvents);
 
             builder.Property<uint>("xmin")
