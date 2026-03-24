@@ -94,6 +94,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                     scale: 4)
                .IsRequired();
 
+            builder.Property(x => x.HeatingCoverageIndex)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => HeatingCoverageIndex.From(x))
+               .HasPrecision(
+                    precision: 5,
+                    scale: 4)
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.Drainage,
                 buildAction: state => ConfigureSystemState(
@@ -260,6 +269,62 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.RoadAccessInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.Heating,
+                buildAction: state => ConfigureSystemState(
+                    builder: state,
+                    prefix: "Heating"));
+
+            builder.Navigation(x => x.Heating)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.HeatingInfrastructure,
+                buildAction: heating =>
+                {
+                    heating.Property(x => x.PlantCapacityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("HeatingPlantCapacityIndex")
+                       .IsRequired();
+
+                    heating.Property(x => x.NetworkIntegrityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("HeatingNetworkIntegrityIndex")
+                       .IsRequired();
+
+                    heating.Property(x => x.ControlReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("HeatingControlReadinessIndex")
+                       .IsRequired();
+
+                    heating.Property(x => x.CrewReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("HeatingCrewReadinessIndex")
+                       .IsRequired();
+
+                    heating.Property(x => x.IncidentPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("HeatingIncidentPressureIndex")
+                       .IsRequired();
+
+                    heating.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("HeatingEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.HeatingInfrastructure)
                .IsRequired();
 
             builder.Ignore(x => x.DomainEvents);
