@@ -93,7 +93,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                     infrastructure: state.SnowRemovalInfrastructure),
                 roadSupport: CreateRoadAccessSupport(
                     state: state.RoadAccess,
-                    infrastructure: state.RoadAccessInfrastructure));
+                    infrastructure: state.RoadAccessInfrastructure),
+                heatingSupport: CreateHeatingSupport(
+                    state: state.Heating,
+                    infrastructure: state.HeatingInfrastructure));
         }
 
         private static decimal CreateDrainageSupport(
@@ -152,6 +155,27 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (infrastructure.CorridorAvailabilityIndex * 0.2100m) +
                        (infrastructure.SurfaceIntegrityIndex * 0.1800m) +
                        (infrastructure.TrafficControlReadinessIndex * 0.1500m) +
+                       (infrastructure.CrewReadinessIndex * 0.1100m) -
+                       (state.BacklogIndex * 0.1400m) -
+                       (state.FailureRiskIndex * 0.1200m) -
+                       (infrastructure.IncidentPressureIndex * 0.1000m) +
+                       emergencyBoost);
+        }
+
+        private static decimal CreateHeatingSupport(
+            CitySystemState state,
+            CityHeatingInfrastructureState infrastructure)
+        {
+            decimal emergencyBoost = infrastructure.EmergencyModeEnabled
+                ? 0.0800m
+                : 0m;
+
+            return Clamp(
+                value: 0.1200m +
+                       (state.ServiceQualityIndex * 0.2200m) +
+                       (infrastructure.PlantCapacityIndex * 0.2200m) +
+                       (infrastructure.NetworkIntegrityIndex * 0.1800m) +
+                       (infrastructure.ControlReadinessIndex * 0.1500m) +
                        (infrastructure.CrewReadinessIndex * 0.1100m) -
                        (state.BacklogIndex * 0.1400m) -
                        (state.FailureRiskIndex * 0.1200m) -
