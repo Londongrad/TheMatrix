@@ -160,6 +160,53 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.SnowRemovalInfrastructure,
+                buildAction: snowRemoval =>
+                {
+                    snowRemoval.Property(x => x.FleetAvailabilityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SnowRemovalFleetAvailabilityIndex")
+                       .IsRequired();
+
+                    snowRemoval.Property(x => x.RouteCoverageIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SnowRemovalRouteCoverageIndex")
+                       .IsRequired();
+
+                    snowRemoval.Property(x => x.DeicingReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SnowRemovalDeicingReadinessIndex")
+                       .IsRequired();
+
+                    snowRemoval.Property(x => x.CrewReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SnowRemovalCrewReadinessIndex")
+                       .IsRequired();
+
+                    snowRemoval.Property(x => x.IncidentPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SnowRemovalIncidentPressureIndex")
+                       .IsRequired();
+
+                    snowRemoval.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("SnowRemovalEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.SnowRemovalInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.RoadAccess,
                 buildAction: state => ConfigureSystemState(
                     builder: state,
