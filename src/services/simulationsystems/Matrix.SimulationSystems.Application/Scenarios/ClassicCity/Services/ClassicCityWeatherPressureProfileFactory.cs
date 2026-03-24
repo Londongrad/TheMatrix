@@ -91,7 +91,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 snowRemovalSupport: CreateSnowRemovalSupport(
                     state: state.SnowRemoval,
                     infrastructure: state.SnowRemovalInfrastructure),
-                roadSupport: CreateSupport(state.RoadAccess));
+                roadSupport: CreateRoadAccessSupport(
+                    state: state.RoadAccess,
+                    infrastructure: state.RoadAccessInfrastructure));
         }
 
         private static decimal CreateDrainageSupport(
@@ -129,6 +131,27 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (infrastructure.FleetAvailabilityIndex * 0.2100m) +
                        (infrastructure.RouteCoverageIndex * 0.1900m) +
                        (infrastructure.DeicingReadinessIndex * 0.1600m) +
+                       (infrastructure.CrewReadinessIndex * 0.1100m) -
+                       (state.BacklogIndex * 0.1400m) -
+                       (state.FailureRiskIndex * 0.1200m) -
+                       (infrastructure.IncidentPressureIndex * 0.1000m) +
+                       emergencyBoost);
+        }
+
+        private static decimal CreateRoadAccessSupport(
+            CitySystemState state,
+            CityRoadAccessInfrastructureState infrastructure)
+        {
+            decimal emergencyBoost = infrastructure.EmergencyModeEnabled
+                ? 0.0800m
+                : 0m;
+
+            return Clamp(
+                value: 0.1200m +
+                       (state.ServiceQualityIndex * 0.2100m) +
+                       (infrastructure.CorridorAvailabilityIndex * 0.2100m) +
+                       (infrastructure.SurfaceIntegrityIndex * 0.1800m) +
+                       (infrastructure.TrafficControlReadinessIndex * 0.1500m) +
                        (infrastructure.CrewReadinessIndex * 0.1100m) -
                        (state.BacklogIndex * 0.1400m) -
                        (state.FailureRiskIndex * 0.1200m) -
