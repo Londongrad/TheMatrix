@@ -15,6 +15,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             CitySystemSnapshot snowRemoval,
             CitySnowRemovalInfrastructureSnapshot snowRemovalInfrastructure,
             CitySystemSnapshot roadAccess,
+            CityRoadAccessInfrastructureSnapshot roadAccessInfrastructure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
             RoadAccessibilityIndex roadAccessibilityIndex,
@@ -43,6 +44,10 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
                     systemName: "roadAccess",
                     propertyName: nameof(roadAccess)));
+            RoadAccessInfrastructure = GuardHelper.AgainstNull(
+                value: roadAccessInfrastructure,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
+                    propertyName: nameof(roadAccessInfrastructure)));
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
@@ -56,6 +61,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public CitySystemSnapshot SnowRemoval { get; }
         public CitySnowRemovalInfrastructureSnapshot SnowRemovalInfrastructure { get; }
         public CitySystemSnapshot RoadAccess { get; }
+        public CityRoadAccessInfrastructureSnapshot RoadAccessInfrastructure { get; }
         public FloodingIndex FloodingIndex { get; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; }
         public RoadAccessibilityIndex RoadAccessibilityIndex { get; }

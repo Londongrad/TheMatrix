@@ -147,6 +147,33 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                         salt: "road-failure",
                         baseline: 0.0400m + (developmentSeverity * 0.0500m),
                         maxAbsJitter: 0.0200m)),
+                roadAccessInfrastructure: new CityRoadAccessInfrastructureSnapshot(
+                    corridorAvailabilityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "road-corridor-availability",
+                        baseline: 0.9000m - (developmentSeverity * 0.2400m),
+                        maxAbsJitter: 0.0350m),
+                    surfaceIntegrityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "road-surface-integrity",
+                        baseline: 0.8700m - (developmentSeverity * 0.2200m),
+                        maxAbsJitter: 0.0350m),
+                    trafficControlReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "road-traffic-control-readiness",
+                        baseline: 0.8500m - (developmentSeverity * 0.2100m),
+                        maxAbsJitter: 0.0350m),
+                    crewReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "road-crew-readiness",
+                        baseline: 0.8400m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    incidentPressureIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "road-incident-pressure",
+                        baseline: 0.0500m + (developmentSeverity * 0.1400m),
+                        maxAbsJitter: 0.0250m),
+                    emergencyModeEnabled: false),
                 floodingIndex: FloodingIndex.From(CreateSeedMetric(
                     cityId: cityId,
                     salt: "flooding",
@@ -237,11 +264,16 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySnowRemovalInfrastructureSnapshot currentSnowRemovalInfrastructure =
                 state.SnowRemovalInfrastructure.ToSnapshot();
             CitySystemSnapshot currentRoadAccess = state.RoadAccess.ToSnapshot();
+            CityRoadAccessInfrastructureSnapshot currentRoadAccessInfrastructure =
+                state.RoadAccessInfrastructure.ToSnapshot();
             decimal emergencyModeBoost = currentDrainageInfrastructure.EmergencyModeEnabled
                 ? 0.0800m
                 : 0m;
             decimal snowEmergencyModeBoost = currentSnowRemovalInfrastructure.EmergencyModeEnabled
                 ? 0.0900m
+                : 0m;
+            decimal roadEmergencyModeBoost = currentRoadAccessInfrastructure.EmergencyModeEnabled
+                ? 0.0850m
                 : 0m;
 
             decimal drainageLoad = Smooth(
@@ -481,8 +513,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.StormPressure * 0.10m) -
                            (pressure.RoadSupport * 0.18m) -
                            (currentSnowRemovalInfrastructure.RouteCoverageIndex * 0.0800m) -
-                           (currentSnowRemovalInfrastructure.DeicingReadinessIndex * 0.0500m) +
-                           (currentSnowRemovalInfrastructure.IncidentPressureIndex * 0.0800m)),
+                           (currentSnowRemovalInfrastructure.DeicingReadinessIndex * 0.0500m) -
+                           (currentRoadAccessInfrastructure.CorridorAvailabilityIndex * 0.0800m) -
+                           (currentRoadAccessInfrastructure.TrafficControlReadinessIndex * 0.0600m) +
+                           (currentSnowRemovalInfrastructure.IncidentPressureIndex * 0.0800m) +
+                           (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.0900m)),
                 factor: 0.45m,
                 responseScale: responseScale);
             decimal roadService = Smooth(
@@ -491,9 +526,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     value: 0.58m +
                            (pressure.RoadSupport * 0.30m) +
                            (currentSnowRemovalInfrastructure.RouteCoverageIndex * 0.0900m) +
-                           (currentSnowRemovalInfrastructure.DeicingReadinessIndex * 0.0600m) -
+                           (currentSnowRemovalInfrastructure.DeicingReadinessIndex * 0.0600m) +
+                           (currentRoadAccessInfrastructure.CorridorAvailabilityIndex * 0.0700m) +
+                           (currentRoadAccessInfrastructure.SurfaceIntegrityIndex * 0.0600m) +
+                           (currentRoadAccessInfrastructure.TrafficControlReadinessIndex * 0.0600m) -
                            (currentRoadAccess.BacklogIndex * 0.18m) -
-                           ((snowAccumulation + flooding) * 0.10m),
+                           ((snowAccumulation + flooding) * 0.10m) +
+                           (roadEmergencyModeBoost * 0.3800m),
                     min: 0.05m,
                     max: 1m),
                 factor: 0.35m,
@@ -502,17 +541,20 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 current: currentRoadAccess.BacklogIndex,
                 target: Clamp(
                     value: currentRoadAccess.BacklogIndex +
-                           (roadLoad * 0.16m) -
+                           (roadLoad * 0.18m) -
                            (roadService * 0.14m) -
-                           (pressure.ThawRelief * 0.04m)),
+                           (pressure.ThawRelief * 0.04m) -
+                           (currentRoadAccessInfrastructure.CrewReadinessIndex * 0.0400m)),
                 factor: 0.40m,
                 responseScale: responseScale);
             decimal roadFailureRisk = Smooth(
                 current: currentRoadAccess.FailureRiskIndex,
                 target: Clamp(
-                    value: (roadLoad * 0.38m) +
+                    value: (roadLoad * 0.36m) +
                            (roadBacklog * 0.30m) +
-                           ((1m - roadService) * 0.25m)),
+                           ((1m - roadService) * 0.25m) +
+                           (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.1400m) +
+                           ((1m - currentRoadAccessInfrastructure.SurfaceIntegrityIndex) * 0.1200m)),
                 factor: 0.30m,
                 responseScale: responseScale);
 
@@ -528,10 +570,76 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                            (pressure.ThawRelief * 0.06m) +
                            (currentSnowRemovalInfrastructure.RouteCoverageIndex * 0.1000m) +
                            (currentSnowRemovalInfrastructure.DeicingReadinessIndex * 0.0600m) -
-                           (currentSnowRemovalInfrastructure.IncidentPressureIndex * 0.0600m),
+                           (currentSnowRemovalInfrastructure.IncidentPressureIndex * 0.0600m) +
+                           (currentRoadAccessInfrastructure.CorridorAvailabilityIndex * 0.1400m) +
+                           (currentRoadAccessInfrastructure.TrafficControlReadinessIndex * 0.0800m) -
+                           (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.0700m),
                     min: 0.15m,
                     max: 1m),
                 factor: 0.50m,
+                responseScale: responseScale);
+
+            decimal roadCorridorAvailability = Smooth(
+                current: currentRoadAccessInfrastructure.CorridorAvailabilityIndex,
+                target: Clamp(
+                    value: currentRoadAccessInfrastructure.CorridorAvailabilityIndex -
+                           (flooding * 0.0800m) -
+                           (snowAccumulation * 0.0700m) -
+                           (roadBacklog * 0.0500m) -
+                           (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.0400m) +
+                           (currentRoadAccessInfrastructure.SurfaceIntegrityIndex * 0.0500m) +
+                           (currentRoadAccessInfrastructure.CrewReadinessIndex * 0.0600m) +
+                           (roadEmergencyModeBoost * 0.2800m) +
+                           (currentSnowRemovalInfrastructure.RouteCoverageIndex * 0.0600m) +
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.24m,
+                responseScale: responseScale);
+            decimal roadSurfaceIntegrity = Smooth(
+                current: currentRoadAccessInfrastructure.SurfaceIntegrityIndex,
+                target: Clamp(
+                    value: currentRoadAccessInfrastructure.SurfaceIntegrityIndex -
+                           (roadLoad * 0.0500m) -
+                           (pressure.FreezePressure * 0.0400m) -
+                           (flooding * 0.0300m) -
+                           (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.0300m) +
+                           (currentRoadAccessInfrastructure.CrewReadinessIndex * 0.0400m) +
+                           (roadEmergencyModeBoost * 0.1000m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal roadTrafficControlReadiness = Smooth(
+                current: currentRoadAccessInfrastructure.TrafficControlReadinessIndex,
+                target: Clamp(
+                    value: currentRoadAccessInfrastructure.TrafficControlReadinessIndex -
+                           (pressure.StormPressure * 0.0400m) -
+                           (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.0300m) -
+                           (roadLoad * 0.0200m) +
+                           (currentRoadAccessInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (pressure.ThawRelief * 0.0300m) +
+                           (roadEmergencyModeBoost * 0.2000m)),
+                factor: 0.18m,
+                responseScale: responseScale);
+            decimal roadCrewReadiness = Smooth(
+                current: currentRoadAccessInfrastructure.CrewReadinessIndex,
+                target: Clamp(
+                    value: currentRoadAccessInfrastructure.CrewReadinessIndex +
+                           (currentRoadAccessInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0280m) -
+                           (currentRoadAccessInfrastructure.IncidentPressureIndex * 0.0320m) -
+                           (roadBacklog * 0.0200m) +
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal roadIncidentPressure = Smooth(
+                current: currentRoadAccessInfrastructure.IncidentPressureIndex,
+                target: Clamp(
+                    value: currentRoadAccessInfrastructure.IncidentPressureIndex +
+                           ((1m - roadAccessibility) * 0.1400m) +
+                           (roadFailureRisk * 0.0900m) +
+                           (flooding * 0.0700m) +
+                           (snowAccumulation * 0.0600m) -
+                           (roadCrewReadiness * 0.0600m) -
+                           (roadTrafficControlReadiness * 0.0400m) -
+                           (roadEmergencyModeBoost * 0.4300m)),
+                factor: 0.26m,
                 responseScale: responseScale);
 
             return new CityEnvironmentalConditionSnapshot(
@@ -567,6 +675,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     serviceQualityIndex: roadService,
                     backlogIndex: roadBacklog,
                     failureRiskIndex: roadFailureRisk),
+                roadAccessInfrastructure: new CityRoadAccessInfrastructureSnapshot(
+                    corridorAvailabilityIndex: roadCorridorAvailability,
+                    surfaceIntegrityIndex: roadSurfaceIntegrity,
+                    trafficControlReadinessIndex: roadTrafficControlReadiness,
+                    crewReadinessIndex: roadCrewReadiness,
+                    incidentPressureIndex: roadIncidentPressure,
+                    emergencyModeEnabled: currentRoadAccessInfrastructure.EmergencyModeEnabled),
                 floodingIndex: FloodingIndex.From(flooding),
                 snowAccumulationIndex: SnowAccumulationIndex.From(snowAccumulation),
                 roadAccessibilityIndex: RoadAccessibilityIndex.From(roadAccessibility),
