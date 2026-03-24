@@ -88,7 +88,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 drainageSupport: CreateDrainageSupport(
                     state: state.Drainage,
                     infrastructure: state.DrainageInfrastructure),
-                snowRemovalSupport: CreateSupport(state.SnowRemoval),
+                snowRemovalSupport: CreateSnowRemovalSupport(
+                    state: state.SnowRemoval,
+                    infrastructure: state.SnowRemovalInfrastructure),
                 roadSupport: CreateSupport(state.RoadAccess));
         }
 
@@ -109,6 +111,27 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (state.BacklogIndex * 0.1400m) -
                        (state.FailureRiskIndex * 0.1200m) -
                        (infrastructure.BlockageIndex * 0.1600m) -
+                       (infrastructure.IncidentPressureIndex * 0.1000m) +
+                       emergencyBoost);
+        }
+
+        private static decimal CreateSnowRemovalSupport(
+            CitySystemState state,
+            CitySnowRemovalInfrastructureState infrastructure)
+        {
+            decimal emergencyBoost = infrastructure.EmergencyModeEnabled
+                ? 0.0800m
+                : 0m;
+
+            return Clamp(
+                value: 0.1200m +
+                       (state.ServiceQualityIndex * 0.2100m) +
+                       (infrastructure.FleetAvailabilityIndex * 0.2100m) +
+                       (infrastructure.RouteCoverageIndex * 0.1900m) +
+                       (infrastructure.DeicingReadinessIndex * 0.1600m) +
+                       (infrastructure.CrewReadinessIndex * 0.1100m) -
+                       (state.BacklogIndex * 0.1400m) -
+                       (state.FailureRiskIndex * 0.1200m) -
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        emergencyBoost);
         }
