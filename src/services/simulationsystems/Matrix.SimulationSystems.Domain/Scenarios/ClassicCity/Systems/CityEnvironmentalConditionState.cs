@@ -21,10 +21,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             CitySnowRemovalInfrastructureState snowRemovalInfrastructure,
             CitySystemState roadAccess,
             CityRoadAccessInfrastructureState roadAccessInfrastructure,
+            CitySystemState heating,
+            CityHeatingInfrastructureState heatingInfrastructure,
             CityWeatherPressureProfile weatherPressure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
             RoadAccessibilityIndex roadAccessibilityIndex,
+            HeatingCoverageIndex heatingCoverageIndex,
             DateTimeOffset lastEvaluatedAtUtc)
             : base(simulationHostId)
         {
@@ -34,10 +37,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SnowRemovalInfrastructure = snowRemovalInfrastructure;
             RoadAccess = roadAccess;
             RoadAccessInfrastructure = roadAccessInfrastructure;
+            Heating = heating;
+            HeatingInfrastructure = heatingInfrastructure;
             WeatherPressure = weatherPressure;
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
+            HeatingCoverageIndex = heatingCoverageIndex;
             LastEvaluatedAtUtc = EnsureUtc(
                 value: lastEvaluatedAtUtc,
                 paramName: nameof(lastEvaluatedAtUtc));
@@ -52,6 +58,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SnowRemovalInfrastructure = null!;
             RoadAccess = null!;
             RoadAccessInfrastructure = null!;
+            Heating = null!;
+            HeatingInfrastructure = null!;
             WeatherPressure = null!;
         }
 
@@ -62,10 +70,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public CitySnowRemovalInfrastructureState SnowRemovalInfrastructure { get; private set; }
         public CitySystemState RoadAccess { get; private set; }
         public CityRoadAccessInfrastructureState RoadAccessInfrastructure { get; private set; }
+        public CitySystemState Heating { get; private set; }
+        public CityHeatingInfrastructureState HeatingInfrastructure { get; private set; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
         public FloodingIndex FloodingIndex { get; private set; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; private set; }
         public RoadAccessibilityIndex RoadAccessibilityIndex { get; private set; }
+        public HeatingCoverageIndex HeatingCoverageIndex { get; private set; }
         public DateTimeOffset LastEvaluatedAtUtc { get; private set; }
 
         public static CityEnvironmentalConditionState Create(
@@ -84,10 +95,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 snowRemovalInfrastructure: CitySnowRemovalInfrastructureState.Create(seed.SnowRemovalInfrastructure),
                 roadAccess: CitySystemState.Create(seed.RoadAccess),
                 roadAccessInfrastructure: CityRoadAccessInfrastructureState.Create(seed.RoadAccessInfrastructure),
+                heating: CitySystemState.Create(seed.Heating),
+                heatingInfrastructure: CityHeatingInfrastructureState.Create(seed.HeatingInfrastructure),
                 weatherPressure: CityWeatherPressureProfile.Neutral(),
                 floodingIndex: seed.FloodingIndex,
                 snowAccumulationIndex: seed.SnowAccumulationIndex,
                 roadAccessibilityIndex: seed.RoadAccessibilityIndex,
+                heatingCoverageIndex: seed.HeatingCoverageIndex,
                 lastEvaluatedAtUtc: seed.EvaluatedAtUtc);
         }
 
@@ -118,9 +132,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SnowRemovalInfrastructure.ApplySnapshot(snapshot.SnowRemovalInfrastructure);
             RoadAccess.ApplySnapshot(snapshot.RoadAccess);
             RoadAccessInfrastructure.ApplySnapshot(snapshot.RoadAccessInfrastructure);
+            Heating.ApplySnapshot(snapshot.Heating);
+            HeatingInfrastructure.ApplySnapshot(snapshot.HeatingInfrastructure);
             FloodingIndex = snapshot.FloodingIndex;
             SnowAccumulationIndex = snapshot.SnowAccumulationIndex;
             RoadAccessibilityIndex = snapshot.RoadAccessibilityIndex;
+            HeatingCoverageIndex = snapshot.HeatingCoverageIndex;
             LastEvaluatedAtUtc = snapshot.EvaluatedAtUtc;
         }
 
@@ -133,9 +150,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 snowRemovalInfrastructure: SnowRemovalInfrastructure.ToSnapshot(),
                 roadAccess: RoadAccess.ToSnapshot(),
                 roadAccessInfrastructure: RoadAccessInfrastructure.ToSnapshot(),
+                heating: Heating.ToSnapshot(),
+                heatingInfrastructure: HeatingInfrastructure.ToSnapshot(),
                 floodingIndex: FloodingIndex,
                 snowAccumulationIndex: SnowAccumulationIndex,
                 roadAccessibilityIndex: RoadAccessibilityIndex,
+                heatingCoverageIndex: HeatingCoverageIndex,
                 evaluatedAtUtc: LastEvaluatedAtUtc);
         }
 
@@ -177,6 +197,20 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             RoadAccessMaintenanceIntensity intensity)
         {
             RoadAccessInfrastructure.DispatchMaintenance(
+                focus: focus,
+                intensity: intensity);
+        }
+
+        public void SetHeatingEmergencyMode(bool enabled)
+        {
+            HeatingInfrastructure.SetEmergencyMode(enabled);
+        }
+
+        public void DispatchHeatingMaintenance(
+            HeatingMaintenanceFocus focus,
+            HeatingMaintenanceIntensity intensity)
+        {
+            HeatingInfrastructure.DispatchMaintenance(
                 focus: focus,
                 intensity: intensity);
         }

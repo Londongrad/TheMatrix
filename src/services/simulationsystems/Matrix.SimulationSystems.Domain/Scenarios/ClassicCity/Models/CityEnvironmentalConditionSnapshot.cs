@@ -16,9 +16,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             CitySnowRemovalInfrastructureSnapshot snowRemovalInfrastructure,
             CitySystemSnapshot roadAccess,
             CityRoadAccessInfrastructureSnapshot roadAccessInfrastructure,
+            CitySystemSnapshot heating,
+            CityHeatingInfrastructureSnapshot heatingInfrastructure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
             RoadAccessibilityIndex roadAccessibilityIndex,
+            HeatingCoverageIndex heatingCoverageIndex,
             DateTimeOffset evaluatedAtUtc)
         {
             Drainage = GuardHelper.AgainstNull(
@@ -48,9 +51,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 value: roadAccessInfrastructure,
                 errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
                     propertyName: nameof(roadAccessInfrastructure)));
+            Heating = GuardHelper.AgainstNull(
+                value: heating,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
+                    systemName: "heating",
+                    propertyName: nameof(heating)));
+            HeatingInfrastructure = GuardHelper.AgainstNull(
+                value: heatingInfrastructure,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
+                    propertyName: nameof(heatingInfrastructure)));
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
+            HeatingCoverageIndex = heatingCoverageIndex;
             EvaluatedAtUtc = EnsureUtc(
                 value: evaluatedAtUtc,
                 paramName: nameof(evaluatedAtUtc));
@@ -62,9 +75,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public CitySnowRemovalInfrastructureSnapshot SnowRemovalInfrastructure { get; }
         public CitySystemSnapshot RoadAccess { get; }
         public CityRoadAccessInfrastructureSnapshot RoadAccessInfrastructure { get; }
+        public CitySystemSnapshot Heating { get; }
+        public CityHeatingInfrastructureSnapshot HeatingInfrastructure { get; }
         public FloodingIndex FloodingIndex { get; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; }
         public RoadAccessibilityIndex RoadAccessibilityIndex { get; }
+        public HeatingCoverageIndex HeatingCoverageIndex { get; }
         public DateTimeOffset EvaluatedAtUtc { get; }
 
         private static DateTimeOffset EnsureUtc(

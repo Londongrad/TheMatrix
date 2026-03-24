@@ -174,6 +174,55 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                         baseline: 0.0500m + (developmentSeverity * 0.1400m),
                         maxAbsJitter: 0.0250m),
                     emergencyModeEnabled: false),
+                heating: new CitySystemSnapshot(
+                    kind: CitySystemKind.Heating,
+                    loadIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-load",
+                        baseline: 0.1000m + (developmentSeverity * 0.0600m),
+                        maxAbsJitter: 0.0200m),
+                    serviceQualityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-service",
+                        baseline: 0.8600m - (developmentSeverity * 0.1400m),
+                        maxAbsJitter: 0.0250m),
+                    backlogIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-backlog",
+                        baseline: 0.0500m + (developmentSeverity * 0.0900m),
+                        maxAbsJitter: 0.0200m),
+                    failureRiskIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-failure",
+                        baseline: 0.0350m + (developmentSeverity * 0.0700m),
+                        maxAbsJitter: 0.0200m)),
+                heatingInfrastructure: new CityHeatingInfrastructureSnapshot(
+                    plantCapacityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-plant-capacity",
+                        baseline: 0.9000m - (developmentSeverity * 0.2400m),
+                        maxAbsJitter: 0.0350m),
+                    networkIntegrityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-network-integrity",
+                        baseline: 0.8800m - (developmentSeverity * 0.2200m),
+                        maxAbsJitter: 0.0350m),
+                    controlReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-control-readiness",
+                        baseline: 0.8500m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    crewReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-crew-readiness",
+                        baseline: 0.8400m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    incidentPressureIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "heating-incident-pressure",
+                        baseline: 0.0450m + (developmentSeverity * 0.1400m),
+                        maxAbsJitter: 0.0250m),
+                    emergencyModeEnabled: false),
                 floodingIndex: FloodingIndex.From(CreateSeedMetric(
                     cityId: cityId,
                     salt: "flooding",
@@ -189,6 +238,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     salt: "road-accessibility",
                     baseline: 0.9600m - (developmentSeverity * 0.0500m),
                     maxAbsJitter: 0.0150m)),
+                heatingCoverageIndex: HeatingCoverageIndex.From(CreateSeedMetric(
+                    cityId: cityId,
+                    salt: "heating-coverage",
+                    baseline: 0.9300m - (developmentSeverity * 0.1200m),
+                    maxAbsJitter: 0.0200m)),
                 evaluatedAtUtc: asOfUtc);
         }
 
@@ -266,6 +320,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySystemSnapshot currentRoadAccess = state.RoadAccess.ToSnapshot();
             CityRoadAccessInfrastructureSnapshot currentRoadAccessInfrastructure =
                 state.RoadAccessInfrastructure.ToSnapshot();
+            CitySystemSnapshot currentHeating = state.Heating.ToSnapshot();
+            CityHeatingInfrastructureSnapshot currentHeatingInfrastructure =
+                state.HeatingInfrastructure.ToSnapshot();
             decimal emergencyModeBoost = currentDrainageInfrastructure.EmergencyModeEnabled
                 ? 0.0800m
                 : 0m;
@@ -274,6 +331,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 : 0m;
             decimal roadEmergencyModeBoost = currentRoadAccessInfrastructure.EmergencyModeEnabled
                 ? 0.0850m
+                : 0m;
+            decimal heatingEmergencyModeBoost = currentHeatingInfrastructure.EmergencyModeEnabled
+                ? 0.0900m
                 : 0m;
 
             decimal drainageLoad = Smooth(
@@ -642,6 +702,121 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 factor: 0.26m,
                 responseScale: responseScale);
 
+            decimal heatingLoad = Smooth(
+                current: currentHeating.LoadIndex,
+                target: Clamp(
+                    value: (pressure.FreezePressure * 0.78m) +
+                           (pressure.StormPressure * 0.12m) +
+                           ((1m - state.HeatingCoverageIndex.Value) * 0.20m) -
+                           (pressure.HeatingSupport * 0.24m) -
+                           (currentHeatingInfrastructure.PlantCapacityIndex * 0.0700m)),
+                factor: 0.45m,
+                responseScale: responseScale);
+            decimal heatingService = Smooth(
+                current: currentHeating.ServiceQualityIndex,
+                target: Clamp(
+                    value: 0.60m +
+                           (pressure.HeatingSupport * 0.30m) +
+                           (currentHeatingInfrastructure.ControlReadinessIndex * 0.0700m) -
+                           (currentHeating.BacklogIndex * 0.20m) -
+                           (pressure.FreezePressure * 0.10m) +
+                           (heatingEmergencyModeBoost * 0.4200m),
+                    min: 0.05m,
+                    max: 1m),
+                factor: 0.35m,
+                responseScale: responseScale);
+            decimal heatingBacklog = Smooth(
+                current: currentHeating.BacklogIndex,
+                target: Clamp(
+                    value: currentHeating.BacklogIndex +
+                           (heatingLoad * 0.20m) -
+                           (heatingService * 0.16m) -
+                           (pressure.ThawRelief * 0.06m) -
+                           (currentHeatingInfrastructure.CrewReadinessIndex * 0.0400m)),
+                factor: 0.40m,
+                responseScale: responseScale);
+            decimal heatingFailureRisk = Smooth(
+                current: currentHeating.FailureRiskIndex,
+                target: Clamp(
+                    value: (heatingLoad * 0.38m) +
+                           (heatingBacklog * 0.30m) +
+                           ((1m - heatingService) * 0.28m) +
+                           (currentHeatingInfrastructure.IncidentPressureIndex * 0.1400m)),
+                factor: 0.30m,
+                responseScale: responseScale);
+
+            decimal heatingCoverage = Smooth(
+                current: state.HeatingCoverageIndex.Value,
+                target: Clamp(
+                    value: 1.01m -
+                           (pressure.FreezePressure * 0.26m) -
+                           (heatingBacklog * 0.18m) -
+                           (heatingFailureRisk * 0.12m) +
+                           (heatingService * 0.12m) +
+                           (pressure.HeatingSupport * 0.08m) +
+                           (currentHeatingInfrastructure.PlantCapacityIndex * 0.0700m) +
+                           (pressure.ThawRelief * 0.04m) -
+                           (currentHeatingInfrastructure.IncidentPressureIndex * 0.0600m),
+                    min: 0.10m,
+                    max: 1m),
+                factor: 0.46m,
+                responseScale: responseScale);
+
+            decimal heatingPlantCapacity = Smooth(
+                current: currentHeatingInfrastructure.PlantCapacityIndex,
+                target: Clamp(
+                    value: currentHeatingInfrastructure.PlantCapacityIndex -
+                           (heatingLoad * 0.0550m) -
+                           (pressure.StormPressure * 0.0300m) -
+                           (currentHeatingInfrastructure.IncidentPressureIndex * 0.0400m) +
+                           (currentHeatingInfrastructure.CrewReadinessIndex * 0.0600m) +
+                           (heatingEmergencyModeBoost * 0.3000m)),
+                factor: 0.22m,
+                responseScale: responseScale);
+            decimal heatingNetworkIntegrity = Smooth(
+                current: currentHeatingInfrastructure.NetworkIntegrityIndex,
+                target: Clamp(
+                    value: currentHeatingInfrastructure.NetworkIntegrityIndex -
+                           (heatingBacklog * 0.0500m) -
+                           (pressure.FreezePressure * 0.0400m) -
+                           (pressure.StormPressure * 0.0250m) +
+                           (currentHeatingInfrastructure.CrewReadinessIndex * 0.0400m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal heatingControlReadiness = Smooth(
+                current: currentHeatingInfrastructure.ControlReadinessIndex,
+                target: Clamp(
+                    value: currentHeatingInfrastructure.ControlReadinessIndex -
+                           (heatingLoad * 0.0200m) -
+                           (currentHeatingInfrastructure.IncidentPressureIndex * 0.0300m) +
+                           (currentHeatingInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (pressure.ThawRelief * 0.0200m) +
+                           (heatingEmergencyModeBoost * 0.1800m)),
+                factor: 0.18m,
+                responseScale: responseScale);
+            decimal heatingCrewReadiness = Smooth(
+                current: currentHeatingInfrastructure.CrewReadinessIndex,
+                target: Clamp(
+                    value: currentHeatingInfrastructure.CrewReadinessIndex +
+                           (currentHeatingInfrastructure.EmergencyModeEnabled ? -0.0550m : 0.0260m) -
+                           (currentHeatingInfrastructure.IncidentPressureIndex * 0.0320m) -
+                           (heatingBacklog * 0.0200m) +
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal heatingIncidentPressure = Smooth(
+                current: currentHeatingInfrastructure.IncidentPressureIndex,
+                target: Clamp(
+                    value: currentHeatingInfrastructure.IncidentPressureIndex +
+                           ((1m - heatingCoverage) * 0.1300m) +
+                           (heatingFailureRisk * 0.0900m) +
+                           (pressure.FreezePressure * 0.0600m) -
+                           (heatingCrewReadiness * 0.0600m) -
+                           (heatingControlReadiness * 0.0400m) -
+                           (heatingEmergencyModeBoost * 0.4200m)),
+                factor: 0.26m,
+                responseScale: responseScale);
+
             return new CityEnvironmentalConditionSnapshot(
                 drainage: new CitySystemSnapshot(
                     kind: CitySystemKind.Drainage,
@@ -682,9 +857,23 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     crewReadinessIndex: roadCrewReadiness,
                     incidentPressureIndex: roadIncidentPressure,
                     emergencyModeEnabled: currentRoadAccessInfrastructure.EmergencyModeEnabled),
+                heating: new CitySystemSnapshot(
+                    kind: CitySystemKind.Heating,
+                    loadIndex: heatingLoad,
+                    serviceQualityIndex: heatingService,
+                    backlogIndex: heatingBacklog,
+                    failureRiskIndex: heatingFailureRisk),
+                heatingInfrastructure: new CityHeatingInfrastructureSnapshot(
+                    plantCapacityIndex: heatingPlantCapacity,
+                    networkIntegrityIndex: heatingNetworkIntegrity,
+                    controlReadinessIndex: heatingControlReadiness,
+                    crewReadinessIndex: heatingCrewReadiness,
+                    incidentPressureIndex: heatingIncidentPressure,
+                    emergencyModeEnabled: currentHeatingInfrastructure.EmergencyModeEnabled),
                 floodingIndex: FloodingIndex.From(flooding),
                 snowAccumulationIndex: SnowAccumulationIndex.From(snowAccumulation),
                 roadAccessibilityIndex: RoadAccessibilityIndex.From(roadAccessibility),
+                heatingCoverageIndex: HeatingCoverageIndex.From(heatingCoverage),
                 evaluatedAtUtc: asOfUtc);
         }
 
