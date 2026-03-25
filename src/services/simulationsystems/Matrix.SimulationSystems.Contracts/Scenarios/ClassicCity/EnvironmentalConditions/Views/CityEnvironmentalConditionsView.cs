@@ -5,8 +5,10 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Environmental
         decimal FloodingIndex,
         decimal SnowAccumulationIndex,
         decimal RoadAccessibilityIndex,
+        decimal HeatingCoverageIndex,
         DateTimeOffset LastEvaluatedAtUtc,
         CitySystemConditionView Drainage,
         CitySystemConditionView SnowRemoval,
-        CitySystemConditionView RoadAccess);
+        CitySystemConditionView RoadAccess,
+        CitySystemConditionView Heating);
 }
