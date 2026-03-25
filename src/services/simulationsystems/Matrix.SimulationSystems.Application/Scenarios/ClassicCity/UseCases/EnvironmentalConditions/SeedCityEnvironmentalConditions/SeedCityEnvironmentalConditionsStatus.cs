@@ -3,6 +3,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
     public enum SeedCityEnvironmentalConditionsStatus
     {
         Applied = 0,
-        Duplicate = 1
+        Duplicate = 1,
+        IgnoredSimulationKind = 2
     }
 }

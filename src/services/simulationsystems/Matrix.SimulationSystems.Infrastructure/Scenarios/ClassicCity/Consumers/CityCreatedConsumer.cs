@@ -1,5 +1,6 @@
 using MassTransit;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.SeedCityEnvironmentalConditions;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -14,10 +15,20 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         {
             CityCreatedV1 message = context.Message;
 
+            if (!ClassicCityScenario.IsMatch(message.SimulationKind))
+            {
+                logger.LogDebug(
+                    message: "Ignored city-created event for cityId={CityId} because simulationKind={SimulationKind} does not match ClassicCity.",
+                    message.CityId,
+                    message.SimulationKind);
+                return;
+            }
+
             SeedCityEnvironmentalConditionsResult result = await mediator.Send(
                 request: new SeedCityEnvironmentalConditionsCommand(
                     CityId: message.CityId,
                     CreatedAtUtc: message.CreatedAtUtc,
+                    SimulationKind: message.SimulationKind,
                     DevelopmentLevel: message.DevelopmentLevel),
                 cancellationToken: context.CancellationToken);
 
@@ -35,6 +46,13 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     logger.LogDebug(
                         message: "Skipped duplicate classic city environmental seed for cityId={CityId}.",
                         message.CityId);
+                    break;
+
+                case SeedCityEnvironmentalConditionsStatus.IgnoredSimulationKind:
+                    logger.LogDebug(
+                        message: "Skipped classic city environmental seed for cityId={CityId} because simulationKind={SimulationKind} is not handled by this scenario.",
+                        message.CityId,
+                        message.SimulationKind);
                     break;
             }
         }
