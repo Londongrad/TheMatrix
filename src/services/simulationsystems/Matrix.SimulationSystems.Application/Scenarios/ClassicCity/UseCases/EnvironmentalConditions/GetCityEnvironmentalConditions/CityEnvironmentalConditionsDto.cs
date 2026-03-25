@@ -8,11 +8,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         decimal SnowAccumulationIndex,
         decimal RoadAccessibilityIndex,
         decimal HeatingCoverageIndex,
+        decimal WaterCoverageIndex,
         DateTimeOffset LastEvaluatedAtUtc,
         CitySystemConditionDto Drainage,
         CitySystemConditionDto SnowRemoval,
         CitySystemConditionDto RoadAccess,
-        CitySystemConditionDto Heating)
+        CitySystemConditionDto Heating,
+        CitySystemConditionDto WaterDistribution)
     {
         public static CityEnvironmentalConditionsDto FromDomain(CityEnvironmentalConditionState state)
         {
@@ -22,11 +24,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 SnowAccumulationIndex: state.SnowAccumulationIndex.Value,
                 RoadAccessibilityIndex: state.RoadAccessibilityIndex.Value,
                 HeatingCoverageIndex: state.HeatingCoverageIndex.Value,
+                WaterCoverageIndex: state.WaterCoverageIndex.Value,
                 LastEvaluatedAtUtc: state.LastEvaluatedAtUtc,
                 Drainage: CitySystemConditionDto.FromSnapshot(state.Drainage.ToSnapshot()),
                 SnowRemoval: CitySystemConditionDto.FromSnapshot(state.SnowRemoval.ToSnapshot()),
                 RoadAccess: CitySystemConditionDto.FromSnapshot(state.RoadAccess.ToSnapshot()),
-                Heating: CitySystemConditionDto.FromSnapshot(state.Heating.ToSnapshot()));
+                Heating: CitySystemConditionDto.FromSnapshot(state.Heating.ToSnapshot()),
+                WaterDistribution: CitySystemConditionDto.FromSnapshot(state.WaterDistribution.ToSnapshot()));
         }
     }
 }

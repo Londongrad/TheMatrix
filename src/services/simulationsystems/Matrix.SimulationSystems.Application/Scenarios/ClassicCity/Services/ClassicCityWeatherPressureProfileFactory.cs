@@ -96,7 +96,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                     infrastructure: state.RoadAccessInfrastructure),
                 heatingSupport: CreateHeatingSupport(
                     state: state.Heating,
-                    infrastructure: state.HeatingInfrastructure));
+                    infrastructure: state.HeatingInfrastructure),
+                waterSupport: CreateWaterDistributionSupport(
+                    state: state.WaterDistribution,
+                    infrastructure: state.WaterDistributionInfrastructure));
         }
 
         private static decimal CreateDrainageSupport(
@@ -183,13 +186,25 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        emergencyBoost);
         }
 
-        private static decimal CreateSupport(CitySystemState state)
+        private static decimal CreateWaterDistributionSupport(
+            CitySystemState state,
+            CityWaterDistributionInfrastructureState infrastructure)
         {
+            decimal emergencyBoost = infrastructure.EmergencyModeEnabled
+                ? 0.0800m
+                : 0m;
+
             return Clamp(
-                value: 0.28m +
-                       (state.ServiceQualityIndex * 0.47m) -
-                       (state.BacklogIndex * 0.18m) -
-                       (state.FailureRiskIndex * 0.12m));
+                value: 0.1200m +
+                       (state.ServiceQualityIndex * 0.2200m) +
+                       (infrastructure.TreatmentCapacityIndex * 0.2200m) +
+                       (infrastructure.NetworkIntegrityIndex * 0.1800m) +
+                       (infrastructure.PumpReadinessIndex * 0.1500m) +
+                       (infrastructure.CrewReadinessIndex * 0.1100m) -
+                       (state.BacklogIndex * 0.1400m) -
+                       (state.FailureRiskIndex * 0.1200m) -
+                       (infrastructure.IncidentPressureIndex * 0.1000m) +
+                       emergencyBoost);
         }
 
         private static decimal MapSeverity(string severity)
