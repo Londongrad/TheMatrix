@@ -613,26 +613,32 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             decimal snowPressure = conditions.SnowAccumulationIndex;
             decimal roadDisruption = 1m - conditions.RoadAccessibilityIndex;
             decimal heatingDisruption = 1m - conditions.HeatingCoverageIndex;
+            decimal waterDisruption = 1m - conditions.WaterCoverageIndex;
             decimal failureRisk = Math.Max(
                 val1: conditions.Drainage.FailureRiskIndex,
                 val2: Math.Max(
                     val1: conditions.SnowRemoval.FailureRiskIndex,
                     val2: Math.Max(
                         val1: conditions.RoadAccess.FailureRiskIndex,
-                        val2: conditions.Heating.FailureRiskIndex)));
+                        val2: Math.Max(
+                            val1: conditions.Heating.FailureRiskIndex,
+                            val2: conditions.WaterDistribution.FailureRiskIndex))));
             decimal maintenanceBacklog = Math.Max(
                 val1: conditions.Drainage.BacklogIndex,
                 val2: Math.Max(
                     val1: conditions.SnowRemoval.BacklogIndex,
                     val2: Math.Max(
                         val1: conditions.RoadAccess.BacklogIndex,
-                        val2: conditions.Heating.BacklogIndex)));
+                        val2: Math.Max(
+                            val1: conditions.Heating.BacklogIndex,
+                            val2: conditions.WaterDistribution.BacklogIndex))));
 
-            decimal composite = (floodingPressure * 0.35m) +
-                                (snowPressure * 0.25m) +
-                                (roadDisruption * 0.20m) +
+            decimal composite = (floodingPressure * 0.30m) +
+                                (snowPressure * 0.22m) +
+                                (roadDisruption * 0.16m) +
                                 (heatingDisruption * 0.10m) +
-                                (failureRisk * 0.07m) +
+                                (waterDisruption * 0.14m) +
+                                (failureRisk * 0.05m) +
                                 (maintenanceBacklog * 0.03m);
 
             return decimal.Round(
@@ -657,6 +663,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             decimal snowPressure = conditions.SnowAccumulationIndex;
             decimal roadDisruption = 1m - conditions.RoadAccessibilityIndex;
             decimal heatingDisruption = 1m - conditions.HeatingCoverageIndex;
+            decimal waterDisruption = 1m - conditions.WaterCoverageIndex;
             decimal drainagePressure = Math.Max(
                 val1: conditions.Drainage.BacklogIndex,
                 val2: conditions.Drainage.FailureRiskIndex);
@@ -669,50 +676,74 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             decimal heatingPressure = Math.Max(
                 val1: conditions.Heating.BacklogIndex,
                 val2: conditions.Heating.FailureRiskIndex);
+            decimal waterPressure = Math.Max(
+                val1: conditions.WaterDistribution.BacklogIndex,
+                val2: conditions.WaterDistribution.FailureRiskIndex);
 
             if (floodingPressure >= snowPressure &&
                 floodingPressure >= roadDisruption &&
                 floodingPressure >= heatingDisruption &&
+                floodingPressure >= waterDisruption &&
                 floodingPressure >= drainagePressure &&
                 floodingPressure >= snowRemovalPressure &&
                 floodingPressure >= roadSupportPressure &&
-                floodingPressure >= heatingPressure)
+                floodingPressure >= heatingPressure &&
+                floodingPressure >= waterPressure)
                 return "Flooding pressure is climbing and drainage capacity is starting to stretch.";
 
             if (snowPressure >= roadDisruption &&
                 snowPressure >= heatingDisruption &&
+                snowPressure >= waterDisruption &&
                 snowPressure >= drainagePressure &&
                 snowPressure >= snowRemovalPressure &&
                 snowPressure >= roadSupportPressure &&
-                snowPressure >= heatingPressure)
+                snowPressure >= heatingPressure &&
+                snowPressure >= waterPressure)
                 return "Snow accumulation is rising and cleanup throughput is falling behind.";
 
             if (roadDisruption >= heatingDisruption &&
+                roadDisruption >= waterDisruption &&
                 roadDisruption >= drainagePressure &&
                 roadDisruption >= snowRemovalPressure &&
                 roadDisruption >= roadSupportPressure &&
-                roadDisruption >= heatingPressure)
+                roadDisruption >= heatingPressure &&
+                roadDisruption >= waterPressure)
                 return "Road accessibility is slipping as weather pressure reaches transport routes.";
 
             if (heatingDisruption >= drainagePressure &&
                 heatingDisruption >= snowRemovalPressure &&
                 heatingDisruption >= roadSupportPressure &&
-                heatingDisruption >= heatingPressure)
+                heatingDisruption >= heatingPressure &&
+                heatingDisruption >= waterDisruption &&
+                heatingDisruption >= waterPressure)
                 return "Heating coverage is slipping and cold-weather strain is spreading through the city.";
+
+            if (waterDisruption >= drainagePressure &&
+                waterDisruption >= snowRemovalPressure &&
+                waterDisruption >= roadSupportPressure &&
+                waterDisruption >= heatingPressure &&
+                waterDisruption >= waterPressure)
+                return "Water distribution coverage is slipping and supply reliability is starting to fragment.";
 
             if (drainagePressure >= snowRemovalPressure &&
                 drainagePressure >= roadSupportPressure &&
-                drainagePressure >= heatingPressure)
+                drainagePressure >= heatingPressure &&
+                drainagePressure >= waterPressure)
                 return "Drainage backlog is building up and raises flood recovery risk.";
 
             if (snowRemovalPressure >= roadSupportPressure &&
-                snowRemovalPressure >= heatingPressure)
+                snowRemovalPressure >= heatingPressure &&
+                snowRemovalPressure >= waterPressure)
                 return "Snow-removal backlog is building up and keeps snow pressure elevated.";
 
-            if (roadSupportPressure >= heatingPressure)
+            if (roadSupportPressure >= heatingPressure &&
+                roadSupportPressure >= waterPressure)
                 return "Road access maintenance pressure is rising and threatens city mobility.";
 
-            return "Heating maintenance pressure is rising and threatens stable winter coverage.";
+            if (heatingPressure >= waterPressure)
+                return "Heating maintenance pressure is rising and threatens stable winter coverage.";
+
+            return "Water distribution maintenance pressure is rising and threatens stable supply coverage.";
         }
 
         private static decimal ClampUnit(decimal value)
