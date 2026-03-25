@@ -99,7 +99,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                     infrastructure: state.HeatingInfrastructure),
                 waterSupport: CreateWaterDistributionSupport(
                     state: state.WaterDistribution,
-                    infrastructure: state.WaterDistributionInfrastructure));
+                    infrastructure: state.WaterDistributionInfrastructure),
+                sanitationSupport: CreateSanitationSupport(
+                    state: state.Sanitation,
+                    infrastructure: state.SanitationInfrastructure));
         }
 
         private static decimal CreateDrainageSupport(
@@ -200,6 +203,27 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (infrastructure.TreatmentCapacityIndex * 0.2200m) +
                        (infrastructure.NetworkIntegrityIndex * 0.1800m) +
                        (infrastructure.PumpReadinessIndex * 0.1500m) +
+                       (infrastructure.CrewReadinessIndex * 0.1100m) -
+                       (state.BacklogIndex * 0.1400m) -
+                       (state.FailureRiskIndex * 0.1200m) -
+                       (infrastructure.IncidentPressureIndex * 0.1000m) +
+                       emergencyBoost);
+        }
+
+        private static decimal CreateSanitationSupport(
+            CitySystemState state,
+            CitySanitationInfrastructureState infrastructure)
+        {
+            decimal emergencyBoost = infrastructure.EmergencyModeEnabled
+                ? 0.0800m
+                : 0m;
+
+            return Clamp(
+                value: 0.1200m +
+                       (state.ServiceQualityIndex * 0.2200m) +
+                       (infrastructure.TreatmentStabilityIndex * 0.2200m) +
+                       (infrastructure.NetworkIntegrityIndex * 0.1800m) +
+                       (infrastructure.OverflowControlIndex * 0.1500m) +
                        (infrastructure.CrewReadinessIndex * 0.1100m) -
                        (state.BacklogIndex * 0.1400m) -
                        (state.FailureRiskIndex * 0.1200m) -
