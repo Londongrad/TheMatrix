@@ -272,6 +272,55 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                         baseline: 0.0400m + (developmentSeverity * 0.1300m),
                         maxAbsJitter: 0.0250m),
                     emergencyModeEnabled: false),
+                sanitation: new CitySystemSnapshot(
+                    kind: CitySystemKind.Sanitation,
+                    loadIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-load",
+                        baseline: 0.0800m + (developmentSeverity * 0.0600m),
+                        maxAbsJitter: 0.0200m),
+                    serviceQualityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-service",
+                        baseline: 0.8600m - (developmentSeverity * 0.1300m),
+                        maxAbsJitter: 0.0250m),
+                    backlogIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-backlog",
+                        baseline: 0.0500m + (developmentSeverity * 0.0900m),
+                        maxAbsJitter: 0.0200m),
+                    failureRiskIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-failure",
+                        baseline: 0.0300m + (developmentSeverity * 0.0600m),
+                        maxAbsJitter: 0.0200m)),
+                sanitationInfrastructure: new CitySanitationInfrastructureSnapshot(
+                    treatmentStabilityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-treatment-stability",
+                        baseline: 0.8900m - (developmentSeverity * 0.2200m),
+                        maxAbsJitter: 0.0350m),
+                    networkIntegrityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-network-integrity",
+                        baseline: 0.8800m - (developmentSeverity * 0.2100m),
+                        maxAbsJitter: 0.0350m),
+                    overflowControlIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-overflow-control",
+                        baseline: 0.8600m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    crewReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-crew-readiness",
+                        baseline: 0.8400m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    incidentPressureIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "sanitation-incident-pressure",
+                        baseline: 0.0400m + (developmentSeverity * 0.1300m),
+                        maxAbsJitter: 0.0250m),
+                    emergencyModeEnabled: false),
                 floodingIndex: FloodingIndex.From(CreateSeedMetric(
                     cityId: cityId,
                     salt: "flooding",
@@ -296,6 +345,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     cityId: cityId,
                     salt: "water-distribution-coverage",
                     baseline: 0.9500m - (developmentSeverity * 0.1000m),
+                    maxAbsJitter: 0.0200m)),
+                sanitationCoverageIndex: SanitationCoverageIndex.From(CreateSeedMetric(
+                    cityId: cityId,
+                    salt: "sanitation-coverage",
+                    baseline: 0.9400m - (developmentSeverity * 0.1100m),
                     maxAbsJitter: 0.0200m)),
                 evaluatedAtUtc: asOfUtc);
         }
@@ -380,6 +434,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySystemSnapshot currentWaterDistribution = state.WaterDistribution.ToSnapshot();
             CityWaterDistributionInfrastructureSnapshot currentWaterDistributionInfrastructure =
                 state.WaterDistributionInfrastructure.ToSnapshot();
+            CitySystemSnapshot currentSanitation = state.Sanitation.ToSnapshot();
+            CitySanitationInfrastructureSnapshot currentSanitationInfrastructure =
+                state.SanitationInfrastructure.ToSnapshot();
             decimal emergencyModeBoost = currentDrainageInfrastructure.EmergencyModeEnabled
                 ? 0.0800m
                 : 0m;
@@ -393,6 +450,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 ? 0.0900m
                 : 0m;
             decimal waterEmergencyModeBoost = currentWaterDistributionInfrastructure.EmergencyModeEnabled
+                ? 0.0850m
+                : 0m;
+            decimal sanitationEmergencyModeBoost = currentSanitationInfrastructure.EmergencyModeEnabled
                 ? 0.0850m
                 : 0m;
 
@@ -1002,6 +1062,133 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 factor: 0.26m,
                 responseScale: responseScale);
 
+            decimal sanitationLoad = Smooth(
+                current: currentSanitation.LoadIndex,
+                target: Clamp(
+                    value: (state.FloodingIndex.Value * 0.28m) +
+                           (pressure.StormPressure * 0.18m) +
+                           (pressure.FreezePressure * 0.12m) +
+                           (pressure.RainPressure * 0.10m) +
+                           ((1m - state.SanitationCoverageIndex.Value) * 0.18m) -
+                           (pressure.SanitationSupport * 0.24m) -
+                           (currentSanitationInfrastructure.TreatmentStabilityIndex * 0.0500m) -
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.42m,
+                responseScale: responseScale);
+            decimal sanitationService = Smooth(
+                current: currentSanitation.ServiceQualityIndex,
+                target: Clamp(
+                    value: 0.62m +
+                           (pressure.SanitationSupport * 0.30m) +
+                           (currentSanitationInfrastructure.OverflowControlIndex * 0.0700m) -
+                           (currentSanitation.BacklogIndex * 0.20m) -
+                           (state.FloodingIndex.Value * 0.08m) -
+                           (pressure.StormPressure * 0.06m) +
+                           (sanitationEmergencyModeBoost * 0.4200m),
+                    min: 0.05m,
+                    max: 1m),
+                factor: 0.35m,
+                responseScale: responseScale);
+            decimal sanitationBacklog = Smooth(
+                current: currentSanitation.BacklogIndex,
+                target: Clamp(
+                    value: currentSanitation.BacklogIndex +
+                           (sanitationLoad * 0.18m) -
+                           (sanitationService * 0.15m) -
+                           (pressure.ThawRelief * 0.04m) -
+                           (currentSanitationInfrastructure.CrewReadinessIndex * 0.0300m)),
+                factor: 0.40m,
+                responseScale: responseScale);
+            decimal sanitationFailureRisk = Smooth(
+                current: currentSanitation.FailureRiskIndex,
+                target: Clamp(
+                    value: (sanitationLoad * 0.36m) +
+                           (sanitationBacklog * 0.30m) +
+                           ((1m - sanitationService) * 0.26m) +
+                           (currentSanitationInfrastructure.IncidentPressureIndex * 0.1400m) +
+                           ((1m - currentSanitationInfrastructure.NetworkIntegrityIndex) * 0.1200m)),
+                factor: 0.30m,
+                responseScale: responseScale);
+
+            decimal sanitationCoverage = Smooth(
+                current: state.SanitationCoverageIndex.Value,
+                target: Clamp(
+                    value: 1.01m -
+                           (state.FloodingIndex.Value * 0.22m) -
+                           (pressure.StormPressure * 0.12m) -
+                           (pressure.FreezePressure * 0.10m) -
+                           (sanitationBacklog * 0.15m) -
+                           (sanitationFailureRisk * 0.10m) +
+                           (sanitationService * 0.10m) +
+                           (pressure.SanitationSupport * 0.09m) +
+                           (currentSanitationInfrastructure.TreatmentStabilityIndex * 0.0700m) +
+                           (currentSanitationInfrastructure.OverflowControlIndex * 0.0500m) +
+                           (pressure.ThawRelief * 0.03m) -
+                           (currentSanitationInfrastructure.IncidentPressureIndex * 0.0600m),
+                    min: 0.10m,
+                    max: 1m),
+                factor: 0.46m,
+                responseScale: responseScale);
+
+            decimal sanitationTreatmentStability = Smooth(
+                current: currentSanitationInfrastructure.TreatmentStabilityIndex,
+                target: Clamp(
+                    value: currentSanitationInfrastructure.TreatmentStabilityIndex -
+                           (sanitationLoad * 0.0450m) -
+                           (state.FloodingIndex.Value * 0.0300m) -
+                           (currentSanitationInfrastructure.IncidentPressureIndex * 0.0400m) +
+                           (currentSanitationInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (sanitationEmergencyModeBoost * 0.2800m)),
+                factor: 0.20m,
+                responseScale: responseScale);
+            decimal sanitationNetworkIntegrity = Smooth(
+                current: currentSanitationInfrastructure.NetworkIntegrityIndex,
+                target: Clamp(
+                    value: currentSanitationInfrastructure.NetworkIntegrityIndex -
+                           (sanitationBacklog * 0.0450m) -
+                           (pressure.FreezePressure * 0.0350m) -
+                           (state.FloodingIndex.Value * 0.0400m) -
+                           (pressure.StormPressure * 0.0200m) +
+                           (currentSanitationInfrastructure.CrewReadinessIndex * 0.0400m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal sanitationOverflowControl = Smooth(
+                current: currentSanitationInfrastructure.OverflowControlIndex,
+                target: Clamp(
+                    value: currentSanitationInfrastructure.OverflowControlIndex -
+                           (pressure.RainPressure * 0.0500m) -
+                           (pressure.StormPressure * 0.0450m) -
+                           (state.FloodingIndex.Value * 0.0600m) -
+                           (currentSanitationInfrastructure.IncidentPressureIndex * 0.0300m) +
+                           (currentSanitationInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (pressure.ThawRelief * 0.0200m) +
+                           (sanitationEmergencyModeBoost * 0.2000m)),
+                factor: 0.18m,
+                responseScale: responseScale);
+            decimal sanitationCrewReadiness = Smooth(
+                current: currentSanitationInfrastructure.CrewReadinessIndex,
+                target: Clamp(
+                    value: currentSanitationInfrastructure.CrewReadinessIndex +
+                           (currentSanitationInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0260m) -
+                           (currentSanitationInfrastructure.IncidentPressureIndex * 0.0300m) -
+                           (sanitationBacklog * 0.0200m) +
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal sanitationIncidentPressure = Smooth(
+                current: currentSanitationInfrastructure.IncidentPressureIndex,
+                target: Clamp(
+                    value: currentSanitationInfrastructure.IncidentPressureIndex +
+                           ((1m - sanitationCoverage) * 0.1200m) +
+                           (sanitationFailureRisk * 0.0800m) +
+                           (state.FloodingIndex.Value * 0.0800m) +
+                           (pressure.StormPressure * 0.0500m) -
+                           (sanitationCrewReadiness * 0.0600m) -
+                           (sanitationOverflowControl * 0.0400m) -
+                           (sanitationEmergencyModeBoost * 0.4000m)),
+                factor: 0.26m,
+                responseScale: responseScale);
+
             return new CityEnvironmentalConditionSnapshot(
                 drainage: new CitySystemSnapshot(
                     kind: CitySystemKind.Drainage,
@@ -1068,11 +1255,25 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     crewReadinessIndex: waterCrewReadiness,
                     incidentPressureIndex: waterIncidentPressure,
                     emergencyModeEnabled: currentWaterDistributionInfrastructure.EmergencyModeEnabled),
+                sanitation: new CitySystemSnapshot(
+                    kind: CitySystemKind.Sanitation,
+                    loadIndex: sanitationLoad,
+                    serviceQualityIndex: sanitationService,
+                    backlogIndex: sanitationBacklog,
+                    failureRiskIndex: sanitationFailureRisk),
+                sanitationInfrastructure: new CitySanitationInfrastructureSnapshot(
+                    treatmentStabilityIndex: sanitationTreatmentStability,
+                    networkIntegrityIndex: sanitationNetworkIntegrity,
+                    overflowControlIndex: sanitationOverflowControl,
+                    crewReadinessIndex: sanitationCrewReadiness,
+                    incidentPressureIndex: sanitationIncidentPressure,
+                    emergencyModeEnabled: currentSanitationInfrastructure.EmergencyModeEnabled),
                 floodingIndex: FloodingIndex.From(flooding),
                 snowAccumulationIndex: SnowAccumulationIndex.From(snowAccumulation),
                 roadAccessibilityIndex: RoadAccessibilityIndex.From(roadAccessibility),
                 heatingCoverageIndex: HeatingCoverageIndex.From(heatingCoverage),
                 waterCoverageIndex: WaterCoverageIndex.From(waterCoverage),
+                sanitationCoverageIndex: SanitationCoverageIndex.From(sanitationCoverage),
                 evaluatedAtUtc: asOfUtc);
         }
 
