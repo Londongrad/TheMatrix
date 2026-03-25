@@ -18,7 +18,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             decimal drainageSupport,
             decimal snowRemovalSupport,
             decimal roadSupport,
-            decimal heatingSupport = 0m)
+            decimal heatingSupport = 0m,
+            decimal waterSupport = 0m)
         {
             RainPressure = NormalizeIndex(
                 value: rainPressure,
@@ -47,6 +48,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             HeatingSupport = NormalizeIndex(
                 value: heatingSupport,
                 paramName: nameof(heatingSupport));
+            WaterSupport = NormalizeIndex(
+                value: waterSupport,
+                paramName: nameof(waterSupport));
         }
 
         public decimal RainPressure { get; }
@@ -58,6 +62,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public decimal SnowRemovalSupport { get; }
         public decimal RoadSupport { get; }
         public decimal HeatingSupport { get; }
+        public decimal WaterSupport { get; }
 
         private static decimal NormalizeIndex(
             decimal value,

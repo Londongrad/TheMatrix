@@ -223,6 +223,55 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                         baseline: 0.0450m + (developmentSeverity * 0.1400m),
                         maxAbsJitter: 0.0250m),
                     emergencyModeEnabled: false),
+                waterDistribution: new CitySystemSnapshot(
+                    kind: CitySystemKind.WaterDistribution,
+                    loadIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-load",
+                        baseline: 0.0850m + (developmentSeverity * 0.0550m),
+                        maxAbsJitter: 0.0200m),
+                    serviceQualityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-service",
+                        baseline: 0.8700m - (developmentSeverity * 0.1300m),
+                        maxAbsJitter: 0.0250m),
+                    backlogIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-backlog",
+                        baseline: 0.0450m + (developmentSeverity * 0.0800m),
+                        maxAbsJitter: 0.0200m),
+                    failureRiskIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-failure",
+                        baseline: 0.0300m + (developmentSeverity * 0.0600m),
+                        maxAbsJitter: 0.0200m)),
+                waterDistributionInfrastructure: new CityWaterDistributionInfrastructureSnapshot(
+                    treatmentCapacityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-treatment-capacity",
+                        baseline: 0.9000m - (developmentSeverity * 0.2300m),
+                        maxAbsJitter: 0.0350m),
+                    networkIntegrityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-network-integrity",
+                        baseline: 0.8900m - (developmentSeverity * 0.2200m),
+                        maxAbsJitter: 0.0350m),
+                    pumpReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-pump-readiness",
+                        baseline: 0.8700m - (developmentSeverity * 0.2100m),
+                        maxAbsJitter: 0.0350m),
+                    crewReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-crew-readiness",
+                        baseline: 0.8500m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    incidentPressureIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "water-distribution-incident-pressure",
+                        baseline: 0.0400m + (developmentSeverity * 0.1300m),
+                        maxAbsJitter: 0.0250m),
+                    emergencyModeEnabled: false),
                 floodingIndex: FloodingIndex.From(CreateSeedMetric(
                     cityId: cityId,
                     salt: "flooding",
@@ -242,6 +291,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     cityId: cityId,
                     salt: "heating-coverage",
                     baseline: 0.9300m - (developmentSeverity * 0.1200m),
+                    maxAbsJitter: 0.0200m)),
+                waterCoverageIndex: WaterCoverageIndex.From(CreateSeedMetric(
+                    cityId: cityId,
+                    salt: "water-distribution-coverage",
+                    baseline: 0.9500m - (developmentSeverity * 0.1000m),
                     maxAbsJitter: 0.0200m)),
                 evaluatedAtUtc: asOfUtc);
         }
@@ -323,6 +377,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySystemSnapshot currentHeating = state.Heating.ToSnapshot();
             CityHeatingInfrastructureSnapshot currentHeatingInfrastructure =
                 state.HeatingInfrastructure.ToSnapshot();
+            CitySystemSnapshot currentWaterDistribution = state.WaterDistribution.ToSnapshot();
+            CityWaterDistributionInfrastructureSnapshot currentWaterDistributionInfrastructure =
+                state.WaterDistributionInfrastructure.ToSnapshot();
             decimal emergencyModeBoost = currentDrainageInfrastructure.EmergencyModeEnabled
                 ? 0.0800m
                 : 0m;
@@ -334,6 +391,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 : 0m;
             decimal heatingEmergencyModeBoost = currentHeatingInfrastructure.EmergencyModeEnabled
                 ? 0.0900m
+                : 0m;
+            decimal waterEmergencyModeBoost = currentWaterDistributionInfrastructure.EmergencyModeEnabled
+                ? 0.0850m
                 : 0m;
 
             decimal drainageLoad = Smooth(
@@ -817,6 +877,131 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 factor: 0.26m,
                 responseScale: responseScale);
 
+            decimal waterLoad = Smooth(
+                current: currentWaterDistribution.LoadIndex,
+                target: Clamp(
+                    value: (pressure.FreezePressure * 0.38m) +
+                           (pressure.StormPressure * 0.20m) +
+                           (state.FloodingIndex.Value * 0.22m) +
+                           ((1m - state.WaterCoverageIndex.Value) * 0.18m) +
+                           (pressure.RainPressure * 0.08m) -
+                           (pressure.WaterSupport * 0.24m) -
+                           (currentWaterDistributionInfrastructure.TreatmentCapacityIndex * 0.0600m) -
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.42m,
+                responseScale: responseScale);
+            decimal waterService = Smooth(
+                current: currentWaterDistribution.ServiceQualityIndex,
+                target: Clamp(
+                    value: 0.63m +
+                           (pressure.WaterSupport * 0.30m) +
+                           (currentWaterDistributionInfrastructure.PumpReadinessIndex * 0.0600m) -
+                           (currentWaterDistribution.BacklogIndex * 0.20m) -
+                           (state.FloodingIndex.Value * 0.08m) -
+                           (pressure.FreezePressure * 0.06m) +
+                           (waterEmergencyModeBoost * 0.4200m),
+                    min: 0.05m,
+                    max: 1m),
+                factor: 0.35m,
+                responseScale: responseScale);
+            decimal waterBacklog = Smooth(
+                current: currentWaterDistribution.BacklogIndex,
+                target: Clamp(
+                    value: currentWaterDistribution.BacklogIndex +
+                           (waterLoad * 0.18m) -
+                           (waterService * 0.15m) -
+                           (pressure.ThawRelief * 0.04m) -
+                           (currentWaterDistributionInfrastructure.CrewReadinessIndex * 0.0300m)),
+                factor: 0.40m,
+                responseScale: responseScale);
+            decimal waterFailureRisk = Smooth(
+                current: currentWaterDistribution.FailureRiskIndex,
+                target: Clamp(
+                    value: (waterLoad * 0.36m) +
+                           (waterBacklog * 0.30m) +
+                           ((1m - waterService) * 0.26m) +
+                           (currentWaterDistributionInfrastructure.IncidentPressureIndex * 0.1400m) +
+                           ((1m - currentWaterDistributionInfrastructure.NetworkIntegrityIndex) * 0.1200m)),
+                factor: 0.30m,
+                responseScale: responseScale);
+
+            decimal waterCoverage = Smooth(
+                current: state.WaterCoverageIndex.Value,
+                target: Clamp(
+                    value: 1.02m -
+                           (state.FloodingIndex.Value * 0.20m) -
+                           (pressure.FreezePressure * 0.16m) -
+                           (waterBacklog * 0.16m) -
+                           (waterFailureRisk * 0.10m) +
+                           (waterService * 0.10m) +
+                           (pressure.WaterSupport * 0.10m) +
+                           (currentWaterDistributionInfrastructure.TreatmentCapacityIndex * 0.0800m) +
+                           (currentWaterDistributionInfrastructure.PumpReadinessIndex * 0.0600m) +
+                           (pressure.ThawRelief * 0.03m) -
+                           (currentWaterDistributionInfrastructure.IncidentPressureIndex * 0.0600m),
+                    min: 0.10m,
+                    max: 1m),
+                factor: 0.46m,
+                responseScale: responseScale);
+
+            decimal waterTreatmentCapacity = Smooth(
+                current: currentWaterDistributionInfrastructure.TreatmentCapacityIndex,
+                target: Clamp(
+                    value: currentWaterDistributionInfrastructure.TreatmentCapacityIndex -
+                           (waterLoad * 0.0450m) -
+                           (state.FloodingIndex.Value * 0.0250m) -
+                           (currentWaterDistributionInfrastructure.IncidentPressureIndex * 0.0400m) +
+                           (currentWaterDistributionInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (waterEmergencyModeBoost * 0.2800m)),
+                factor: 0.20m,
+                responseScale: responseScale);
+            decimal waterNetworkIntegrity = Smooth(
+                current: currentWaterDistributionInfrastructure.NetworkIntegrityIndex,
+                target: Clamp(
+                    value: currentWaterDistributionInfrastructure.NetworkIntegrityIndex -
+                           (waterBacklog * 0.0450m) -
+                           (pressure.FreezePressure * 0.0400m) -
+                           (state.FloodingIndex.Value * 0.0350m) -
+                           (pressure.StormPressure * 0.0200m) +
+                           (currentWaterDistributionInfrastructure.CrewReadinessIndex * 0.0400m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal waterPumpReadiness = Smooth(
+                current: currentWaterDistributionInfrastructure.PumpReadinessIndex,
+                target: Clamp(
+                    value: currentWaterDistributionInfrastructure.PumpReadinessIndex -
+                           (waterLoad * 0.0300m) -
+                           (state.FloodingIndex.Value * 0.0400m) -
+                           (currentWaterDistributionInfrastructure.IncidentPressureIndex * 0.0300m) +
+                           (currentWaterDistributionInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (pressure.ThawRelief * 0.0200m) +
+                           (waterEmergencyModeBoost * 0.1800m)),
+                factor: 0.18m,
+                responseScale: responseScale);
+            decimal waterCrewReadiness = Smooth(
+                current: currentWaterDistributionInfrastructure.CrewReadinessIndex,
+                target: Clamp(
+                    value: currentWaterDistributionInfrastructure.CrewReadinessIndex +
+                           (currentWaterDistributionInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0260m) -
+                           (currentWaterDistributionInfrastructure.IncidentPressureIndex * 0.0300m) -
+                           (waterBacklog * 0.0200m) +
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal waterIncidentPressure = Smooth(
+                current: currentWaterDistributionInfrastructure.IncidentPressureIndex,
+                target: Clamp(
+                    value: currentWaterDistributionInfrastructure.IncidentPressureIndex +
+                           ((1m - waterCoverage) * 0.1200m) +
+                           (waterFailureRisk * 0.0800m) +
+                           (state.FloodingIndex.Value * 0.0700m) +
+                           (pressure.FreezePressure * 0.0500m) -
+                           (waterCrewReadiness * 0.0600m) -
+                           (waterPumpReadiness * 0.0400m) -
+                           (waterEmergencyModeBoost * 0.4000m)),
+                factor: 0.26m,
+                responseScale: responseScale);
+
             return new CityEnvironmentalConditionSnapshot(
                 drainage: new CitySystemSnapshot(
                     kind: CitySystemKind.Drainage,
@@ -870,10 +1055,24 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     crewReadinessIndex: heatingCrewReadiness,
                     incidentPressureIndex: heatingIncidentPressure,
                     emergencyModeEnabled: currentHeatingInfrastructure.EmergencyModeEnabled),
+                waterDistribution: new CitySystemSnapshot(
+                    kind: CitySystemKind.WaterDistribution,
+                    loadIndex: waterLoad,
+                    serviceQualityIndex: waterService,
+                    backlogIndex: waterBacklog,
+                    failureRiskIndex: waterFailureRisk),
+                waterDistributionInfrastructure: new CityWaterDistributionInfrastructureSnapshot(
+                    treatmentCapacityIndex: waterTreatmentCapacity,
+                    networkIntegrityIndex: waterNetworkIntegrity,
+                    pumpReadinessIndex: waterPumpReadiness,
+                    crewReadinessIndex: waterCrewReadiness,
+                    incidentPressureIndex: waterIncidentPressure,
+                    emergencyModeEnabled: currentWaterDistributionInfrastructure.EmergencyModeEnabled),
                 floodingIndex: FloodingIndex.From(flooding),
                 snowAccumulationIndex: SnowAccumulationIndex.From(snowAccumulation),
                 roadAccessibilityIndex: RoadAccessibilityIndex.From(roadAccessibility),
                 heatingCoverageIndex: HeatingCoverageIndex.From(heatingCoverage),
+                waterCoverageIndex: WaterCoverageIndex.From(waterCoverage),
                 evaluatedAtUtc: asOfUtc);
         }
 

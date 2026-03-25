@@ -5,6 +5,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums
         Drainage = 1,
         SnowRemoval = 2,
         RoadAccess = 3,
-        Heating = 4
+        Heating = 4,
+        WaterDistribution = 5
     }
 }

@@ -18,10 +18,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             CityRoadAccessInfrastructureSnapshot roadAccessInfrastructure,
             CitySystemSnapshot heating,
             CityHeatingInfrastructureSnapshot heatingInfrastructure,
+            CitySystemSnapshot waterDistribution,
+            CityWaterDistributionInfrastructureSnapshot waterDistributionInfrastructure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
             RoadAccessibilityIndex roadAccessibilityIndex,
             HeatingCoverageIndex heatingCoverageIndex,
+            WaterCoverageIndex waterCoverageIndex,
             DateTimeOffset evaluatedAtUtc)
         {
             Drainage = GuardHelper.AgainstNull(
@@ -60,10 +63,20 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 value: heatingInfrastructure,
                 errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
                     propertyName: nameof(heatingInfrastructure)));
+            WaterDistribution = GuardHelper.AgainstNull(
+                value: waterDistribution,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSystemSnapshotRequired(
+                    systemName: "waterDistribution",
+                    propertyName: nameof(waterDistribution)));
+            WaterDistributionInfrastructure = GuardHelper.AgainstNull(
+                value: waterDistributionInfrastructure,
+                errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
+                    propertyName: nameof(waterDistributionInfrastructure)));
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
             HeatingCoverageIndex = heatingCoverageIndex;
+            WaterCoverageIndex = waterCoverageIndex;
             EvaluatedAtUtc = EnsureUtc(
                 value: evaluatedAtUtc,
                 paramName: nameof(evaluatedAtUtc));
@@ -77,10 +90,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public CityRoadAccessInfrastructureSnapshot RoadAccessInfrastructure { get; }
         public CitySystemSnapshot Heating { get; }
         public CityHeatingInfrastructureSnapshot HeatingInfrastructure { get; }
+        public CitySystemSnapshot WaterDistribution { get; }
+        public CityWaterDistributionInfrastructureSnapshot WaterDistributionInfrastructure { get; }
         public FloodingIndex FloodingIndex { get; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; }
         public RoadAccessibilityIndex RoadAccessibilityIndex { get; }
         public HeatingCoverageIndex HeatingCoverageIndex { get; }
+        public WaterCoverageIndex WaterCoverageIndex { get; }
         public DateTimeOffset EvaluatedAtUtc { get; }
 
         private static DateTimeOffset EnsureUtc(
