@@ -112,6 +112,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                     scale: 4)
                .IsRequired();
 
+            builder.Property(x => x.SanitationCoverageIndex)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => SanitationCoverageIndex.From(x))
+               .HasPrecision(
+                    precision: 5,
+                    scale: 4)
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.Drainage,
                 buildAction: state => ConfigureSystemState(
@@ -390,6 +399,62 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.WaterDistributionInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.Sanitation,
+                buildAction: state => ConfigureSystemState(
+                    builder: state,
+                    prefix: "Sanitation"));
+
+            builder.Navigation(x => x.Sanitation)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.SanitationInfrastructure,
+                buildAction: sanitation =>
+                {
+                    sanitation.Property(x => x.TreatmentStabilityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SanitationTreatmentStabilityIndex")
+                       .IsRequired();
+
+                    sanitation.Property(x => x.NetworkIntegrityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SanitationNetworkIntegrityIndex")
+                       .IsRequired();
+
+                    sanitation.Property(x => x.OverflowControlIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SanitationOverflowControlIndex")
+                       .IsRequired();
+
+                    sanitation.Property(x => x.CrewReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SanitationCrewReadinessIndex")
+                       .IsRequired();
+
+                    sanitation.Property(x => x.IncidentPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SanitationIncidentPressureIndex")
+                       .IsRequired();
+
+                    sanitation.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("SanitationEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.SanitationInfrastructure)
                .IsRequired();
 
             builder.Ignore(x => x.DomainEvents);
