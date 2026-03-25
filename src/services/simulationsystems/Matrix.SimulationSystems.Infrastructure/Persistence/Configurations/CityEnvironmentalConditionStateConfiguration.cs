@@ -103,6 +103,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                     scale: 4)
                .IsRequired();
 
+            builder.Property(x => x.WaterCoverageIndex)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => WaterCoverageIndex.From(x))
+               .HasPrecision(
+                    precision: 5,
+                    scale: 4)
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.Drainage,
                 buildAction: state => ConfigureSystemState(
@@ -325,6 +334,62 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.HeatingInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.WaterDistribution,
+                buildAction: state => ConfigureSystemState(
+                    builder: state,
+                    prefix: "WaterDistribution"));
+
+            builder.Navigation(x => x.WaterDistribution)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.WaterDistributionInfrastructure,
+                buildAction: waterDistribution =>
+                {
+                    waterDistribution.Property(x => x.TreatmentCapacityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WaterDistributionTreatmentCapacityIndex")
+                       .IsRequired();
+
+                    waterDistribution.Property(x => x.NetworkIntegrityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WaterDistributionNetworkIntegrityIndex")
+                       .IsRequired();
+
+                    waterDistribution.Property(x => x.PumpReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WaterDistributionPumpReadinessIndex")
+                       .IsRequired();
+
+                    waterDistribution.Property(x => x.CrewReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WaterDistributionCrewReadinessIndex")
+                       .IsRequired();
+
+                    waterDistribution.Property(x => x.IncidentPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("WaterDistributionIncidentPressureIndex")
+                       .IsRequired();
+
+                    waterDistribution.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("WaterDistributionEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.WaterDistributionInfrastructure)
                .IsRequired();
 
             builder.Ignore(x => x.DomainEvents);
