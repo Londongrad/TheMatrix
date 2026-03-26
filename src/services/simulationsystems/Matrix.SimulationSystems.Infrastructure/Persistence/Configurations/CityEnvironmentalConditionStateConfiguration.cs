@@ -121,6 +121,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                     scale: 4)
                .IsRequired();
 
+            builder.Property(x => x.PowerCoverageIndex)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => PowerCoverageIndex.From(x))
+               .HasPrecision(
+                    precision: 5,
+                    scale: 4)
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.Drainage,
                 buildAction: state => ConfigureSystemState(
@@ -455,6 +464,62 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.SanitationInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.PowerDistribution,
+                buildAction: state => ConfigureSystemState(
+                    builder: state,
+                    prefix: "PowerDistribution"));
+
+            builder.Navigation(x => x.PowerDistribution)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.PowerDistributionInfrastructure,
+                buildAction: powerDistribution =>
+                {
+                    powerDistribution.Property(x => x.SubstationCapacityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("PowerDistributionSubstationCapacityIndex")
+                       .IsRequired();
+
+                    powerDistribution.Property(x => x.GridIntegrityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("PowerDistributionGridIntegrityIndex")
+                       .IsRequired();
+
+                    powerDistribution.Property(x => x.SwitchingReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("PowerDistributionSwitchingReadinessIndex")
+                       .IsRequired();
+
+                    powerDistribution.Property(x => x.CrewReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("PowerDistributionCrewReadinessIndex")
+                       .IsRequired();
+
+                    powerDistribution.Property(x => x.IncidentPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("PowerDistributionIncidentPressureIndex")
+                       .IsRequired();
+
+                    powerDistribution.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("PowerDistributionEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.PowerDistributionInfrastructure)
                .IsRequired();
 
             builder.Ignore(x => x.DomainEvents);
