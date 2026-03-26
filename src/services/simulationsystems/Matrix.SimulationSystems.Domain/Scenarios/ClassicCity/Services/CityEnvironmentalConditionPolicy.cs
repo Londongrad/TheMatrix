@@ -321,6 +321,55 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                         baseline: 0.0400m + (developmentSeverity * 0.1300m),
                         maxAbsJitter: 0.0250m),
                     emergencyModeEnabled: false),
+                powerDistribution: new CitySystemSnapshot(
+                    kind: CitySystemKind.PowerDistribution,
+                    loadIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-load",
+                        baseline: 0.0950m + (developmentSeverity * 0.0600m),
+                        maxAbsJitter: 0.0200m),
+                    serviceQualityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-service",
+                        baseline: 0.8800m - (developmentSeverity * 0.1300m),
+                        maxAbsJitter: 0.0250m),
+                    backlogIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-backlog",
+                        baseline: 0.0400m + (developmentSeverity * 0.0800m),
+                        maxAbsJitter: 0.0200m),
+                    failureRiskIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-failure",
+                        baseline: 0.0300m + (developmentSeverity * 0.0600m),
+                        maxAbsJitter: 0.0200m)),
+                powerDistributionInfrastructure: new CityPowerDistributionInfrastructureSnapshot(
+                    substationCapacityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-substation-capacity",
+                        baseline: 0.9100m - (developmentSeverity * 0.2300m),
+                        maxAbsJitter: 0.0350m),
+                    gridIntegrityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-grid-integrity",
+                        baseline: 0.8900m - (developmentSeverity * 0.2200m),
+                        maxAbsJitter: 0.0350m),
+                    switchingReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-switching-readiness",
+                        baseline: 0.8600m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    crewReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-crew-readiness",
+                        baseline: 0.8400m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    incidentPressureIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "power-distribution-incident-pressure",
+                        baseline: 0.0400m + (developmentSeverity * 0.1300m),
+                        maxAbsJitter: 0.0250m),
+                    emergencyModeEnabled: false),
                 floodingIndex: FloodingIndex.From(CreateSeedMetric(
                     cityId: cityId,
                     salt: "flooding",
@@ -350,6 +399,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     cityId: cityId,
                     salt: "sanitation-coverage",
                     baseline: 0.9400m - (developmentSeverity * 0.1100m),
+                    maxAbsJitter: 0.0200m)),
+                powerCoverageIndex: PowerCoverageIndex.From(CreateSeedMetric(
+                    cityId: cityId,
+                    salt: "power-distribution-coverage",
+                    baseline: 0.9600m - (developmentSeverity * 0.1000m),
                     maxAbsJitter: 0.0200m)),
                 evaluatedAtUtc: asOfUtc);
         }
@@ -437,6 +491,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySystemSnapshot currentSanitation = state.Sanitation.ToSnapshot();
             CitySanitationInfrastructureSnapshot currentSanitationInfrastructure =
                 state.SanitationInfrastructure.ToSnapshot();
+            CitySystemSnapshot currentPowerDistribution = state.PowerDistribution.ToSnapshot();
+            CityPowerDistributionInfrastructureSnapshot currentPowerDistributionInfrastructure =
+                state.PowerDistributionInfrastructure.ToSnapshot();
             decimal emergencyModeBoost = currentDrainageInfrastructure.EmergencyModeEnabled
                 ? 0.0800m
                 : 0m;
@@ -454,6 +511,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 : 0m;
             decimal sanitationEmergencyModeBoost = currentSanitationInfrastructure.EmergencyModeEnabled
                 ? 0.0850m
+                : 0m;
+            decimal powerEmergencyModeBoost = currentPowerDistributionInfrastructure.EmergencyModeEnabled
+                ? 0.0900m
                 : 0m;
 
             decimal drainageLoad = Smooth(
@@ -1189,6 +1249,135 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 factor: 0.26m,
                 responseScale: responseScale);
 
+            decimal powerLoad = Smooth(
+                current: currentPowerDistribution.LoadIndex,
+                target: Clamp(
+                    value: (pressure.StormPressure * 0.36m) +
+                           (pressure.FreezePressure * 0.20m) +
+                           (state.FloodingIndex.Value * 0.14m) +
+                           (state.SnowAccumulationIndex.Value * 0.08m) +
+                           ((1m - state.PowerCoverageIndex.Value) * 0.22m) -
+                           (currentPowerDistributionInfrastructure.SubstationCapacityIndex * 0.0800m) -
+                           (currentPowerDistributionInfrastructure.GridIntegrityIndex * 0.0500m) -
+                           (currentPowerDistributionInfrastructure.SwitchingReadinessIndex * 0.0500m) -
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.42m,
+                responseScale: responseScale);
+            decimal powerService = Smooth(
+                current: currentPowerDistribution.ServiceQualityIndex,
+                target: Clamp(
+                    value: 0.64m +
+                           (currentPowerDistributionInfrastructure.SubstationCapacityIndex * 0.0800m) +
+                           (currentPowerDistributionInfrastructure.GridIntegrityIndex * 0.0600m) +
+                           (currentPowerDistributionInfrastructure.SwitchingReadinessIndex * 0.0800m) -
+                           (currentPowerDistribution.BacklogIndex * 0.20m) -
+                           (pressure.StormPressure * 0.10m) -
+                           (pressure.FreezePressure * 0.06m) +
+                           (powerEmergencyModeBoost * 0.4200m),
+                    min: 0.05m,
+                    max: 1m),
+                factor: 0.35m,
+                responseScale: responseScale);
+            decimal powerBacklog = Smooth(
+                current: currentPowerDistribution.BacklogIndex,
+                target: Clamp(
+                    value: currentPowerDistribution.BacklogIndex +
+                           (powerLoad * 0.20m) -
+                           (powerService * 0.16m) -
+                           (pressure.ThawRelief * 0.03m) -
+                           (currentPowerDistributionInfrastructure.CrewReadinessIndex * 0.0400m)),
+                factor: 0.40m,
+                responseScale: responseScale);
+            decimal powerFailureRisk = Smooth(
+                current: currentPowerDistribution.FailureRiskIndex,
+                target: Clamp(
+                    value: (powerLoad * 0.38m) +
+                           (powerBacklog * 0.30m) +
+                           ((1m - powerService) * 0.26m) +
+                           (currentPowerDistributionInfrastructure.IncidentPressureIndex * 0.1400m) +
+                           ((1m - currentPowerDistributionInfrastructure.GridIntegrityIndex) * 0.1000m)),
+                factor: 0.30m,
+                responseScale: responseScale);
+
+            decimal powerCoverage = Smooth(
+                current: state.PowerCoverageIndex.Value,
+                target: Clamp(
+                    value: 1.02m -
+                           (pressure.StormPressure * 0.20m) -
+                           (pressure.FreezePressure * 0.12m) -
+                           (state.FloodingIndex.Value * 0.10m) -
+                           (powerBacklog * 0.16m) -
+                           (powerFailureRisk * 0.10m) +
+                           (powerService * 0.12m) +
+                           (currentPowerDistributionInfrastructure.SubstationCapacityIndex * 0.0800m) +
+                           (currentPowerDistributionInfrastructure.SwitchingReadinessIndex * 0.0600m) +
+                           (currentPowerDistributionInfrastructure.CrewReadinessIndex * 0.0400m) +
+                           (pressure.ThawRelief * 0.02m) -
+                           (currentPowerDistributionInfrastructure.IncidentPressureIndex * 0.0600m),
+                    min: 0.10m,
+                    max: 1m),
+                factor: 0.46m,
+                responseScale: responseScale);
+
+            decimal powerSubstationCapacity = Smooth(
+                current: currentPowerDistributionInfrastructure.SubstationCapacityIndex,
+                target: Clamp(
+                    value: currentPowerDistributionInfrastructure.SubstationCapacityIndex -
+                           (powerLoad * 0.0500m) -
+                           (pressure.StormPressure * 0.0400m) -
+                           (currentPowerDistributionInfrastructure.IncidentPressureIndex * 0.0400m) +
+                           (currentPowerDistributionInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (powerEmergencyModeBoost * 0.3000m)),
+                factor: 0.20m,
+                responseScale: responseScale);
+            decimal powerGridIntegrity = Smooth(
+                current: currentPowerDistributionInfrastructure.GridIntegrityIndex,
+                target: Clamp(
+                    value: currentPowerDistributionInfrastructure.GridIntegrityIndex -
+                           (powerBacklog * 0.0450m) -
+                           (pressure.StormPressure * 0.0500m) -
+                           (state.FloodingIndex.Value * 0.0300m) -
+                           (pressure.FreezePressure * 0.0250m) +
+                           (currentPowerDistributionInfrastructure.CrewReadinessIndex * 0.0400m) +
+                           (pressure.ThawRelief * 0.0150m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal powerSwitchingReadiness = Smooth(
+                current: currentPowerDistributionInfrastructure.SwitchingReadinessIndex,
+                target: Clamp(
+                    value: currentPowerDistributionInfrastructure.SwitchingReadinessIndex -
+                           (powerLoad * 0.0250m) -
+                           (pressure.StormPressure * 0.0300m) -
+                           (currentPowerDistributionInfrastructure.IncidentPressureIndex * 0.0300m) +
+                           (currentPowerDistributionInfrastructure.CrewReadinessIndex * 0.0500m) +
+                           (pressure.ThawRelief * 0.0200m) +
+                           (powerEmergencyModeBoost * 0.1800m)),
+                factor: 0.18m,
+                responseScale: responseScale);
+            decimal powerCrewReadiness = Smooth(
+                current: currentPowerDistributionInfrastructure.CrewReadinessIndex,
+                target: Clamp(
+                    value: currentPowerDistributionInfrastructure.CrewReadinessIndex +
+                           (currentPowerDistributionInfrastructure.EmergencyModeEnabled ? -0.0550m : 0.0260m) -
+                           (currentPowerDistributionInfrastructure.IncidentPressureIndex * 0.0300m) -
+                           (powerBacklog * 0.0200m) +
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal powerIncidentPressure = Smooth(
+                current: currentPowerDistributionInfrastructure.IncidentPressureIndex,
+                target: Clamp(
+                    value: currentPowerDistributionInfrastructure.IncidentPressureIndex +
+                           ((1m - powerCoverage) * 0.1300m) +
+                           (powerFailureRisk * 0.0900m) +
+                           (pressure.StormPressure * 0.0700m) +
+                           (state.FloodingIndex.Value * 0.0600m) -
+                           (powerCrewReadiness * 0.0600m) -
+                           (powerSwitchingReadiness * 0.0400m) -
+                           (powerEmergencyModeBoost * 0.4200m)),
+                factor: 0.26m,
+                responseScale: responseScale);
+
             return new CityEnvironmentalConditionSnapshot(
                 drainage: new CitySystemSnapshot(
                     kind: CitySystemKind.Drainage,
@@ -1268,12 +1457,26 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     crewReadinessIndex: sanitationCrewReadiness,
                     incidentPressureIndex: sanitationIncidentPressure,
                     emergencyModeEnabled: currentSanitationInfrastructure.EmergencyModeEnabled),
+                powerDistribution: new CitySystemSnapshot(
+                    kind: CitySystemKind.PowerDistribution,
+                    loadIndex: powerLoad,
+                    serviceQualityIndex: powerService,
+                    backlogIndex: powerBacklog,
+                    failureRiskIndex: powerFailureRisk),
+                powerDistributionInfrastructure: new CityPowerDistributionInfrastructureSnapshot(
+                    substationCapacityIndex: powerSubstationCapacity,
+                    gridIntegrityIndex: powerGridIntegrity,
+                    switchingReadinessIndex: powerSwitchingReadiness,
+                    crewReadinessIndex: powerCrewReadiness,
+                    incidentPressureIndex: powerIncidentPressure,
+                    emergencyModeEnabled: currentPowerDistributionInfrastructure.EmergencyModeEnabled),
                 floodingIndex: FloodingIndex.From(flooding),
                 snowAccumulationIndex: SnowAccumulationIndex.From(snowAccumulation),
                 roadAccessibilityIndex: RoadAccessibilityIndex.From(roadAccessibility),
                 heatingCoverageIndex: HeatingCoverageIndex.From(heatingCoverage),
                 waterCoverageIndex: WaterCoverageIndex.From(waterCoverage),
                 sanitationCoverageIndex: SanitationCoverageIndex.From(sanitationCoverage),
+                powerCoverageIndex: PowerCoverageIndex.From(powerCoverage),
                 evaluatedAtUtc: asOfUtc);
         }
 

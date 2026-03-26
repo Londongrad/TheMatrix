@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Errors;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
 
 namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
@@ -28,7 +29,10 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             HeatingCoverageIndex heatingCoverageIndex,
             WaterCoverageIndex waterCoverageIndex,
             SanitationCoverageIndex sanitationCoverageIndex,
-            DateTimeOffset evaluatedAtUtc)
+            DateTimeOffset evaluatedAtUtc,
+            CitySystemSnapshot? powerDistribution = null,
+            CityPowerDistributionInfrastructureSnapshot? powerDistributionInfrastructure = null,
+            PowerCoverageIndex? powerCoverageIndex = null)
         {
             Drainage = GuardHelper.AgainstNull(
                 value: drainage,
@@ -84,12 +88,15 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 value: sanitationInfrastructure,
                 errorFactory: _ => ClassicCityDomainErrorsFactory.CityEnvironmentalConditionSnapshotRequired(
                     propertyName: nameof(sanitationInfrastructure)));
+            PowerDistribution = powerDistribution ?? CreateDefaultPowerDistribution();
+            PowerDistributionInfrastructure = powerDistributionInfrastructure ?? CreateDefaultPowerDistributionInfrastructure();
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
             HeatingCoverageIndex = heatingCoverageIndex;
             WaterCoverageIndex = waterCoverageIndex;
             SanitationCoverageIndex = sanitationCoverageIndex;
+            PowerCoverageIndex = powerCoverageIndex ?? PowerCoverageIndex.From(1m);
             EvaluatedAtUtc = EnsureUtc(
                 value: evaluatedAtUtc,
                 paramName: nameof(evaluatedAtUtc));
@@ -107,13 +114,37 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public CityWaterDistributionInfrastructureSnapshot WaterDistributionInfrastructure { get; }
         public CitySystemSnapshot Sanitation { get; }
         public CitySanitationInfrastructureSnapshot SanitationInfrastructure { get; }
+        public CitySystemSnapshot PowerDistribution { get; }
+        public CityPowerDistributionInfrastructureSnapshot PowerDistributionInfrastructure { get; }
         public FloodingIndex FloodingIndex { get; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; }
         public RoadAccessibilityIndex RoadAccessibilityIndex { get; }
         public HeatingCoverageIndex HeatingCoverageIndex { get; }
         public WaterCoverageIndex WaterCoverageIndex { get; }
         public SanitationCoverageIndex SanitationCoverageIndex { get; }
+        public PowerCoverageIndex PowerCoverageIndex { get; }
         public DateTimeOffset EvaluatedAtUtc { get; }
+
+        private static CitySystemSnapshot CreateDefaultPowerDistribution()
+        {
+            return new CitySystemSnapshot(
+                kind: CitySystemKind.PowerDistribution,
+                loadIndex: 0m,
+                serviceQualityIndex: 1m,
+                backlogIndex: 0m,
+                failureRiskIndex: 0m);
+        }
+
+        private static CityPowerDistributionInfrastructureSnapshot CreateDefaultPowerDistributionInfrastructure()
+        {
+            return new CityPowerDistributionInfrastructureSnapshot(
+                substationCapacityIndex: 1m,
+                gridIntegrityIndex: 1m,
+                switchingReadinessIndex: 1m,
+                crewReadinessIndex: 1m,
+                incidentPressureIndex: 0m,
+                emergencyModeEnabled: false);
+        }
 
         private static DateTimeOffset EnsureUtc(
             DateTimeOffset value,

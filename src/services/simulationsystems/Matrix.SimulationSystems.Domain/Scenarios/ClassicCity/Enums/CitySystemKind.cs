@@ -7,6 +7,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums
         RoadAccess = 3,
         Heating = 4,
         WaterDistribution = 5,
-        Sanitation = 6
+        Sanitation = 6,
+        PowerDistribution = 7
     }
 }
