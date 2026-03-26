@@ -29,6 +29,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             CitySanitationInfrastructureState sanitationInfrastructure,
             CitySystemState powerDistribution,
             CityPowerDistributionInfrastructureState powerDistributionInfrastructure,
+            CitySystemState utilityIncidents,
+            CityUtilityIncidentInfrastructureState utilityIncidentInfrastructure,
             CityWeatherPressureProfile weatherPressure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
@@ -37,6 +39,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             WaterCoverageIndex waterCoverageIndex,
             SanitationCoverageIndex sanitationCoverageIndex,
             PowerCoverageIndex powerCoverageIndex,
+            UtilityContinuityIndex utilityContinuityIndex,
             DateTimeOffset lastEvaluatedAtUtc)
             : base(simulationHostId)
         {
@@ -54,6 +57,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SanitationInfrastructure = sanitationInfrastructure;
             PowerDistribution = powerDistribution;
             PowerDistributionInfrastructure = powerDistributionInfrastructure;
+            UtilityIncidents = utilityIncidents;
+            UtilityIncidentInfrastructure = utilityIncidentInfrastructure;
             WeatherPressure = weatherPressure;
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
@@ -62,6 +67,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             WaterCoverageIndex = waterCoverageIndex;
             SanitationCoverageIndex = sanitationCoverageIndex;
             PowerCoverageIndex = powerCoverageIndex;
+            UtilityContinuityIndex = utilityContinuityIndex;
             LastEvaluatedAtUtc = EnsureUtc(
                 value: lastEvaluatedAtUtc,
                 paramName: nameof(lastEvaluatedAtUtc));
@@ -84,6 +90,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SanitationInfrastructure = null!;
             PowerDistribution = null!;
             PowerDistributionInfrastructure = null!;
+            UtilityIncidents = null!;
+            UtilityIncidentInfrastructure = null!;
             WeatherPressure = null!;
         }
 
@@ -102,6 +110,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public CitySanitationInfrastructureState SanitationInfrastructure { get; private set; }
         public CitySystemState PowerDistribution { get; private set; }
         public CityPowerDistributionInfrastructureState PowerDistributionInfrastructure { get; private set; }
+        public CitySystemState UtilityIncidents { get; private set; }
+        public CityUtilityIncidentInfrastructureState UtilityIncidentInfrastructure { get; private set; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
         public FloodingIndex FloodingIndex { get; private set; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; private set; }
@@ -110,6 +120,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public WaterCoverageIndex WaterCoverageIndex { get; private set; }
         public SanitationCoverageIndex SanitationCoverageIndex { get; private set; }
         public PowerCoverageIndex PowerCoverageIndex { get; private set; }
+        public UtilityContinuityIndex UtilityContinuityIndex { get; private set; }
         public DateTimeOffset LastEvaluatedAtUtc { get; private set; }
 
         public static CityEnvironmentalConditionState Create(
@@ -136,6 +147,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 sanitationInfrastructure: CitySanitationInfrastructureState.Create(seed.SanitationInfrastructure),
                 powerDistribution: CitySystemState.Create(seed.PowerDistribution),
                 powerDistributionInfrastructure: CityPowerDistributionInfrastructureState.Create(seed.PowerDistributionInfrastructure),
+                utilityIncidents: CitySystemState.Create(seed.UtilityIncidents),
+                utilityIncidentInfrastructure: CityUtilityIncidentInfrastructureState.Create(seed.UtilityIncidentInfrastructure),
                 weatherPressure: CityWeatherPressureProfile.Neutral(),
                 floodingIndex: seed.FloodingIndex,
                 snowAccumulationIndex: seed.SnowAccumulationIndex,
@@ -144,6 +157,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 waterCoverageIndex: seed.WaterCoverageIndex,
                 sanitationCoverageIndex: seed.SanitationCoverageIndex,
                 powerCoverageIndex: seed.PowerCoverageIndex,
+                utilityContinuityIndex: seed.UtilityContinuityIndex,
                 lastEvaluatedAtUtc: seed.EvaluatedAtUtc);
         }
 
@@ -182,6 +196,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SanitationInfrastructure.ApplySnapshot(snapshot.SanitationInfrastructure);
             PowerDistribution.ApplySnapshot(snapshot.PowerDistribution);
             PowerDistributionInfrastructure.ApplySnapshot(snapshot.PowerDistributionInfrastructure);
+            UtilityIncidents.ApplySnapshot(snapshot.UtilityIncidents);
+            UtilityIncidentInfrastructure.ApplySnapshot(snapshot.UtilityIncidentInfrastructure);
             FloodingIndex = snapshot.FloodingIndex;
             SnowAccumulationIndex = snapshot.SnowAccumulationIndex;
             RoadAccessibilityIndex = snapshot.RoadAccessibilityIndex;
@@ -189,6 +205,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             WaterCoverageIndex = snapshot.WaterCoverageIndex;
             SanitationCoverageIndex = snapshot.SanitationCoverageIndex;
             PowerCoverageIndex = snapshot.PowerCoverageIndex;
+            UtilityContinuityIndex = snapshot.UtilityContinuityIndex;
             LastEvaluatedAtUtc = snapshot.EvaluatedAtUtc;
         }
 
@@ -216,7 +233,10 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 evaluatedAtUtc: LastEvaluatedAtUtc,
                 powerDistribution: PowerDistribution.ToSnapshot(),
                 powerDistributionInfrastructure: PowerDistributionInfrastructure.ToSnapshot(),
-                powerCoverageIndex: PowerCoverageIndex);
+                powerCoverageIndex: PowerCoverageIndex,
+                utilityIncidents: UtilityIncidents.ToSnapshot(),
+                utilityIncidentInfrastructure: UtilityIncidentInfrastructure.ToSnapshot(),
+                utilityContinuityIndex: UtilityContinuityIndex);
         }
 
         public void SetDrainageEmergencyMode(bool enabled)
@@ -313,6 +333,20 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PowerDistributionMaintenanceIntensity intensity)
         {
             PowerDistributionInfrastructure.DispatchMaintenance(
+                focus: focus,
+                intensity: intensity);
+        }
+
+        public void SetUtilityIncidentEmergencyMode(bool enabled)
+        {
+            UtilityIncidentInfrastructure.SetEmergencyMode(enabled);
+        }
+
+        public void DispatchUtilityIncidentResponse(
+            UtilityIncidentResponseFocus focus,
+            UtilityIncidentResponseIntensity intensity)
+        {
+            UtilityIncidentInfrastructure.DispatchResponse(
                 focus: focus,
                 intensity: intensity);
         }

@@ -370,6 +370,55 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                         baseline: 0.0400m + (developmentSeverity * 0.1300m),
                         maxAbsJitter: 0.0250m),
                     emergencyModeEnabled: false),
+                utilityIncidents: new CitySystemSnapshot(
+                    kind: CitySystemKind.UtilityIncidents,
+                    loadIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-load",
+                        baseline: 0.0700m + (developmentSeverity * 0.0500m),
+                        maxAbsJitter: 0.0200m),
+                    serviceQualityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-service",
+                        baseline: 0.8500m - (developmentSeverity * 0.1200m),
+                        maxAbsJitter: 0.0250m),
+                    backlogIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-backlog",
+                        baseline: 0.0400m + (developmentSeverity * 0.0700m),
+                        maxAbsJitter: 0.0200m),
+                    failureRiskIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-failure",
+                        baseline: 0.0300m + (developmentSeverity * 0.0500m),
+                        maxAbsJitter: 0.0200m)),
+                utilityIncidentInfrastructure: new CityUtilityIncidentInfrastructureSnapshot(
+                    dispatchReadinessIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-dispatch-readiness",
+                        baseline: 0.8600m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    restorationCoverageIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-restoration-coverage",
+                        baseline: 0.8700m - (developmentSeverity * 0.2100m),
+                        maxAbsJitter: 0.0350m),
+                    spareCapacityIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-spare-capacity",
+                        baseline: 0.8300m - (developmentSeverity * 0.1900m),
+                        maxAbsJitter: 0.0350m),
+                    fieldCoordinationIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-field-coordination",
+                        baseline: 0.8500m - (developmentSeverity * 0.2000m),
+                        maxAbsJitter: 0.0350m),
+                    incidentQueuePressureIndex: CreateSeedMetric(
+                        cityId: cityId,
+                        salt: "utility-incidents-queue-pressure",
+                        baseline: 0.0400m + (developmentSeverity * 0.1300m),
+                        maxAbsJitter: 0.0250m),
+                    emergencyModeEnabled: false),
                 floodingIndex: FloodingIndex.From(CreateSeedMetric(
                     cityId: cityId,
                     salt: "flooding",
@@ -404,6 +453,11 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     cityId: cityId,
                     salt: "power-distribution-coverage",
                     baseline: 0.9600m - (developmentSeverity * 0.1000m),
+                    maxAbsJitter: 0.0200m)),
+                utilityContinuityIndex: UtilityContinuityIndex.From(CreateSeedMetric(
+                    cityId: cityId,
+                    salt: "utility-incidents-continuity",
+                    baseline: 0.9500m - (developmentSeverity * 0.0900m),
                     maxAbsJitter: 0.0200m)),
                 evaluatedAtUtc: asOfUtc);
         }
@@ -494,6 +548,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
             CitySystemSnapshot currentPowerDistribution = state.PowerDistribution.ToSnapshot();
             CityPowerDistributionInfrastructureSnapshot currentPowerDistributionInfrastructure =
                 state.PowerDistributionInfrastructure.ToSnapshot();
+            CitySystemSnapshot currentUtilityIncidents = state.UtilityIncidents.ToSnapshot();
+            CityUtilityIncidentInfrastructureSnapshot currentUtilityIncidentInfrastructure =
+                state.UtilityIncidentInfrastructure.ToSnapshot();
             decimal emergencyModeBoost = currentDrainageInfrastructure.EmergencyModeEnabled
                 ? 0.0800m
                 : 0m;
@@ -513,6 +570,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 ? 0.0850m
                 : 0m;
             decimal powerEmergencyModeBoost = currentPowerDistributionInfrastructure.EmergencyModeEnabled
+                ? 0.0900m
+                : 0m;
+            decimal utilityIncidentEmergencyModeBoost = currentUtilityIncidentInfrastructure.EmergencyModeEnabled
                 ? 0.0900m
                 : 0m;
 
@@ -1378,6 +1438,140 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 factor: 0.26m,
                 responseScale: responseScale);
 
+            decimal utilityIncidentLoad = Smooth(
+                current: currentUtilityIncidents.LoadIndex,
+                target: Clamp(
+                    value: ((1m - powerCoverage) * 0.22m) +
+                           ((1m - heatingCoverage) * 0.16m) +
+                           ((1m - waterCoverage) * 0.18m) +
+                           ((1m - sanitationCoverage) * 0.16m) +
+                           (pressure.StormPressure * 0.12m) +
+                           (state.FloodingIndex.Value * 0.10m) +
+                           (pressure.FreezePressure * 0.08m) +
+                           (powerFailureRisk * 0.06m) +
+                           (heatingFailureRisk * 0.05m) +
+                           (waterFailureRisk * 0.06m) +
+                           (sanitationFailureRisk * 0.05m) -
+                           (pressure.UtilityIncidentSupport * 0.18m) -
+                           (currentUtilityIncidentInfrastructure.RestorationCoverageIndex * 0.0600m) -
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.42m,
+                responseScale: responseScale);
+            decimal utilityIncidentService = Smooth(
+                current: currentUtilityIncidents.ServiceQualityIndex,
+                target: Clamp(
+                    value: 0.60m +
+                           (pressure.UtilityIncidentSupport * 0.30m) +
+                           (currentUtilityIncidentInfrastructure.DispatchReadinessIndex * 0.0800m) +
+                           (currentUtilityIncidentInfrastructure.FieldCoordinationIndex * 0.0500m) -
+                           (currentUtilityIncidents.BacklogIndex * 0.18m) -
+                           (currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.0800m) +
+                           (utilityIncidentEmergencyModeBoost * 0.4200m),
+                    min: 0.05m,
+                    max: 1m),
+                factor: 0.35m,
+                responseScale: responseScale);
+            decimal utilityIncidentBacklog = Smooth(
+                current: currentUtilityIncidents.BacklogIndex,
+                target: Clamp(
+                    value: currentUtilityIncidents.BacklogIndex +
+                           (utilityIncidentLoad * 0.18m) -
+                           (utilityIncidentService * 0.15m) -
+                           (pressure.ThawRelief * 0.03m) -
+                           (currentUtilityIncidentInfrastructure.DispatchReadinessIndex * 0.0300m)),
+                factor: 0.40m,
+                responseScale: responseScale);
+            decimal utilityIncidentFailureRisk = Smooth(
+                current: currentUtilityIncidents.FailureRiskIndex,
+                target: Clamp(
+                    value: (utilityIncidentLoad * 0.36m) +
+                           (utilityIncidentBacklog * 0.30m) +
+                           ((1m - utilityIncidentService) * 0.24m) +
+                           (currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.1400m)),
+                factor: 0.30m,
+                responseScale: responseScale);
+
+            decimal utilityContinuity = Smooth(
+                current: state.UtilityContinuityIndex.Value,
+                target: Clamp(
+                    value: 1.02m -
+                           ((1m - powerCoverage) * 0.22m) -
+                           ((1m - heatingCoverage) * 0.16m) -
+                           ((1m - waterCoverage) * 0.18m) -
+                           ((1m - sanitationCoverage) * 0.18m) -
+                           (utilityIncidentBacklog * 0.12m) -
+                           (utilityIncidentFailureRisk * 0.08m) +
+                           (utilityIncidentService * 0.10m) +
+                           (pressure.UtilityIncidentSupport * 0.08m) +
+                           (currentUtilityIncidentInfrastructure.RestorationCoverageIndex * 0.0600m) +
+                           (currentUtilityIncidentInfrastructure.FieldCoordinationIndex * 0.0400m) -
+                           (currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.0500m),
+                    min: 0.10m,
+                    max: 1m),
+                factor: 0.46m,
+                responseScale: responseScale);
+
+            decimal utilityIncidentDispatchReadiness = Smooth(
+                current: currentUtilityIncidentInfrastructure.DispatchReadinessIndex,
+                target: Clamp(
+                    value: currentUtilityIncidentInfrastructure.DispatchReadinessIndex -
+                           (currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.0300m) -
+                           (utilityIncidentLoad * 0.0200m) +
+                           (currentUtilityIncidentInfrastructure.FieldCoordinationIndex * 0.0500m) +
+                           (pressure.ThawRelief * 0.0150m) +
+                           (utilityIncidentEmergencyModeBoost * 0.1800m)),
+                factor: 0.18m,
+                responseScale: responseScale);
+            decimal utilityIncidentRestorationCoverage = Smooth(
+                current: currentUtilityIncidentInfrastructure.RestorationCoverageIndex,
+                target: Clamp(
+                    value: currentUtilityIncidentInfrastructure.RestorationCoverageIndex -
+                           ((1m - powerCoverage) * 0.0600m) -
+                           ((1m - heatingCoverage) * 0.0400m) -
+                           ((1m - waterCoverage) * 0.0500m) -
+                           ((1m - sanitationCoverage) * 0.0500m) -
+                           (utilityIncidentBacklog * 0.0500m) +
+                           (utilityIncidentDispatchReadiness * 0.0600m) +
+                           (currentUtilityIncidentInfrastructure.FieldCoordinationIndex * 0.0500m) +
+                           (utilityIncidentEmergencyModeBoost * 0.2500m)),
+                factor: 0.22m,
+                responseScale: responseScale);
+            decimal utilityIncidentSpareCapacity = Smooth(
+                current: currentUtilityIncidentInfrastructure.SpareCapacityIndex,
+                target: Clamp(
+                    value: currentUtilityIncidentInfrastructure.SpareCapacityIndex -
+                           (utilityIncidentLoad * 0.0400m) -
+                           (pressure.StormPressure * 0.0300m) -
+                           (currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.0300m) +
+                           (currentUtilityIncidentInfrastructure.FieldCoordinationIndex * 0.0400m) +
+                           (pressure.ThawRelief * 0.0150m) +
+                           (utilityIncidentEmergencyModeBoost * 0.1800m)),
+                factor: 0.18m,
+                responseScale: responseScale);
+            decimal utilityIncidentFieldCoordination = Smooth(
+                current: currentUtilityIncidentInfrastructure.FieldCoordinationIndex,
+                target: Clamp(
+                    value: currentUtilityIncidentInfrastructure.FieldCoordinationIndex +
+                           (currentUtilityIncidentInfrastructure.EmergencyModeEnabled ? -0.0500m : 0.0260m) -
+                           (currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex * 0.0300m) -
+                           (utilityIncidentBacklog * 0.0200m) +
+                           (pressure.ThawRelief * 0.0200m)),
+                factor: 0.16m,
+                responseScale: responseScale);
+            decimal utilityIncidentQueuePressure = Smooth(
+                current: currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex,
+                target: Clamp(
+                    value: currentUtilityIncidentInfrastructure.IncidentQueuePressureIndex +
+                           (utilityIncidentLoad * 0.1400m) +
+                           (utilityIncidentFailureRisk * 0.0800m) +
+                           ((1m - powerCoverage) * 0.0600m) +
+                           ((1m - waterCoverage) * 0.0500m) -
+                           (utilityIncidentFieldCoordination * 0.0600m) -
+                           (utilityIncidentRestorationCoverage * 0.0400m) -
+                           (utilityIncidentEmergencyModeBoost * 0.4000m)),
+                factor: 0.26m,
+                responseScale: responseScale);
+
             return new CityEnvironmentalConditionSnapshot(
                 drainage: new CitySystemSnapshot(
                     kind: CitySystemKind.Drainage,
@@ -1470,6 +1664,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                     crewReadinessIndex: powerCrewReadiness,
                     incidentPressureIndex: powerIncidentPressure,
                     emergencyModeEnabled: currentPowerDistributionInfrastructure.EmergencyModeEnabled),
+                utilityIncidents: new CitySystemSnapshot(
+                    kind: CitySystemKind.UtilityIncidents,
+                    loadIndex: utilityIncidentLoad,
+                    serviceQualityIndex: utilityIncidentService,
+                    backlogIndex: utilityIncidentBacklog,
+                    failureRiskIndex: utilityIncidentFailureRisk),
+                utilityIncidentInfrastructure: new CityUtilityIncidentInfrastructureSnapshot(
+                    dispatchReadinessIndex: utilityIncidentDispatchReadiness,
+                    restorationCoverageIndex: utilityIncidentRestorationCoverage,
+                    spareCapacityIndex: utilityIncidentSpareCapacity,
+                    fieldCoordinationIndex: utilityIncidentFieldCoordination,
+                    incidentQueuePressureIndex: utilityIncidentQueuePressure,
+                    emergencyModeEnabled: currentUtilityIncidentInfrastructure.EmergencyModeEnabled),
                 floodingIndex: FloodingIndex.From(flooding),
                 snowAccumulationIndex: SnowAccumulationIndex.From(snowAccumulation),
                 roadAccessibilityIndex: RoadAccessibilityIndex.From(roadAccessibility),
@@ -1477,6 +1684,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 waterCoverageIndex: WaterCoverageIndex.From(waterCoverage),
                 sanitationCoverageIndex: SanitationCoverageIndex.From(sanitationCoverage),
                 powerCoverageIndex: PowerCoverageIndex.From(powerCoverage),
+                utilityContinuityIndex: UtilityContinuityIndex.From(utilityContinuity),
                 evaluatedAtUtc: asOfUtc);
         }
 

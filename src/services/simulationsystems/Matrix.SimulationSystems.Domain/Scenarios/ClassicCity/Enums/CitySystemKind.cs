@@ -8,6 +8,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums
         Heating = 4,
         WaterDistribution = 5,
         Sanitation = 6,
-        PowerDistribution = 7
+        PowerDistribution = 7,
+        UtilityIncidents = 8
     }
 }

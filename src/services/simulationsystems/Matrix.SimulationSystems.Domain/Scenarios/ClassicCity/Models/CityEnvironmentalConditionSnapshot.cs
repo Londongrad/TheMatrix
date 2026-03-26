@@ -32,7 +32,10 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             DateTimeOffset evaluatedAtUtc,
             CitySystemSnapshot? powerDistribution = null,
             CityPowerDistributionInfrastructureSnapshot? powerDistributionInfrastructure = null,
-            PowerCoverageIndex? powerCoverageIndex = null)
+            PowerCoverageIndex? powerCoverageIndex = null,
+            CitySystemSnapshot? utilityIncidents = null,
+            CityUtilityIncidentInfrastructureSnapshot? utilityIncidentInfrastructure = null,
+            UtilityContinuityIndex? utilityContinuityIndex = null)
         {
             Drainage = GuardHelper.AgainstNull(
                 value: drainage,
@@ -90,6 +93,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                     propertyName: nameof(sanitationInfrastructure)));
             PowerDistribution = powerDistribution ?? CreateDefaultPowerDistribution();
             PowerDistributionInfrastructure = powerDistributionInfrastructure ?? CreateDefaultPowerDistributionInfrastructure();
+            UtilityIncidents = utilityIncidents ?? CreateDefaultUtilityIncidents();
+            UtilityIncidentInfrastructure = utilityIncidentInfrastructure ?? CreateDefaultUtilityIncidentInfrastructure();
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
             RoadAccessibilityIndex = roadAccessibilityIndex;
@@ -97,6 +102,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             WaterCoverageIndex = waterCoverageIndex;
             SanitationCoverageIndex = sanitationCoverageIndex;
             PowerCoverageIndex = powerCoverageIndex ?? PowerCoverageIndex.From(1m);
+            UtilityContinuityIndex = utilityContinuityIndex ?? UtilityContinuityIndex.From(1m);
             EvaluatedAtUtc = EnsureUtc(
                 value: evaluatedAtUtc,
                 paramName: nameof(evaluatedAtUtc));
@@ -116,6 +122,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public CitySanitationInfrastructureSnapshot SanitationInfrastructure { get; }
         public CitySystemSnapshot PowerDistribution { get; }
         public CityPowerDistributionInfrastructureSnapshot PowerDistributionInfrastructure { get; }
+        public CitySystemSnapshot UtilityIncidents { get; }
+        public CityUtilityIncidentInfrastructureSnapshot UtilityIncidentInfrastructure { get; }
         public FloodingIndex FloodingIndex { get; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; }
         public RoadAccessibilityIndex RoadAccessibilityIndex { get; }
@@ -123,6 +131,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public WaterCoverageIndex WaterCoverageIndex { get; }
         public SanitationCoverageIndex SanitationCoverageIndex { get; }
         public PowerCoverageIndex PowerCoverageIndex { get; }
+        public UtilityContinuityIndex UtilityContinuityIndex { get; }
         public DateTimeOffset EvaluatedAtUtc { get; }
 
         private static CitySystemSnapshot CreateDefaultPowerDistribution()
@@ -143,6 +152,27 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 switchingReadinessIndex: 1m,
                 crewReadinessIndex: 1m,
                 incidentPressureIndex: 0m,
+                emergencyModeEnabled: false);
+        }
+
+        private static CitySystemSnapshot CreateDefaultUtilityIncidents()
+        {
+            return new CitySystemSnapshot(
+                kind: CitySystemKind.UtilityIncidents,
+                loadIndex: 0m,
+                serviceQualityIndex: 1m,
+                backlogIndex: 0m,
+                failureRiskIndex: 0m);
+        }
+
+        private static CityUtilityIncidentInfrastructureSnapshot CreateDefaultUtilityIncidentInfrastructure()
+        {
+            return new CityUtilityIncidentInfrastructureSnapshot(
+                dispatchReadinessIndex: 1m,
+                restorationCoverageIndex: 1m,
+                spareCapacityIndex: 1m,
+                fieldCoordinationIndex: 1m,
+                incidentQueuePressureIndex: 0m,
                 emergencyModeEnabled: false);
         }
 
