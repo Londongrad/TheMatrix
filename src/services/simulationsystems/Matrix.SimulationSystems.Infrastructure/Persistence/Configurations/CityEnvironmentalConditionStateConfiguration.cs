@@ -130,6 +130,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                     scale: 4)
                .IsRequired();
 
+            builder.Property(x => x.UtilityContinuityIndex)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => UtilityContinuityIndex.From(x))
+               .HasPrecision(
+                    precision: 5,
+                    scale: 4)
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.Drainage,
                 buildAction: state => ConfigureSystemState(
@@ -520,6 +529,62 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.PowerDistributionInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.UtilityIncidents,
+                buildAction: state => ConfigureSystemState(
+                    builder: state,
+                    prefix: "UtilityIncidents"));
+
+            builder.Navigation(x => x.UtilityIncidents)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.UtilityIncidentInfrastructure,
+                buildAction: utilityIncidents =>
+                {
+                    utilityIncidents.Property(x => x.DispatchReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("UtilityIncidentsDispatchReadinessIndex")
+                       .IsRequired();
+
+                    utilityIncidents.Property(x => x.RestorationCoverageIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("UtilityIncidentsRestorationCoverageIndex")
+                       .IsRequired();
+
+                    utilityIncidents.Property(x => x.SpareCapacityIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("UtilityIncidentsSpareCapacityIndex")
+                       .IsRequired();
+
+                    utilityIncidents.Property(x => x.FieldCoordinationIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("UtilityIncidentsFieldCoordinationIndex")
+                       .IsRequired();
+
+                    utilityIncidents.Property(x => x.IncidentQueuePressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("UtilityIncidentsIncidentQueuePressureIndex")
+                       .IsRequired();
+
+                    utilityIncidents.Property(x => x.EmergencyModeEnabled)
+                       .HasColumnName("UtilityIncidentsEmergencyModeEnabled")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.UtilityIncidentInfrastructure)
                .IsRequired();
 
             builder.Ignore(x => x.DomainEvents);
