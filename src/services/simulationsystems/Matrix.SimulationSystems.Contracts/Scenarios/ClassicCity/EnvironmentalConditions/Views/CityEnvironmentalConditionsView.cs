@@ -6,6 +6,7 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Environmental
         decimal SnowAccumulationIndex,
         decimal RoadAccessibilityIndex,
         decimal PowerCoverageIndex,
+        decimal UtilityContinuityIndex,
         decimal HeatingCoverageIndex,
         decimal WaterCoverageIndex,
         decimal SanitationCoverageIndex,
@@ -14,6 +15,7 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Environmental
         CitySystemConditionView SnowRemoval,
         CitySystemConditionView RoadAccess,
         CitySystemConditionView PowerDistribution,
+        CitySystemConditionView UtilityIncidents,
         CitySystemConditionView Heating,
         CitySystemConditionView WaterDistribution,
         CitySystemConditionView Sanitation);
