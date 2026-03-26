@@ -32,6 +32,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 FloodingIndex: dto.FloodingIndex,
                 SnowAccumulationIndex: dto.SnowAccumulationIndex,
                 RoadAccessibilityIndex: dto.RoadAccessibilityIndex,
+                PowerCoverageIndex: dto.PowerCoverageIndex,
                 HeatingCoverageIndex: dto.HeatingCoverageIndex,
                 WaterCoverageIndex: dto.WaterCoverageIndex,
                 SanitationCoverageIndex: dto.SanitationCoverageIndex,
@@ -39,6 +40,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 Drainage: MapToSystemView(dto.Drainage),
                 SnowRemoval: MapToSystemView(dto.SnowRemoval),
                 RoadAccess: MapToSystemView(dto.RoadAccess),
+                PowerDistribution: MapToSystemView(dto.PowerDistribution),
                 Heating: MapToSystemView(dto.Heating),
                 WaterDistribution: MapToSystemView(dto.WaterDistribution),
                 Sanitation: MapToSystemView(dto.Sanitation));
