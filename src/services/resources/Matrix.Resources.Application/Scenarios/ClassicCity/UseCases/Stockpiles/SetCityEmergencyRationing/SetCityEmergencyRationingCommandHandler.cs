@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Resources.Application.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Simulation;
 using MediatR;
@@ -9,6 +11,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed class SetCityEmergencyRationingCommandHandler(
         ICityStockpileRepository repository,
         IUnitOfWork unitOfWork,
+        ICityStockpileSnapshotOutboxWriter outboxWriter,
         CityStockpilePolicy policy)
         : IRequestHandler<SetCityEmergencyRationingCommand, SetCityEmergencyRationingResult>
     {
@@ -41,6 +44,11 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 enabled: request.Enabled);
 
             state.ApplySnapshot(refreshedSnapshot);
+            await outboxWriter.AddClassicCityStockpileSnapshotAsync(
+                snapshot: CityStockpileIntegrationEventFactory.CreateSnapshot(
+                    state: state,
+                    occurredAtUtc: DateTimeOffset.UtcNow),
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new SetCityEmergencyRationingResult(

@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Resources.Application.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
@@ -11,6 +13,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed class AdvanceCityStockpilesCommandHandler(
         ICityStockpileRepository repository,
         IUnitOfWork unitOfWork,
+        ICityStockpileSnapshotOutboxWriter outboxWriter,
         CityStockpilePolicy policy)
         : IRequestHandler<AdvanceCityStockpilesCommand, AdvanceCityStockpilesResult>
     {
@@ -49,6 +52,11 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 elapsed: request.ToSimTimeUtc - effectiveFrom);
 
             state.ApplySnapshot(refreshedSnapshot);
+            await outboxWriter.AddClassicCityStockpileSnapshotAsync(
+                snapshot: CityStockpileIntegrationEventFactory.CreateSnapshot(
+                    state: state,
+                    occurredAtUtc: DateTimeOffset.UtcNow),
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             long processedSimMinutes = (long)Math.Round(

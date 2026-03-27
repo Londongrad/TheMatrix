@@ -1,5 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Resources.Application.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.Resources.Domain.Simulation;
@@ -10,6 +12,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed class SeedCityStockpilesCommandHandler(
         ICityStockpileRepository repository,
         IUnitOfWork unitOfWork,
+        ICityStockpileSnapshotOutboxWriter outboxWriter,
         CityStockpilePolicy policy)
         : IRequestHandler<SeedCityStockpilesCommand, SeedCityStockpilesResult>
     {
@@ -47,6 +50,11 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
 
             await repository.AddAsync(
                 state: state,
+                cancellationToken: cancellationToken);
+            await outboxWriter.AddClassicCityStockpileSnapshotAsync(
+                snapshot: CityStockpileIntegrationEventFactory.CreateSnapshot(
+                    state: state,
+                    occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -2,11 +2,16 @@ using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.Resources.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Resources.Application.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Infrastructure.Persistence;
 using Matrix.Resources.Infrastructure.Persistence.Repositories;
+using Matrix.Resources.Infrastructure.Outbox;
+using Matrix.Resources.Infrastructure.Outbox.RabbitMq;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -69,6 +74,9 @@ namespace Matrix.Resources.Infrastructure
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<ResourcesDbContext>>();
             services.AddPermissionCheckingFromClaims();
+            services.AddOutbox<ResourcesDbContext>(configuration);
+            services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+            services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
 
             services.AddMassTransit(x =>
             {
