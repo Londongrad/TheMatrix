@@ -52,7 +52,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     state: state);
             }
 
-            var pressure = pressureProfileFactory.Create(state);
+            var pressure = pressureProfileFactory.Create(
+                state: state,
+                asOfUtc: request.AtSimTimeUtc);
 
             var snapshot = policy.Recalculate(
                 state: state,

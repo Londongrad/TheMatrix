@@ -1685,6 +1685,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 sanitationCoverageIndex: SanitationCoverageIndex.From(sanitationCoverage),
                 powerCoverageIndex: PowerCoverageIndex.From(powerCoverage),
                 utilityContinuityIndex: UtilityContinuityIndex.From(utilityContinuity),
+                resourceSupply: state.ResourceSupply.ToSnapshot(),
                 evaluatedAtUtc: asOfUtc);
         }
 

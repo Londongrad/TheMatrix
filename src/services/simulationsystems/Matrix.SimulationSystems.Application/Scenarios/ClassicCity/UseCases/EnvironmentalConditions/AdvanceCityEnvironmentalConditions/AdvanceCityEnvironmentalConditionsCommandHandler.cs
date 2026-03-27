@@ -56,7 +56,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
 
-            var pressure = pressureProfileFactory.Create(state);
+            var pressure = pressureProfileFactory.Create(
+                state: state,
+                asOfUtc: request.ToSimTimeUtc);
 
             var snapshot = policy.Advance(
                 state: state,

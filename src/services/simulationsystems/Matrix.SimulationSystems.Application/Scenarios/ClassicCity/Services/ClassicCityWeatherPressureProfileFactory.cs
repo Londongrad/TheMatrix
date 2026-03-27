@@ -79,13 +79,31 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 
         public CitySystemPressureProfile Create(CityEnvironmentalConditionState state)
         {
+            ArgumentNullException.ThrowIfNull(state);
+
+            return Create(
+                state: state,
+                asOfUtc: state.LastEvaluatedAtUtc);
+        }
+
+        public CitySystemPressureProfile Create(
+            CityEnvironmentalConditionState state,
+            DateTimeOffset asOfUtc)
+        {
+            ArgumentNullException.ThrowIfNull(state);
+
+            ResourceSupportProfile resourceSupport = CreateResourceSupport(
+                state: state.ResourceSupply,
+                asOfUtc: asOfUtc);
             decimal utilityIncidentSupport = CreateUtilityIncidentSupport(
                 state: state.UtilityIncidents,
-                infrastructure: state.UtilityIncidentInfrastructure);
+                infrastructure: state.UtilityIncidentInfrastructure,
+                resourceSupport: resourceSupport);
             decimal powerSupport = CreatePowerDistributionSupport(
                 state: state.PowerDistribution,
                 infrastructure: state.PowerDistributionInfrastructure,
-                utilityIncidentSupport: utilityIncidentSupport);
+                utilityIncidentSupport: utilityIncidentSupport,
+                resourceSupport: resourceSupport);
 
             return new CitySystemPressureProfile(
                 rainPressure: state.WeatherPressure.RainPressure,
@@ -96,38 +114,45 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 drainageSupport: CreateDrainageSupport(
                     state: state.Drainage,
                     infrastructure: state.DrainageInfrastructure,
-                    powerSupport: powerSupport),
+                    powerSupport: powerSupport,
+                    resourceSupport: resourceSupport),
                 snowRemovalSupport: CreateSnowRemovalSupport(
                     state: state.SnowRemoval,
                     infrastructure: state.SnowRemovalInfrastructure,
-                    powerSupport: powerSupport),
+                    powerSupport: powerSupport,
+                    resourceSupport: resourceSupport),
                 roadSupport: CreateRoadAccessSupport(
                     state: state.RoadAccess,
                     infrastructure: state.RoadAccessInfrastructure,
-                    powerSupport: powerSupport),
+                    powerSupport: powerSupport,
+                    resourceSupport: resourceSupport),
                 powerSupport: powerSupport,
                 utilityIncidentSupport: utilityIncidentSupport,
                 heatingSupport: CreateHeatingSupport(
                     state: state.Heating,
                     infrastructure: state.HeatingInfrastructure,
                     powerSupport: powerSupport,
-                    utilityIncidentSupport: utilityIncidentSupport),
+                    utilityIncidentSupport: utilityIncidentSupport,
+                    resourceSupport: resourceSupport),
                 waterSupport: CreateWaterDistributionSupport(
                     state: state.WaterDistribution,
                     infrastructure: state.WaterDistributionInfrastructure,
                     powerSupport: powerSupport,
-                    utilityIncidentSupport: utilityIncidentSupport),
+                    utilityIncidentSupport: utilityIncidentSupport,
+                    resourceSupport: resourceSupport),
                 sanitationSupport: CreateSanitationSupport(
                     state: state.Sanitation,
                     infrastructure: state.SanitationInfrastructure,
                     powerSupport: powerSupport,
-                    utilityIncidentSupport: utilityIncidentSupport));
+                    utilityIncidentSupport: utilityIncidentSupport,
+                    resourceSupport: resourceSupport));
         }
 
         private static decimal CreateDrainageSupport(
             CitySystemState state,
             CityDrainageInfrastructureState infrastructure,
-            decimal powerSupport)
+            decimal powerSupport,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -144,13 +169,17 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (infrastructure.BlockageIndex * 0.1600m) -
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        (powerSupport * 0.1000m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.0700m) +
+                       (resourceSupport.TreatmentSupplySupport * 0.0400m) -
+                       (resourceSupport.OverallSupplyStress * 0.0600m) +
                        emergencyBoost);
         }
 
         private static decimal CreateSnowRemovalSupport(
             CitySystemState state,
             CitySnowRemovalInfrastructureState infrastructure,
-            decimal powerSupport)
+            decimal powerSupport,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -167,13 +196,17 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (state.FailureRiskIndex * 0.1200m) -
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        (powerSupport * 0.0400m) +
+                       (resourceSupport.FuelOperationalSupport * 0.1400m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.0700m) -
+                       (resourceSupport.OverallSupplyStress * 0.0600m) +
                        emergencyBoost);
         }
 
         private static decimal CreateRoadAccessSupport(
             CitySystemState state,
             CityRoadAccessInfrastructureState infrastructure,
-            decimal powerSupport)
+            decimal powerSupport,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -190,6 +223,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (state.FailureRiskIndex * 0.1200m) -
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        (powerSupport * 0.0600m) +
+                       (resourceSupport.FuelOperationalSupport * 0.0800m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.0900m) -
+                       (resourceSupport.OverallSupplyStress * 0.0600m) +
                        emergencyBoost);
         }
 
@@ -197,7 +233,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             CitySystemState state,
             CityHeatingInfrastructureState infrastructure,
             decimal powerSupport,
-            decimal utilityIncidentSupport)
+            decimal utilityIncidentSupport,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -215,6 +252,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        (powerSupport * 0.1600m) +
                        (utilityIncidentSupport * 0.1200m) +
+                       (resourceSupport.FuelOperationalSupport * 0.1600m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.0600m) -
+                       (resourceSupport.OverallSupplyStress * 0.0600m) +
                        emergencyBoost);
         }
 
@@ -222,7 +262,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             CitySystemState state,
             CityWaterDistributionInfrastructureState infrastructure,
             decimal powerSupport,
-            decimal utilityIncidentSupport)
+            decimal utilityIncidentSupport,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -240,6 +281,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        (powerSupport * 0.1800m) +
                        (utilityIncidentSupport * 0.1400m) +
+                       (resourceSupport.TreatmentSupplySupport * 0.1100m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.0600m) +
+                       (resourceSupport.EmergencyWaterReliefSupport * 0.0500m) -
+                       (resourceSupport.OverallSupplyStress * 0.0800m) +
                        emergencyBoost);
         }
 
@@ -247,7 +292,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             CitySystemState state,
             CitySanitationInfrastructureState infrastructure,
             decimal powerSupport,
-            decimal utilityIncidentSupport)
+            decimal utilityIncidentSupport,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -265,13 +311,17 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        (powerSupport * 0.1600m) +
                        (utilityIncidentSupport * 0.1400m) +
+                       (resourceSupport.TreatmentSupplySupport * 0.1200m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.0600m) -
+                       (resourceSupport.OverallSupplyStress * 0.0800m) +
                        emergencyBoost);
         }
 
         private static decimal CreatePowerDistributionSupport(
             CitySystemState state,
             CityPowerDistributionInfrastructureState infrastructure,
-            decimal utilityIncidentSupport)
+            decimal utilityIncidentSupport,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -288,12 +338,16 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (state.FailureRiskIndex * 0.1200m) -
                        (infrastructure.IncidentPressureIndex * 0.1000m) +
                        (utilityIncidentSupport * 0.1400m) +
+                       (resourceSupport.FuelOperationalSupport * 0.1800m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.0600m) -
+                       (resourceSupport.OverallSupplyStress * 0.0800m) +
                        emergencyBoost);
         }
 
         private static decimal CreateUtilityIncidentSupport(
             CitySystemState state,
-            CityUtilityIncidentInfrastructureState infrastructure)
+            CityUtilityIncidentInfrastructureState infrastructure,
+            ResourceSupportProfile resourceSupport)
         {
             decimal emergencyBoost = infrastructure.EmergencyModeEnabled
                 ? 0.0800m
@@ -309,7 +363,48 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                        (state.BacklogIndex * 0.1400m) -
                        (state.FailureRiskIndex * 0.1000m) -
                        (infrastructure.IncidentQueuePressureIndex * 0.1000m) +
+                       (resourceSupport.FuelOperationalSupport * 0.0800m) +
+                       (resourceSupport.MaintenanceSupplySupport * 0.1200m) +
+                       (resourceSupport.EmergencyWaterReliefSupport * 0.0400m) -
+                       (resourceSupport.OverallSupplyStress * 0.0600m) +
                        emergencyBoost);
+        }
+
+        private static ResourceSupportProfile CreateResourceSupport(
+            CityResourceSupplyState state,
+            DateTimeOffset asOfUtc)
+        {
+            if (state.EffectiveAtUtc > asOfUtc)
+                return ResourceSupportProfile.Neutral;
+
+            decimal supplyStress = state.SupplyStressIndex;
+
+            return new ResourceSupportProfile(
+                FuelOperationalSupport: Clamp(
+                    value: 0.1600m +
+                           (state.FuelStockLevelIndex * 0.3400m) +
+                           (state.FuelResupplyReadinessIndex * 0.2800m) -
+                           (state.FuelShortageRiskIndex * 0.1800m) -
+                           (supplyStress * 0.2400m)),
+                MaintenanceSupplySupport: Clamp(
+                    value: 0.1800m +
+                           (state.SparePartsStockLevelIndex * 0.3600m) +
+                           (state.SparePartsResupplyReadinessIndex * 0.2600m) -
+                           (state.SparePartsShortageRiskIndex * 0.1800m) -
+                           (supplyStress * 0.2000m)),
+                TreatmentSupplySupport: Clamp(
+                    value: 0.1800m +
+                           (state.FiltersStockLevelIndex * 0.3600m) +
+                           (state.FiltersResupplyReadinessIndex * 0.2600m) -
+                           (state.FiltersShortageRiskIndex * 0.2000m) -
+                           (supplyStress * 0.1800m)),
+                EmergencyWaterReliefSupport: Clamp(
+                    value: 0.1800m +
+                           (state.EmergencyWaterStockLevelIndex * 0.3400m) +
+                           (state.EmergencyWaterResupplyReadinessIndex * 0.2600m) -
+                           (state.EmergencyWaterShortageRiskIndex * 0.1600m) -
+                           (supplyStress * 0.1800m)),
+                OverallSupplyStress: Clamp(supplyStress));
         }
 
         private static decimal MapSeverity(string severity)
@@ -356,6 +451,22 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                         val2: value)),
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
+        }
+
+        private readonly record struct ResourceSupportProfile(
+            decimal FuelOperationalSupport,
+            decimal MaintenanceSupplySupport,
+            decimal TreatmentSupplySupport,
+            decimal EmergencyWaterReliefSupport,
+            decimal OverallSupplyStress)
+        {
+            public static ResourceSupportProfile Neutral =>
+                new(
+                    FuelOperationalSupport: 1m,
+                    MaintenanceSupplySupport: 1m,
+                    TreatmentSupplySupport: 1m,
+                    EmergencyWaterReliefSupport: 1m,
+                    OverallSupplyStress: 0m);
         }
     }
 }
