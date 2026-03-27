@@ -587,6 +587,109 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
             builder.Navigation(x => x.UtilityIncidentInfrastructure)
                .IsRequired();
 
+            builder.OwnsOne(
+                navigationExpression: x => x.ResourceSupply,
+                buildAction: resourceSupply =>
+                {
+                    resourceSupply.Property(x => x.SupplyStressIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceSupplyStressIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.FuelStockLevelIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceFuelStockLevelIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.FuelResupplyReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceFuelResupplyReadinessIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.FuelShortageRiskIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceFuelShortageRiskIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.SparePartsStockLevelIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceSparePartsStockLevelIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.SparePartsResupplyReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceSparePartsResupplyReadinessIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.SparePartsShortageRiskIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceSparePartsShortageRiskIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.FiltersStockLevelIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceFiltersStockLevelIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.FiltersResupplyReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceFiltersResupplyReadinessIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.FiltersShortageRiskIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceFiltersShortageRiskIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.EmergencyWaterStockLevelIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceEmergencyWaterStockLevelIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.EmergencyWaterResupplyReadinessIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceEmergencyWaterResupplyReadinessIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.EmergencyWaterShortageRiskIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("ResourceEmergencyWaterShortageRiskIndex")
+                       .IsRequired();
+
+                    resourceSupply.Property(x => x.EffectiveAtUtc)
+                       .HasColumnName("ResourceEffectiveAtUtc")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.ResourceSupply)
+               .IsRequired();
+
             builder.Ignore(x => x.DomainEvents);
 
             builder.Property<uint>("xmin")
