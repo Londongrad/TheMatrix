@@ -6,4 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Api\Matrix.BuildingBlocks.Api.csproj"/>
+    <ProjectReference Include="..\Matrix.Resources.Contracts\Matrix.Resources.Contracts.csproj"/>
+    <ProjectReference Include="..\Matrix.Resources.Infrastructure\Matrix.Resources.Infrastructure.csproj"/>
+  </ItemGroup>
+
 </Project>

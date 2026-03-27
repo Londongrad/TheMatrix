@@ -1,14 +1,13 @@
-namespace Matrix.Resources.Api;
+using Matrix.Resources.Api.Configurations;
+using Matrix.Resources.Infrastructure.Persistence;
 
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var builder = WebApplication.CreateBuilder(args);
-        var app = builder.Build();
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-        app.MapGet("/", () => "Hello World!");
+builder.ConfigureApplicationServices();
 
-        app.Run();
-    }
-}
+WebApplication app = builder.Build();
+
+app.ConfigureApplicationMiddleware();
+await app.Services.MigrateResourcesDatabaseAsync();
+
+app.Run();
