@@ -107,7 +107,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     Label: "Environmental alerts",
                     Current: environmentalAlerts.Length,
                     Description:
-                    "Ready classic-city simulations currently showing flooding, snow pressure, utility disruption, power loss, or degraded road access.",
+                    "Ready classic-city simulations currently showing flooding, snow pressure, utility disruption, power loss, degraded road access, or supply-chain stress.",
                     DeltaYesterday: null,
                     DeltaMonth: null,
                     DeltaYear: null,
@@ -617,47 +617,43 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             decimal heatingDisruption = 1m - conditions.HeatingCoverageIndex;
             decimal waterDisruption = 1m - conditions.WaterCoverageIndex;
             decimal sanitationDisruption = 1m - conditions.SanitationCoverageIndex;
-            decimal failureRisk = Math.Max(
-                val1: conditions.Drainage.FailureRiskIndex,
-                val2: Math.Max(
-                    val1: conditions.SnowRemoval.FailureRiskIndex,
-                    val2: Math.Max(
-                        val1: conditions.RoadAccess.FailureRiskIndex,
-                        val2: Math.Max(
-                            val1: conditions.PowerDistribution.FailureRiskIndex,
-                            val2: Math.Max(
-                                val1: conditions.UtilityIncidents.FailureRiskIndex,
-                                val2: Math.Max(
-                                    val1: conditions.Heating.FailureRiskIndex,
-                                    val2: Math.Max(
-                                        val1: conditions.WaterDistribution.FailureRiskIndex,
-                                        val2: conditions.Sanitation.FailureRiskIndex)))))));
-            decimal maintenanceBacklog = Math.Max(
-                val1: conditions.Drainage.BacklogIndex,
-                val2: Math.Max(
-                    val1: conditions.SnowRemoval.BacklogIndex,
-                    val2: Math.Max(
-                        val1: conditions.RoadAccess.BacklogIndex,
-                        val2: Math.Max(
-                            val1: conditions.PowerDistribution.BacklogIndex,
-                            val2: Math.Max(
-                                val1: conditions.UtilityIncidents.BacklogIndex,
-                                val2: Math.Max(
-                                    val1: conditions.Heating.BacklogIndex,
-                                    val2: Math.Max(
-                                        val1: conditions.WaterDistribution.BacklogIndex,
-                                        val2: conditions.Sanitation.BacklogIndex)))))));
+            decimal failureRisk = Max(
+                conditions.Drainage.FailureRiskIndex,
+                conditions.SnowRemoval.FailureRiskIndex,
+                conditions.RoadAccess.FailureRiskIndex,
+                conditions.PowerDistribution.FailureRiskIndex,
+                conditions.UtilityIncidents.FailureRiskIndex,
+                conditions.Heating.FailureRiskIndex,
+                conditions.WaterDistribution.FailureRiskIndex,
+                conditions.Sanitation.FailureRiskIndex);
+            decimal maintenanceBacklog = Max(
+                conditions.Drainage.BacklogIndex,
+                conditions.SnowRemoval.BacklogIndex,
+                conditions.RoadAccess.BacklogIndex,
+                conditions.PowerDistribution.BacklogIndex,
+                conditions.UtilityIncidents.BacklogIndex,
+                conditions.Heating.BacklogIndex,
+                conditions.WaterDistribution.BacklogIndex,
+                conditions.Sanitation.BacklogIndex);
+            decimal resourceSupplyStress = conditions.ResourceSupply.SupplyStressIndex;
+            decimal resourceShortageRisk = Max(
+                conditions.ResourceSupply.Fuel.ShortageRiskIndex,
+                conditions.ResourceSupply.SpareParts.ShortageRiskIndex,
+                conditions.ResourceSupply.Filters.ShortageRiskIndex,
+                conditions.ResourceSupply.EmergencyWater.ShortageRiskIndex);
 
-            decimal composite = (floodingPressure * 0.20m) +
-                                (snowPressure * 0.14m) +
-                                (roadDisruption * 0.11m) +
-                                (powerDisruption * 0.10m) +
-                                (utilityDisruption * 0.11m) +
-                                (heatingDisruption * 0.09m) +
-                                (waterDisruption * 0.10m) +
-                                (sanitationDisruption * 0.08m) +
-                                (failureRisk * 0.05m) +
-                                (maintenanceBacklog * 0.02m);
+            decimal composite = (floodingPressure * 0.17m) +
+                                (snowPressure * 0.11m) +
+                                (roadDisruption * 0.09m) +
+                                (powerDisruption * 0.09m) +
+                                (utilityDisruption * 0.09m) +
+                                (heatingDisruption * 0.08m) +
+                                (waterDisruption * 0.08m) +
+                                (sanitationDisruption * 0.06m) +
+                                (failureRisk * 0.04m) +
+                                (maintenanceBacklog * 0.02m) +
+                                (resourceSupplyStress * 0.09m) +
+                                (resourceShortageRisk * 0.08m);
 
             return decimal.Round(
                 d: ClampUnit(composite),
@@ -709,158 +705,129 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             decimal sanitationPressure = Math.Max(
                 val1: conditions.Sanitation.BacklogIndex,
                 val2: conditions.Sanitation.FailureRiskIndex);
+            decimal resourcePressure = GetResourceSupplyPressure(conditions);
+            decimal dominantPressure = Max(
+                resourcePressure,
+                floodingPressure,
+                snowPressure,
+                roadDisruption,
+                powerDisruption,
+                utilityDisruption,
+                heatingDisruption,
+                waterDisruption,
+                sanitationDisruption,
+                drainagePressure,
+                snowRemovalPressure,
+                roadSupportPressure,
+                powerPressure,
+                utilityPressure,
+                heatingPressure,
+                waterPressure,
+                sanitationPressure);
 
-            if (floodingPressure >= snowPressure &&
-                floodingPressure >= roadDisruption &&
-                floodingPressure >= powerDisruption &&
-                floodingPressure >= utilityDisruption &&
-                floodingPressure >= heatingDisruption &&
-                floodingPressure >= waterDisruption &&
-                floodingPressure >= sanitationDisruption &&
-                floodingPressure >= drainagePressure &&
-                floodingPressure >= snowRemovalPressure &&
-                floodingPressure >= roadSupportPressure &&
-                floodingPressure >= powerPressure &&
-                floodingPressure >= utilityPressure &&
-                floodingPressure >= heatingPressure &&
-                floodingPressure >= waterPressure &&
-                floodingPressure >= sanitationPressure)
+            if (resourcePressure >= dominantPressure)
+                return BuildResourceSupplySummary(conditions);
+
+            if (floodingPressure >= dominantPressure)
                 return "Flooding pressure is climbing and drainage capacity is starting to stretch.";
 
-            if (snowPressure >= roadDisruption &&
-                snowPressure >= powerDisruption &&
-                snowPressure >= utilityDisruption &&
-                snowPressure >= heatingDisruption &&
-                snowPressure >= waterDisruption &&
-                snowPressure >= sanitationDisruption &&
-                snowPressure >= drainagePressure &&
-                snowPressure >= snowRemovalPressure &&
-                snowPressure >= roadSupportPressure &&
-                snowPressure >= powerPressure &&
-                snowPressure >= utilityPressure &&
-                snowPressure >= heatingPressure &&
-                snowPressure >= waterPressure &&
-                snowPressure >= sanitationPressure)
+            if (snowPressure >= dominantPressure)
                 return "Snow accumulation is rising and cleanup throughput is falling behind.";
 
-            if (roadDisruption >= powerDisruption &&
-                roadDisruption >= utilityDisruption &&
-                roadDisruption >= heatingDisruption &&
-                roadDisruption >= waterDisruption &&
-                roadDisruption >= sanitationDisruption &&
-                roadDisruption >= drainagePressure &&
-                roadDisruption >= snowRemovalPressure &&
-                roadDisruption >= roadSupportPressure &&
-                roadDisruption >= powerPressure &&
-                roadDisruption >= utilityPressure &&
-                roadDisruption >= heatingPressure &&
-                roadDisruption >= waterPressure &&
-                roadDisruption >= sanitationPressure)
+            if (roadDisruption >= dominantPressure)
                 return "Road accessibility is slipping as weather pressure reaches transport routes.";
 
-            if (powerDisruption >= utilityDisruption &&
-                powerDisruption >= heatingDisruption &&
-                powerDisruption >= waterDisruption &&
-                powerDisruption >= sanitationDisruption &&
-                powerDisruption >= drainagePressure &&
-                powerDisruption >= snowRemovalPressure &&
-                powerDisruption >= roadSupportPressure &&
-                powerDisruption >= powerPressure &&
-                powerDisruption >= utilityPressure &&
-                powerDisruption >= heatingPressure &&
-                powerDisruption >= waterPressure &&
-                powerDisruption >= sanitationPressure)
+            if (powerDisruption >= dominantPressure)
                 return "Power coverage is slipping and substation resilience is starting to fragment across the city.";
 
-            if (utilityDisruption >= heatingDisruption &&
-                utilityDisruption >= waterDisruption &&
-                utilityDisruption >= sanitationDisruption &&
-                utilityDisruption >= drainagePressure &&
-                utilityDisruption >= snowRemovalPressure &&
-                utilityDisruption >= roadSupportPressure &&
-                utilityDisruption >= powerPressure &&
-                utilityDisruption >= utilityPressure &&
-                utilityDisruption >= heatingPressure &&
-                utilityDisruption >= waterPressure &&
-                utilityDisruption >= sanitationPressure)
+            if (utilityDisruption >= dominantPressure)
                 return "Utility restoration continuity is slipping and incident queues are starting to cascade across the city.";
 
-            if (heatingDisruption >= drainagePressure &&
-                heatingDisruption >= snowRemovalPressure &&
-                heatingDisruption >= roadSupportPressure &&
-                heatingDisruption >= powerPressure &&
-                heatingDisruption >= utilityPressure &&
-                heatingDisruption >= heatingPressure &&
-                heatingDisruption >= waterDisruption &&
-                heatingDisruption >= waterPressure &&
-                heatingDisruption >= sanitationDisruption &&
-                heatingDisruption >= sanitationPressure)
+            if (heatingDisruption >= dominantPressure)
                 return "Heating coverage is slipping and cold-weather strain is spreading through the city.";
 
-            if (waterDisruption >= drainagePressure &&
-                waterDisruption >= snowRemovalPressure &&
-                waterDisruption >= roadSupportPressure &&
-                waterDisruption >= powerPressure &&
-                waterDisruption >= utilityPressure &&
-                waterDisruption >= heatingPressure &&
-                waterDisruption >= waterPressure &&
-                waterDisruption >= sanitationDisruption &&
-                waterDisruption >= sanitationPressure)
+            if (waterDisruption >= dominantPressure)
                 return "Water distribution coverage is slipping and supply reliability is starting to fragment.";
 
-            if (sanitationDisruption >= drainagePressure &&
-                sanitationDisruption >= snowRemovalPressure &&
-                sanitationDisruption >= roadSupportPressure &&
-                sanitationDisruption >= powerPressure &&
-                sanitationDisruption >= utilityPressure &&
-                sanitationDisruption >= heatingPressure &&
-                sanitationDisruption >= waterPressure &&
-                sanitationDisruption >= sanitationPressure)
+            if (sanitationDisruption >= dominantPressure)
                 return "Sanitation coverage is slipping and overflow pressure is starting to spread through the city.";
 
-            if (drainagePressure >= snowRemovalPressure &&
-                drainagePressure >= roadSupportPressure &&
-                drainagePressure >= powerPressure &&
-                drainagePressure >= utilityPressure &&
-                drainagePressure >= heatingPressure &&
-                drainagePressure >= waterPressure &&
-                drainagePressure >= sanitationPressure)
+            if (drainagePressure >= dominantPressure)
                 return "Drainage backlog is building up and raises flood recovery risk.";
 
-            if (snowRemovalPressure >= roadSupportPressure &&
-                snowRemovalPressure >= powerPressure &&
-                snowRemovalPressure >= utilityPressure &&
-                snowRemovalPressure >= heatingPressure &&
-                snowRemovalPressure >= waterPressure &&
-                snowRemovalPressure >= sanitationPressure)
+            if (snowRemovalPressure >= dominantPressure)
                 return "Snow-removal backlog is building up and keeps snow pressure elevated.";
 
-            if (roadSupportPressure >= powerPressure &&
-                roadSupportPressure >= utilityPressure &&
-                roadSupportPressure >= heatingPressure &&
-                roadSupportPressure >= waterPressure &&
-                roadSupportPressure >= sanitationPressure)
+            if (roadSupportPressure >= dominantPressure)
                 return "Road access maintenance pressure is rising and threatens city mobility.";
 
-            if (powerPressure >= utilityPressure &&
-                powerPressure >= heatingPressure &&
-                powerPressure >= waterPressure &&
-                powerPressure >= sanitationPressure)
+            if (powerPressure >= dominantPressure)
                 return "Power-distribution maintenance pressure is rising and threatens stable citywide supply.";
 
-            if (utilityPressure >= heatingPressure &&
-                utilityPressure >= waterPressure &&
-                utilityPressure >= sanitationPressure)
+            if (utilityPressure >= dominantPressure)
                 return "Utility incident response pressure is rising and restoration queues are starting to stretch.";
 
-            if (heatingPressure >= waterPressure &&
-                heatingPressure >= sanitationPressure)
+            if (heatingPressure >= dominantPressure)
                 return "Heating maintenance pressure is rising and threatens stable winter coverage.";
 
-            if (waterPressure >= sanitationPressure)
+            if (waterPressure >= dominantPressure)
                 return "Water distribution maintenance pressure is rising and threatens stable supply coverage.";
 
             return "Sanitation maintenance pressure is rising and threatens stable wastewater control.";
+        }
+
+        private static decimal GetResourceSupplyPressure(CityEnvironmentalConditionsView conditions)
+        {
+            return Max(
+                conditions.ResourceSupply.SupplyStressIndex,
+                conditions.ResourceSupply.Fuel.ShortageRiskIndex,
+                conditions.ResourceSupply.SpareParts.ShortageRiskIndex,
+                conditions.ResourceSupply.Filters.ShortageRiskIndex,
+                conditions.ResourceSupply.EmergencyWater.ShortageRiskIndex);
+        }
+
+        private static string BuildResourceSupplySummary(CityEnvironmentalConditionsView conditions)
+        {
+            decimal supplyStress = conditions.ResourceSupply.SupplyStressIndex;
+            decimal fuelShortage = conditions.ResourceSupply.Fuel.ShortageRiskIndex;
+            decimal sparePartsShortage = conditions.ResourceSupply.SpareParts.ShortageRiskIndex;
+            decimal filtersShortage = conditions.ResourceSupply.Filters.ShortageRiskIndex;
+            decimal emergencyWaterShortage = conditions.ResourceSupply.EmergencyWater.ShortageRiskIndex;
+            decimal dominantShortage = Max(
+                supplyStress,
+                fuelShortage,
+                sparePartsShortage,
+                filtersShortage,
+                emergencyWaterShortage);
+
+            if (fuelShortage >= dominantShortage)
+                return "Fuel reserves are tightening and mobile utility response is starting to lose operating depth.";
+
+            if (sparePartsShortage >= dominantShortage)
+                return "Spare-parts shortages are slowing repairs and reducing restoration throughput across the city.";
+
+            if (filtersShortage >= dominantShortage)
+                return "Filters are running thin and treatment-dependent services are starting to lose resilience.";
+
+            if (emergencyWaterShortage >= dominantShortage)
+                return "Emergency water reserves are tightening and contingency coverage is starting to narrow.";
+
+            return "Resource supply stress is rising and is starting to constrain citywide utility recovery.";
+        }
+
+        private static decimal Max(params decimal[] values)
+        {
+            if (values.Length == 0)
+                return 0m;
+
+            decimal current = values[0];
+
+            for (int index = 1; index < values.Length; index++)
+                current = Math.Max(
+                    val1: current,
+                    val2: values[index]);
+
+            return current;
         }
 
         private static decimal ClampUnit(decimal value)
