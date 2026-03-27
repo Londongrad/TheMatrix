@@ -77,6 +77,7 @@ namespace Matrix.Resources.Infrastructure
             services.AddOutbox<ResourcesDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
+            services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
 
             services.AddMassTransit(x =>
             {

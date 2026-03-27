@@ -12,6 +12,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         ICityStockpileRepository repository,
         IUnitOfWork unitOfWork,
         ICityStockpileSnapshotOutboxWriter outboxWriter,
+        ICityOperationalExpenseOutboxWriter expenseOutboxWriter,
         CityStockpilePolicy policy)
         : IRequestHandler<DispatchCityResupplyCommand, DispatchCityResupplyResult>
     {
@@ -39,11 +40,20 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 focus: request.Focus,
                 intensity: request.Intensity);
 
+            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+
             state.ApplySnapshot(refreshedSnapshot);
             await outboxWriter.AddClassicCityStockpileSnapshotAsync(
                 snapshot: CityStockpileIntegrationEventFactory.CreateSnapshot(
                     state: state,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: occurredAtUtc),
+                cancellationToken: cancellationToken);
+            await expenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
+                expense: CityResupplyOperationalExpenseFactory.CreateDispatchExpense(
+                    cityId: request.CityId,
+                    focus: request.Focus,
+                    intensity: request.Intensity,
+                    occurredAtUtc: occurredAtUtc),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
