@@ -35,7 +35,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             PowerCoverageIndex? powerCoverageIndex = null,
             CitySystemSnapshot? utilityIncidents = null,
             CityUtilityIncidentInfrastructureSnapshot? utilityIncidentInfrastructure = null,
-            UtilityContinuityIndex? utilityContinuityIndex = null)
+            UtilityContinuityIndex? utilityContinuityIndex = null,
+            CityResourceSupplySnapshot? resourceSupply = null)
         {
             Drainage = GuardHelper.AgainstNull(
                 value: drainage,
@@ -103,6 +104,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             SanitationCoverageIndex = sanitationCoverageIndex;
             PowerCoverageIndex = powerCoverageIndex ?? PowerCoverageIndex.From(1m);
             UtilityContinuityIndex = utilityContinuityIndex ?? UtilityContinuityIndex.From(1m);
+            ResourceSupply = resourceSupply ?? CityResourceSupplySnapshot.Neutral(evaluatedAtUtc);
             EvaluatedAtUtc = EnsureUtc(
                 value: evaluatedAtUtc,
                 paramName: nameof(evaluatedAtUtc));
@@ -132,6 +134,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public SanitationCoverageIndex SanitationCoverageIndex { get; }
         public PowerCoverageIndex PowerCoverageIndex { get; }
         public UtilityContinuityIndex UtilityContinuityIndex { get; }
+        public CityResourceSupplySnapshot ResourceSupply { get; }
         public DateTimeOffset EvaluatedAtUtc { get; }
 
         private static CitySystemSnapshot CreateDefaultPowerDistribution()

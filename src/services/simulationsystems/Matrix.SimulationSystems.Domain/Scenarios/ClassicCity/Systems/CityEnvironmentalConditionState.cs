@@ -31,6 +31,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             CityPowerDistributionInfrastructureState powerDistributionInfrastructure,
             CitySystemState utilityIncidents,
             CityUtilityIncidentInfrastructureState utilityIncidentInfrastructure,
+            CityResourceSupplyState resourceSupply,
             CityWeatherPressureProfile weatherPressure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
@@ -59,6 +60,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PowerDistributionInfrastructure = powerDistributionInfrastructure;
             UtilityIncidents = utilityIncidents;
             UtilityIncidentInfrastructure = utilityIncidentInfrastructure;
+            ResourceSupply = resourceSupply;
             WeatherPressure = weatherPressure;
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
@@ -92,6 +94,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PowerDistributionInfrastructure = null!;
             UtilityIncidents = null!;
             UtilityIncidentInfrastructure = null!;
+            ResourceSupply = null!;
             WeatherPressure = null!;
         }
 
@@ -112,6 +115,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public CityPowerDistributionInfrastructureState PowerDistributionInfrastructure { get; private set; }
         public CitySystemState UtilityIncidents { get; private set; }
         public CityUtilityIncidentInfrastructureState UtilityIncidentInfrastructure { get; private set; }
+        public CityResourceSupplyState ResourceSupply { get; private set; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
         public FloodingIndex FloodingIndex { get; private set; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; private set; }
@@ -149,6 +153,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 powerDistributionInfrastructure: CityPowerDistributionInfrastructureState.Create(seed.PowerDistributionInfrastructure),
                 utilityIncidents: CitySystemState.Create(seed.UtilityIncidents),
                 utilityIncidentInfrastructure: CityUtilityIncidentInfrastructureState.Create(seed.UtilityIncidentInfrastructure),
+                resourceSupply: CityResourceSupplyState.Create(seed.ResourceSupply),
                 weatherPressure: CityWeatherPressureProfile.Neutral(),
                 floodingIndex: seed.FloodingIndex,
                 snowAccumulationIndex: seed.SnowAccumulationIndex,
@@ -168,6 +173,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 errorFactory: ClassicCityDomainErrorsFactory.CityWeatherPressureProfileRequired);
 
             WeatherPressure = weatherPressure;
+        }
+
+        public void ApplyResourceSupply(CityResourceSupplySnapshot snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(snapshot);
+
+            ResourceSupply.ApplySnapshot(snapshot);
         }
 
         public void ApplySnapshot(CityEnvironmentalConditionSnapshot snapshot)
@@ -198,6 +210,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PowerDistributionInfrastructure.ApplySnapshot(snapshot.PowerDistributionInfrastructure);
             UtilityIncidents.ApplySnapshot(snapshot.UtilityIncidents);
             UtilityIncidentInfrastructure.ApplySnapshot(snapshot.UtilityIncidentInfrastructure);
+            ResourceSupply.ApplySnapshot(snapshot.ResourceSupply);
             FloodingIndex = snapshot.FloodingIndex;
             SnowAccumulationIndex = snapshot.SnowAccumulationIndex;
             RoadAccessibilityIndex = snapshot.RoadAccessibilityIndex;
@@ -236,7 +249,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 powerCoverageIndex: PowerCoverageIndex,
                 utilityIncidents: UtilityIncidents.ToSnapshot(),
                 utilityIncidentInfrastructure: UtilityIncidentInfrastructure.ToSnapshot(),
-                utilityContinuityIndex: UtilityContinuityIndex);
+                utilityContinuityIndex: UtilityContinuityIndex,
+                resourceSupply: ResourceSupply.ToSnapshot());
         }
 
         public void SetDrainageEmergencyMode(bool enabled)
