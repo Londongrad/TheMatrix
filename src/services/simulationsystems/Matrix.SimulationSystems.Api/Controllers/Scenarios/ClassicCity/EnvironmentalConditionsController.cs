@@ -38,6 +38,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 WaterCoverageIndex: dto.WaterCoverageIndex,
                 SanitationCoverageIndex: dto.SanitationCoverageIndex,
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                ResourceSupply: MapToResourceSupplyView(dto.ResourceSupply),
                 Drainage: MapToSystemView(dto.Drainage),
                 SnowRemoval: MapToSystemView(dto.SnowRemoval),
                 RoadAccess: MapToSystemView(dto.RoadAccess),
@@ -46,6 +47,25 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 Heating: MapToSystemView(dto.Heating),
                 WaterDistribution: MapToSystemView(dto.WaterDistribution),
                 Sanitation: MapToSystemView(dto.Sanitation));
+        }
+
+        private static CityResourceSupplyConditionView MapToResourceSupplyView(CityResourceSupplyConditionDto dto)
+        {
+            return new CityResourceSupplyConditionView(
+                SupplyStressIndex: dto.SupplyStressIndex,
+                EffectiveAtUtc: dto.EffectiveAtUtc,
+                Fuel: MapToResourceSupplyLineView(dto.Fuel),
+                SpareParts: MapToResourceSupplyLineView(dto.SpareParts),
+                Filters: MapToResourceSupplyLineView(dto.Filters),
+                EmergencyWater: MapToResourceSupplyLineView(dto.EmergencyWater));
+        }
+
+        private static CityResourceSupplyLineConditionView MapToResourceSupplyLineView(CityResourceSupplyLineConditionDto dto)
+        {
+            return new CityResourceSupplyLineConditionView(
+                StockLevelIndex: dto.StockLevelIndex,
+                ResupplyReadinessIndex: dto.ResupplyReadinessIndex,
+                ShortageRiskIndex: dto.ShortageRiskIndex);
         }
 
         private static CitySystemConditionView MapToSystemView(CitySystemConditionDto dto)

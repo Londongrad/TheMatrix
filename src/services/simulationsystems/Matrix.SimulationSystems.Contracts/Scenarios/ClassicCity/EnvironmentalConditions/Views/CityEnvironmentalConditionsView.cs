@@ -11,6 +11,7 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Environmental
         decimal WaterCoverageIndex,
         decimal SanitationCoverageIndex,
         DateTimeOffset LastEvaluatedAtUtc,
+        CityResourceSupplyConditionView ResourceSupply,
         CitySystemConditionView Drainage,
         CitySystemConditionView SnowRemoval,
         CitySystemConditionView RoadAccess,
