@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 
 namespace Matrix.SimulationSystems.Infrastructure.Outbox
 {
@@ -8,7 +9,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Outbox
             new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
             {
                 [SimulationSystemsOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
-                    typeof(ClassicCityOperationalExpenseIncurredV1)
+                    typeof(ClassicCityOperationalExpenseIncurredV1),
+                [SimulationSystemsOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1] =
+                    typeof(ClassicCitySystemsResourceDemandSnapshotV1)
             };
     }
 }
