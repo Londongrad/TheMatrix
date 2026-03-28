@@ -3,7 +3,9 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Enums;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
@@ -11,6 +13,8 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
     public sealed class ClassicCityOperationalExpenseConsumer(
         CityBudgetOperationalExpenseSupport operationalExpenseSupport,
         IEconomyUnitOfWork unitOfWork,
+        ISender sender,
+        IPublishEndpoint publishEndpoint,
         ILogger<ClassicCityOperationalExpenseConsumer> logger)
         : IConsumer<ClassicCityOperationalExpenseIncurredV1>
     {
@@ -47,26 +51,49 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
             {
                 logger.LogDebug(
                     message:
-                    "Skipped duplicate classic city operational expense for cityId={CityId}, expenseId={ExpenseId}, sourceService={SourceService}, operationKind={OperationKind}.",
+                    "Skipped duplicate classic city operational expense for cityId={CityId}, expenseId={ExpenseId}, sourceService={SourceService}, operationKind={OperationKind}; republishing current budget pressure snapshot.",
                     message.CityId,
                     message.ExpenseId,
                     message.SourceService,
                     message.OperationKind);
-                return;
+            }
+            else
+            {
+                BudgetLedgerEntryDto recordedEntry = entry;
+                await unitOfWork.SaveChangesAsync(context.CancellationToken);
+
+                logger.LogInformation(
+                    message:
+                    "Recorded classic city operational expense for cityId={CityId}, expenseId={ExpenseId}, category={Category}, amount={Amount}, sourceService={SourceService}, operationKind={OperationKind}.",
+                    message.CityId,
+                    message.ExpenseId,
+                    recordedEntry.Category,
+                    recordedEntry.Amount,
+                    message.SourceService,
+                    message.OperationKind);
             }
 
-            BudgetLedgerEntryDto recordedEntry = entry;
-            await unitOfWork.SaveChangesAsync(context.CancellationToken);
+            CityOperationalBudgetPressureDto pressure = await sender.Send(
+                request: new GetCityOperationalBudgetPressureQuery(message.CityId),
+                cancellationToken: context.CancellationToken);
 
-            logger.LogInformation(
-                message:
-                "Recorded classic city operational expense for cityId={CityId}, expenseId={ExpenseId}, category={Category}, amount={Amount}, sourceService={SourceService}, operationKind={OperationKind}.",
-                message.CityId,
-                message.ExpenseId,
-                recordedEntry.Category,
-                recordedEntry.Amount,
-                message.SourceService,
-                message.OperationKind);
+            DateTimeOffset effectiveAtUtc = pressure.LastMunicipalExpenseAtUtc is null
+                ? message.OccurredAtUtc
+                : DateTimeOffset.Parse(pressure.LastMunicipalExpenseAtUtc);
+            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+
+            await publishEndpoint.Publish(
+                message: new ClassicCityOperationalBudgetPressureSnapshotV1(
+                    CityId: pressure.CityId,
+                    Balance: pressure.Balance,
+                    TotalCityExpenses: pressure.TotalCityExpenses,
+                    MunicipalOperationsExpenses: pressure.MunicipalOperationsExpenses,
+                    InfrastructureOperationsExpenses: pressure.InfrastructureOperationsExpenses,
+                    EmergencyOperationsExpenses: pressure.EmergencyOperationsExpenses,
+                    PressureIndex: pressure.PressureIndex,
+                    EffectiveAtUtc: effectiveAtUtc,
+                    OccurredAtUtc: occurredAtUtc),
+                cancellationToken: context.CancellationToken);
         }
     }
 }
