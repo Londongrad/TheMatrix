@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 
 namespace Matrix.Economy.Application.Abstractions
 {
@@ -20,6 +21,10 @@ namespace Matrix.Economy.Application.Abstractions
             Guid cityId,
             int pageNumber,
             int pageSize,
+            CancellationToken cancellationToken = default);
+
+        Task<CityBudgetOperationalExpenseSnapshot> GetOperationalExpenseSnapshotAsync(
+            Guid cityId,
             CancellationToken cancellationToken = default);
     }
 }

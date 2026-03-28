@@ -13,6 +13,7 @@ using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetReven
 using Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalOperatingCycle;
 using Matrix.Economy.Application.UseCases.GetBudgetSummary;
 using Matrix.Economy.Application.UseCases.GetCityBudgetSummary;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -47,6 +48,31 @@ namespace Matrix.Economy.Api.Controllers
                 cancellationToken: cancellationToken);
 
             return Ok(MapSummary(result));
+        }
+
+        [HttpGet("cities/{cityId:guid}/operational-pressure")]
+        public async Task<IActionResult> GetCityOperationalPressure(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityOperationalBudgetPressureDto result = await _sender.Send(
+                request: new GetCityOperationalBudgetPressureQuery(cityId),
+                cancellationToken: cancellationToken);
+
+            return Ok(
+                new CityOperationalBudgetPressureView(
+                    CityId: result.CityId,
+                    UnitKind: result.UnitKind,
+                    UnitCode: result.UnitCode,
+                    UnitDisplayName: result.UnitDisplayName,
+                    UnitSymbol: result.UnitSymbol,
+                    Balance: result.Balance,
+                    TotalCityExpenses: result.TotalCityExpenses,
+                    MunicipalOperationsExpenses: result.MunicipalOperationsExpenses,
+                    InfrastructureOperationsExpenses: result.InfrastructureOperationsExpenses,
+                    EmergencyOperationsExpenses: result.EmergencyOperationsExpenses,
+                    LastMunicipalExpenseAtUtc: result.LastMunicipalExpenseAtUtc,
+                    PressureIndex: result.PressureIndex));
         }
 
         [HttpPost("cities/{cityId:guid}/bootstrap")]

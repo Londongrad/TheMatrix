@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +65,36 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                 totalCount: totalCount,
                 pageNumber: safePageNumber,
                 pageSize: safePageSize);
+        }
+
+        public async Task<CityBudgetOperationalExpenseSnapshot> GetOperationalExpenseSnapshotAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            IQueryable<CityBudgetLedgerEntry> query = _dbContext.CityBudgetLedgerEntries
+               .AsNoTracking()
+               .Where(entry => entry.CityId == cityId &&
+                               entry.Kind == CityBudgetLedgerEntryKind.Expense &&
+                               entry.Source == CityBudgetLedgerEntrySource.MunicipalOperations);
+
+            CityBudgetOperationalExpenseSnapshot? snapshot = await query
+               .GroupBy(_ => 1)
+               .Select(group => new CityBudgetOperationalExpenseSnapshot(
+                    group.Sum(entry => entry.Amount.Amount),
+                    group
+                       .Where(entry => entry.Category == CityBudgetCategory.Infrastructure)
+                       .Sum(entry => entry.Amount.Amount),
+                    group
+                       .Where(entry => entry.Category == CityBudgetCategory.Operations)
+                       .Sum(entry => entry.Amount.Amount),
+                    group.Max(entry => (DateTimeOffset?)entry.OccurredAtUtc)))
+               .SingleOrDefaultAsync(cancellationToken);
+
+            return snapshot ?? new CityBudgetOperationalExpenseSnapshot(
+                TotalMunicipalOperationsExpenses: 0m,
+                InfrastructureOperationsExpenses: 0m,
+                EmergencyOperationsExpenses: 0m,
+                LastMunicipalExpenseAtUtc: null);
         }
     }
 }
