@@ -32,6 +32,38 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.OperationalBudgetPressure,
+                buildAction: budget =>
+                {
+                    budget.Property(x => x.Balance)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureBalance")
+                       .IsRequired();
+
+                    budget.Property(x => x.MunicipalOperationsExpenses)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureMunicipalOperationsExpenses")
+                       .IsRequired();
+
+                    budget.Property(x => x.PressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("BudgetPressureIndex")
+                       .IsRequired();
+
+                    budget.Property(x => x.EffectiveAtUtc)
+                       .HasColumnName("BudgetPressureEffectiveAtUtc")
+                       .IsRequired();
+                });
+            builder.Navigation(x => x.OperationalBudgetPressure)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.SystemsDemand,
                 buildAction: demand =>
                 {

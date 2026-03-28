@@ -3,6 +3,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public enum DispatchCityResupplyStatus
     {
         Applied = 1,
-        NotInitialized = 2
+        NotInitialized = 2,
+        BudgetBlocked = 3
     }
 }

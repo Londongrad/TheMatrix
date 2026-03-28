@@ -67,6 +67,16 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
             if (result.Status == DispatchCityResupplyStatus.NotInitialized)
                 return Results.NotFound();
 
+            if (result.Status == DispatchCityResupplyStatus.BudgetBlocked)
+                return Results.Conflict(
+                    new
+                    {
+                        error = "Operational budget pressure is too high for the requested resupply dispatch.",
+                        budgetPressureIndex = result.BudgetPressureIndex,
+                        requestedIntensity = result.RequestedIntensity,
+                        allowedIntensity = result.AppliedIntensity
+                    });
+
             return await LoadCurrentViewAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);

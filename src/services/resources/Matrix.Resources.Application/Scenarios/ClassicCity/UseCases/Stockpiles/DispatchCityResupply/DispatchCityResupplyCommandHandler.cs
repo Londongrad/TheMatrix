@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
+using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Simulation;
 using MediatR;
@@ -13,6 +14,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         IUnitOfWork unitOfWork,
         ICityStockpileSnapshotOutboxWriter outboxWriter,
         ICityOperationalExpenseOutboxWriter expenseOutboxWriter,
+        CityStockpileBudgetGuard budgetGuard,
         CityStockpilePolicy policy)
         : IRequestHandler<DispatchCityResupplyCommand, DispatchCityResupplyResult>
     {
@@ -30,15 +32,36 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 return new DispatchCityResupplyResult(
                     Status: DispatchCityResupplyStatus.NotInitialized,
                     CityId: request.CityId,
+                    RequestedIntensity: request.Intensity.ToString(),
+                    AppliedIntensity: request.Intensity.ToString(),
+                    BudgetPressureIndex: 0m,
                     SupplyStressIndex: 0m,
                     FuelStockLevelIndex: 0m,
                     FoodStockLevelIndex: 0m,
                     EmergencyWaterStockLevelIndex: 0m);
 
+            CityStockpileBudgetDecision decision = budgetGuard.ResolveResupply(
+                focus: request.Focus,
+                requestedIntensity: request.Intensity,
+                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                emergencyRationingEnabled: state.EmergencyRationingEnabled);
+
+            if (decision.Blocked)
+                return new DispatchCityResupplyResult(
+                    Status: DispatchCityResupplyStatus.BudgetBlocked,
+                    CityId: request.CityId,
+                    RequestedIntensity: decision.RequestedIntensity.ToString(),
+                    AppliedIntensity: decision.AppliedIntensity.ToString(),
+                    BudgetPressureIndex: decision.PressureIndex,
+                    SupplyStressIndex: state.SupplyStressIndex,
+                    FuelStockLevelIndex: state.Fuel.StockLevelIndex,
+                    FoodStockLevelIndex: state.Food.StockLevelIndex,
+                    EmergencyWaterStockLevelIndex: state.EmergencyWater.StockLevelIndex);
+
             var refreshedSnapshot = policy.DispatchResupply(
                 current: state.ToSnapshot(),
                 focus: request.Focus,
-                intensity: request.Intensity);
+                intensity: decision.AppliedIntensity);
 
             DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
 
@@ -52,7 +75,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 expense: CityResupplyOperationalExpenseFactory.CreateDispatchExpense(
                     cityId: request.CityId,
                     focus: request.Focus,
-                    intensity: request.Intensity,
+                    intensity: decision.AppliedIntensity,
                     occurredAtUtc: occurredAtUtc),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -60,6 +83,9 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             return new DispatchCityResupplyResult(
                 Status: DispatchCityResupplyStatus.Applied,
                 CityId: request.CityId,
+                RequestedIntensity: decision.RequestedIntensity.ToString(),
+                AppliedIntensity: decision.AppliedIntensity.ToString(),
+                BudgetPressureIndex: decision.PressureIndex,
                 SupplyStressIndex: state.SupplyStressIndex,
                 FuelStockLevelIndex: state.Fuel.StockLevelIndex,
                 FoodStockLevelIndex: state.Food.StockLevelIndex,

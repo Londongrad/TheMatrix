@@ -62,6 +62,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 Filters: filters,
                 EmergencyWater: emergencyWater,
                 SystemsDemand: CitySystemsResourceDemandSnapshot.Neutral(createdAtUtc),
+                OperationalBudgetPressure: CityOperationalBudgetPressureSnapshot.Neutral(createdAtUtc),
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: fuel,
                     food: food,
@@ -155,6 +156,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 Filters: filters,
                 EmergencyWater: emergencyWater,
                 SystemsDemand: current.SystemsDemand,
+                OperationalBudgetPressure: current.OperationalBudgetPressure,
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: fuel,
                     food: food,
@@ -181,6 +183,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 Filters: current.Filters,
                 EmergencyWater: current.EmergencyWater,
                 SystemsDemand: current.SystemsDemand,
+                OperationalBudgetPressure: current.OperationalBudgetPressure,
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: current.Fuel,
                     food: current.Food,
@@ -267,6 +270,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 Filters: filters,
                 EmergencyWater: emergencyWater,
                 SystemsDemand: current.SystemsDemand,
+                OperationalBudgetPressure: current.OperationalBudgetPressure,
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: fuel,
                     food: food,
@@ -315,6 +319,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 Filters: filters,
                 EmergencyWater: emergencyWater,
                 SystemsDemand: current.SystemsDemand,
+                OperationalBudgetPressure: current.OperationalBudgetPressure,
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: fuel,
                     food: current.Food,

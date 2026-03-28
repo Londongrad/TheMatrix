@@ -3,6 +3,9 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed record DispatchCityResupplyResult(
         DispatchCityResupplyStatus Status,
         Guid CityId,
+        string RequestedIntensity,
+        string AppliedIntensity,
+        decimal BudgetPressureIndex,
         decimal SupplyStressIndex,
         decimal FuelStockLevelIndex,
         decimal FoodStockLevelIndex,

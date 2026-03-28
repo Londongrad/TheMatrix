@@ -8,6 +8,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Models
         CityStockpileLineSnapshot Filters,
         CityStockpileLineSnapshot EmergencyWater,
         CitySystemsResourceDemandSnapshot SystemsDemand,
+        CityOperationalBudgetPressureSnapshot OperationalBudgetPressure,
         decimal SupplyStressIndex,
         bool EmergencyRationingEnabled,
         DateTimeOffset EvaluatedAtUtc);
