@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
@@ -13,6 +14,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
     public sealed class DispatchCityPowerDistributionMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
+        ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
         : IRequestHandler<DispatchCityPowerDistributionMaintenanceCommand, CityPowerDistributionStatusDto?>
@@ -47,6 +49,15 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
                 asOfUtc: state.LastEvaluatedAtUtc);
 
             state.ApplySnapshot(refreshedSnapshot);
+            await operationalExpenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
+                expense: CityMaintenanceOperationalExpenseFactory.CreateInfrastructureMaintenanceExpense(
+                    cityId: request.CityId,
+                    systemName: "PowerDistribution",
+                    operationKind: "PowerDistributionMaintenanceDispatch",
+                    focus: request.Focus,
+                    intensity: request.Intensity,
+                    occurredAtUtc: DateTimeOffset.UtcNow),
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             decimal powerSupport = pressureProfileFactory.Create(state).PowerSupport;

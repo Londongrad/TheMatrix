@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
@@ -13,6 +14,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
     public sealed class DispatchCityHeatingMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
+        ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
         : IRequestHandler<DispatchCityHeatingMaintenanceCommand, CityHeatingStatusDto?>
@@ -47,6 +49,15 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
                 asOfUtc: state.LastEvaluatedAtUtc);
 
             state.ApplySnapshot(refreshedSnapshot);
+            await operationalExpenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
+                expense: CityMaintenanceOperationalExpenseFactory.CreateInfrastructureMaintenanceExpense(
+                    cityId: request.CityId,
+                    systemName: "Heating",
+                    operationKind: "HeatingMaintenanceDispatch",
+                    focus: request.Focus,
+                    intensity: request.Intensity,
+                    occurredAtUtc: DateTimeOffset.UtcNow),
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             decimal heatingSupport = pressureProfileFactory.Create(state).HeatingSupport;

@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
@@ -13,6 +14,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
     public sealed class DispatchCityUtilityIncidentResponseCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
+        ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
         : IRequestHandler<DispatchCityUtilityIncidentResponseCommand, CityUtilityIncidentStatusDto?>
@@ -47,6 +49,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 asOfUtc: state.LastEvaluatedAtUtc);
 
             state.ApplySnapshot(refreshedSnapshot);
+            await operationalExpenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
+                expense: CityMaintenanceOperationalExpenseFactory.CreateUtilityIncidentResponseExpense(
+                    cityId: request.CityId,
+                    focus: request.Focus,
+                    intensity: request.Intensity,
+                    occurredAtUtc: DateTimeOffset.UtcNow),
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             decimal utilityIncidentSupport = pressureProfileFactory.Create(state).UtilityIncidentSupport;
