@@ -18,6 +18,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             CityResourceStockLineState spareParts,
             CityResourceStockLineState filters,
             CityResourceStockLineState emergencyWater,
+            CitySystemsResourceDemandState systemsDemand,
             decimal supplyStressIndex,
             bool emergencyRationingEnabled,
             DateTimeOffset lastEvaluatedAtUtc)
@@ -29,6 +30,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             SpareParts = spareParts;
             Filters = filters;
             EmergencyWater = emergencyWater;
+            SystemsDemand = systemsDemand;
             SupplyStressIndex = EnsureIndex(
                 value: supplyStressIndex,
                 propertyName: nameof(supplyStressIndex));
@@ -47,6 +49,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             SpareParts = null!;
             Filters = null!;
             EmergencyWater = null!;
+            SystemsDemand = null!;
         }
 
         public SimulationHostId SimulationHostId => Id;
@@ -56,6 +59,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         public CityResourceStockLineState SpareParts { get; private set; }
         public CityResourceStockLineState Filters { get; private set; }
         public CityResourceStockLineState EmergencyWater { get; private set; }
+        public CitySystemsResourceDemandState SystemsDemand { get; private set; }
         public decimal SupplyStressIndex { get; private set; }
         public bool EmergencyRationingEnabled { get; private set; }
         public DateTimeOffset LastEvaluatedAtUtc { get; private set; }
@@ -76,9 +80,19 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 spareParts: CityResourceStockLineState.Create(seed.SpareParts),
                 filters: CityResourceStockLineState.Create(seed.Filters),
                 emergencyWater: CityResourceStockLineState.Create(seed.EmergencyWater),
+                systemsDemand: CitySystemsResourceDemandState.Create(seed.SystemsDemand),
                 supplyStressIndex: seed.SupplyStressIndex,
                 emergencyRationingEnabled: seed.EmergencyRationingEnabled,
                 lastEvaluatedAtUtc: seed.EvaluatedAtUtc);
+        }
+
+        public void ApplySystemsDemand(CitySystemsResourceDemandSnapshot snapshot)
+        {
+            GuardHelper.AgainstNull(
+                value: snapshot,
+                propertyName: nameof(snapshot));
+
+            SystemsDemand.ApplySnapshot(snapshot);
         }
 
         public void ApplySnapshot(CityStockpileSnapshot snapshot)
@@ -96,6 +110,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             SpareParts.ApplySnapshot(snapshot.SpareParts);
             Filters.ApplySnapshot(snapshot.Filters);
             EmergencyWater.ApplySnapshot(snapshot.EmergencyWater);
+            SystemsDemand.ApplySnapshot(snapshot.SystemsDemand);
             SupplyStressIndex = EnsureIndex(
                 value: snapshot.SupplyStressIndex,
                 propertyName: nameof(snapshot.SupplyStressIndex));
@@ -114,6 +129,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 SpareParts: SpareParts.ToSnapshot(),
                 Filters: Filters.ToSnapshot(),
                 EmergencyWater: EmergencyWater.ToSnapshot(),
+                SystemsDemand: SystemsDemand.ToSnapshot(),
                 SupplyStressIndex: SupplyStressIndex,
                 EmergencyRationingEnabled: EmergencyRationingEnabled,
                 EvaluatedAtUtc: LastEvaluatedAtUtc);

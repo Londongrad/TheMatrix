@@ -61,6 +61,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 SpareParts: spareParts,
                 Filters: filters,
                 EmergencyWater: emergencyWater,
+                SystemsDemand: CitySystemsResourceDemandSnapshot.Neutral(createdAtUtc),
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: fuel,
                     food: food,
@@ -86,10 +87,16 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 d: (decimal)elapsed.TotalMinutes / 1440m,
                 decimals: 6,
                 mode: MidpointRounding.AwayFromZero);
+            decimal operationalDemandDays = CalculateOperationalDemandDays(
+                fromUtc: current.EvaluatedAtUtc,
+                toUtc: current.EvaluatedAtUtc.Add(elapsed),
+                demandEffectiveAtUtc: current.SystemsDemand.EffectiveAtUtc);
 
             CityStockpileLineSnapshot fuel = AdvanceLine(
                 line: current.Fuel,
                 elapsedDays: elapsedDays,
+                systemsDemandPressure: current.SystemsDemand.FuelDemandPressureIndex,
+                systemsDemandElapsedDays: operationalDemandDays,
                 emergencyRationingEnabled: current.EmergencyRationingEnabled,
                 demandDrainRate: 0.044m,
                 passiveResupplyRate: 0.030m,
@@ -97,6 +104,8 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             CityStockpileLineSnapshot food = AdvanceLine(
                 line: current.Food,
                 elapsedDays: elapsedDays,
+                systemsDemandPressure: 0m,
+                systemsDemandElapsedDays: 0m,
                 emergencyRationingEnabled: current.EmergencyRationingEnabled,
                 demandDrainRate: 0.034m,
                 passiveResupplyRate: 0.027m,
@@ -104,6 +113,8 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             CityStockpileLineSnapshot medicine = AdvanceLine(
                 line: current.Medicine,
                 elapsedDays: elapsedDays,
+                systemsDemandPressure: 0m,
+                systemsDemandElapsedDays: 0m,
                 emergencyRationingEnabled: current.EmergencyRationingEnabled,
                 demandDrainRate: 0.027m,
                 passiveResupplyRate: 0.019m,
@@ -111,6 +122,8 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             CityStockpileLineSnapshot spareParts = AdvanceLine(
                 line: current.SpareParts,
                 elapsedDays: elapsedDays,
+                systemsDemandPressure: current.SystemsDemand.SparePartsDemandPressureIndex,
+                systemsDemandElapsedDays: operationalDemandDays,
                 emergencyRationingEnabled: current.EmergencyRationingEnabled,
                 demandDrainRate: 0.019m,
                 passiveResupplyRate: 0.015m,
@@ -118,6 +131,8 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             CityStockpileLineSnapshot filters = AdvanceLine(
                 line: current.Filters,
                 elapsedDays: elapsedDays,
+                systemsDemandPressure: current.SystemsDemand.FiltersDemandPressureIndex,
+                systemsDemandElapsedDays: operationalDemandDays,
                 emergencyRationingEnabled: current.EmergencyRationingEnabled,
                 demandDrainRate: 0.021m,
                 passiveResupplyRate: 0.017m,
@@ -125,6 +140,8 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             CityStockpileLineSnapshot emergencyWater = AdvanceLine(
                 line: current.EmergencyWater,
                 elapsedDays: elapsedDays,
+                systemsDemandPressure: current.SystemsDemand.EmergencyWaterDemandPressureIndex,
+                systemsDemandElapsedDays: operationalDemandDays,
                 emergencyRationingEnabled: current.EmergencyRationingEnabled,
                 demandDrainRate: 0.030m,
                 passiveResupplyRate: 0.021m,
@@ -137,6 +154,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 SpareParts: spareParts,
                 Filters: filters,
                 EmergencyWater: emergencyWater,
+                SystemsDemand: current.SystemsDemand,
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: fuel,
                     food: food,
@@ -162,6 +180,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 SpareParts: current.SpareParts,
                 Filters: current.Filters,
                 EmergencyWater: current.EmergencyWater,
+                SystemsDemand: current.SystemsDemand,
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: current.Fuel,
                     food: current.Food,
@@ -247,10 +266,59 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 SpareParts: spareParts,
                 Filters: filters,
                 EmergencyWater: emergencyWater,
+                SystemsDemand: current.SystemsDemand,
                 SupplyStressIndex: CalculateSupplyStress(
                     fuel: fuel,
                     food: food,
                     medicine: medicine,
+                    spareParts: spareParts,
+                    filters: filters,
+                    emergencyWater: emergencyWater,
+                    emergencyRationingEnabled: current.EmergencyRationingEnabled),
+                EmergencyRationingEnabled: current.EmergencyRationingEnabled,
+                EvaluatedAtUtc: current.EvaluatedAtUtc);
+        }
+
+        public CityStockpileSnapshot ApplySystemsDemand(CityStockpileSnapshot current)
+        {
+            ArgumentNullException.ThrowIfNull(current);
+
+            if (current.SystemsDemand.EffectiveAtUtc > current.EvaluatedAtUtc)
+                return current;
+
+            CityStockpileLineSnapshot fuel = ApplyOperationalDemand(
+                line: current.Fuel,
+                systemsDemandPressure: current.SystemsDemand.FuelDemandPressureIndex,
+                emergencyRationingEnabled: current.EmergencyRationingEnabled,
+                fragility: 0.82m);
+            CityStockpileLineSnapshot spareParts = ApplyOperationalDemand(
+                line: current.SpareParts,
+                systemsDemandPressure: current.SystemsDemand.SparePartsDemandPressureIndex,
+                emergencyRationingEnabled: current.EmergencyRationingEnabled,
+                fragility: 0.90m);
+            CityStockpileLineSnapshot filters = ApplyOperationalDemand(
+                line: current.Filters,
+                systemsDemandPressure: current.SystemsDemand.FiltersDemandPressureIndex,
+                emergencyRationingEnabled: current.EmergencyRationingEnabled,
+                fragility: 0.84m);
+            CityStockpileLineSnapshot emergencyWater = ApplyOperationalDemand(
+                line: current.EmergencyWater,
+                systemsDemandPressure: current.SystemsDemand.EmergencyWaterDemandPressureIndex,
+                emergencyRationingEnabled: current.EmergencyRationingEnabled,
+                fragility: 0.64m);
+
+            return new CityStockpileSnapshot(
+                Fuel: fuel,
+                Food: current.Food,
+                Medicine: current.Medicine,
+                SpareParts: spareParts,
+                Filters: filters,
+                EmergencyWater: emergencyWater,
+                SystemsDemand: current.SystemsDemand,
+                SupplyStressIndex: CalculateSupplyStress(
+                    fuel: fuel,
+                    food: current.Food,
+                    medicine: current.Medicine,
                     spareParts: spareParts,
                     filters: filters,
                     emergencyWater: emergencyWater,
@@ -288,6 +356,8 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
         private static CityStockpileLineSnapshot AdvanceLine(
             CityStockpileLineSnapshot line,
             decimal elapsedDays,
+            decimal systemsDemandPressure,
+            decimal systemsDemandElapsedDays,
             bool emergencyRationingEnabled,
             decimal demandDrainRate,
             decimal passiveResupplyRate,
@@ -297,16 +367,20 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                 ? 0.18m
                 : 0m;
             decimal effectiveDemand = ClampIndex(line.DemandPressureIndex - rationingRelief);
+            decimal operationalDemandBoost = systemsDemandPressure * systemsDemandElapsedDays;
 
             decimal naturalResupply = passiveResupplyRate * elapsedDays * (0.55m + (line.ResupplyReadinessIndex * 0.75m));
-            decimal consumption = demandDrainRate * elapsedDays * (0.65m + (effectiveDemand * 0.85m));
+            decimal consumption = demandDrainRate * elapsedDays * (0.65m + (effectiveDemand * 0.85m) + (operationalDemandBoost * 0.90m));
             decimal stock = ClampIndex(line.StockLevelIndex + naturalResupply - consumption);
 
             decimal readinessDecay = 0.018m * elapsedDays * (0.40m + fragility + (effectiveDemand * 0.35m));
+            readinessDecay += 0.010m * operationalDemandBoost;
             decimal readinessRecovery = 0.012m * elapsedDays * (1m - line.ShortageRiskIndex);
             decimal readiness = ClampIndex(line.ResupplyReadinessIndex - readinessDecay + readinessRecovery);
 
-            decimal demandDrift = (0.010m * elapsedDays * fragility) - (emergencyRationingEnabled ? 0.028m * elapsedDays : 0m);
+            decimal demandDrift = (0.010m * elapsedDays * fragility) -
+                                  (emergencyRationingEnabled ? 0.028m * elapsedDays : 0m) +
+                                  (0.030m * operationalDemandBoost);
             decimal demand = ClampIndex(line.DemandPressureIndex + demandDrift);
 
             decimal risk = CalculateShortageRisk(
@@ -319,6 +393,29 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
             return new CityStockpileLineSnapshot(
                 Kind: line.Kind,
                 StockLevelIndex: stock,
+                DemandPressureIndex: demand,
+                ResupplyReadinessIndex: readiness,
+                ShortageRiskIndex: risk);
+        }
+
+        private static CityStockpileLineSnapshot ApplyOperationalDemand(
+            CityStockpileLineSnapshot line,
+            decimal systemsDemandPressure,
+            bool emergencyRationingEnabled,
+            decimal fragility)
+        {
+            decimal demand = ClampIndex(line.DemandPressureIndex + (systemsDemandPressure * 0.1800m));
+            decimal readiness = ClampIndex(line.ResupplyReadinessIndex - (systemsDemandPressure * 0.0800m));
+            decimal risk = CalculateShortageRisk(
+                stockLevelIndex: line.StockLevelIndex,
+                demandPressureIndex: demand,
+                resupplyReadinessIndex: readiness,
+                emergencyRationingEnabled: emergencyRationingEnabled,
+                fragility: fragility);
+
+            return new CityStockpileLineSnapshot(
+                Kind: line.Kind,
+                StockLevelIndex: line.StockLevelIndex,
                 DemandPressureIndex: demand,
                 ResupplyReadinessIndex: readiness,
                 ShortageRiskIndex: risk);
@@ -442,6 +539,27 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Services
                         val1: 0m,
                         val2: value)),
                 decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal CalculateOperationalDemandDays(
+            DateTimeOffset fromUtc,
+            DateTimeOffset toUtc,
+            DateTimeOffset demandEffectiveAtUtc)
+        {
+            if (demandEffectiveAtUtc >= toUtc)
+                return 0m;
+
+            DateTimeOffset effectiveFrom = demandEffectiveAtUtc > fromUtc
+                ? demandEffectiveAtUtc
+                : fromUtc;
+
+            if (effectiveFrom >= toUtc)
+                return 0m;
+
+            return decimal.Round(
+                d: (decimal)(toUtc - effectiveFrom).TotalMinutes / 1440m,
+                decimals: 6,
                 mode: MidpointRounding.AwayFromZero);
         }
 

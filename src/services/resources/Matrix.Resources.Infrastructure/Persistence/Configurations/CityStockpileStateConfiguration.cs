@@ -32,6 +32,52 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.SystemsDemand,
+                buildAction: demand =>
+                {
+                    demand.Property(x => x.FuelDemandPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SystemsDemandFuelDemandPressureIndex")
+                       .IsRequired();
+
+                    demand.Property(x => x.SparePartsDemandPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SystemsDemandSparePartsDemandPressureIndex")
+                       .IsRequired();
+
+                    demand.Property(x => x.FiltersDemandPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SystemsDemandFiltersDemandPressureIndex")
+                       .IsRequired();
+
+                    demand.Property(x => x.EmergencyWaterDemandPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SystemsDemandEmergencyWaterDemandPressureIndex")
+                       .IsRequired();
+
+                    demand.Property(x => x.OverallDemandPressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("SystemsDemandOverallDemandPressureIndex")
+                       .IsRequired();
+
+                    demand.Property(x => x.EffectiveAtUtc)
+                       .HasColumnName("SystemsDemandEffectiveAtUtc")
+                       .IsRequired();
+                });
+            builder.Navigation(x => x.SystemsDemand)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.Fuel,
                 buildAction: stock => ConfigureLine(stock, "Fuel"));
             builder.Navigation(x => x.Fuel)
