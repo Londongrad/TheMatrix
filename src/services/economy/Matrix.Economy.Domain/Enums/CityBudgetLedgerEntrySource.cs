@@ -7,6 +7,7 @@ namespace Matrix.Economy.Domain.Enums
         BusinessRemittance = 2,
         PayrollWithholding = 3,
         MunicipalDisbursement = 4,
-        Initialization = 5
+        Initialization = 5,
+        MunicipalOperations = 6
     }
 }

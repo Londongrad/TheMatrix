@@ -28,6 +28,7 @@ namespace Matrix.Economy.Application
 
             services.AddScoped<CityBudgetAllocationExpenseSupport>();
             services.AddScoped<CityBudgetBusinessDisbursementSupport>();
+            services.AddScoped<CityBudgetOperationalExpenseSupport>();
             services.AddScoped<HouseholdObligationChargeSupport>();
             services.AddScoped<CityBusinessTaxRemittanceSupport>();
             services.AddClassicCityScenarioApplication();

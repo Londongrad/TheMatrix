@@ -27,6 +27,8 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity
                 ClassicCityWorkplacePayrollSettlementConsumerDefinition>();
             configurator.AddConsumer<ClassicCityHouseholdCashflowSettlementConsumer,
                 ClassicCityHouseholdCashflowSettlementConsumerDefinition>();
+            configurator.AddConsumer<ClassicCityOperationalExpenseConsumer,
+                ClassicCityOperationalExpenseConsumerDefinition>();
         }
     }
 }

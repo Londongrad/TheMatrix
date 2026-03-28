@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
 
 namespace Matrix.Economy.Application.Abstractions
 {
@@ -7,6 +8,12 @@ namespace Matrix.Economy.Application.Abstractions
     {
         Task AddAsync(
             CityBudgetLedgerEntry entry,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> ExistsAsync(
+            Guid cityId,
+            CityBudgetLedgerEntryKind kind,
+            string referenceCode,
             CancellationToken cancellationToken = default);
 
         Task<PagedResult<CityBudgetLedgerEntry>> GetPageByCityAsync(

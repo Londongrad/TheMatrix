@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Economy.Infrastructure.Persistence.Repositories
@@ -15,6 +16,21 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
         {
             _dbContext.CityBudgetLedgerEntries.Add(entry);
             return Task.CompletedTask;
+        }
+
+        public Task<bool> ExistsAsync(
+            Guid cityId,
+            CityBudgetLedgerEntryKind kind,
+            string referenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            return _dbContext.CityBudgetLedgerEntries
+               .AsNoTracking()
+               .AnyAsync(
+                    predicate: x => x.CityId == cityId &&
+                                    x.Kind == kind &&
+                                    x.ReferenceCode == referenceCode,
+                    cancellationToken: cancellationToken);
         }
 
         public async Task<PagedResult<CityBudgetLedgerEntry>> GetPageByCityAsync(
