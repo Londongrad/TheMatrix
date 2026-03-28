@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
@@ -11,6 +12,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
     public sealed class AdvanceCityEnvironmentalConditionsCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
+        ICitySystemsResourceDemandOutboxWriter systemsResourceDemandOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
         : IRequestHandler<AdvanceCityEnvironmentalConditionsCommand, AdvanceCityEnvironmentalConditionsResult>
@@ -67,6 +69,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 toUtc: request.ToSimTimeUtc);
 
             state.ApplySnapshot(snapshot);
+            await systemsResourceDemandOutboxWriter.AddClassicCitySystemsResourceDemandAsync(
+                snapshot: CitySystemsResourceDemandIntegrationEventFactory.CreateSnapshot(
+                    state: state,
+                    occurredAtUtc: DateTimeOffset.UtcNow),
+                cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return CreateResult(
