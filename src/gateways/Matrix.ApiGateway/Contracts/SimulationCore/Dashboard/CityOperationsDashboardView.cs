@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 
 namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
@@ -10,6 +11,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         DashboardMetricView ArchivedRecords,
         DashboardMetricView AttentionQueue,
         DashboardMetricView EnvironmentalAlerts,
+        DashboardMetricView OperationalBudgetAlerts,
         DashboardPeriodComparisonRowView NewCities,
         DashboardPeriodComparisonRowView ArchivedCities,
         DashboardPeriodComparisonRowView FailedBootstraps,
@@ -17,6 +19,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         IReadOnlyList<DashboardServiceHealthView> Services,
         IReadOnlyList<DashboardRecentEventView> Events,
         IReadOnlyList<DashboardEnvironmentalAlertView> EnvironmentalCities,
+        IReadOnlyList<DashboardBudgetPressureView> BudgetPressureCities,
         IReadOnlyList<CityListItemView> AttentionCities,
         IReadOnlyList<CityListItemView> ReadyCities,
         IReadOnlyList<CityListItemView> ArchivedCitiesList);
@@ -66,4 +69,13 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         string Summary,
         decimal AlertScore,
         CityEnvironmentalConditionsView Conditions);
+
+    public sealed record DashboardBudgetPressureView(
+        Guid CityId,
+        string CityName,
+        string CityStatus,
+        string Severity,
+        string Summary,
+        decimal PressureIndex,
+        CityOperationalBudgetPressureView Budget);
 }

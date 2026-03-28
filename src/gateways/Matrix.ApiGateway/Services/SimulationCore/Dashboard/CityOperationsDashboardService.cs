@@ -1,8 +1,10 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
+using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -12,6 +14,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 {
     public sealed class CityOperationsDashboardService(
         ICitiesApiClient citiesClient,
+        IEconomyApiClient economyClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
         HealthCheckService healthCheckService,
         IHttpClientFactory httpClientFactory,
@@ -19,6 +22,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         ILogger<CityOperationsDashboardService> logger) : ICityOperationsDashboardService
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
+        private readonly IEconomyApiClient _economyClient = economyClient;
         private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
         private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
@@ -45,6 +49,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 await BuildEnvironmentalAlertsAsync(
                     allCities: allCities,
                     cancellationToken: cancellationToken);
+            DashboardBudgetPressureView[] budgetAlerts = await BuildBudgetPressureAlertsAsync(
+                allCities: allCities,
+                cancellationToken: cancellationToken);
             DateTimeOffset now = DateTimeOffset.Now;
 
             CityListItemView[] readyCities = allCities
@@ -112,6 +119,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     DeltaMonth: null,
                     DeltaYear: null,
                     DeltaMode: "live"),
+                OperationalBudgetAlerts: new DashboardMetricView(
+                    Label: "Operational budget alerts",
+                    Current: budgetAlerts.Length,
+                    Description:
+                    "Ready classic-city simulations where municipal operations spending is starting to strain city budgets.",
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null,
+                    DeltaMode: "live"),
                 NewCities: BuildPeriodComparisonRow(
                     label: "New cities",
                     description: "Fresh hosts entering the system through the setup and provisioning pipeline.",
@@ -139,6 +155,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 Services: healthTask.Result,
                 Events: BuildRecentEvents(allCities),
                 EnvironmentalCities: environmentalAlerts.Take(8)
+                   .ToArray(),
+                BudgetPressureCities: budgetAlerts.Take(8)
                    .ToArray(),
                 AttentionCities: rankedAttentionCities.Take(8)
                    .ToArray(),
@@ -336,6 +354,35 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .ToArray();
         }
 
+        private async Task<DashboardBudgetPressureView[]> BuildBudgetPressureAlertsAsync(
+            IReadOnlyList<CityListItemView> allCities,
+            CancellationToken cancellationToken)
+        {
+            CityListItemView[] readyClassicCities = allCities
+               .Where(city => IsReady(city) && IsClassicCity(city))
+               .ToArray();
+
+            if (readyClassicCities.Length == 0)
+                return [];
+
+            Task<DashboardBudgetPressureView?>[] alertTasks = readyClassicCities
+               .Select(city => BuildBudgetPressureAlertAsync(
+                    city: city,
+                    cancellationToken: cancellationToken))
+               .ToArray();
+
+            DashboardBudgetPressureView?[] alerts = await Task.WhenAll(alertTasks);
+
+            return alerts
+               .Where(alert => alert is not null)
+               .Select(alert => alert!)
+               .OrderByDescending(alert => alert.PressureIndex)
+               .ThenBy(
+                    keySelector: alert => alert.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
+               .ToArray();
+        }
+
         private async Task<DashboardEnvironmentalAlertView?> BuildEnvironmentalAlertAsync(
             CityListItemView city,
             CancellationToken cancellationToken)
@@ -380,6 +427,52 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     exception: exception,
                     message:
                     "Skipped simulation systems metrics for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                    (int)exception.StatusCode,
+                    city.CityId);
+
+                return null;
+            }
+        }
+
+        private async Task<DashboardBudgetPressureView?> BuildBudgetPressureAlertAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                CityOperationalBudgetPressureView? pressure =
+                    await _economyClient.GetCityOperationalBudgetPressureAsync(
+                        cityId: city.CityId,
+                        cancellationToken: cancellationToken);
+
+                if (pressure is null || pressure.PressureIndex < 0.2200m)
+                    return null;
+
+                return new DashboardBudgetPressureView(
+                    CityId: city.CityId,
+                    CityName: city.Name,
+                    CityStatus: city.Status,
+                    Severity: GetBudgetSeverity(pressure.PressureIndex),
+                    Summary: BuildBudgetSummary(pressure),
+                    PressureIndex: pressure.PressureIndex,
+                    Budget: pressure);
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Failed to attach economy operational pressure to city operations dashboard for cityId={CityId}.",
+                    city.CityId);
+
+                return null;
+            }
+            catch (DownstreamServiceException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Skipped economy operational pressure for city operations dashboard because Economy returned status {StatusCode} for cityId={CityId}.",
                     (int)exception.StatusCode,
                     city.CityId);
 
@@ -671,6 +764,16 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             };
         }
 
+        private static string GetBudgetSeverity(decimal pressureIndex)
+        {
+            return pressureIndex switch
+            {
+                >= 0.6500m => "danger",
+                >= 0.4000m => "warning",
+                _ => "info"
+            };
+        }
+
         private static string BuildEnvironmentalSummary(CityEnvironmentalConditionsView conditions)
         {
             decimal floodingPressure = conditions.FloodingIndex;
@@ -813,6 +916,24 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 return "Emergency water reserves are tightening and contingency coverage is starting to narrow.";
 
             return "Resource supply stress is rising and is starting to constrain citywide utility recovery.";
+        }
+
+        private static string BuildBudgetSummary(CityOperationalBudgetPressureView pressure)
+        {
+            decimal dominantOperationsExpense = Math.Max(
+                pressure.InfrastructureOperationsExpenses,
+                pressure.EmergencyOperationsExpenses);
+
+            if (pressure.Balance < 0m)
+                return "City budget is already underwater while municipal operations keep consuming funds.";
+
+            if (pressure.InfrastructureOperationsExpenses >= dominantOperationsExpense)
+                return "Infrastructure maintenance dispatches are becoming a meaningful drag on the city budget.";
+
+            if (pressure.EmergencyOperationsExpenses >= dominantOperationsExpense)
+                return "Emergency operations spending is climbing and starting to squeeze budget headroom.";
+
+            return "Municipal operations spending is rising and starting to narrow budget headroom.";
         }
 
         private static decimal Max(params decimal[] values)

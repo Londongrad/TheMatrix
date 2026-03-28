@@ -11,6 +11,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
     {
         private const string SummaryEndpoint = "/api/economy/Budget/summary";
         private const string CitySummaryEndpointTemplate = "/api/economy/Budget/cities/{0}/summary";
+        private const string CityOperationalPressureEndpointTemplate = "/api/economy/Budget/cities/{0}/operational-pressure";
         private const string CityBootstrapEndpointTemplate = "/api/economy/Budget/cities/{0}/bootstrap";
         private const string ReadyEndpoint = "/health/ready";
         private readonly HttpClient _client = client;
@@ -45,6 +46,25 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
                 arg0: cityId);
 
             return await response.ReadJsonOrThrowDownstreamAsync<EconomySummaryView>(
+                serviceName: DownstreamServiceNames.Economy,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task<CityOperationalBudgetPressureView?> GetCityOperationalBudgetPressureAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = string.Format(
+                format: CityOperationalPressureEndpointTemplate,
+                arg0: cityId);
+
+            HttpResponseMessage response =
+                await _client.GetAsync(
+                    requestUri: url,
+                    cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityOperationalBudgetPressureView>(
                 serviceName: DownstreamServiceNames.Economy,
                 cancellationToken: cancellationToken,
                 requestUrl: url);

@@ -11,6 +11,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Economy
             Guid cityId,
             CancellationToken cancellationToken = default);
 
+        Task<CityOperationalBudgetPressureView?> GetCityOperationalBudgetPressureAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
         Task<CityEconomyBootstrapResultView> InitializeCityEconomyAsync(
             Guid cityId,
             InitializeCityEconomyRequest request,
