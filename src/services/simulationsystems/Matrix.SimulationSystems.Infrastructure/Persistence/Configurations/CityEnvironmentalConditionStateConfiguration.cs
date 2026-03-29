@@ -690,6 +690,39 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
             builder.Navigation(x => x.ResourceSupply)
                .IsRequired();
 
+            builder.OwnsOne(
+                navigationExpression: x => x.OperationalBudgetPressure,
+                buildAction: budgetPressure =>
+                {
+                    budgetPressure.Property(x => x.Balance)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureBalance")
+                       .IsRequired();
+
+                    budgetPressure.Property(x => x.MunicipalOperationsExpenses)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureMunicipalOperationsExpenses")
+                       .IsRequired();
+
+                    budgetPressure.Property(x => x.PressureIndex)
+                       .HasPrecision(
+                            precision: 5,
+                            scale: 4)
+                       .HasColumnName("BudgetPressureIndex")
+                       .IsRequired();
+
+                    budgetPressure.Property(x => x.EffectiveAtUtc)
+                       .HasColumnName("BudgetPressureEffectiveAtUtc")
+                       .IsRequired();
+                });
+
+            builder.Navigation(x => x.OperationalBudgetPressure)
+               .IsRequired();
+
             builder.Ignore(x => x.DomainEvents);
 
             builder.Property<uint>("xmin")

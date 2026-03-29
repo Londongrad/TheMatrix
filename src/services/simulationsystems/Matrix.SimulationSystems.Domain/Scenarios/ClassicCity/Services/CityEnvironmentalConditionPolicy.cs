@@ -1686,6 +1686,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services
                 powerCoverageIndex: PowerCoverageIndex.From(powerCoverage),
                 utilityContinuityIndex: UtilityContinuityIndex.From(utilityContinuity),
                 resourceSupply: state.ResourceSupply.ToSnapshot(),
+                operationalBudgetPressure: state.OperationalBudgetPressure.ToSnapshot(),
                 evaluatedAtUtc: asOfUtc);
         }
 

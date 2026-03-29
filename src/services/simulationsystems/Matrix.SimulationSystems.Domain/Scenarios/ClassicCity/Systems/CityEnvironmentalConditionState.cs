@@ -32,6 +32,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             CitySystemState utilityIncidents,
             CityUtilityIncidentInfrastructureState utilityIncidentInfrastructure,
             CityResourceSupplyState resourceSupply,
+            CityOperationalBudgetPressureState operationalBudgetPressure,
             CityWeatherPressureProfile weatherPressure,
             FloodingIndex floodingIndex,
             SnowAccumulationIndex snowAccumulationIndex,
@@ -61,6 +62,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             UtilityIncidents = utilityIncidents;
             UtilityIncidentInfrastructure = utilityIncidentInfrastructure;
             ResourceSupply = resourceSupply;
+            OperationalBudgetPressure = operationalBudgetPressure;
             WeatherPressure = weatherPressure;
             FloodingIndex = floodingIndex;
             SnowAccumulationIndex = snowAccumulationIndex;
@@ -95,6 +97,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             UtilityIncidents = null!;
             UtilityIncidentInfrastructure = null!;
             ResourceSupply = null!;
+            OperationalBudgetPressure = null!;
             WeatherPressure = null!;
         }
 
@@ -116,6 +119,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public CitySystemState UtilityIncidents { get; private set; }
         public CityUtilityIncidentInfrastructureState UtilityIncidentInfrastructure { get; private set; }
         public CityResourceSupplyState ResourceSupply { get; private set; }
+        public CityOperationalBudgetPressureState OperationalBudgetPressure { get; private set; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
         public FloodingIndex FloodingIndex { get; private set; }
         public SnowAccumulationIndex SnowAccumulationIndex { get; private set; }
@@ -154,6 +158,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 utilityIncidents: CitySystemState.Create(seed.UtilityIncidents),
                 utilityIncidentInfrastructure: CityUtilityIncidentInfrastructureState.Create(seed.UtilityIncidentInfrastructure),
                 resourceSupply: CityResourceSupplyState.Create(seed.ResourceSupply),
+                operationalBudgetPressure: CityOperationalBudgetPressureState.Create(seed.OperationalBudgetPressure),
                 weatherPressure: CityWeatherPressureProfile.Neutral(),
                 floodingIndex: seed.FloodingIndex,
                 snowAccumulationIndex: seed.SnowAccumulationIndex,
@@ -180,6 +185,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             ArgumentNullException.ThrowIfNull(snapshot);
 
             ResourceSupply.ApplySnapshot(snapshot);
+        }
+
+        public void ApplyOperationalBudgetPressure(CityOperationalBudgetPressureSnapshot snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(snapshot);
+
+            OperationalBudgetPressure.ApplySnapshot(snapshot);
         }
 
         public void ApplySnapshot(CityEnvironmentalConditionSnapshot snapshot)
@@ -211,6 +223,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             UtilityIncidents.ApplySnapshot(snapshot.UtilityIncidents);
             UtilityIncidentInfrastructure.ApplySnapshot(snapshot.UtilityIncidentInfrastructure);
             ResourceSupply.ApplySnapshot(snapshot.ResourceSupply);
+            OperationalBudgetPressure.ApplySnapshot(snapshot.OperationalBudgetPressure);
             FloodingIndex = snapshot.FloodingIndex;
             SnowAccumulationIndex = snapshot.SnowAccumulationIndex;
             RoadAccessibilityIndex = snapshot.RoadAccessibilityIndex;
@@ -250,7 +263,8 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 utilityIncidents: UtilityIncidents.ToSnapshot(),
                 utilityIncidentInfrastructure: UtilityIncidentInfrastructure.ToSnapshot(),
                 utilityContinuityIndex: UtilityContinuityIndex,
-                resourceSupply: ResourceSupply.ToSnapshot());
+                resourceSupply: ResourceSupply.ToSnapshot(),
+                operationalBudgetPressure: OperationalBudgetPressure.ToSnapshot());
         }
 
         public void SetDrainageEmergencyMode(bool enabled)
