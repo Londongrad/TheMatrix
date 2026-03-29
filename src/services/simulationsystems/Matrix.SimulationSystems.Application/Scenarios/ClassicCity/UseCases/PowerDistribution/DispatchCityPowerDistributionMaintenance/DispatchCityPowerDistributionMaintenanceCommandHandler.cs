@@ -16,7 +16,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
-        ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
+        ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
+        CityMaintenanceBudgetGuard budgetGuard)
         : IRequestHandler<DispatchCityPowerDistributionMaintenanceCommand, CityPowerDistributionStatusDto?>
     {
         public async Task<CityPowerDistributionStatusDto?> Handle(
@@ -35,13 +36,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
             PowerDistributionMaintenanceFocus focus = Enum.Parse<PowerDistributionMaintenanceFocus>(
                 value: request.Focus,
                 ignoreCase: true);
-            PowerDistributionMaintenanceIntensity intensity = Enum.Parse<PowerDistributionMaintenanceIntensity>(
+            PowerDistributionMaintenanceIntensity requestedIntensity = Enum.Parse<PowerDistributionMaintenanceIntensity>(
                 value: request.Intensity,
+                ignoreCase: true);
+            CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
+                requestedIntensity: requestedIntensity.ToString(),
+                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                emergencyModeEnabled: state.PowerDistributionInfrastructure.EmergencyModeEnabled);
+            PowerDistributionMaintenanceIntensity appliedIntensity = Enum.Parse<PowerDistributionMaintenanceIntensity>(
+                value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
 
             state.DispatchPowerDistributionMaintenance(
                 focus: focus,
-                intensity: intensity);
+                intensity: appliedIntensity);
 
             var refreshedSnapshot = policy.Recalculate(
                 state: state,
@@ -55,7 +63,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
                     systemName: "PowerDistribution",
                     operationKind: "PowerDistributionMaintenanceDispatch",
                     focus: request.Focus,
-                    intensity: request.Intensity,
+                    intensity: budgetDecision.AppliedIntensity,
                     occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -65,7 +73,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
             return CityPowerDistributionStatusDto.FromState(
                 cityId: request.CityId,
                 state: state,
-                powerSupportIndex: powerSupport);
+                powerSupportIndex: powerSupport,
+                requestedIntensity: budgetDecision.RequestedIntensity,
+                appliedIntensity: budgetDecision.AppliedIntensity);
         }
     }
 }

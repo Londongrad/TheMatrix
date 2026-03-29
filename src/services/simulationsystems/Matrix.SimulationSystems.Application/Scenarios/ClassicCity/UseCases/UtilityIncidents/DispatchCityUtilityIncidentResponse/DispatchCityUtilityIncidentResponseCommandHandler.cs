@@ -16,7 +16,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
-        ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
+        ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
+        CityMaintenanceBudgetGuard budgetGuard)
         : IRequestHandler<DispatchCityUtilityIncidentResponseCommand, CityUtilityIncidentStatusDto?>
     {
         public async Task<CityUtilityIncidentStatusDto?> Handle(
@@ -35,13 +36,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
             UtilityIncidentResponseFocus focus = Enum.Parse<UtilityIncidentResponseFocus>(
                 value: request.Focus,
                 ignoreCase: true);
-            UtilityIncidentResponseIntensity intensity = Enum.Parse<UtilityIncidentResponseIntensity>(
+            UtilityIncidentResponseIntensity requestedIntensity = Enum.Parse<UtilityIncidentResponseIntensity>(
                 value: request.Intensity,
+                ignoreCase: true);
+            CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
+                requestedIntensity: requestedIntensity.ToString(),
+                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                emergencyModeEnabled: state.UtilityIncidentInfrastructure.EmergencyModeEnabled);
+            UtilityIncidentResponseIntensity appliedIntensity = Enum.Parse<UtilityIncidentResponseIntensity>(
+                value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
 
             state.DispatchUtilityIncidentResponse(
                 focus: focus,
-                intensity: intensity);
+                intensity: appliedIntensity);
 
             var refreshedSnapshot = policy.Recalculate(
                 state: state,
@@ -53,7 +61,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 expense: CityMaintenanceOperationalExpenseFactory.CreateUtilityIncidentResponseExpense(
                     cityId: request.CityId,
                     focus: request.Focus,
-                    intensity: request.Intensity,
+                    intensity: budgetDecision.AppliedIntensity,
                     occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -63,7 +71,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
             return CityUtilityIncidentStatusDto.FromState(
                 cityId: request.CityId,
                 state: state,
-                utilityIncidentSupportIndex: utilityIncidentSupport);
+                utilityIncidentSupportIndex: utilityIncidentSupport,
+                requestedIntensity: budgetDecision.RequestedIntensity,
+                appliedIntensity: budgetDecision.AppliedIntensity);
         }
     }
 }

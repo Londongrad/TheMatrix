@@ -16,7 +16,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
-        ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
+        ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
+        CityMaintenanceBudgetGuard budgetGuard)
         : IRequestHandler<DispatchCitySanitationMaintenanceCommand, CitySanitationStatusDto?>
     {
         public async Task<CitySanitationStatusDto?> Handle(
@@ -35,13 +36,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
             SanitationMaintenanceFocus focus = Enum.Parse<SanitationMaintenanceFocus>(
                 value: request.Focus,
                 ignoreCase: true);
-            SanitationMaintenanceIntensity intensity = Enum.Parse<SanitationMaintenanceIntensity>(
+            SanitationMaintenanceIntensity requestedIntensity = Enum.Parse<SanitationMaintenanceIntensity>(
                 value: request.Intensity,
+                ignoreCase: true);
+            CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
+                requestedIntensity: requestedIntensity.ToString(),
+                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                emergencyModeEnabled: state.SanitationInfrastructure.EmergencyModeEnabled);
+            SanitationMaintenanceIntensity appliedIntensity = Enum.Parse<SanitationMaintenanceIntensity>(
+                value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
 
             state.DispatchSanitationMaintenance(
                 focus: focus,
-                intensity: intensity);
+                intensity: appliedIntensity);
 
             var refreshedSnapshot = policy.Recalculate(
                 state: state,
@@ -55,7 +63,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
                     systemName: "Sanitation",
                     operationKind: "SanitationMaintenanceDispatch",
                     focus: request.Focus,
-                    intensity: request.Intensity,
+                    intensity: budgetDecision.AppliedIntensity,
                     occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -65,7 +73,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
             return CitySanitationStatusDto.FromState(
                 cityId: request.CityId,
                 state: state,
-                sanitationSupportIndex: sanitationSupport);
+                sanitationSupportIndex: sanitationSupport,
+                requestedIntensity: budgetDecision.RequestedIntensity,
+                appliedIntensity: budgetDecision.AppliedIntensity);
         }
     }
 }

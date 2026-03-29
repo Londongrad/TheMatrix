@@ -8,18 +8,23 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
         decimal SnowAccumulationIndex,
         decimal RoadAccessibilityIndex,
         decimal SnowRemovalSupportIndex,
+        decimal BudgetPressureIndex,
         bool EmergencyModeEnabled,
         decimal FleetAvailabilityIndex,
         decimal RouteCoverageIndex,
         decimal DeicingReadinessIndex,
         decimal CrewReadinessIndex,
         decimal IncidentPressureIndex,
+        string? RequestedIntensity,
+        string? AppliedIntensity,
         CitySnowRemovalSystemStatusDto System)
     {
         public static CitySnowRemovalStatusDto FromState(
             Guid cityId,
             CityEnvironmentalConditionState state,
-            decimal snowRemovalSupportIndex)
+            decimal snowRemovalSupportIndex,
+            string? requestedIntensity = null,
+            string? appliedIntensity = null)
         {
             return new CitySnowRemovalStatusDto(
                 CityId: cityId,
@@ -27,12 +32,15 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                 SnowAccumulationIndex: state.SnowAccumulationIndex.Value,
                 RoadAccessibilityIndex: state.RoadAccessibilityIndex.Value,
                 SnowRemovalSupportIndex: snowRemovalSupportIndex,
+                BudgetPressureIndex: state.OperationalBudgetPressure.PressureIndex,
                 EmergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled,
                 FleetAvailabilityIndex: state.SnowRemovalInfrastructure.FleetAvailabilityIndex,
                 RouteCoverageIndex: state.SnowRemovalInfrastructure.RouteCoverageIndex,
                 DeicingReadinessIndex: state.SnowRemovalInfrastructure.DeicingReadinessIndex,
                 CrewReadinessIndex: state.SnowRemovalInfrastructure.CrewReadinessIndex,
                 IncidentPressureIndex: state.SnowRemovalInfrastructure.IncidentPressureIndex,
+                RequestedIntensity: requestedIntensity,
+                AppliedIntensity: appliedIntensity,
                 System: CitySnowRemovalSystemStatusDto.FromSnapshot(state.SnowRemoval.ToSnapshot()));
         }
     }

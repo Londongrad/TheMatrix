@@ -9,6 +9,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity
         public static IServiceCollection AddClassicCityScenarioApplication(this IServiceCollection services)
         {
             services.AddSingleton<CityEnvironmentalConditionPolicy>();
+            services.AddSingleton<CityMaintenanceBudgetGuard>();
             services.AddSingleton<ClassicCityWeatherPressureProfileFactory>();
 
             return services;

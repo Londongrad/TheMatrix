@@ -16,7 +16,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
-        ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
+        ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
+        CityMaintenanceBudgetGuard budgetGuard)
         : IRequestHandler<DispatchCitySnowRemovalMaintenanceCommand, CitySnowRemovalStatusDto?>
     {
         public async Task<CitySnowRemovalStatusDto?> Handle(
@@ -35,13 +36,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
             SnowRemovalMaintenanceFocus focus = Enum.Parse<SnowRemovalMaintenanceFocus>(
                 value: request.Focus,
                 ignoreCase: true);
-            SnowRemovalMaintenanceIntensity intensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
+            SnowRemovalMaintenanceIntensity requestedIntensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
                 value: request.Intensity,
+                ignoreCase: true);
+            CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
+                requestedIntensity: requestedIntensity.ToString(),
+                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                emergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled);
+            SnowRemovalMaintenanceIntensity appliedIntensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
+                value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
 
             state.DispatchSnowRemovalMaintenance(
                 focus: focus,
-                intensity: intensity);
+                intensity: appliedIntensity);
 
             var refreshedSnapshot = policy.Recalculate(
                 state: state,
@@ -55,7 +63,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                     systemName: "SnowRemoval",
                     operationKind: "SnowRemovalMaintenanceDispatch",
                     focus: request.Focus,
-                    intensity: request.Intensity,
+                    intensity: budgetDecision.AppliedIntensity,
                     occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -65,7 +73,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
             return CitySnowRemovalStatusDto.FromState(
                 cityId: request.CityId,
                 state: state,
-                snowRemovalSupportIndex: snowRemovalSupport);
+                snowRemovalSupportIndex: snowRemovalSupport,
+                requestedIntensity: budgetDecision.RequestedIntensity,
+                appliedIntensity: budgetDecision.AppliedIntensity);
         }
     }
 }

@@ -67,8 +67,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
         {
             decimal baseCost = intensity.ToLowerInvariant() switch
             {
+                "light" => 110m,
                 "low" => 110m,
+                "standard" => 220m,
                 "medium" => 220m,
+                "heavy" => 380m,
                 "high" => 380m,
                 _ => 220m
             };

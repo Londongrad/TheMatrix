@@ -16,7 +16,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
-        ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
+        ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
+        CityMaintenanceBudgetGuard budgetGuard)
         : IRequestHandler<DispatchCityDrainageMaintenanceCommand, CityDrainageStatusDto?>
     {
         public async Task<CityDrainageStatusDto?> Handle(
@@ -35,13 +36,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
             DrainageMaintenanceFocus focus = Enum.Parse<DrainageMaintenanceFocus>(
                 value: request.Focus,
                 ignoreCase: true);
-            DrainageMaintenanceIntensity intensity = Enum.Parse<DrainageMaintenanceIntensity>(
+            DrainageMaintenanceIntensity requestedIntensity = Enum.Parse<DrainageMaintenanceIntensity>(
                 value: request.Intensity,
+                ignoreCase: true);
+            CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
+                requestedIntensity: requestedIntensity.ToString(),
+                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                emergencyModeEnabled: state.DrainageInfrastructure.EmergencyModeEnabled);
+            DrainageMaintenanceIntensity appliedIntensity = Enum.Parse<DrainageMaintenanceIntensity>(
+                value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
 
             state.DispatchDrainageMaintenance(
                 focus: focus,
-                intensity: intensity);
+                intensity: appliedIntensity);
 
             var refreshedSnapshot = policy.Recalculate(
                 state: state,
@@ -55,7 +63,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
                     systemName: "Drainage",
                     operationKind: "DrainageMaintenanceDispatch",
                     focus: request.Focus,
-                    intensity: request.Intensity,
+                    intensity: budgetDecision.AppliedIntensity,
                     occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -65,7 +73,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
             return CityDrainageStatusDto.FromState(
                 cityId: request.CityId,
                 state: state,
-                drainageSupportIndex: drainageSupport);
+                drainageSupportIndex: drainageSupport,
+                requestedIntensity: budgetDecision.RequestedIntensity,
+                appliedIntensity: budgetDecision.AppliedIntensity);
         }
     }
 }
