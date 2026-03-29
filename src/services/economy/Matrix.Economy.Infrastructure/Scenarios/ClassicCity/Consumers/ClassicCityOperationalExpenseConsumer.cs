@@ -14,7 +14,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
         CityBudgetOperationalExpenseSupport operationalExpenseSupport,
         IEconomyUnitOfWork unitOfWork,
         ISender sender,
-        IPublishEndpoint publishEndpoint,
+        ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
         ILogger<ClassicCityOperationalExpenseConsumer> logger)
         : IConsumer<ClassicCityOperationalExpenseIncurredV1>
     {
@@ -80,19 +80,10 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
             DateTimeOffset effectiveAtUtc = pressure.LastMunicipalExpenseAtUtc is null
                 ? message.OccurredAtUtc
                 : DateTimeOffset.Parse(pressure.LastMunicipalExpenseAtUtc);
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
-
-            await publishEndpoint.Publish(
-                message: new ClassicCityOperationalBudgetPressureSnapshotV1(
-                    CityId: pressure.CityId,
-                    Balance: pressure.Balance,
-                    TotalCityExpenses: pressure.TotalCityExpenses,
-                    MunicipalOperationsExpenses: pressure.MunicipalOperationsExpenses,
-                    InfrastructureOperationsExpenses: pressure.InfrastructureOperationsExpenses,
-                    EmergencyOperationsExpenses: pressure.EmergencyOperationsExpenses,
-                    PressureIndex: pressure.PressureIndex,
-                    EffectiveAtUtc: effectiveAtUtc,
-                    OccurredAtUtc: occurredAtUtc),
+            await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                snapshot: pressure,
+                effectiveAtUtc: effectiveAtUtc,
+                occurredAtUtc: DateTimeOffset.UtcNow,
                 cancellationToken: context.CancellationToken);
         }
     }

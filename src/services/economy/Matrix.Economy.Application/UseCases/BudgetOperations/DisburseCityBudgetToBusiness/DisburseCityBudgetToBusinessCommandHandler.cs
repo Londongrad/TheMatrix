@@ -1,6 +1,7 @@
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Aggregates;
 using MediatR;
 
@@ -9,7 +10,9 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
     public sealed class DisburseCityBudgetToBusinessCommandHandler(
         ICityBusinessRepository businessRepository,
         CityBudgetBusinessDisbursementSupport disbursementSupport,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
+        ISender sender)
         : IRequestHandler<DisburseCityBudgetToBusinessCommand, BudgetLedgerEntryDto>
     {
         public async Task<BudgetLedgerEntryDto> Handle(
@@ -33,6 +36,14 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
                 description: request.Description,
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            CityOperationalBudgetPressureDto pressure = await sender.Send(
+                request: new GetCityOperationalBudgetPressureQuery(request.CityId),
+                cancellationToken: cancellationToken);
+            await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                snapshot: pressure,
+                effectiveAtUtc: DateTimeOffset.Parse(result.OccurredAtUtc),
+                occurredAtUtc: DateTimeOffset.UtcNow,
+                cancellationToken: cancellationToken);
             return result;
         }
     }

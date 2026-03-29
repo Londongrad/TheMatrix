@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
@@ -13,7 +14,9 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetR
     public sealed class RecordCityBudgetRevenueCommandHandler(
         ICityBudgetRepository budgetRepository,
         ICityBudgetLedgerRepository ledgerRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
+        ISender sender)
         : IRequestHandler<RecordCityBudgetRevenueCommand, BudgetLedgerEntryDto>
     {
         public async Task<BudgetLedgerEntryDto> Handle(
@@ -48,6 +51,14 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetR
                 entry: entry,
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            CityOperationalBudgetPressureDto pressure = await sender.Send(
+                request: new GetCityOperationalBudgetPressureQuery(request.CityId),
+                cancellationToken: cancellationToken);
+            await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                snapshot: pressure,
+                effectiveAtUtc: entry.OccurredAtUtc,
+                occurredAtUtc: DateTimeOffset.UtcNow,
+                cancellationToken: cancellationToken);
 
             return Map(
                 entry: entry,

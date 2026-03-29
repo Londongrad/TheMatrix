@@ -66,13 +66,21 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: result.UnitCode,
                     UnitDisplayName: result.UnitDisplayName,
                     UnitSymbol: result.UnitSymbol,
-                    Balance: result.Balance,
-                    TotalCityExpenses: result.TotalCityExpenses,
-                    MunicipalOperationsExpenses: result.MunicipalOperationsExpenses,
-                    InfrastructureOperationsExpenses: result.InfrastructureOperationsExpenses,
-                    EmergencyOperationsExpenses: result.EmergencyOperationsExpenses,
-                    LastMunicipalExpenseAtUtc: result.LastMunicipalExpenseAtUtc,
-                    PressureIndex: result.PressureIndex));
+                Balance: result.Balance,
+                TotalCityExpenses: result.TotalCityExpenses,
+                MunicipalOperationsExpenses: result.MunicipalOperationsExpenses,
+                InfrastructureOperationsExpenses: result.InfrastructureOperationsExpenses,
+                EmergencyOperationsExpenses: result.EmergencyOperationsExpenses,
+                GeneralAvailableAmount: result.GeneralAvailableAmount,
+                OperationsAvailableAmount: result.OperationsAvailableAmount,
+                InfrastructureAvailableAmount: result.InfrastructureAvailableAmount,
+                HealthcareAvailableAmount: result.HealthcareAvailableAmount,
+                GeneralAuthorizationLevel: result.GeneralAuthorizationLevel,
+                OperationsAuthorizationLevel: result.OperationsAuthorizationLevel,
+                InfrastructureAuthorizationLevel: result.InfrastructureAuthorizationLevel,
+                HealthcareAuthorizationLevel: result.HealthcareAuthorizationLevel,
+                LastMunicipalExpenseAtUtc: result.LastMunicipalExpenseAtUtc,
+                PressureIndex: result.PressureIndex));
         }
 
         [HttpPost("cities/{cityId:guid}/bootstrap")]

@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
+using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
@@ -13,7 +14,9 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
     public sealed class SetCityBudgetAllocationCommandHandler(
         ICityBudgetRepository budgetRepository,
         ICityBudgetAllocationRepository allocationRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
+        ISender sender)
         : IRequestHandler<SetCityBudgetAllocationCommand, CityBudgetAllocationDto>
     {
         public async Task<CityBudgetAllocationDto> Handle(
@@ -58,6 +61,15 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
             }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            CityOperationalBudgetPressureDto pressure = await sender.Send(
+                request: new GetCityOperationalBudgetPressureQuery(request.CityId),
+                cancellationToken: cancellationToken);
+            await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                snapshot: pressure,
+                effectiveAtUtc: updatedAtUtc,
+                occurredAtUtc: DateTimeOffset.UtcNow,
+                cancellationToken: cancellationToken);
+
             return GetCityBudgetAllocationsQueryHandler.Map(allocation);
         }
 

@@ -1,5 +1,7 @@
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Aggregates;
+using Matrix.Economy.Domain.Entities;
+using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.ValueObjects;
 using MediatR;
 
@@ -7,7 +9,8 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
 {
     public sealed class GetCityOperationalBudgetPressureQueryHandler(
         ICityBudgetRepository budgetRepository,
-        ICityBudgetLedgerRepository budgetLedgerRepository)
+        ICityBudgetLedgerRepository budgetLedgerRepository,
+        ICityBudgetAllocationRepository allocationRepository)
         : IRequestHandler<GetCityOperationalBudgetPressureQuery, CityOperationalBudgetPressureDto>
     {
         public async Task<CityOperationalBudgetPressureDto> Handle(
@@ -24,6 +27,33 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
                 await budgetLedgerRepository.GetOperationalExpenseSnapshotAsync(
                     cityId: request.CityId,
                     cancellationToken: cancellationToken);
+            IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(
+                cityId: request.CityId,
+                cancellationToken: cancellationToken);
+            Dictionary<CityBudgetCategory, decimal> availableAmounts = allocations.ToDictionary(
+                keySelector: x => x.Category,
+                elementSelector: x => CityOperationalBudgetControlPolicy.NormalizeAvailableAmount(
+                    x.GetAvailableAmount().Amount));
+            decimal pressureIndex = CalculatePressureIndex(
+                balance: budget.Balance.Amount,
+                totalCityExpenses: budget.TotalCityExpenses.Amount,
+                municipalOperationsExpenses: snapshot.TotalMunicipalOperationsExpenses);
+            decimal generalAvailableAmount = ResolveAvailableAmount(
+                category: CityBudgetCategory.General,
+                availableAmounts: availableAmounts,
+                balance: budget.Balance.Amount);
+            decimal operationsAvailableAmount = ResolveAvailableAmount(
+                category: CityBudgetCategory.Operations,
+                availableAmounts: availableAmounts,
+                balance: budget.Balance.Amount);
+            decimal infrastructureAvailableAmount = ResolveAvailableAmount(
+                category: CityBudgetCategory.Infrastructure,
+                availableAmounts: availableAmounts,
+                balance: budget.Balance.Amount);
+            decimal healthcareAvailableAmount = ResolveAvailableAmount(
+                category: CityBudgetCategory.Healthcare,
+                availableAmounts: availableAmounts,
+                balance: budget.Balance.Amount);
 
             return new CityOperationalBudgetPressureDto(
                 CityId: request.CityId,
@@ -36,11 +66,24 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
                 MunicipalOperationsExpenses: snapshot.TotalMunicipalOperationsExpenses,
                 InfrastructureOperationsExpenses: snapshot.InfrastructureOperationsExpenses,
                 EmergencyOperationsExpenses: snapshot.EmergencyOperationsExpenses,
+                GeneralAvailableAmount: generalAvailableAmount,
+                OperationsAvailableAmount: operationsAvailableAmount,
+                InfrastructureAvailableAmount: infrastructureAvailableAmount,
+                HealthcareAvailableAmount: healthcareAvailableAmount,
+                GeneralAuthorizationLevel: CityOperationalBudgetControlPolicy.ResolveAuthorizationLevel(
+                    availableAmount: generalAvailableAmount,
+                    pressureIndex: pressureIndex),
+                OperationsAuthorizationLevel: CityOperationalBudgetControlPolicy.ResolveAuthorizationLevel(
+                    availableAmount: operationsAvailableAmount,
+                    pressureIndex: pressureIndex),
+                InfrastructureAuthorizationLevel: CityOperationalBudgetControlPolicy.ResolveAuthorizationLevel(
+                    availableAmount: infrastructureAvailableAmount,
+                    pressureIndex: pressureIndex),
+                HealthcareAuthorizationLevel: CityOperationalBudgetControlPolicy.ResolveAuthorizationLevel(
+                    availableAmount: healthcareAvailableAmount,
+                    pressureIndex: pressureIndex),
                 LastMunicipalExpenseAtUtc: snapshot.LastMunicipalExpenseAtUtc?.ToString("O"),
-                PressureIndex: CalculatePressureIndex(
-                    balance: budget.Balance.Amount,
-                    totalCityExpenses: budget.TotalCityExpenses.Amount,
-                    municipalOperationsExpenses: snapshot.TotalMunicipalOperationsExpenses));
+                PressureIndex: pressureIndex);
         }
 
         private static decimal CalculatePressureIndex(
@@ -71,6 +114,17 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
                 val2: Math.Max(
                     val1: 0m,
                     val2: value));
+        }
+
+        private static decimal ResolveAvailableAmount(
+            CityBudgetCategory category,
+            IReadOnlyDictionary<CityBudgetCategory, decimal> availableAmounts,
+            decimal balance)
+        {
+            if (availableAmounts.TryGetValue(category, out decimal availableAmount))
+                return availableAmount;
+
+            return CityOperationalBudgetControlPolicy.NormalizeAvailableAmount(balance);
         }
     }
 }

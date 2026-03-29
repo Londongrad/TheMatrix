@@ -67,6 +67,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityHouseholdAccountRepository, CityHouseholdAccountRepository>();
             services.AddScoped<ICityHouseholdAccountLedgerRepository, CityHouseholdAccountLedgerRepository>();
             services.AddScoped<ICityHouseholdObligationRepository, CityHouseholdObligationRepository>();
+            services.AddScoped<ICityOperationalBudgetSignalPublisher, MassTransitCityOperationalBudgetSignalPublisher>();
             services.AddScoped<ICityPopulationSignalPublisher, MassTransitCityPopulationSignalPublisher>();
             services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
