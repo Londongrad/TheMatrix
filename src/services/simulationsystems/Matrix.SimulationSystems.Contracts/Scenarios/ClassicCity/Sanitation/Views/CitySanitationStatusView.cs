@@ -5,11 +5,14 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Vi
         DateTimeOffset LastEvaluatedAtUtc,
         decimal SanitationCoverageIndex,
         decimal SanitationSupportIndex,
+        decimal BudgetPressureIndex,
         bool EmergencyModeEnabled,
         decimal TreatmentStabilityIndex,
         decimal NetworkIntegrityIndex,
         decimal OverflowControlIndex,
         decimal CrewReadinessIndex,
         decimal IncidentPressureIndex,
+        string? RequestedIntensity,
+        string? AppliedIntensity,
         CitySanitationSystemStatusView System);
 }

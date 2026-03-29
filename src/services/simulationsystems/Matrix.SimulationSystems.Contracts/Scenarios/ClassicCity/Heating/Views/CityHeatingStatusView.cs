@@ -5,11 +5,14 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views
         DateTimeOffset LastEvaluatedAtUtc,
         decimal HeatingCoverageIndex,
         decimal HeatingSupportIndex,
+        decimal BudgetPressureIndex,
         bool EmergencyModeEnabled,
         decimal PlantCapacityIndex,
         decimal NetworkIntegrityIndex,
         decimal ControlReadinessIndex,
         decimal CrewReadinessIndex,
         decimal IncidentPressureIndex,
+        string? RequestedIntensity,
+        string? AppliedIntensity,
         CityHeatingSystemStatusView System);
 }

@@ -5,11 +5,14 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncide
         DateTimeOffset LastEvaluatedAtUtc,
         decimal UtilityContinuityIndex,
         decimal UtilityIncidentSupportIndex,
+        decimal BudgetPressureIndex,
         bool EmergencyModeEnabled,
         decimal DispatchReadinessIndex,
         decimal RestorationCoverageIndex,
         decimal SpareCapacityIndex,
         decimal FieldCoordinationIndex,
         decimal IncidentQueuePressureIndex,
+        string? RequestedIntensity,
+        string? AppliedIntensity,
         CityUtilityIncidentSystemStatusView System);
 }
