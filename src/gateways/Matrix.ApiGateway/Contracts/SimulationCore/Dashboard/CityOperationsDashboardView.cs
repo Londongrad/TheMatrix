@@ -76,6 +76,19 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         string CityStatus,
         string Severity,
         string Summary,
+        string ControlStatus,
         decimal PressureIndex,
+        DashboardBudgetControlView Controls,
         CityOperationalBudgetPressureView Budget);
+
+    public sealed record DashboardBudgetControlView(
+        DashboardBudgetControlCategoryView General,
+        DashboardBudgetControlCategoryView Operations,
+        DashboardBudgetControlCategoryView Infrastructure,
+        DashboardBudgetControlCategoryView Healthcare);
+
+    public sealed record DashboardBudgetControlCategoryView(
+        string Category,
+        string AuthorizationLevel,
+        decimal AvailableAmount);
 }

@@ -123,7 +123,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     Label: "Operational budget alerts",
                     Current: budgetAlerts.Length,
                     Description:
-                    "Ready classic-city simulations where municipal operations spending is starting to strain city budgets.",
+                    "Ready classic-city simulations where municipal operations spending or category budget caps are starting to constrain city response.",
                     DeltaYesterday: null,
                     DeltaMonth: null,
                     DeltaYear: null,
@@ -376,7 +376,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             return alerts
                .Where(alert => alert is not null)
                .Select(alert => alert!)
-               .OrderByDescending(alert => alert.PressureIndex)
+               .OrderByDescending(alert => GetBudgetSeverityRank(alert.Severity))
+               .ThenByDescending(alert => GetBudgetControlStatusRank(alert.ControlStatus))
+               .ThenByDescending(alert => alert.PressureIndex)
                .ThenBy(
                     keySelector: alert => alert.CityName,
                     comparer: StringComparer.OrdinalIgnoreCase)
@@ -445,16 +447,18 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                         cityId: city.CityId,
                         cancellationToken: cancellationToken);
 
-                if (pressure is null || pressure.PressureIndex < 0.2200m)
+                if (pressure is null || !ShouldIncludeBudgetAlert(pressure))
                     return null;
 
                 return new DashboardBudgetPressureView(
                     CityId: city.CityId,
                     CityName: city.Name,
                     CityStatus: city.Status,
-                    Severity: GetBudgetSeverity(pressure.PressureIndex),
+                    Severity: GetBudgetSeverity(pressure),
                     Summary: BuildBudgetSummary(pressure),
+                    ControlStatus: GetBudgetControlStatus(pressure),
                     PressureIndex: pressure.PressureIndex,
+                    Controls: BuildBudgetControlView(pressure),
                     Budget: pressure);
             }
             catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
@@ -764,13 +768,30 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             };
         }
 
-        private static string GetBudgetSeverity(decimal pressureIndex)
+        private static string GetBudgetSeverity(CityOperationalBudgetPressureView pressure)
         {
-            return pressureIndex switch
+            int restrictionRank = Max(
+                GetBudgetAuthorizationRank(pressure.GeneralAuthorizationLevel),
+                GetBudgetAuthorizationRank(pressure.OperationsAuthorizationLevel),
+                GetBudgetAuthorizationRank(pressure.InfrastructureAuthorizationLevel),
+                GetBudgetAuthorizationRank(pressure.HealthcareAuthorizationLevel));
+
+            if (pressure.Balance < 0m || restrictionRank >= 3 || pressure.PressureIndex >= 0.6500m)
+                return "danger";
+
+            if (restrictionRank >= 2 || pressure.PressureIndex >= 0.4000m)
+                return "warning";
+
+            return "info";
+        }
+
+        private static int GetBudgetSeverityRank(string severity)
+        {
+            return severity switch
             {
-                >= 0.6500m => "danger",
-                >= 0.4000m => "warning",
-                _ => "info"
+                "danger" => 2,
+                "warning" => 1,
+                _ => 0
             };
         }
 
@@ -920,6 +941,38 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
         private static string BuildBudgetSummary(CityOperationalBudgetPressureView pressure)
         {
+            if (GetBudgetAuthorizationRank(pressure.InfrastructureAuthorizationLevel) >= 2)
+                return BuildBudgetControlConstraintSummary(
+                    category: "Infrastructure",
+                    authorizationLevel: pressure.InfrastructureAuthorizationLevel,
+                    availableAmount: pressure.InfrastructureAvailableAmount,
+                    fallback:
+                    "Infrastructure maintenance dispatches are becoming a meaningful drag on the city budget.");
+
+            if (GetBudgetAuthorizationRank(pressure.OperationsAuthorizationLevel) >= 2)
+                return BuildBudgetControlConstraintSummary(
+                    category: "Operations",
+                    authorizationLevel: pressure.OperationsAuthorizationLevel,
+                    availableAmount: pressure.OperationsAvailableAmount,
+                    fallback:
+                    "Emergency operations spending is climbing and starting to squeeze budget headroom.");
+
+            if (GetBudgetAuthorizationRank(pressure.GeneralAuthorizationLevel) >= 2)
+                return BuildBudgetControlConstraintSummary(
+                    category: "General",
+                    authorizationLevel: pressure.GeneralAuthorizationLevel,
+                    availableAmount: pressure.GeneralAvailableAmount,
+                    fallback:
+                    "General city reserves are tightening and reduce municipal operating flexibility.");
+
+            if (GetBudgetAuthorizationRank(pressure.HealthcareAuthorizationLevel) >= 2)
+                return BuildBudgetControlConstraintSummary(
+                    category: "Healthcare",
+                    authorizationLevel: pressure.HealthcareAuthorizationLevel,
+                    availableAmount: pressure.HealthcareAvailableAmount,
+                    fallback:
+                    "Healthcare budget headroom is tightening and leaves less room for medical support surges.");
+
             decimal dominantOperationsExpense = Math.Max(
                 pressure.InfrastructureOperationsExpenses,
                 pressure.EmergencyOperationsExpenses);
@@ -934,6 +987,116 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 return "Emergency operations spending is climbing and starting to squeeze budget headroom.";
 
             return "Municipal operations spending is rising and starting to narrow budget headroom.";
+        }
+
+        private static string BuildBudgetControlConstraintSummary(
+            string category,
+            string authorizationLevel,
+            decimal availableAmount,
+            string fallback)
+        {
+            string amount = decimal.Round(
+                d: Math.Max(
+                    val1: 0m,
+                    val2: availableAmount),
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero)
+               .ToString("0.##");
+
+            return authorizationLevel switch
+            {
+                "None" => $"{category} budget authorization is exhausted and operators are down to minimum response depth.",
+                "Low" => $"{category} budget authorization is tight with only {amount} left for new operating decisions.",
+                _ => fallback
+            };
+        }
+
+        private static string GetBudgetControlStatus(CityOperationalBudgetPressureView pressure)
+        {
+            int restrictionRank = Max(
+                GetBudgetAuthorizationRank(pressure.GeneralAuthorizationLevel),
+                GetBudgetAuthorizationRank(pressure.OperationsAuthorizationLevel),
+                GetBudgetAuthorizationRank(pressure.InfrastructureAuthorizationLevel),
+                GetBudgetAuthorizationRank(pressure.HealthcareAuthorizationLevel));
+
+            if (pressure.Balance < 0m || restrictionRank >= 3)
+                return "restricted";
+
+            if (restrictionRank >= 2)
+                return "tight";
+
+            if (restrictionRank >= 1 || pressure.PressureIndex >= 0.2200m)
+                return "watch";
+
+            return "open";
+        }
+
+        private static int GetBudgetControlStatusRank(string controlStatus)
+        {
+            return controlStatus switch
+            {
+                "restricted" => 3,
+                "tight" => 2,
+                "watch" => 1,
+                _ => 0
+            };
+        }
+
+        private static bool ShouldIncludeBudgetAlert(CityOperationalBudgetPressureView pressure)
+        {
+            return pressure.PressureIndex >= 0.2200m ||
+                   GetBudgetAuthorizationRank(pressure.GeneralAuthorizationLevel) > 0 ||
+                   GetBudgetAuthorizationRank(pressure.OperationsAuthorizationLevel) > 0 ||
+                   GetBudgetAuthorizationRank(pressure.InfrastructureAuthorizationLevel) > 0 ||
+                   GetBudgetAuthorizationRank(pressure.HealthcareAuthorizationLevel) > 0;
+        }
+
+        private static DashboardBudgetControlView BuildBudgetControlView(CityOperationalBudgetPressureView pressure)
+        {
+            return new DashboardBudgetControlView(
+                General: new DashboardBudgetControlCategoryView(
+                    Category: "General",
+                    AuthorizationLevel: pressure.GeneralAuthorizationLevel,
+                    AvailableAmount: pressure.GeneralAvailableAmount),
+                Operations: new DashboardBudgetControlCategoryView(
+                    Category: "Operations",
+                    AuthorizationLevel: pressure.OperationsAuthorizationLevel,
+                    AvailableAmount: pressure.OperationsAvailableAmount),
+                Infrastructure: new DashboardBudgetControlCategoryView(
+                    Category: "Infrastructure",
+                    AuthorizationLevel: pressure.InfrastructureAuthorizationLevel,
+                    AvailableAmount: pressure.InfrastructureAvailableAmount),
+                Healthcare: new DashboardBudgetControlCategoryView(
+                    Category: "Healthcare",
+                    AuthorizationLevel: pressure.HealthcareAuthorizationLevel,
+                    AvailableAmount: pressure.HealthcareAvailableAmount));
+        }
+
+        private static int GetBudgetAuthorizationRank(string authorizationLevel)
+        {
+            return authorizationLevel switch
+            {
+                "High" => 0,
+                "Medium" => 1,
+                "Low" => 2,
+                "None" => 3,
+                _ => 0
+            };
+        }
+
+        private static int Max(params int[] values)
+        {
+            if (values.Length == 0)
+                return 0;
+
+            int current = values[0];
+
+            for (int index = 1; index < values.Length; index++)
+                current = Math.Max(
+                    val1: current,
+                    val2: values[index]);
+
+            return current;
         }
 
         private static decimal Max(params decimal[] values)
