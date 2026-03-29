@@ -9,7 +9,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
             ResupplyFocus focus,
             ResupplyIntensity requestedIntensity,
             CityOperationalBudgetPressureSnapshot budget,
-            bool emergencyRationingEnabled)
+            bool emergencyRationingEnabled,
+            bool emergencyOverrideRequested)
         {
             int requestedLevel = MapIntensityToLevel(requestedIntensity);
             (string authorizationLevel, decimal availableAmount) = ResolveBudgetEnvelope(
@@ -21,6 +22,9 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 maxLevel--;
 
             if (emergencyRationingEnabled && maxLevel < requestedLevel)
+                maxLevel++;
+
+            if (emergencyOverrideRequested && maxLevel < requestedLevel)
                 maxLevel++;
 
             maxLevel = Math.Clamp(maxLevel, 0, 3);

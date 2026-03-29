@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
@@ -8,6 +9,9 @@ using Matrix.Resources.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Resources.Infrastructure.Economy;
+using Matrix.Resources.Infrastructure.Http;
+using Matrix.Resources.Infrastructure.Options;
 using Matrix.Resources.Infrastructure.Persistence;
 using Matrix.Resources.Infrastructure.Persistence.Repositories;
 using Matrix.Resources.Infrastructure.Outbox;
@@ -68,16 +72,33 @@ namespace Matrix.Resources.Infrastructure
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
+            services.AddOptions<DownstreamServicesOptions>()
+               .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ICityStockpileRepository, CityStockpileRepository>();
             services.AddClassicCityScenarioInfrastructure();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<ResourcesDbContext>>();
             services.AddPermissionCheckingFromClaims();
+            services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
+            services.AddTransient<InternalServiceAuthenticationHandler>();
             services.AddOutbox<ResourcesDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityStockpileSnapshotOutboxWriter, CityStockpileSnapshotOutboxWriter>();
             services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
+            services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.Economy))
+                        throw new InvalidOperationException("DownstreamServices:Economy is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.Economy,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
 
             services.AddMassTransit(x =>
             {

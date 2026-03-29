@@ -61,27 +61,18 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                 request: new DispatchCityResupplyCommand(
                     CityId: cityId,
                     Focus: MapFocus(request.Focus),
-                    Intensity: MapIntensity(request.Intensity)),
+                    Intensity: MapIntensity(request.Intensity),
+                    EmergencyOverride: request.EmergencyOverride),
                 cancellationToken: cancellationToken);
 
             if (result.Status == DispatchCityResupplyStatus.NotInitialized)
                 return Results.NotFound();
 
-            if (result.Status == DispatchCityResupplyStatus.BudgetBlocked)
-                return Results.Conflict(
-                    new
-                    {
-                        error = "Operational budget pressure is too high for the requested resupply dispatch.",
-                        budgetPressureIndex = result.BudgetPressureIndex,
-                        budgetAuthorizationLevel = result.BudgetAuthorizationLevel,
-                        budgetAvailableAmount = result.BudgetAvailableAmount,
-                        requestedIntensity = result.RequestedIntensity,
-                        allowedIntensity = result.AppliedIntensity
-                    });
+            DispatchCityResupplyView view = MapDispatchView(result);
 
-            return await LoadCurrentViewAsync(
-                cityId: cityId,
-                cancellationToken: cancellationToken);
+            return result.Status is DispatchCityResupplyStatus.BudgetBlocked or DispatchCityResupplyStatus.AuthorizationDenied
+                ? Results.Conflict(view)
+                : Results.Ok(view);
         }
 
         private async Task<IResult> LoadCurrentViewAsync(
@@ -146,6 +137,26 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                 DemandPressureIndex: dto.DemandPressureIndex,
                 ResupplyReadinessIndex: dto.ResupplyReadinessIndex,
                 ShortageRiskIndex: dto.ShortageRiskIndex);
+        }
+
+        private static DispatchCityResupplyView MapDispatchView(DispatchCityResupplyResult result)
+        {
+            return new DispatchCityResupplyView(
+                Status: result.Status.ToString(),
+                CityId: result.CityId,
+                RequestedIntensity: result.RequestedIntensity,
+                BudgetAuthorizedIntensity: result.BudgetAuthorizedIntensity,
+                AppliedIntensity: result.AppliedIntensity,
+                BudgetPressureIndex: result.BudgetPressureIndex,
+                BudgetAuthorizationStatus: result.BudgetAuthorizationStatus,
+                BudgetAuthorizationLevel: result.BudgetAuthorizationLevel,
+                BudgetAvailableAmount: result.BudgetAvailableAmount,
+                BudgetAuthorizedByEmergencyOverride: result.BudgetAuthorizedByEmergencyOverride,
+                BudgetAuthorizationSummary: result.BudgetAuthorizationSummary,
+                SupplyStressIndex: result.SupplyStressIndex,
+                FuelStockLevelIndex: result.FuelStockLevelIndex,
+                FoodStockLevelIndex: result.FoodStockLevelIndex,
+                EmergencyWaterStockLevelIndex: result.EmergencyWaterStockLevelIndex);
         }
     }
 }

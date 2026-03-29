@@ -18,7 +18,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 ExpenseId: Guid.NewGuid(),
                 CityId: cityId,
                 Category: ResolveBudgetCategory(focus),
-                Amount: ResolveAmount(
+                Amount: EstimateDispatchAmount(
                     focus: focus,
                     intensity: intensity),
                 Title: focus == ResupplyFocus.All
@@ -30,7 +30,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 OccurredAtUtc: occurredAtUtc);
         }
 
-        private static decimal ResolveAmount(
+        public static decimal EstimateDispatchAmount(
             ResupplyFocus focus,
             ResupplyIntensity intensity)
         {
@@ -59,7 +59,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 mode: MidpointRounding.AwayFromZero);
         }
 
-        private static string ResolveBudgetCategory(ResupplyFocus focus)
+        public static string ResolveBudgetCategory(ResupplyFocus focus)
         {
             return focus switch
             {

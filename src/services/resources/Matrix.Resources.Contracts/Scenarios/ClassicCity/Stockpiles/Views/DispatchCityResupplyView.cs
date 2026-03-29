@@ -1,7 +1,7 @@
-namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.DispatchCityResupply
+namespace Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views
 {
-    public sealed record DispatchCityResupplyResult(
-        DispatchCityResupplyStatus Status,
+    public sealed record DispatchCityResupplyView(
+        string Status,
         Guid CityId,
         string RequestedIntensity,
         string? BudgetAuthorizedIntensity,

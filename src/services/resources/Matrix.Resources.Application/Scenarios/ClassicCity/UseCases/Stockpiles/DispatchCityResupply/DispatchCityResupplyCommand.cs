@@ -6,5 +6,6 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed record DispatchCityResupplyCommand(
         Guid CityId,
         ResupplyFocus Focus,
-        ResupplyIntensity Intensity) : IRequest<DispatchCityResupplyResult>;
+        ResupplyIntensity Intensity,
+        bool EmergencyOverride) : IRequest<DispatchCityResupplyResult>;
 }
