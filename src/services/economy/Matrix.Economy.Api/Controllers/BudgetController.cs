@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Requests;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
+using Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation;
 using Matrix.Economy.Application.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation;
@@ -81,6 +82,48 @@ namespace Matrix.Economy.Api.Controllers
                 HealthcareAuthorizationLevel: result.HealthcareAuthorizationLevel,
                 LastMunicipalExpenseAtUtc: result.LastMunicipalExpenseAtUtc,
                 PressureIndex: result.PressureIndex));
+        }
+
+        [HttpPost("cities/{cityId:guid}/operation-authorizations")]
+        public async Task<IActionResult> AuthorizeBudgetOperation(
+            [FromRoute] Guid cityId,
+            [FromBody] AuthorizeBudgetOperationRequest request,
+            CancellationToken cancellationToken)
+        {
+            if (!TryParseCategory(
+                    rawCategory: request.Category,
+                    category: out CityBudgetCategory category))
+                return BadRequest(
+                    new
+                    {
+                        error = $"Unsupported budget category '{request.Category}'."
+                    });
+
+            CityBudgetOperationAuthorizationDto result = await _sender.Send(
+                request: new AuthorizeCityBudgetOperationCommand(
+                    CityId: cityId,
+                    Category: category,
+                    OperationKind: request.OperationKind,
+                    RequestedIntensity: request.RequestedIntensity,
+                    EstimatedAmount: request.EstimatedAmount,
+                    EmergencyOverrideRequested: request.EmergencyOverride),
+                cancellationToken: cancellationToken);
+
+            return Ok(
+                new BudgetOperationAuthorizationView(
+                    CityId: result.CityId,
+                    Category: result.Category,
+                    OperationKind: result.OperationKind,
+                    RequestedIntensity: result.RequestedIntensity,
+                    ApprovedIntensity: result.ApprovedIntensity,
+                    Status: result.Status,
+                    AuthorizationLevel: result.AuthorizationLevel,
+                    AvailableAmount: result.AvailableAmount,
+                    EstimatedAmount: result.EstimatedAmount,
+                    PressureIndex: result.PressureIndex,
+                    EmergencyOverrideRequested: result.EmergencyOverrideRequested,
+                    AuthorizedByEmergencyOverride: result.AuthorizedByEmergencyOverride,
+                    Summary: result.Summary));
         }
 
         [HttpPost("cities/{cityId:guid}/bootstrap")]
