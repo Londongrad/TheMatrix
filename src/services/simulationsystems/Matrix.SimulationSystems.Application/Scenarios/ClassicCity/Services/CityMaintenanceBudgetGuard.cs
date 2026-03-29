@@ -6,18 +6,15 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
     {
         public CityMaintenanceBudgetDecision Resolve(
             string requestedIntensity,
-            CityOperationalBudgetPressureSnapshot budget,
+            string authorizationLevel,
+            decimal pressureIndex,
             bool emergencyModeEnabled)
         {
             string normalizedRequestedIntensity = NormalizeIntensityName(requestedIntensity);
             int requestedLevel = MapIntensityToLevel(normalizedRequestedIntensity);
-            int maxLevel = 3;
-
-            if (budget.PressureIndex >= 0.55m)
-                maxLevel = 2;
-
-            if (budget.PressureIndex >= 0.75m)
-                maxLevel = 1;
+            int maxLevel = Math.Max(
+                1,
+                MapAuthorizationLevelToIntensityLevel(authorizationLevel));
 
             if (emergencyModeEnabled)
                 maxLevel++;
@@ -31,7 +28,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 AppliedIntensity: MapLevelToIntensityName(
                     level: Math.Min(requestedLevel, maxLevel),
                     requestedIntensity: normalizedRequestedIntensity),
-                PressureIndex: budget.PressureIndex);
+                PressureIndex: pressureIndex);
         }
 
         private static int MapIntensityToLevel(string intensity)
@@ -65,6 +62,18 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
         private static string NormalizeIntensityName(string intensity)
         {
             return (intensity ?? string.Empty).Trim().ToLowerInvariant();
+        }
+
+        private static int MapAuthorizationLevelToIntensityLevel(string authorizationLevel)
+        {
+            return authorizationLevel.Trim().ToLowerInvariant() switch
+            {
+                "none" => 0,
+                "low" => 1,
+                "medium" => 2,
+                "high" => 3,
+                _ => 3
+            };
         }
     }
 }

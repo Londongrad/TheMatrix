@@ -41,7 +41,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
                 ignoreCase: true);
             CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
                 requestedIntensity: requestedIntensity.ToString(),
-                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
+                pressureIndex: state.OperationalBudgetPressure.PressureIndex,
                 emergencyModeEnabled: state.DrainageInfrastructure.EmergencyModeEnabled);
             DrainageMaintenanceIntensity appliedIntensity = Enum.Parse<DrainageMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,

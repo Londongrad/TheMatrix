@@ -6,6 +6,14 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         Guid CityId,
         decimal Balance,
         decimal MunicipalOperationsExpenses,
+        decimal GeneralAvailableAmount,
+        decimal OperationsAvailableAmount,
+        decimal InfrastructureAvailableAmount,
+        decimal HealthcareAvailableAmount,
+        string GeneralAuthorizationLevel,
+        string OperationsAuthorizationLevel,
+        string InfrastructureAuthorizationLevel,
+        string HealthcareAuthorizationLevel,
         decimal PressureIndex,
         DateTimeOffset EffectiveAtUtc) : IRequest<SyncCityOperationalBudgetPressureResult>;
 }

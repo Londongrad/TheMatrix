@@ -41,7 +41,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                 ignoreCase: true);
             CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
                 requestedIntensity: requestedIntensity.ToString(),
-                budget: state.OperationalBudgetPressure.ToSnapshot(),
+                authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
+                pressureIndex: state.OperationalBudgetPressure.PressureIndex,
                 emergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled);
             SnowRemovalMaintenanceIntensity appliedIntensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,
