@@ -16,6 +16,12 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
         decimal IncidentPressureIndex,
         string? RequestedIntensity,
         string? AppliedIntensity,
+        string? BudgetAuthorizationStatus,
+        string? BudgetAuthorizationLevel,
+        decimal? BudgetAvailableAmount,
+        bool? BudgetAuthorizedByEmergencyOverride,
+        string? BudgetAuthorizedIntensity,
+        string? BudgetAuthorizationSummary,
         CitySanitationSystemStatusDto System)
     {
         public static CitySanitationStatusDto FromState(
@@ -23,7 +29,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
             CityEnvironmentalConditionState state,
             decimal sanitationSupportIndex,
             string? requestedIntensity = null,
-            string? appliedIntensity = null)
+            string? appliedIntensity = null,
+            string? budgetAuthorizationStatus = null,
+            string? budgetAuthorizationLevel = null,
+            decimal? budgetAvailableAmount = null,
+            bool? budgetAuthorizedByEmergencyOverride = null,
+            string? budgetAuthorizedIntensity = null,
+            string? budgetAuthorizationSummary = null)
         {
             return new CitySanitationStatusDto(
                 CityId: cityId,
@@ -39,6 +51,12 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
                 IncidentPressureIndex: state.SanitationInfrastructure.IncidentPressureIndex,
                 RequestedIntensity: requestedIntensity,
                 AppliedIntensity: appliedIntensity,
+                BudgetAuthorizationStatus: budgetAuthorizationStatus,
+                BudgetAuthorizationLevel: budgetAuthorizationLevel,
+                BudgetAvailableAmount: budgetAvailableAmount,
+                BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
+                BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
+                BudgetAuthorizationSummary: budgetAuthorizationSummary,
                 System: CitySanitationSystemStatusDto.FromSnapshot(state.Sanitation.ToSnapshot()));
         }
     }

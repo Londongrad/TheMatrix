@@ -17,7 +17,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
-        CityMaintenanceBudgetGuard budgetGuard)
+        CityMaintenanceBudgetGuard budgetGuard,
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
         : IRequestHandler<DispatchCityDrainageMaintenanceCommand, CityDrainageStatusDto?>
     {
         public async Task<CityDrainageStatusDto?> Handle(
@@ -39,11 +40,48 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
             DrainageMaintenanceIntensity requestedIntensity = Enum.Parse<DrainageMaintenanceIntensity>(
                 value: request.Intensity,
                 ignoreCase: true);
+            CityBudgetAuthorizationDecision authorizationDecision =
+                await budgetAuthorizationService.AuthorizeInfrastructureMaintenanceAsync(
+                    cityId: request.CityId,
+                    operationKind: "DrainageMaintenanceDispatch",
+                    requestedIntensity: request.Intensity,
+                    estimatedAmount: CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
+                        systemName: "Drainage",
+                        focus: request.Focus,
+                        intensity: request.Intensity),
+                    emergencyOverrideRequested: request.EmergencyOverride,
+                    emergencyModeEnabled: state.DrainageInfrastructure.EmergencyModeEnabled,
+                    defaultAuthorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
+                    defaultAvailableAmount: state.OperationalBudgetPressure.InfrastructureAvailableAmount,
+                    pressureIndex: state.OperationalBudgetPressure.PressureIndex,
+                    cancellationToken: cancellationToken);
+
+            if (authorizationDecision.Denied)
+            {
+                decimal deniedSupport = pressureProfileFactory.Create(state).DrainageSupport;
+
+                return CityDrainageStatusDto.FromState(
+                    cityId: request.CityId,
+                    state: state,
+                    drainageSupportIndex: deniedSupport,
+                    requestedIntensity: request.Intensity,
+                    appliedIntensity: null,
+                    budgetAuthorizationStatus: authorizationDecision.Status,
+                    budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                    budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                    budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                    budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                    budgetAuthorizationSummary: authorizationDecision.Summary);
+            }
+
+            DrainageMaintenanceIntensity budgetAuthorizedIntensity = Enum.Parse<DrainageMaintenanceIntensity>(
+                value: authorizationDecision.ApprovedIntensity ?? requestedIntensity.ToString(),
+                ignoreCase: true);
             CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
-                requestedIntensity: requestedIntensity.ToString(),
+                requestedIntensity: budgetAuthorizedIntensity.ToString(),
                 authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                emergencyModeEnabled: state.DrainageInfrastructure.EmergencyModeEnabled);
+                emergencyModeEnabled: state.DrainageInfrastructure.EmergencyModeEnabled || request.EmergencyOverride);
             DrainageMaintenanceIntensity appliedIntensity = Enum.Parse<DrainageMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
@@ -75,8 +113,14 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
                 cityId: request.CityId,
                 state: state,
                 drainageSupportIndex: drainageSupport,
-                requestedIntensity: budgetDecision.RequestedIntensity,
-                appliedIntensity: budgetDecision.AppliedIntensity);
+                requestedIntensity: request.Intensity,
+                appliedIntensity: budgetDecision.AppliedIntensity,
+                budgetAuthorizationStatus: authorizationDecision.Status,
+                budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                budgetAuthorizationSummary: authorizationDecision.Summary);
         }
     }
 }

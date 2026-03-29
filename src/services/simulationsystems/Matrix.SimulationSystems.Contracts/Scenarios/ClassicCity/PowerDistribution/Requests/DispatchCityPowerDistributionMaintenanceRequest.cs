@@ -2,5 +2,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribu
 {
     public sealed record DispatchCityPowerDistributionMaintenanceRequest(
         string Focus = "Balanced",
-        string Intensity = "Standard");
+        string Intensity = "Standard",
+        bool EmergencyOverride = false);
 }

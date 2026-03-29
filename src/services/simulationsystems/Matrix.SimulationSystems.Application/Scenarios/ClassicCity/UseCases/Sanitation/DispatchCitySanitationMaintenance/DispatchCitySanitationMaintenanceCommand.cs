@@ -8,7 +8,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
     public sealed record DispatchCitySanitationMaintenanceCommand(
         Guid CityId,
         string Focus,
-        string Intensity)
+        string Intensity,
+        bool EmergencyOverride)
         : IRequest<CitySanitationStatusDto?>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.SimulationSystemsClassicCityManage;

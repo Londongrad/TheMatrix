@@ -8,7 +8,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
     public sealed record DispatchCityUtilityIncidentResponseCommand(
         Guid CityId,
         string Focus,
-        string Intensity)
+        string Intensity,
+        bool EmergencyOverride)
         : IRequest<CityUtilityIncidentStatusDto?>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.SimulationSystemsClassicCityManage;

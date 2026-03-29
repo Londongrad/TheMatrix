@@ -56,12 +56,18 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 request: new DispatchCityDrainageMaintenanceCommand(
                     CityId: cityId,
                     Focus: request.Focus,
-                    Intensity: request.Intensity),
+                    Intensity: request.Intensity,
+                    EmergencyOverride: request.EmergencyOverride),
                 cancellationToken: cancellationToken);
 
             return status is null
                 ? Results.NotFound()
-                : Results.Ok(MapToView(status));
+                : string.Equals(
+                    a: status.BudgetAuthorizationStatus,
+                    b: "Denied",
+                    comparisonType: StringComparison.OrdinalIgnoreCase)
+                    ? Results.Conflict(MapToView(status))
+                    : Results.Ok(MapToView(status));
         }
 
         private static CityDrainageStatusView MapToView(CityDrainageStatusDto dto)
@@ -80,6 +86,12 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 IncidentPressureIndex: dto.IncidentPressureIndex,
                 RequestedIntensity: dto.RequestedIntensity,
                 AppliedIntensity: dto.AppliedIntensity,
+                BudgetAuthorizationStatus: dto.BudgetAuthorizationStatus,
+                BudgetAuthorizationLevel: dto.BudgetAuthorizationLevel,
+                BudgetAvailableAmount: dto.BudgetAvailableAmount,
+                BudgetAuthorizedByEmergencyOverride: dto.BudgetAuthorizedByEmergencyOverride,
+                BudgetAuthorizedIntensity: dto.BudgetAuthorizedIntensity,
+                BudgetAuthorizationSummary: dto.BudgetAuthorizationSummary,
                 System: new CityDrainageSystemStatusView(
                     Kind: dto.System.Kind,
                     LoadIndex: dto.System.LoadIndex,

@@ -2,5 +2,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Reque
 {
     public sealed record DispatchCityHeatingMaintenanceRequest(
         string Focus = "Balanced",
-        string Intensity = "Standard");
+        string Intensity = "Standard",
+        bool EmergencyOverride = false);
 }

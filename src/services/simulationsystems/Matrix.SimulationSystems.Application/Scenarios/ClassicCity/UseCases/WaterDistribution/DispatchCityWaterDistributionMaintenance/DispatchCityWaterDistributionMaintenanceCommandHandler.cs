@@ -17,7 +17,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
-        CityMaintenanceBudgetGuard budgetGuard)
+        CityMaintenanceBudgetGuard budgetGuard,
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
         : IRequestHandler<DispatchCityWaterDistributionMaintenanceCommand, CityWaterDistributionStatusDto?>
     {
         public async Task<CityWaterDistributionStatusDto?> Handle(
@@ -39,11 +40,48 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
             WaterDistributionMaintenanceIntensity requestedIntensity = Enum.Parse<WaterDistributionMaintenanceIntensity>(
                 value: request.Intensity,
                 ignoreCase: true);
+            CityBudgetAuthorizationDecision authorizationDecision =
+                await budgetAuthorizationService.AuthorizeInfrastructureMaintenanceAsync(
+                    cityId: request.CityId,
+                    operationKind: "WaterDistributionMaintenanceDispatch",
+                    requestedIntensity: request.Intensity,
+                    estimatedAmount: CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
+                        systemName: "WaterDistribution",
+                        focus: request.Focus,
+                        intensity: request.Intensity),
+                    emergencyOverrideRequested: request.EmergencyOverride,
+                    emergencyModeEnabled: state.WaterDistributionInfrastructure.EmergencyModeEnabled,
+                    defaultAuthorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
+                    defaultAvailableAmount: state.OperationalBudgetPressure.InfrastructureAvailableAmount,
+                    pressureIndex: state.OperationalBudgetPressure.PressureIndex,
+                    cancellationToken: cancellationToken);
+
+            if (authorizationDecision.Denied)
+            {
+                decimal deniedSupport = pressureProfileFactory.Create(state).WaterSupport;
+
+                return CityWaterDistributionStatusDto.FromState(
+                    cityId: request.CityId,
+                    state: state,
+                    waterSupportIndex: deniedSupport,
+                    requestedIntensity: request.Intensity,
+                    appliedIntensity: null,
+                    budgetAuthorizationStatus: authorizationDecision.Status,
+                    budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                    budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                    budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                    budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                    budgetAuthorizationSummary: authorizationDecision.Summary);
+            }
+
+            WaterDistributionMaintenanceIntensity budgetAuthorizedIntensity = Enum.Parse<WaterDistributionMaintenanceIntensity>(
+                value: authorizationDecision.ApprovedIntensity ?? requestedIntensity.ToString(),
+                ignoreCase: true);
             CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
-                requestedIntensity: requestedIntensity.ToString(),
+                requestedIntensity: budgetAuthorizedIntensity.ToString(),
                 authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                emergencyModeEnabled: state.WaterDistributionInfrastructure.EmergencyModeEnabled);
+                emergencyModeEnabled: state.WaterDistributionInfrastructure.EmergencyModeEnabled || request.EmergencyOverride);
             WaterDistributionMaintenanceIntensity appliedIntensity = Enum.Parse<WaterDistributionMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
@@ -75,8 +113,14 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
                 cityId: request.CityId,
                 state: state,
                 waterSupportIndex: waterSupport,
-                requestedIntensity: budgetDecision.RequestedIntensity,
-                appliedIntensity: budgetDecision.AppliedIntensity);
+                requestedIntensity: request.Intensity,
+                appliedIntensity: budgetDecision.AppliedIntensity,
+                budgetAuthorizationStatus: authorizationDecision.Status,
+                budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                budgetAuthorizationSummary: authorizationDecision.Summary);
         }
     }
 }

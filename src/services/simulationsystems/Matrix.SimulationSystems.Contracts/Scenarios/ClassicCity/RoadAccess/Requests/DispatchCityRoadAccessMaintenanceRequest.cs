@@ -2,5 +2,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Re
 {
     public sealed record DispatchCityRoadAccessMaintenanceRequest(
         string Focus = "Balanced",
-        string Intensity = "Standard");
+        string Intensity = "Standard",
+        bool EmergencyOverride = false);
 }

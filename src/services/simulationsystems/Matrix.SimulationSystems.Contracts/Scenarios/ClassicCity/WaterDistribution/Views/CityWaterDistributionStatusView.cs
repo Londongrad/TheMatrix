@@ -14,5 +14,11 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribu
         decimal IncidentPressureIndex,
         string? RequestedIntensity,
         string? AppliedIntensity,
+        string? BudgetAuthorizationStatus,
+        string? BudgetAuthorizationLevel,
+        decimal? BudgetAvailableAmount,
+        bool? BudgetAuthorizedByEmergencyOverride,
+        string? BudgetAuthorizedIntensity,
+        string? BudgetAuthorizationSummary,
         CityWaterDistributionSystemStatusView System);
 }

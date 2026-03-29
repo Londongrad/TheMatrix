@@ -8,7 +8,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
     public sealed record DispatchCityDrainageMaintenanceCommand(
         Guid CityId,
         string Focus,
-        string Intensity)
+        string Intensity,
+        bool EmergencyOverride)
         : IRequest<CityDrainageStatusDto?>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.SimulationSystemsClassicCityManage;

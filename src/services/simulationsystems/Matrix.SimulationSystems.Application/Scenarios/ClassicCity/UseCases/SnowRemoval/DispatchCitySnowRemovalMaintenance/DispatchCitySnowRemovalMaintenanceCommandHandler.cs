@@ -17,7 +17,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
-        CityMaintenanceBudgetGuard budgetGuard)
+        CityMaintenanceBudgetGuard budgetGuard,
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
         : IRequestHandler<DispatchCitySnowRemovalMaintenanceCommand, CitySnowRemovalStatusDto?>
     {
         public async Task<CitySnowRemovalStatusDto?> Handle(
@@ -39,11 +40,48 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
             SnowRemovalMaintenanceIntensity requestedIntensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
                 value: request.Intensity,
                 ignoreCase: true);
+            CityBudgetAuthorizationDecision authorizationDecision =
+                await budgetAuthorizationService.AuthorizeInfrastructureMaintenanceAsync(
+                    cityId: request.CityId,
+                    operationKind: "SnowRemovalMaintenanceDispatch",
+                    requestedIntensity: request.Intensity,
+                    estimatedAmount: CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
+                        systemName: "SnowRemoval",
+                        focus: request.Focus,
+                        intensity: request.Intensity),
+                    emergencyOverrideRequested: request.EmergencyOverride,
+                    emergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled,
+                    defaultAuthorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
+                    defaultAvailableAmount: state.OperationalBudgetPressure.InfrastructureAvailableAmount,
+                    pressureIndex: state.OperationalBudgetPressure.PressureIndex,
+                    cancellationToken: cancellationToken);
+
+            if (authorizationDecision.Denied)
+            {
+                decimal deniedSupport = pressureProfileFactory.Create(state).SnowRemovalSupport;
+
+                return CitySnowRemovalStatusDto.FromState(
+                    cityId: request.CityId,
+                    state: state,
+                    snowRemovalSupportIndex: deniedSupport,
+                    requestedIntensity: request.Intensity,
+                    appliedIntensity: null,
+                    budgetAuthorizationStatus: authorizationDecision.Status,
+                    budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                    budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                    budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                    budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                    budgetAuthorizationSummary: authorizationDecision.Summary);
+            }
+
+            SnowRemovalMaintenanceIntensity budgetAuthorizedIntensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
+                value: authorizationDecision.ApprovedIntensity ?? requestedIntensity.ToString(),
+                ignoreCase: true);
             CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
-                requestedIntensity: requestedIntensity.ToString(),
+                requestedIntensity: budgetAuthorizedIntensity.ToString(),
                 authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                emergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled);
+                emergencyModeEnabled: state.SnowRemovalInfrastructure.EmergencyModeEnabled || request.EmergencyOverride);
             SnowRemovalMaintenanceIntensity appliedIntensity = Enum.Parse<SnowRemovalMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
@@ -75,8 +113,14 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                 cityId: request.CityId,
                 state: state,
                 snowRemovalSupportIndex: snowRemovalSupport,
-                requestedIntensity: budgetDecision.RequestedIntensity,
-                appliedIntensity: budgetDecision.AppliedIntensity);
+                requestedIntensity: request.Intensity,
+                appliedIntensity: budgetDecision.AppliedIntensity,
+                budgetAuthorizationStatus: authorizationDecision.Status,
+                budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                budgetAuthorizationSummary: authorizationDecision.Summary);
         }
     }
 }

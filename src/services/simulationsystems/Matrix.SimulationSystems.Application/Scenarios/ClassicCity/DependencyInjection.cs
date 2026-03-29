@@ -11,6 +11,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity
             services.AddSingleton<CityEnvironmentalConditionPolicy>();
             services.AddSingleton<CityMaintenanceBudgetGuard>();
             services.AddSingleton<ClassicCityWeatherPressureProfileFactory>();
+            services.AddScoped<CityMaintenanceBudgetAuthorizationService>();
 
             return services;
         }

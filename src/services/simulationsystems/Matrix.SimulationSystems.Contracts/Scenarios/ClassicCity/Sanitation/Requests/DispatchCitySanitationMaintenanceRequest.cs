@@ -2,5 +2,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Re
 {
     public sealed record DispatchCitySanitationMaintenanceRequest(
         string Focus = "Balanced",
-        string Intensity = "Standard");
+        string Intensity = "Standard",
+        bool EmergencyOverride = false);
 }

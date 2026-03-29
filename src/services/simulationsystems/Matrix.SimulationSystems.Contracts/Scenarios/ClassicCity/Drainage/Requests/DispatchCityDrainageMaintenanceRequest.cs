@@ -2,5 +2,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Drainage.Requ
 {
     public sealed record DispatchCityDrainageMaintenanceRequest(
         string Focus = "Balanced",
-        string Intensity = "Standard");
+        string Intensity = "Standard",
+        bool EmergencyOverride = false);
 }

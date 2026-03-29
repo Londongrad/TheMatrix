@@ -15,5 +15,11 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.SnowRemoval.V
         decimal IncidentPressureIndex,
         string? RequestedIntensity,
         string? AppliedIntensity,
+        string? BudgetAuthorizationStatus,
+        string? BudgetAuthorizationLevel,
+        decimal? BudgetAvailableAmount,
+        bool? BudgetAuthorizedByEmergencyOverride,
+        string? BudgetAuthorizedIntensity,
+        string? BudgetAuthorizationSummary,
         CitySnowRemovalSystemStatusView System);
 }

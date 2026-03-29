@@ -20,11 +20,10 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 ExpenseId: Guid.NewGuid(),
                 CityId: cityId,
                 Category: "Infrastructure",
-                Amount: ResolveAmount(
+                Amount: EstimateInfrastructureMaintenanceAmount(
                     systemName: systemName,
                     focus: focus,
-                    intensity: intensity,
-                    emergencyResponse: false),
+                    intensity: intensity),
                 Title: $"Dispatch {formattedSystemName.ToLowerInvariant()} maintenance",
                 Description:
                 $"{formattedSystemName} maintenance dispatched with {formattedIntensity.ToLowerInvariant()} intensity and {formattedFocus.ToLowerInvariant()} focus.",
@@ -46,17 +45,38 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 ExpenseId: Guid.NewGuid(),
                 CityId: cityId,
                 Category: "Operations",
-                Amount: ResolveAmount(
-                    systemName: "UtilityIncidents",
+                Amount: EstimateUtilityIncidentResponseAmount(
                     focus: focus,
-                    intensity: intensity,
-                    emergencyResponse: true),
+                    intensity: intensity),
                 Title: "Dispatch utility incident response",
                 Description:
                 $"Utility incident response dispatched with {formattedIntensity.ToLowerInvariant()} intensity and {formattedFocus.ToLowerInvariant()} focus.",
                 SourceService: "SimulationSystems",
                 OperationKind: "UtilityIncidentResponseDispatch",
                 OccurredAtUtc: occurredAtUtc);
+        }
+
+        public static decimal EstimateInfrastructureMaintenanceAmount(
+            string systemName,
+            string focus,
+            string intensity)
+        {
+            return ResolveAmount(
+                systemName: systemName,
+                focus: focus,
+                intensity: intensity,
+                emergencyResponse: false);
+        }
+
+        public static decimal EstimateUtilityIncidentResponseAmount(
+            string focus,
+            string intensity)
+        {
+            return ResolveAmount(
+                systemName: "UtilityIncidents",
+                focus: focus,
+                intensity: intensity,
+                emergencyResponse: true);
         }
 
         private static decimal ResolveAmount(

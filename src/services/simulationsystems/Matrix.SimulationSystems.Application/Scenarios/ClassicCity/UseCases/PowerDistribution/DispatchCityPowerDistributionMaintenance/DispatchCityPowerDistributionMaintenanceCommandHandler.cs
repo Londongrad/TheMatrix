@@ -17,7 +17,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
-        CityMaintenanceBudgetGuard budgetGuard)
+        CityMaintenanceBudgetGuard budgetGuard,
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
         : IRequestHandler<DispatchCityPowerDistributionMaintenanceCommand, CityPowerDistributionStatusDto?>
     {
         public async Task<CityPowerDistributionStatusDto?> Handle(
@@ -39,11 +40,48 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
             PowerDistributionMaintenanceIntensity requestedIntensity = Enum.Parse<PowerDistributionMaintenanceIntensity>(
                 value: request.Intensity,
                 ignoreCase: true);
+            CityBudgetAuthorizationDecision authorizationDecision =
+                await budgetAuthorizationService.AuthorizeInfrastructureMaintenanceAsync(
+                    cityId: request.CityId,
+                    operationKind: "PowerDistributionMaintenanceDispatch",
+                    requestedIntensity: request.Intensity,
+                    estimatedAmount: CityMaintenanceOperationalExpenseFactory.EstimateInfrastructureMaintenanceAmount(
+                        systemName: "PowerDistribution",
+                        focus: request.Focus,
+                        intensity: request.Intensity),
+                    emergencyOverrideRequested: request.EmergencyOverride,
+                    emergencyModeEnabled: state.PowerDistributionInfrastructure.EmergencyModeEnabled,
+                    defaultAuthorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
+                    defaultAvailableAmount: state.OperationalBudgetPressure.InfrastructureAvailableAmount,
+                    pressureIndex: state.OperationalBudgetPressure.PressureIndex,
+                    cancellationToken: cancellationToken);
+
+            if (authorizationDecision.Denied)
+            {
+                decimal deniedSupport = pressureProfileFactory.Create(state).PowerSupport;
+
+                return CityPowerDistributionStatusDto.FromState(
+                    cityId: request.CityId,
+                    state: state,
+                    powerSupportIndex: deniedSupport,
+                    requestedIntensity: request.Intensity,
+                    appliedIntensity: null,
+                    budgetAuthorizationStatus: authorizationDecision.Status,
+                    budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                    budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                    budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                    budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                    budgetAuthorizationSummary: authorizationDecision.Summary);
+            }
+
+            PowerDistributionMaintenanceIntensity budgetAuthorizedIntensity = Enum.Parse<PowerDistributionMaintenanceIntensity>(
+                value: authorizationDecision.ApprovedIntensity ?? requestedIntensity.ToString(),
+                ignoreCase: true);
             CityMaintenanceBudgetDecision budgetDecision = budgetGuard.Resolve(
-                requestedIntensity: requestedIntensity.ToString(),
+                requestedIntensity: budgetAuthorizedIntensity.ToString(),
                 authorizationLevel: state.OperationalBudgetPressure.InfrastructureAuthorizationLevel,
                 pressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                emergencyModeEnabled: state.PowerDistributionInfrastructure.EmergencyModeEnabled);
+                emergencyModeEnabled: state.PowerDistributionInfrastructure.EmergencyModeEnabled || request.EmergencyOverride);
             PowerDistributionMaintenanceIntensity appliedIntensity = Enum.Parse<PowerDistributionMaintenanceIntensity>(
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
@@ -75,8 +113,14 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
                 cityId: request.CityId,
                 state: state,
                 powerSupportIndex: powerSupport,
-                requestedIntensity: budgetDecision.RequestedIntensity,
-                appliedIntensity: budgetDecision.AppliedIntensity);
+                requestedIntensity: request.Intensity,
+                appliedIntensity: budgetDecision.AppliedIntensity,
+                budgetAuthorizationStatus: authorizationDecision.Status,
+                budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
+                budgetAvailableAmount: authorizationDecision.AvailableAmount,
+                budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
+                budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
+                budgetAuthorizationSummary: authorizationDecision.Summary);
         }
     }
 }

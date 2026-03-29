@@ -16,6 +16,12 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
         decimal IncidentPressureIndex,
         string? RequestedIntensity,
         string? AppliedIntensity,
+        string? BudgetAuthorizationStatus,
+        string? BudgetAuthorizationLevel,
+        decimal? BudgetAvailableAmount,
+        bool? BudgetAuthorizedByEmergencyOverride,
+        string? BudgetAuthorizedIntensity,
+        string? BudgetAuthorizationSummary,
         CityPowerDistributionSystemStatusDto System)
     {
         public static CityPowerDistributionStatusDto FromState(
@@ -23,7 +29,13 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
             CityEnvironmentalConditionState state,
             decimal powerSupportIndex,
             string? requestedIntensity = null,
-            string? appliedIntensity = null)
+            string? appliedIntensity = null,
+            string? budgetAuthorizationStatus = null,
+            string? budgetAuthorizationLevel = null,
+            decimal? budgetAvailableAmount = null,
+            bool? budgetAuthorizedByEmergencyOverride = null,
+            string? budgetAuthorizedIntensity = null,
+            string? budgetAuthorizationSummary = null)
         {
             return new CityPowerDistributionStatusDto(
                 CityId: cityId,
@@ -39,6 +51,12 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
                 IncidentPressureIndex: state.PowerDistributionInfrastructure.IncidentPressureIndex,
                 RequestedIntensity: requestedIntensity,
                 AppliedIntensity: appliedIntensity,
+                BudgetAuthorizationStatus: budgetAuthorizationStatus,
+                BudgetAuthorizationLevel: budgetAuthorizationLevel,
+                BudgetAvailableAmount: budgetAvailableAmount,
+                BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
+                BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
+                BudgetAuthorizationSummary: budgetAuthorizationSummary,
                 System: CityPowerDistributionSystemStatusDto.FromSnapshot(state.PowerDistribution.ToSnapshot()));
         }
     }
