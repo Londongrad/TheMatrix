@@ -73,6 +73,8 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                     {
                         error = "Operational budget pressure is too high for the requested resupply dispatch.",
                         budgetPressureIndex = result.BudgetPressureIndex,
+                        budgetAuthorizationLevel = result.BudgetAuthorizationLevel,
+                        budgetAvailableAmount = result.BudgetAvailableAmount,
                         requestedIntensity = result.RequestedIntensity,
                         allowedIntensity = result.AppliedIntensity
                     });

@@ -42,6 +42,14 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 snapshot: new CityOperationalBudgetPressureSnapshot(
                     Balance: request.Balance,
                     MunicipalOperationsExpenses: request.MunicipalOperationsExpenses,
+                    GeneralAvailableAmount: request.GeneralAvailableAmount,
+                    OperationsAvailableAmount: request.OperationsAvailableAmount,
+                    InfrastructureAvailableAmount: request.InfrastructureAvailableAmount,
+                    HealthcareAvailableAmount: request.HealthcareAvailableAmount,
+                    GeneralAuthorizationLevel: request.GeneralAuthorizationLevel,
+                    OperationsAuthorizationLevel: request.OperationsAuthorizationLevel,
+                    InfrastructureAuthorizationLevel: request.InfrastructureAuthorizationLevel,
+                    HealthcareAuthorizationLevel: request.HealthcareAuthorizationLevel,
                     PressureIndex: request.PressureIndex,
                     EffectiveAtUtc: request.EffectiveAtUtc));
 

@@ -9,17 +9,41 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         private CityOperationalBudgetPressureState(
             decimal balance,
             decimal municipalOperationsExpenses,
+            decimal generalAvailableAmount,
+            decimal operationsAvailableAmount,
+            decimal infrastructureAvailableAmount,
+            decimal healthcareAvailableAmount,
+            string generalAuthorizationLevel,
+            string operationsAuthorizationLevel,
+            string infrastructureAuthorizationLevel,
+            string healthcareAuthorizationLevel,
             decimal pressureIndex,
             DateTimeOffset effectiveAtUtc)
         {
             Balance = balance;
             MunicipalOperationsExpenses = municipalOperationsExpenses;
+            GeneralAvailableAmount = generalAvailableAmount;
+            OperationsAvailableAmount = operationsAvailableAmount;
+            InfrastructureAvailableAmount = infrastructureAvailableAmount;
+            HealthcareAvailableAmount = healthcareAvailableAmount;
+            GeneralAuthorizationLevel = generalAuthorizationLevel;
+            OperationsAuthorizationLevel = operationsAuthorizationLevel;
+            InfrastructureAuthorizationLevel = infrastructureAuthorizationLevel;
+            HealthcareAuthorizationLevel = healthcareAuthorizationLevel;
             PressureIndex = pressureIndex;
             EffectiveAtUtc = effectiveAtUtc;
         }
 
         public decimal Balance { get; private set; }
         public decimal MunicipalOperationsExpenses { get; private set; }
+        public decimal GeneralAvailableAmount { get; private set; }
+        public decimal OperationsAvailableAmount { get; private set; }
+        public decimal InfrastructureAvailableAmount { get; private set; }
+        public decimal HealthcareAvailableAmount { get; private set; }
+        public string GeneralAuthorizationLevel { get; private set; } = string.Empty;
+        public string OperationsAuthorizationLevel { get; private set; } = string.Empty;
+        public string InfrastructureAuthorizationLevel { get; private set; } = string.Empty;
+        public string HealthcareAuthorizationLevel { get; private set; } = string.Empty;
         public decimal PressureIndex { get; private set; }
         public DateTimeOffset EffectiveAtUtc { get; private set; }
 
@@ -30,6 +54,14 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             return new CityOperationalBudgetPressureState(
                 balance: snapshot.Balance,
                 municipalOperationsExpenses: snapshot.MunicipalOperationsExpenses,
+                generalAvailableAmount: snapshot.GeneralAvailableAmount,
+                operationsAvailableAmount: snapshot.OperationsAvailableAmount,
+                infrastructureAvailableAmount: snapshot.InfrastructureAvailableAmount,
+                healthcareAvailableAmount: snapshot.HealthcareAvailableAmount,
+                generalAuthorizationLevel: snapshot.GeneralAuthorizationLevel,
+                operationsAuthorizationLevel: snapshot.OperationsAuthorizationLevel,
+                infrastructureAuthorizationLevel: snapshot.InfrastructureAuthorizationLevel,
+                healthcareAuthorizationLevel: snapshot.HealthcareAuthorizationLevel,
                 pressureIndex: snapshot.PressureIndex,
                 effectiveAtUtc: snapshot.EffectiveAtUtc);
         }
@@ -40,6 +72,14 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
 
             Balance = snapshot.Balance;
             MunicipalOperationsExpenses = snapshot.MunicipalOperationsExpenses;
+            GeneralAvailableAmount = snapshot.GeneralAvailableAmount;
+            OperationsAvailableAmount = snapshot.OperationsAvailableAmount;
+            InfrastructureAvailableAmount = snapshot.InfrastructureAvailableAmount;
+            HealthcareAvailableAmount = snapshot.HealthcareAvailableAmount;
+            GeneralAuthorizationLevel = snapshot.GeneralAuthorizationLevel;
+            OperationsAuthorizationLevel = snapshot.OperationsAuthorizationLevel;
+            InfrastructureAuthorizationLevel = snapshot.InfrastructureAuthorizationLevel;
+            HealthcareAuthorizationLevel = snapshot.HealthcareAuthorizationLevel;
             PressureIndex = snapshot.PressureIndex;
             EffectiveAtUtc = snapshot.EffectiveAtUtc;
         }
@@ -49,6 +89,14 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             return new CityOperationalBudgetPressureSnapshot(
                 Balance: Balance,
                 MunicipalOperationsExpenses: MunicipalOperationsExpenses,
+                GeneralAvailableAmount: GeneralAvailableAmount,
+                OperationsAvailableAmount: OperationsAvailableAmount,
+                InfrastructureAvailableAmount: InfrastructureAvailableAmount,
+                HealthcareAvailableAmount: HealthcareAvailableAmount,
+                GeneralAuthorizationLevel: GeneralAuthorizationLevel,
+                OperationsAuthorizationLevel: OperationsAuthorizationLevel,
+                InfrastructureAuthorizationLevel: InfrastructureAuthorizationLevel,
+                HealthcareAuthorizationLevel: HealthcareAuthorizationLevel,
                 PressureIndex: PressureIndex,
                 EffectiveAtUtc: EffectiveAtUtc);
         }

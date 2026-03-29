@@ -6,5 +6,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
         bool Blocked,
         ResupplyIntensity RequestedIntensity,
         ResupplyIntensity AppliedIntensity,
-        decimal PressureIndex);
+        decimal PressureIndex,
+        string AuthorizationLevel,
+        decimal AvailableAmount);
 }

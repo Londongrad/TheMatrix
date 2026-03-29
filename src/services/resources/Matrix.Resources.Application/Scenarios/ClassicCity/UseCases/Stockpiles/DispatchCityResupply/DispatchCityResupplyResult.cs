@@ -6,6 +6,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         string RequestedIntensity,
         string AppliedIntensity,
         decimal BudgetPressureIndex,
+        string BudgetAuthorizationLevel,
+        decimal BudgetAvailableAmount,
         decimal SupplyStressIndex,
         decimal FuelStockLevelIndex,
         decimal FoodStockLevelIndex,

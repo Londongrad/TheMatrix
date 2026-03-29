@@ -12,27 +12,20 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
             bool emergencyRationingEnabled)
         {
             int requestedLevel = MapIntensityToLevel(requestedIntensity);
-            int maxLevel = 3;
+            (string authorizationLevel, decimal availableAmount) = ResolveBudgetEnvelope(
+                focus: focus,
+                budget: budget);
+            int maxLevel = MapAuthorizationLevelToIntensityLevel(authorizationLevel);
 
-            if (budget.PressureIndex >= 0.55m)
-                maxLevel = 2;
-
-            if (budget.PressureIndex >= 0.75m)
-                maxLevel = 1;
-
-            if (focus == ResupplyFocus.All && budget.PressureIndex >= 0.45m)
+            if (focus == ResupplyFocus.All && maxLevel > 0 && budget.PressureIndex >= 0.45m)
                 maxLevel--;
 
-            if (emergencyRationingEnabled)
+            if (emergencyRationingEnabled && maxLevel < requestedLevel)
                 maxLevel++;
 
-            maxLevel = Math.Clamp(maxLevel, 1, 3);
+            maxLevel = Math.Clamp(maxLevel, 0, 3);
 
-            bool blocked = budget.PressureIndex >= 0.90m &&
-                           budget.Balance < 0m &&
-                           focus == ResupplyFocus.All &&
-                           requestedLevel > 1 &&
-                           !emergencyRationingEnabled;
+            bool blocked = maxLevel <= 0;
             int effectiveLevel = blocked
                 ? 1
                 : Math.Min(requestedLevel, maxLevel);
@@ -41,7 +34,9 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 Blocked: blocked,
                 RequestedIntensity: requestedIntensity,
                 AppliedIntensity: MapLevelToIntensity(effectiveLevel),
-                PressureIndex: budget.PressureIndex);
+                PressureIndex: budget.PressureIndex,
+                AuthorizationLevel: authorizationLevel,
+                AvailableAmount: availableAmount);
         }
 
         private static int MapIntensityToLevel(ResupplyIntensity intensity)
@@ -62,6 +57,35 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 <= 1 => ResupplyIntensity.Low,
                 2 => ResupplyIntensity.Medium,
                 _ => ResupplyIntensity.High
+            };
+        }
+
+        private static int MapAuthorizationLevelToIntensityLevel(string authorizationLevel)
+        {
+            return authorizationLevel.Trim().ToLowerInvariant() switch
+            {
+                "none" => 0,
+                "low" => 1,
+                "medium" => 2,
+                "high" => 3,
+                _ => 3
+            };
+        }
+
+        private static (string AuthorizationLevel, decimal AvailableAmount) ResolveBudgetEnvelope(
+            ResupplyFocus focus,
+            CityOperationalBudgetPressureSnapshot budget)
+        {
+            return focus switch
+            {
+                ResupplyFocus.All => (budget.OperationsAuthorizationLevel, budget.OperationsAvailableAmount),
+                ResupplyFocus.Fuel => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
+                ResupplyFocus.SpareParts => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
+                ResupplyFocus.Filters => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
+                ResupplyFocus.EmergencyWater => (budget.InfrastructureAuthorizationLevel, budget.InfrastructureAvailableAmount),
+                ResupplyFocus.Medicine => (budget.HealthcareAuthorizationLevel, budget.HealthcareAvailableAmount),
+                ResupplyFocus.Food => (budget.GeneralAuthorizationLevel, budget.GeneralAvailableAmount),
+                _ => (budget.OperationsAuthorizationLevel, budget.OperationsAvailableAmount)
             };
         }
     }

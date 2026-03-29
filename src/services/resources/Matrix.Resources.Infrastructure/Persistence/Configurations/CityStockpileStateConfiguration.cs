@@ -49,6 +49,54 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
                        .HasColumnName("BudgetPressureMunicipalOperationsExpenses")
                        .IsRequired();
 
+                    budget.Property(x => x.GeneralAvailableAmount)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureGeneralAvailableAmount")
+                       .IsRequired();
+
+                    budget.Property(x => x.OperationsAvailableAmount)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureOperationsAvailableAmount")
+                       .IsRequired();
+
+                    budget.Property(x => x.InfrastructureAvailableAmount)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureInfrastructureAvailableAmount")
+                       .IsRequired();
+
+                    budget.Property(x => x.HealthcareAvailableAmount)
+                       .HasPrecision(
+                            precision: 18,
+                            scale: 2)
+                       .HasColumnName("BudgetPressureHealthcareAvailableAmount")
+                       .IsRequired();
+
+                    budget.Property(x => x.GeneralAuthorizationLevel)
+                       .HasMaxLength(16)
+                       .HasColumnName("BudgetPressureGeneralAuthorizationLevel")
+                       .IsRequired();
+
+                    budget.Property(x => x.OperationsAuthorizationLevel)
+                       .HasMaxLength(16)
+                       .HasColumnName("BudgetPressureOperationsAuthorizationLevel")
+                       .IsRequired();
+
+                    budget.Property(x => x.InfrastructureAuthorizationLevel)
+                       .HasMaxLength(16)
+                       .HasColumnName("BudgetPressureInfrastructureAuthorizationLevel")
+                       .IsRequired();
+
+                    budget.Property(x => x.HealthcareAuthorizationLevel)
+                       .HasMaxLength(16)
+                       .HasColumnName("BudgetPressureHealthcareAuthorizationLevel")
+                       .IsRequired();
+
                     budget.Property(x => x.PressureIndex)
                        .HasPrecision(
                             precision: 5,
