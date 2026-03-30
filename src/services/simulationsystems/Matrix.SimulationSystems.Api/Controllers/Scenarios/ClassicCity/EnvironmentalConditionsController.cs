@@ -29,6 +29,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
         {
             return new CityEnvironmentalConditionsView(
                 CityId: dto.CityId,
+                EffectiveTickId: dto.EffectiveTickId,
                 FloodingIndex: dto.FloodingIndex,
                 SnowAccumulationIndex: dto.SnowAccumulationIndex,
                 RoadAccessibilityIndex: dto.RoadAccessibilityIndex,

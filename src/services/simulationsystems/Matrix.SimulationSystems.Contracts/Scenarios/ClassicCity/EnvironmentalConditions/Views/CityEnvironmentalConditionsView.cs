@@ -2,6 +2,7 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Environmental
 {
     public sealed record CityEnvironmentalConditionsView(
         Guid CityId,
+        long EffectiveTickId,
         decimal FloodingIndex,
         decimal SnowAccumulationIndex,
         decimal RoadAccessibilityIndex,

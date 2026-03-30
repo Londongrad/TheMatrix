@@ -4,6 +4,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
 {
     public sealed record CityEnvironmentalConditionsDto(
         Guid CityId,
+        long EffectiveTickId,
         decimal FloodingIndex,
         decimal SnowAccumulationIndex,
         decimal RoadAccessibilityIndex,
@@ -27,6 +28,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         {
             return new CityEnvironmentalConditionsDto(
                 CityId: state.SimulationHostId.Value,
+                EffectiveTickId: state.LastAppliedTickId,
                 FloodingIndex: state.FloodingIndex.Value,
                 SnowAccumulationIndex: state.SnowAccumulationIndex.Value,
                 RoadAccessibilityIndex: state.RoadAccessibilityIndex.Value,

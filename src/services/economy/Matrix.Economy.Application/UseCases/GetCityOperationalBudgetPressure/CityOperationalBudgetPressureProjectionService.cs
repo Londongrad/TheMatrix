@@ -9,7 +9,8 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
     public sealed class CityOperationalBudgetPressureProjectionService(
         ICityBudgetRepository budgetRepository,
         ICityBudgetLedgerRepository budgetLedgerRepository,
-        ICityBudgetAllocationRepository allocationRepository) : ICityOperationalBudgetPressureProjectionService
+        ICityBudgetAllocationRepository allocationRepository,
+        ICityEconomyProgressionStateRepository progressionStateRepository) : ICityOperationalBudgetPressureProjectionService
     {
         public async Task<CityOperationalBudgetPressureDto> GetAsync(
             Guid cityId,
@@ -26,6 +27,9 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
                     cityId: cityId,
                     cancellationToken: cancellationToken);
             IReadOnlyList<CityBudgetAllocation> allocations = await allocationRepository.ListByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            CityEconomyProgressionState? progressionState = await progressionStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
             Dictionary<CityBudgetCategory, decimal> availableAmounts = allocations.ToDictionary(
@@ -55,6 +59,8 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
 
             return new CityOperationalBudgetPressureDto(
                 CityId: cityId,
+                EffectiveTickId: progressionState?.LastCompletedTickId ?? 0,
+                EffectiveAtUtc: progressionState?.UpdatedAtUtc,
                 UnitKind: budget.UnitKind.ToString(),
                 UnitCode: budget.UnitCode,
                 UnitDisplayName: budget.UnitDisplayName,

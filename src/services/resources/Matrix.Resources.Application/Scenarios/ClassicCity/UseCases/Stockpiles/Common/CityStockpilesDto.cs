@@ -4,6 +4,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
 {
     public sealed record CityStockpilesDto(
         Guid CityId,
+        long EffectiveTickId,
         decimal SupplyStressIndex,
         bool EmergencyRationingEnabled,
         DateTimeOffset LastEvaluatedAtUtc,
@@ -18,6 +19,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         {
             return new CityStockpilesDto(
                 CityId: state.SimulationHostId.Value,
+                EffectiveTickId: state.LastAppliedTickId,
                 SupplyStressIndex: state.SupplyStressIndex,
                 EmergencyRationingEnabled: state.EmergencyRationingEnabled,
                 LastEvaluatedAtUtc: state.LastEvaluatedAtUtc,

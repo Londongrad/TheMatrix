@@ -2,6 +2,8 @@ namespace Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure
 {
     public sealed record CityOperationalBudgetPressureDto(
         Guid CityId,
+        long EffectiveTickId,
+        DateTimeOffset? EffectiveAtUtc,
         string UnitKind,
         string UnitCode,
         string UnitDisplayName,

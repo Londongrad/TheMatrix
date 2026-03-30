@@ -63,6 +63,8 @@ namespace Matrix.Economy.Api.Controllers
             return Ok(
                 new CityOperationalBudgetPressureView(
                     CityId: result.CityId,
+                    EffectiveTickId: result.EffectiveTickId,
+                    EffectiveAtUtc: result.EffectiveAtUtc,
                     UnitKind: result.UnitKind,
                     UnitCode: result.UnitCode,
                     UnitDisplayName: result.UnitDisplayName,

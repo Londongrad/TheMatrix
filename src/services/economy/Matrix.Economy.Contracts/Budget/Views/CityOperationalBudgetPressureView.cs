@@ -2,6 +2,8 @@ namespace Matrix.Economy.Contracts.Budget.Views
 {
     public sealed record CityOperationalBudgetPressureView(
         Guid CityId,
+        long EffectiveTickId,
+        DateTimeOffset? EffectiveAtUtc,
         string UnitKind,
         string UnitCode,
         string UnitDisplayName,
