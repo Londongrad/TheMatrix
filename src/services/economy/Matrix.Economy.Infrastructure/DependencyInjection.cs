@@ -1,10 +1,15 @@
 using MassTransit;
-using Matrix.Economy.Application.Abstractions;
-using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Messaging;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
+using Matrix.BuildingBlocks.Infrastructure.Persistence;
+using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Messaging;
+using Matrix.Economy.Infrastructure.Outbox;
+using Matrix.Economy.Infrastructure.Outbox.RabbitMq;
 using Matrix.Economy.Infrastructure.Persistence;
 using Matrix.Economy.Infrastructure.Persistence.Repositories;
 using Matrix.Economy.Infrastructure.Scenarios.ClassicCity;
@@ -34,10 +39,19 @@ namespace Matrix.Economy.Infrastructure
                 connectionStringBuilder.IncludeErrorDetail = true;
 
             string effectiveConnectionString = connectionStringBuilder.ConnectionString;
+            services.AddPostgresResilienceOptions(configuration);
 
-            services.AddDbContext<EconomyDbContext>(options =>
+            services.AddDbContext<EconomyDbContext>((sp, options) =>
             {
-                options.UseNpgsql(effectiveConnectionString);
+                PostgresResilienceOptions resilience = sp.GetRequiredService<IOptions<PostgresResilienceOptions>>()
+                   .Value;
+
+                options.UseNpgsql(
+                    connectionString: effectiveConnectionString,
+                    npgsqlOptionsAction: npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: resilience.MaxRetryCount,
+                        maxRetryDelay: TimeSpan.FromSeconds(resilience.MaxRetryDelaySeconds),
+                        errorCodesToAdd: null));
 
                 if (environment.IsDevelopment())
                     options.EnableDetailedErrors();
@@ -68,12 +82,14 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityHouseholdAccountRepository, CityHouseholdAccountRepository>();
             services.AddScoped<ICityHouseholdAccountLedgerRepository, CityHouseholdAccountLedgerRepository>();
             services.AddScoped<ICityHouseholdObligationRepository, CityHouseholdObligationRepository>();
-            services.AddScoped<ICityOperationalBudgetSignalPublisher, MassTransitCityOperationalBudgetSignalPublisher>();
-            services.AddScoped<ICityPopulationSignalPublisher, MassTransitCityPopulationSignalPublisher>();
+            services.AddScoped<ICityOperationalBudgetSignalPublisher, CityOperationalBudgetSignalOutboxWriter>();
+            services.AddScoped<ICityPopulationSignalPublisher, CityPopulationSignalOutboxWriter>();
             services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
+            services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
             services.AddPermissionCheckingFromClaims();
+            services.AddOutbox<EconomyDbContext>(configuration);
             services.AddClassicCityScenarioInfrastructure();
 
             services.AddMassTransit(x =>
@@ -85,9 +101,7 @@ namespace Matrix.Economy.Infrastructure
                 x.AddConsumer<CityEconomyDailySettlementConsumer, CityEconomyDailySettlementConsumerDefinition>();
                 x.AddClassicCityScenarioConsumers();
 
-                x.UsingRabbitMq((
-                    context,
-                    cfg) =>
+                x.UsingRabbitMq((context, cfg) =>
                 {
                     RabbitMqOptions rmq = context.GetRequiredService<IOptions<RabbitMqOptions>>()
                        .Value;

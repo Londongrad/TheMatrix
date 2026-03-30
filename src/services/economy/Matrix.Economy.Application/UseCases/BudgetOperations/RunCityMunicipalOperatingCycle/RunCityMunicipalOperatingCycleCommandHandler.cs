@@ -9,27 +9,34 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalO
         CityEconomyRecurringCycleExecutionService recurringCycleExecutionService,
         IEconomyUnitOfWork unitOfWork,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
-        ISender sender)
+        ICityOperationalBudgetPressureProjectionService pressureProjectionService)
         : IRequestHandler<RunCityMunicipalOperatingCycleCommand, RunCityMunicipalOperatingCycleResultDto>
     {
         public async Task<RunCityMunicipalOperatingCycleResultDto> Handle(
             RunCityMunicipalOperatingCycleCommand request,
             CancellationToken cancellationToken)
         {
-            RunCityMunicipalOperatingCycleResultDto result =
-                await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
-                    cityId: request.CityId,
-                    cancellationToken: cancellationToken);
+            RunCityMunicipalOperatingCycleResultDto result = default!;
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            CityOperationalBudgetPressureDto pressure = await sender.Send(
-                request: new GetCityOperationalBudgetPressureQuery(request.CityId),
-                cancellationToken: cancellationToken);
-            await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
-                snapshot: pressure,
-                effectiveAtUtc: DateTimeOffset.UtcNow,
-                occurredAtUtc: DateTimeOffset.UtcNow,
-                cancellationToken: cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(async ct =>
+            {
+                result = await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
+                    cityId: request.CityId,
+                    cancellationToken: ct);
+
+                await unitOfWork.SaveChangesAsync(ct);
+
+                CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
+                    cityId: request.CityId,
+                    cancellationToken: ct);
+                DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+                await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                    snapshot: pressure,
+                    effectiveAtUtc: occurredAtUtc,
+                    occurredAtUtc: occurredAtUtc,
+                    cancellationToken: ct);
+                await unitOfWork.SaveChangesAsync(ct);
+            }, cancellationToken);
 
             return result;
         }

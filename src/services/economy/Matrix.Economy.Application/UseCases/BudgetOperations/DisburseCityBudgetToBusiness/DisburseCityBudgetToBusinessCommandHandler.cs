@@ -12,7 +12,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
         CityBudgetBusinessDisbursementSupport disbursementSupport,
         IEconomyUnitOfWork unitOfWork,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
-        ISender sender)
+        ICityOperationalBudgetPressureProjectionService pressureProjectionService)
         : IRequestHandler<DisburseCityBudgetToBusinessCommand, BudgetLedgerEntryDto>
     {
         public async Task<BudgetLedgerEntryDto> Handle(
@@ -28,22 +28,30 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
             if (business.CityId != request.CityId)
                 throw new InvalidOperationException("Business and budget must belong to the same city.");
 
-            BudgetLedgerEntryDto result = await disbursementSupport.DisburseAsync(
-                business: business,
-                category: request.Category,
-                amount: request.Amount,
-                title: request.Title,
-                description: request.Description,
-                cancellationToken: cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            CityOperationalBudgetPressureDto pressure = await sender.Send(
-                request: new GetCityOperationalBudgetPressureQuery(request.CityId),
-                cancellationToken: cancellationToken);
-            await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
-                snapshot: pressure,
-                effectiveAtUtc: DateTimeOffset.Parse(result.OccurredAtUtc),
-                occurredAtUtc: DateTimeOffset.UtcNow,
-                cancellationToken: cancellationToken);
+            BudgetLedgerEntryDto result = default!;
+
+            await unitOfWork.ExecuteInTransactionAsync(async ct =>
+            {
+                result = await disbursementSupport.DisburseAsync(
+                    business: business,
+                    category: request.Category,
+                    amount: request.Amount,
+                    title: request.Title,
+                    description: request.Description,
+                    cancellationToken: ct);
+                await unitOfWork.SaveChangesAsync(ct);
+
+                CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
+                    cityId: request.CityId,
+                    cancellationToken: ct);
+                await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+                    snapshot: pressure,
+                    effectiveAtUtc: DateTimeOffset.Parse(result.OccurredAtUtc),
+                    occurredAtUtc: DateTimeOffset.UtcNow,
+                    cancellationToken: ct);
+                await unitOfWork.SaveChangesAsync(ct);
+            }, cancellationToken);
+
             return result;
         }
     }

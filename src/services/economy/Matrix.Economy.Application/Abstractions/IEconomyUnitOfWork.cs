@@ -1,7 +1,6 @@
-﻿namespace Matrix.Economy.Application.Abstractions
+using Matrix.BuildingBlocks.Application.Abstractions;
+
+namespace Matrix.Economy.Application.Abstractions
 {
-    public interface IEconomyUnitOfWork
-    {
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
-    }
+    public interface IEconomyUnitOfWork : IUnitOfWork;
 }

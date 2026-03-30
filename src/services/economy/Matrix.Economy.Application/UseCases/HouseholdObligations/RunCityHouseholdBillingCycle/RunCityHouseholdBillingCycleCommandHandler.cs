@@ -16,21 +16,28 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
             CancellationToken cancellationToken)
         {
             DateTimeOffset asOfUtc = request.AsOfUtc ?? DateTimeOffset.UtcNow;
+            RunCityHouseholdBillingCycleResultDto result = default!;
 
-            CityEconomyBillingCycleExecutionResult executionResult =
-                await recurringCycleExecutionService.ExecuteBillingAsync(
-                    cityId: request.CityId,
-                    asOfUtc: asOfUtc,
-                    cancellationToken: cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(async ct =>
+            {
+                CityEconomyBillingCycleExecutionResult executionResult =
+                    await recurringCycleExecutionService.ExecuteBillingAsync(
+                        cityId: request.CityId,
+                        asOfUtc: asOfUtc,
+                        cancellationToken: ct);
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+                await unitOfWork.SaveChangesAsync(ct);
 
-            foreach (var batch in executionResult.FinancialStressBatches)
-                await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
-                    batch: batch,
-                    cancellationToken: cancellationToken);
+                foreach (var batch in executionResult.FinancialStressBatches)
+                    await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
+                        batch: batch,
+                        cancellationToken: ct);
 
-            return executionResult.Result;
+                await unitOfWork.SaveChangesAsync(ct);
+                result = executionResult.Result;
+            }, cancellationToken);
+
+            return result;
         }
     }
 }

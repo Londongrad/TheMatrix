@@ -1,17 +1,19 @@
+using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.AuthorizeCityBudgetOperation
 {
-    public sealed class AuthorizeCityBudgetOperationCommandHandler(ISender sender)
+    public sealed class AuthorizeCityBudgetOperationCommandHandler(
+        ICityOperationalBudgetPressureProjectionService pressureProjectionService)
         : IRequestHandler<AuthorizeCityBudgetOperationCommand, CityBudgetOperationAuthorizationDto>
     {
         public async Task<CityBudgetOperationAuthorizationDto> Handle(
             AuthorizeCityBudgetOperationCommand request,
             CancellationToken cancellationToken)
         {
-            CityOperationalBudgetPressureDto pressure = await sender.Send(
-                request: new GetCityOperationalBudgetPressureQuery(request.CityId),
+            CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
+                cityId: request.CityId,
                 cancellationToken: cancellationToken);
 
             return CityBudgetOperationAuthorizationPolicy.Authorize(

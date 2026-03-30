@@ -59,70 +59,77 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
                          previousDate: previousDate,
                          currentDate: toDate))
             {
-                DateTimeOffset cycleAsOfUtc = ResolveCycleAsOfUtc(
-                    cycleDate: cycleDate,
-                    finalDate: toDate,
-                    finalSimTimeUtc: request.ToSimTimeUtc);
-                ClassicCityCostOfLivingSnapshotV1? costOfLivingSnapshot =
-                    await recurringCycleExecutionService.ExecuteCostOfLivingAsync(
+                await unitOfWork.ExecuteInTransactionAsync(async ct =>
+                {
+                    DateTimeOffset cycleAsOfUtc = ResolveCycleAsOfUtc(
+                        cycleDate: cycleDate,
+                        finalDate: toDate,
+                        finalSimTimeUtc: request.ToSimTimeUtc);
+                    ClassicCityCostOfLivingSnapshotV1? costOfLivingSnapshot =
+                        await recurringCycleExecutionService.ExecuteCostOfLivingAsync(
+                            cityId: request.CityId,
+                            asOfUtc: cycleAsOfUtc,
+                            cancellationToken: ct);
+
+                    CityEconomyBillingCycleExecutionResult billingResult =
+                        await recurringCycleExecutionService.ExecuteBillingAsync(
+                            cityId: request.CityId,
+                            asOfUtc: cycleAsOfUtc,
+                            cancellationToken: ct);
+                    var taxResult = await recurringCycleExecutionService.ExecuteTaxCycleAsync(
                         cityId: request.CityId,
-                        asOfUtc: cycleAsOfUtc,
-                        cancellationToken: cancellationToken);
-
-                CityEconomyBillingCycleExecutionResult billingResult =
-                    await recurringCycleExecutionService.ExecuteBillingAsync(
+                        budgetCategory: CityBudgetCategory.Taxation,
+                        cancellationToken: ct);
+                    var municipalResult = await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
                         cityId: request.CityId,
-                        asOfUtc: cycleAsOfUtc,
-                        cancellationToken: cancellationToken);
-                var taxResult = await recurringCycleExecutionService.ExecuteTaxCycleAsync(
-                    cityId: request.CityId,
-                    budgetCategory: CityBudgetCategory.Taxation,
-                    cancellationToken: cancellationToken);
-                var municipalResult = await recurringCycleExecutionService.ExecuteMunicipalOperatingCycleAsync(
-                    cityId: request.CityId,
-                    cancellationToken: cancellationToken);
-                ClassicCityServiceQualitySnapshotV1 serviceQualitySnapshot =
-                    await recurringCycleExecutionService.ExecuteServiceQualityAsync(
-                        cityId: request.CityId,
-                        asOfUtc: cycleAsOfUtc,
-                        cancellationToken: cancellationToken);
+                        cancellationToken: ct);
+                    ClassicCityServiceQualitySnapshotV1 serviceQualitySnapshot =
+                        await recurringCycleExecutionService.ExecuteServiceQualityAsync(
+                            cityId: request.CityId,
+                            asOfUtc: cycleAsOfUtc,
+                            cancellationToken: ct);
 
-                chargedObligations += billingResult.Result.ChargedObligations;
-                remittedBusinesses += taxResult.RemittedBusinesses;
-                municipalProviderPayments += municipalResult.ProviderPayments;
-                totalChargedAmount += billingResult.Result.TotalChargedAmount;
-                totalTaxRemittedAmount += taxResult.TotalRemittedAmount;
-                totalMunicipalDisbursedAmount += municipalResult.TotalDisbursedAmount;
+                    chargedObligations += billingResult.Result.ChargedObligations;
+                    remittedBusinesses += taxResult.RemittedBusinesses;
+                    municipalProviderPayments += municipalResult.ProviderPayments;
+                    totalChargedAmount += billingResult.Result.TotalChargedAmount;
+                    totalTaxRemittedAmount += taxResult.TotalRemittedAmount;
+                    totalMunicipalDisbursedAmount += municipalResult.TotalDisbursedAmount;
 
-                state.AdvanceProcessedDate(
-                    processedDate: cycleDate,
-                    updatedAtUtc: DateTimeOffset.UtcNow);
-                await unitOfWork.SaveChangesAsync(cancellationToken);
+                    state.AdvanceProcessedDate(
+                        processedDate: cycleDate,
+                        updatedAtUtc: DateTimeOffset.UtcNow);
+                    await unitOfWork.SaveChangesAsync(ct);
 
-                if (costOfLivingSnapshot is not null)
-                    await cityPopulationSignalPublisher.PublishClassicCityCostOfLivingSnapshotAsync(
-                        snapshot: costOfLivingSnapshot,
-                        cancellationToken: cancellationToken);
+                    if (costOfLivingSnapshot is not null)
+                        await cityPopulationSignalPublisher.PublishClassicCityCostOfLivingSnapshotAsync(
+                            snapshot: costOfLivingSnapshot,
+                            cancellationToken: ct);
 
-                await cityPopulationSignalPublisher.PublishClassicCityServiceQualitySnapshotAsync(
-                    snapshot: serviceQualitySnapshot,
-                    cancellationToken: cancellationToken);
+                    await cityPopulationSignalPublisher.PublishClassicCityServiceQualitySnapshotAsync(
+                        snapshot: serviceQualitySnapshot,
+                        cancellationToken: ct);
 
-                foreach (var batch in billingResult.FinancialStressBatches)
-                    await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
-                        batch: batch,
-                        cancellationToken: cancellationToken);
+                    foreach (ClassicCityHouseholdFinancialStressBatchV1 batch in billingResult.FinancialStressBatches)
+                        await cityPopulationSignalPublisher.PublishClassicCityHouseholdFinancialStressBatchAsync(
+                            batch: batch,
+                            cancellationToken: ct);
 
-                processedDays++;
+                    await unitOfWork.SaveChangesAsync(ct);
+                    processedDays++;
+                }, cancellationToken);
             }
 
-            state.AdvanceProcessedDate(
-                processedDate: toDate,
-                updatedAtUtc: DateTimeOffset.UtcNow);
-            state.MarkTickCompleted(
-                tickId: request.TickId,
-                updatedAtUtc: DateTimeOffset.UtcNow);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(async ct =>
+            {
+                state.AdvanceProcessedDate(
+                    processedDate: toDate,
+                    updatedAtUtc: DateTimeOffset.UtcNow);
+                state.MarkTickCompleted(
+                    tickId: request.TickId,
+                    updatedAtUtc: DateTimeOffset.UtcNow);
+                await unitOfWork.SaveChangesAsync(ct);
+            }, cancellationToken);
 
             return new AdvanceCityEconomySimulationResult(
                 Status: AdvanceCityEconomySimulationStatus.Applied,
