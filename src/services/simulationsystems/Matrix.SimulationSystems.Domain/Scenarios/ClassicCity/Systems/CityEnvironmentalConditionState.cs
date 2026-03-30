@@ -42,6 +42,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SanitationCoverageIndex sanitationCoverageIndex,
             PowerCoverageIndex powerCoverageIndex,
             UtilityContinuityIndex utilityContinuityIndex,
+            long lastAppliedTickId,
             DateTimeOffset lastEvaluatedAtUtc)
             : base(simulationHostId)
         {
@@ -72,6 +73,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SanitationCoverageIndex = sanitationCoverageIndex;
             PowerCoverageIndex = powerCoverageIndex;
             UtilityContinuityIndex = utilityContinuityIndex;
+            LastAppliedTickId = EnsureTickId(
+                value: lastAppliedTickId,
+                propertyName: nameof(lastAppliedTickId));
             LastEvaluatedAtUtc = EnsureUtc(
                 value: lastEvaluatedAtUtc,
                 paramName: nameof(lastEvaluatedAtUtc));
@@ -129,6 +133,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public SanitationCoverageIndex SanitationCoverageIndex { get; private set; }
         public PowerCoverageIndex PowerCoverageIndex { get; private set; }
         public UtilityContinuityIndex UtilityContinuityIndex { get; private set; }
+        public long LastAppliedTickId { get; private set; }
         public DateTimeOffset LastEvaluatedAtUtc { get; private set; }
 
         public static CityEnvironmentalConditionState Create(
@@ -168,6 +173,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 sanitationCoverageIndex: seed.SanitationCoverageIndex,
                 powerCoverageIndex: seed.PowerCoverageIndex,
                 utilityContinuityIndex: seed.UtilityContinuityIndex,
+                lastAppliedTickId: 0,
                 lastEvaluatedAtUtc: seed.EvaluatedAtUtc);
         }
 
@@ -379,6 +385,18 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 intensity: intensity);
         }
 
+        public void MarkTickApplied(long tickId)
+        {
+            long validatedTickId = EnsureTickId(
+                value: tickId,
+                propertyName: nameof(tickId));
+
+            if (validatedTickId < LastAppliedTickId)
+                throw new InvalidOperationException("Environmental tick progression cannot move backwards.");
+
+            LastAppliedTickId = validatedTickId;
+        }
+
         private static DateTimeOffset EnsureUtc(
             DateTimeOffset value,
             string paramName)
@@ -388,6 +406,17 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 : throw ClassicCityDomainErrorsFactory.CityEnvironmentalTimestampMustBeUtc(
                     value: value,
                     propertyName: paramName);
+        }
+
+        private static long EnsureTickId(
+            long value,
+            string propertyName)
+        {
+            return value >= 0
+                ? value
+                : throw new ArgumentOutOfRangeException(
+                    paramName: propertyName,
+                    message: "Tick identifiers cannot be negative.");
         }
     }
 }

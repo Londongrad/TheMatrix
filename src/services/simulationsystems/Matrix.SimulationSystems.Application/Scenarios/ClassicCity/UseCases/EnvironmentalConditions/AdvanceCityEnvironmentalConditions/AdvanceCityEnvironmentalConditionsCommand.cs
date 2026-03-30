@@ -5,5 +5,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
     public sealed record AdvanceCityEnvironmentalConditionsCommand(
         Guid CityId,
         DateTimeOffset FromSimTimeUtc,
-        DateTimeOffset ToSimTimeUtc) : IRequest<AdvanceCityEnvironmentalConditionsResult>;
+        DateTimeOffset ToSimTimeUtc,
+        long TickId) : IRequest<AdvanceCityEnvironmentalConditionsResult>;
 }

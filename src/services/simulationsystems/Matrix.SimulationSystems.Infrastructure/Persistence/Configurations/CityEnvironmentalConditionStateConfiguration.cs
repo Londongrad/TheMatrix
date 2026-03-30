@@ -24,6 +24,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
             builder.Property(x => x.LastEvaluatedAtUtc)
                .IsRequired();
 
+            builder.Property(x => x.LastAppliedTickId)
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.WeatherPressure,
                 buildAction: pressure =>

@@ -14,11 +14,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         {
             CityTimeAdvancedV1 message = context.Message;
 
+            if (message.TickContext.Phase != CityTickPhaseV1.AdvanceTime)
+                return;
+
             AdvanceCityEnvironmentalConditionsResult result = await mediator.Send(
                 request: new AdvanceCityEnvironmentalConditionsCommand(
                     CityId: message.CityId,
                     FromSimTimeUtc: message.FromSimTimeUtc,
-                    ToSimTimeUtc: message.ToSimTimeUtc),
+                    ToSimTimeUtc: message.ToSimTimeUtc,
+                    TickId: message.TickId),
                 cancellationToken: context.CancellationToken);
 
             switch (result.Status)

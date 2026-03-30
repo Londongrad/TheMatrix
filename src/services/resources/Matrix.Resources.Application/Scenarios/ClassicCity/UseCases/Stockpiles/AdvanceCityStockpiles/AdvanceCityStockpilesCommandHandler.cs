@@ -32,7 +32,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     status: AdvanceCityStockpilesStatus.NotInitialized,
                     cityId: request.CityId);
 
-            if (request.ToSimTimeUtc < state.LastEvaluatedAtUtc)
+            if (request.TickId < state.LastAppliedTickId || request.ToSimTimeUtc < state.LastEvaluatedAtUtc)
                 return CreateResult(
                     status: AdvanceCityStockpilesStatus.OutOfOrder,
                     cityId: request.CityId);
@@ -41,7 +41,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 ? request.FromSimTimeUtc
                 : state.LastEvaluatedAtUtc;
 
-            if (request.ToSimTimeUtc <= effectiveFrom)
+            if (request.TickId == state.LastAppliedTickId || request.ToSimTimeUtc <= effectiveFrom)
                 return CreateResult(
                     status: AdvanceCityStockpilesStatus.Duplicate,
                     cityId: request.CityId,
@@ -52,6 +52,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 elapsed: request.ToSimTimeUtc - effectiveFrom);
 
             state.ApplySnapshot(refreshedSnapshot);
+            state.MarkTickApplied(request.TickId);
             await outboxWriter.AddClassicCityStockpileSnapshotAsync(
                 snapshot: CityStockpileIntegrationEventFactory.CreateSnapshot(
                     state: state,

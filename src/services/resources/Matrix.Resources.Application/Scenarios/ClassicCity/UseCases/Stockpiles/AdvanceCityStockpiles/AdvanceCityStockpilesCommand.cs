@@ -5,5 +5,6 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed record AdvanceCityStockpilesCommand(
         Guid CityId,
         DateTimeOffset FromSimTimeUtc,
-        DateTimeOffset ToSimTimeUtc) : IRequest<AdvanceCityStockpilesResult>;
+        DateTimeOffset ToSimTimeUtc,
+        long TickId) : IRequest<AdvanceCityStockpilesResult>;
 }

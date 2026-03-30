@@ -28,6 +28,9 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
             builder.Property(x => x.EmergencyRationingEnabled)
                .IsRequired();
 
+            builder.Property(x => x.LastAppliedTickId)
+               .IsRequired();
+
             builder.Property(x => x.LastEvaluatedAtUtc)
                .IsRequired();
 

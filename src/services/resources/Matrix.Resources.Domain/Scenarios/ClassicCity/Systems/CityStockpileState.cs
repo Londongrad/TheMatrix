@@ -22,6 +22,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             CityOperationalBudgetPressureState operationalBudgetPressure,
             decimal supplyStressIndex,
             bool emergencyRationingEnabled,
+            long lastAppliedTickId,
             DateTimeOffset lastEvaluatedAtUtc)
             : base(simulationHostId)
         {
@@ -37,6 +38,9 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 value: supplyStressIndex,
                 propertyName: nameof(supplyStressIndex));
             EmergencyRationingEnabled = emergencyRationingEnabled;
+            LastAppliedTickId = EnsureTickId(
+                value: lastAppliedTickId,
+                propertyName: nameof(lastAppliedTickId));
             LastEvaluatedAtUtc = EnsureUtc(
                 value: lastEvaluatedAtUtc,
                 paramName: nameof(lastEvaluatedAtUtc));
@@ -66,6 +70,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         public CityOperationalBudgetPressureState OperationalBudgetPressure { get; private set; }
         public decimal SupplyStressIndex { get; private set; }
         public bool EmergencyRationingEnabled { get; private set; }
+        public long LastAppliedTickId { get; private set; }
         public DateTimeOffset LastEvaluatedAtUtc { get; private set; }
 
         public static CityStockpileState Create(
@@ -88,6 +93,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 operationalBudgetPressure: CityOperationalBudgetPressureState.Create(seed.OperationalBudgetPressure),
                 supplyStressIndex: seed.SupplyStressIndex,
                 emergencyRationingEnabled: seed.EmergencyRationingEnabled,
+                lastAppliedTickId: 0,
                 lastEvaluatedAtUtc: seed.EvaluatedAtUtc);
         }
 
@@ -151,6 +157,18 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 EvaluatedAtUtc: LastEvaluatedAtUtc);
         }
 
+        public void MarkTickApplied(long tickId)
+        {
+            long validatedTickId = EnsureTickId(
+                value: tickId,
+                propertyName: nameof(tickId));
+
+            if (validatedTickId < LastAppliedTickId)
+                throw new InvalidOperationException("Tick progression cannot move backwards.");
+
+            LastAppliedTickId = validatedTickId;
+        }
+
         private static decimal EnsureIndex(
             decimal value,
             string propertyName)
@@ -174,6 +192,17 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 : throw new ArgumentException(
                     message: "Timestamps must be expressed in UTC.",
                     paramName: paramName);
+        }
+
+        private static long EnsureTickId(
+            long value,
+            string propertyName)
+        {
+            return value >= 0
+                ? value
+                : throw new ArgumentOutOfRangeException(
+                    paramName: propertyName,
+                    message: "Tick identifiers cannot be negative.");
         }
     }
 }

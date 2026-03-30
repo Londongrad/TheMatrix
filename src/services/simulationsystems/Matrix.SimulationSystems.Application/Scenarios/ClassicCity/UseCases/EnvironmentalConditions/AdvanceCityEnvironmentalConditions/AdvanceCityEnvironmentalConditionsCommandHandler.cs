@@ -37,7 +37,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     RoadAccessibilityIndex: 0m);
             }
 
-            if (request.ToSimTimeUtc < state.LastEvaluatedAtUtc)
+            if (request.TickId < state.LastAppliedTickId || request.ToSimTimeUtc < state.LastEvaluatedAtUtc)
                 return CreateResult(
                     status: AdvanceCityEnvironmentalConditionsStatus.OutOfOrder,
                     processedSimMinutes: 0m,
@@ -47,7 +47,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 ? request.FromSimTimeUtc
                 : state.LastEvaluatedAtUtc;
 
-            if (request.ToSimTimeUtc <= effectiveFrom)
+            if (request.TickId == state.LastAppliedTickId || request.ToSimTimeUtc <= effectiveFrom)
                 return CreateResult(
                     status: AdvanceCityEnvironmentalConditionsStatus.Duplicate,
                     processedSimMinutes: 0m,
@@ -69,6 +69,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 toUtc: request.ToSimTimeUtc);
 
             state.ApplySnapshot(snapshot);
+            state.MarkTickApplied(request.TickId);
             await systemsResourceDemandOutboxWriter.AddClassicCitySystemsResourceDemandAsync(
                 snapshot: CitySystemsResourceDemandIntegrationEventFactory.CreateSnapshot(
                     state: state,
