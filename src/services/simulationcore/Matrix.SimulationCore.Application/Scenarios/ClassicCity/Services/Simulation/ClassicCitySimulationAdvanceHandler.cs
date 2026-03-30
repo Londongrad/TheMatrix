@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
+using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Events.Simulation;
@@ -28,10 +29,13 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
 
             await outboxWriter.AddCityTimeAdvancedAsync(
                 cityId: cityId,
+                simulationId: host.SimulationId,
+                simulationKind: host.SimulationKind,
                 from: advancedEvent.From,
                 to: advancedEvent.To,
                 tickId: advancedEvent.TickId,
                 speed: advancedEvent.Speed,
+                phase: CityTickPhaseV1.AdvanceTime,
                 cancellationToken: cancellationToken);
 
             if (cityWeather is null || cityWeather.DomainEvents.Count == 0)

@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Events;
+using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 
@@ -12,10 +13,13 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
 
         Task AddCityTimeAdvancedAsync(
             CityId cityId,
+            SimulationId simulationId,
+            SimulationKind simulationKind,
             SimTime from,
             SimTime to,
             TickId tickId,
             SimSpeed speed,
+            CityTickPhaseV1 phase,
             CancellationToken cancellationToken);
 
         Task AddWeatherEventsAsync(

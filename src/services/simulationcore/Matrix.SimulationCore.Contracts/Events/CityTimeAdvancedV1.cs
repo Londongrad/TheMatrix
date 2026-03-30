@@ -6,5 +6,6 @@ namespace Matrix.SimulationCore.Contracts.Events
         DateTimeOffset ToSimTimeUtc,
         long TickId,
         decimal SpeedMultiplier,
+        CityTickContextV1 TickContext,
         DateTime OccurredOnUtc);
 }

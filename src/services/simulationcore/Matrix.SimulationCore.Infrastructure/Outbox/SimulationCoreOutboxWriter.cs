@@ -85,13 +85,23 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 
         public Task AddCityTimeAdvancedAsync(
             CityId cityId,
+            SimulationId simulationId,
+            SimulationKind simulationKind,
             SimTime from,
             SimTime to,
             TickId tickId,
             SimSpeed speed,
+            CityTickPhaseV1 phase,
             CancellationToken cancellationToken)
         {
             DateTime occurredOnUtc = DateTime.UtcNow;
+            string correlationId = BuildTickCorrelationId(
+                simulationId: simulationId,
+                cityId: cityId,
+                tickId: tickId);
+            string causationId = BuildTickCausationId(
+                correlationId: correlationId,
+                phase: phase);
 
             var integrationEvent = new CityTimeAdvancedV1(
                 CityId: cityId.Value,
@@ -99,6 +109,16 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                 ToSimTimeUtc: to.ValueUtc,
                 TickId: tickId.Value,
                 SpeedMultiplier: speed.Multiplier,
+                TickContext: new CityTickContextV1(
+                    SimulationId: simulationId.Value,
+                    CityId: cityId.Value,
+                    SimulationKind: simulationKind.ToString(),
+                    TickId: tickId.Value,
+                    EffectiveSimTimeUtc: to.ValueUtc,
+                    Phase: phase,
+                    ModelVersion: 1,
+                    CausationId: causationId,
+                    CorrelationId: correlationId),
                 OccurredOnUtc: occurredOnUtc);
 
             dbContext.OutboxMessages.Add(
@@ -108,6 +128,21 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                     payload: integrationEvent));
 
             return Task.CompletedTask;
+        }
+
+        private static string BuildTickCorrelationId(
+            SimulationId simulationId,
+            CityId cityId,
+            TickId tickId)
+        {
+            return $"simulation:{simulationId.Value:N}:city:{cityId.Value:N}:tick:{tickId.Value}";
+        }
+
+        private static string BuildTickCausationId(
+            string correlationId,
+            CityTickPhaseV1 phase)
+        {
+            return $"{correlationId}:phase:{phase}";
         }
 
         public Task AddWeatherEventsAsync(
