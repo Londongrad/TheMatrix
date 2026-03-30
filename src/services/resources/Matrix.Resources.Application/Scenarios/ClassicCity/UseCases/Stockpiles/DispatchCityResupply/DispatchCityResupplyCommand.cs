@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Resources.Application.Authorization.Permissions;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
 using MediatR;
 
@@ -7,5 +9,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         Guid CityId,
         ResupplyFocus Focus,
         ResupplyIntensity Intensity,
-        bool EmergencyOverride) : IRequest<DispatchCityResupplyResult>;
+        bool EmergencyOverride) : IRequest<DispatchCityResupplyResult>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.ResourcesClassicCityManage;
+    }
 }
