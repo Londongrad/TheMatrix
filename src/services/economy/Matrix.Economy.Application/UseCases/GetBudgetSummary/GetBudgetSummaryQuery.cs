@@ -1,6 +1,11 @@
-﻿using MediatR;
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
+using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.GetBudgetSummary
 {
-    public sealed record GetBudgetSummaryQuery : IRequest<BudgetSummaryDto>;
+    public sealed record GetBudgetSummaryQuery : IRequest<BudgetSummaryDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyBudgetRead;
+    }
 }

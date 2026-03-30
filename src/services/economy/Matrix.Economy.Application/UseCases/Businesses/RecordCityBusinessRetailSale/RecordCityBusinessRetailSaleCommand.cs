@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetailSale
@@ -7,5 +9,8 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessRetai
         decimal GrossAmount,
         decimal SalesTaxAmount,
         string Title,
-        string? Description) : IRequest<CityBusinessLedgerEntryDto>;
+        string? Description) : IRequest<CityBusinessLedgerEntryDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyBusinessesManage;
+    }
 }

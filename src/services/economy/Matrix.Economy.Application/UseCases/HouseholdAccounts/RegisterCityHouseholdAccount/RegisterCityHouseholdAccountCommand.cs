@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount
@@ -10,5 +12,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHous
         string? UnitKind,
         string? UnitCode,
         string? UnitDisplayName,
-        string? UnitSymbol) : IRequest<CityHouseholdAccountDto>;
+        string? UnitSymbol) : IRequest<CityHouseholdAccountDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyHouseholdAccountsManage;
+    }
 }

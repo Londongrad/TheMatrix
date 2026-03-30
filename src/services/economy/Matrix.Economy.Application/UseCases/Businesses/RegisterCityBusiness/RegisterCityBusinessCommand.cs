@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
@@ -11,5 +13,8 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness
         string? UnitKind,
         string? UnitCode,
         string? UnitDisplayName,
-        string? UnitSymbol) : IRequest<CityBusinessDto>;
+        string? UnitSymbol) : IRequest<CityBusinessDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyBusinessesManage;
+    }
 }

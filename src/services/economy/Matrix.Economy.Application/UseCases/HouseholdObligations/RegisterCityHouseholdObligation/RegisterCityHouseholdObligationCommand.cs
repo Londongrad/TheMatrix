@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
 
@@ -12,5 +14,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
         CityHouseholdObligationBillingCadence BillingCadence,
         decimal ChargeAmount,
         decimal TaxAmount,
-        DateTimeOffset? FirstChargeDueAtUtc) : IRequest<CityHouseholdObligationDto>;
+        DateTimeOffset? FirstChargeDueAtUtc) : IRequest<CityHouseholdObligationDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyHouseholdObligationsManage;
+    }
 }

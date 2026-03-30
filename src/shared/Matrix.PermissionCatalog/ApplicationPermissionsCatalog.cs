@@ -2,6 +2,7 @@ using Matrix.PermissionCatalog.Abstractions;
 using SimulationCorePermissionsCatalog = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionsCatalog;
 using IdentityPermissionsCatalog = Matrix.Identity.Contracts.Authorization.Permissions.PermissionsCatalog;
 using PopulationPermissionsCatalog = Matrix.Population.Contracts.Authorization.Permissions.PermissionsCatalog;
+using EconomyPermissionsCatalog = Matrix.Economy.Contracts.Authorization.Permissions.PermissionsCatalog;
 
 namespace Matrix.PermissionCatalog
 {
@@ -24,6 +25,10 @@ namespace Matrix.PermissionCatalog
             AddRange(
                 permissionsByKey: permissionsByKey,
                 definitions: PopulationPermissionsCatalog.All);
+
+            AddRange(
+                permissionsByKey: permissionsByKey,
+                definitions: EconomyPermissionsCatalog.All);
 
             return permissionsByKey.Values.ToArray();
         }

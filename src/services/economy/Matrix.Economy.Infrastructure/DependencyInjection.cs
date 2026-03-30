@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Consumers;
 using Matrix.Economy.Infrastructure.Messaging;
@@ -72,6 +73,7 @@ namespace Matrix.Economy.Infrastructure
             services.AddScoped<ICityEconomyBootstrapService, CityEconomyBootstrapService>();
             services.AddScoped<IEconomyUnitOfWork, EconomyUnitOfWork>();
             services.AddSingleton<CityBudgetOperatingExpensePolicy>();
+            services.AddPermissionCheckingFromClaims();
             services.AddClassicCityScenarioInfrastructure();
 
             services.AddMassTransit(x =>

@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
+    <ProjectReference Include="..\Matrix.Economy.Contracts\Matrix.Economy.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.Economy.Domain\Matrix.Economy.Domain.csproj"/>
   </ItemGroup>
 

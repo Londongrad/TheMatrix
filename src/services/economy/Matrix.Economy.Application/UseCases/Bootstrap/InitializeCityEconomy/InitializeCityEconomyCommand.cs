@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
 using MediatR;
 
 namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
@@ -6,5 +8,8 @@ namespace Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy
         Guid CityId,
         string SimulationKind,
         string? EconomyProfile,
-        DateTimeOffset CreatedAtUtc) : IRequest<CityEconomyBootstrapResultDto>;
+        DateTimeOffset CreatedAtUtc) : IRequest<CityEconomyBootstrapResultDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyBudgetBootstrap;
+    }
 }

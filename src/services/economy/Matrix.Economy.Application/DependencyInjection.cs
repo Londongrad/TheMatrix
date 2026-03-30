@@ -40,6 +40,9 @@ namespace Matrix.Economy.Application
             services.AddTransient(
                 serviceType: typeof(IPipelineBehavior<,>),
                 implementationType: typeof(ValidationBehavior<,>));
+            services.AddTransient(
+                serviceType: typeof(IPipelineBehavior<,>),
+                implementationType: typeof(PermissionBehavior<,>));
         }
     }
 }

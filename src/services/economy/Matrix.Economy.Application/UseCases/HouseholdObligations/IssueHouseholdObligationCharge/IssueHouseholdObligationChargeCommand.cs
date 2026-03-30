@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
 using MediatR;
 
@@ -5,5 +7,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.IssueHousehol
 {
     public sealed record IssueHouseholdObligationChargeCommand(
         Guid ObligationId,
-        string? Description) : IRequest<CityHouseholdAccountLedgerEntryDto>;
+        string? Description) : IRequest<CityHouseholdAccountLedgerEntryDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyHouseholdObligationsManage;
+    }
 }

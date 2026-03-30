@@ -1,3 +1,5 @@
+using Matrix.BuildingBlocks.Application.Authorization.Permissions;
+using Matrix.Economy.Application.Authorization.Permissions;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
@@ -10,5 +12,8 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
         CityBudgetCategory Category,
         decimal Amount,
         string Title,
-        string? Description) : IRequest<BudgetLedgerEntryDto>;
+        string? Description) : IRequest<BudgetLedgerEntryDto>, IRequirePermission
+    {
+        public string PermissionKey => PermissionKeys.EconomyBudgetManage;
+    }
 }

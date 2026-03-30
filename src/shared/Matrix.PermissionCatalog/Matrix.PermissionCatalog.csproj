@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\services\economy\Matrix.Economy.Contracts\Matrix.Economy.Contracts.csproj"/>
     <ProjectReference Include="..\..\services\simulationcore\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.PermissionCatalog.Abstractions\Matrix.PermissionCatalog.Abstractions.csproj"/>
     <ProjectReference Include="..\..\services\identity\Matrix.Identity.Contracts\Matrix.Identity.Contracts.csproj"/>
