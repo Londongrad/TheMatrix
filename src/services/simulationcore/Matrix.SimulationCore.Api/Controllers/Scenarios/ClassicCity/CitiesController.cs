@@ -3,6 +3,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Co
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateProvisionedCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.DeleteCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
@@ -14,6 +15,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Li
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.ListProvisioningCities;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RenameCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RetryCityPopulationBootstrapProvisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
@@ -68,6 +70,40 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                     PopulationBootstrapOperationId: created.PopulationBootstrapOperationId,
                     EconomyBootstrapOperationId: created.EconomyBootstrapOperationId,
                     SimulationKind: created.SimulationKind));
+        }
+
+        [HttpPost("provisioning")]
+        public async Task<IResult> CreateProvisioned(
+            [FromBody] CreateCityRequest request,
+            CancellationToken cancellationToken)
+        {
+            CityProvisioningView provisioning = await mediator.Send(
+                request: new CreateProvisionedCityCommand(
+                    City: new CreateCityCommand(
+                        Name: request.Name,
+                        SimulationKind: request.SimulationKind,
+                        ClimateZone: request.ClimateZone,
+                        Hemisphere: request.Hemisphere,
+                        UtcOffsetMinutes: request.UtcOffsetMinutes,
+                        GenerationSeed: request.GenerationSeed,
+                        SizeTier: request.SizeTier,
+                        UrbanDensity: request.UrbanDensity,
+                        DevelopmentLevel: request.DevelopmentLevel,
+                        EconomyProfile: request.EconomyProfile,
+                        PopulationOccupancyProfile: request.PopulationOccupancyProfile,
+                        InitialWeatherMode: request.InitialWeatherMode,
+                        InitialWeatherType: request.InitialWeatherType,
+                        InitialWeatherSeverity: request.InitialWeatherSeverity,
+                        InitialWeatherTemperatureC: request.InitialWeatherTemperatureC,
+                        StartSimTimeUtc: request.StartSimTimeUtc,
+                        SpeedMultiplier: request.SpeedMultiplier,
+                        PlannedPeopleCount: request.PlannedPeopleCount,
+                        ProvisioningCorrelationId: request.ProvisioningCorrelationId)),
+                cancellationToken: cancellationToken);
+
+            return Results.Created(
+                uri: $"/api/cities/{provisioning.CityId}",
+                value: provisioning);
         }
 
         [HttpGet("generation/catalog")]
@@ -250,6 +286,32 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                         SimulationKind: result.SimulationKind!)),
                 RestartCityPopulationBootstrapStatus.NotFound => Results.NotFound(),
                 RestartCityPopulationBootstrapStatus.NotAllowed => Results.Conflict(
+                    new
+                    {
+                        code = "SimulationCore.City.PopulationBootstrapRetryNotAllowed",
+                        message = "Population bootstrap retry is allowed only after a failed bootstrap attempt."
+                    }),
+                _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+            };
+        }
+
+        [HttpPost("{cityId:guid}/population-bootstrap/retry-provisioning")]
+        public async Task<IResult> RetryPopulationBootstrapProvisioning(
+            [FromRoute] Guid cityId,
+            [FromBody] RetryCityPopulationBootstrapProvisioningRequest? request,
+            CancellationToken cancellationToken)
+        {
+            RetryCityPopulationBootstrapProvisioningResult result = await mediator.Send(
+                request: new RetryCityPopulationBootstrapProvisioningCommand(
+                    CityId: cityId,
+                    PlannedPeopleCountOverride: request?.PlannedPeopleCountOverride),
+                cancellationToken: cancellationToken);
+
+            return result.Status switch
+            {
+                RetryCityPopulationBootstrapProvisioningStatus.Provisioned => Results.Ok(result.Provisioning),
+                RetryCityPopulationBootstrapProvisioningStatus.NotFound => Results.NotFound(),
+                RetryCityPopulationBootstrapProvisioningStatus.NotAllowed => Results.Conflict(
                     new
                     {
                         code = "SimulationCore.City.PopulationBootstrapRetryNotAllowed",

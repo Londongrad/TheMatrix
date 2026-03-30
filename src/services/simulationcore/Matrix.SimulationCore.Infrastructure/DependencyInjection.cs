@@ -4,11 +4,15 @@ using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
+using Matrix.SimulationCore.Infrastructure.Economy;
+using Matrix.SimulationCore.Infrastructure.Http;
+using Matrix.SimulationCore.Infrastructure.Options;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
+using Matrix.SimulationCore.Infrastructure.Population;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Infrastructure.HostedServices;
-using Matrix.SimulationCore.Infrastructure.Options;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
@@ -64,6 +68,8 @@ namespace Matrix.SimulationCore.Infrastructure
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
+            services.AddOptions<DownstreamServicesOptions>()
+               .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ISimulationClockRepository, SimulationClockRepository>();
@@ -72,9 +78,38 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddScoped<ISimulationBatchAdvanceExecutor, SimulationBatchAdvanceExecutor>();
             services.AddScoped<ISimulationClockMutationExecutor, SimulationClockMutationExecutor>();
             services.AddPermissionCheckingFromClaims();
+            services.AddTransient<ForwardAuthorizationHeaderHandler>();
 
             services.AddOutbox<SimulationCoreDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
+
+            services.AddHttpClient<ICityEconomyBootstrapClient, CityEconomyBootstrapClient>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.Economy))
+                        throw new InvalidOperationException("DownstreamServices:Economy is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.Economy,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>();
+
+            services.AddHttpClient<ICityPopulationBootstrapClient, CityPopulationBootstrapClient>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.Population))
+                        throw new InvalidOperationException("DownstreamServices:Population is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.Population,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>();
 
             services.AddHostedService<SimulationTickHostedService>();
 
