@@ -29,6 +29,23 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCi
                 requestUrl: url);
         }
 
+        public async Task<CityProvisioningView> CreateProvisionedCityAsync(
+            CreateCityRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            const string url = $"{CitiesEndpoint}/provisioning";
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityProvisioningView>(
+                serviceName: DownstreamServiceNames.SimulationCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<IReadOnlyList<SimulationKindCatalogItemView>> GetSimulationKindsAsync(
             CancellationToken cancellationToken = default)
         {
@@ -154,6 +171,24 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCi
                 cancellationToken: cancellationToken);
 
             return await response.ReadJsonOrThrowDownstreamAsync<CityPopulationBootstrapRestartedView>(
+                serviceName: DownstreamServiceNames.SimulationCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task<CityProvisioningView> RetryPopulationBootstrapProvisioningAsync(
+            Guid cityId,
+            RetryCityPopulationBootstrapProvisioningRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/population-bootstrap/retry-provisioning";
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityProvisioningView>(
                 serviceName: DownstreamServiceNames.SimulationCore,
                 cancellationToken: cancellationToken,
                 requestUrl: url);

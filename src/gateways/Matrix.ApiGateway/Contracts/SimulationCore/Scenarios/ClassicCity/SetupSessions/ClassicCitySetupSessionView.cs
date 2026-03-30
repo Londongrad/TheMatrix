@@ -1,4 +1,4 @@
-using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 
 namespace Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.SetupSessions
 {

@@ -11,6 +11,10 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCi
             CreateCityRequest request,
             CancellationToken cancellationToken = default);
 
+        Task<CityProvisioningView> CreateProvisionedCityAsync(
+            CreateCityRequest request,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<SimulationKindCatalogItemView>> GetSimulationKindsAsync(
             CancellationToken cancellationToken = default);
 
@@ -40,6 +44,11 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCi
 
         Task<CityPopulationBootstrapRestartedView> RestartPopulationBootstrapAsync(
             Guid cityId,
+            CancellationToken cancellationToken = default);
+
+        Task<CityProvisioningView> RetryPopulationBootstrapProvisioningAsync(
+            Guid cityId,
+            RetryCityPopulationBootstrapProvisioningRequest request,
             CancellationToken cancellationToken = default);
 
         Task CompletePopulationBootstrapAsync(

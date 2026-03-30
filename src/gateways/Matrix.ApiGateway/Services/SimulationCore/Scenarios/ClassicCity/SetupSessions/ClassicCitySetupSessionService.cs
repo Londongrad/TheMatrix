@@ -753,57 +753,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                    step;
         }
 
-        private static CityProvisioningView BuildPendingProvisioning(
-            CityCreatedView created,
-            int? plannedPeopleCount)
-        {
-            return new CityProvisioningView(
-                CityId: created.CityId,
-                SimulationKind: created.SimulationKind,
-                PopulationBootstrap: new CityPopulationBootstrapView(
-                    OperationId: created.PopulationBootstrapOperationId,
-                    Status: "Pending",
-                    PlannedPeopleCount: plannedPeopleCount,
-                    ResidentialCapacity: null,
-                    Summary: null,
-                    FailureCode: null),
-                EconomyBootstrap: new CityEconomyBootstrapView(
-                    OperationId: created.EconomyBootstrapOperationId,
-                    Status: EconomyBootstrapStatusPending,
-                    FailureCode: null,
-                    UnitKind: null,
-                    UnitCode: null,
-                    UnitDisplayName: null,
-                    UnitSymbol: null));
-        }
-
-        private static CityProvisioningView BuildFailedProvisioningFromPending(
-            Guid cityId,
-            string simulationKind,
-            Guid populationOperationId,
-            Guid economyOperationId,
-            string failureCode)
-        {
-            return new CityProvisioningView(
-                CityId: cityId,
-                SimulationKind: simulationKind,
-                PopulationBootstrap: new CityPopulationBootstrapView(
-                    OperationId: populationOperationId,
-                    Status: PopulationBootstrapStatusPending,
-                    PlannedPeopleCount: null,
-                    ResidentialCapacity: null,
-                    Summary: null,
-                    FailureCode: null),
-                EconomyBootstrap: new CityEconomyBootstrapView(
-                    OperationId: economyOperationId,
-                    Status: EconomyBootstrapStatusFailed,
-                    FailureCode: failureCode,
-                    UnitKind: null,
-                    UnitCode: null,
-                    UnitDisplayName: null,
-                    UnitSymbol: null));
-        }
-
         private async Task ProcessLaunchCoreAsync(
             ClassicCitySetupSessionState session,
             CancellationToken cancellationToken)
@@ -827,58 +776,13 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 session: session,
                 cancellationToken: cancellationToken);
 
-            CityCreatedView? created = null;
-
-            try
-            {
-                created = await ExecuteWithLaunchAuthAsync(
-                    session: session,
-                    cancellationToken: cancellationToken,
-                    action: () => provisioningService.CreateCitySkeletonAsync(
-                        request: session.LaunchRequest,
-                        cancellationToken: cancellationToken));
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException ||
-                                       !cancellationToken.IsCancellationRequested)
-            {
-                logger.LogWarning(
-                    exception: ex,
-                    message: "Classic City setup launch failed during city creation for sessionId={SessionId}.",
-                    session.SessionId);
-
-                await FailLaunchAsync(
-                    session: session,
-                    failureCode: DetermineCityCreateFailureCode(ex),
-                    failureMessage: BuildSafeFailureMessage(
-                        exception: ex,
-                        fallback: "City creation failed before provisioning could start."),
-                    cancellationToken: cancellationToken);
-                return;
-            }
-
-            DateTimeOffset provisioningStartedAtUtc = DateTimeOffset.UtcNow;
-            session.Status = ClassicCitySetupSessionStatuses.BootstrappingPopulation;
-            session.CityId = created.CityId;
-            session.SimulationKind = created.SimulationKind;
-            session.Provisioning = BuildPendingProvisioning(
-                created: created,
-                plannedPeopleCount: session.LaunchRequest.PlannedPeopleCount);
-            session.UpdatedAtUtc = provisioningStartedAtUtc;
-
-            await sessionStore.SaveAsync(
-                session: session,
-                cancellationToken: cancellationToken);
-
             try
             {
                 CityProvisioningView provisioning = await ExecuteWithLaunchAuthAsync(
                     session: session,
                     cancellationToken: cancellationToken,
-                    action: () => provisioningService.ProvisionCreatedCityAsync(
-                        cityId: created.CityId,
-                        simulationKind: created.SimulationKind,
-                        populationOperationId: created.PopulationBootstrapOperationId,
-                        economyOperationId: created.EconomyBootstrapOperationId,
+                    action: () => provisioningService.CreateCityAsync(
+                        request: session.LaunchRequest,
                         cancellationToken: cancellationToken));
 
                 FinalizeFromProvisioning(
@@ -894,27 +798,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             {
                 logger.LogWarning(
                     exception: ex,
-                    message:
-                    "Classic City setup launch failed after city creation for sessionId={SessionId} cityId={CityId}.",
-                    session.SessionId,
-                    created.CityId);
+                    message: "Classic City setup launch failed during provisioning for sessionId={SessionId}.",
+                    session.SessionId);
 
-                session.Status = ClassicCitySetupSessionStatuses.ProvisioningFailed;
-                session.Provisioning = BuildFailedProvisioningFromPending(
-                    cityId: created.CityId,
-                    simulationKind: created.SimulationKind,
-                    populationOperationId: created.PopulationBootstrapOperationId,
-                    economyOperationId: created.EconomyBootstrapOperationId,
-                    failureCode: ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError);
-                session.FailureCode = ClassicCitySetupSessionFailureCodes.ProvisioningUnexpectedError;
-                session.FailureMessage = BuildSafeFailureMessage(
-                    exception: ex,
-                    fallback: "City provisioning finished with an unexpected orchestration error.");
-                session.CompletedAtUtc = DateTimeOffset.UtcNow;
-                session.UpdatedAtUtc = session.CompletedAtUtc.Value;
-
-                await sessionStore.SaveAsync(
+                await FailLaunchAsync(
                     session: session,
+                    failureCode: DetermineCityCreateFailureCode(ex),
+                    failureMessage: BuildSafeFailureMessage(
+                        exception: ex,
+                        fallback: "City launch failed before provisioning could complete."),
                     cancellationToken: cancellationToken);
             }
         }
