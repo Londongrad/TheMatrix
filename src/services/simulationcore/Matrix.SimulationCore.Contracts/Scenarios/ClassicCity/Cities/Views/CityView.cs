@@ -10,6 +10,7 @@ namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views
         string Hemisphere,
         int UtcOffsetMinutes,
         string GenerationSeed,
+        CityRunMetadataView RunMetadata,
         string SizeTier,
         string UrbanDensity,
         string DevelopmentLevel,

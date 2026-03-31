@@ -10,6 +10,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities
         SimulationKind SimulationKind,
         CityEnvironment Environment,
         CityGenerationSeed GenerationSeed,
+        Guid RunId,
+        ScenarioModelSetVersion ScenarioModelSetVersion,
         CityGenerationProfile GenerationProfile,
         Guid PopulationBootstrapOperationId,
         DateTimeOffset CreatedAtUtc)

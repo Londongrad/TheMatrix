@@ -23,7 +23,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         DateTimeOffset StartSimTimeUtc,
         decimal SpeedMultiplier = 1.0m,
         int? PlannedPeopleCount = null,
-        Guid? ProvisioningCorrelationId = null) : IRequest<CityCreatedDto>, IRequirePermission
+        Guid? ProvisioningCorrelationId = null,
+        string? ScenarioModelSetVersion = null) : IRequest<CityCreatedDto>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.SimulationCoreClassicCityCreate;
     }

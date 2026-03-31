@@ -6,5 +6,8 @@ namespace Matrix.SimulationCore.Contracts.Events
         string SimulationKind,
         DateTimeOffset CreatedAtUtc,
         string DevelopmentLevel,
-        string? EconomyProfile = null);
+        string? EconomyProfile = null,
+        Guid? RunId = null,
+        string? SimulationSeed = null,
+        string? ScenarioModelSetVersion = null);
 }

@@ -62,6 +62,17 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .HasMaxLength(CityGenerationSeed.MaxLength)
                .IsRequired();
 
+            builder.Property(x => x.RunId)
+               .HasDefaultValueSql("gen_random_uuid()")
+               .IsRequired();
+
+            builder.Property(x => x.ScenarioModelSetVersion)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => new ScenarioModelSetVersion(x))
+               .HasMaxLength(ScenarioModelSetVersion.MaxLength)
+               .IsRequired();
+
             builder.OwnsOne(
                 navigationExpression: x => x.GenerationProfile,
                 buildAction: profile =>

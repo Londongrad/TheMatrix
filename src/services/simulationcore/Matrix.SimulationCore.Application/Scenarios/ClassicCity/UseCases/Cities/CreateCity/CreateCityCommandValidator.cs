@@ -41,6 +41,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                .MaximumLength(CityGenerationSeed.MaxLength)
                .When(x => !string.IsNullOrWhiteSpace(x.GenerationSeed));
 
+            RuleFor(x => x.ScenarioModelSetVersion)
+               .MaximumLength(ScenarioModelSetVersion.MaxLength)
+               .When(x => !string.IsNullOrWhiteSpace(x.ScenarioModelSetVersion));
+
             RuleFor(x => x.SizeTier)
                .Must(BeValidSizeTier)
                .When(x => !string.IsNullOrWhiteSpace(x.SizeTier))

@@ -98,6 +98,25 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException ScenarioModelSetVersionNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.City.ScenarioModelSetVersion.NullOrEmpty",
+                message: "Scenario model-set version cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException ScenarioModelSetVersionTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.City.ScenarioModelSetVersion.TooLong",
+                message: $"Scenario model-set version cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
         public static DomainException InvalidCityGenerationProfile(
             string reason,
             string? propertyName = null)

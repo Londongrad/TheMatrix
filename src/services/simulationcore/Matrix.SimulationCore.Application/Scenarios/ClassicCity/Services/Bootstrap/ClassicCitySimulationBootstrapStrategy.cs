@@ -86,6 +86,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 : request.GenerationSeed;
 
             var generationSeed = new CityGenerationSeed(effectiveSeed);
+            ScenarioModelSetVersion scenarioModelSetVersion = string.IsNullOrWhiteSpace(request.ScenarioModelSetVersion)
+                ? ScenarioModelSetVersion.Default()
+                : new ScenarioModelSetVersion(request.ScenarioModelSetVersion);
             var startSimTime = SimTime.FromUtc(request.StartSimTimeUtc);
 
             var city = City.Create(
@@ -93,6 +96,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 simulationKind: Kind,
                 environment: environment,
                 generationSeed: generationSeed,
+                scenarioModelSetVersion: scenarioModelSetVersion,
                 generationProfile: generationProfile,
                 initialWeatherProfile: initialWeatherProfile,
                 provisioningCorrelationId: request.ProvisioningCorrelationId,

@@ -19,5 +19,6 @@ namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests
         DateTimeOffset StartSimTimeUtc,
         decimal SpeedMultiplier = 1.0m,
         int? PlannedPeopleCount = null,
-        Guid? ProvisioningCorrelationId = null);
+        Guid? ProvisioningCorrelationId = null,
+        string? ScenarioModelSetVersion = null);
 }

@@ -36,7 +36,10 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                                 SimulationKind: created.SimulationKind.ToString(),
                                 CreatedAtUtc: created.CreatedAtUtc,
                                 DevelopmentLevel: created.GenerationProfile.DevelopmentLevel.ToString(),
-                                EconomyProfile: created.GenerationProfile.EconomyProfile.ToString())));
+                                EconomyProfile: created.GenerationProfile.EconomyProfile.ToString(),
+                                RunId: created.RunId,
+                                SimulationSeed: created.GenerationSeed.Value,
+                                ScenarioModelSetVersion: created.ScenarioModelSetVersion.Value)));
 
                     dbContext.OutboxMessages.Add(
                         OutboxMessage.Create(

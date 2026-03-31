@@ -21,6 +21,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             SimulationKind simulationKind,
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
+            Guid runId,
+            ScenarioModelSetVersion scenarioModelSetVersion,
             CityGenerationProfile generationProfile,
             CityInitialWeatherProfile initialWeatherProfile,
             Guid? provisioningCorrelationId,
@@ -49,6 +51,9 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             GuardHelper.AgainstEmptyGuid(
                 id: economyBootstrapOperationId,
                 propertyName: nameof(economyBootstrapOperationId));
+            GuardHelper.AgainstEmptyGuid(
+                id: runId,
+                propertyName: nameof(runId));
 
             Name = name;
             SimulationKind = GuardHelper.AgainstInvalidEnum(
@@ -56,6 +61,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                 propertyName: nameof(simulationKind));
             Environment = environment;
             GenerationSeed = generationSeed;
+            RunId = runId;
+            ScenarioModelSetVersion = scenarioModelSetVersion;
             GenerationProfile = generationProfile;
             InitialWeatherProfile = initialWeatherProfile;
             ProvisioningCorrelationId = provisioningCorrelationId;
@@ -79,6 +86,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             SimulationKind = SimulationKind.ClassicCity;
             Environment = null!;
             GenerationSeed = default(CityGenerationSeed);
+            ScenarioModelSetVersion = default(ScenarioModelSetVersion);
             GenerationProfile = null!;
             InitialWeatherProfile = null!;
         }
@@ -87,6 +95,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
         public SimulationKind SimulationKind { get; }
         public CityEnvironment Environment { get; private set; }
         public CityGenerationSeed GenerationSeed { get; }
+        public Guid RunId { get; }
+        public ScenarioModelSetVersion ScenarioModelSetVersion { get; }
         public CityGenerationProfile GenerationProfile { get; }
         public CityInitialWeatherProfile InitialWeatherProfile { get; }
         public Guid? ProvisioningCorrelationId { get; }
@@ -117,6 +127,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             SimulationKind simulationKind,
             CityEnvironment environment,
             CityGenerationSeed generationSeed,
+            ScenarioModelSetVersion scenarioModelSetVersion,
             CityGenerationProfile generationProfile,
             CityInitialWeatherProfile initialWeatherProfile,
             Guid? provisioningCorrelationId,
@@ -151,6 +162,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                 simulationKind: simulationKind,
                 environment: environment,
                 generationSeed: generationSeed,
+                runId: Guid.NewGuid(),
+                scenarioModelSetVersion: scenarioModelSetVersion,
                 generationProfile: generationProfile,
                 initialWeatherProfile: initialWeatherProfile,
                 provisioningCorrelationId: provisioningCorrelationId,
@@ -179,6 +192,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                     SimulationKind: city.SimulationKind,
                     Environment: city.Environment,
                     GenerationSeed: city.GenerationSeed,
+                    RunId: city.RunId,
+                    ScenarioModelSetVersion: city.ScenarioModelSetVersion,
                     GenerationProfile: city.GenerationProfile,
                     PopulationBootstrapOperationId: city.PopulationBootstrapOperationId,
                     CreatedAtUtc: city.CreatedAtUtc));
