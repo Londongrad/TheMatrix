@@ -6,6 +6,7 @@ namespace Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views
         string RequestedIntensity,
         string? BudgetAuthorizedIntensity,
         string? AppliedIntensity,
+        PendingResupplyView? PendingResupply,
         decimal BudgetPressureIndex,
         string BudgetAuthorizationStatus,
         string BudgetAuthorizationLevel,

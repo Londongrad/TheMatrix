@@ -18,6 +18,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             CityResourceStockLineState spareParts,
             CityResourceStockLineState filters,
             CityResourceStockLineState emergencyWater,
+            CityPendingResupplyState pendingResupply,
             CitySystemsResourceDemandState systemsDemand,
             CityOperationalBudgetPressureState operationalBudgetPressure,
             decimal supplyStressIndex,
@@ -32,6 +33,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             SpareParts = spareParts;
             Filters = filters;
             EmergencyWater = emergencyWater;
+            PendingResupply = pendingResupply;
             SystemsDemand = systemsDemand;
             OperationalBudgetPressure = operationalBudgetPressure;
             SupplyStressIndex = EnsureIndex(
@@ -55,6 +57,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             SpareParts = null!;
             Filters = null!;
             EmergencyWater = null!;
+            PendingResupply = null!;
             SystemsDemand = null!;
             OperationalBudgetPressure = null!;
         }
@@ -66,6 +69,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         public CityResourceStockLineState SpareParts { get; private set; }
         public CityResourceStockLineState Filters { get; private set; }
         public CityResourceStockLineState EmergencyWater { get; private set; }
+        public CityPendingResupplyState PendingResupply { get; private set; }
         public CitySystemsResourceDemandState SystemsDemand { get; private set; }
         public CityOperationalBudgetPressureState OperationalBudgetPressure { get; private set; }
         public decimal SupplyStressIndex { get; private set; }
@@ -89,6 +93,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 spareParts: CityResourceStockLineState.Create(seed.SpareParts),
                 filters: CityResourceStockLineState.Create(seed.Filters),
                 emergencyWater: CityResourceStockLineState.Create(seed.EmergencyWater),
+                pendingResupply: CityPendingResupplyState.None(),
                 systemsDemand: CitySystemsResourceDemandState.Create(seed.SystemsDemand),
                 operationalBudgetPressure: CityOperationalBudgetPressureState.Create(seed.OperationalBudgetPressure),
                 supplyStressIndex: seed.SupplyStressIndex,
@@ -155,6 +160,45 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 SupplyStressIndex: SupplyStressIndex,
                 EmergencyRationingEnabled: EmergencyRationingEnabled,
                 EvaluatedAtUtc: LastEvaluatedAtUtc);
+        }
+
+        public void ScheduleResupply(
+            Enums.ResupplyFocus focus,
+            Enums.ResupplyIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingResupply.Schedule(
+                focus: focus,
+                intensity: intensity,
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
+        }
+
+        public bool ApplyDueResupply(
+            Services.CityStockpilePolicy policy,
+            long tickId)
+        {
+            ArgumentNullException.ThrowIfNull(policy);
+
+            if (!PendingResupply.IsReady(tickId))
+                return false;
+
+            Enums.ResupplyFocus focus = Enum.Parse<Enums.ResupplyFocus>(
+                value: PendingResupply.Focus,
+                ignoreCase: true);
+            Enums.ResupplyIntensity intensity = Enum.Parse<Enums.ResupplyIntensity>(
+                value: PendingResupply.Intensity,
+                ignoreCase: true);
+            CityStockpileSnapshot refreshedSnapshot = policy.DispatchResupply(
+                current: ToSnapshot(),
+                focus: focus,
+                intensity: intensity);
+
+            ApplySnapshot(refreshedSnapshot);
+            PendingResupply.Clear();
+
+            return true;
         }
 
         public void MarkTickApplied(long tickId)

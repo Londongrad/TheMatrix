@@ -7,6 +7,7 @@ namespace Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views
         decimal SupplyStressIndex,
         bool EmergencyRationingEnabled,
         DateTimeOffset LastEvaluatedAtUtc,
+        PendingResupplyView? PendingResupply,
         CityStockpileLineView Fuel,
         CityStockpileLineView Food,
         CityStockpileLineView Medicine,

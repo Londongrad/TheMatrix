@@ -1,3 +1,5 @@
+using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.Common;
+
 namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.DispatchCityResupply
 {
     public sealed record DispatchCityResupplyResult(
@@ -6,6 +8,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         string RequestedIntensity,
         string? BudgetAuthorizedIntensity,
         string? AppliedIntensity,
+        PendingResupplyDto? PendingResupply,
         decimal BudgetPressureIndex,
         string BudgetAuthorizationStatus,
         string BudgetAuthorizationLevel,

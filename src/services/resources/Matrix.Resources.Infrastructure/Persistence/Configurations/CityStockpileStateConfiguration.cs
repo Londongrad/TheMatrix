@@ -35,6 +35,31 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.PendingResupply,
+                buildAction: pending =>
+                {
+                    pending.Property(x => x.IsScheduled)
+                       .HasColumnName("PendingResupplyIsScheduled")
+                       .IsRequired();
+
+                    pending.Property(x => x.Focus)
+                       .HasMaxLength(32)
+                       .HasColumnName("PendingResupplyFocus")
+                       .IsRequired();
+
+                    pending.Property(x => x.Intensity)
+                       .HasMaxLength(32)
+                       .HasColumnName("PendingResupplyIntensity")
+                       .IsRequired();
+
+                    pending.Property(x => x.ReadyAtTickId)
+                       .HasColumnName("PendingResupplyReadyAtTickId")
+                       .IsRequired();
+                });
+            builder.Navigation(x => x.PendingResupply)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.OperationalBudgetPressure,
                 buildAction: budget =>
                 {

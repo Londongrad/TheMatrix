@@ -2,8 +2,8 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
+using Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles.Common;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
-using Matrix.Resources.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Simulation;
 using MediatR;
 
@@ -12,11 +12,9 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed class DispatchCityResupplyCommandHandler(
         ICityStockpileRepository repository,
         IUnitOfWork unitOfWork,
-        ICityStockpileSnapshotOutboxWriter outboxWriter,
         ICityOperationalExpenseOutboxWriter expenseOutboxWriter,
         ICityBudgetAuthorizationClient budgetAuthorizationClient,
-        CityStockpileBudgetGuard budgetGuard,
-        CityStockpilePolicy policy)
+        CityStockpileBudgetGuard budgetGuard)
         : IRequestHandler<DispatchCityResupplyCommand, DispatchCityResupplyResult>
     {
         public async Task<DispatchCityResupplyResult> Handle(
@@ -36,6 +34,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     RequestedIntensity: request.Intensity.ToString(),
                     BudgetAuthorizedIntensity: null,
                     AppliedIntensity: null,
+                    PendingResupply: null,
                     BudgetPressureIndex: 0m,
                     BudgetAuthorizationStatus: "Unavailable",
                     BudgetAuthorizationLevel: "High",
@@ -74,6 +73,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                         RequestedIntensity: authorizationDecision.RequestedIntensity,
                         BudgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
                         AppliedIntensity: null,
+                        PendingResupply: PendingResupplyDto.FromDomain(state.PendingResupply),
                         BudgetPressureIndex: authorizationDecision.PressureIndex,
                         BudgetAuthorizationStatus: authorizationDecision.Status,
                         BudgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
@@ -103,6 +103,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     RequestedIntensity: request.Intensity.ToString(),
                     BudgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
                     AppliedIntensity: decision.AppliedIntensity.ToString(),
+                    PendingResupply: PendingResupplyDto.FromDomain(state.PendingResupply),
                     BudgetPressureIndex: decision.PressureIndex,
                     BudgetAuthorizationStatus: authorizationDecision.Status,
                     BudgetAuthorizationLevel: authorizationDecision.Status == "NotRequired"
@@ -120,19 +121,17 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     FoodStockLevelIndex: state.Food.StockLevelIndex,
                     EmergencyWaterStockLevelIndex: state.EmergencyWater.StockLevelIndex);
 
-            var refreshedSnapshot = policy.DispatchResupply(
-                current: state.ToSnapshot(),
+            long readyAtTickId = CalculateReadyAtTickId(
+                currentTickId: state.LastAppliedTickId,
                 focus: request.Focus,
                 intensity: decision.AppliedIntensity);
 
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+            state.ScheduleResupply(
+                focus: request.Focus,
+                intensity: decision.AppliedIntensity,
+                readyAtTickId: readyAtTickId);
 
-            state.ApplySnapshot(refreshedSnapshot);
-            await outboxWriter.AddClassicCityStockpileSnapshotAsync(
-                snapshot: CityStockpileIntegrationEventFactory.CreateSnapshot(
-                    state: state,
-                    occurredAtUtc: occurredAtUtc),
-                cancellationToken: cancellationToken);
+            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
             await expenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
                 expense: CityResupplyOperationalExpenseFactory.CreateDispatchExpense(
                     cityId: request.CityId,
@@ -143,11 +142,12 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new DispatchCityResupplyResult(
-                Status: DispatchCityResupplyStatus.Applied,
+                Status: DispatchCityResupplyStatus.Scheduled,
                 CityId: request.CityId,
                 RequestedIntensity: request.Intensity.ToString(),
                 BudgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
-                AppliedIntensity: decision.AppliedIntensity.ToString(),
+                AppliedIntensity: null,
+                PendingResupply: PendingResupplyDto.FromDomain(state.PendingResupply),
                 BudgetPressureIndex: decision.PressureIndex,
                 BudgetAuthorizationStatus: authorizationDecision.Status,
                 BudgetAuthorizationLevel: authorizationDecision.Status == "NotRequired"
@@ -169,6 +169,18 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             return request.EmergencyOverride ||
                    request.Focus == ResupplyFocus.All ||
                    request.Intensity == ResupplyIntensity.High;
+        }
+
+        private static long CalculateReadyAtTickId(
+            long currentTickId,
+            ResupplyFocus focus,
+            ResupplyIntensity intensity)
+        {
+            long delay = focus == ResupplyFocus.All || intensity == ResupplyIntensity.High
+                ? 2
+                : 1;
+
+            return Math.Max(0, currentTickId + delay);
         }
     }
 }

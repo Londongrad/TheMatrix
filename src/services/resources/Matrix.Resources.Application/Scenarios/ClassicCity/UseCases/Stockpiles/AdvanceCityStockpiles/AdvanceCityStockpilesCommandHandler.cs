@@ -52,6 +52,9 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 elapsed: request.ToSimTimeUtc - effectiveFrom);
 
             state.ApplySnapshot(refreshedSnapshot);
+            state.ApplyDueResupply(
+                policy: policy,
+                tickId: request.TickId);
             state.MarkTickApplied(request.TickId);
             await outboxWriter.AddClassicCityStockpileSnapshotAsync(
                 snapshot: CityStockpileIntegrationEventFactory.CreateSnapshot(

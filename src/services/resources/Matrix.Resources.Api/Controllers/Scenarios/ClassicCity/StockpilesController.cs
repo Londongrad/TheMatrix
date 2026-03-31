@@ -123,6 +123,7 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                 SupplyStressIndex: dto.SupplyStressIndex,
                 EmergencyRationingEnabled: dto.EmergencyRationingEnabled,
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                PendingResupply: MapPendingResupplyView(dto.PendingResupply),
                 Fuel: MapLine(dto.Fuel),
                 Food: MapLine(dto.Food),
                 Medicine: MapLine(dto.Medicine),
@@ -149,6 +150,7 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                 RequestedIntensity: result.RequestedIntensity,
                 BudgetAuthorizedIntensity: result.BudgetAuthorizedIntensity,
                 AppliedIntensity: result.AppliedIntensity,
+                PendingResupply: MapPendingResupplyView(result.PendingResupply),
                 BudgetPressureIndex: result.BudgetPressureIndex,
                 BudgetAuthorizationStatus: result.BudgetAuthorizationStatus,
                 BudgetAuthorizationLevel: result.BudgetAuthorizationLevel,
@@ -159,6 +161,16 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                 FuelStockLevelIndex: result.FuelStockLevelIndex,
                 FoodStockLevelIndex: result.FoodStockLevelIndex,
                 EmergencyWaterStockLevelIndex: result.EmergencyWaterStockLevelIndex);
+        }
+
+        private static PendingResupplyView? MapPendingResupplyView(PendingResupplyDto? dto)
+        {
+            return dto is null
+                ? null
+                : new PendingResupplyView(
+                    Focus: dto.Focus,
+                    Intensity: dto.Intensity,
+                    ReadyAtTickId: dto.ReadyAtTickId);
         }
     }
 }
