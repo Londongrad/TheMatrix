@@ -1,7 +1,9 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.GetCityHeatingStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.SetCityHeatingEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using MediatR;
@@ -92,12 +94,23 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 BudgetAuthorizedByEmergencyOverride: dto.BudgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: dto.BudgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: dto.BudgetAuthorizationSummary,
+                PendingOperation: MapPendingOperationView(dto.PendingOperation),
                 System: new CityHeatingSystemStatusView(
                     Kind: dto.System.Kind,
                     LoadIndex: dto.System.LoadIndex,
                     ServiceQualityIndex: dto.System.ServiceQualityIndex,
                     BacklogIndex: dto.System.BacklogIndex,
                     FailureRiskIndex: dto.System.FailureRiskIndex));
+        }
+
+        private static PendingCityOperationView? MapPendingOperationView(PendingCityOperationDto? dto)
+        {
+            return dto is null
+                ? null
+                : new PendingCityOperationView(
+                    Focus: dto.Focus,
+                    Intensity: dto.Intensity,
+                    ReadyAtTickId: dto.ReadyAtTickId);
         }
     }
 }

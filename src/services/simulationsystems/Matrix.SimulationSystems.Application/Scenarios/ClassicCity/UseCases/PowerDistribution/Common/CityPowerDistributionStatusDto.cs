@@ -1,3 +1,4 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.Common
@@ -22,6 +23,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationDto? PendingOperation,
         CityPowerDistributionSystemStatusDto System)
     {
         public static CityPowerDistributionStatusDto FromState(
@@ -57,6 +59,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
                 BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: budgetAuthorizationSummary,
+                PendingOperation: PendingCityOperationDto.FromDomain(state.PendingPowerDistributionMaintenance),
                 System: CityPowerDistributionSystemStatusDto.FromSnapshot(state.PowerDistribution.ToSnapshot()));
         }
     }

@@ -1,7 +1,9 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.DispatchCityDrainageMaintenance;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.GetCityDrainageStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.SetCityDrainageEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Drainage.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Drainage.Views;
 using MediatR;
@@ -92,12 +94,23 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 BudgetAuthorizedByEmergencyOverride: dto.BudgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: dto.BudgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: dto.BudgetAuthorizationSummary,
+                PendingOperation: MapPendingOperationView(dto.PendingOperation),
                 System: new CityDrainageSystemStatusView(
                     Kind: dto.System.Kind,
                     LoadIndex: dto.System.LoadIndex,
                     ServiceQualityIndex: dto.System.ServiceQualityIndex,
                     BacklogIndex: dto.System.BacklogIndex,
                     FailureRiskIndex: dto.System.FailureRiskIndex));
+        }
+
+        private static PendingCityOperationView? MapPendingOperationView(PendingCityOperationDto? dto)
+        {
+            return dto is null
+                ? null
+                : new PendingCityOperationView(
+                    Focus: dto.Focus,
+                    Intensity: dto.Intensity,
+                    ReadyAtTickId: dto.ReadyAtTickId);
         }
     }
 }

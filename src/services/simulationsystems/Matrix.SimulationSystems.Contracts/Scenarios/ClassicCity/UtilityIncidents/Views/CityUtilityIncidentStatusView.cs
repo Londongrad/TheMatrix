@@ -1,3 +1,5 @@
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+
 namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views
 {
     public sealed record CityUtilityIncidentStatusView(
@@ -20,5 +22,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncide
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationView? PendingOperation,
         CityUtilityIncidentSystemStatusView System);
 }

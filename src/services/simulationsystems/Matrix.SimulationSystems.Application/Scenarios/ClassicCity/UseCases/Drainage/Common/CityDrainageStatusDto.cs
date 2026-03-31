@@ -1,3 +1,4 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Drainage.Common
@@ -22,6 +23,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationDto? PendingOperation,
         CityDrainageSystemStatusDto System)
     {
         public static CityDrainageStatusDto FromState(
@@ -57,6 +59,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Dr
                 BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: budgetAuthorizationSummary,
+                PendingOperation: PendingCityOperationDto.FromDomain(state.PendingDrainageMaintenance),
                 System: CityDrainageSystemStatusDto.FromSnapshot(state.Drainage.ToSnapshot()));
         }
     }

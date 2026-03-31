@@ -4,7 +4,6 @@ using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
-using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 using MediatR;
@@ -15,7 +14,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
-        CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
         CityMaintenanceBudgetGuard budgetGuard,
         CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
@@ -85,16 +83,12 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 value: budgetDecision.AppliedIntensity,
                 ignoreCase: true);
 
-            state.DispatchUtilityIncidentResponse(
+            state.ScheduleUtilityIncidentResponse(
                 focus: focus,
-                intensity: appliedIntensity);
-
-            var refreshedSnapshot = policy.Recalculate(
-                state: state,
-                pressure: pressureProfileFactory.Create(state),
-                asOfUtc: state.LastEvaluatedAtUtc);
-
-            state.ApplySnapshot(refreshedSnapshot);
+                intensity: appliedIntensity,
+                readyAtTickId: CalculateReadyAtTickId(
+                    currentTickId: state.LastAppliedTickId,
+                    intensity: budgetDecision.AppliedIntensity));
             await operationalExpenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
                 expense: CityMaintenanceOperationalExpenseFactory.CreateUtilityIncidentResponseExpense(
                     cityId: request.CityId,
@@ -111,13 +105,27 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 state: state,
                 utilityIncidentSupportIndex: utilityIncidentSupport,
                 requestedIntensity: request.Intensity,
-                appliedIntensity: budgetDecision.AppliedIntensity,
+                appliedIntensity: null,
                 budgetAuthorizationStatus: authorizationDecision.Status,
                 budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
                 budgetAvailableAmount: authorizationDecision.AvailableAmount,
                 budgetAuthorizedByEmergencyOverride: authorizationDecision.AuthorizedByEmergencyOverride,
                 budgetAuthorizedIntensity: authorizationDecision.ApprovedIntensity,
                 budgetAuthorizationSummary: authorizationDecision.Summary);
+        }
+
+        private static long CalculateReadyAtTickId(
+            long currentTickId,
+            string intensity)
+        {
+            long delay = string.Equals(
+                a: intensity,
+                b: "Heavy",
+                comparisonType: StringComparison.OrdinalIgnoreCase)
+                ? 2
+                : 1;
+
+            return Math.Max(0, currentTickId + delay);
         }
     }
 }

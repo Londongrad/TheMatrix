@@ -1,7 +1,9 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.DispatchCityRoadAccessMaintenance;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadAccessStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.SetCityRoadAccessEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views;
 using MediatR;
@@ -94,12 +96,23 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 BudgetAuthorizedByEmergencyOverride: dto.BudgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: dto.BudgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: dto.BudgetAuthorizationSummary,
+                PendingOperation: MapPendingOperationView(dto.PendingOperation),
                 System: new CityRoadAccessSystemStatusView(
                     Kind: dto.System.Kind,
                     LoadIndex: dto.System.LoadIndex,
                     ServiceQualityIndex: dto.System.ServiceQualityIndex,
                     BacklogIndex: dto.System.BacklogIndex,
                     FailureRiskIndex: dto.System.FailureRiskIndex));
+        }
+
+        private static PendingCityOperationView? MapPendingOperationView(PendingCityOperationDto? dto)
+        {
+            return dto is null
+                ? null
+                : new PendingCityOperationView(
+                    Focus: dto.Focus,
+                    Intensity: dto.Intensity,
+                    ReadyAtTickId: dto.ReadyAtTickId);
         }
     }
 }

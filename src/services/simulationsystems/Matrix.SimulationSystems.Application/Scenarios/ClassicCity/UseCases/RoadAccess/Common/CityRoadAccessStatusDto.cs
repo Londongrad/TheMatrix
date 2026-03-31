@@ -1,3 +1,4 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.Common
@@ -24,6 +25,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ro
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationDto? PendingOperation,
         CityRoadAccessSystemStatusDto System)
     {
         public static CityRoadAccessStatusDto FromState(
@@ -61,6 +63,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ro
                 BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: budgetAuthorizationSummary,
+                PendingOperation: PendingCityOperationDto.FromDomain(state.PendingRoadAccessMaintenance),
                 System: CityRoadAccessSystemStatusDto.FromSnapshot(state.RoadAccess.ToSnapshot()));
         }
     }

@@ -31,6 +31,14 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             CityPowerDistributionInfrastructureState powerDistributionInfrastructure,
             CitySystemState utilityIncidents,
             CityUtilityIncidentInfrastructureState utilityIncidentInfrastructure,
+            CityPendingOperationalWorkState pendingDrainageMaintenance,
+            CityPendingOperationalWorkState pendingSnowRemovalMaintenance,
+            CityPendingOperationalWorkState pendingRoadAccessMaintenance,
+            CityPendingOperationalWorkState pendingHeatingMaintenance,
+            CityPendingOperationalWorkState pendingWaterDistributionMaintenance,
+            CityPendingOperationalWorkState pendingSanitationMaintenance,
+            CityPendingOperationalWorkState pendingPowerDistributionMaintenance,
+            CityPendingOperationalWorkState pendingUtilityIncidentResponse,
             CityResourceSupplyState resourceSupply,
             CityOperationalBudgetPressureState operationalBudgetPressure,
             CityWeatherPressureProfile weatherPressure,
@@ -62,6 +70,14 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PowerDistributionInfrastructure = powerDistributionInfrastructure;
             UtilityIncidents = utilityIncidents;
             UtilityIncidentInfrastructure = utilityIncidentInfrastructure;
+            PendingDrainageMaintenance = pendingDrainageMaintenance;
+            PendingSnowRemovalMaintenance = pendingSnowRemovalMaintenance;
+            PendingRoadAccessMaintenance = pendingRoadAccessMaintenance;
+            PendingHeatingMaintenance = pendingHeatingMaintenance;
+            PendingWaterDistributionMaintenance = pendingWaterDistributionMaintenance;
+            PendingSanitationMaintenance = pendingSanitationMaintenance;
+            PendingPowerDistributionMaintenance = pendingPowerDistributionMaintenance;
+            PendingUtilityIncidentResponse = pendingUtilityIncidentResponse;
             ResourceSupply = resourceSupply;
             OperationalBudgetPressure = operationalBudgetPressure;
             WeatherPressure = weatherPressure;
@@ -100,6 +116,14 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PowerDistributionInfrastructure = null!;
             UtilityIncidents = null!;
             UtilityIncidentInfrastructure = null!;
+            PendingDrainageMaintenance = null!;
+            PendingSnowRemovalMaintenance = null!;
+            PendingRoadAccessMaintenance = null!;
+            PendingHeatingMaintenance = null!;
+            PendingWaterDistributionMaintenance = null!;
+            PendingSanitationMaintenance = null!;
+            PendingPowerDistributionMaintenance = null!;
+            PendingUtilityIncidentResponse = null!;
             ResourceSupply = null!;
             OperationalBudgetPressure = null!;
             WeatherPressure = null!;
@@ -122,6 +146,14 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public CityPowerDistributionInfrastructureState PowerDistributionInfrastructure { get; private set; }
         public CitySystemState UtilityIncidents { get; private set; }
         public CityUtilityIncidentInfrastructureState UtilityIncidentInfrastructure { get; private set; }
+        public CityPendingOperationalWorkState PendingDrainageMaintenance { get; private set; }
+        public CityPendingOperationalWorkState PendingSnowRemovalMaintenance { get; private set; }
+        public CityPendingOperationalWorkState PendingRoadAccessMaintenance { get; private set; }
+        public CityPendingOperationalWorkState PendingHeatingMaintenance { get; private set; }
+        public CityPendingOperationalWorkState PendingWaterDistributionMaintenance { get; private set; }
+        public CityPendingOperationalWorkState PendingSanitationMaintenance { get; private set; }
+        public CityPendingOperationalWorkState PendingPowerDistributionMaintenance { get; private set; }
+        public CityPendingOperationalWorkState PendingUtilityIncidentResponse { get; private set; }
         public CityResourceSupplyState ResourceSupply { get; private set; }
         public CityOperationalBudgetPressureState OperationalBudgetPressure { get; private set; }
         public CityWeatherPressureProfile WeatherPressure { get; private set; }
@@ -162,6 +194,14 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 powerDistributionInfrastructure: CityPowerDistributionInfrastructureState.Create(seed.PowerDistributionInfrastructure),
                 utilityIncidents: CitySystemState.Create(seed.UtilityIncidents),
                 utilityIncidentInfrastructure: CityUtilityIncidentInfrastructureState.Create(seed.UtilityIncidentInfrastructure),
+                pendingDrainageMaintenance: CityPendingOperationalWorkState.None(),
+                pendingSnowRemovalMaintenance: CityPendingOperationalWorkState.None(),
+                pendingRoadAccessMaintenance: CityPendingOperationalWorkState.None(),
+                pendingHeatingMaintenance: CityPendingOperationalWorkState.None(),
+                pendingWaterDistributionMaintenance: CityPendingOperationalWorkState.None(),
+                pendingSanitationMaintenance: CityPendingOperationalWorkState.None(),
+                pendingPowerDistributionMaintenance: CityPendingOperationalWorkState.None(),
+                pendingUtilityIncidentResponse: CityPendingOperationalWorkState.None(),
                 resourceSupply: CityResourceSupplyState.Create(seed.ResourceSupply),
                 operationalBudgetPressure: CityOperationalBudgetPressureState.Create(seed.OperationalBudgetPressure),
                 weatherPressure: CityWeatherPressureProfile.Neutral(),
@@ -287,6 +327,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 intensity: intensity);
         }
 
+        public void ScheduleDrainageMaintenance(
+            DrainageMaintenanceFocus focus,
+            DrainageMaintenanceIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingDrainageMaintenance.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
+        }
+
         public void SetSnowRemovalEmergencyMode(bool enabled)
         {
             SnowRemovalInfrastructure.SetEmergencyMode(enabled);
@@ -299,6 +352,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SnowRemovalInfrastructure.DispatchMaintenance(
                 focus: focus,
                 intensity: intensity);
+        }
+
+        public void ScheduleSnowRemovalMaintenance(
+            SnowRemovalMaintenanceFocus focus,
+            SnowRemovalMaintenanceIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingSnowRemovalMaintenance.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
         }
 
         public void SetRoadAccessEmergencyMode(bool enabled)
@@ -315,6 +381,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 intensity: intensity);
         }
 
+        public void ScheduleRoadAccessMaintenance(
+            RoadAccessMaintenanceFocus focus,
+            RoadAccessMaintenanceIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingRoadAccessMaintenance.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
+        }
+
         public void SetHeatingEmergencyMode(bool enabled)
         {
             HeatingInfrastructure.SetEmergencyMode(enabled);
@@ -327,6 +406,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             HeatingInfrastructure.DispatchMaintenance(
                 focus: focus,
                 intensity: intensity);
+        }
+
+        public void ScheduleHeatingMaintenance(
+            HeatingMaintenanceFocus focus,
+            HeatingMaintenanceIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingHeatingMaintenance.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
         }
 
         public void SetWaterDistributionEmergencyMode(bool enabled)
@@ -343,6 +435,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 intensity: intensity);
         }
 
+        public void ScheduleWaterDistributionMaintenance(
+            WaterDistributionMaintenanceFocus focus,
+            WaterDistributionMaintenanceIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingWaterDistributionMaintenance.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
+        }
+
         public void SetSanitationEmergencyMode(bool enabled)
         {
             SanitationInfrastructure.SetEmergencyMode(enabled);
@@ -355,6 +460,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             SanitationInfrastructure.DispatchMaintenance(
                 focus: focus,
                 intensity: intensity);
+        }
+
+        public void ScheduleSanitationMaintenance(
+            SanitationMaintenanceFocus focus,
+            SanitationMaintenanceIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingSanitationMaintenance.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
         }
 
         public void SetPowerDistributionEmergencyMode(bool enabled)
@@ -371,6 +489,19 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 intensity: intensity);
         }
 
+        public void SchedulePowerDistributionMaintenance(
+            PowerDistributionMaintenanceFocus focus,
+            PowerDistributionMaintenanceIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingPowerDistributionMaintenance.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
+        }
+
         public void SetUtilityIncidentEmergencyMode(bool enabled)
         {
             UtilityIncidentInfrastructure.SetEmergencyMode(enabled);
@@ -383,6 +514,98 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             UtilityIncidentInfrastructure.DispatchResponse(
                 focus: focus,
                 intensity: intensity);
+        }
+
+        public void ScheduleUtilityIncidentResponse(
+            UtilityIncidentResponseFocus focus,
+            UtilityIncidentResponseIntensity intensity,
+            long readyAtTickId)
+        {
+            PendingUtilityIncidentResponse.Schedule(
+                focus: focus.ToString(),
+                intensity: intensity.ToString(),
+                readyAtTickId: EnsureTickId(
+                    value: readyAtTickId,
+                    propertyName: nameof(readyAtTickId)));
+        }
+
+        public bool ApplyDuePendingOperations(long tickId)
+        {
+            bool applied = false;
+
+            if (PendingDrainageMaintenance.IsReady(tickId))
+            {
+                DispatchDrainageMaintenance(
+                    focus: Enum.Parse<DrainageMaintenanceFocus>(PendingDrainageMaintenance.Focus, true),
+                    intensity: Enum.Parse<DrainageMaintenanceIntensity>(PendingDrainageMaintenance.Intensity, true));
+                PendingDrainageMaintenance.Clear();
+                applied = true;
+            }
+
+            if (PendingSnowRemovalMaintenance.IsReady(tickId))
+            {
+                DispatchSnowRemovalMaintenance(
+                    focus: Enum.Parse<SnowRemovalMaintenanceFocus>(PendingSnowRemovalMaintenance.Focus, true),
+                    intensity: Enum.Parse<SnowRemovalMaintenanceIntensity>(PendingSnowRemovalMaintenance.Intensity, true));
+                PendingSnowRemovalMaintenance.Clear();
+                applied = true;
+            }
+
+            if (PendingRoadAccessMaintenance.IsReady(tickId))
+            {
+                DispatchRoadAccessMaintenance(
+                    focus: Enum.Parse<RoadAccessMaintenanceFocus>(PendingRoadAccessMaintenance.Focus, true),
+                    intensity: Enum.Parse<RoadAccessMaintenanceIntensity>(PendingRoadAccessMaintenance.Intensity, true));
+                PendingRoadAccessMaintenance.Clear();
+                applied = true;
+            }
+
+            if (PendingHeatingMaintenance.IsReady(tickId))
+            {
+                DispatchHeatingMaintenance(
+                    focus: Enum.Parse<HeatingMaintenanceFocus>(PendingHeatingMaintenance.Focus, true),
+                    intensity: Enum.Parse<HeatingMaintenanceIntensity>(PendingHeatingMaintenance.Intensity, true));
+                PendingHeatingMaintenance.Clear();
+                applied = true;
+            }
+
+            if (PendingWaterDistributionMaintenance.IsReady(tickId))
+            {
+                DispatchWaterDistributionMaintenance(
+                    focus: Enum.Parse<WaterDistributionMaintenanceFocus>(PendingWaterDistributionMaintenance.Focus, true),
+                    intensity: Enum.Parse<WaterDistributionMaintenanceIntensity>(PendingWaterDistributionMaintenance.Intensity, true));
+                PendingWaterDistributionMaintenance.Clear();
+                applied = true;
+            }
+
+            if (PendingSanitationMaintenance.IsReady(tickId))
+            {
+                DispatchSanitationMaintenance(
+                    focus: Enum.Parse<SanitationMaintenanceFocus>(PendingSanitationMaintenance.Focus, true),
+                    intensity: Enum.Parse<SanitationMaintenanceIntensity>(PendingSanitationMaintenance.Intensity, true));
+                PendingSanitationMaintenance.Clear();
+                applied = true;
+            }
+
+            if (PendingPowerDistributionMaintenance.IsReady(tickId))
+            {
+                DispatchPowerDistributionMaintenance(
+                    focus: Enum.Parse<PowerDistributionMaintenanceFocus>(PendingPowerDistributionMaintenance.Focus, true),
+                    intensity: Enum.Parse<PowerDistributionMaintenanceIntensity>(PendingPowerDistributionMaintenance.Intensity, true));
+                PendingPowerDistributionMaintenance.Clear();
+                applied = true;
+            }
+
+            if (PendingUtilityIncidentResponse.IsReady(tickId))
+            {
+                DispatchUtilityIncidentResponse(
+                    focus: Enum.Parse<UtilityIncidentResponseFocus>(PendingUtilityIncidentResponse.Focus, true),
+                    intensity: Enum.Parse<UtilityIncidentResponseIntensity>(PendingUtilityIncidentResponse.Intensity, true));
+                PendingUtilityIncidentResponse.Clear();
+                applied = true;
+            }
+
+            return applied;
         }
 
         public void MarkTickApplied(long tickId)

@@ -1,3 +1,4 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.Common
@@ -22,6 +23,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationDto? PendingOperation,
         CityHeatingSystemStatusDto System)
     {
         public static CityHeatingStatusDto FromState(
@@ -57,6 +59,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
                 BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: budgetAuthorizationSummary,
+                PendingOperation: PendingCityOperationDto.FromDomain(state.PendingHeatingMaintenance),
                 System: CityHeatingSystemStatusDto.FromSnapshot(state.Heating.ToSnapshot()));
         }
     }

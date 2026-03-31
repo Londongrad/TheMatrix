@@ -1,3 +1,5 @@
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+
 namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.SnowRemoval.Views
 {
     public sealed record CitySnowRemovalStatusView(
@@ -21,5 +23,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.SnowRemoval.V
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationView? PendingOperation,
         CitySnowRemovalSystemStatusView System);
 }

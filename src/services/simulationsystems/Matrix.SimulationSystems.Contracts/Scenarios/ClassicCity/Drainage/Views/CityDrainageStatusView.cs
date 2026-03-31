@@ -1,3 +1,5 @@
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+
 namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Drainage.Views
 {
     public sealed record CityDrainageStatusView(
@@ -20,5 +22,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Drainage.View
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationView? PendingOperation,
         CityDrainageSystemStatusView System);
 }

@@ -1,3 +1,4 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.Common
@@ -23,6 +24,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationDto? PendingOperation,
         CitySnowRemovalSystemStatusDto System)
     {
         public static CitySnowRemovalStatusDto FromState(
@@ -59,6 +61,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sn
                 BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: budgetAuthorizationSummary,
+                PendingOperation: PendingCityOperationDto.FromDomain(state.PendingSnowRemovalMaintenance),
                 System: CitySnowRemovalSystemStatusDto.FromSnapshot(state.SnowRemoval.ToSnapshot()));
         }
     }

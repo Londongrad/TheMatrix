@@ -1,3 +1,5 @@
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+
 namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views
 {
     public sealed record CityRoadAccessStatusView(
@@ -22,5 +24,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Vi
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationView? PendingOperation,
         CityRoadAccessSystemStatusView System);
 }

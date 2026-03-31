@@ -1,7 +1,9 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.DispatchCitySnowRemovalMaintenance;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.GetCitySnowRemovalStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.SnowRemoval.SetCitySnowRemovalEmergencyMode;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.SnowRemoval.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.SnowRemoval.Views;
 using MediatR;
@@ -93,12 +95,23 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 BudgetAuthorizedByEmergencyOverride: dto.BudgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: dto.BudgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: dto.BudgetAuthorizationSummary,
+                PendingOperation: MapPendingOperationView(dto.PendingOperation),
                 System: new CitySnowRemovalSystemStatusView(
                     Kind: dto.System.Kind,
                     LoadIndex: dto.System.LoadIndex,
                     ServiceQualityIndex: dto.System.ServiceQualityIndex,
                     BacklogIndex: dto.System.BacklogIndex,
                     FailureRiskIndex: dto.System.FailureRiskIndex));
+        }
+
+        private static PendingCityOperationView? MapPendingOperationView(PendingCityOperationDto? dto)
+        {
+            return dto is null
+                ? null
+                : new PendingCityOperationView(
+                    Focus: dto.Focus,
+                    Intensity: dto.Intensity,
+                    ReadyAtTickId: dto.ReadyAtTickId);
         }
     }
 }

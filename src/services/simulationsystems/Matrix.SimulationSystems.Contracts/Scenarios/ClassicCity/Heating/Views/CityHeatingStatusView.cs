@@ -1,3 +1,5 @@
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+
 namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views
 {
     public sealed record CityHeatingStatusView(
@@ -20,5 +22,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationView? PendingOperation,
         CityHeatingSystemStatusView System);
 }

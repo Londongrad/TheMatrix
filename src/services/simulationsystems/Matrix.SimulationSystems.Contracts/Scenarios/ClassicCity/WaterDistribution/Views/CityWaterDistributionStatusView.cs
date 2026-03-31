@@ -1,3 +1,5 @@
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+
 namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views
 {
     public sealed record CityWaterDistributionStatusView(
@@ -20,5 +22,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribu
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationView? PendingOperation,
         CityWaterDistributionSystemStatusView System);
 }

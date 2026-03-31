@@ -1,3 +1,5 @@
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+
 namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views
 {
     public sealed record CityPowerDistributionStatusView(
@@ -20,5 +22,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribu
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        PendingCityOperationView? PendingOperation,
         CityPowerDistributionSystemStatusView System);
 }

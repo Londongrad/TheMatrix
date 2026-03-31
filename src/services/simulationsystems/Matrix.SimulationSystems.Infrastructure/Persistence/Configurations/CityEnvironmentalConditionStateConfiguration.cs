@@ -199,6 +199,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.PendingDrainageMaintenance,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingDrainageMaintenance"));
+            builder.Navigation(x => x.PendingDrainageMaintenance)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.SnowRemoval,
                 buildAction: state => ConfigureSystemState(
                     builder: state,
@@ -252,6 +260,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.SnowRemovalInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.PendingSnowRemovalMaintenance,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingSnowRemovalMaintenance"));
+            builder.Navigation(x => x.PendingSnowRemovalMaintenance)
                .IsRequired();
 
             builder.OwnsOne(
@@ -311,6 +327,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.PendingRoadAccessMaintenance,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingRoadAccessMaintenance"));
+            builder.Navigation(x => x.PendingRoadAccessMaintenance)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.Heating,
                 buildAction: state => ConfigureSystemState(
                     builder: state,
@@ -364,6 +388,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.HeatingInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.PendingHeatingMaintenance,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingHeatingMaintenance"));
+            builder.Navigation(x => x.PendingHeatingMaintenance)
                .IsRequired();
 
             builder.OwnsOne(
@@ -423,6 +455,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.PendingWaterDistributionMaintenance,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingWaterDistributionMaintenance"));
+            builder.Navigation(x => x.PendingWaterDistributionMaintenance)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.Sanitation,
                 buildAction: state => ConfigureSystemState(
                     builder: state,
@@ -476,6 +516,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.SanitationInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.PendingSanitationMaintenance,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingSanitationMaintenance"));
+            builder.Navigation(x => x.PendingSanitationMaintenance)
                .IsRequired();
 
             builder.OwnsOne(
@@ -535,6 +583,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                .IsRequired();
 
             builder.OwnsOne(
+                navigationExpression: x => x.PendingPowerDistributionMaintenance,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingPowerDistributionMaintenance"));
+            builder.Navigation(x => x.PendingPowerDistributionMaintenance)
+               .IsRequired();
+
+            builder.OwnsOne(
                 navigationExpression: x => x.UtilityIncidents,
                 buildAction: state => ConfigureSystemState(
                     builder: state,
@@ -588,6 +644,14 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                 });
 
             builder.Navigation(x => x.UtilityIncidentInfrastructure)
+               .IsRequired();
+
+            builder.OwnsOne(
+                navigationExpression: x => x.PendingUtilityIncidentResponse,
+                buildAction: pending => ConfigurePendingOperationalWork(
+                    builder: pending,
+                    prefix: "PendingUtilityIncidentResponse"));
+            builder.Navigation(x => x.PendingUtilityIncidentResponse)
                .IsRequired();
 
             builder.OwnsOne(
@@ -826,6 +890,30 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                     precision: 5,
                     scale: 4)
                .HasColumnName($"{prefix}FailureRiskIndex")
+               .IsRequired();
+        }
+
+        private static void ConfigurePendingOperationalWork<TOwner>(
+            OwnedNavigationBuilder<TOwner, CityPendingOperationalWorkState> builder,
+            string prefix)
+            where TOwner : class
+        {
+            builder.Property(x => x.IsScheduled)
+               .HasColumnName($"{prefix}IsScheduled")
+               .IsRequired();
+
+            builder.Property(x => x.Focus)
+               .HasMaxLength(64)
+               .HasColumnName($"{prefix}Focus")
+               .IsRequired();
+
+            builder.Property(x => x.Intensity)
+               .HasMaxLength(32)
+               .HasColumnName($"{prefix}Intensity")
+               .IsRequired();
+
+            builder.Property(x => x.ReadyAtTickId)
+               .HasColumnName($"{prefix}ReadyAtTickId")
                .IsRequired();
         }
     }
