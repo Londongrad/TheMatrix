@@ -12,6 +12,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         DashboardMetricView AttentionQueue,
         DashboardMetricView EnvironmentalAlerts,
         DashboardMetricView OperationalBudgetAlerts,
+        DashboardMetricView TickFreshnessAlerts,
         DashboardPeriodComparisonRowView NewCities,
         DashboardPeriodComparisonRowView ArchivedCities,
         DashboardPeriodComparisonRowView FailedBootstraps,
@@ -20,6 +21,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         IReadOnlyList<DashboardRecentEventView> Events,
         IReadOnlyList<DashboardEnvironmentalAlertView> EnvironmentalCities,
         IReadOnlyList<DashboardBudgetPressureView> BudgetPressureCities,
+        IReadOnlyList<DashboardTickFreshnessView> TickFreshnessCities,
         IReadOnlyList<CityListItemView> AttentionCities,
         IReadOnlyList<CityListItemView> ReadyCities,
         IReadOnlyList<CityListItemView> ArchivedCitiesList);
@@ -80,6 +82,18 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         decimal PressureIndex,
         DashboardBudgetControlView Controls,
         CityOperationalBudgetPressureView Budget);
+
+    public sealed record DashboardTickFreshnessView(
+        Guid CityId,
+        string CityName,
+        string CityStatus,
+        string Severity,
+        string Summary,
+        long EnvironmentalTickId,
+        long BudgetTickId,
+        long TickSkew,
+        DateTimeOffset EnvironmentalEvaluatedAtUtc,
+        DateTimeOffset? BudgetEvaluatedAtUtc);
 
     public sealed record DashboardBudgetControlView(
         DashboardBudgetControlCategoryView General,

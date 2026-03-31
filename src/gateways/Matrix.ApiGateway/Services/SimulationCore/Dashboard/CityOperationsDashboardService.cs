@@ -29,6 +29,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private readonly ILogger<CityOperationsDashboardService> _logger = logger;
 
+        private sealed record CityOperationalSnapshot(
+            CityListItemView City,
+            CityEnvironmentalConditionsView? Conditions,
+            CityOperationalBudgetPressureView? Budget);
+
         public async Task<CityOperationsDashboardView> GetAsync(CancellationToken cancellationToken)
         {
             Task<IReadOnlyList<CityListItemView>> allCitiesTask = _citiesClient.ListCitiesAsync(
@@ -45,13 +50,13 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
             IReadOnlyList<CityListItemView> allCities = allCitiesTask.Result;
             IReadOnlyList<CityListItemView> attentionCities = provisioningTask.Result;
-            DashboardEnvironmentalAlertView[] environmentalAlerts =
-                await BuildEnvironmentalAlertsAsync(
+            IReadOnlyList<CityOperationalSnapshot> operationalSnapshots =
+                await LoadReadyClassicCitySnapshotsAsync(
                     allCities: allCities,
                     cancellationToken: cancellationToken);
-            DashboardBudgetPressureView[] budgetAlerts = await BuildBudgetPressureAlertsAsync(
-                allCities: allCities,
-                cancellationToken: cancellationToken);
+            DashboardEnvironmentalAlertView[] environmentalAlerts = BuildEnvironmentalAlerts(operationalSnapshots);
+            DashboardBudgetPressureView[] budgetAlerts = BuildBudgetPressureAlerts(operationalSnapshots);
+            DashboardTickFreshnessView[] tickFreshnessAlerts = BuildTickFreshnessAlerts(operationalSnapshots);
             DateTimeOffset now = DateTimeOffset.Now;
 
             CityListItemView[] readyCities = allCities
@@ -128,6 +133,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     DeltaMonth: null,
                     DeltaYear: null,
                     DeltaMode: "live"),
+                TickFreshnessAlerts: new DashboardMetricView(
+                    Label: "Tick freshness alerts",
+                    Current: tickFreshnessAlerts.Length,
+                    Description:
+                    "Ready classic-city simulations where budget and environmental snapshots have started to drift apart by multiple world ticks.",
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null,
+                    DeltaMode: "live"),
                 NewCities: BuildPeriodComparisonRow(
                     label: "New cities",
                     description: "Fresh hosts entering the system through the setup and provisioning pipeline.",
@@ -157,6 +171,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 EnvironmentalCities: environmentalAlerts.Take(8)
                    .ToArray(),
                 BudgetPressureCities: budgetAlerts.Take(8)
+                   .ToArray(),
+                TickFreshnessCities: tickFreshnessAlerts.Take(8)
                    .ToArray(),
                 AttentionCities: rankedAttentionCities.Take(8)
                    .ToArray(),
@@ -325,7 +341,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 identityTask);
         }
 
-        private async Task<DashboardEnvironmentalAlertView[]> BuildEnvironmentalAlertsAsync(
+        private async Task<IReadOnlyList<CityOperationalSnapshot>> LoadReadyClassicCitySnapshotsAsync(
             IReadOnlyList<CityListItemView> allCities,
             CancellationToken cancellationToken)
         {
@@ -336,15 +352,41 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             if (readyClassicCities.Length == 0)
                 return [];
 
-            Task<DashboardEnvironmentalAlertView?>[] alertTasks = readyClassicCities
-               .Select(city => BuildEnvironmentalAlertAsync(
+            Task<CityOperationalSnapshot>[] snapshotTasks = readyClassicCities
+               .Select(city => LoadReadyClassicCitySnapshotAsync(
                     city: city,
                     cancellationToken: cancellationToken))
                .ToArray();
 
-            DashboardEnvironmentalAlertView?[] alerts = await Task.WhenAll(alertTasks);
+            return await Task.WhenAll(snapshotTasks);
+        }
 
-            return alerts
+        private async Task<CityOperationalSnapshot> LoadReadyClassicCitySnapshotAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            Task<CityEnvironmentalConditionsView?> environmentalTask = TryLoadEnvironmentalConditionsAsync(
+                city: city,
+                cancellationToken: cancellationToken);
+            Task<CityOperationalBudgetPressureView?> budgetTask = TryLoadBudgetPressureAsync(
+                city: city,
+                cancellationToken: cancellationToken);
+
+            await Task.WhenAll(
+                environmentalTask,
+                budgetTask);
+
+            return new CityOperationalSnapshot(
+                City: city,
+                Conditions: environmentalTask.Result,
+                Budget: budgetTask.Result);
+        }
+
+        private static DashboardEnvironmentalAlertView[] BuildEnvironmentalAlerts(
+            IReadOnlyList<CityOperationalSnapshot> snapshots)
+        {
+            return snapshots
+               .Select(BuildEnvironmentalAlert)
                .Where(alert => alert is not null)
                .Select(alert => alert!)
                .OrderByDescending(alert => alert.AlertScore)
@@ -354,26 +396,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .ToArray();
         }
 
-        private async Task<DashboardBudgetPressureView[]> BuildBudgetPressureAlertsAsync(
-            IReadOnlyList<CityListItemView> allCities,
-            CancellationToken cancellationToken)
+        private static DashboardBudgetPressureView[] BuildBudgetPressureAlerts(
+            IReadOnlyList<CityOperationalSnapshot> snapshots)
         {
-            CityListItemView[] readyClassicCities = allCities
-               .Where(city => IsReady(city) && IsClassicCity(city))
-               .ToArray();
-
-            if (readyClassicCities.Length == 0)
-                return [];
-
-            Task<DashboardBudgetPressureView?>[] alertTasks = readyClassicCities
-               .Select(city => BuildBudgetPressureAlertAsync(
-                    city: city,
-                    cancellationToken: cancellationToken))
-               .ToArray();
-
-            DashboardBudgetPressureView?[] alerts = await Task.WhenAll(alertTasks);
-
-            return alerts
+            return snapshots
+               .Select(BuildBudgetPressureAlert)
                .Where(alert => alert is not null)
                .Select(alert => alert!)
                .OrderByDescending(alert => GetBudgetSeverityRank(alert.Severity))
@@ -385,33 +412,30 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .ToArray();
         }
 
-        private async Task<DashboardEnvironmentalAlertView?> BuildEnvironmentalAlertAsync(
+        private static DashboardTickFreshnessView[] BuildTickFreshnessAlerts(
+            IReadOnlyList<CityOperationalSnapshot> snapshots)
+        {
+            return snapshots
+               .Select(BuildTickFreshnessAlert)
+               .Where(alert => alert is not null)
+               .Select(alert => alert!)
+               .OrderByDescending(alert => GetTickFreshnessSeverityRank(alert.Severity))
+               .ThenByDescending(alert => alert.TickSkew)
+               .ThenBy(
+                    keySelector: alert => alert.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
+               .ToArray();
+        }
+
+        private async Task<CityEnvironmentalConditionsView?> TryLoadEnvironmentalConditionsAsync(
             CityListItemView city,
             CancellationToken cancellationToken)
         {
             try
             {
-                CityEnvironmentalConditionsView? conditions =
-                    await _environmentalConditionsClient.GetCityEnvironmentalConditionsAsync(
-                        cityId: city.CityId,
-                        cancellationToken: cancellationToken);
-
-                if (conditions is null)
-                    return null;
-
-                decimal alertScore = CalculateEnvironmentalAlertScore(conditions);
-
-                if (alertScore < 0.1800m)
-                    return null;
-
-                return new DashboardEnvironmentalAlertView(
-                    CityId: city.CityId,
-                    CityName: city.Name,
-                    CityStatus: city.Status,
-                    Severity: GetEnvironmentalSeverity(alertScore),
-                    Summary: BuildEnvironmentalSummary(conditions),
-                    AlertScore: alertScore,
-                    Conditions: conditions);
+                return await _environmentalConditionsClient.GetCityEnvironmentalConditionsAsync(
+                    cityId: city.CityId,
+                    cancellationToken: cancellationToken);
             }
             catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
             {
@@ -436,30 +460,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             }
         }
 
-        private async Task<DashboardBudgetPressureView?> BuildBudgetPressureAlertAsync(
+        private async Task<CityOperationalBudgetPressureView?> TryLoadBudgetPressureAsync(
             CityListItemView city,
             CancellationToken cancellationToken)
         {
             try
             {
-                CityOperationalBudgetPressureView? pressure =
-                    await _economyClient.GetCityOperationalBudgetPressureAsync(
-                        cityId: city.CityId,
-                        cancellationToken: cancellationToken);
-
-                if (pressure is null || !ShouldIncludeBudgetAlert(pressure))
-                    return null;
-
-                return new DashboardBudgetPressureView(
-                    CityId: city.CityId,
-                    CityName: city.Name,
-                    CityStatus: city.Status,
-                    Severity: GetBudgetSeverity(pressure),
-                    Summary: BuildBudgetSummary(pressure),
-                    ControlStatus: GetBudgetControlStatus(pressure),
-                    PressureIndex: pressure.PressureIndex,
-                    Controls: BuildBudgetControlView(pressure),
-                    Budget: pressure);
+                return await _economyClient.GetCityOperationalBudgetPressureAsync(
+                    cityId: city.CityId,
+                    cancellationToken: cancellationToken);
             }
             catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
             {
@@ -482,6 +491,76 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
                 return null;
             }
+        }
+
+        private static DashboardEnvironmentalAlertView? BuildEnvironmentalAlert(CityOperationalSnapshot snapshot)
+        {
+            CityEnvironmentalConditionsView? conditions = snapshot.Conditions;
+
+            if (conditions is null)
+                return null;
+
+            decimal alertScore = CalculateEnvironmentalAlertScore(conditions);
+
+            if (alertScore < 0.1800m)
+                return null;
+
+            return new DashboardEnvironmentalAlertView(
+                CityId: snapshot.City.CityId,
+                CityName: snapshot.City.Name,
+                CityStatus: snapshot.City.Status,
+                Severity: GetEnvironmentalSeverity(alertScore),
+                Summary: BuildEnvironmentalSummary(conditions),
+                AlertScore: alertScore,
+                Conditions: conditions);
+        }
+
+        private static DashboardBudgetPressureView? BuildBudgetPressureAlert(CityOperationalSnapshot snapshot)
+        {
+            CityOperationalBudgetPressureView? pressure = snapshot.Budget;
+
+            if (pressure is null || !ShouldIncludeBudgetAlert(pressure))
+                return null;
+
+            return new DashboardBudgetPressureView(
+                CityId: snapshot.City.CityId,
+                CityName: snapshot.City.Name,
+                CityStatus: snapshot.City.Status,
+                Severity: GetBudgetSeverity(pressure),
+                Summary: BuildBudgetSummary(pressure),
+                ControlStatus: GetBudgetControlStatus(pressure),
+                PressureIndex: pressure.PressureIndex,
+                Controls: BuildBudgetControlView(pressure),
+                Budget: pressure);
+        }
+
+        private static DashboardTickFreshnessView? BuildTickFreshnessAlert(CityOperationalSnapshot snapshot)
+        {
+            CityEnvironmentalConditionsView? conditions = snapshot.Conditions;
+            CityOperationalBudgetPressureView? budget = snapshot.Budget;
+
+            if (conditions is null || budget is null)
+                return null;
+
+            long tickSkew = Math.Abs(conditions.EffectiveTickId - budget.EffectiveTickId);
+
+            if (tickSkew < 2)
+                return null;
+
+            return new DashboardTickFreshnessView(
+                CityId: snapshot.City.CityId,
+                CityName: snapshot.City.Name,
+                CityStatus: snapshot.City.Status,
+                Severity: GetTickFreshnessSeverity(tickSkew),
+                Summary: BuildTickFreshnessSummary(
+                    environmentalTickId: conditions.EffectiveTickId,
+                    budgetTickId: budget.EffectiveTickId,
+                    tickSkew: tickSkew),
+                EnvironmentalTickId: conditions.EffectiveTickId,
+                BudgetTickId: budget.EffectiveTickId,
+                TickSkew: tickSkew,
+                EnvironmentalEvaluatedAtUtc: conditions.LastEvaluatedAtUtc,
+                BudgetEvaluatedAtUtc: budget.EffectiveAtUtc);
         }
 
         private async Task<DashboardServiceHealthView> ProbeGatewayHealthAsync(CancellationToken cancellationToken)
@@ -793,6 +872,41 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 "warning" => 1,
                 _ => 0
             };
+        }
+
+        private static string GetTickFreshnessSeverity(long tickSkew)
+        {
+            return tickSkew switch
+            {
+                >= 5 => "danger",
+                _ => "warning"
+            };
+        }
+
+        private static int GetTickFreshnessSeverityRank(string severity)
+        {
+            return severity switch
+            {
+                "danger" => 2,
+                "warning" => 1,
+                _ => 0
+            };
+        }
+
+        private static string BuildTickFreshnessSummary(
+            long environmentalTickId,
+            long budgetTickId,
+            long tickSkew)
+        {
+            if (environmentalTickId < budgetTickId)
+                return
+                    $"Environmental conditions are trailing budget state by {tickSkew} ticks and may be rendering a stale world frame.";
+
+            if (budgetTickId < environmentalTickId)
+                return
+                    $"Budget state is trailing environmental conditions by {tickSkew} ticks and may be authorizing against stale city pressure.";
+
+            return "Budget and environmental snapshots are aligned on the same world tick.";
         }
 
         private static string BuildEnvironmentalSummary(CityEnvironmentalConditionsView conditions)
