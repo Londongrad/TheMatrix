@@ -130,6 +130,53 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             return Task.CompletedTask;
         }
 
+        public Task AddCityTickPhaseReachedAsync(
+            CityId cityId,
+            SimulationId simulationId,
+            SimulationKind simulationKind,
+            SimTime from,
+            SimTime to,
+            TickId tickId,
+            SimSpeed speed,
+            CityTickPhaseV1 phase,
+            CancellationToken cancellationToken)
+        {
+            DateTime occurredOnUtc = DateTime.UtcNow;
+            string correlationId = BuildTickCorrelationId(
+                simulationId: simulationId,
+                cityId: cityId,
+                tickId: tickId);
+            string causationId = BuildTickCausationId(
+                correlationId: correlationId,
+                phase: phase);
+
+            var integrationEvent = new CityTickPhaseReachedV1(
+                CityId: cityId.Value,
+                FromSimTimeUtc: from.ValueUtc,
+                ToSimTimeUtc: to.ValueUtc,
+                TickId: tickId.Value,
+                SpeedMultiplier: speed.Multiplier,
+                TickContext: new CityTickContextV1(
+                    SimulationId: simulationId.Value,
+                    CityId: cityId.Value,
+                    SimulationKind: simulationKind.ToString(),
+                    TickId: tickId.Value,
+                    EffectiveSimTimeUtc: to.ValueUtc,
+                    Phase: phase,
+                    ModelVersion: 1,
+                    CausationId: causationId,
+                    CorrelationId: correlationId),
+                OccurredOnUtc: occurredOnUtc);
+
+            dbContext.OutboxMessages.Add(
+                OutboxMessage.Create(
+                    type: IntegrationEventTypes.CityTickPhaseReachedV1,
+                    occurredOnUtc: occurredOnUtc,
+                    payload: integrationEvent));
+
+            return Task.CompletedTask;
+        }
+
         private static string BuildTickCorrelationId(
             SimulationId simulationId,
             CityId cityId,

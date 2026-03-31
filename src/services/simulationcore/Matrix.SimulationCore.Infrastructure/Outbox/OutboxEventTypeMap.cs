@@ -11,6 +11,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                 [SimulationCoreEventTypes.CityDeletedV1] = typeof(CityDeletedV1),
                 [SimulationCoreEventTypes.CityEnvironmentChangedV1] = typeof(CityEnvironmentChangedV1),
                 [SimulationCoreEventTypes.CityTimeAdvancedV1] = typeof(CityTimeAdvancedV1),
+                [SimulationCoreEventTypes.CityTickPhaseReachedV1] = typeof(CityTickPhaseReachedV1),
                 [SimulationCoreEventTypes.CityWeatherCreatedV1] = typeof(CityWeatherCreatedV1),
                 [SimulationCoreEventTypes.CityWeatherChangedV1] = typeof(CityWeatherChangedV1),
                 [SimulationCoreEventTypes.WeatherOverrideStartedV1] = typeof(WeatherOverrideStartedV1),

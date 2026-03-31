@@ -38,13 +38,42 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                 phase: CityTickPhaseV1.AdvanceTime,
                 cancellationToken: cancellationToken);
 
-            if (cityWeather is null || cityWeather.DomainEvents.Count == 0)
-                return;
+            if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
+            {
+                await outboxWriter.AddWeatherEventsAsync(
+                    domainEvents: cityWeather.DomainEvents,
+                    cancellationToken: cancellationToken);
+                cityWeather.ClearDomainEvents();
+            }
 
-            await outboxWriter.AddWeatherEventsAsync(
-                domainEvents: cityWeather.DomainEvents,
-                cancellationToken: cancellationToken);
-            cityWeather.ClearDomainEvents();
+            foreach (CityTickPhaseV1 phase in GetClassicCityPhaseWatermarks())
+            {
+                await outboxWriter.AddCityTickPhaseReachedAsync(
+                    cityId: cityId,
+                    simulationId: host.SimulationId,
+                    simulationKind: host.SimulationKind,
+                    from: advancedEvent.From,
+                    to: advancedEvent.To,
+                    tickId: advancedEvent.TickId,
+                    speed: advancedEvent.Speed,
+                    phase: phase,
+                    cancellationToken: cancellationToken);
+            }
+        }
+
+        private static IReadOnlyList<CityTickPhaseV1> GetClassicCityPhaseWatermarks()
+        {
+            return
+            [
+                CityTickPhaseV1.SystemsDegradation,
+                CityTickPhaseV1.IncidentGeneration,
+                CityTickPhaseV1.DispatchExecution,
+                CityTickPhaseV1.ResourceSettlement,
+                CityTickPhaseV1.BudgetSettlement,
+                CityTickPhaseV1.PopulationReaction,
+                CityTickPhaseV1.Projection,
+                CityTickPhaseV1.TickCompleted
+            ];
         }
     }
 }

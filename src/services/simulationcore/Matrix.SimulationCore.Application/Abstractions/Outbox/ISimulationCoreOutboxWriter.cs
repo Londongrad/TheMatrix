@@ -22,6 +22,17 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
             CityTickPhaseV1 phase,
             CancellationToken cancellationToken);
 
+        Task AddCityTickPhaseReachedAsync(
+            CityId cityId,
+            SimulationId simulationId,
+            SimulationKind simulationKind,
+            SimTime from,
+            SimTime to,
+            TickId tickId,
+            SimSpeed speed,
+            CityTickPhaseV1 phase,
+            CancellationToken cancellationToken);
+
         Task AddWeatherEventsAsync(
             IReadOnlyCollection<IDomainEvent> domainEvents,
             CancellationToken cancellationToken);

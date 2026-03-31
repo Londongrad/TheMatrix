@@ -8,13 +8,13 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
 {
     public sealed class CityTimeAdvancedConsumer(
         IMediator mediator,
-        ILogger<CityTimeAdvancedConsumer> logger) : IConsumer<CityTimeAdvancedV1>
+        ILogger<CityTimeAdvancedConsumer> logger) : IConsumer<CityTickPhaseReachedV1>
     {
-        public async Task Consume(ConsumeContext<CityTimeAdvancedV1> context)
+        public async Task Consume(ConsumeContext<CityTickPhaseReachedV1> context)
         {
-            CityTimeAdvancedV1 message = context.Message;
+            CityTickPhaseReachedV1 message = context.Message;
 
-            if (message.TickContext.Phase != CityTickPhaseV1.AdvanceTime)
+            if (message.TickContext.Phase != CityTickPhaseV1.ResourceSettlement)
                 return;
 
             AdvanceCityStockpilesResult result = await mediator.Send(
