@@ -63,14 +63,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 residentialBuildings: residentialBuildings,
                 peopleCount: request.PeopleCount,
                 currentDate: request.CurrentDate,
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: request.CreatedAtUtc,
                 tuning: new CityPopulationBootstrapTuning(
                     HousingPressurePercent: request.Tuning.HousingPressurePercent,
                     EconomicStabilityPercent: request.Tuning.EconomicStabilityPercent,
                     SocialVolatilityPercent: request.Tuning.SocialVolatilityPercent,
                     FamilyFormationPercent: request.Tuning.FamilyFormationPercent),
                 randomSeed: request.RandomSeed);
-            DateTimeOffset syncOccurredAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset syncOccurredAtUtc = request.CreatedAtUtc;
             string syncCorrelationId = $"classic-city-population-init:{request.CityId:N}:{Guid.NewGuid():N}";
             ClassicCityHouseholdAccountSyncBatchV1[] householdAccountBatches =
                 ClassicCityHouseholdAccountSyncBatchFactory.Build(
@@ -91,7 +91,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
-                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                    DateTimeOffset updatedAtUtc = request.CreatedAtUtc;
                     CityPopulationEnvironment environment = CityPopulationEnvironmentMapper.Create(
                         cityId: request.CityId,
                         input: environmentInput,

@@ -18,6 +18,7 @@ namespace Matrix.SimulationCore.Infrastructure.Population
                 value: new InitializeCityPopulationRequest(
                     CityId: request.CityId,
                     CurrentDate: request.CurrentDate,
+                    CreatedAtUtc: request.CreatedAtUtc,
                     PeopleCount: request.PeopleCount,
                     RandomSeed: request.RandomSeed,
                     Environment: new CityPopulationEnvironmentDto(

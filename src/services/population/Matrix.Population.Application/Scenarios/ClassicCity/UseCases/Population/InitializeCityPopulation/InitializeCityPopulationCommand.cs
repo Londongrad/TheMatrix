@@ -9,8 +9,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     public sealed record InitializeCityPopulationCommand(
         Guid CityId,
         DateOnly CurrentDate,
+        DateTimeOffset CreatedAtUtc,
         int PeopleCount,
-        int? RandomSeed,
+        int RandomSeed,
         CityPopulationEnvironmentInput Environment,
         CityPopulationBootstrapTuningInput Tuning,
         IReadOnlyCollection<ResidentialBuildingSeedItem> ResidentialBuildings)

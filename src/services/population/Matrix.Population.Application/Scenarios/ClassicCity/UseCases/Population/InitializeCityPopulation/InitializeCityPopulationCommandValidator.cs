@@ -13,6 +13,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             RuleFor(x => x.PeopleCount)
                .GreaterThan(0);
 
+            RuleFor(x => x.CreatedAtUtc)
+               .Must(x => x.Offset == TimeSpan.Zero)
+               .WithMessage("CreatedAtUtc must be UTC (Offset=00:00).");
+
             RuleFor(x => x.Environment)
                .NotNull()
                .SetValidator(new CityPopulationEnvironmentInputValidator());

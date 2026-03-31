@@ -53,6 +53,7 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                 request: new InitializeCityPopulationCommand(
                     CityId: request.CityId,
                     CurrentDate: request.CurrentDate,
+                    CreatedAtUtc: request.CreatedAtUtc,
                     PeopleCount: request.PeopleCount,
                     RandomSeed: request.RandomSeed,
                     Environment: new CityPopulationEnvironmentInput(

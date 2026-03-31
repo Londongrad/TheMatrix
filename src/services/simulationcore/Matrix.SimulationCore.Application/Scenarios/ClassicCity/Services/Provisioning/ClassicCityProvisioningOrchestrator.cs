@@ -293,6 +293,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                     request: new CityPopulationBootstrapInitializationRequest(
                         CityId: city.Id.Value,
                         CurrentDate: DateOnly.FromDateTime(clock.CurrentTime.ValueUtc.UtcDateTime),
+                        CreatedAtUtc: clock.CurrentTime.ValueUtc,
                         PeopleCount: plannedPeopleCount!.Value,
                         RandomSeed: BuildPopulationRandomSeed(city.GenerationSeed.Value),
                         Environment: new CityPopulationBootstrapEnvironment(

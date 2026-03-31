@@ -19,7 +19,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int peopleCount,
             DateOnly currentDate,
             DateTimeOffset createdAtUtc,
-            int? randomSeed = null)
+            int randomSeed)
         {
             if (peopleCount <= 0)
                 return new PopulationBootstrapResult(
@@ -75,7 +75,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             DateTimeOffset createdAtUtc,
             CityPopulationBootstrapTuning tuning,
-            int? randomSeed = null)
+            int randomSeed)
         {
             if (peopleCount <= 0)
                 return new PopulationBootstrapResult(
@@ -767,11 +767,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 val2: remainingPeople);
         }
 
-        private static Random CreateRandom(int? randomSeed)
+        private static Random CreateRandom(int randomSeed)
         {
-            return randomSeed.HasValue
-                ? new Random(randomSeed.Value)
-                : new Random();
+            return new Random(randomSeed);
         }
 
         private static int DetermineChildCountForPartneredFamily(

@@ -25,8 +25,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
     public sealed record CityPopulationBootstrapInitializationRequest(
         Guid CityId,
         DateOnly CurrentDate,
+        DateTimeOffset CreatedAtUtc,
         int PeopleCount,
-        int? RandomSeed,
+        int RandomSeed,
         CityPopulationBootstrapEnvironment Environment,
         CityPopulationBootstrapTuning Tuning,
         IReadOnlyCollection<ResidentialBuildingSeed> ResidentialBuildings);
