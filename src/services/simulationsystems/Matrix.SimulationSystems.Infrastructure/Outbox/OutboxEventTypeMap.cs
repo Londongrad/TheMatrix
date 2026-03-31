@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 
 namespace Matrix.SimulationSystems.Infrastructure.Outbox
@@ -10,6 +11,8 @@ namespace Matrix.SimulationSystems.Infrastructure.Outbox
             {
                 [SimulationSystemsOutboxEventTypes.ClassicCityOperationalExpenseIncurredV1] =
                     typeof(ClassicCityOperationalExpenseIncurredV1),
+                [SimulationSystemsOutboxEventTypes.ClassicCityLivingConditionsSnapshotV1] =
+                    typeof(ClassicCityLivingConditionsSnapshotV1),
                 [SimulationSystemsOutboxEventTypes.ClassicCitySystemsResourceDemandSnapshotV1] =
                     typeof(ClassicCitySystemsResourceDemandSnapshotV1)
             };

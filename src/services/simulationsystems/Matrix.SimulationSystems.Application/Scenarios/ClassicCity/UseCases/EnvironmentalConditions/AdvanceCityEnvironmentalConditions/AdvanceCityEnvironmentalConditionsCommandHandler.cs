@@ -13,6 +13,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICitySystemsResourceDemandOutboxWriter systemsResourceDemandOutboxWriter,
+        ICityPopulationLivingConditionsOutboxWriter populationLivingConditionsOutboxWriter,
         CityEnvironmentalConditionPolicy policy,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory)
         : IRequestHandler<AdvanceCityEnvironmentalConditionsCommand, AdvanceCityEnvironmentalConditionsResult>
@@ -72,10 +73,16 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
 
             state.ApplySnapshot(snapshot);
             state.MarkTickApplied(request.TickId);
+            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
             await systemsResourceDemandOutboxWriter.AddClassicCitySystemsResourceDemandAsync(
                 snapshot: CitySystemsResourceDemandIntegrationEventFactory.CreateSnapshot(
                     state: state,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: occurredAtUtc),
+                cancellationToken: cancellationToken);
+            await populationLivingConditionsOutboxWriter.AddClassicCityLivingConditionsSnapshotAsync(
+                snapshot: CityPopulationLivingConditionsIntegrationEventFactory.CreateSnapshot(
+                    state: state,
+                    occurredAtUtc: occurredAtUtc),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 

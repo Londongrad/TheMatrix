@@ -87,6 +87,7 @@ namespace Matrix.SimulationSystems.Infrastructure
             services.AddOutbox<SimulationSystemsDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
+            services.AddScoped<ICityPopulationLivingConditionsOutboxWriter, CityPopulationLivingConditionsOutboxWriter>();
             services.AddScoped<ICitySystemsResourceDemandOutboxWriter, CitySystemsResourceDemandOutboxWriter>();
             services.AddHttpClient<ICityBudgetAuthorizationClient, CityBudgetAuthorizationClient>((sp, client) =>
                 {
