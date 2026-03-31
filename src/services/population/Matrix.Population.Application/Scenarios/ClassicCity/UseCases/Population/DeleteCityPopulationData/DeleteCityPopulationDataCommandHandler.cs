@@ -11,9 +11,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         IHouseholdWriteRepository householdWriteRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
+        ICityPopulationEssentialsStateRepository cityPopulationEssentialsStateRepository,
         ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
+        ICityPopulationLivingConditionsStateRepository cityPopulationLivingConditionsStateRepository,
         ICityPopulationProgressionStateRepository cityPopulationProgressionStateRepository,
         ICityPopulationServiceQualityStateRepository cityPopulationServiceQualityStateRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
@@ -62,6 +64,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     await cityPopulationCostOfLivingStateRepository.DeleteByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
+                    await cityPopulationEssentialsStateRepository.DeleteByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
                     await employerFinancialStressStateRepository.DeleteByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
@@ -69,6 +74,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId,
                         cancellationToken: ct);
                     await householdFinancialStressStateRepository.DeleteByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+                    await cityPopulationLivingConditionsStateRepository.DeleteByCityAsync(
                         cityId: cityId,
                         cancellationToken: ct);
                     await cityPopulationProgressionStateRepository.DeleteByCityAsync(

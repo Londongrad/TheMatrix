@@ -14,6 +14,8 @@ namespace Matrix.Population.Infrastructure.Persistence
         public DbSet<CityPopulationCostOfLivingState> CityPopulationCostOfLivingStates => Set<CityPopulationCostOfLivingState>();
         public DbSet<CityPopulationDeletionState> CityPopulationDeletionStates => Set<CityPopulationDeletionState>();
         public DbSet<CityPopulationEnvironment> CityPopulationEnvironments => Set<CityPopulationEnvironment>();
+        public DbSet<CityPopulationEssentialsState> CityPopulationEssentialsStates => Set<CityPopulationEssentialsState>();
+        public DbSet<CityPopulationLivingConditionsState> CityPopulationLivingConditionsStates => Set<CityPopulationLivingConditionsState>();
         public DbSet<CityPopulationServiceQualityState> CityPopulationServiceQualityStates => Set<CityPopulationServiceQualityState>();
 
         public DbSet<CityPopulationEmployerFinancialStressState> CityPopulationEmployerFinancialStressStates

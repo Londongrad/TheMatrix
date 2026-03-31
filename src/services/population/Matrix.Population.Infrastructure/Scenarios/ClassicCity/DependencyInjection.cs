@@ -20,9 +20,11 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityPopulationDeletionStateRepository, CityPopulationDeletionStateRepository>();
             services.AddScoped<ICityPopulationEmployerFinancialStressStateRepository,
                 CityPopulationEmployerFinancialStressStateRepository>();
+            services.AddScoped<ICityPopulationEssentialsStateRepository, CityPopulationEssentialsStateRepository>();
             services.AddScoped<ICityPopulationEnvironmentRepository, CityPopulationEnvironmentRepository>();
             services.AddScoped<ICityPopulationHouseholdFinancialStressStateRepository,
                 CityPopulationHouseholdFinancialStressStateRepository>();
+            services.AddScoped<ICityPopulationLivingConditionsStateRepository, CityPopulationLivingConditionsStateRepository>();
             services.AddScoped<ICityPopulationProgressionStateRepository, CityPopulationProgressionStateRepository>();
             services.AddScoped<ICityPopulationServiceQualityStateRepository, CityPopulationServiceQualityStateRepository>();
             services.AddScoped<ICityPopulationSummaryProjectionService, CityPopulationSummaryProjectionService>();
@@ -39,8 +41,12 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity
         {
             configurator.AddConsumer<ClassicCityCostOfLivingSnapshotConsumer,
                 ClassicCityCostOfLivingSnapshotConsumerDefinition>();
+            configurator.AddConsumer<ClassicCityLivingConditionsSnapshotConsumer,
+                ClassicCityLivingConditionsSnapshotConsumerDefinition>();
             configurator.AddConsumer<ClassicCityServiceQualitySnapshotConsumer,
                 ClassicCityServiceQualitySnapshotConsumerDefinition>();
+            configurator.AddConsumer<ClassicCityStockpileSnapshotConsumer,
+                ClassicCityStockpileSnapshotConsumerDefinition>();
             configurator.AddConsumer<ClassicCityEmployerFinancialStressConsumer,
                 ClassicCityEmployerFinancialStressConsumerDefinition>();
             configurator.AddConsumer<ClassicCityHouseholdFinancialStressConsumer,
