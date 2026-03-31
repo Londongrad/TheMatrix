@@ -5,6 +5,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Common
         public const string SimulationCore = "SimulationCore";
         public const string SimulationSystems = "SimulationSystems";
         public const string Economy = "Economy";
+        public const string Resources = "Resources";
         public const string Population = "Population";
         public const string Identity = "Identity";
     }

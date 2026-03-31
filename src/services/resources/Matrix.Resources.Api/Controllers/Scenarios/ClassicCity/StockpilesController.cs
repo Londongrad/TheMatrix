@@ -119,6 +119,7 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
             return new CityStockpilesView(
                 CityId: dto.CityId,
                 EffectiveTickId: dto.EffectiveTickId,
+                EffectivePhase: "ResourceSettlement",
                 SupplyStressIndex: dto.SupplyStressIndex,
                 EmergencyRationingEnabled: dto.EmergencyRationingEnabled,
                 LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,

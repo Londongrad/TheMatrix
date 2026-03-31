@@ -13,6 +13,7 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
 using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
+using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Microsoft.Extensions.Options;
 
@@ -37,6 +38,9 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     validation: o => IsAbsoluteUri(o.Economy),
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Economy must be an absolute URI.")
                .Validate(
+                    validation: o => IsAbsoluteUri(o.Resources),
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:Resources must be an absolute URI.")
+               .Validate(
                     validation: o => IsAbsoluteUri(o.Population),
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Population must be an absolute URI.")
                .Validate(
@@ -52,6 +56,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             services.AddSimulationCoreClients();
             services.AddSimulationSystemsClients();
             services.AddEconomyClients();
+            services.AddResourcesClients();
             services.AddPopulationClients();
             services.AddIdentityClients();
 
@@ -92,6 +97,21 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         sp: sp,
                         client: client,
                         serviceName: DownstreamServiceNames.Economy))
+               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            return services;
+        }
+
+        private static IServiceCollection AddResourcesClients(this IServiceCollection services)
+        {
+            services.AddHttpClient<IStockpilesApiClient, StockpilesApiClient>((
+                        sp,
+                        client) =>
+                    ConfigureServiceBaseAddress(
+                        sp: sp,
+                        client: client,
+                        serviceName: DownstreamServiceNames.Resources))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -227,6 +247,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 DownstreamServiceNames.SimulationCore => options.SimulationCore,
                 DownstreamServiceNames.SimulationSystems => options.SimulationSystems,
                 DownstreamServiceNames.Economy => options.Economy,
+                DownstreamServiceNames.Resources => options.Resources,
                 DownstreamServiceNames.Population => options.Population,
                 DownstreamServiceNames.Identity => options.Identity,
                 _ => throw new InvalidOperationException($"Unsupported downstream service '{serviceName}'.")

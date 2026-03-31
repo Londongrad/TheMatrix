@@ -3,6 +3,7 @@ namespace Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views
     public sealed record CityStockpilesView(
         Guid CityId,
         long EffectiveTickId,
+        string EffectivePhase,
         decimal SupplyStressIndex,
         bool EmergencyRationingEnabled,
         DateTimeOffset LastEvaluatedAtUtc,

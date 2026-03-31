@@ -1,5 +1,6 @@
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 
 namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
@@ -13,6 +14,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         DashboardMetricView EnvironmentalAlerts,
         DashboardMetricView OperationalBudgetAlerts,
         DashboardMetricView TickFreshnessAlerts,
+        DashboardMetricView PhaseProgressAlerts,
         DashboardPeriodComparisonRowView NewCities,
         DashboardPeriodComparisonRowView ArchivedCities,
         DashboardPeriodComparisonRowView FailedBootstraps,
@@ -22,6 +24,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         IReadOnlyList<DashboardEnvironmentalAlertView> EnvironmentalCities,
         IReadOnlyList<DashboardBudgetPressureView> BudgetPressureCities,
         IReadOnlyList<DashboardTickFreshnessView> TickFreshnessCities,
+        IReadOnlyList<DashboardPhaseProgressView> PhaseProgressCities,
         IReadOnlyList<CityListItemView> AttentionCities,
         IReadOnlyList<CityListItemView> ReadyCities,
         IReadOnlyList<CityListItemView> ArchivedCitiesList);
@@ -94,6 +97,25 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         long TickSkew,
         DateTimeOffset EnvironmentalEvaluatedAtUtc,
         DateTimeOffset? BudgetEvaluatedAtUtc);
+
+    public sealed record DashboardPhaseProgressView(
+        Guid CityId,
+        string CityName,
+        string CityStatus,
+        string Severity,
+        string Summary,
+        long SystemsTickId,
+        string SystemsPhase,
+        long ResourcesTickId,
+        string ResourcesPhase,
+        long BudgetTickId,
+        string BudgetPhase,
+        long TickSpread,
+        string LaggingService,
+        string LeadingService,
+        CityEnvironmentalConditionsView Conditions,
+        CityStockpilesView Stockpiles,
+        CityOperationalBudgetPressureView Budget);
 
     public sealed record DashboardBudgetControlView(
         DashboardBudgetControlCategoryView General,

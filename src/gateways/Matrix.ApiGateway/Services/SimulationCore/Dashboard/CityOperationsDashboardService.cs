@@ -2,9 +2,11 @@ using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -15,6 +17,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
     public sealed class CityOperationsDashboardService(
         ICitiesApiClient citiesClient,
         IEconomyApiClient economyClient,
+        IStockpilesApiClient stockpilesClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
         HealthCheckService healthCheckService,
         IHttpClientFactory httpClientFactory,
@@ -23,6 +26,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly IEconomyApiClient _economyClient = economyClient;
+        private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
         private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
         private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
@@ -32,7 +36,14 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         private sealed record CityOperationalSnapshot(
             CityListItemView City,
             CityEnvironmentalConditionsView? Conditions,
+            CityStockpilesView? Stockpiles,
             CityOperationalBudgetPressureView? Budget);
+
+        private sealed record ServicePhaseState(
+            string Service,
+            long TickId,
+            string Phase,
+            int PhaseRank);
 
         public async Task<CityOperationsDashboardView> GetAsync(CancellationToken cancellationToken)
         {
@@ -57,6 +68,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             DashboardEnvironmentalAlertView[] environmentalAlerts = BuildEnvironmentalAlerts(operationalSnapshots);
             DashboardBudgetPressureView[] budgetAlerts = BuildBudgetPressureAlerts(operationalSnapshots);
             DashboardTickFreshnessView[] tickFreshnessAlerts = BuildTickFreshnessAlerts(operationalSnapshots);
+            DashboardPhaseProgressView[] phaseProgressAlerts = BuildPhaseProgressAlerts(operationalSnapshots);
             DateTimeOffset now = DateTimeOffset.Now;
 
             CityListItemView[] readyCities = allCities
@@ -142,6 +154,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     DeltaMonth: null,
                     DeltaYear: null,
                     DeltaMode: "live"),
+                PhaseProgressAlerts: new DashboardMetricView(
+                    Label: "Phase progress alerts",
+                    Current: phaseProgressAlerts.Length,
+                    Description:
+                    "Ready classic-city simulations where systems, resource settlement, and budget settlement are no longer progressing through the same world tick pipeline cleanly.",
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null,
+                    DeltaMode: "live"),
                 NewCities: BuildPeriodComparisonRow(
                     label: "New cities",
                     description: "Fresh hosts entering the system through the setup and provisioning pipeline.",
@@ -173,6 +194,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 BudgetPressureCities: budgetAlerts.Take(8)
                    .ToArray(),
                 TickFreshnessCities: tickFreshnessAlerts.Take(8)
+                   .ToArray(),
+                PhaseProgressCities: phaseProgressAlerts.Take(8)
                    .ToArray(),
                 AttentionCities: rankedAttentionCities.Take(8)
                    .ToArray(),
@@ -319,6 +342,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 service: "SimulationSystems",
                 baseUrl: _downstreamOptions.SimulationSystems,
                 cancellationToken: cancellationToken);
+            Task<DashboardServiceHealthView> resourcesTask = ProbeRemoteHealthAsync(
+                service: "Resources",
+                baseUrl: _downstreamOptions.Resources,
+                cancellationToken: cancellationToken);
             Task<DashboardServiceHealthView> populationTask = ProbeRemoteHealthAsync(
                 service: "Population",
                 baseUrl: _downstreamOptions.Population,
@@ -336,6 +363,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 gatewayTask,
                 simulationCoreTask,
                 simulationSystemsTask,
+                resourcesTask,
                 populationTask,
                 economyTask,
                 identityTask);
@@ -368,17 +396,22 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             Task<CityEnvironmentalConditionsView?> environmentalTask = TryLoadEnvironmentalConditionsAsync(
                 city: city,
                 cancellationToken: cancellationToken);
+            Task<CityStockpilesView?> stockpilesTask = TryLoadStockpilesAsync(
+                city: city,
+                cancellationToken: cancellationToken);
             Task<CityOperationalBudgetPressureView?> budgetTask = TryLoadBudgetPressureAsync(
                 city: city,
                 cancellationToken: cancellationToken);
 
             await Task.WhenAll(
                 environmentalTask,
+                stockpilesTask,
                 budgetTask);
 
             return new CityOperationalSnapshot(
                 City: city,
                 Conditions: environmentalTask.Result,
+                Stockpiles: stockpilesTask.Result,
                 Budget: budgetTask.Result);
         }
 
@@ -421,6 +454,21 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .Select(alert => alert!)
                .OrderByDescending(alert => GetTickFreshnessSeverityRank(alert.Severity))
                .ThenByDescending(alert => alert.TickSkew)
+               .ThenBy(
+                    keySelector: alert => alert.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
+               .ToArray();
+        }
+
+        private static DashboardPhaseProgressView[] BuildPhaseProgressAlerts(
+            IReadOnlyList<CityOperationalSnapshot> snapshots)
+        {
+            return snapshots
+               .Select(BuildPhaseProgressAlert)
+               .Where(alert => alert is not null)
+               .Select(alert => alert!)
+               .OrderByDescending(alert => GetPhaseProgressSeverityRank(alert.Severity))
+               .ThenByDescending(alert => alert.TickSpread)
                .ThenBy(
                     keySelector: alert => alert.CityName,
                     comparer: StringComparer.OrdinalIgnoreCase)
@@ -486,6 +534,39 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     exception: exception,
                     message:
                     "Skipped economy operational pressure for city operations dashboard because Economy returned status {StatusCode} for cityId={CityId}.",
+                    (int)exception.StatusCode,
+                    city.CityId);
+
+                return null;
+            }
+        }
+
+        private async Task<CityStockpilesView?> TryLoadStockpilesAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await _stockpilesClient.GetCityStockpilesAsync(
+                    cityId: city.CityId,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Failed to attach resource stockpiles to city operations dashboard for cityId={CityId}.",
+                    city.CityId);
+
+                return null;
+            }
+            catch (DownstreamServiceException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Skipped resource stockpiles for city operations dashboard because Resources returned status {StatusCode} for cityId={CityId}.",
                     (int)exception.StatusCode,
                     city.CityId);
 
@@ -561,6 +642,68 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 TickSkew: tickSkew,
                 EnvironmentalEvaluatedAtUtc: conditions.LastEvaluatedAtUtc,
                 BudgetEvaluatedAtUtc: budget.EffectiveAtUtc);
+        }
+
+        private static DashboardPhaseProgressView? BuildPhaseProgressAlert(CityOperationalSnapshot snapshot)
+        {
+            CityEnvironmentalConditionsView? conditions = snapshot.Conditions;
+            CityStockpilesView? stockpiles = snapshot.Stockpiles;
+            CityOperationalBudgetPressureView? budget = snapshot.Budget;
+
+            if (conditions is null || stockpiles is null || budget is null)
+                return null;
+
+            bool orderingViolation = stockpiles.EffectiveTickId > conditions.EffectiveTickId ||
+                                     budget.EffectiveTickId > stockpiles.EffectiveTickId;
+            long maxTick = Max(
+                conditions.EffectiveTickId,
+                stockpiles.EffectiveTickId,
+                budget.EffectiveTickId);
+            long minTick = Min(
+                conditions.EffectiveTickId,
+                stockpiles.EffectiveTickId,
+                budget.EffectiveTickId);
+            long tickSpread = maxTick - minTick;
+
+            if (!orderingViolation && tickSpread == 0)
+                return null;
+
+            ServicePhaseState laggingState = ResolveLaggingState(
+                conditions: conditions,
+                stockpiles: stockpiles,
+                budget: budget);
+            ServicePhaseState leadingState = ResolveLeadingState(
+                conditions: conditions,
+                stockpiles: stockpiles,
+                budget: budget);
+
+            return new DashboardPhaseProgressView(
+                CityId: snapshot.City.CityId,
+                CityName: snapshot.City.Name,
+                CityStatus: snapshot.City.Status,
+                Severity: GetPhaseProgressSeverity(
+                    orderingViolation: orderingViolation,
+                    tickSpread: tickSpread),
+                Summary: BuildPhaseProgressSummary(
+                    orderingViolation: orderingViolation,
+                    conditions: conditions,
+                    stockpiles: stockpiles,
+                    budget: budget,
+                    laggingState: laggingState,
+                    leadingState: leadingState,
+                    tickSpread: tickSpread),
+                SystemsTickId: conditions.EffectiveTickId,
+                SystemsPhase: conditions.EffectivePhase,
+                ResourcesTickId: stockpiles.EffectiveTickId,
+                ResourcesPhase: stockpiles.EffectivePhase,
+                BudgetTickId: budget.EffectiveTickId,
+                BudgetPhase: budget.EffectivePhase,
+                TickSpread: tickSpread,
+                LaggingService: laggingState.Service,
+                LeadingService: leadingState.Service,
+                Conditions: conditions,
+                Stockpiles: stockpiles,
+                Budget: budget);
         }
 
         private async Task<DashboardServiceHealthView> ProbeGatewayHealthAsync(CancellationToken cancellationToken)
@@ -893,6 +1036,26 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             };
         }
 
+        private static string GetPhaseProgressSeverity(
+            bool orderingViolation,
+            long tickSpread)
+        {
+            if (orderingViolation || tickSpread >= 2)
+                return "danger";
+
+            return "warning";
+        }
+
+        private static int GetPhaseProgressSeverityRank(string severity)
+        {
+            return severity switch
+            {
+                "danger" => 2,
+                "warning" => 1,
+                _ => 0
+            };
+        }
+
         private static string BuildTickFreshnessSummary(
             long environmentalTickId,
             long budgetTickId,
@@ -907,6 +1070,112 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     $"Budget state is trailing environmental conditions by {tickSkew} ticks and may be authorizing against stale city pressure.";
 
             return "Budget and environmental snapshots are aligned on the same world tick.";
+        }
+
+        private static string BuildPhaseProgressSummary(
+            bool orderingViolation,
+            CityEnvironmentalConditionsView conditions,
+            CityStockpilesView stockpiles,
+            CityOperationalBudgetPressureView budget,
+            ServicePhaseState laggingState,
+            ServicePhaseState leadingState,
+            long tickSpread)
+        {
+            if (stockpiles.EffectiveTickId > conditions.EffectiveTickId)
+                return
+                    $"Resources reached {stockpiles.EffectivePhase} at tick {stockpiles.EffectiveTickId} ahead of simulation systems, so stockpile settlement is overtaking physical system degradation.";
+
+            if (budget.EffectiveTickId > stockpiles.EffectiveTickId)
+                return
+                    $"Economy reached {budget.EffectivePhase} at tick {budget.EffectiveTickId} ahead of resources, so budget settlement is running in front of stockpile settlement.";
+
+            if (orderingViolation)
+                return
+                    $"{leadingState.Service} has moved to {leadingState.Phase} at tick {leadingState.TickId} while {laggingState.Service} is still on {laggingState.Phase} at tick {laggingState.TickId}.";
+
+            return
+                $"{laggingState.Service} is still on {laggingState.Phase} at tick {laggingState.TickId} while {leadingState.Service} already reached {leadingState.Phase} at tick {leadingState.TickId}, leaving a phase spread of {tickSpread} tick(s).";
+        }
+
+        private static ServicePhaseState ResolveLaggingState(
+            CityEnvironmentalConditionsView conditions,
+            CityStockpilesView stockpiles,
+            CityOperationalBudgetPressureView budget)
+        {
+            ServicePhaseState[] states =
+            [
+                new ServicePhaseState(
+                    Service: "SimulationSystems",
+                    TickId: conditions.EffectiveTickId,
+                    Phase: conditions.EffectivePhase,
+                    PhaseRank: GetPhaseRank(conditions.EffectivePhase)),
+                new ServicePhaseState(
+                    Service: "Resources",
+                    TickId: stockpiles.EffectiveTickId,
+                    Phase: stockpiles.EffectivePhase,
+                    PhaseRank: GetPhaseRank(stockpiles.EffectivePhase)),
+                new ServicePhaseState(
+                    Service: "Economy",
+                    TickId: budget.EffectiveTickId,
+                    Phase: budget.EffectivePhase,
+                    PhaseRank: GetPhaseRank(budget.EffectivePhase))
+            ];
+
+            long minTick = states.Min(state => state.TickId);
+
+            return states
+               .Where(state => state.TickId == minTick)
+               .OrderBy(state => state.PhaseRank)
+               .First();
+        }
+
+        private static ServicePhaseState ResolveLeadingState(
+            CityEnvironmentalConditionsView conditions,
+            CityStockpilesView stockpiles,
+            CityOperationalBudgetPressureView budget)
+        {
+            ServicePhaseState[] states =
+            [
+                new ServicePhaseState(
+                    Service: "SimulationSystems",
+                    TickId: conditions.EffectiveTickId,
+                    Phase: conditions.EffectivePhase,
+                    PhaseRank: GetPhaseRank(conditions.EffectivePhase)),
+                new ServicePhaseState(
+                    Service: "Resources",
+                    TickId: stockpiles.EffectiveTickId,
+                    Phase: stockpiles.EffectivePhase,
+                    PhaseRank: GetPhaseRank(stockpiles.EffectivePhase)),
+                new ServicePhaseState(
+                    Service: "Economy",
+                    TickId: budget.EffectiveTickId,
+                    Phase: budget.EffectivePhase,
+                    PhaseRank: GetPhaseRank(budget.EffectivePhase))
+            ];
+
+            long maxTick = states.Max(state => state.TickId);
+
+            return states
+               .Where(state => state.TickId == maxTick)
+               .OrderByDescending(state => state.PhaseRank)
+               .First();
+        }
+
+        private static int GetPhaseRank(string phase)
+        {
+            return phase switch
+            {
+                "AdvanceTime" => 10,
+                "SystemsDegradation" => 20,
+                "IncidentGeneration" => 30,
+                "DispatchExecution" => 40,
+                "ResourceSettlement" => 50,
+                "BudgetSettlement" => 60,
+                "PopulationReaction" => 70,
+                "Projection" => 80,
+                "TickCompleted" => 90,
+                _ => 0
+            };
         }
 
         private static string BuildEnvironmentalSummary(CityEnvironmentalConditionsView conditions)
@@ -1207,6 +1476,36 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
             for (int index = 1; index < values.Length; index++)
                 current = Math.Max(
+                    val1: current,
+                    val2: values[index]);
+
+            return current;
+        }
+
+        private static long Max(params long[] values)
+        {
+            if (values.Length == 0)
+                return 0L;
+
+            long current = values[0];
+
+            for (int index = 1; index < values.Length; index++)
+                current = Math.Max(
+                    val1: current,
+                    val2: values[index]);
+
+            return current;
+        }
+
+        private static long Min(params long[] values)
+        {
+            if (values.Length == 0)
+                return 0L;
+
+            long current = values[0];
+
+            for (int index = 1; index < values.Length; index++)
+                current = Math.Min(
                     val1: current,
                     val2: values[index]);
 

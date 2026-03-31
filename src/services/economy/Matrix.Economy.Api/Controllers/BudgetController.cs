@@ -64,6 +64,7 @@ namespace Matrix.Economy.Api.Controllers
                 new CityOperationalBudgetPressureView(
                     CityId: result.CityId,
                     EffectiveTickId: result.EffectiveTickId,
+                    EffectivePhase: "BudgetSettlement",
                     EffectiveAtUtc: result.EffectiveAtUtc,
                     UnitKind: result.UnitKind,
                     UnitCode: result.UnitCode,

@@ -3,6 +3,7 @@ namespace Matrix.Economy.Contracts.Budget.Views
     public sealed record CityOperationalBudgetPressureView(
         Guid CityId,
         long EffectiveTickId,
+        string EffectivePhase,
         DateTimeOffset? EffectiveAtUtc,
         string UnitKind,
         string UnitCode,
