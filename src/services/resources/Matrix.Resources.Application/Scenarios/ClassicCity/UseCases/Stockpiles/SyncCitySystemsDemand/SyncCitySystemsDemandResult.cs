@@ -3,5 +3,6 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed record SyncCitySystemsDemandResult(
         SyncCitySystemsDemandStatus Status,
         decimal OverallDemandPressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc);
 }

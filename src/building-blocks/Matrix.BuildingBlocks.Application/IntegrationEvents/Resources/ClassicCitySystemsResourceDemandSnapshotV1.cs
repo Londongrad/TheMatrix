@@ -7,6 +7,7 @@ namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Resources
         decimal FiltersDemandPressureIndex,
         decimal EmergencyWaterDemandPressureIndex,
         decimal OverallDemandPressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc,
         DateTimeOffset OccurredAtUtc);
 }

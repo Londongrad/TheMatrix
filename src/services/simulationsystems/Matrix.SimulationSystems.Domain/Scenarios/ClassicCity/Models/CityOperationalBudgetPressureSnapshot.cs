@@ -12,9 +12,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         string InfrastructureAuthorizationLevel,
         string HealthcareAuthorizationLevel,
         decimal PressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc)
     {
-        public static CityOperationalBudgetPressureSnapshot Neutral(DateTimeOffset effectiveAtUtc)
+        public static CityOperationalBudgetPressureSnapshot Neutral(
+            DateTimeOffset effectiveAtUtc,
+            long effectiveTickId = 0)
         {
             return new CityOperationalBudgetPressureSnapshot(
                 Balance: 0m,
@@ -28,6 +31,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 InfrastructureAuthorizationLevel: "High",
                 HealthcareAuthorizationLevel: "High",
                 PressureIndex: 0m,
+                EffectiveTickId: Math.Max(0, effectiveTickId),
                 EffectiveAtUtc: effectiveAtUtc.Offset == TimeSpan.Zero
                     ? effectiveAtUtc
                     : effectiveAtUtc.ToUniversalTime());

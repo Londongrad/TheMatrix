@@ -22,6 +22,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                     FiltersDemandPressureIndex: message.FiltersDemandPressureIndex,
                     EmergencyWaterDemandPressureIndex: message.EmergencyWaterDemandPressureIndex,
                     OverallDemandPressureIndex: message.OverallDemandPressureIndex,
+                    EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
                 cancellationToken: context.CancellationToken);
 
@@ -30,8 +31,9 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                 case SyncCitySystemsDemandStatus.Applied:
                     logger.LogInformation(
                         message:
-                        "Applied classic city systems resource demand for cityId={CityId}, effectiveAtUtc={EffectiveAtUtc}, overallDemand={OverallDemand}.",
+                        "Applied classic city systems resource demand for cityId={CityId}, effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}, overallDemand={OverallDemand}.",
                         message.CityId,
+                        result.EffectiveTickId,
                         result.EffectiveAtUtc,
                         result.OverallDemandPressureIndex);
                     break;
@@ -39,16 +41,18 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                 case SyncCitySystemsDemandStatus.Deferred:
                     logger.LogDebug(
                         message:
-                        "Deferred classic city systems resource demand for cityId={CityId} until stockpiles reach effectiveAtUtc={EffectiveAtUtc}.",
+                        "Deferred classic city systems resource demand for cityId={CityId} until stockpiles reach effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}.",
                         message.CityId,
+                        result.EffectiveTickId,
                         result.EffectiveAtUtc);
                     break;
 
                 case SyncCitySystemsDemandStatus.Stale:
                     logger.LogWarning(
                         message:
-                        "Skipped stale classic city systems resource demand for cityId={CityId}, effectiveAtUtc={EffectiveAtUtc}.",
+                        "Skipped stale classic city systems resource demand for cityId={CityId}, effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}.",
                         message.CityId,
+                        message.EffectiveTickId,
                         message.EffectiveAtUtc);
                     break;
 

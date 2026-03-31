@@ -99,6 +99,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 FiltersDemandPressureIndex: filtersDemand,
                 EmergencyWaterDemandPressureIndex: emergencyWaterDemand,
                 OverallDemandPressureIndex: overallDemand,
+                EffectiveTickId: state.LastAppliedTickId,
                 EffectiveAtUtc: state.LastEvaluatedAtUtc,
                 OccurredAtUtc: occurredAtUtc);
         }

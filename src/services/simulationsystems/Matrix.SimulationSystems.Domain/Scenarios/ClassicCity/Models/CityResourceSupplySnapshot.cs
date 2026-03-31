@@ -19,6 +19,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             decimal emergencyWaterStockLevelIndex,
             decimal emergencyWaterResupplyReadinessIndex,
             decimal emergencyWaterShortageRiskIndex,
+            long effectiveTickId,
             DateTimeOffset effectiveAtUtc)
         {
             SupplyStressIndex = NormalizeIndex(
@@ -60,6 +61,9 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
             EmergencyWaterShortageRiskIndex = NormalizeIndex(
                 value: emergencyWaterShortageRiskIndex,
                 paramName: nameof(emergencyWaterShortageRiskIndex));
+            EffectiveTickId = EnsureTickId(
+                value: effectiveTickId,
+                paramName: nameof(effectiveTickId));
             EffectiveAtUtc = EnsureUtc(
                 value: effectiveAtUtc,
                 paramName: nameof(effectiveAtUtc));
@@ -78,9 +82,12 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
         public decimal EmergencyWaterStockLevelIndex { get; }
         public decimal EmergencyWaterResupplyReadinessIndex { get; }
         public decimal EmergencyWaterShortageRiskIndex { get; }
+        public long EffectiveTickId { get; }
         public DateTimeOffset EffectiveAtUtc { get; }
 
-        public static CityResourceSupplySnapshot Neutral(DateTimeOffset effectiveAtUtc)
+        public static CityResourceSupplySnapshot Neutral(
+            DateTimeOffset effectiveAtUtc,
+            long effectiveTickId = 0)
         {
             return new CityResourceSupplySnapshot(
                 supplyStressIndex: 0m,
@@ -96,6 +103,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 emergencyWaterStockLevelIndex: 1m,
                 emergencyWaterResupplyReadinessIndex: 1m,
                 emergencyWaterShortageRiskIndex: 0m,
+                effectiveTickId: effectiveTickId,
                 effectiveAtUtc: effectiveAtUtc);
         }
 
@@ -123,6 +131,17 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models
                 : throw ClassicCityDomainErrorsFactory.CityEnvironmentalTimestampMustBeUtc(
                     value: value,
                     propertyName: paramName);
+        }
+
+        private static long EnsureTickId(
+            long value,
+            string paramName)
+        {
+            return value >= 0
+                ? value
+                : throw new ArgumentOutOfRangeException(
+                    paramName: paramName,
+                    message: "Tick identifiers cannot be negative.");
         }
     }
 }

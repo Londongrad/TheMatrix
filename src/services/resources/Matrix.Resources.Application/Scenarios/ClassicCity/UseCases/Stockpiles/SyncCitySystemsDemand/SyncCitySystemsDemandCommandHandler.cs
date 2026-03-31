@@ -29,14 +29,20 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 return new SyncCitySystemsDemandResult(
                     Status: SyncCitySystemsDemandStatus.NotInitialized,
                     OverallDemandPressureIndex: 0m,
+                    EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc);
             }
 
-            if (request.EffectiveAtUtc < state.SystemsDemand.EffectiveAtUtc)
+            if (IsIncomingSnapshotStale(
+                    effectiveTickId: request.EffectiveTickId,
+                    effectiveAtUtc: request.EffectiveAtUtc,
+                    currentEffectiveTickId: state.SystemsDemand.EffectiveTickId,
+                    currentEffectiveAtUtc: state.SystemsDemand.EffectiveAtUtc))
             {
                 return new SyncCitySystemsDemandResult(
                     Status: SyncCitySystemsDemandStatus.Stale,
                     OverallDemandPressureIndex: state.SystemsDemand.OverallDemandPressureIndex,
+                    EffectiveTickId: state.SystemsDemand.EffectiveTickId,
                     EffectiveAtUtc: state.SystemsDemand.EffectiveAtUtc);
             }
 
@@ -46,13 +52,18 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 FiltersDemandPressureIndex: request.FiltersDemandPressureIndex,
                 EmergencyWaterDemandPressureIndex: request.EmergencyWaterDemandPressureIndex,
                 OverallDemandPressureIndex: request.OverallDemandPressureIndex,
+                EffectiveTickId: request.EffectiveTickId,
                 EffectiveAtUtc: request.EffectiveAtUtc);
 
             state.ApplySystemsDemand(demandSnapshot);
 
             SyncCitySystemsDemandStatus status = SyncCitySystemsDemandStatus.Deferred;
 
-            if (request.EffectiveAtUtc <= state.LastEvaluatedAtUtc)
+            if (ShouldApplyAtCurrentProgress(
+                    effectiveTickId: request.EffectiveTickId,
+                    effectiveAtUtc: request.EffectiveAtUtc,
+                    lastAppliedTickId: state.LastAppliedTickId,
+                    lastEvaluatedAtUtc: state.LastEvaluatedAtUtc))
             {
                 CityStockpileSnapshot refreshedSnapshot = policy.ApplySystemsDemand(state.ToSnapshot());
                 state.ApplySnapshot(refreshedSnapshot);
@@ -64,7 +75,38 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             return new SyncCitySystemsDemandResult(
                 Status: status,
                 OverallDemandPressureIndex: state.SystemsDemand.OverallDemandPressureIndex,
+                EffectiveTickId: state.SystemsDemand.EffectiveTickId,
                 EffectiveAtUtc: state.SystemsDemand.EffectiveAtUtc);
+        }
+
+        private static bool IsIncomingSnapshotStale(
+            long effectiveTickId,
+            DateTimeOffset effectiveAtUtc,
+            long currentEffectiveTickId,
+            DateTimeOffset currentEffectiveAtUtc)
+        {
+            if (effectiveTickId < currentEffectiveTickId)
+                return true;
+
+            if (effectiveTickId > currentEffectiveTickId)
+                return false;
+
+            return effectiveAtUtc < currentEffectiveAtUtc;
+        }
+
+        private static bool ShouldApplyAtCurrentProgress(
+            long effectiveTickId,
+            DateTimeOffset effectiveAtUtc,
+            long lastAppliedTickId,
+            DateTimeOffset lastEvaluatedAtUtc)
+        {
+            if (effectiveTickId < lastAppliedTickId)
+                return true;
+
+            if (effectiveTickId > lastAppliedTickId)
+                return false;
+
+            return effectiveAtUtc <= lastEvaluatedAtUtc;
         }
     }
 }

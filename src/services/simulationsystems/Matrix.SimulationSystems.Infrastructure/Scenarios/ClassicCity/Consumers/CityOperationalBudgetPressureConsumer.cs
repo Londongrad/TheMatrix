@@ -29,6 +29,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     InfrastructureAuthorizationLevel: message.InfrastructureAuthorizationLevel,
                     HealthcareAuthorizationLevel: message.HealthcareAuthorizationLevel,
                     PressureIndex: message.PressureIndex,
+                    EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
                 cancellationToken: context.CancellationToken);
 
@@ -37,8 +38,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                 case SyncCityOperationalBudgetPressureStatus.Applied:
                     logger.LogInformation(
                         message:
-                        "Applied classic city operational budget pressure for cityId={CityId}, effectiveAtUtc={EffectiveAtUtc}, pressure={Pressure}.",
+                        "Applied classic city operational budget pressure for cityId={CityId}, effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}, pressure={Pressure}.",
                         message.CityId,
+                        result.EffectiveTickId,
                         result.EffectiveAtUtc,
                         result.PressureIndex);
                     break;
@@ -46,8 +48,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                 case SyncCityOperationalBudgetPressureStatus.Stale:
                     logger.LogWarning(
                         message:
-                        "Skipped stale classic city operational budget pressure for cityId={CityId}, effectiveAtUtc={EffectiveAtUtc}.",
+                        "Skipped stale classic city operational budget pressure for cityId={CityId}, effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}.",
                         message.CityId,
+                        message.EffectiveTickId,
                         message.EffectiveAtUtc);
                     break;
 

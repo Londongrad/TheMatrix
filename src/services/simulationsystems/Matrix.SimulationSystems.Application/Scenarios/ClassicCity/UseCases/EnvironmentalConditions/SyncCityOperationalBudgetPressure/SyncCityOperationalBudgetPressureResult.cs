@@ -3,5 +3,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
     public sealed record SyncCityOperationalBudgetPressureResult(
         SyncCityOperationalBudgetPressureStatus Status,
         decimal PressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc);
 }

@@ -12,6 +12,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             decimal filtersDemandPressureIndex,
             decimal emergencyWaterDemandPressureIndex,
             decimal overallDemandPressureIndex,
+            long effectiveTickId,
             DateTimeOffset effectiveAtUtc)
         {
             FuelDemandPressureIndex = fuelDemandPressureIndex;
@@ -19,6 +20,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             FiltersDemandPressureIndex = filtersDemandPressureIndex;
             EmergencyWaterDemandPressureIndex = emergencyWaterDemandPressureIndex;
             OverallDemandPressureIndex = overallDemandPressureIndex;
+            EffectiveTickId = effectiveTickId;
             EffectiveAtUtc = effectiveAtUtc;
         }
 
@@ -27,6 +29,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         public decimal FiltersDemandPressureIndex { get; private set; }
         public decimal EmergencyWaterDemandPressureIndex { get; private set; }
         public decimal OverallDemandPressureIndex { get; private set; }
+        public long EffectiveTickId { get; private set; }
         public DateTimeOffset EffectiveAtUtc { get; private set; }
 
         public static CitySystemsResourceDemandState Create(CitySystemsResourceDemandSnapshot snapshot)
@@ -39,6 +42,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 filtersDemandPressureIndex: snapshot.FiltersDemandPressureIndex,
                 emergencyWaterDemandPressureIndex: snapshot.EmergencyWaterDemandPressureIndex,
                 overallDemandPressureIndex: snapshot.OverallDemandPressureIndex,
+                effectiveTickId: snapshot.EffectiveTickId,
                 effectiveAtUtc: snapshot.EffectiveAtUtc);
         }
 
@@ -51,6 +55,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             FiltersDemandPressureIndex = snapshot.FiltersDemandPressureIndex;
             EmergencyWaterDemandPressureIndex = snapshot.EmergencyWaterDemandPressureIndex;
             OverallDemandPressureIndex = snapshot.OverallDemandPressureIndex;
+            EffectiveTickId = snapshot.EffectiveTickId;
             EffectiveAtUtc = snapshot.EffectiveAtUtc;
         }
 
@@ -62,6 +67,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 FiltersDemandPressureIndex: FiltersDemandPressureIndex,
                 EmergencyWaterDemandPressureIndex: EmergencyWaterDemandPressureIndex,
                 OverallDemandPressureIndex: OverallDemandPressureIndex,
+                EffectiveTickId: EffectiveTickId,
                 EffectiveAtUtc: EffectiveAtUtc);
         }
     }

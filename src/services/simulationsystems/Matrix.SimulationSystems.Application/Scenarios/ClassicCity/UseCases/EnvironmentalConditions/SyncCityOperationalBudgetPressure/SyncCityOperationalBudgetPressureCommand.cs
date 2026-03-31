@@ -15,5 +15,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         string InfrastructureAuthorizationLevel,
         string HealthcareAuthorizationLevel,
         decimal PressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc) : IRequest<SyncCityOperationalBudgetPressureResult>;
 }

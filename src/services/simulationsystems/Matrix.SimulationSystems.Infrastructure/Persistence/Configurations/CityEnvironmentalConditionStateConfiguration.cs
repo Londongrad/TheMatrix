@@ -685,6 +685,10 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                        .HasColumnName("ResourceEmergencyWaterShortageRiskIndex")
                        .IsRequired();
 
+                    resourceSupply.Property(x => x.EffectiveTickId)
+                       .HasColumnName("ResourceEffectiveTickId")
+                       .IsRequired();
+
                     resourceSupply.Property(x => x.EffectiveAtUtc)
                        .HasColumnName("ResourceEffectiveAtUtc")
                        .IsRequired();
@@ -764,6 +768,10 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                             precision: 5,
                             scale: 4)
                        .HasColumnName("BudgetPressureIndex")
+                       .IsRequired();
+
+                    budgetPressure.Property(x => x.EffectiveTickId)
+                       .HasColumnName("BudgetPressureEffectiveTickId")
                        .IsRequired();
 
                     budgetPressure.Property(x => x.EffectiveAtUtc)

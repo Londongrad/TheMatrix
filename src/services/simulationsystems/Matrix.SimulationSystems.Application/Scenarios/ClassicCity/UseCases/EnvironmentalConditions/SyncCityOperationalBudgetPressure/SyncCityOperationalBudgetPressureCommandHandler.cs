@@ -27,14 +27,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 return new SyncCityOperationalBudgetPressureResult(
                     Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
                     PressureIndex: 0m,
+                    EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc);
             }
 
-            if (request.EffectiveAtUtc < state.OperationalBudgetPressure.EffectiveAtUtc)
+            if (IsIncomingSnapshotStale(
+                    effectiveTickId: request.EffectiveTickId,
+                    effectiveAtUtc: request.EffectiveAtUtc,
+                    currentEffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
+                    currentEffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc))
             {
                 return new SyncCityOperationalBudgetPressureResult(
                     Status: SyncCityOperationalBudgetPressureStatus.Stale,
                     PressureIndex: state.OperationalBudgetPressure.PressureIndex,
+                    EffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
                     EffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc);
             }
 
@@ -51,6 +57,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     InfrastructureAuthorizationLevel: request.InfrastructureAuthorizationLevel,
                     HealthcareAuthorizationLevel: request.HealthcareAuthorizationLevel,
                     PressureIndex: request.PressureIndex,
+                    EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc));
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -58,7 +65,23 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             return new SyncCityOperationalBudgetPressureResult(
                 Status: SyncCityOperationalBudgetPressureStatus.Applied,
                 PressureIndex: state.OperationalBudgetPressure.PressureIndex,
+                EffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
                 EffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc);
+        }
+
+        private static bool IsIncomingSnapshotStale(
+            long effectiveTickId,
+            DateTimeOffset effectiveAtUtc,
+            long currentEffectiveTickId,
+            DateTimeOffset currentEffectiveAtUtc)
+        {
+            if (effectiveTickId < currentEffectiveTickId)
+                return true;
+
+            if (effectiveTickId > currentEffectiveTickId)
+                return false;
+
+            return effectiveAtUtc < currentEffectiveAtUtc;
         }
     }
 }

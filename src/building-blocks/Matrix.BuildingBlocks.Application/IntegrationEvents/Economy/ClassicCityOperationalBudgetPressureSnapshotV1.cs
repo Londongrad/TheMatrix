@@ -16,6 +16,7 @@ namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Economy
         string InfrastructureAuthorizationLevel,
         string HealthcareAuthorizationLevel,
         decimal PressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc,
         DateTimeOffset OccurredAtUtc);
 }

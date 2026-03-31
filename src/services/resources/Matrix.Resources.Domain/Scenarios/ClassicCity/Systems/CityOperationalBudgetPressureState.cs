@@ -18,6 +18,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             string infrastructureAuthorizationLevel,
             string healthcareAuthorizationLevel,
             decimal pressureIndex,
+            long effectiveTickId,
             DateTimeOffset effectiveAtUtc)
         {
             Balance = balance;
@@ -31,6 +32,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             InfrastructureAuthorizationLevel = infrastructureAuthorizationLevel;
             HealthcareAuthorizationLevel = healthcareAuthorizationLevel;
             PressureIndex = pressureIndex;
+            EffectiveTickId = effectiveTickId;
             EffectiveAtUtc = effectiveAtUtc;
         }
 
@@ -45,6 +47,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         public string InfrastructureAuthorizationLevel { get; private set; } = string.Empty;
         public string HealthcareAuthorizationLevel { get; private set; } = string.Empty;
         public decimal PressureIndex { get; private set; }
+        public long EffectiveTickId { get; private set; }
         public DateTimeOffset EffectiveAtUtc { get; private set; }
 
         public static CityOperationalBudgetPressureState Create(CityOperationalBudgetPressureSnapshot snapshot)
@@ -63,6 +66,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 infrastructureAuthorizationLevel: snapshot.InfrastructureAuthorizationLevel,
                 healthcareAuthorizationLevel: snapshot.HealthcareAuthorizationLevel,
                 pressureIndex: snapshot.PressureIndex,
+                effectiveTickId: snapshot.EffectiveTickId,
                 effectiveAtUtc: snapshot.EffectiveAtUtc);
         }
 
@@ -81,6 +85,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
             InfrastructureAuthorizationLevel = snapshot.InfrastructureAuthorizationLevel;
             HealthcareAuthorizationLevel = snapshot.HealthcareAuthorizationLevel;
             PressureIndex = snapshot.PressureIndex;
+            EffectiveTickId = snapshot.EffectiveTickId;
             EffectiveAtUtc = snapshot.EffectiveAtUtc;
         }
 
@@ -98,6 +103,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
                 InfrastructureAuthorizationLevel: InfrastructureAuthorizationLevel,
                 HealthcareAuthorizationLevel: HealthcareAuthorizationLevel,
                 PressureIndex: PressureIndex,
+                EffectiveTickId: EffectiveTickId,
                 EffectiveAtUtc: EffectiveAtUtc);
         }
     }

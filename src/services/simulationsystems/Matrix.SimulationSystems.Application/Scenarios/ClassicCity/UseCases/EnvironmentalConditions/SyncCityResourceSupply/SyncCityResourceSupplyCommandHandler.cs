@@ -31,14 +31,20 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 return new SyncCityResourceSupplyResult(
                     Status: SyncCityResourceSupplyStatus.NotInitialized,
                     SupplyStressIndex: 0m,
+                    EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc);
             }
 
-            if (request.EffectiveAtUtc < state.ResourceSupply.EffectiveAtUtc)
+            if (IsIncomingSnapshotStale(
+                    effectiveTickId: request.EffectiveTickId,
+                    effectiveAtUtc: request.EffectiveAtUtc,
+                    currentEffectiveTickId: state.ResourceSupply.EffectiveTickId,
+                    currentEffectiveAtUtc: state.ResourceSupply.EffectiveAtUtc))
             {
                 return new SyncCityResourceSupplyResult(
                     Status: SyncCityResourceSupplyStatus.Stale,
                     SupplyStressIndex: state.ResourceSupply.SupplyStressIndex,
+                    EffectiveTickId: state.ResourceSupply.EffectiveTickId,
                     EffectiveAtUtc: state.ResourceSupply.EffectiveAtUtc);
             }
 
@@ -56,13 +62,18 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 emergencyWaterStockLevelIndex: request.EmergencyWaterStockLevelIndex,
                 emergencyWaterResupplyReadinessIndex: request.EmergencyWaterResupplyReadinessIndex,
                 emergencyWaterShortageRiskIndex: request.EmergencyWaterShortageRiskIndex,
+                effectiveTickId: request.EffectiveTickId,
                 effectiveAtUtc: request.EffectiveAtUtc);
 
             state.ApplyResourceSupply(resourceSnapshot);
 
             SyncCityResourceSupplyStatus status = SyncCityResourceSupplyStatus.Deferred;
 
-            if (request.EffectiveAtUtc <= state.LastEvaluatedAtUtc)
+            if (ShouldApplyAtCurrentProgress(
+                    effectiveTickId: request.EffectiveTickId,
+                    effectiveAtUtc: request.EffectiveAtUtc,
+                    lastAppliedTickId: state.LastAppliedTickId,
+                    lastEvaluatedAtUtc: state.LastEvaluatedAtUtc))
             {
                 CitySystemPressureProfile pressure = pressureProfileFactory.Create(
                     state: state,
@@ -82,7 +93,38 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             return new SyncCityResourceSupplyResult(
                 Status: status,
                 SupplyStressIndex: state.ResourceSupply.SupplyStressIndex,
+                EffectiveTickId: state.ResourceSupply.EffectiveTickId,
                 EffectiveAtUtc: state.ResourceSupply.EffectiveAtUtc);
+        }
+
+        private static bool IsIncomingSnapshotStale(
+            long effectiveTickId,
+            DateTimeOffset effectiveAtUtc,
+            long currentEffectiveTickId,
+            DateTimeOffset currentEffectiveAtUtc)
+        {
+            if (effectiveTickId < currentEffectiveTickId)
+                return true;
+
+            if (effectiveTickId > currentEffectiveTickId)
+                return false;
+
+            return effectiveAtUtc < currentEffectiveAtUtc;
+        }
+
+        private static bool ShouldApplyAtCurrentProgress(
+            long effectiveTickId,
+            DateTimeOffset effectiveAtUtc,
+            long lastAppliedTickId,
+            DateTimeOffset lastEvaluatedAtUtc)
+        {
+            if (effectiveTickId < lastAppliedTickId)
+                return true;
+
+            if (effectiveTickId > lastAppliedTickId)
+                return false;
+
+            return effectiveAtUtc <= lastEvaluatedAtUtc;
         }
     }
 }

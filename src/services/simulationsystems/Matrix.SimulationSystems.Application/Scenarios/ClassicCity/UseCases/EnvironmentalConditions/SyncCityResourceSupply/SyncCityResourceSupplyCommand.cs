@@ -17,6 +17,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         decimal EmergencyWaterStockLevelIndex,
         decimal EmergencyWaterResupplyReadinessIndex,
         decimal EmergencyWaterShortageRiskIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc)
         : IRequest<SyncCityResourceSupplyResult>;
 }

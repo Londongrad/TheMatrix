@@ -9,5 +9,6 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         decimal FiltersDemandPressureIndex,
         decimal EmergencyWaterDemandPressureIndex,
         decimal OverallDemandPressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc) : IRequest<SyncCitySystemsDemandResult>;
 }

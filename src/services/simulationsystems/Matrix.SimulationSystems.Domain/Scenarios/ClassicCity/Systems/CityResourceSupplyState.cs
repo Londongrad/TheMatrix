@@ -20,6 +20,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             decimal emergencyWaterStockLevelIndex,
             decimal emergencyWaterResupplyReadinessIndex,
             decimal emergencyWaterShortageRiskIndex,
+            long effectiveTickId,
             DateTimeOffset effectiveAtUtc)
         {
             SupplyStressIndex = supplyStressIndex;
@@ -35,6 +36,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             EmergencyWaterStockLevelIndex = emergencyWaterStockLevelIndex;
             EmergencyWaterResupplyReadinessIndex = emergencyWaterResupplyReadinessIndex;
             EmergencyWaterShortageRiskIndex = emergencyWaterShortageRiskIndex;
+            EffectiveTickId = effectiveTickId;
             EffectiveAtUtc = effectiveAtUtc;
         }
 
@@ -51,6 +53,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public decimal EmergencyWaterStockLevelIndex { get; private set; }
         public decimal EmergencyWaterResupplyReadinessIndex { get; private set; }
         public decimal EmergencyWaterShortageRiskIndex { get; private set; }
+        public long EffectiveTickId { get; private set; }
         public DateTimeOffset EffectiveAtUtc { get; private set; }
 
         public static CityResourceSupplyState Create(CityResourceSupplySnapshot snapshot)
@@ -71,6 +74,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 emergencyWaterStockLevelIndex: snapshot.EmergencyWaterStockLevelIndex,
                 emergencyWaterResupplyReadinessIndex: snapshot.EmergencyWaterResupplyReadinessIndex,
                 emergencyWaterShortageRiskIndex: snapshot.EmergencyWaterShortageRiskIndex,
+                effectiveTickId: snapshot.EffectiveTickId,
                 effectiveAtUtc: snapshot.EffectiveAtUtc);
         }
 
@@ -91,6 +95,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             EmergencyWaterStockLevelIndex = snapshot.EmergencyWaterStockLevelIndex;
             EmergencyWaterResupplyReadinessIndex = snapshot.EmergencyWaterResupplyReadinessIndex;
             EmergencyWaterShortageRiskIndex = snapshot.EmergencyWaterShortageRiskIndex;
+            EffectiveTickId = snapshot.EffectiveTickId;
             EffectiveAtUtc = snapshot.EffectiveAtUtc;
         }
 
@@ -110,6 +115,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
                 emergencyWaterStockLevelIndex: EmergencyWaterStockLevelIndex,
                 emergencyWaterResupplyReadinessIndex: EmergencyWaterResupplyReadinessIndex,
                 emergencyWaterShortageRiskIndex: EmergencyWaterShortageRiskIndex,
+                effectiveTickId: EffectiveTickId,
                 effectiveAtUtc: EffectiveAtUtc);
         }
     }

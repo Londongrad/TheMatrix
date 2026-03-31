@@ -6,9 +6,12 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Models
         decimal FiltersDemandPressureIndex,
         decimal EmergencyWaterDemandPressureIndex,
         decimal OverallDemandPressureIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc)
     {
-        public static CitySystemsResourceDemandSnapshot Neutral(DateTimeOffset effectiveAtUtc)
+        public static CitySystemsResourceDemandSnapshot Neutral(
+            DateTimeOffset effectiveAtUtc,
+            long effectiveTickId = 0)
         {
             return new CitySystemsResourceDemandSnapshot(
                 FuelDemandPressureIndex: 0m,
@@ -16,6 +19,7 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Models
                 FiltersDemandPressureIndex: 0m,
                 EmergencyWaterDemandPressureIndex: 0m,
                 OverallDemandPressureIndex: 0m,
+                EffectiveTickId: Math.Max(0, effectiveTickId),
                 EffectiveAtUtc: effectiveAtUtc.Offset == TimeSpan.Zero
                     ? effectiveAtUtc
                     : effectiveAtUtc.ToUniversalTime());

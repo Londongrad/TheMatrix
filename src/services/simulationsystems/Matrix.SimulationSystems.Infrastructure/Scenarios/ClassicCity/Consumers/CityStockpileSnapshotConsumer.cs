@@ -30,6 +30,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     EmergencyWaterStockLevelIndex: message.EmergencyWater.StockLevelIndex,
                     EmergencyWaterResupplyReadinessIndex: message.EmergencyWater.ResupplyReadinessIndex,
                     EmergencyWaterShortageRiskIndex: message.EmergencyWater.ShortageRiskIndex,
+                    EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
                 cancellationToken: context.CancellationToken);
 
@@ -38,8 +39,9 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                 case SyncCityResourceSupplyStatus.Applied:
                     logger.LogInformation(
                         message:
-                        "Applied classic city resource supply snapshot for cityId={CityId}, effectiveAtUtc={EffectiveAtUtc}, supplyStress={SupplyStress}.",
+                        "Applied classic city resource supply snapshot for cityId={CityId}, effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}, supplyStress={SupplyStress}.",
                         message.CityId,
+                        result.EffectiveTickId,
                         result.EffectiveAtUtc,
                         result.SupplyStressIndex);
                     break;
@@ -47,16 +49,18 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                 case SyncCityResourceSupplyStatus.Deferred:
                     logger.LogDebug(
                         message:
-                        "Deferred classic city resource supply snapshot for cityId={CityId} until sim-time reaches effectiveAtUtc={EffectiveAtUtc}.",
+                        "Deferred classic city resource supply snapshot for cityId={CityId} until sim-time reaches effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}.",
                         message.CityId,
+                        result.EffectiveTickId,
                         result.EffectiveAtUtc);
                     break;
 
                 case SyncCityResourceSupplyStatus.Stale:
                     logger.LogWarning(
                         message:
-                        "Skipped stale classic city resource supply snapshot for cityId={CityId}, effectiveAtUtc={EffectiveAtUtc}.",
+                        "Skipped stale classic city resource supply snapshot for cityId={CityId}, effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}.",
                         message.CityId,
+                        message.EffectiveTickId,
                         message.EffectiveAtUtc);
                     break;
 

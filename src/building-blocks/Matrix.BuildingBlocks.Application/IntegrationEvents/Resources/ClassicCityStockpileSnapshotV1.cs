@@ -10,6 +10,7 @@ namespace Matrix.BuildingBlocks.Application.IntegrationEvents.Resources
         ClassicCityStockpileLineSnapshotV1 SpareParts,
         ClassicCityStockpileLineSnapshotV1 Filters,
         ClassicCityStockpileLineSnapshotV1 EmergencyWater,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc,
         DateTimeOffset OccurredAtUtc);
 }

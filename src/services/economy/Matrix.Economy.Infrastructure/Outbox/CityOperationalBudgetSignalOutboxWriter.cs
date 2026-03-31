@@ -38,6 +38,7 @@ namespace Matrix.Economy.Infrastructure.Outbox
                         InfrastructureAuthorizationLevel: snapshot.InfrastructureAuthorizationLevel,
                         HealthcareAuthorizationLevel: snapshot.HealthcareAuthorizationLevel,
                         PressureIndex: snapshot.PressureIndex,
+                        EffectiveTickId: snapshot.EffectiveTickId,
                         EffectiveAtUtc: effectiveAtUtc,
                         OccurredAtUtc: occurredAtUtc),
                     jsonOptions: JsonOptions));

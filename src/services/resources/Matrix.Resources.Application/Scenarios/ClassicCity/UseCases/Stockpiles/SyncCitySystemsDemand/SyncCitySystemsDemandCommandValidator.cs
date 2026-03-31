@@ -12,6 +12,10 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             RuleFor(x => x.FiltersDemandPressureIndex).InclusiveBetween(0m, 1m);
             RuleFor(x => x.EmergencyWaterDemandPressureIndex).InclusiveBetween(0m, 1m);
             RuleFor(x => x.OverallDemandPressureIndex).InclusiveBetween(0m, 1m);
+            RuleFor(x => x.EffectiveTickId).GreaterThanOrEqualTo(0L);
+            RuleFor(x => x.EffectiveAtUtc)
+                .Must(x => x.Offset == TimeSpan.Zero)
+                .WithMessage("EffectiveAtUtc must be specified in UTC.");
         }
     }
 }

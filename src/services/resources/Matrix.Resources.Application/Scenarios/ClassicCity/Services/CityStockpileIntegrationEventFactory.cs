@@ -22,6 +22,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 SpareParts: MapLine(state.SpareParts.ToSnapshot()),
                 Filters: MapLine(state.Filters.ToSnapshot()),
                 EmergencyWater: MapLine(state.EmergencyWater.ToSnapshot()),
+                EffectiveTickId: state.LastAppliedTickId,
                 EffectiveAtUtc: state.LastEvaluatedAtUtc,
                 OccurredAtUtc: occurredAtUtc);
         }

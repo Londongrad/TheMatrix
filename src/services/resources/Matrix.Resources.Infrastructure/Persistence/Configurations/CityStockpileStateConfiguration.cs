@@ -107,6 +107,10 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
                        .HasColumnName("BudgetPressureIndex")
                        .IsRequired();
 
+                    budget.Property(x => x.EffectiveTickId)
+                       .HasColumnName("BudgetPressureEffectiveTickId")
+                       .IsRequired();
+
                     budget.Property(x => x.EffectiveAtUtc)
                        .HasColumnName("BudgetPressureEffectiveAtUtc")
                        .IsRequired();
@@ -151,6 +155,10 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
                             precision: 5,
                             scale: 4)
                        .HasColumnName("SystemsDemandOverallDemandPressureIndex")
+                       .IsRequired();
+
+                    demand.Property(x => x.EffectiveTickId)
+                       .HasColumnName("SystemsDemandEffectiveTickId")
                        .IsRequired();
 
                     demand.Property(x => x.EffectiveAtUtc)

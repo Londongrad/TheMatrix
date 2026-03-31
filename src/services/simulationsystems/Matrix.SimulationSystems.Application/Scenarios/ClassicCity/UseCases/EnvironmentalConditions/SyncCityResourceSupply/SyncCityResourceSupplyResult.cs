@@ -3,5 +3,6 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
     public sealed record SyncCityResourceSupplyResult(
         SyncCityResourceSupplyStatus Status,
         decimal SupplyStressIndex,
+        long EffectiveTickId,
         DateTimeOffset EffectiveAtUtc);
 }

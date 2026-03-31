@@ -39,6 +39,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             RuleFor(x => x.EffectiveAtUtc)
                .Must(x => x.Offset == TimeSpan.Zero)
                .WithMessage("EffectiveAtUtc must be specified in UTC.");
+            RuleFor(x => x.EffectiveTickId)
+               .GreaterThanOrEqualTo(0L);
         }
     }
 }
