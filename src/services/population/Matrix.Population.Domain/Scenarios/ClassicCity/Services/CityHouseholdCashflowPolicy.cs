@@ -12,7 +12,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         public CityResidentIncomeSettlementProfile BuildResidentIncome(
             Person resident,
             DateOnly currentDate,
-            CityPopulationCostOfLivingState? costOfLivingState = null)
+            CityPopulationCostOfLivingState? costOfLivingState = null,
+            decimal incomeMultiplier = 1m)
         {
             ArgumentNullException.ThrowIfNull(resident);
 
@@ -20,7 +21,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Money grossIncome = ResolveResidentGrossIncome(
                 resident: resident,
                 ageGroup: ageGroup,
-                costOfLivingState: costOfLivingState);
+                costOfLivingState: costOfLivingState)
+               .Multiply(Math.Clamp(incomeMultiplier, 0m, 1m));
             Money taxWithheld = grossIncome.Multiply(ResolveTaxRate(resident));
 
             return new CityResidentIncomeSettlementProfile(

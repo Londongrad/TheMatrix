@@ -59,6 +59,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
         CityIllnessAutonomyPolicy illnessAutonomyPolicy,
         CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
+        CityPopulationParticipationPolicy participationPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
@@ -258,6 +259,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 currentDate: toDate,
                                 householdCashflowPolicy: householdCashflowPolicy,
                                 costOfLivingState: costOfLivingState,
+                                essentialsState: essentialsState,
+                                livingConditionsState: livingConditionsState,
+                                participationPolicy: participationPolicy,
                                 cashflowItems: pendingHouseholdCashflowItems,
                                 workplacePayrollItems: pendingWorkplacePayrollItems);
 
@@ -716,6 +720,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly currentDate,
             CityHouseholdCashflowPolicy householdCashflowPolicy,
             CityPopulationCostOfLivingState? costOfLivingState,
+            CityPopulationEssentialsState? essentialsState,
+            CityPopulationLivingConditionsState? livingConditionsState,
+            CityPopulationParticipationPolicy participationPolicy,
             ICollection<ClassicCityHouseholdCashflowSettlementItemV1> cashflowItems,
             ICollection<ClassicCityWorkplacePayrollSettlementItemV1> workplacePayrollItems)
         {
@@ -764,16 +771,33 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 Money supportGrossIncomeForPeriod = Money.Zero;
                 Money supportIncomeTaxForPeriod = Money.Zero;
                 Money supportNetIncomeForPeriod = Money.Zero;
+                Money actualHouseholdNetIncomeForPeriod = Money.Zero;
 
                 foreach (PersonEntity resident in residents)
                 {
+                    decimal incomeMultiplier = 1m;
+                    if (resident.Employment.Status == EmploymentStatus.Employed)
+                    {
+                        HousingStatus? residentHousingStatus = housingStatus;
+                        CityPopulationParticipationProfile employmentProfile =
+                            participationPolicy.ResolveEmploymentProfile(
+                                person: resident,
+                                currentDate: currentDate,
+                                housingStatus: residentHousingStatus,
+                                livingConditionsState: livingConditionsState,
+                                essentialsState: essentialsState);
+                        incomeMultiplier = employmentProfile.PayrollMultiplier;
+                    }
+
                     CityResidentIncomeSettlementProfile residentIncome = householdCashflowPolicy.BuildResidentIncome(
                         resident: resident,
                         currentDate: currentDate,
-                        costOfLivingState: costOfLivingState);
+                        costOfLivingState: costOfLivingState,
+                        incomeMultiplier: incomeMultiplier);
                     Money residentGrossIncomeForPeriod = residentIncome.GrossIncome.Multiply(daysElapsed);
                     Money residentTaxForPeriod = residentIncome.TaxWithheld.Multiply(daysElapsed);
                     Money residentNetIncomeForPeriod = residentIncome.NetIncome.Multiply(daysElapsed);
+                    actualHouseholdNetIncomeForPeriod = actualHouseholdNetIncomeForPeriod.Add(residentNetIncomeForPeriod);
 
                     if (resident.Employment.Status == EmploymentStatus.Employed &&
                         resident.Employment.Job is
@@ -818,7 +842,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 netPayroll = netPayroll.Add(supportNetIncomeForPeriod);
 
                 household.ApplyDailyCashflow(
-                    takeHomeIncome: cashflow.TakeHomeIncome,
+                    takeHomeIncome: Money.FromDecimal(actualHouseholdNetIncomeForPeriod.Amount / daysElapsed),
                     expenses: cashflow.DailyExpenses,
                     daysElapsed: daysElapsed);
             }
