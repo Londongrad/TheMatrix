@@ -31,16 +31,24 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 random: random,
                 plan: plan);
 
-            List<ResidentialBuilding> buildings = CreateResidentialBuildings(
+            List<ResidentialBuildingBlueprint> buildingBlueprints = CreateResidentialBuildingBlueprints(
                 city: city,
                 districts: districts,
                 createdAtUtc: createdAtUtc,
                 random: random,
                 plan: plan);
+            RoadGraphLayout roadGraph = CreateRoadGraph(
+                city: city,
+                districts: districts,
+                buildingBlueprints: buildingBlueprints,
+                createdAtUtc: createdAtUtc,
+                random: random);
 
             return new CityTopologySeed(
                 Districts: districts,
-                ResidentialBuildings: buildings);
+                ResidentialBuildings: roadGraph.ResidentialBuildings,
+                RoadNodes: roadGraph.RoadNodes,
+                RoadSegments: roadGraph.RoadSegments);
         }
 
         private GenerationPlan BuildGenerationPlan(
@@ -87,6 +95,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 District.Create(
                     cityId: city.Id,
                     name: new DistrictName("Central District"),
+                    anchorX: 50m,
+                    anchorY: 50m,
                     createdAtUtc: createdAtUtc)
             };
 
@@ -100,20 +110,28 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                     District.Create(
                         cityId: city.Id,
                         name: new DistrictName(districtName),
+                        anchorX: ResolveDistrictAnchorX(
+                            districtIndex: i,
+                            districtCount: plan.DistrictCount,
+                            random: random),
+                        anchorY: ResolveDistrictAnchorY(
+                            districtIndex: i,
+                            districtCount: plan.DistrictCount,
+                            random: random),
                         createdAtUtc: createdAtUtc));
             }
 
             return districts;
         }
 
-        private static List<ResidentialBuilding> CreateResidentialBuildings(
+        private static List<ResidentialBuildingBlueprint> CreateResidentialBuildingBlueprints(
             City city,
             IReadOnlyList<District> districts,
             DateTimeOffset createdAtUtc,
             DeterministicRandom random,
             GenerationPlan plan)
         {
-            var buildings = new List<ResidentialBuilding>();
+            var buildings = new List<ResidentialBuildingBlueprint>();
             DistrictArchetype[] districtArchetypes = BuildDistrictArchetypes(
                 profile: city.GenerationProfile,
                 districtCount: districts.Count,
@@ -138,6 +156,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                     newValue: string.Empty,
                     comparisonType: StringComparison.Ordinal);
                 var typeCounters = new Dictionary<ResidentialBuildingType, int>();
+                int placementIndex = 0;
 
                 while (districtCapacityBuilt < districtCapacityTarget || districtCapacityBuilt == 0)
                 {
@@ -162,24 +181,266 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                         archetype: districtArchetype,
                         random: random);
 
+                    (decimal positionX, decimal positionY) = ResolveBuildingPosition(
+                        district: district,
+                        placementIndex: placementIndex,
+                        random: random);
+
                     buildings.Add(
-                        ResidentialBuilding.Create(
-                            cityId: city.Id,
-                            districtId: district.Id,
-                            name: new ResidentialBuildingName(
-                                CreateBuildingName(
-                                    districtLabel: districtLabel,
-                                    type: type,
-                                    sequence: sequence)),
-                            type: type,
-                            residentCapacity: ResidentCapacity.From(residentCapacity),
-                            createdAtUtc: createdAtUtc));
+                        new ResidentialBuildingBlueprint(
+                            District: district,
+                            Name: CreateBuildingName(
+                                districtLabel: districtLabel,
+                                type: type,
+                                sequence: sequence),
+                            Type: type,
+                            ResidentCapacity: residentCapacity,
+                            PositionX: positionX,
+                            PositionY: positionY,
+                            CreatedAtUtc: createdAtUtc));
 
                     districtCapacityBuilt += residentCapacity;
+                    placementIndex++;
                 }
             }
 
             return buildings;
+        }
+
+        private RoadGraphLayout CreateRoadGraph(
+            City city,
+            IReadOnlyList<District> districts,
+            IReadOnlyList<ResidentialBuildingBlueprint> buildingBlueprints,
+            DateTimeOffset createdAtUtc,
+            DeterministicRandom random)
+        {
+            var streetNames = generationContentCatalog.StreetNamePresets.ToList();
+            Shuffle(
+                items: streetNames,
+                random: random);
+
+            var roadNodes = new List<RoadNode>();
+            var roadSegments = new List<RoadSegment>();
+            var residentialBuildings = new List<ResidentialBuilding>();
+            var districtHubByDistrictId = new Dictionary<DistrictId, RoadNode>(districts.Count);
+
+            for (int districtIndex = 0; districtIndex < districts.Count; districtIndex++)
+            {
+                District district = districts[districtIndex];
+                string hubName = districtIndex == 0
+                    ? "Central Hub"
+                    : $"{district.Name.Value} Hub";
+
+                RoadNode districtHub = RoadNode.Create(
+                    cityId: city.Id,
+                    districtId: district.Id,
+                    name: hubName,
+                    type: RoadNodeType.DistrictHub,
+                    positionX: district.AnchorX,
+                    positionY: district.AnchorY,
+                    createdAtUtc: createdAtUtc);
+
+                districtHubByDistrictId[district.Id] = districtHub;
+                roadNodes.Add(districtHub);
+            }
+
+            District centralDistrict = districts[0];
+            RoadNode centralHub = districtHubByDistrictId[centralDistrict.Id];
+            int namedStreetIndex = 0;
+
+            foreach (District district in districts.Skip(1))
+            {
+                RoadNode districtHub = districtHubByDistrictId[district.Id];
+                string arterialName = namedStreetIndex < streetNames.Count
+                    ? streetNames[namedStreetIndex++]
+                    : $"{district.Name.Value} Connector";
+
+                roadSegments.Add(
+                    RoadSegment.Create(
+                        cityId: city.Id,
+                        districtId: district.Id,
+                        fromRoadNodeId: centralHub.Id,
+                        toRoadNodeId: districtHub.Id,
+                        name: arterialName,
+                        type: RoadSegmentType.Arterial,
+                        lengthMeters: EstimateLengthMeters(
+                            fromX: centralHub.PositionX,
+                            fromY: centralHub.PositionY,
+                            toX: districtHub.PositionX,
+                            toY: districtHub.PositionY),
+                        createdAtUtc: createdAtUtc));
+            }
+
+            foreach (IGrouping<DistrictId, ResidentialBuildingBlueprint> districtBuildings in buildingBlueprints.GroupBy(
+                         x => x.District.Id))
+            {
+                RoadNode districtHub = districtHubByDistrictId[districtBuildings.Key];
+                int localSequence = 1;
+
+                foreach (ResidentialBuildingBlueprint blueprint in districtBuildings)
+                {
+                    RoadNode accessNode = RoadNode.Create(
+                        cityId: city.Id,
+                        districtId: blueprint.District.Id,
+                        name: $"{blueprint.Name} Access",
+                        type: RoadNodeType.ResidentialAccess,
+                        positionX: blueprint.PositionX,
+                        positionY: blueprint.PositionY,
+                        createdAtUtc: createdAtUtc);
+
+                    roadNodes.Add(accessNode);
+                    roadSegments.Add(
+                        RoadSegment.Create(
+                            cityId: city.Id,
+                            districtId: blueprint.District.Id,
+                            fromRoadNodeId: districtHub.Id,
+                            toRoadNodeId: accessNode.Id,
+                            name: $"{blueprint.District.Name.Value} Local {localSequence}",
+                            type: districtHub.Id == centralHub.Id
+                                ? RoadSegmentType.Collector
+                                : RoadSegmentType.LocalAccess,
+                            lengthMeters: EstimateLengthMeters(
+                                fromX: districtHub.PositionX,
+                                fromY: districtHub.PositionY,
+                                toX: accessNode.PositionX,
+                                toY: accessNode.PositionY),
+                            createdAtUtc: createdAtUtc));
+
+                    residentialBuildings.Add(
+                        ResidentialBuilding.Create(
+                            cityId: city.Id,
+                            districtId: blueprint.District.Id,
+                            accessRoadNodeId: accessNode.Id,
+                            name: new ResidentialBuildingName(blueprint.Name),
+                            type: blueprint.Type,
+                            residentCapacity: ResidentCapacity.From(blueprint.ResidentCapacity),
+                            positionX: blueprint.PositionX,
+                            positionY: blueprint.PositionY,
+                            createdAtUtc: blueprint.CreatedAtUtc));
+
+                    localSequence++;
+                }
+            }
+
+            return new RoadGraphLayout(
+                ResidentialBuildings: residentialBuildings,
+                RoadNodes: roadNodes,
+                RoadSegments: roadSegments);
+        }
+
+        private static decimal ResolveDistrictAnchorX(
+            int districtIndex,
+            int districtCount,
+            DeterministicRandom random)
+        {
+            if (districtIndex == 0 || districtCount <= 1)
+                return 50m;
+
+            (decimal x, _) = ResolveOuterDistrictAnchor(
+                districtIndex: districtIndex,
+                districtCount: districtCount,
+                random: random);
+
+            return x;
+        }
+
+        private static decimal ResolveDistrictAnchorY(
+            int districtIndex,
+            int districtCount,
+            DeterministicRandom random)
+        {
+            if (districtIndex == 0 || districtCount <= 1)
+                return 50m;
+
+            (_, decimal y) = ResolveOuterDistrictAnchor(
+                districtIndex: districtIndex,
+                districtCount: districtCount,
+                random: random);
+
+            return y;
+        }
+
+        private static (decimal X, decimal Y) ResolveOuterDistrictAnchor(
+            int districtIndex,
+            int districtCount,
+            DeterministicRandom random)
+        {
+            int outerCount = Math.Max(
+                val1: 1,
+                val2: districtCount - 1);
+            double baseAngle = (-Math.PI / 2d) +
+                               ((districtIndex - 1) * (2d * Math.PI / outerCount));
+            double angle = baseAngle +
+                           (double)random.NextDecimal(
+                               minInclusive: -0.11m,
+                               maxInclusive: 0.11m);
+            decimal radius = 28m + random.NextDecimal(
+                minInclusive: -2.75m,
+                maxInclusive: 2.75m);
+            decimal x = 50m + (decimal)Math.Cos(angle) * radius;
+            decimal y = 50m + (decimal)Math.Sin(angle) * radius;
+
+            return (
+                ClampCoordinate(x),
+                ClampCoordinate(y));
+        }
+
+        private static (decimal X, decimal Y) ResolveBuildingPosition(
+            District district,
+            int placementIndex,
+            DeterministicRandom random)
+        {
+            const int maxPerRing = 8;
+
+            int ringIndex = placementIndex / maxPerRing;
+            int slotIndex = placementIndex % maxPerRing;
+            decimal ringRadius = 4.5m + (ringIndex * 2.5m) +
+                                 random.NextDecimal(
+                                     minInclusive: -0.45m,
+                                     maxInclusive: 0.45m);
+            double baseAngle = slotIndex * (2d * Math.PI / maxPerRing);
+            double angle = baseAngle +
+                           (double)random.NextDecimal(
+                               minInclusive: -0.18m,
+                               maxInclusive: 0.18m);
+            decimal x = district.AnchorX + (decimal)Math.Cos(angle) * ringRadius;
+            decimal y = district.AnchorY + (decimal)Math.Sin(angle) * ringRadius;
+
+            return (
+                ClampCoordinate(x),
+                ClampCoordinate(y));
+        }
+
+        private static decimal EstimateLengthMeters(
+            decimal fromX,
+            decimal fromY,
+            decimal toX,
+            decimal toY)
+        {
+            decimal dx = toX - fromX;
+            decimal dy = toY - fromY;
+            double euclideanDistance = Math.Sqrt((double)((dx * dx) + (dy * dy)));
+            decimal lengthMeters = (decimal)euclideanDistance * 90m;
+
+            return Math.Max(
+                val1: 30m,
+                val2: decimal.Round(
+                    d: lengthMeters,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero));
+        }
+
+        private static decimal ClampCoordinate(decimal value)
+        {
+            decimal clamped = Math.Clamp(
+                value: value,
+                min: 4m,
+                max: 96m);
+
+            return decimal.Round(
+                d: clamped,
+                decimals: TopologyMapRules.CoordinateScale,
+                mode: MidpointRounding.AwayFromZero);
         }
 
         private static int ResolveTargetPopulation(CityGenerationProfile profile)
@@ -755,6 +1016,20 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
             int TopologyPopulationBasis,
             int TargetResidentialCapacity,
             int DistrictCount);
+
+        private sealed record ResidentialBuildingBlueprint(
+            District District,
+            string Name,
+            ResidentialBuildingType Type,
+            int ResidentCapacity,
+            decimal PositionX,
+            decimal PositionY,
+            DateTimeOffset CreatedAtUtc);
+
+        private sealed record RoadGraphLayout(
+            IReadOnlyCollection<ResidentialBuilding> ResidentialBuildings,
+            IReadOnlyCollection<RoadNode> RoadNodes,
+            IReadOnlyCollection<RoadSegment> RoadSegments);
 
         private enum DistrictArchetype
         {

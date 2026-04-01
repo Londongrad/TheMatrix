@@ -5,18 +5,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
 {
-    public sealed class ResidentialBuildingConfiguration : IEntityTypeConfiguration<ResidentialBuilding>
+    public sealed class RoadSegmentConfiguration : IEntityTypeConfiguration<RoadSegment>
     {
-        public void Configure(EntityTypeBuilder<ResidentialBuilding> builder)
+        public void Configure(EntityTypeBuilder<RoadSegment> builder)
         {
-            builder.ToTable("ResidentialBuildings");
+            builder.ToTable("RoadSegments");
 
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Id)
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
-                    convertFromProviderExpression: x => new ResidentialBuildingId(x))
+                    convertFromProviderExpression: x => new RoadSegmentId(x))
                .ValueGeneratedNever();
 
             builder.Property(x => x.CityId)
@@ -31,35 +31,28 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                     convertFromProviderExpression: x => new DistrictId(x))
                .IsRequired();
 
-            builder.Property(x => x.AccessRoadNodeId)
+            builder.Property(x => x.FromRoadNodeId)
+               .HasConversion(
+                    convertToProviderExpression: x => x.Value,
+                    convertFromProviderExpression: x => new RoadNodeId(x))
+               .IsRequired();
+
+            builder.Property(x => x.ToRoadNodeId)
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
                     convertFromProviderExpression: x => new RoadNodeId(x))
                .IsRequired();
 
             builder.Property(x => x.Name)
-               .HasConversion(
-                    convertToProviderExpression: x => x.Value,
-                    convertFromProviderExpression: x => new ResidentialBuildingName(x))
-               .HasMaxLength(ResidentialBuildingName.MaxLength)
+               .HasMaxLength(RoadSegment.MaxNameLength)
                .IsRequired();
 
             builder.Property(x => x.Type)
                .HasConversion<int>()
                .IsRequired();
 
-            builder.Property(x => x.ResidentCapacity)
-               .HasConversion(
-                    convertToProviderExpression: x => x.Value,
-                    convertFromProviderExpression: x => ResidentCapacity.From(x))
-               .IsRequired();
-
-            builder.Property(x => x.PositionX)
-               .HasPrecision(9, 3)
-               .IsRequired();
-
-            builder.Property(x => x.PositionY)
-               .HasPrecision(9, 3)
+            builder.Property(x => x.LengthMeters)
+               .HasPrecision(10, 2)
                .IsRequired();
 
             builder.Property(x => x.CreatedAtUtc)
@@ -69,7 +62,8 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => x.DistrictId);
-            builder.HasIndex(x => x.AccessRoadNodeId);
+            builder.HasIndex(x => x.FromRoadNodeId);
+            builder.HasIndex(x => x.ToRoadNodeId);
 
             builder
                .HasOne<City>()
@@ -86,8 +80,14 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder
                .HasOne<RoadNode>()
                .WithMany()
-               .HasForeignKey(x => x.AccessRoadNodeId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .HasForeignKey(x => x.FromRoadNodeId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+               .HasOne<RoadNode>()
+               .WithMany()
+               .HasForeignKey(x => x.ToRoadNodeId)
+               .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property<uint>("xmin")
                .HasColumnName("xmin")

@@ -14,6 +14,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         ICityRepository cityRepository,
         IDistrictRepository districtRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
+        IRoadNodeRepository roadNodeRepository,
+        IRoadSegmentRepository roadSegmentRepository,
         ICityWeatherRepository cityWeatherRepository,
         ISimulationClockRepository clockRepository,
         IEnumerable<ICitySimulationBootstrapStrategy> simulationBootstrapStrategies,
@@ -57,6 +59,12 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                             cancellationToken: ct);
                         await residentialBuildingRepository.AddRangeAsync(
                             buildings: topology.ResidentialBuildings,
+                            cancellationToken: ct);
+                        await roadNodeRepository.AddRangeAsync(
+                            roadNodes: topology.RoadNodes,
+                            cancellationToken: ct);
+                        await roadSegmentRepository.AddRangeAsync(
+                            roadSegments: topology.RoadSegments,
                             cancellationToken: ct);
                         if (bootstrapPlan.Weather is not null)
                             await cityWeatherRepository.AddAsync(

@@ -4,5 +4,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
 {
     public sealed record CityTopologySeed(
         IReadOnlyCollection<District> Districts,
-        IReadOnlyCollection<ResidentialBuilding> ResidentialBuildings);
+        IReadOnlyCollection<ResidentialBuilding> ResidentialBuildings,
+        IReadOnlyCollection<RoadNode> RoadNodes,
+        IReadOnlyCollection<RoadSegment> RoadSegments);
 }

@@ -5,18 +5,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
 {
-    public sealed class DistrictConfiguration : IEntityTypeConfiguration<District>
+    public sealed class RoadNodeConfiguration : IEntityTypeConfiguration<RoadNode>
     {
-        public void Configure(EntityTypeBuilder<District> builder)
+        public void Configure(EntityTypeBuilder<RoadNode> builder)
         {
-            builder.ToTable("Districts");
+            builder.ToTable("RoadNodes");
 
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Id)
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
-                    convertFromProviderExpression: x => new DistrictId(x))
+                    convertFromProviderExpression: x => new RoadNodeId(x))
                .ValueGeneratedNever();
 
             builder.Property(x => x.CityId)
@@ -25,18 +25,25 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                     convertFromProviderExpression: x => new CityId(x))
                .IsRequired();
 
-            builder.Property(x => x.Name)
+            builder.Property(x => x.DistrictId)
                .HasConversion(
                     convertToProviderExpression: x => x.Value,
-                    convertFromProviderExpression: x => new DistrictName(x))
-               .HasMaxLength(DistrictName.MaxLength)
+                    convertFromProviderExpression: x => new DistrictId(x))
                .IsRequired();
 
-            builder.Property(x => x.AnchorX)
+            builder.Property(x => x.Name)
+               .HasMaxLength(RoadNode.MaxNameLength)
+               .IsRequired();
+
+            builder.Property(x => x.Type)
+               .HasConversion<int>()
+               .IsRequired();
+
+            builder.Property(x => x.PositionX)
                .HasPrecision(9, 3)
                .IsRequired();
 
-            builder.Property(x => x.AnchorY)
+            builder.Property(x => x.PositionY)
                .HasPrecision(9, 3)
                .IsRequired();
 
@@ -46,11 +53,18 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.Ignore(x => x.DomainEvents);
 
             builder.HasIndex(x => x.CityId);
+            builder.HasIndex(x => x.DistrictId);
 
             builder
                .HasOne<City>()
                .WithMany()
                .HasForeignKey(x => x.CityId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+               .HasOne<District>()
+               .WithMany()
+               .HasForeignKey(x => x.DistrictId)
                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Property<uint>("xmin")

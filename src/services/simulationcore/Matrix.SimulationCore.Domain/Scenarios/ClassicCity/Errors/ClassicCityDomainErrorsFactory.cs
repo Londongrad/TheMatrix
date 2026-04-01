@@ -205,6 +205,76 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException TopologyCoordinateOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.Coordinate.OutOfRange",
+                message: $"Topology coordinate must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
+        public static DomainException RoadNodeNameNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.RoadNode.Name.NullOrEmpty",
+                message: "Road node name cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException RoadNodeNameTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.RoadNode.Name.TooLong",
+                message: $"Road node name cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException RoadSegmentNameNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.RoadSegment.Name.NullOrEmpty",
+                message: "Road segment name cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException RoadSegmentNameTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.RoadSegment.Name.TooLong",
+                message: $"Road segment name cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException RoadSegmentLengthOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.RoadSegment.Length.OutOfRange",
+                message: $"Road segment length must be in range [{min}; {max}] meters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException RoadSegmentEndpointsMustDiffer(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.RoadSegment.Endpoints.Invalid",
+                message: "Road segment endpoints must reference two different road nodes.",
+                propertyName: propertyName);
+        }
+
         public static DomainException ResidentCapacityOutOfRange(
             int value,
             int min,

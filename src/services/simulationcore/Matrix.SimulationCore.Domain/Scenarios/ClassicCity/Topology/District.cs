@@ -14,6 +14,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
             DistrictId id,
             CityId cityId,
             DistrictName name,
+            decimal anchorX,
+            decimal anchorY,
             DateTimeOffset createdAtUtc)
             : base(id)
         {
@@ -21,6 +23,12 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
 
             CityId = cityId;
             Name = name;
+            AnchorX = TopologyMapRules.NormalizeCoordinate(
+                value: anchorX,
+                propertyName: nameof(AnchorX));
+            AnchorY = TopologyMapRules.NormalizeCoordinate(
+                value: anchorY,
+                propertyName: nameof(AnchorY));
             CreatedAtUtc = createdAtUtc;
         }
 
@@ -32,11 +40,15 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
 
         public CityId CityId { get; private set; }
         public DistrictName Name { get; private set; }
+        public decimal AnchorX { get; private set; }
+        public decimal AnchorY { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
 
         public static District Create(
             CityId cityId,
             DistrictName name,
+            decimal anchorX,
+            decimal anchorY,
             DateTimeOffset createdAtUtc)
         {
             GuardHelper.AgainstEmptyGuid(
@@ -47,6 +59,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
                 id: DistrictId.New(),
                 cityId: cityId,
                 name: name,
+                anchorX: anchorX,
+                anchorY: anchorY,
                 createdAtUtc: createdAtUtc);
         }
 

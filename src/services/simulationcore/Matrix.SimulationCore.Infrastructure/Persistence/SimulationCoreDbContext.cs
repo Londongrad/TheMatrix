@@ -16,6 +16,8 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence
         public DbSet<City> Cities => Set<City>();
         public DbSet<District> Districts => Set<District>();
         public DbSet<ResidentialBuilding> ResidentialBuildings => Set<ResidentialBuilding>();
+        public DbSet<RoadNode> RoadNodes => Set<RoadNode>();
+        public DbSet<RoadSegment> RoadSegments => Set<RoadSegment>();
         public DbSet<CityWeather> CityWeathers => Set<CityWeather>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -6,19 +6,16 @@ using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology.Enums;
 
 namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
 {
-    /// <summary>
-    ///     Residential building aggregate root that provides physical housing capacity inside a district.
-    /// </summary>
-    public sealed class ResidentialBuilding : AggregateRoot<ResidentialBuildingId>
+    public sealed class RoadNode : AggregateRoot<RoadNodeId>
     {
-        private ResidentialBuilding(
-            ResidentialBuildingId id,
+        public const int MaxNameLength = 120;
+
+        private RoadNode(
+            RoadNodeId id,
             CityId cityId,
             DistrictId districtId,
-            RoadNodeId accessRoadNodeId,
-            ResidentialBuildingName name,
-            ResidentialBuildingType type,
-            ResidentCapacity residentCapacity,
+            string name,
+            RoadNodeType type,
             decimal positionX,
             decimal positionY,
             DateTimeOffset createdAtUtc)
@@ -28,10 +25,8 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
 
             CityId = cityId;
             DistrictId = districtId;
-            AccessRoadNodeId = accessRoadNodeId;
-            Name = name;
+            Name = NormalizeName(name);
             Type = type;
-            ResidentCapacity = residentCapacity;
             PositionX = TopologyMapRules.NormalizeCoordinate(
                 value: positionX,
                 propertyName: nameof(PositionX));
@@ -41,29 +36,25 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
             CreatedAtUtc = createdAtUtc;
         }
 
-        private ResidentialBuilding()
-            : base(default(ResidentialBuildingId))
+        private RoadNode()
+            : base(default(RoadNodeId))
         {
-            Name = default(ResidentialBuildingName);
+            Name = string.Empty;
         }
 
         public CityId CityId { get; private set; }
         public DistrictId DistrictId { get; private set; }
-        public RoadNodeId AccessRoadNodeId { get; private set; }
-        public ResidentialBuildingName Name { get; private set; }
-        public ResidentialBuildingType Type { get; private set; }
-        public ResidentCapacity ResidentCapacity { get; private set; }
+        public string Name { get; private set; }
+        public RoadNodeType Type { get; private set; }
         public decimal PositionX { get; private set; }
         public decimal PositionY { get; private set; }
         public DateTimeOffset CreatedAtUtc { get; }
 
-        public static ResidentialBuilding Create(
+        public static RoadNode Create(
             CityId cityId,
             DistrictId districtId,
-            RoadNodeId accessRoadNodeId,
-            ResidentialBuildingName name,
-            ResidentialBuildingType type,
-            ResidentCapacity residentCapacity,
+            string name,
+            RoadNodeType type,
             decimal positionX,
             decimal positionY,
             DateTimeOffset createdAtUtc)
@@ -74,40 +65,36 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology
             GuardHelper.AgainstEmptyGuid(
                 id: districtId.Value,
                 propertyName: nameof(districtId));
-            GuardHelper.AgainstEmptyGuid(
-                id: accessRoadNodeId.Value,
-                propertyName: nameof(accessRoadNodeId));
             GuardHelper.AgainstInvalidEnum(
                 value: type,
                 propertyName: nameof(type));
 
-            return new ResidentialBuilding(
-                id: ResidentialBuildingId.New(),
+            return new RoadNode(
+                id: RoadNodeId.New(),
                 cityId: cityId,
                 districtId: districtId,
-                accessRoadNodeId: accessRoadNodeId,
                 name: name,
                 type: type,
-                residentCapacity: residentCapacity,
                 positionX: positionX,
                 positionY: positionY,
                 createdAtUtc: createdAtUtc);
         }
 
-        public void Rename(ResidentialBuildingName newName)
+        private static string NormalizeName(string value)
         {
-            if (newName.Equals(Name))
-                return;
+            string normalized = GuardHelper.AgainstNullOrWhiteSpace(
+                value: value,
+                errorFactory: ClassicCityDomainErrorsFactory.RoadNodeNameNullOrEmpty,
+                trim: true,
+                propertyName: nameof(Name));
 
-            Name = newName;
-        }
+            if (normalized.Length > MaxNameLength)
+                throw ClassicCityDomainErrorsFactory.RoadNodeNameTooLong(
+                    value: normalized,
+                    max: MaxNameLength,
+                    propertyName: nameof(Name));
 
-        public void ChangeResidentCapacity(ResidentCapacity newResidentCapacity)
-        {
-            if (newResidentCapacity.Equals(ResidentCapacity))
-                return;
-
-            ResidentCapacity = newResidentCapacity;
+            return normalized;
         }
 
         private static void EnsureUtc(DateTimeOffset value)
