@@ -58,6 +58,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityHousingAutonomyPolicy housingAutonomyPolicy,
         CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
+        CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
         CityIllnessAutonomyPolicy illnessAutonomyPolicy,
         CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
         CityPopulationParticipationPolicy participationPolicy,
@@ -203,6 +204,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cityId: cityId,
                                     cancellationToken: ct))
                                .ToDictionary(x => x.WorkplaceId);
+                        CityPopulationHealthcarePressureProfile healthcarePressureProfile =
+                            healthcarePressurePolicy.Evaluate(
+                                residents: residents,
+                                serviceQualityState: serviceQualityState,
+                                livingConditionsState: livingConditionsState,
+                                essentialsState: essentialsState);
                         var householdsById = (await householdWriteRepository.ListByCityAsync(
                             cityId: cityId,
                             cancellationToken: ct)).ToDictionary(
@@ -238,6 +245,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     livingConditionsState: livingConditionsState,
                                     districtImpactPolicy: districtImpactPolicy,
                                     serviceQualityState: serviceQualityState,
+                                    healthcarePressureProfile: healthcarePressureProfile,
                                     marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
                                     employmentAutonomyPolicy: employmentAutonomyPolicy,
@@ -485,6 +493,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationLivingConditionsState? livingConditionsState,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationServiceQualityState? serviceQualityState,
+            CityPopulationHealthcarePressureProfile healthcarePressureProfile,
             MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
@@ -571,6 +580,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     livingConditionsState: livingConditionsState,
                     essentialsState: essentialsState,
                     serviceQualityState: serviceQualityState,
+                    healthcarePressureProfile: healthcarePressureProfile,
                     marriageDomainService: marriageDomainService,
                     illnessAutonomyPolicy: illnessAutonomyPolicy,
                     healthcareAutonomyPolicy: healthcareAutonomyPolicy,
@@ -1083,6 +1093,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationLivingConditionsState? livingConditionsState,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationServiceQualityState? serviceQualityState,
+            CityPopulationHealthcarePressureProfile healthcarePressureProfile,
             MarriageDomainService marriageDomainService,
             CityIllnessAutonomyPolicy illnessAutonomyPolicy,
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
@@ -1115,7 +1126,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 householdResidents: householdResidents,
                 housingStatus: housingStatus,
                 currentDate: currentDate,
-                serviceQualityState: serviceQualityState) *
+                serviceQualityState: serviceQualityState,
+                healthcarePressureProfile: healthcarePressureProfile) *
                   livingConditionsPressurePolicy.ResolveMedicineAccessStrength(
                       livingConditions: districtLivingConditions,
                       essentials: districtEssentials);

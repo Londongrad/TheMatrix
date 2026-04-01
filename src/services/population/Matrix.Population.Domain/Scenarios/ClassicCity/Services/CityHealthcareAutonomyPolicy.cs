@@ -13,7 +13,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
             DateOnly currentDate,
-            CityPopulationServiceQualityState? serviceQualityState = null)
+            CityPopulationServiceQualityState? serviceQualityState = null,
+            CityPopulationHealthcarePressureProfile? healthcarePressureProfile = null)
         {
             ArgumentNullException.ThrowIfNull(resident);
             ArgumentNullException.ThrowIfNull(householdResidents);
@@ -55,10 +56,32 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (healthcareQualityIndex < 0.85m)
                 access *= 0.92d;
 
+            if (healthcarePressureProfile is not null)
+            {
+                double recoverySupportMultiplier = Math.Clamp(
+                    value: (double)healthcarePressureProfile.RecoverySupportIndex,
+                    min: 0.45d,
+                    max: 1.35d);
+                double triagePressure = Math.Clamp(
+                    value: (double)(healthcarePressureProfile.TriagePressureIndex / 3m),
+                    min: 0d,
+                    max: 1d);
+
+                access *= recoverySupportMultiplier;
+
+                if (resident.CurrentIllnessSeverity == IllnessSeverity.Severe)
+                    access += triagePressure * 0.05d;
+                else
+                    if (resident.CurrentIllnessSeverity == IllnessSeverity.Moderate)
+                        access -= triagePressure * 0.01d;
+                    else
+                        access -= triagePressure * 0.04d;
+            }
+
             return Math.Clamp(
                 value: access,
                 min: 0d,
-                max: 0.36d);
+                max: 0.48d);
         }
     }
 }
