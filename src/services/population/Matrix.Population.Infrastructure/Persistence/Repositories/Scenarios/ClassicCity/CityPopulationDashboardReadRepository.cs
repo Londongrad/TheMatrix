@@ -14,12 +14,14 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
         PopulationDbContext dbContext,
         CityHouseholdEconomyPolicy householdEconomyPolicy,
         CityHouseholdCashflowPolicy householdCashflowPolicy,
+        CityPopulationDistrictImpactPolicy districtImpactPolicy,
         CityPopulationParticipationPolicy participationPolicy)
         : ICityPopulationDashboardReadRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
         private readonly CityHouseholdEconomyPolicy _householdEconomyPolicy = householdEconomyPolicy;
         private readonly CityHouseholdCashflowPolicy _householdCashflowPolicy = householdCashflowPolicy;
+        private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
 
         public async Task<CityPopulationDashboardSnapshotReadModel?> GetCurrentSnapshotAsync(
@@ -199,13 +201,20 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 decimal adjustedNetDailyIncomeAmount = 0m;
                 foreach (Person resident in householdResidents)
                 {
+                    DistrictId? districtId = placement.DistrictId;
+                    CityPopulationLivingConditionsContext districtLivingConditions = _districtImpactPolicy.ResolveLivingConditions(
+                        districtId: districtId,
+                        livingConditionsState: livingConditionsState);
+                    CityPopulationEssentialsContext districtEssentials = _districtImpactPolicy.ResolveEssentials(
+                        districtId: districtId,
+                        essentialsState: essentialsState);
                     decimal incomeMultiplier = resident.Employment.Status == Domain.Enums.EmploymentStatus.Employed
                         ? _participationPolicy.ResolveEmploymentProfile(
                             person: resident,
                             currentDate: currentDate,
                             housingStatus: placement.HousingStatus,
-                            livingConditionsState: livingConditionsState,
-                            essentialsState: essentialsState).PayrollMultiplier
+                            livingConditions: districtLivingConditions,
+                            essentials: districtEssentials).PayrollMultiplier
                         : 1m;
 
                     adjustedNetDailyIncomeAmount += _householdCashflowPolicy.BuildResidentIncome(

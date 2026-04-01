@@ -13,10 +13,12 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
 {
     public sealed class CityPopulationSummaryProjectionService(
         PopulationDbContext dbContext,
+        CityPopulationDistrictImpactPolicy districtImpactPolicy,
         CityPopulationParticipationPolicy participationPolicy)
         : ICityPopulationSummaryProjectionService
     {
         private readonly PopulationDbContext _dbContext = dbContext;
+        private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
 
         public Task UpdateAsync(
@@ -150,6 +152,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 householdPlacements: resolvedPlacements,
                 livingConditionsState: livingConditionsState,
                 essentialsState: essentialsState,
+                districtImpactPolicy: _districtImpactPolicy,
                 participationPolicy: _participationPolicy);
 
             await UpsertSummaryProjectionAsync(
@@ -169,6 +172,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             CityPopulationLivingConditionsState? livingConditionsState,
             CityPopulationEssentialsState? essentialsState,
+            CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy)
         {
             DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
@@ -176,6 +180,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                .ToDictionary(
                     keySelector: x => x.HouseholdId,
                     elementSelector: x => x.HousingStatus);
+            var districtByHouseholdId = householdPlacements
+               .ToDictionary(
+                    keySelector: x => x.HouseholdId,
+                    elementSelector: x => x.DistrictId);
 
             Person[] aliveResidents = persons
                .Where(x => x.IsAlive)
@@ -198,8 +206,20 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                                 value: out HousingStatus residentHousingStatus)
                                 ? residentHousingStatus
                                 : null,
-                            livingConditionsState: livingConditionsState,
-                            essentialsState: essentialsState).AttendanceIndex)
+                            livingConditions: districtImpactPolicy.ResolveLivingConditions(
+                                districtId: districtByHouseholdId.TryGetValue(
+                                    key: x.HouseholdId,
+                                    value: out DistrictId? districtId)
+                                    ? districtId
+                                    : null,
+                                livingConditionsState: livingConditionsState),
+                            essentials: districtImpactPolicy.ResolveEssentials(
+                                districtId: districtByHouseholdId.TryGetValue(
+                                    key: x.HouseholdId,
+                                    value: out districtId)
+                                    ? districtId
+                                    : null,
+                                essentialsState: essentialsState)).AttendanceIndex)
                        .Average(),
                     decimals: 4,
                     mode: MidpointRounding.AwayFromZero);
@@ -215,8 +235,20 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                                 value: out HousingStatus residentHousingStatus)
                                 ? residentHousingStatus
                                 : null,
-                            livingConditionsState: livingConditionsState,
-                            essentialsState: essentialsState).ProductivityIndex)
+                            livingConditions: districtImpactPolicy.ResolveLivingConditions(
+                                districtId: districtByHouseholdId.TryGetValue(
+                                    key: x.HouseholdId,
+                                    value: out DistrictId? districtId)
+                                    ? districtId
+                                    : null,
+                                livingConditionsState: livingConditionsState),
+                            essentials: districtImpactPolicy.ResolveEssentials(
+                                districtId: districtByHouseholdId.TryGetValue(
+                                    key: x.HouseholdId,
+                                    value: out districtId)
+                                    ? districtId
+                                    : null,
+                                essentialsState: essentialsState)).ProductivityIndex)
                        .Average(),
                     decimals: 4,
                     mode: MidpointRounding.AwayFromZero);
@@ -232,8 +264,20 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                                 value: out HousingStatus residentHousingStatus)
                                 ? residentHousingStatus
                                 : null,
-                            livingConditionsState: livingConditionsState,
-                            essentialsState: essentialsState))
+                            livingConditions: districtImpactPolicy.ResolveLivingConditions(
+                                districtId: districtByHouseholdId.TryGetValue(
+                                    key: x.HouseholdId,
+                                    value: out DistrictId? districtId)
+                                    ? districtId
+                                    : null,
+                                livingConditionsState: livingConditionsState),
+                            essentials: districtImpactPolicy.ResolveEssentials(
+                                districtId: districtByHouseholdId.TryGetValue(
+                                    key: x.HouseholdId,
+                                    value: out districtId)
+                                    ? districtId
+                                    : null,
+                                essentialsState: essentialsState)))
                        .Average(),
                     decimals: 4,
                     mode: MidpointRounding.AwayFromZero);
