@@ -1,13 +1,11 @@
 namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views
 {
-    public sealed record ResidentialBuildingView(
-        Guid ResidentialBuildingId,
+    public sealed record RoadNodeView(
+        Guid RoadNodeId,
         Guid CityId,
         Guid DistrictId,
-        Guid AccessRoadNodeId,
         string Name,
         string Type,
-        int ResidentCapacity,
         decimal PositionX,
         decimal PositionY,
         DateTimeOffset CreatedAtUtc);

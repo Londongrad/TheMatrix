@@ -1,0 +1,9 @@
+namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views
+{
+    public sealed record CityMapTopologyView(
+        Guid CityId,
+        DistrictView[] Districts,
+        ResidentialBuildingView[] ResidentialBuildings,
+        RoadNodeView[] RoadNodes,
+        RoadSegmentView[] RoadSegments);
+}

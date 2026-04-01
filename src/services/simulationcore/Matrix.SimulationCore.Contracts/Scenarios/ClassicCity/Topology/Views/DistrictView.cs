@@ -4,5 +4,7 @@ namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views
         Guid DistrictId,
         Guid CityId,
         string Name,
+        decimal AnchorX,
+        decimal AnchorY,
         DateTimeOffset CreatedAtUtc);
 }

@@ -18,6 +18,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Re
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RetryCityPopulationBootstrapProvisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
@@ -252,6 +253,32 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                .ToArray();
 
             return Results.Ok(views);
+        }
+
+        [HttpGet("{cityId:guid}/map")]
+        public async Task<IResult> GetMap(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityMapTopologyDto map = await mediator.Send(
+                request: new GetCityMapTopologyQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return Results.Ok(
+                new CityMapTopologyView(
+                    CityId: map.CityId,
+                    Districts: map.Districts
+                       .Select(MapToDistrictView)
+                       .ToArray(),
+                    ResidentialBuildings: map.ResidentialBuildings
+                       .Select(MapToResidentialBuildingView)
+                       .ToArray(),
+                    RoadNodes: map.RoadNodes
+                       .Select(MapToRoadNodeView)
+                       .ToArray(),
+                    RoadSegments: map.RoadSegments
+                       .Select(MapToRoadSegmentView)
+                       .ToArray()));
         }
 
         [HttpGet("{cityId:guid}/weather")]
@@ -528,6 +555,8 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 DistrictId: dto.DistrictId,
                 CityId: dto.CityId,
                 Name: dto.Name,
+                AnchorX: dto.AnchorX,
+                AnchorY: dto.AnchorY,
                 CreatedAtUtc: dto.CreatedAtUtc);
         }
 
@@ -537,9 +566,39 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 ResidentialBuildingId: dto.ResidentialBuildingId,
                 CityId: dto.CityId,
                 DistrictId: dto.DistrictId,
+                AccessRoadNodeId: dto.AccessRoadNodeId,
                 Name: dto.Name,
                 Type: dto.Type,
                 ResidentCapacity: dto.ResidentCapacity,
+                PositionX: dto.PositionX,
+                PositionY: dto.PositionY,
+                CreatedAtUtc: dto.CreatedAtUtc);
+        }
+
+        private static RoadNodeView MapToRoadNodeView(RoadNodeDto dto)
+        {
+            return new RoadNodeView(
+                RoadNodeId: dto.RoadNodeId,
+                CityId: dto.CityId,
+                DistrictId: dto.DistrictId,
+                Name: dto.Name,
+                Type: dto.Type,
+                PositionX: dto.PositionX,
+                PositionY: dto.PositionY,
+                CreatedAtUtc: dto.CreatedAtUtc);
+        }
+
+        private static RoadSegmentView MapToRoadSegmentView(RoadSegmentDto dto)
+        {
+            return new RoadSegmentView(
+                RoadSegmentId: dto.RoadSegmentId,
+                CityId: dto.CityId,
+                DistrictId: dto.DistrictId,
+                FromRoadNodeId: dto.FromRoadNodeId,
+                ToRoadNodeId: dto.ToRoadNodeId,
+                Name: dto.Name,
+                Type: dto.Type,
+                LengthMeters: dto.LengthMeters,
                 CreatedAtUtc: dto.CreatedAtUtc);
         }
 
