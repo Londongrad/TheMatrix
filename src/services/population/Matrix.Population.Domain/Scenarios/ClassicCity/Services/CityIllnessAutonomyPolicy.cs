@@ -14,7 +14,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             HousingStatus? housingStatus,
             bool hadAdverseWeatherExposure,
-            double healthcareSupportStrength)
+            double healthcareSupportStrength,
+            double publicHealthRiskStrength)
         {
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(householdResidents);
@@ -39,7 +40,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
-                    hadAdverseWeatherExposure: hadAdverseWeatherExposure);
+                    hadAdverseWeatherExposure: hadAdverseWeatherExposure,
+                    publicHealthRiskStrength: publicHealthRiskStrength);
 
                 if (candidate is not null)
                 {
@@ -65,7 +67,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
                     hadAdverseWeatherExposure: hadAdverseWeatherExposure,
-                    healthcareSupportStrength: healthcareSupportStrength))
+                    healthcareSupportStrength: healthcareSupportStrength,
+                    publicHealthRiskStrength: publicHealthRiskStrength))
             {
                 person.RecoverFromIllness(currentDate);
                 person.ChangeHappiness(+2);
@@ -80,7 +83,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     reviewWindows: reviewWindows,
                     housingStatus: housingStatus,
                     hadAdverseWeatherExposure: hadAdverseWeatherExposure,
-                    healthcareSupportStrength: healthcareSupportStrength))
+                    healthcareSupportStrength: healthcareSupportStrength,
+                    publicHealthRiskStrength: publicHealthRiskStrength))
             {
                 person.ProgressIllness(NextSeverity(person.CurrentIllnessSeverity));
                 changed = true;
@@ -130,7 +134,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             int reviewWindows,
             HousingStatus? housingStatus,
-            bool hadAdverseWeatherExposure)
+            bool hadAdverseWeatherExposure,
+            double publicHealthRiskStrength)
         {
             var candidates = new List<IllnessDiagnosisCandidate>(capacity: 4);
 
@@ -173,7 +178,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 person: person,
                 householdResidents: householdResidents,
                 currentDate: currentDate,
-                housingStatus: housingStatus);
+                housingStatus: housingStatus,
+                publicHealthRiskStrength: publicHealthRiskStrength);
             if (infectionChance > 0d)
                 candidates.Add(
                     new IllnessDiagnosisCandidate(
@@ -204,7 +210,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int reviewWindows,
             HousingStatus? housingStatus,
             bool hadAdverseWeatherExposure,
-            double healthcareSupportStrength)
+            double healthcareSupportStrength,
+            double publicHealthRiskStrength)
         {
             if (!person.HasActiveIllness ||
                 person.CurrentIllnessSeverity is not
@@ -239,6 +246,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 : -0.02d) +
                             (careSupport * 0.08d) +
                             (healthcareSupportStrength * 0.12d) -
+                            (publicHealthRiskStrength * 0.06d) -
                             (hadAdverseWeatherExposure
                                 ? 0.04d
                                 : 0d);
@@ -264,7 +272,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             int reviewWindows,
             HousingStatus? housingStatus,
             bool hadAdverseWeatherExposure,
-            double healthcareSupportStrength)
+            double healthcareSupportStrength,
+            double publicHealthRiskStrength)
         {
             if (!person.HasActiveIllness || person.CurrentIllnessSeverity == IllnessSeverity.Severe)
                 return false;
@@ -281,6 +290,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                             (lowHealth * 0.030d) +
                             (lowEnergy * 0.020d) +
                             (stress * 0.016d) +
+                            (publicHealthRiskStrength * 0.050d) +
                             (housingStatus == HousingStatus.Homeless
                                 ? 0.010d
                                 : 0d) +
@@ -499,7 +509,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person person,
             IReadOnlyCollection<Person> householdResidents,
             DateOnly currentDate,
-            HousingStatus? housingStatus)
+            HousingStatus? housingStatus,
+            double publicHealthRiskStrength)
         {
             int infectiousContacts = householdResidents.Count(x =>
                 x.Id != person.Id &&
@@ -521,7 +532,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 : 0d) +
                             (lowHealth * 0.012d) +
                             (lowEnergy * 0.008d) +
-                            (stress * 0.006d);
+                            (stress * 0.006d) +
+                            (publicHealthRiskStrength * 0.120d);
 
             if (householdResidents.Count >= 5)
                 chance += 0.006d;

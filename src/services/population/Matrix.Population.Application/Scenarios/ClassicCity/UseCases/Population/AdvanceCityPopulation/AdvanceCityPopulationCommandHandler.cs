@@ -32,11 +32,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
+        ICityPopulationEssentialsStateRepository cityPopulationEssentialsStateRepository,
         ICityPopulationServiceQualityStateRepository cityPopulationServiceQualityStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEmployerFinancialStressStateRepository employerFinancialStressStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
+        ICityPopulationLivingConditionsStateRepository cityPopulationLivingConditionsStateRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
@@ -56,6 +58,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityHousingAutonomyPolicy housingAutonomyPolicy,
         CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
         CityIllnessAutonomyPolicy illnessAutonomyPolicy,
+        CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
@@ -83,8 +86,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 await cityPopulationCostOfLivingStateRepository.GetByCityAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
+            CityPopulationEssentialsState? essentialsState =
+                await cityPopulationEssentialsStateRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
             CityPopulationServiceQualityState? serviceQualityState =
                 await cityPopulationServiceQualityStateRepository.GetByCityAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+            CityPopulationLivingConditionsState? livingConditionsState =
+                await cityPopulationLivingConditionsStateRepository.GetByCityAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
             CityPopulationDeletionState? deletionState =
@@ -212,6 +223,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                                     financialStressByHouseholdId: financialStressByHouseholdId,
                                     costOfLivingState: costOfLivingState,
+                                    essentialsState: essentialsState,
+                                    livingConditionsState: livingConditionsState,
                                     serviceQualityState: serviceQualityState,
                                     marriageDomainService: marriageDomainService,
                                     educationAutonomyPolicy: educationAutonomyPolicy,
@@ -219,6 +232,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     householdPressurePolicy: householdPressurePolicy,
                                     illnessAutonomyPolicy: illnessAutonomyPolicy,
                                     healthcareAutonomyPolicy: healthcareAutonomyPolicy,
+                                    livingConditionsPressurePolicy: livingConditionsPressurePolicy,
                                     institutionPools: institutionPools,
                                     workplacePools: workplacePools,
                                     personNeedsProgressionPolicy: personNeedsProgressionPolicy,
@@ -449,6 +463,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
             CityPopulationCostOfLivingState? costOfLivingState,
+            CityPopulationEssentialsState? essentialsState,
+            CityPopulationLivingConditionsState? livingConditionsState,
             CityPopulationServiceQualityState? serviceQualityState,
             MarriageDomainService marriageDomainService,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
@@ -456,6 +472,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityHouseholdPressurePolicy householdPressurePolicy,
             CityIllnessAutonomyPolicy illnessAutonomyPolicy,
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
+            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
             IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
             IDictionary<string, List<WorkplaceId>> workplacePools,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
@@ -499,6 +516,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     financialStressByHouseholdId: financialStressByHouseholdId,
                     householdPressurePolicy: householdPressurePolicy))
                 changed = true;
+            if (requiresDateProgression &&
+                ApplyLivingConditionsProgression(
+                    person: person,
+                    residentsById: residentsById,
+                    previousDate: previousDate,
+                    currentDate: currentDate,
+                    housingByHouseholdId: housingByHouseholdId,
+                    livingConditionsState: livingConditionsState,
+                    essentialsState: essentialsState,
+                    livingConditionsPressurePolicy: livingConditionsPressurePolicy,
+                    marriageDomainService: marriageDomainService))
+                changed = true;
             if (exposureSegments.Count > 0 &&
                 ApplyWeatherExposure(
                     person: person,
@@ -517,10 +546,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     currentDate: currentDate,
                     housingByHouseholdId: housingByHouseholdId,
                     exposureSegments: exposureSegments,
+                    livingConditionsState: livingConditionsState,
+                    essentialsState: essentialsState,
                     serviceQualityState: serviceQualityState,
                     marriageDomainService: marriageDomainService,
                     illnessAutonomyPolicy: illnessAutonomyPolicy,
-                    healthcareAutonomyPolicy: healthcareAutonomyPolicy))
+                    healthcareAutonomyPolicy: healthcareAutonomyPolicy,
+                    livingConditionsPressurePolicy: livingConditionsPressurePolicy))
                 changed = true;
             return changed;
         }
@@ -610,6 +642,70 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 return changed;
             person.Retire(currentDate);
             return true;
+        }
+
+        private static bool ApplyLivingConditionsProgression(
+            PersonEntity person,
+            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
+            DateOnly previousDate,
+            DateOnly currentDate,
+            IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
+            CityPopulationLivingConditionsState? livingConditionsState,
+            CityPopulationEssentialsState? essentialsState,
+            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
+            MarriageDomainService marriageDomainService)
+        {
+            HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(
+                key: person.HouseholdId,
+                value: out HousingStatus resolvedHousingStatus)
+                ? resolvedHousingStatus
+                : null;
+            CityPopulationLivingConditionsPressureEffect effect = livingConditionsPressurePolicy.Calculate(
+                person: person,
+                previousDate: previousDate,
+                currentDate: currentDate,
+                housingStatus: housingStatus,
+                livingConditionsState: livingConditionsState,
+                essentialsState: essentialsState);
+
+            if (!effect.HasAnyEffect)
+                return false;
+
+            bool wasAlive = person.IsAlive;
+            int previousHealth = person.Health.Value;
+            int previousEnergy = person.Energy.Value;
+            int previousStress = person.Stress.Value;
+            int previousHappiness = person.Happiness.Value;
+
+            if (effect.HealthDelta != 0)
+                person.ChangeHealth(
+                    delta: effect.HealthDelta,
+                    currentDate: currentDate);
+
+            if (person.IsAlive)
+            {
+                if (effect.EnergyDelta != 0)
+                    person.ChangeEnergy(effect.EnergyDelta);
+                if (effect.StressDelta != 0)
+                    person.ChangeStress(effect.StressDelta);
+                if (effect.HappinessDelta != 0)
+                    person.ChangeHappiness(effect.HappinessDelta);
+            }
+
+            bool changed = previousHealth != person.Health.Value ||
+                           previousEnergy != person.Energy.Value ||
+                           previousStress != person.Stress.Value ||
+                           previousHappiness != person.Happiness.Value ||
+                           wasAlive != person.IsAlive;
+
+            if (wasAlive && !person.IsAlive)
+                changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
+                              deceased: person,
+                              residentsById: residentsById,
+                              marriageDomainService: marriageDomainService) ||
+                          changed;
+
+            return changed;
         }
 
         private static CityEconomyDailySettlementSnapshot? ApplyHouseholdCashflowSettlement(
@@ -914,10 +1010,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
+            CityPopulationLivingConditionsState? livingConditionsState,
+            CityPopulationEssentialsState? essentialsState,
             CityPopulationServiceQualityState? serviceQualityState,
             MarriageDomainService marriageDomainService,
             CityIllnessAutonomyPolicy illnessAutonomyPolicy,
-            CityHealthcareAutonomyPolicy healthcareAutonomyPolicy)
+            CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
+            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy)
         {
             HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(
                 key: person.HouseholdId,
@@ -934,7 +1033,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 householdResidents: householdResidents,
                 housingStatus: housingStatus,
                 currentDate: currentDate,
-                serviceQualityState: serviceQualityState);
+                serviceQualityState: serviceQualityState) *
+                livingConditionsPressurePolicy.ResolveMedicineAccessStrength(
+                    livingConditionsState: livingConditionsState,
+                    essentialsState: essentialsState);
+            double publicHealthRiskStrength = livingConditionsPressurePolicy.ResolvePublicHealthRiskStrength(
+                livingConditionsState: livingConditionsState,
+                essentialsState: essentialsState);
 
             bool changed = illnessAutonomyPolicy.Apply(
                 person: person,
@@ -943,7 +1048,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 currentDate: currentDate,
                 housingStatus: housingStatus,
                 hadAdverseWeatherExposure: hadAdverseExposure,
-                healthcareSupportStrength: healthcareSupportStrength);
+                healthcareSupportStrength: healthcareSupportStrength,
+                publicHealthRiskStrength: publicHealthRiskStrength);
 
             if (wasAlive && !person.IsAlive)
                 changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
