@@ -18,6 +18,11 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         decimal? AverageEnergy,
         decimal? AverageStress,
         decimal? AverageSocialNeed,
+        int ActiveIllnessCount,
+        int SevereIllnessCount,
+        decimal? MedicalLoadIndex,
+        decimal? TriagePressureIndex,
+        decimal? RecoverySupportIndex,
         decimal? WorkforceAttendanceIndex,
         decimal? WorkforceProductivityIndex,
         decimal? StudentAttendanceIndex);

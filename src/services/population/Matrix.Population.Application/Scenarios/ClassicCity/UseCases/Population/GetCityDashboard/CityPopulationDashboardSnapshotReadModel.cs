@@ -23,6 +23,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         decimal? AverageEnergy,
         decimal? AverageStress,
         decimal? AverageSocialNeed,
+        int ActiveIllnessCount,
+        int SevereIllnessCount,
+        decimal? MedicalLoadIndex,
+        decimal? TriagePressureIndex,
+        decimal? RecoverySupportIndex,
         decimal? WorkforceAttendanceIndex,
         decimal? WorkforceProductivityIndex,
         decimal? StudentAttendanceIndex);

@@ -91,6 +91,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 AverageEnergy: RoundMetric(summary.AverageEnergy),
                 AverageStress: RoundMetric(summary.AverageStress),
                 AverageSocialNeed: RoundMetric(summary.AverageSocialNeed),
+                ActiveIllnessCount: summary.ActiveIllnessCount,
+                SevereIllnessCount: summary.SevereIllnessCount,
+                MedicalLoadIndex: RoundMetric(summary.MedicalLoadIndex),
+                TriagePressureIndex: RoundMetric(summary.TriagePressureIndex),
+                RecoverySupportIndex: RoundMetric(summary.RecoverySupportIndex),
                 WorkforceAttendanceIndex: RoundMetric(summary.WorkforceAttendanceIndex),
                 WorkforceProductivityIndex: RoundMetric(summary.WorkforceProductivityIndex),
                 StudentAttendanceIndex: RoundMetric(summary.StudentAttendanceIndex));

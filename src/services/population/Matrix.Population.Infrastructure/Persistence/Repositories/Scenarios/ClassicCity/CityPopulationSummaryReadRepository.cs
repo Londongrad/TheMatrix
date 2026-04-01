@@ -124,6 +124,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 AverageEnergy: projection?.AverageEnergy,
                 AverageStress: projection?.AverageStress,
                 AverageSocialNeed: projection?.AverageSocialNeed,
+                ActiveIllnessCount: projection?.ActiveIllnessCount ?? 0,
+                SevereIllnessCount: projection?.SevereIllnessCount ?? 0,
+                MedicalLoadIndex: projection?.MedicalLoadIndex,
+                TriagePressureIndex: projection?.TriagePressureIndex,
+                RecoverySupportIndex: projection?.RecoverySupportIndex,
                 WorkforceAttendanceIndex: projection?.WorkforceAttendanceIndex,
                 WorkforceProductivityIndex: projection?.WorkforceProductivityIndex,
                 StudentAttendanceIndex: projection?.StudentAttendanceIndex);

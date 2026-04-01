@@ -44,6 +44,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         public decimal? AverageEnergy { get; private set; }
         public decimal? AverageStress { get; private set; }
         public decimal? AverageSocialNeed { get; private set; }
+        public int ActiveIllnessCount { get; private set; }
+        public int SevereIllnessCount { get; private set; }
+        public decimal? MedicalLoadIndex { get; private set; }
+        public decimal? TriagePressureIndex { get; private set; }
+        public decimal? RecoverySupportIndex { get; private set; }
         public decimal? WorkforceAttendanceIndex { get; private set; }
         public decimal? WorkforceProductivityIndex { get; private set; }
         public decimal? StudentAttendanceIndex { get; private set; }
@@ -82,6 +87,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             decimal? averageEnergy,
             decimal? averageStress,
             decimal? averageSocialNeed,
+            int activeIllnessCount,
+            int severeIllnessCount,
+            decimal? medicalLoadIndex,
+            decimal? triagePressureIndex,
+            decimal? recoverySupportIndex,
             decimal? workforceAttendanceIndex,
             decimal? workforceProductivityIndex,
             decimal? studentAttendanceIndex)
@@ -113,6 +123,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             AverageEnergy = averageEnergy;
             AverageStress = averageStress;
             AverageSocialNeed = averageSocialNeed;
+            ActiveIllnessCount = activeIllnessCount;
+            SevereIllnessCount = severeIllnessCount;
+            MedicalLoadIndex = medicalLoadIndex;
+            TriagePressureIndex = triagePressureIndex;
+            RecoverySupportIndex = recoverySupportIndex;
             WorkforceAttendanceIndex = workforceAttendanceIndex;
             WorkforceProductivityIndex = workforceProductivityIndex;
             StudentAttendanceIndex = studentAttendanceIndex;
