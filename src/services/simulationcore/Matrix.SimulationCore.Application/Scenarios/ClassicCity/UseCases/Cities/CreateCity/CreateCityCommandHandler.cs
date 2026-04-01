@@ -14,6 +14,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         ICityRepository cityRepository,
         IDistrictRepository districtRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
+        ICityAnchorRepository cityAnchorRepository,
         IRoadNodeRepository roadNodeRepository,
         IRoadSegmentRepository roadSegmentRepository,
         ICityWeatherRepository cityWeatherRepository,
@@ -59,6 +60,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                             cancellationToken: ct);
                         await residentialBuildingRepository.AddRangeAsync(
                             buildings: topology.ResidentialBuildings,
+                            cancellationToken: ct);
+                        await cityAnchorRepository.AddRangeAsync(
+                            anchors: topology.Anchors,
                             cancellationToken: ct);
                         await roadNodeRepository.AddRangeAsync(
                             roadNodes: topology.RoadNodes,

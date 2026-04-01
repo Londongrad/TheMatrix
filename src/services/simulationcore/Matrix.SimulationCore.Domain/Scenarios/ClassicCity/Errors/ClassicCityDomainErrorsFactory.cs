@@ -275,6 +275,37 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
                 propertyName: propertyName);
         }
 
+        public static DomainException CityAnchorNameNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.CityAnchor.Name.NullOrEmpty",
+                message: "City anchor name cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityAnchorNameTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.CityAnchor.Name.TooLong",
+                message: $"City anchor name cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityAnchorCapacityOutOfRange(
+            int value,
+            int min,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.Topology.CityAnchor.Capacity.OutOfRange",
+                message: $"City anchor capacity must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
         public static DomainException ResidentCapacityOutOfRange(
             int value,
             int min,

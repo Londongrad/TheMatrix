@@ -37,16 +37,22 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 createdAtUtc: createdAtUtc,
                 random: random,
                 plan: plan);
+            List<CityAnchorBlueprint> anchorBlueprints = CreateCityAnchorBlueprints(
+                city: city,
+                districts: districts,
+                random: random);
             RoadGraphLayout roadGraph = CreateRoadGraph(
                 city: city,
                 districts: districts,
                 buildingBlueprints: buildingBlueprints,
+                anchorBlueprints: anchorBlueprints,
                 createdAtUtc: createdAtUtc,
                 random: random);
 
             return new CityTopologySeed(
                 Districts: districts,
                 ResidentialBuildings: roadGraph.ResidentialBuildings,
+                Anchors: roadGraph.Anchors,
                 RoadNodes: roadGraph.RoadNodes,
                 RoadSegments: roadGraph.RoadSegments);
         }
@@ -207,10 +213,59 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
             return buildings;
         }
 
+        private static List<CityAnchorBlueprint> CreateCityAnchorBlueprints(
+            City city,
+            IReadOnlyList<District> districts,
+            DeterministicRandom random)
+        {
+            var anchors = new List<CityAnchorBlueprint>();
+
+            for (int districtIndex = 0; districtIndex < districts.Count; districtIndex++)
+            {
+                District district = districts[districtIndex];
+
+                anchors.Add(
+                    CreateSchoolBlueprint(
+                        district: district,
+                        districtIndex: districtIndex,
+                        random: random));
+
+                int workplaceCount = ResolveWorkplaceAnchorCount(
+                    city: city,
+                    districtIndex: districtIndex);
+
+                for (int workplaceIndex = 0; workplaceIndex < workplaceCount; workplaceIndex++)
+                {
+                    anchors.Add(
+                        CreateWorkplaceBlueprint(
+                            city: city,
+                            district: district,
+                            districtIndex: districtIndex,
+                            workplaceIndex: workplaceIndex,
+                            random: random));
+                }
+            }
+
+            foreach ((District district, int hospitalIndex) in ResolveHospitalPlacements(
+                         city: city,
+                         districts: districts))
+            {
+                anchors.Add(
+                    CreateHospitalBlueprint(
+                        city: city,
+                        district: district,
+                        hospitalIndex: hospitalIndex,
+                        random: random));
+            }
+
+            return anchors;
+        }
+
         private RoadGraphLayout CreateRoadGraph(
             City city,
             IReadOnlyList<District> districts,
             IReadOnlyList<ResidentialBuildingBlueprint> buildingBlueprints,
+            IReadOnlyList<CityAnchorBlueprint> anchorBlueprints,
             DateTimeOffset createdAtUtc,
             DeterministicRandom random)
         {
@@ -222,6 +277,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
             var roadNodes = new List<RoadNode>();
             var roadSegments = new List<RoadSegment>();
             var residentialBuildings = new List<ResidentialBuilding>();
+            var anchors = new List<CityAnchor>();
             var districtHubByDistrictId = new Dictionary<DistrictId, RoadNode>(districts.Count);
 
             for (int districtIndex = 0; districtIndex < districts.Count; districtIndex++)
@@ -322,10 +378,250 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
                 }
             }
 
+            foreach (IGrouping<DistrictId, CityAnchorBlueprint> districtAnchors in anchorBlueprints.GroupBy(
+                         x => x.District.Id))
+            {
+                RoadNode districtHub = districtHubByDistrictId[districtAnchors.Key];
+                int localSequence = 1;
+
+                foreach (CityAnchorBlueprint blueprint in districtAnchors)
+                {
+                    RoadNode accessNode = RoadNode.Create(
+                        cityId: city.Id,
+                        districtId: blueprint.District.Id,
+                        name: $"{blueprint.Name} Access",
+                        type: RoadNodeType.AnchorAccess,
+                        positionX: blueprint.PositionX,
+                        positionY: blueprint.PositionY,
+                        createdAtUtc: createdAtUtc);
+
+                    roadNodes.Add(accessNode);
+                    roadSegments.Add(
+                        RoadSegment.Create(
+                            cityId: city.Id,
+                            districtId: blueprint.District.Id,
+                            fromRoadNodeId: districtHub.Id,
+                            toRoadNodeId: accessNode.Id,
+                            name: $"{blueprint.District.Name.Value} Civic {localSequence}",
+                            type: blueprint.Type == CityAnchorType.Workplace
+                                ? RoadSegmentType.Collector
+                                : RoadSegmentType.LocalAccess,
+                            lengthMeters: EstimateLengthMeters(
+                                fromX: districtHub.PositionX,
+                                fromY: districtHub.PositionY,
+                                toX: accessNode.PositionX,
+                                toY: accessNode.PositionY),
+                            createdAtUtc: createdAtUtc));
+
+                    anchors.Add(
+                        CityAnchor.Create(
+                            cityId: city.Id,
+                            districtId: blueprint.District.Id,
+                            accessRoadNodeId: accessNode.Id,
+                            name: new CityAnchorName(blueprint.Name),
+                            type: blueprint.Type,
+                            capacity: blueprint.Capacity,
+                            positionX: blueprint.PositionX,
+                            positionY: blueprint.PositionY,
+                            createdAtUtc: blueprint.CreatedAtUtc));
+
+                    localSequence++;
+                }
+            }
+
             return new RoadGraphLayout(
                 ResidentialBuildings: residentialBuildings,
+                Anchors: anchors,
                 RoadNodes: roadNodes,
                 RoadSegments: roadSegments);
+        }
+
+        private static CityAnchorBlueprint CreateSchoolBlueprint(
+            District district,
+            int districtIndex,
+            DeterministicRandom random)
+        {
+            (decimal x, decimal y) = ResolveAnchorPosition(
+                district: district,
+                slotIndex: districtIndex + 1,
+                radialBand: 0,
+                random: random);
+
+            int capacity = 280 + (districtIndex == 0 ? 120 : 0) +
+                           random.NextInt(
+                               minInclusive: 0,
+                               maxExclusive: 140);
+
+            return new CityAnchorBlueprint(
+                District: district,
+                Name: districtIndex == 0
+                    ? "Central Education Complex"
+                    : $"{district.Name.Value} School",
+                Type: CityAnchorType.School,
+                Capacity: capacity,
+                PositionX: x,
+                PositionY: y,
+                CreatedAtUtc: district.CreatedAtUtc);
+        }
+
+        private static CityAnchorBlueprint CreateWorkplaceBlueprint(
+            City city,
+            District district,
+            int districtIndex,
+            int workplaceIndex,
+            DeterministicRandom random)
+        {
+            (decimal x, decimal y) = ResolveAnchorPosition(
+                district: district,
+                slotIndex: districtIndex + workplaceIndex + 2,
+                radialBand: workplaceIndex + 1,
+                random: random);
+
+            int baseCapacity = city.GenerationProfile.SizeTier switch
+            {
+                CitySizeTier.Small => 90,
+                CitySizeTier.Large => 240,
+                _ => 150
+            };
+            baseCapacity += city.GenerationProfile.DevelopmentLevel switch
+            {
+                CityDevelopmentLevel.Struggling => -20,
+                CityDevelopmentLevel.Advanced => 35,
+                _ => 0
+            };
+            baseCapacity += districtIndex == 0 ? 55 : 0;
+            int capacity = baseCapacity + random.NextInt(
+                minInclusive: 0,
+                maxExclusive: 90);
+
+            string workplaceName = workplaceIndex switch
+            {
+                0 => $"{district.Name.Value} Commerce Hub",
+                1 => $"{district.Name.Value} Industry Yard",
+                _ => $"{district.Name.Value} Work Center {workplaceIndex + 1}"
+            };
+
+            return new CityAnchorBlueprint(
+                District: district,
+                Name: workplaceName,
+                Type: CityAnchorType.Workplace,
+                Capacity: capacity,
+                PositionX: x,
+                PositionY: y,
+                CreatedAtUtc: district.CreatedAtUtc);
+        }
+
+        private static CityAnchorBlueprint CreateHospitalBlueprint(
+            City city,
+            District district,
+            int hospitalIndex,
+            DeterministicRandom random)
+        {
+            (decimal x, decimal y) = ResolveAnchorPosition(
+                district: district,
+                slotIndex: hospitalIndex + 5,
+                radialBand: 2,
+                random: random);
+
+            int baseCapacity = city.GenerationProfile.SizeTier switch
+            {
+                CitySizeTier.Small => 70,
+                CitySizeTier.Large => 210,
+                _ => 130
+            };
+            baseCapacity += city.GenerationProfile.DevelopmentLevel switch
+            {
+                CityDevelopmentLevel.Struggling => -15,
+                CityDevelopmentLevel.Advanced => 30,
+                _ => 0
+            };
+
+            return new CityAnchorBlueprint(
+                District: district,
+                Name: hospitalIndex == 0
+                    ? "Central General Hospital"
+                    : $"{district.Name.Value} Clinic",
+                Type: CityAnchorType.Hospital,
+                Capacity: baseCapacity + random.NextInt(
+                    minInclusive: 0,
+                    maxExclusive: 50),
+                PositionX: x,
+                PositionY: y,
+                CreatedAtUtc: district.CreatedAtUtc);
+        }
+
+        private static int ResolveWorkplaceAnchorCount(
+            City city,
+            int districtIndex)
+        {
+            int baseCount = city.GenerationProfile.SizeTier switch
+            {
+                CitySizeTier.Small => districtIndex == 0 ? 2 : 1,
+                CitySizeTier.Large => districtIndex == 0 ? 5 : 3,
+                _ => districtIndex == 0 ? 3 : 2
+            };
+
+            if (city.GenerationProfile.EconomyProfile == CityEconomyProfile.Affluent && districtIndex > 0)
+                baseCount++;
+
+            if (city.GenerationProfile.DevelopmentLevel == CityDevelopmentLevel.Advanced && districtIndex == 0)
+                baseCount++;
+
+            return baseCount;
+        }
+
+        private static IReadOnlyList<(District District, int HospitalIndex)> ResolveHospitalPlacements(
+            City city,
+            IReadOnlyList<District> districts)
+        {
+            int hospitalCount = city.GenerationProfile.SizeTier switch
+            {
+                CitySizeTier.Small => 1,
+                CitySizeTier.Large => 3,
+                _ => 2
+            };
+
+            hospitalCount += city.GenerationProfile.DevelopmentLevel == CityDevelopmentLevel.Advanced
+                ? 1
+                : 0;
+
+            hospitalCount = Math.Min(
+                val1: hospitalCount,
+                val2: districts.Count);
+
+            var placements = new List<(District District, int HospitalIndex)>(hospitalCount);
+
+            for (int i = 0; i < hospitalCount; i++)
+            {
+                District district = i == 0
+                    ? districts[0]
+                    : districts[Math.Min(i, districts.Count - 1)];
+                placements.Add((district, i));
+            }
+
+            return placements;
+        }
+
+        private static (decimal X, decimal Y) ResolveAnchorPosition(
+            District district,
+            int slotIndex,
+            int radialBand,
+            DeterministicRandom random)
+        {
+            decimal radius = 6.5m + (radialBand * 2.2m) +
+                             random.NextDecimal(
+                                 minInclusive: -0.55m,
+                                 maxInclusive: 0.55m);
+            double angle = (slotIndex * (Math.PI / 3.5d)) +
+                           (double)random.NextDecimal(
+                               minInclusive: -0.14m,
+                               maxInclusive: 0.14m);
+            decimal x = district.AnchorX + (decimal)Math.Cos(angle) * radius;
+            decimal y = district.AnchorY + (decimal)Math.Sin(angle) * radius;
+
+            return (
+                ClampCoordinate(x),
+                ClampCoordinate(y));
         }
 
         private static decimal ResolveDistrictAnchorX(
@@ -1026,8 +1322,18 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topol
             decimal PositionY,
             DateTimeOffset CreatedAtUtc);
 
+        private sealed record CityAnchorBlueprint(
+            District District,
+            string Name,
+            CityAnchorType Type,
+            int Capacity,
+            decimal PositionX,
+            decimal PositionY,
+            DateTimeOffset CreatedAtUtc);
+
         private sealed record RoadGraphLayout(
             IReadOnlyCollection<ResidentialBuilding> ResidentialBuildings,
+            IReadOnlyCollection<CityAnchor> Anchors,
             IReadOnlyCollection<RoadNode> RoadNodes,
             IReadOnlyCollection<RoadSegment> RoadSegments);
 

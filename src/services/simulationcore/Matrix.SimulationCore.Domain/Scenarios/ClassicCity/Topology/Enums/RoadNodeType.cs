@@ -4,6 +4,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology.Enums
     {
         DistrictHub = 0,
         ResidentialAccess = 1,
-        Junction = 2
+        Junction = 2,
+        AnchorAccess = 3
     }
 }
