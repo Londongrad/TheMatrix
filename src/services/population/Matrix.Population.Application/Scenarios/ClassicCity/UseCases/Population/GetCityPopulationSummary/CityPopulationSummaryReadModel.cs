@@ -42,5 +42,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         decimal? AverageHappiness,
         decimal? AverageEnergy,
         decimal? AverageStress,
-        decimal? AverageSocialNeed);
+        decimal? AverageSocialNeed,
+        decimal? WorkforceAttendanceIndex,
+        decimal? WorkforceProductivityIndex,
+        decimal? StudentAttendanceIndex);
 }

@@ -17,5 +17,8 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         decimal? AverageHappiness,
         decimal? AverageEnergy,
         decimal? AverageStress,
-        decimal? AverageSocialNeed);
+        decimal? AverageSocialNeed,
+        decimal? WorkforceAttendanceIndex,
+        decimal? WorkforceProductivityIndex,
+        decimal? StudentAttendanceIndex);
 }

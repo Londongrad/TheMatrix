@@ -54,6 +54,21 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations.Scenarios.
                     precision: 10,
                     scale: 2);
 
+            builder.Property(x => x.WorkforceAttendanceIndex)
+               .HasPrecision(
+                    precision: 10,
+                    scale: 4);
+
+            builder.Property(x => x.WorkforceProductivityIndex)
+               .HasPrecision(
+                    precision: 10,
+                    scale: 4);
+
+            builder.Property(x => x.StudentAttendanceIndex)
+               .HasPrecision(
+                    precision: 10,
+                    scale: 4);
+
             builder.HasIndex(x => x.UpdatedAtUtc);
         }
     }

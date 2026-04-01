@@ -12,11 +12,15 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 {
     public sealed class CityPopulationDashboardReadRepository(
         PopulationDbContext dbContext,
-        CityHouseholdEconomyPolicy householdEconomyPolicy)
+        CityHouseholdEconomyPolicy householdEconomyPolicy,
+        CityHouseholdCashflowPolicy householdCashflowPolicy,
+        CityPopulationParticipationPolicy participationPolicy)
         : ICityPopulationDashboardReadRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
         private readonly CityHouseholdEconomyPolicy _householdEconomyPolicy = householdEconomyPolicy;
+        private readonly CityHouseholdCashflowPolicy _householdCashflowPolicy = householdCashflowPolicy;
+        private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
 
         public async Task<CityPopulationDashboardSnapshotReadModel?> GetCurrentSnapshotAsync(
             CityId cityId,
@@ -53,7 +57,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     averageHappiness: projection.AverageHappiness,
                     averageEnergy: projection.AverageEnergy,
                     averageStress: projection.AverageStress,
-                    averageSocialNeed: projection.AverageSocialNeed);
+                    averageSocialNeed: projection.AverageSocialNeed,
+                    workforceAttendanceIndex: projection.WorkforceAttendanceIndex,
+                    workforceProductivityIndex: projection.WorkforceProductivityIndex,
+                    studentAttendanceIndex: projection.StudentAttendanceIndex);
         }
 
         public async Task<CityPopulationDashboardSnapshotReadModel?> GetSnapshotOnOrBeforeAsync(
@@ -92,7 +99,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     averageHappiness: snapshot.AverageHappiness,
                     averageEnergy: snapshot.AverageEnergy,
                     averageStress: snapshot.AverageStress,
-                    averageSocialNeed: snapshot.AverageSocialNeed);
+                    averageSocialNeed: snapshot.AverageSocialNeed,
+                    workforceAttendanceIndex: snapshot.WorkforceAttendanceIndex,
+                    workforceProductivityIndex: snapshot.WorkforceProductivityIndex,
+                    studentAttendanceIndex: snapshot.StudentAttendanceIndex);
         }
 
         public async Task<CityPopulationDashboardEconomyReadModel> GetCurrentEconomySnapshotAsync(
@@ -148,6 +158,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
                     cancellationToken: cancellationToken);
+            CityPopulationLivingConditionsState? livingConditionsState = await _dbContext.CityPopulationLivingConditionsStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
+            CityPopulationEssentialsState? essentialsState = await _dbContext.CityPopulationEssentialsStates
+               .AsNoTracking()
+               .SingleOrDefaultAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
 
             int stableHouseholdCount = 0;
             int strainedHouseholdCount = 0;
@@ -176,6 +196,28 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     housingStatus: placement.HousingStatus,
                     currentDate: currentDate,
                     costOfLivingState: costOfLivingState);
+                decimal adjustedNetDailyIncomeAmount = 0m;
+                foreach (Person resident in householdResidents)
+                {
+                    decimal incomeMultiplier = resident.Employment.Status == Domain.Enums.EmploymentStatus.Employed
+                        ? _participationPolicy.ResolveEmploymentProfile(
+                            person: resident,
+                            currentDate: currentDate,
+                            housingStatus: placement.HousingStatus,
+                            livingConditionsState: livingConditionsState,
+                            essentialsState: essentialsState).PayrollMultiplier
+                        : 1m;
+
+                    adjustedNetDailyIncomeAmount += _householdCashflowPolicy.BuildResidentIncome(
+                        resident: resident,
+                        currentDate: currentDate,
+                        costOfLivingState: costOfLivingState,
+                        incomeMultiplier: incomeMultiplier).NetIncome.Amount;
+                }
+                decimal adjustedDailyNetAmount = decimal.Round(
+                    d: adjustedNetDailyIncomeAmount - economyProfile.DailyExpenseAmount,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero);
 
                 if (economyProfile.StrainScore >= 0.55d)
                     strainedHouseholdCount++;
@@ -183,11 +225,11 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     if (economyProfile.GrowthReadinessScore >= 0.60d && economyProfile.EconomicBalance >= 0d)
                         stableHouseholdCount++;
 
-                if (economyProfile.HasCashDeficit || economyProfile.DailyNetAmount < 0m)
+                if (economyProfile.HasCashDeficit || adjustedDailyNetAmount < 0m)
                     deficitHouseholdCount++;
 
                 cashReserveTotal += economyProfile.CashReserveAmount;
-                dailyNetTotal += economyProfile.DailyNetAmount;
+                dailyNetTotal += adjustedDailyNetAmount;
                 measuredHouseholdCount++;
             }
 
@@ -259,7 +301,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             decimal? averageHappiness,
             decimal? averageEnergy,
             decimal? averageStress,
-            decimal? averageSocialNeed)
+            decimal? averageSocialNeed,
+            decimal? workforceAttendanceIndex,
+            decimal? workforceProductivityIndex,
+            decimal? studentAttendanceIndex)
         {
             return new CityPopulationDashboardSnapshotReadModel(
                 CityId: cityId,
@@ -283,7 +328,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 AverageHappiness: averageHappiness,
                 AverageEnergy: averageEnergy,
                 AverageStress: averageStress,
-                AverageSocialNeed: averageSocialNeed);
+                AverageSocialNeed: averageSocialNeed,
+                WorkforceAttendanceIndex: workforceAttendanceIndex,
+                WorkforceProductivityIndex: workforceProductivityIndex,
+                StudentAttendanceIndex: studentAttendanceIndex);
         }
     }
 }

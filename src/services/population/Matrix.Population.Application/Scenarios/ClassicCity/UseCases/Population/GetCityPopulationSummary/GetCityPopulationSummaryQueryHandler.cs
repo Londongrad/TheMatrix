@@ -90,7 +90,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 AverageHappiness: RoundMetric(summary.AverageHappiness),
                 AverageEnergy: RoundMetric(summary.AverageEnergy),
                 AverageStress: RoundMetric(summary.AverageStress),
-                AverageSocialNeed: RoundMetric(summary.AverageSocialNeed));
+                AverageSocialNeed: RoundMetric(summary.AverageSocialNeed),
+                WorkforceAttendanceIndex: RoundMetric(summary.WorkforceAttendanceIndex),
+                WorkforceProductivityIndex: RoundMetric(summary.WorkforceProductivityIndex),
+                StudentAttendanceIndex: RoundMetric(summary.StudentAttendanceIndex));
 
             return new CityPopulationSummaryDto(
                 CityId: summary.CityId,

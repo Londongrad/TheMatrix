@@ -123,7 +123,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 AverageHappiness: projection?.AverageHappiness,
                 AverageEnergy: projection?.AverageEnergy,
                 AverageStress: projection?.AverageStress,
-                AverageSocialNeed: projection?.AverageSocialNeed);
+                AverageSocialNeed: projection?.AverageSocialNeed,
+                WorkforceAttendanceIndex: projection?.WorkforceAttendanceIndex,
+                WorkforceProductivityIndex: projection?.WorkforceProductivityIndex,
+                StudentAttendanceIndex: projection?.StudentAttendanceIndex);
         }
 
         private static DateOnly ResolveCurrentDateFallback(

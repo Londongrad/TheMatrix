@@ -44,6 +44,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         public decimal? AverageEnergy { get; private set; }
         public decimal? AverageStress { get; private set; }
         public decimal? AverageSocialNeed { get; private set; }
+        public decimal? WorkforceAttendanceIndex { get; private set; }
+        public decimal? WorkforceProductivityIndex { get; private set; }
+        public decimal? StudentAttendanceIndex { get; private set; }
 
         public static CityPopulationDailySummarySnapshot Create(
             CityId cityId,
@@ -77,7 +80,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             decimal? averageHappiness,
             decimal? averageEnergy,
             decimal? averageStress,
-            decimal? averageSocialNeed)
+            decimal? averageSocialNeed,
+            decimal? workforceAttendanceIndex,
+            decimal? workforceProductivityIndex,
+            decimal? studentAttendanceIndex)
         {
             UpdatedAtUtc = updatedAtUtc;
 
@@ -105,6 +111,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             AverageEnergy = averageEnergy;
             AverageStress = averageStress;
             AverageSocialNeed = averageSocialNeed;
+            WorkforceAttendanceIndex = workforceAttendanceIndex;
+            WorkforceProductivityIndex = workforceProductivityIndex;
+            StudentAttendanceIndex = studentAttendanceIndex;
         }
     }
 }
