@@ -12,26 +12,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person person,
             DateOnly currentDate,
             HousingStatus? housingStatus,
-            CityPopulationLivingConditionsState? livingConditionsState,
-            CityPopulationEssentialsState? essentialsState)
+            CityPopulationLivingConditionsContext livingConditions,
+            CityPopulationEssentialsContext essentials)
         {
             ArgumentNullException.ThrowIfNull(person);
 
             if (!person.IsAlive || person.Employment.Status != EmploymentStatus.Employed)
                 return CityPopulationParticipationProfile.Full;
 
-            double roadDeficit = ResolveCoverageDeficit(livingConditionsState?.RoadAccessibilityIndex ?? 1m);
-            double powerDeficit = ResolveCoverageDeficit(livingConditionsState?.PowerCoverageIndex ?? 1m);
-            double waterDeficit = ResolveCoverageDeficit(livingConditionsState?.WaterCoverageIndex ?? 1m);
-            double heatingDeficit = ResolveCoverageDeficit(livingConditionsState?.HeatingCoverageIndex ?? 1m);
-            double sanitationDeficit = ResolveCoverageDeficit(livingConditionsState?.SanitationCoverageIndex ?? 1m);
-            double floodingPressure = ResolvePressure(livingConditionsState?.FloodingIndex ?? 0m);
-            double continuityDeficit = ResolveCoverageDeficit(livingConditionsState?.UtilityContinuityIndex ?? 1m);
+            double roadDeficit = ResolveCoverageDeficit(livingConditions.RoadAccessibilityIndex);
+            double powerDeficit = ResolveCoverageDeficit(livingConditions.PowerCoverageIndex);
+            double waterDeficit = ResolveCoverageDeficit(livingConditions.WaterCoverageIndex);
+            double heatingDeficit = ResolveCoverageDeficit(livingConditions.HeatingCoverageIndex);
+            double sanitationDeficit = ResolveCoverageDeficit(livingConditions.SanitationCoverageIndex);
+            double floodingPressure = ResolvePressure(livingConditions.FloodingIndex);
+            double continuityDeficit = ResolveCoverageDeficit(livingConditions.UtilityContinuityIndex);
 
-            double foodShortage = ResolvePressure(essentialsState?.FoodShortageRiskIndex ?? 0m);
-            double medicineShortage = ResolvePressure(essentialsState?.MedicineShortageRiskIndex ?? 0m);
-            double emergencyWaterShortage = ResolvePressure(essentialsState?.EmergencyWaterShortageRiskIndex ?? 0m);
-            double rationingPressure = essentialsState?.EmergencyRationingEnabled == true ? 0.18d : 0d;
+            double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex);
+            double medicineShortage = ResolvePressure(essentials.MedicineShortageRiskIndex);
+            double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
+            double rationingPressure = essentials.EmergencyRationingEnabled ? 0.18d : 0d;
 
             double energyPenalty = ResolveLowValuePenalty(person.Energy.Value, 35d);
             double healthPenalty = ResolveLowValuePenalty(person.Health.Value, 45d);
@@ -90,22 +90,22 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             Person person,
             DateOnly currentDate,
             HousingStatus? housingStatus,
-            CityPopulationLivingConditionsState? livingConditionsState,
-            CityPopulationEssentialsState? essentialsState)
+            CityPopulationLivingConditionsContext livingConditions,
+            CityPopulationEssentialsContext essentials)
         {
             ArgumentNullException.ThrowIfNull(person);
 
             if (!person.IsAlive || person.Employment.Status != EmploymentStatus.Student)
                 return 1m;
 
-            double roadDeficit = ResolveCoverageDeficit(livingConditionsState?.RoadAccessibilityIndex ?? 1m);
-            double powerDeficit = ResolveCoverageDeficit(livingConditionsState?.PowerCoverageIndex ?? 1m);
-            double waterDeficit = ResolveCoverageDeficit(livingConditionsState?.WaterCoverageIndex ?? 1m);
-            double heatingDeficit = ResolveCoverageDeficit(livingConditionsState?.HeatingCoverageIndex ?? 1m);
-            double floodingPressure = ResolvePressure(livingConditionsState?.FloodingIndex ?? 0m);
-            double foodShortage = ResolvePressure(essentialsState?.FoodShortageRiskIndex ?? 0m);
-            double emergencyWaterShortage = ResolvePressure(essentialsState?.EmergencyWaterShortageRiskIndex ?? 0m);
-            double rationingPressure = essentialsState?.EmergencyRationingEnabled == true ? 0.15d : 0d;
+            double roadDeficit = ResolveCoverageDeficit(livingConditions.RoadAccessibilityIndex);
+            double powerDeficit = ResolveCoverageDeficit(livingConditions.PowerCoverageIndex);
+            double waterDeficit = ResolveCoverageDeficit(livingConditions.WaterCoverageIndex);
+            double heatingDeficit = ResolveCoverageDeficit(livingConditions.HeatingCoverageIndex);
+            double floodingPressure = ResolvePressure(livingConditions.FloodingIndex);
+            double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex);
+            double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
+            double rationingPressure = essentials.EmergencyRationingEnabled ? 0.15d : 0d;
 
             double energyPenalty = ResolveLowValuePenalty(person.Energy.Value, 35d);
             double healthPenalty = ResolveLowValuePenalty(person.Health.Value, 45d);

@@ -13,8 +13,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly previousDate,
             DateOnly currentDate,
             HousingStatus? housingStatus,
-            CityPopulationLivingConditionsState? livingConditionsState,
-            CityPopulationEssentialsState? essentialsState)
+            CityPopulationLivingConditionsContext livingConditions,
+            CityPopulationEssentialsContext essentials)
         {
             ArgumentNullException.ThrowIfNull(person);
 
@@ -25,18 +25,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (daysElapsed <= 0)
                 return CityPopulationLivingConditionsPressureEffect.None;
 
-            double heatingDeficit = ResolveCoverageDeficit(livingConditionsState?.HeatingCoverageIndex ?? 1m);
-            double waterDeficit = ResolveCoverageDeficit(livingConditionsState?.WaterCoverageIndex ?? 1m);
-            double sanitationDeficit = ResolveCoverageDeficit(livingConditionsState?.SanitationCoverageIndex ?? 1m);
-            double powerDeficit = ResolveCoverageDeficit(livingConditionsState?.PowerCoverageIndex ?? 1m);
-            double continuityDeficit = ResolveCoverageDeficit(livingConditionsState?.UtilityContinuityIndex ?? 1m);
-            double roadDeficit = ResolveCoverageDeficit(livingConditionsState?.RoadAccessibilityIndex ?? 1m);
-            double floodingPressure = ResolvePressure(livingConditionsState?.FloodingIndex ?? 0m);
+            double heatingDeficit = ResolveCoverageDeficit(livingConditions.HeatingCoverageIndex);
+            double waterDeficit = ResolveCoverageDeficit(livingConditions.WaterCoverageIndex);
+            double sanitationDeficit = ResolveCoverageDeficit(livingConditions.SanitationCoverageIndex);
+            double powerDeficit = ResolveCoverageDeficit(livingConditions.PowerCoverageIndex);
+            double continuityDeficit = ResolveCoverageDeficit(livingConditions.UtilityContinuityIndex);
+            double roadDeficit = ResolveCoverageDeficit(livingConditions.RoadAccessibilityIndex);
+            double floodingPressure = ResolvePressure(livingConditions.FloodingIndex);
 
-            double foodShortage = ResolvePressure(essentialsState?.FoodShortageRiskIndex ?? 0m);
-            double medicineShortage = ResolvePressure(essentialsState?.MedicineShortageRiskIndex ?? 0m);
-            double emergencyWaterShortage = ResolvePressure(essentialsState?.EmergencyWaterShortageRiskIndex ?? 0m);
-            double rationingPressure = essentialsState?.EmergencyRationingEnabled == true ? 0.25d : 0d;
+            double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex);
+            double medicineShortage = ResolvePressure(essentials.MedicineShortageRiskIndex);
+            double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
+            double rationingPressure = essentials.EmergencyRationingEnabled ? 0.25d : 0d;
 
             double ageVulnerability = person.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior
                 ? 1.20d
@@ -89,14 +89,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         }
 
         public double ResolvePublicHealthRiskStrength(
-            CityPopulationLivingConditionsState? livingConditionsState,
-            CityPopulationEssentialsState? essentialsState)
+            CityPopulationLivingConditionsContext livingConditions,
+            CityPopulationEssentialsContext essentials)
         {
-            double waterDeficit = ResolveCoverageDeficit(livingConditionsState?.WaterCoverageIndex ?? 1m);
-            double sanitationDeficit = ResolveCoverageDeficit(livingConditionsState?.SanitationCoverageIndex ?? 1m);
-            double floodingPressure = ResolvePressure(livingConditionsState?.FloodingIndex ?? 0m);
-            double emergencyWaterShortage = ResolvePressure(essentialsState?.EmergencyWaterShortageRiskIndex ?? 0m);
-            double foodShortage = ResolvePressure(essentialsState?.FoodShortageRiskIndex ?? 0m) * 0.35d;
+            double waterDeficit = ResolveCoverageDeficit(livingConditions.WaterCoverageIndex);
+            double sanitationDeficit = ResolveCoverageDeficit(livingConditions.SanitationCoverageIndex);
+            double floodingPressure = ResolvePressure(livingConditions.FloodingIndex);
+            double emergencyWaterShortage = ResolvePressure(essentials.EmergencyWaterShortageRiskIndex);
+            double foodShortage = ResolvePressure(essentials.FoodShortageRiskIndex) * 0.35d;
 
             double blended = (waterDeficit * 0.28d) +
                              (sanitationDeficit * 0.28d) +
@@ -108,15 +108,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         }
 
         public double ResolveMedicineAccessStrength(
-            CityPopulationLivingConditionsState? livingConditionsState,
-            CityPopulationEssentialsState? essentialsState)
+            CityPopulationLivingConditionsContext livingConditions,
+            CityPopulationEssentialsContext essentials)
         {
-            double medicineShortage = ResolvePressure(essentialsState?.MedicineShortageRiskIndex ?? 0m);
-            double continuityDeficit = ResolveCoverageDeficit(livingConditionsState?.UtilityContinuityIndex ?? 1m);
+            double medicineShortage = ResolvePressure(essentials.MedicineShortageRiskIndex);
+            double continuityDeficit = ResolveCoverageDeficit(livingConditions.UtilityContinuityIndex);
 
             double access = 1d - (medicineShortage * 0.75d) - (continuityDeficit * 0.15d);
 
-            if (essentialsState?.EmergencyRationingEnabled == true)
+            if (essentials.EmergencyRationingEnabled)
                 access -= 0.05d;
 
             return Math.Clamp(access, 0.25d, 1d);
