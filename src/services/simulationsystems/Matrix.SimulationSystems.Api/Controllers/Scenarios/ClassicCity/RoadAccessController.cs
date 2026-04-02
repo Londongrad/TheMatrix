@@ -1,6 +1,7 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.DispatchCityRoadAccessMaintenance;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadAccessStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.SetCityRoadAccessEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
@@ -29,6 +30,20 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
             return status is null
                 ? Results.NotFound()
                 : Results.Ok(MapToView(status));
+        }
+
+        [HttpGet("{cityId:guid}/road-access/segments")]
+        public async Task<IResult> GetSegments(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityRoadSegmentConditionsDto? status = await mediator.Send(
+                request: new GetCityRoadSegmentConditionsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return status is null
+                ? Results.NotFound()
+                : Results.Ok(MapToSegmentConditionsView(status));
         }
 
         [HttpPut("{cityId:guid}/road-access/emergency-mode")]
@@ -103,6 +118,35 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                     ServiceQualityIndex: dto.System.ServiceQualityIndex,
                     BacklogIndex: dto.System.BacklogIndex,
                     FailureRiskIndex: dto.System.FailureRiskIndex));
+        }
+
+        private static CityRoadSegmentConditionsView MapToSegmentConditionsView(CityRoadSegmentConditionsDto dto)
+        {
+            return new CityRoadSegmentConditionsView(
+                CityId: dto.CityId,
+                EffectiveTickId: dto.EffectiveTickId,
+                LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                RoadSupportIndex: dto.RoadSupportIndex,
+                Segments: dto.Segments
+                    .Select(MapToSegmentConditionView)
+                    .ToArray());
+        }
+
+        private static CityRoadSegmentConditionView MapToSegmentConditionView(CityRoadSegmentConditionDto dto)
+        {
+            return new CityRoadSegmentConditionView(
+                RoadSegmentId: dto.RoadSegmentId,
+                DistrictId: dto.DistrictId,
+                FromRoadNodeId: dto.FromRoadNodeId,
+                ToRoadNodeId: dto.ToRoadNodeId,
+                Name: dto.Name,
+                Type: dto.Type,
+                LengthMeters: dto.LengthMeters,
+                PassabilityIndex: dto.PassabilityIndex,
+                SpeedMultiplierIndex: dto.SpeedMultiplierIndex,
+                SlipRiskIndex: dto.SlipRiskIndex,
+                ClosureRiskIndex: dto.ClosureRiskIndex,
+                MaintenancePriorityIndex: dto.MaintenancePriorityIndex);
         }
 
         private static PendingCityOperationView? MapPendingOperationView(PendingCityOperationDto? dto)
