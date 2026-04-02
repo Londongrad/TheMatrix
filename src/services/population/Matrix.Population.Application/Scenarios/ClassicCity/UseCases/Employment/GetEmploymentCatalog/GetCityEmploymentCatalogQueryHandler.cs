@@ -37,6 +37,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     cancellationToken: cancellationToken))
                .Select(x => new CityEmploymentWorkplaceDto(
                     WorkplaceId: x.WorkplaceId.Value,
+                    WorkplaceAnchorId: x.WorkplaceAnchorId?.Value,
                     JobTitle: x.JobTitle,
                     ResidentCount: x.ResidentCount))
                .ToArray();

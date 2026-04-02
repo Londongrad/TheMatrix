@@ -4,13 +4,15 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
     public sealed class CityEmploymentAutonomyPolicy(
         IPopulationGenerationContentCatalog contentCatalog,
-        CityHouseholdEconomyPolicy householdEconomyPolicy)
+        CityHouseholdEconomyPolicy householdEconomyPolicy,
+        CityPopulationAnchorSelectionPolicy anchorSelectionPolicy)
     {
         private readonly IReadOnlyList<PopulationProfessionCatalogItem> _professions =
             contentCatalog.Professions.Count == 0
@@ -24,7 +26,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly previousDate,
             DateOnly currentDate,
             HousingStatus? housingStatus,
-            IDictionary<string, List<WorkplaceId>> workplacePools,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
+            IDictionary<string, List<Job>> workplacePools,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             CityPopulationCostOfLivingState? costOfLivingState = null)
         {
@@ -59,6 +63,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     currentDate: currentDate,
                     reviewWindows: reviewWindows,
                     householdEconomy: householdEconomy,
+                    preferredDistrictId: preferredDistrictId,
+                    workplaceAnchors: workplaceAnchors,
                     workplacePools: workplacePools,
                     employerStressByWorkplaceId: employerStressByWorkplaceId),
                 EmploymentStatus.Employed => TryTriggerJobLoss(
@@ -76,7 +82,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             int reviewWindows,
             CityHouseholdEconomyProfile householdEconomy,
-            IDictionary<string, List<WorkplaceId>> workplacePools,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
+            IDictionary<string, List<Job>> workplacePools,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
         {
             PopulationProfessionCatalogItem profession = PickProfession(
@@ -99,21 +107,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     reviewWindows: reviewWindows))
                 return false;
 
-            WorkplaceId? workplaceId = ResolveWorkplaceId(
+            Job? job = ResolveJob(
                 person: person,
                 currentDate: currentDate,
                 jobTitle: profession.Title,
+                preferredDistrictId: preferredDistrictId,
+                workplaceAnchors: workplaceAnchors,
                 workplacePools: workplacePools,
                 employerStressByWorkplaceId: employerStressByWorkplaceId);
 
-            if (workplaceId is null)
+            if (job is null)
                 return false;
 
             person.AssignJob(
                 currentDate: currentDate,
-                job: new Job(
-                    workplaceId: workplaceId.Value,
-                    title: profession.Title));
+                job: job);
 
             return true;
         }
@@ -147,24 +155,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return true;
         }
 
-        private WorkplaceId? ResolveWorkplaceId(
+        private Job? ResolveJob(
             Person person,
             DateOnly currentDate,
             string jobTitle,
-            IDictionary<string, List<WorkplaceId>> workplacePools,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
+            IDictionary<string, List<Job>> workplacePools,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
         {
             if (!workplacePools.TryGetValue(
                     key: jobTitle,
-                    value: out List<WorkplaceId>? titlePool))
+                    value: out List<Job>? titlePool))
             {
                 titlePool = [];
                 workplacePools[jobTitle] = titlePool;
             }
 
-            List<WorkplaceId> openPool = titlePool
-               .Where(workplaceId => !employerStressByWorkplaceId.TryGetValue(
-                                         key: workplaceId,
+            List<Job> openPool = titlePool
+               .Where(job => !employerStressByWorkplaceId.TryGetValue(
+                                         key: job.WorkplaceId,
                                          value: out CityPopulationEmployerFinancialStressState? stressState) ||
                                      !stressState.HasHiringFreeze)
                .ToList();
@@ -185,7 +195,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (shouldCreateNew)
             {
-                var created = WorkplaceId.New();
+                CityAnchorId? workplaceAnchorId = anchorSelectionPolicy.SelectWorkplaceAnchor(
+                    anchors: workplaceAnchors,
+                    preferredDistrictId: preferredDistrictId,
+                    stableKey: person.Id.Value)?.CityAnchorId;
+                var created = new Job(
+                    workplaceId: WorkplaceId.New(),
+                    title: jobTitle,
+                    workplaceAnchorId: workplaceAnchorId);
                 titlePool.Add(created);
                 return created;
             }
@@ -365,18 +382,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private static EmployerMarketAvailability EvaluateEmployerAvailability(
             string jobTitle,
-            IDictionary<string, List<WorkplaceId>> workplacePools,
+            IDictionary<string, List<Job>> workplacePools,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
         {
             if (!workplacePools.TryGetValue(
                     key: jobTitle,
-                    value: out List<WorkplaceId>? titlePool) ||
+                    value: out List<Job>? titlePool) ||
                 titlePool.Count == 0)
                 return EmployerMarketAvailability.Empty;
 
-            int openEmployerCount = titlePool.Count(workplaceId =>
+            int openEmployerCount = titlePool.Count(job =>
                 !employerStressByWorkplaceId.TryGetValue(
-                    key: workplaceId,
+                    key: job.WorkplaceId,
                     value: out CityPopulationEmployerFinancialStressState? stressState) ||
                 (!stressState.HasHiringFreeze &&
                  stressState.PayrollFulfillmentRatio >= 0.85m &&

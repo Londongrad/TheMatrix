@@ -7,6 +7,9 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Errors;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -39,23 +42,40 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
             return resident;
         }
 
-        public static Job CreateJob(
+        public static async Task<Job> CreateJobAsync(
+            Guid cityId,
+            Person resident,
             string? jobTitle,
-            CityEmploymentWorkplaceSnapshot? workplace = null)
+            CityEmploymentWorkplaceSnapshot? workplace,
+            CityResidentHousingSnapshot? housing,
+            ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            CancellationToken cancellationToken)
         {
             if (workplace is not null)
                 return new Job(
                     workplaceId: workplace.WorkplaceId,
-                    title: workplace.JobTitle);
+                    title: workplace.JobTitle,
+                    workplaceAnchorId: workplace.WorkplaceAnchorId);
 
             string normalizedTitle = GuardHelper.AgainstNullOrWhiteSpace(
                 value: jobTitle,
                 errorFactory: ApplicationErrorsFactory.Required,
                 propertyName: "JobTitle");
+            IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors =
+                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                    cityId: CityId.From(cityId),
+                    type: CityAnchorType.Workplace,
+                    cancellationToken: cancellationToken);
+            CityAnchorId? workplaceAnchorId = anchorSelectionPolicy.SelectWorkplaceAnchor(
+                anchors: workplaceAnchors,
+                preferredDistrictId: housing?.DistrictId,
+                stableKey: resident.Id.Value)?.CityAnchorId;
 
             return new Job(
                 workplaceId: WorkplaceId.New(),
-                title: normalizedTitle.Trim());
+                title: normalizedTitle.Trim(),
+                workplaceAnchorId: workplaceAnchorId);
         }
 
         public static void EnsureResidentCanBeFired(Person resident)

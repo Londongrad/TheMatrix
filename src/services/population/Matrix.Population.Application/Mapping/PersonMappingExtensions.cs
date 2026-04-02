@@ -88,7 +88,9 @@ namespace Matrix.Population.Application.Mapping
                     ResidentialBuildingId: currentHousing.ResidentialBuildingId?.Value);
             CityResidentWorkplaceDto? workplace = person.Employment.Job is null
                 ? null
-                : new CityResidentWorkplaceDto(WorkplaceId: person.Employment.Job.WorkplaceId.Value);
+                : new CityResidentWorkplaceDto(
+                    WorkplaceId: person.Employment.Job.WorkplaceId.Value,
+                    WorkplaceAnchorId: person.Employment.Job.WorkplaceAnchorId?.Value);
             CityResidentEducationInstitutionDto? educationInstitution = person.Education.CurrentInstitutionId is null
                 ? null
                 : new CityResidentEducationInstitutionDto(

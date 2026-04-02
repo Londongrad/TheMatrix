@@ -124,6 +124,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     {
                         HouseholdId = person.HouseholdId.Value,
                         placement.HousingStatus,
+                        DistrictId = placement.DistrictId.HasValue
+                            ? placement.DistrictId.Value.Value
+                            : (Guid?)null,
                         ResidentialBuildingId = placement.ResidentialBuildingId.HasValue
                             ? placement.ResidentialBuildingId.Value.Value
                             : (Guid?)null
@@ -135,6 +138,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 : new CityResidentHousingSnapshot(
                     HouseholdId: HouseholdId.From(snapshot.HouseholdId),
                     HousingStatus: snapshot.HousingStatus,
+                    DistrictId: snapshot.DistrictId.HasValue
+                        ? DistrictId.From(snapshot.DistrictId.Value)
+                        : null,
                     ResidentialBuildingId: snapshot.ResidentialBuildingId.HasValue
                         ? ResidentialBuildingId.From(snapshot.ResidentialBuildingId.Value)
                         : null);
@@ -173,6 +179,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     select new
                     {
                         WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
+                        WorkplaceAnchorId = person.Employment.Job!.WorkplaceAnchorId.HasValue
+                            ? person.Employment.Job.WorkplaceAnchorId.Value.Value
+                            : (Guid?)null,
                         JobTitle = person.Employment.Job.Title
                     })
                 .ToListAsync(cancellationToken);
@@ -181,12 +190,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .GroupBy(x => new
                 {
                     x.WorkplaceId,
+                    x.WorkplaceAnchorId,
                     x.JobTitle
                 })
                .OrderByDescending(x => x.Count())
                .ThenBy(x => x.Key.JobTitle, StringComparer.OrdinalIgnoreCase)
                .Select(x => new CityEmploymentWorkplaceSnapshot(
                     WorkplaceId: WorkplaceId.From(x.Key.WorkplaceId),
+                    WorkplaceAnchorId: x.Key.WorkplaceAnchorId.HasValue
+                        ? CityAnchorId.From(x.Key.WorkplaceAnchorId.Value)
+                        : null,
                     JobTitle: x.Key.JobTitle,
                     ResidentCount: x.Count()))
                .ToArray();
@@ -208,6 +221,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     select new
                     {
                         WorkplaceId = person.Employment.Job!.WorkplaceId.Value,
+                        WorkplaceAnchorId = person.Employment.Job!.WorkplaceAnchorId.HasValue
+                            ? person.Employment.Job.WorkplaceAnchorId.Value.Value
+                            : (Guid?)null,
                         JobTitle = person.Employment.Job.Title
                     })
                 .ToListAsync(cancellationToken);
@@ -216,6 +232,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .GroupBy(x => new
                 {
                     x.WorkplaceId,
+                    x.WorkplaceAnchorId,
                     x.JobTitle
                 })
                .OrderByDescending(x => x.Count())
@@ -223,6 +240,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .Select(x => new
                 {
                     x.Key.WorkplaceId,
+                    x.Key.WorkplaceAnchorId,
                     x.Key.JobTitle,
                     ResidentCount = x.Count()
                 })
@@ -232,6 +250,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 ? null
                 : new CityEmploymentWorkplaceSnapshot(
                     WorkplaceId: WorkplaceId.From(snapshot.WorkplaceId),
+                    WorkplaceAnchorId: snapshot.WorkplaceAnchorId.HasValue
+                        ? CityAnchorId.From(snapshot.WorkplaceAnchorId.Value)
+                        : null,
                     JobTitle: snapshot.JobTitle,
                     ResidentCount: snapshot.ResidentCount);
         }

@@ -9,6 +9,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Co
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
@@ -18,10 +19,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
     public sealed class HireCityResidentCommandHandler(
         IPersonReadRepository personReadRepository,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
+        ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPersonWriteRepository personWriteRepository,
+        CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         IUnitOfWork unitOfWork)
         : IRequestHandler<HireCityResidentCommand, CityEmploymentOperationResultDto>
     {
@@ -48,9 +51,21 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     workplaceId: request.WorkplaceId.Value,
                     cityId: request.CityId);
 
-            Job job = CityEmploymentOperationSupport.CreateJob(
+            CityResidentHousingSnapshot? housing =
+                await cityPopulationPersonReadRepository.FindHousingSnapshotByPersonIdAsync(
+                    cityId: CityId.From(request.CityId),
+                    personId: resident.Id,
+                    cancellationToken: cancellationToken);
+
+            Job job = await CityEmploymentOperationSupport.CreateJobAsync(
+                cityId: request.CityId,
+                resident: resident,
                 jobTitle: request.JobTitle,
-                workplace: workplace);
+                workplace: workplace,
+                housing: housing,
+                cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
+                anchorSelectionPolicy: anchorSelectionPolicy,
+                cancellationToken: cancellationToken);
             resident.AssignJob(
                 currentDate: request.CurrentDate,
                 job: job);

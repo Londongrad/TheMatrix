@@ -77,6 +77,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             PopulationBootstrapResult result = generator.GenerateForCity(
                 cityId: cityId,
                 residentialBuildings: residentialBuildings,
+                cityAnchors: cityAnchors,
                 peopleCount: request.PeopleCount,
                 currentDate: request.CurrentDate,
                 createdAtUtc: request.CreatedAtUtc,

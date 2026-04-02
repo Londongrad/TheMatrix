@@ -21,6 +21,7 @@ using PersonEntity = Matrix.Population.Domain.Entities.Person;
 using HouseholdEntity = Matrix.Population.Domain.Entities.Household;
 using EducationInstitutionId = Matrix.Population.Domain.ValueObjects.EducationInstitutionId;
 using WorkplaceId = Matrix.Population.Domain.ValueObjects.WorkplaceId;
+using Job = Matrix.Population.Domain.ValueObjects.Job;
 using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
 using DistrictId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.DistrictId;
@@ -31,6 +32,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
     public sealed class AdvanceCityPopulationCommandHandler(
         ICityPopulationPersonReadRepository personReadRepository,
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
+        ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
         ICityPopulationEssentialsStateRepository cityPopulationEssentialsStateRepository,
         ICityPopulationServiceQualityStateRepository cityPopulationServiceQualityStateRepository,
@@ -204,6 +206,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     cityId: cityId,
                                     cancellationToken: ct))
                                .ToDictionary(x => x.WorkplaceId);
+                        IReadOnlyList<CityPopulationAnchorCatalogItem> workplaceAnchors =
+                            await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                                cityId: cityId,
+                                type: CityAnchorType.Workplace,
+                                cancellationToken: ct);
                         CityPopulationHealthcarePressureProfile healthcarePressureProfile =
                             healthcarePressurePolicy.Evaluate(
                                 residents: residents,
@@ -217,7 +224,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             elementSelector: x => x);
                         Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools =
                             BuildEducationInstitutionPools(residents);
-                        Dictionary<string, List<WorkplaceId>> workplacePools = BuildWorkplacePools(residents);
+                        Dictionary<string, List<Job>> workplacePools = BuildWorkplacePools(residents);
 
                         foreach (PersonEntity person in residents)
                         {
@@ -239,6 +246,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     housingByHouseholdId: housingByHouseholdId,
                                     districtByHouseholdId: districtByHouseholdId,
                                     employerStressByWorkplaceId: employerStressByWorkplaceId,
+                                    workplaceAnchors: workplaceAnchors,
                                     financialStressByHouseholdId: financialStressByHouseholdId,
                                     costOfLivingState: costOfLivingState,
                                     essentialsState: essentialsState,
@@ -502,7 +510,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
             CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
             IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
-            IDictionary<string, List<WorkplaceId>> workplacePools,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
+            IDictionary<string, List<Job>> workplacePools,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
         {
@@ -526,12 +535,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     previousDate: previousDate,
                     currentDate: currentDate,
                     housingByHouseholdId: housingByHouseholdId,
+                    districtByHouseholdId: districtByHouseholdId,
                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                     costOfLivingState: costOfLivingState,
                     serviceQualityState: serviceQualityState,
                     educationAutonomyPolicy: educationAutonomyPolicy,
                     employmentAutonomyPolicy: employmentAutonomyPolicy,
                     institutionPools: institutionPools,
+                    workplaceAnchors: workplaceAnchors,
                     workplacePools: workplacePools))
                 changed = true;
             if (requiresDateProgression &&
@@ -626,13 +637,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly previousDate,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
+            IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationServiceQualityState? serviceQualityState,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
             IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
-            IDictionary<string, List<WorkplaceId>> workplacePools)
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
+            IDictionary<string, List<Job>> workplacePools)
         {
             bool changed = false;
             if (!person.IsAlive)
@@ -665,6 +678,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     previousDate: previousDate,
                     currentDate: currentDate,
                     housingStatus: housingStatus,
+                    preferredDistrictId: districtByHouseholdId.TryGetValue(
+                        key: person.HouseholdId,
+                        value: out DistrictId? preferredDistrictId)
+                        ? preferredDistrictId
+                        : null,
+                    workplaceAnchors: workplaceAnchors,
                     workplacePools: workplacePools,
                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                     costOfLivingState: costOfLivingState))
@@ -1613,9 +1632,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return pools;
         }
 
-        private static Dictionary<string, List<WorkplaceId>> BuildWorkplacePools(IEnumerable<PersonEntity> persons)
+        private static Dictionary<string, List<Job>> BuildWorkplacePools(IEnumerable<PersonEntity> persons)
         {
-            var pools = new Dictionary<string, List<WorkplaceId>>(StringComparer.OrdinalIgnoreCase);
+            var pools = new Dictionary<string, List<Job>>(StringComparer.OrdinalIgnoreCase);
             foreach (PersonEntity person in persons)
             {
                 if (person.Employment.Status != EmploymentStatus.Employed ||
@@ -1624,14 +1643,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     continue;
                 if (!pools.TryGetValue(
                         key: job.Title,
-                        value: out List<WorkplaceId>? titlePool))
+                        value: out List<Job>? titlePool))
                 {
                     titlePool = [];
                     pools[job.Title] = titlePool;
                 }
 
-                if (!titlePool.Contains(job.WorkplaceId))
-                    titlePool.Add(job.WorkplaceId);
+                if (!titlePool.Any(x => x.WorkplaceId == job.WorkplaceId))
+                    titlePool.Add(job);
             }
 
             return pools;

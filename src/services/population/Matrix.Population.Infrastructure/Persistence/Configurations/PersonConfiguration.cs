@@ -1,4 +1,5 @@
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -266,6 +267,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                                     convertToProviderExpression: id => id.Value,
                                     convertFromProviderExpression: value => WorkplaceId.From(value))
                                .HasColumnName("WorkplaceId");
+
+                            job.Property(j => j.WorkplaceAnchorId)
+                               .HasConversion(
+                                    convertToProviderExpression: id => id.HasValue
+                                        ? id.Value.Value
+                                        : (Guid?)null,
+                                    convertFromProviderExpression: value => value.HasValue
+                                        ? CityAnchorId.From(value.Value)
+                                        : null)
+                               .HasColumnName("WorkplaceAnchorId");
 
                             job.Property(j => j.Title)
                                .HasColumnName("JobTitle")

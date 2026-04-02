@@ -2,6 +2,7 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
 {
     public sealed record CityEmploymentWorkplaceDto(
         Guid WorkplaceId,
+        Guid? WorkplaceAnchorId,
         string JobTitle,
         int ResidentCount);
 

@@ -7,5 +7,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Models
     public sealed record class CityResidentHousingSnapshot(
         HouseholdId HouseholdId,
         HousingStatus HousingStatus,
+        DistrictId? DistrictId,
         ResidentialBuildingId? ResidentialBuildingId);
 }
