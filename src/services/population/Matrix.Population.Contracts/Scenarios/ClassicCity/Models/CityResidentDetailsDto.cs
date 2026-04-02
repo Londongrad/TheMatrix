@@ -16,6 +16,9 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         Guid? InstitutionAnchorId,
         string EducationLevel);
 
+    public sealed record class CityResidentHealthcareProviderDto(
+        Guid PrimaryCareAnchorId);
+
     public sealed record class CityResidentIllnessDto(
         string Kind,
         string Severity,
@@ -48,5 +51,6 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         string? LastIllnessRecoveredOn,
         CityResidentHousingDto CurrentHousing,
         CityResidentWorkplaceDto? CurrentWorkplace,
-        CityResidentEducationInstitutionDto? CurrentEducationInstitution);
+        CityResidentEducationInstitutionDto? CurrentEducationInstitution,
+        CityResidentHealthcareProviderDto? PrimaryHealthcareProvider);
 }

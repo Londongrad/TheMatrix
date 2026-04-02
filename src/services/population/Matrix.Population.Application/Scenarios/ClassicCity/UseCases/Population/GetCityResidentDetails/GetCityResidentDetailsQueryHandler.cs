@@ -5,6 +5,9 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 using MediatR;
@@ -12,7 +15,9 @@ using MediatR;
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails
 {
     public sealed class GetCityResidentDetailsQueryHandler(
+        ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
+        CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         IPersonReadRepository personReadRepository)
         : IRequestHandler<GetCityResidentDetailsQuery, CityResidentDetailsDto>
     {
@@ -54,6 +59,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cityId: cityId,
                     personId: resident.Id,
                     cancellationToken: cancellationToken);
+            IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
+                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                    cityId: cityId,
+                    type: CityAnchorType.Hospital,
+                    cancellationToken: cancellationToken);
+            CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
+                anchors: hospitalAnchors,
+                preferredDistrictId: housing?.DistrictId,
+                stableKey: resident.Id.Value);
+            CityResidentHealthcareProviderDto? primaryHealthcareProvider = primaryCareAnchor is null
+                ? null
+                : new CityResidentHealthcareProviderDto(
+                    PrimaryCareAnchorId: primaryCareAnchor.CityAnchorId.Value);
 
             return resident.ToResidentDetailsDto(
                 currentDate: request.CurrentDate,
@@ -61,7 +79,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 currentHousing: housing,
                 mother: mother,
                 father: father,
-                children: children);
+                children: children,
+                primaryHealthcareProvider: primaryHealthcareProvider);
         }
     }
 }

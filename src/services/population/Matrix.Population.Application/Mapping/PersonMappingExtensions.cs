@@ -74,7 +74,8 @@ namespace Matrix.Population.Application.Mapping
             CityResidentHousingSnapshot? currentHousing = null,
             Person? mother = null,
             Person? father = null,
-            IReadOnlyCollection<Person>? children = null)
+            IReadOnlyCollection<Person>? children = null,
+            CityResidentHealthcareProviderDto? primaryHealthcareProvider = null)
         {
             PersonDto snapshot = person.ToDto(currentDate);
             CityResidentHousingDto housing = currentHousing is null
@@ -152,7 +153,8 @@ namespace Matrix.Population.Application.Mapping
                 LastIllnessRecoveredOn: lastIllnessRecoveredOn,
                 CurrentHousing: housing,
                 CurrentWorkplace: workplace,
-                CurrentEducationInstitution: educationInstitution);
+                CurrentEducationInstitution: educationInstitution,
+                PrimaryHealthcareProvider: primaryHealthcareProvider);
         }
 
         /// <summary>

@@ -60,6 +60,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityHouseholdPressurePolicy householdPressurePolicy,
         CityHousingAutonomyPolicy housingAutonomyPolicy,
         CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
+        CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
         CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
         CityIllnessAutonomyPolicy illnessAutonomyPolicy,
@@ -217,6 +218,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityId: cityId,
                                 type: CityAnchorType.School,
                                 cancellationToken: ct);
+                        IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
+                            await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                                cityId: cityId,
+                                type: CityAnchorType.Hospital,
+                                cancellationToken: ct);
                         CityPopulationHealthcarePressureProfile healthcarePressureProfile =
                             healthcarePressurePolicy.Evaluate(
                                 residents: residents,
@@ -267,6 +273,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     householdPressurePolicy: householdPressurePolicy,
                                     illnessAutonomyPolicy: illnessAutonomyPolicy,
                                     healthcareAutonomyPolicy: healthcareAutonomyPolicy,
+                                    anchorSelectionPolicy: anchorSelectionPolicy,
+                                    hospitalAnchors: hospitalAnchors,
                                     livingConditionsPressurePolicy: livingConditionsPressurePolicy,
                                     institutionPools: institutionPools,
                                     workplacePools: workplacePools,
@@ -515,6 +523,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityHouseholdPressurePolicy householdPressurePolicy,
             CityIllnessAutonomyPolicy illnessAutonomyPolicy,
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
             IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
@@ -604,6 +614,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     marriageDomainService: marriageDomainService,
                     illnessAutonomyPolicy: illnessAutonomyPolicy,
                     healthcareAutonomyPolicy: healthcareAutonomyPolicy,
+                    anchorSelectionPolicy: anchorSelectionPolicy,
+                    hospitalAnchors: hospitalAnchors,
                     districtImpactPolicy: districtImpactPolicy,
                     livingConditionsPressurePolicy: livingConditionsPressurePolicy))
                 changed = true;
@@ -1132,6 +1144,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             MarriageDomainService marriageDomainService,
             CityIllnessAutonomyPolicy illnessAutonomyPolicy,
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy)
         {
@@ -1156,11 +1170,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                 districtId: districtId,
                 essentialsState: essentialsState);
+            CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
+                anchors: hospitalAnchors,
+                preferredDistrictId: districtId,
+                stableKey: person.Id.Value);
             double healthcareSupportStrength = healthcareAutonomyPolicy.ResolveSupportStrength(
                 resident: person,
                 householdResidents: householdResidents,
                 housingStatus: housingStatus,
                 currentDate: currentDate,
+                hasPrimaryCareAccess: primaryCareAnchor is not null,
+                hasDistrictPrimaryCareAccess: primaryCareAnchor?.DistrictId == districtId,
                 serviceQualityState: serviceQualityState,
                 healthcarePressureProfile: healthcarePressureProfile) *
                   livingConditionsPressurePolicy.ResolveMedicineAccessStrength(

@@ -13,6 +13,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
             DateOnly currentDate,
+            bool hasPrimaryCareAccess,
+            bool hasDistrictPrimaryCareAccess,
             CityPopulationServiceQualityState? serviceQualityState = null,
             CityPopulationHealthcarePressureProfile? healthcarePressureProfile = null)
         {
@@ -46,6 +48,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (resident.Employment.Status == EmploymentStatus.Employed)
                 access += 0.02d;
+
+            if (hasPrimaryCareAccess)
+                access += hasDistrictPrimaryCareAccess
+                    ? 0.05d
+                    : 0.02d;
 
             if (!livelihood.HasStructuredSupport)
                 access *= 0.60d;
