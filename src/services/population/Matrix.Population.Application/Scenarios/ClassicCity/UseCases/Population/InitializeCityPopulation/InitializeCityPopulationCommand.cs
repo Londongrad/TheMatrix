@@ -14,6 +14,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         int RandomSeed,
         CityPopulationEnvironmentInput Environment,
         CityPopulationBootstrapTuningInput Tuning,
+        IReadOnlyCollection<CityAnchorSeedItem> CityAnchors,
         IReadOnlyCollection<ResidentialBuildingSeedItem> ResidentialBuildings)
         : IRequest<CityPopulationBootstrapSummaryDto>, IRequirePermission
     {

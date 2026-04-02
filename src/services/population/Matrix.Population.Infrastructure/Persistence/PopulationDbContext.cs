@@ -25,6 +25,8 @@ namespace Matrix.Population.Infrastructure.Persistence
             => Set<CityPopulationHouseholdFinancialStressState>();
 
         public DbSet<CityPopulationActivityEvent> CityPopulationActivityEvents => Set<CityPopulationActivityEvent>();
+        public DbSet<CityPopulationAnchorCatalogItem> CityPopulationAnchorCatalogItems
+            => Set<CityPopulationAnchorCatalogItem>();
 
         public DbSet<CityPopulationDailySummarySnapshot> CityPopulationDailySummarySnapshots
             => Set<CityPopulationDailySummarySnapshot>();

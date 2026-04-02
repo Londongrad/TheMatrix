@@ -22,6 +22,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
     public sealed class ClassicCityProvisioningOrchestrator(
         IMediator mediator,
         ICityRepository cityRepository,
+        ICityAnchorRepository cityAnchorRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
         ISimulationClockRepository clockRepository,
         IEnumerable<ICitySimulationBootstrapStrategy> simulationBootstrapStrategies,
@@ -252,6 +253,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                 Task<SimulationClock?> clockTask = clockRepository.GetBySimulationIdAsync(
                     simulationId: new SimulationId(city.Id.Value),
                     cancellationToken: cancellationToken);
+                Task<IReadOnlyList<CityAnchor>> anchorsTask = cityAnchorRepository.ListByCityIdAsync(
+                    cityId: city.Id,
+                    cancellationToken: cancellationToken);
                 Task<IReadOnlyList<ResidentialBuilding>> buildingsTask = residentialBuildingRepository.ListByCityIdAsync(
                     cityId: city.Id,
                     districtId: null,
@@ -259,9 +263,11 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
                 await Task.WhenAll(
                     clockTask,
+                    anchorsTask,
                     buildingsTask);
 
                 SimulationClock? clock = await clockTask;
+                IReadOnlyList<CityAnchor> anchors = await anchorsTask;
                 IReadOnlyList<ResidentialBuilding> buildings = await buildingsTask;
 
                 if (clock is null)
@@ -304,6 +310,18 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                             city: city,
                             plannedPeopleCount: plannedPeopleCount.Value,
                             residentialCapacity: residentialCapacity.Value),
+                        CityAnchors: anchors
+                           .Select(x => new CityAnchorSeed(
+                                CityAnchorId: x.Id.Value,
+                                DistrictId: x.DistrictId.Value,
+                                AccessRoadNodeId: x.AccessRoadNodeId.Value,
+                                Name: x.Name.Value,
+                                Type: x.Type.ToString(),
+                                Capacity: x.Capacity,
+                                PositionX: x.PositionX,
+                                PositionY: x.PositionY,
+                                CreatedAtUtc: x.CreatedAtUtc))
+                           .ToArray(),
                         ResidentialBuildings: buildings
                            .Select(x => new ResidentialBuildingSeed(
                                 ResidentialBuildingId: x.Id.Value,

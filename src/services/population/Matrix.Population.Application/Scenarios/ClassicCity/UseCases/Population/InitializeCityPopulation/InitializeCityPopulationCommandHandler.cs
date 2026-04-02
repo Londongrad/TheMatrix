@@ -21,6 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
+        ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
@@ -56,6 +57,21 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     residentialBuildingId: ResidentialBuildingId.From(x.ResidentialBuildingId),
                     districtId: DistrictId.From(x.DistrictId),
                     residentCapacity: x.ResidentCapacity))
+               .ToArray();
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> cityAnchors = request.CityAnchors
+               .Select(x => CityPopulationAnchorCatalogItem.Create(
+                    cityId: cityId,
+                    cityAnchorId: CityAnchorId.From(x.CityAnchorId),
+                    districtId: DistrictId.From(x.DistrictId),
+                    accessRoadNodeId: RoadNodeId.From(x.AccessRoadNodeId),
+                    name: x.Name,
+                    type: Enum.Parse<CityAnchorType>(
+                        value: x.Type,
+                        ignoreCase: true),
+                    capacity: x.Capacity,
+                    positionX: x.PositionX,
+                    positionY: x.PositionY,
+                    createdAtUtc: x.CreatedAtUtc))
                .ToArray();
 
             PopulationBootstrapResult result = generator.GenerateForCity(
@@ -100,6 +116,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     await cityPopulationEnvironmentRepository.UpsertAsync(
                         environment: environment,
                         cancellationToken: ct);
+
+                    await cityPopulationAnchorCatalogRepository.DeleteByCityAsync(
+                        cityId: cityId,
+                        cancellationToken: ct);
+
+                    if (cityAnchors.Count > 0)
+                        await cityPopulationAnchorCatalogRepository.AddRangeAsync(
+                            items: cityAnchors,
+                            cancellationToken: ct);
 
                     await householdWriteRepository.DeleteByCityAsync(
                         cityId: cityId,

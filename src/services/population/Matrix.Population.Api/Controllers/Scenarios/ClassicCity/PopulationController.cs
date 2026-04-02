@@ -48,6 +48,19 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                     DistrictId: x.DistrictId,
                     ResidentCapacity: x.ResidentCapacity))
                .ToArray();
+            IReadOnlyCollection<CityAnchorSeedItem> cityAnchors =
+                (request.CityAnchors ?? Array.Empty<CityAnchorSeedDto>())
+               .Select(x => new CityAnchorSeedItem(
+                    CityAnchorId: x.CityAnchorId,
+                    DistrictId: x.DistrictId,
+                    AccessRoadNodeId: x.AccessRoadNodeId,
+                    Name: x.Name,
+                    Type: x.Type,
+                    Capacity: x.Capacity,
+                    PositionX: x.PositionX,
+                    PositionY: x.PositionY,
+                    CreatedAtUtc: x.CreatedAtUtc))
+               .ToArray();
 
             CityPopulationBootstrapSummaryDto result = await _sender.Send(
                 request: new InitializeCityPopulationCommand(
@@ -65,6 +78,7 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
                         EconomicStabilityPercent: request.Tuning.EconomicStabilityPercent,
                         SocialVolatilityPercent: request.Tuning.SocialVolatilityPercent,
                         FamilyFormationPercent: request.Tuning.FamilyFormationPercent),
+                    CityAnchors: cityAnchors,
                     ResidentialBuildings: residentialBuildings),
                 cancellationToken: cancellationToken);
 

@@ -30,6 +30,18 @@ namespace Matrix.SimulationCore.Infrastructure.Population
                         EconomicStabilityPercent: request.Tuning.EconomicStabilityPercent,
                         SocialVolatilityPercent: request.Tuning.SocialVolatilityPercent,
                         FamilyFormationPercent: request.Tuning.FamilyFormationPercent),
+                    CityAnchors: request.CityAnchors
+                       .Select(x => new CityAnchorSeedDto(
+                            CityAnchorId: x.CityAnchorId,
+                            DistrictId: x.DistrictId,
+                            AccessRoadNodeId: x.AccessRoadNodeId,
+                            Name: x.Name,
+                            Type: x.Type,
+                            Capacity: x.Capacity,
+                            PositionX: x.PositionX,
+                            PositionY: x.PositionY,
+                            CreatedAtUtc: x.CreatedAtUtc))
+                       .ToArray(),
                     ResidentialBuildings: request.ResidentialBuildings
                        .Select(x => new ResidentialBuildingSeedDto(
                             ResidentialBuildingId: x.ResidentialBuildingId,

@@ -22,6 +22,17 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
         Guid DistrictId,
         int ResidentCapacity);
 
+    public sealed record CityAnchorSeed(
+        Guid CityAnchorId,
+        Guid DistrictId,
+        Guid AccessRoadNodeId,
+        string Name,
+        string Type,
+        int Capacity,
+        decimal PositionX,
+        decimal PositionY,
+        DateTimeOffset CreatedAtUtc);
+
     public sealed record CityPopulationBootstrapInitializationRequest(
         Guid CityId,
         DateOnly CurrentDate,
@@ -30,6 +41,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
         int RandomSeed,
         CityPopulationBootstrapEnvironment Environment,
         CityPopulationBootstrapTuning Tuning,
+        IReadOnlyCollection<CityAnchorSeed> CityAnchors,
         IReadOnlyCollection<ResidentialBuildingSeed> ResidentialBuildings);
 
     public sealed record CityPopulationBootstrapSummary(
