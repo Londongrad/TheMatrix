@@ -11,6 +11,7 @@ using Matrix.SimulationCore.Infrastructure.Options;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Population;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Infrastructure.HostedServices;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
@@ -18,6 +19,7 @@ using Matrix.SimulationCore.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationCore.Infrastructure.Services.Simulation;
+using Matrix.SimulationCore.Infrastructure.SimulationSystems;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -107,6 +109,20 @@ namespace Matrix.SimulationCore.Infrastructure
 
                     client.BaseAddress = new Uri(
                         uriString: options.Population,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>();
+
+            services.AddHttpClient<ICityRoadSegmentConditionsClient, CityRoadSegmentConditionsClient>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationSystems))
+                        throw new InvalidOperationException("DownstreamServices:SimulationSystems is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationSystems,
                         uriKind: UriKind.Absolute);
                 })
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>();

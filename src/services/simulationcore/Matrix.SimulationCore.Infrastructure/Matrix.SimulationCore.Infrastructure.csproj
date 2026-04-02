@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Infrastructure\Matrix.BuildingBlocks.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\economy\Matrix.Economy.Contracts\Matrix.Economy.Contracts.csproj"/>
     <ProjectReference Include="..\..\population\Matrix.Population.Contracts\Matrix.Population.Contracts.csproj"/>
+    <ProjectReference Include="..\..\simulationsystems\Matrix.SimulationSystems.Contracts\Matrix.SimulationSystems.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.SimulationCore.Application\Matrix.SimulationCore.Application.csproj"/>
     <ProjectReference Include="..\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>
   </ItemGroup>
