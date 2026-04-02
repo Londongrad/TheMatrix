@@ -9,6 +9,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
     public sealed class GetCityMapTopologyQueryHandler(
         IDistrictRepository districtRepository,
         IResidentialBuildingRepository residentialBuildingRepository,
+        ICityAnchorRepository cityAnchorRepository,
         IRoadNodeRepository roadNodeRepository,
         IRoadSegmentRepository roadSegmentRepository) : IRequestHandler<GetCityMapTopologyQuery, CityMapTopologyDto>
     {
@@ -27,6 +28,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                     cityId: cityId,
                     districtId: null,
                     cancellationToken: cancellationToken);
+            Task<IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.CityAnchor>> anchorsTask =
+                cityAnchorRepository.ListByCityIdAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
             Task<IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadNode>> roadNodesTask =
                 roadNodeRepository.ListByCityIdAsync(
                     cityId: cityId,
@@ -39,6 +44,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
             await Task.WhenAll(
                 districtsTask,
                 buildingsTask,
+                anchorsTask,
                 roadNodesTask,
                 roadSegmentsTask);
 
@@ -49,6 +55,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                    .ToArray(),
                 ResidentialBuildings: buildingsTask.Result
                    .Select(ResidentialBuildingDto.FromDomain)
+                   .ToArray(),
+                Anchors: anchorsTask.Result
+                   .Select(GetCityAnchors.CityAnchorDto.FromDomain)
                    .ToArray(),
                 RoadNodes: roadNodesTask.Result
                    .Select(RoadNodeDto.FromDomain)

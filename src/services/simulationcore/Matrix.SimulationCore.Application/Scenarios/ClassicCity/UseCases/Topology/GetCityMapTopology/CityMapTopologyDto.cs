@@ -4,6 +4,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         Guid CityId,
         IReadOnlyList<GetCityDistricts.DistrictDto> Districts,
         IReadOnlyList<GetCityResidentialBuildings.ResidentialBuildingDto> ResidentialBuildings,
+        IReadOnlyList<GetCityAnchors.CityAnchorDto> Anchors,
         IReadOnlyList<RoadNodeDto> RoadNodes,
         IReadOnlyList<RoadSegmentDto> RoadSegments);
 }

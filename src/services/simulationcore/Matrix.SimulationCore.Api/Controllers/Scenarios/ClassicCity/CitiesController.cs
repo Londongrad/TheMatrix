@@ -18,6 +18,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Re
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RetryCityPopulationBootstrapProvisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityAnchors;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather;
@@ -255,6 +256,22 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             return Results.Ok(views);
         }
 
+        [HttpGet("{cityId:guid}/anchors")]
+        public async Task<IResult> GetAnchors(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<CityAnchorDto> anchors = await mediator.Send(
+                request: new GetCityAnchorsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            CityAnchorView[] views = anchors
+               .Select(MapToCityAnchorView)
+               .ToArray();
+
+            return Results.Ok(views);
+        }
+
         [HttpGet("{cityId:guid}/map")]
         public async Task<IResult> GetMap(
             [FromRoute] Guid cityId,
@@ -272,6 +289,9 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                        .ToArray(),
                     ResidentialBuildings: map.ResidentialBuildings
                        .Select(MapToResidentialBuildingView)
+                       .ToArray(),
+                    Anchors: map.Anchors
+                       .Select(MapToCityAnchorView)
                        .ToArray(),
                     RoadNodes: map.RoadNodes
                        .Select(MapToRoadNodeView)
@@ -583,6 +603,21 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 DistrictId: dto.DistrictId,
                 Name: dto.Name,
                 Type: dto.Type,
+                PositionX: dto.PositionX,
+                PositionY: dto.PositionY,
+                CreatedAtUtc: dto.CreatedAtUtc);
+        }
+
+        private static CityAnchorView MapToCityAnchorView(CityAnchorDto dto)
+        {
+            return new CityAnchorView(
+                CityAnchorId: dto.CityAnchorId,
+                CityId: dto.CityId,
+                DistrictId: dto.DistrictId,
+                AccessRoadNodeId: dto.AccessRoadNodeId,
+                Name: dto.Name,
+                Type: dto.Type,
+                Capacity: dto.Capacity,
                 PositionX: dto.PositionX,
                 PositionY: dto.PositionY,
                 CreatedAtUtc: dto.CreatedAtUtc);
