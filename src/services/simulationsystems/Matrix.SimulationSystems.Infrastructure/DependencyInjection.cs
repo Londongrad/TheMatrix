@@ -17,6 +17,7 @@ using Matrix.SimulationSystems.Infrastructure.Outbox.RabbitMq;
 using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
+using Matrix.SimulationSystems.Infrastructure.SimulationCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -99,6 +100,19 @@ namespace Matrix.SimulationSystems.Infrastructure
 
                     client.BaseAddress = new Uri(
                         uriString: options.Economy,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+            services.AddHttpClient<ICityMapTopologyClient, CityMapTopologyClient>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
+                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
                .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();

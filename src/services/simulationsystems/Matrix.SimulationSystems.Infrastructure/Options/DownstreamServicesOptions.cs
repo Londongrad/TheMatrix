@@ -5,5 +5,6 @@ namespace Matrix.SimulationSystems.Infrastructure.Options
         public const string SectionName = "DownstreamServices";
 
         public string Economy { get; init; } = string.Empty;
+        public string SimulationCore { get; init; } = string.Empty;
     }
 }
