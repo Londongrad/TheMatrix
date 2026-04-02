@@ -1,6 +1,8 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology.Abstractions;
@@ -23,6 +25,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity
             services.AddSingleton<ICityNameSuggestionService, CityNameSuggestionService>();
             services.AddSingleton<ICitySimulationBootstrapStrategy, ClassicCitySimulationBootstrapStrategy>();
             services.AddSingleton<ICityTopologyBootstrapFactory, CityTopologyBootstrapFactory>();
+            services.AddSingleton<IClassicCityRoutePlanner, ClassicCityRoutePlanner>();
             services.AddSingleton<IWeatherStatePlanner, WeatherStatePlanner>();
             services.AddSingleton<ICityWeatherBootstrapFactory, CityWeatherBootstrapFactory>();
             services.AddScoped<ISimulationScenarioAdvanceHandler, ClassicCitySimulationAdvanceHandler>();
