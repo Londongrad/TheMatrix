@@ -1,21 +1,29 @@
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
-    public sealed class CityEducationAutonomyPolicy
+    public sealed class CityEducationAutonomyPolicy(
+        CityPopulationAnchorSelectionPolicy anchorSelectionPolicy)
     {
+        private readonly CityPopulationAnchorSelectionPolicy _anchorSelectionPolicy = anchorSelectionPolicy;
+
         public bool Apply(
             Person person,
             DateOnly previousDate,
             DateOnly currentDate,
-            IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
             CityPopulationServiceQualityState? serviceQualityState = null)
         {
             ArgumentNullException.ThrowIfNull(person);
             ArgumentNullException.ThrowIfNull(institutionPools);
+            ArgumentNullException.ThrowIfNull(schoolAnchors);
 
             if (!person.IsAlive)
                 return false;
@@ -32,14 +40,17 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 while (person.EducationLevel < targetFloor.Value)
                 {
                     EducationLevel nextLevel = ResolveNextEducationLevel(person.EducationLevel);
-                    EducationInstitutionId institutionId = ResolveInstitutionId(
+                    CityEducationInstitutionBinding institutionBinding = ResolveInstitutionBinding(
                         person: person,
                         educationLevel: nextLevel,
-                        institutionPools: institutionPools);
+                        institutionPools: institutionPools,
+                        preferredDistrictId: preferredDistrictId,
+                        schoolAnchors: schoolAnchors);
 
                     person.GraduateTo(
                         newLevel: nextLevel,
-                        institutionId: institutionId);
+                        institutionId: institutionBinding.InstitutionId,
+                        institutionAnchorId: institutionBinding.InstitutionAnchorId);
                     changed = true;
                 }
 
@@ -47,27 +58,33 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 if (person.EducationLevel == EducationLevel.None)
                 {
-                    EducationInstitutionId preschoolInstitutionId = ResolveInstitutionId(
+                    CityEducationInstitutionBinding preschoolInstitution = ResolveInstitutionBinding(
                         person: person,
                         educationLevel: EducationLevel.Preschool,
-                        institutionPools: institutionPools);
+                        institutionPools: institutionPools,
+                        preferredDistrictId: preferredDistrictId,
+                        schoolAnchors: schoolAnchors);
 
                     person.GraduateTo(
                         newLevel: EducationLevel.Preschool,
-                        institutionId: preschoolInstitutionId);
+                        institutionId: preschoolInstitution.InstitutionId,
+                        institutionAnchorId: preschoolInstitution.InstitutionAnchorId);
                     changed = true;
                 }
 
                 if (person.Employment.Status is EmploymentStatus.None or EmploymentStatus.Unemployed)
                 {
-                    EducationInstitutionId institutionId = ResolveInstitutionId(
+                    CityEducationInstitutionBinding institutionBinding = ResolveInstitutionBinding(
                         person: person,
                         educationLevel: person.EducationLevel,
-                        institutionPools: institutionPools);
+                        institutionPools: institutionPools,
+                        preferredDistrictId: preferredDistrictId,
+                        schoolAnchors: schoolAnchors);
 
                     person.StartStudying(
                         currentDate: currentDate,
-                        institutionId: institutionId);
+                        institutionId: institutionBinding.InstitutionId,
+                        institutionAnchorId: institutionBinding.InstitutionAnchorId);
                     changed = true;
                 }
 
@@ -86,6 +103,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     currentDate: currentDate,
                     reviewWindows: postSecondaryReviewWindows,
                     institutionPools: institutionPools,
+                    preferredDistrictId: preferredDistrictId,
+                    schoolAnchors: schoolAnchors,
                     serviceQualityState: serviceQualityState);
                 changed = changed || advancedPostSecondary;
 
@@ -96,6 +115,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         currentDate: currentDate,
                         reviewWindows: postSecondaryReviewWindows,
                         institutionPools: institutionPools,
+                        preferredDistrictId: preferredDistrictId,
+                        schoolAnchors: schoolAnchors,
                         serviceQualityState: serviceQualityState);
                     changed = changed || startedPostSecondary;
                 }
@@ -154,11 +175,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             };
         }
 
-        private static bool TryAdvancePostSecondaryEducation(
+        private bool TryAdvancePostSecondaryEducation(
             Person person,
             DateOnly currentDate,
             int reviewWindows,
-            IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
             CityPopulationServiceQualityState? serviceQualityState)
         {
             if (person.Employment.Status != EmploymentStatus.Student)
@@ -179,22 +202,27 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     reviewWindows: reviewWindows))
                 return false;
 
-            EducationInstitutionId institutionId = ResolveInstitutionId(
+            CityEducationInstitutionBinding institutionBinding = ResolveInstitutionBinding(
                 person: person,
                 educationLevel: targetLevel.Value,
-                institutionPools: institutionPools);
+                institutionPools: institutionPools,
+                preferredDistrictId: preferredDistrictId,
+                schoolAnchors: schoolAnchors);
 
             person.GraduateTo(
                 newLevel: targetLevel.Value,
-                institutionId: institutionId);
+                institutionId: institutionBinding.InstitutionId,
+                institutionAnchorId: institutionBinding.InstitutionAnchorId);
             return true;
         }
 
-        private static bool TryStartPostSecondaryEducation(
+        private bool TryStartPostSecondaryEducation(
             Person person,
             DateOnly currentDate,
             int reviewWindows,
-            IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
             CityPopulationServiceQualityState? serviceQualityState)
         {
             if (person.Employment.Status is not (EmploymentStatus.None or EmploymentStatus.Unemployed))
@@ -214,17 +242,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     reviewWindows: reviewWindows))
                 return false;
 
-            EducationInstitutionId institutionId = ResolveInstitutionId(
+            CityEducationInstitutionBinding institutionBinding = ResolveInstitutionBinding(
                 person: person,
                 educationLevel: EducationLevel.Vocational,
-                institutionPools: institutionPools);
+                institutionPools: institutionPools,
+                preferredDistrictId: preferredDistrictId,
+                schoolAnchors: schoolAnchors);
 
             person.GraduateTo(
                 newLevel: EducationLevel.Vocational,
-                institutionId: institutionId);
+                institutionId: institutionBinding.InstitutionId,
+                institutionAnchorId: institutionBinding.InstitutionAnchorId);
             person.StartStudying(
                 currentDate: currentDate,
-                institutionId: institutionId);
+                institutionId: institutionBinding.InstitutionId,
+                institutionAnchorId: institutionBinding.InstitutionAnchorId);
             return true;
         }
 
@@ -371,14 +403,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return normalized / (double)uint.MaxValue;
         }
 
-        private static EducationInstitutionId ResolveInstitutionId(
+        private CityEducationInstitutionBinding ResolveInstitutionBinding(
             Person person,
             EducationLevel educationLevel,
-            IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools)
+            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors)
         {
             if (!institutionPools.TryGetValue(
                     key: educationLevel,
-                    value: out List<EducationInstitutionId>? levelPool))
+                    value: out List<CityEducationInstitutionBinding>? levelPool))
             {
                 levelPool = [];
                 institutionPools[educationLevel] = levelPool;
@@ -386,7 +420,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (levelPool.Count == 0)
             {
-                var created = EducationInstitutionId.New();
+                CityAnchorId? schoolAnchorId = _anchorSelectionPolicy.SelectSchoolAnchor(
+                    anchors: schoolAnchors,
+                    preferredDistrictId: preferredDistrictId,
+                    stableKey: person.Id.Value)?.CityAnchorId;
+                var created = new CityEducationInstitutionBinding(
+                    InstitutionId: EducationInstitutionId.New(),
+                    InstitutionAnchorId: schoolAnchorId);
                 levelPool.Add(created);
                 return created;
             }

@@ -19,6 +19,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                     cancellationToken: cancellationToken))
                .Select(x => new CityEducationInstitutionDto(
                     InstitutionId: x.InstitutionId.Value,
+                    InstitutionAnchorId: x.InstitutionAnchorId?.Value,
                     EducationLevel: x.EducationLevel.ToString(),
                     ResidentCount: x.ResidentCount))
                .ToArray();

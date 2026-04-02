@@ -192,6 +192,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Configurations
                                 ? EducationInstitutionId.From(value.Value)
                                 : null)
                        .HasColumnName("EducationInstitutionId");
+
+                    edu.Property(e => e.CurrentInstitutionAnchorId)
+                       .HasConversion(
+                            convertToProviderExpression: id => id.HasValue
+                                ? id.Value.Value
+                                : (Guid?)null,
+                            convertFromProviderExpression: value => value.HasValue
+                                ? CityAnchorId.From(value.Value)
+                                : null)
+                       .HasColumnName("EducationInstitutionAnchorId");
                 });
 
             builder.OwnsOne(

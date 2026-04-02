@@ -13,6 +13,7 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
 
     public sealed record class CityResidentEducationInstitutionDto(
         Guid InstitutionId,
+        Guid? InstitutionAnchorId,
         string EducationLevel);
 
     public sealed record class CityResidentIllnessDto(

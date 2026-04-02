@@ -271,6 +271,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     select new
                     {
                         InstitutionId = person.Education.CurrentInstitutionId!.Value,
+                        InstitutionAnchorId = person.Education.CurrentInstitutionAnchorId != null
+                            ? person.Education.CurrentInstitutionAnchorId.Value.Value
+                            : (Guid?)null,
                         person.Education.Level
                     })
                 .ToListAsync(cancellationToken);
@@ -279,12 +282,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .GroupBy(x => new
                 {
                     x.InstitutionId,
+                    x.InstitutionAnchorId,
                     x.Level
                 })
                .OrderByDescending(x => x.Count())
                .ThenBy(x => x.Key.Level)
                .Select(x => new CityEducationInstitutionSnapshot(
                     InstitutionId: EducationInstitutionId.From(x.Key.InstitutionId),
+                    InstitutionAnchorId: x.Key.InstitutionAnchorId.HasValue
+                        ? CityAnchorId.From(x.Key.InstitutionAnchorId.Value)
+                        : null,
                     EducationLevel: x.Key.Level,
                     ResidentCount: x.Count()))
                .ToArray();
@@ -306,6 +313,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     select new
                     {
                         InstitutionId = person.Education.CurrentInstitutionId!.Value,
+                        InstitutionAnchorId = person.Education.CurrentInstitutionAnchorId != null
+                            ? person.Education.CurrentInstitutionAnchorId.Value.Value
+                            : (Guid?)null,
                         person.Education.Level
                     })
                 .ToListAsync(cancellationToken);
@@ -314,6 +324,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .GroupBy(x => new
                 {
                     x.InstitutionId,
+                    x.InstitutionAnchorId,
                     x.Level
                 })
                .OrderByDescending(x => x.Count())
@@ -321,6 +332,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .Select(x => new
                 {
                     x.Key.InstitutionId,
+                    x.Key.InstitutionAnchorId,
                     x.Key.Level,
                     ResidentCount = x.Count()
                 })
@@ -330,6 +342,9 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 ? null
                 : new CityEducationInstitutionSnapshot(
                     InstitutionId: EducationInstitutionId.From(snapshot.InstitutionId),
+                    InstitutionAnchorId: snapshot.InstitutionAnchorId.HasValue
+                        ? CityAnchorId.From(snapshot.InstitutionAnchorId.Value)
+                        : null,
                     EducationLevel: snapshot.Level,
                     ResidentCount: snapshot.ResidentCount);
         }

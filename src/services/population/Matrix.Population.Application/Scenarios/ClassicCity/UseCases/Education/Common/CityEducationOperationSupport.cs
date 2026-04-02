@@ -7,6 +7,10 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -136,9 +140,34 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
             return institution;
         }
 
-        public static EducationInstitutionId ResolveInstitutionId(CityEducationInstitutionSnapshot? institution = null)
+        public static async Task<CityEducationInstitutionBinding> CreateInstitutionBindingAsync(
+            Guid cityId,
+            Person resident,
+            CityEducationInstitutionSnapshot? institution,
+            CityResidentHousingSnapshot? housing,
+            EducationLevel educationLevel,
+            ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            CancellationToken cancellationToken)
         {
-            return institution?.InstitutionId ?? EducationInstitutionId.New();
+            if (institution is not null)
+                return new CityEducationInstitutionBinding(
+                    InstitutionId: institution.InstitutionId,
+                    InstitutionAnchorId: institution.InstitutionAnchorId);
+
+            IReadOnlyList<CityPopulationAnchorCatalogItem> schoolAnchors =
+                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                    cityId: CityId.From(cityId),
+                    type: CityAnchorType.School,
+                    cancellationToken: cancellationToken);
+            CityAnchorId? institutionAnchorId = anchorSelectionPolicy.SelectSchoolAnchor(
+                anchors: schoolAnchors,
+                preferredDistrictId: housing?.DistrictId,
+                stableKey: resident.Id.Value)?.CityAnchorId;
+
+            return new CityEducationInstitutionBinding(
+                InstitutionId: EducationInstitutionId.New(),
+                InstitutionAnchorId: institutionAnchorId);
         }
 
         public static CityEducationOperationResultDto CreateResult(

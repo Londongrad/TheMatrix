@@ -95,6 +95,7 @@ namespace Matrix.Population.Application.Mapping
                 ? null
                 : new CityResidentEducationInstitutionDto(
                     InstitutionId: person.Education.CurrentInstitutionId.Value,
+                    InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId?.Value,
                     EducationLevel: person.Education.Level.ToString());
             IReadOnlyCollection<PersonReferenceDto> childReferences = (children ?? Array.Empty<Person>())
                .OrderBy(x => x.BirthDate)

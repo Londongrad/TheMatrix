@@ -26,6 +26,7 @@ using PersonId = Matrix.Population.Domain.ValueObjects.PersonId;
 using HouseholdId = Matrix.Population.Domain.ValueObjects.HouseholdId;
 using DistrictId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.DistrictId;
 using ResidentialBuildingId = Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects.ResidentialBuildingId;
+using CityEducationInstitutionBinding = Matrix.Population.Domain.Scenarios.ClassicCity.Models.CityEducationInstitutionBinding;
 
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation
 {
@@ -211,6 +212,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityId: cityId,
                                 type: CityAnchorType.Workplace,
                                 cancellationToken: ct);
+                        IReadOnlyList<CityPopulationAnchorCatalogItem> schoolAnchors =
+                            await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                                cityId: cityId,
+                                type: CityAnchorType.School,
+                                cancellationToken: ct);
                         CityPopulationHealthcarePressureProfile healthcarePressureProfile =
                             healthcarePressurePolicy.Evaluate(
                                 residents: residents,
@@ -222,7 +228,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             cancellationToken: ct)).ToDictionary(
                             keySelector: x => x.Id,
                             elementSelector: x => x);
-                        Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools =
+                        Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools =
                             BuildEducationInstitutionPools(residents);
                         Dictionary<string, List<Job>> workplacePools = BuildWorkplacePools(residents);
 
@@ -247,6 +253,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     districtByHouseholdId: districtByHouseholdId,
                                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                                     workplaceAnchors: workplaceAnchors,
+                                    schoolAnchors: schoolAnchors,
                                     financialStressByHouseholdId: financialStressByHouseholdId,
                                     costOfLivingState: costOfLivingState,
                                     essentialsState: essentialsState,
@@ -509,8 +516,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityIllnessAutonomyPolicy illnessAutonomyPolicy,
             CityHealthcareAutonomyPolicy healthcareAutonomyPolicy,
             CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
-            IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
             IDictionary<string, List<Job>> workplacePools,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
             CityPopulationWeatherExposurePolicy weatherExposurePolicy)
@@ -543,6 +551,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     employmentAutonomyPolicy: employmentAutonomyPolicy,
                     institutionPools: institutionPools,
                     workplaceAnchors: workplaceAnchors,
+                    schoolAnchors: schoolAnchors,
                     workplacePools: workplacePools))
                 changed = true;
             if (requiresDateProgression &&
@@ -643,8 +652,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationServiceQualityState? serviceQualityState,
             CityEducationAutonomyPolicy educationAutonomyPolicy,
             CityEmploymentAutonomyPolicy employmentAutonomyPolicy,
-            IDictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
             IDictionary<string, List<Job>> workplacePools)
         {
             bool changed = false;
@@ -669,6 +679,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     previousDate: previousDate,
                     currentDate: currentDate,
                     institutionPools: institutionPools,
+                    preferredDistrictId: districtByHouseholdId.TryGetValue(
+                        key: person.HouseholdId,
+                        value: out DistrictId? schoolDistrictId)
+                        ? schoolDistrictId
+                        : null,
+                    schoolAnchors: schoolAnchors,
                     serviceQualityState: serviceQualityState))
                 changed = true;
             if (employmentAutonomyPolicy.Apply(
@@ -1607,10 +1623,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 : right;
         }
 
-        private static Dictionary<EducationLevel, List<EducationInstitutionId>> BuildEducationInstitutionPools(
+        private static Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> BuildEducationInstitutionPools(
             IEnumerable<PersonEntity> persons)
         {
-            var pools = new Dictionary<EducationLevel, List<EducationInstitutionId>>();
+            var pools = new Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>();
             foreach (PersonEntity person in persons)
             {
                 if (person.Education.CurrentInstitutionId is not
@@ -1619,14 +1635,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 EducationLevel level = person.Education.Level;
                 if (!pools.TryGetValue(
                         key: level,
-                        value: out List<EducationInstitutionId>? levelPool))
+                        value: out List<CityEducationInstitutionBinding>? levelPool))
                 {
                     levelPool = [];
                     pools[level] = levelPool;
                 }
 
-                if (!levelPool.Contains(institutionId))
-                    levelPool.Add(institutionId);
+                if (!levelPool.Any(x => x.InstitutionId == institutionId))
+                    levelPool.Add(
+                        new CityEducationInstitutionBinding(
+                            InstitutionId: institutionId,
+                            InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId));
             }
 
             return pools;

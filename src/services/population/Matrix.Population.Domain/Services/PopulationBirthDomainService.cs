@@ -33,6 +33,7 @@ namespace Matrix.Population.Domain.Services
                 spouseId: null,
                 educationLevel: EducationLevel.None,
                 educationInstitutionId: null,
+                educationInstitutionAnchorId: null,
                 employmentStatus: EmploymentStatus.None,
                 happinessLevel: HappinessLevel.From(82),
                 energyLevel: EnergyLevel.From(88),

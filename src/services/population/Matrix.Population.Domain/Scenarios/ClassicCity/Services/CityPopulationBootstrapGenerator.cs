@@ -31,7 +31,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     Persons: Array.Empty<Person>());
 
             Random random = CreateRandom(randomSeed);
-            var institutionPools = new Dictionary<EducationLevel, List<EducationInstitutionId>>();
+            var institutionPools = new Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>();
             var workplacePools = new Dictionary<string, List<Job>>(StringComparer.OrdinalIgnoreCase);
             var households = new List<Household>(peopleCount);
             var householdPlacements = new List<ClassicCityHouseholdPlacement>();
@@ -90,7 +90,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     Persons: Array.Empty<Person>());
 
             Random random = CreateRandom(randomSeed);
-            var institutionPools = new Dictionary<EducationLevel, List<EducationInstitutionId>>();
+            var institutionPools = new Dictionary<EducationLevel, List<CityEducationInstitutionBinding>>();
             var workplacePools = new Dictionary<string, List<Job>>(StringComparer.OrdinalIgnoreCase);
             var bootstrapTuning = BootstrapTuningModel.From(tuning);
             var households = new List<Household>();
@@ -214,7 +214,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateHouseholdMembers(
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -321,7 +321,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateMarriedFamily(
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -423,7 +423,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateSingleParentFamily(
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -498,7 +498,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private IReadOnlyCollection<Person> CreateAdultOnlyHousehold(
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             HouseholdId householdId,
             int householdSizeValue,
@@ -544,7 +544,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private void AddChildren(
             List<Person> persons,
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             HouseholdId householdId,
             DateOnly currentDate,
@@ -581,7 +581,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         private void AddAdultRelatives(
             List<Person> persons,
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             HouseholdId householdId,
             DateOnly currentDate,
@@ -619,7 +619,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private Person CreateSingleResident(
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             HouseholdId householdId,
             DateOnly currentDate,
@@ -653,7 +653,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
         private Person CreateGeneratedPerson(
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             Dictionary<string, List<Job>> workplacePools,
             PersonId personId,
             HouseholdId householdId,
@@ -737,11 +737,14 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             EducationLevel educationLevel = CreateRandomEducationLevel(
                 random: random,
                 ageYears: ageYears);
-            EducationInstitutionId? educationInstitutionId = employmentStatus == EmploymentStatus.Student
+            CityEducationInstitutionBinding? educationInstitution = employmentStatus == EmploymentStatus.Student
                 ? CreateRandomEducationInstitution(
                     random: random,
                     institutionPools: institutionPools,
-                    educationLevel: educationLevel)
+                    educationLevel: educationLevel,
+                    cityAnchors: cityAnchors,
+                    preferredDistrictId: preferredDistrictId,
+                    stableKey: personId.Value)
                 : null;
 
             return Person.CreatePerson(
@@ -753,7 +756,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 maritalStatus: maritalStatus,
                 spouseId: spouseId,
                 educationLevel: educationLevel,
-                educationInstitutionId: educationInstitutionId,
+                educationInstitutionId: educationInstitution?.InstitutionId,
+                educationInstitutionAnchorId: educationInstitution?.InstitutionAnchorId,
                 employmentStatus: employmentStatus,
                 happinessLevel: happiness,
                 energyLevel: energy,
@@ -1519,16 +1523,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             return titlePool[random.Next(titlePool.Count)];
         }
 
-        private static EducationInstitutionId CreateRandomEducationInstitution(
+        private CityEducationInstitutionBinding CreateRandomEducationInstitution(
             Random random,
-            Dictionary<EducationLevel, List<EducationInstitutionId>> institutionPools,
-            EducationLevel educationLevel)
+            Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
+            EducationLevel educationLevel,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> cityAnchors,
+            DistrictId? preferredDistrictId,
+            Guid stableKey)
         {
             if (!institutionPools.TryGetValue(
                     key: educationLevel,
-                    value: out List<EducationInstitutionId>? levelPool))
+                    value: out List<CityEducationInstitutionBinding>? levelPool))
             {
-                levelPool = new List<EducationInstitutionId>();
+                levelPool = new List<CityEducationInstitutionBinding>();
                 institutionPools[educationLevel] = levelPool;
             }
 
@@ -1536,9 +1543,15 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             if (shouldCreateNew)
             {
-                var newInstitutionId = EducationInstitutionId.New();
-                levelPool.Add(newInstitutionId);
-                return newInstitutionId;
+                CityAnchorId? institutionAnchorId = _anchorSelectionPolicy.SelectSchoolAnchor(
+                    anchors: cityAnchors,
+                    preferredDistrictId: preferredDistrictId,
+                    stableKey: stableKey)?.CityAnchorId;
+                var created = new CityEducationInstitutionBinding(
+                    InstitutionId: EducationInstitutionId.New(),
+                    InstitutionAnchorId: institutionAnchorId);
+                levelPool.Add(created);
+                return created;
             }
 
             return levelPool[random.Next(levelPool.Count)];

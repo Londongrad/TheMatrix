@@ -8,6 +8,8 @@ using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using MediatR;
 
@@ -15,9 +17,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
 {
     public sealed class GraduateCityResidentCommandHandler(
         IPersonReadRepository personReadRepository,
+        ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
+        CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         IPersonWriteRepository personWriteRepository,
         IUnitOfWork unitOfWork)
         : IRequestHandler<GraduateCityResidentCommand, CityEducationOperationResultDto>
@@ -46,10 +50,25 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                 expectedEducationLevel: targetEducationLevel,
                 cityPopulationPersonReadRepository: cityPopulationPersonReadRepository,
                 cancellationToken: cancellationToken);
+            CityResidentHousingSnapshot? housing = await cityPopulationPersonReadRepository.FindHousingSnapshotByPersonIdAsync(
+                cityId: CityId.From(request.CityId),
+                personId: resident.Id,
+                cancellationToken: cancellationToken);
+            CityEducationInstitutionBinding institutionBinding =
+                await CityEducationOperationSupport.CreateInstitutionBindingAsync(
+                    cityId: request.CityId,
+                    resident: resident,
+                    institution: institution,
+                    housing: housing,
+                    educationLevel: targetEducationLevel,
+                    cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
+                    anchorSelectionPolicy: anchorSelectionPolicy,
+                    cancellationToken: cancellationToken);
 
             resident.GraduateTo(
                 newLevel: targetEducationLevel,
-                institutionId: CityEducationOperationSupport.ResolveInstitutionId(institution));
+                institutionId: institutionBinding.InstitutionId,
+                institutionAnchorId: institutionBinding.InstitutionAnchorId);
 
             await personWriteRepository.UpdateAsync(
                 person: resident,

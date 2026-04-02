@@ -2,6 +2,7 @@ using Matrix.BuildingBlocks.Domain;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Rules;
+using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
 namespace Matrix.Population.Domain.Entities
@@ -23,6 +24,7 @@ namespace Matrix.Population.Domain.Entities
             PersonId? spouseId,
             EducationLevel educationLevel,
             EducationInstitutionId? educationInstitutionId,
+            CityAnchorId? educationInstitutionAnchorId,
             EmploymentStatus employmentStatus,
             HappinessLevel happinessLevel,
             EnergyLevel energyLevel,
@@ -59,7 +61,8 @@ namespace Matrix.Population.Domain.Entities
                 spouseId: spouseId);
             var education = EducationInfo.FromLevel(
                 level: educationLevel,
-                currentInstitutionId: educationInstitutionId);
+                currentInstitutionId: educationInstitutionId,
+                currentInstitutionAnchorId: educationInstitutionAnchorId);
 
             return new Person(
                 id: id,
@@ -394,17 +397,20 @@ namespace Matrix.Population.Domain.Entities
         {
             Education = EducationInfo.FromLevel(
                 level: newLevel,
-                currentInstitutionId: Education.CurrentInstitutionId);
+                currentInstitutionId: Education.CurrentInstitutionId,
+                currentInstitutionAnchorId: Education.CurrentInstitutionAnchorId);
         }
 
         public void StartStudying(
             DateOnly currentDate,
-            EducationInstitutionId institutionId)
+            EducationInstitutionId institutionId,
+            CityAnchorId? institutionAnchorId = null)
         {
             Education = Education.AssignInstitution(
                 GuardHelper.AgainstNull(
                     value: institutionId,
-                    propertyName: nameof(institutionId)));
+                    propertyName: nameof(institutionId)),
+                currentInstitutionAnchorId: institutionAnchorId);
             Employment = Employment.Change(
                 newStatus: EmploymentStatus.Student,
                 newJob: null,
@@ -434,11 +440,13 @@ namespace Matrix.Population.Domain.Entities
 
         public void GraduateTo(
             EducationLevel newLevel,
-            EducationInstitutionId? institutionId = null)
+            EducationInstitutionId? institutionId = null,
+            CityAnchorId? institutionAnchorId = null)
         {
             Education = Education.GraduateTo(
                 newLevel: newLevel,
-                currentInstitutionId: institutionId ?? Education.CurrentInstitutionId);
+                currentInstitutionId: institutionId ?? Education.CurrentInstitutionId,
+                currentInstitutionAnchorId: institutionAnchorId ?? Education.CurrentInstitutionAnchorId);
             ChangeHappiness(PersonHappinessDeltas.OnGraduate);
         }
 
