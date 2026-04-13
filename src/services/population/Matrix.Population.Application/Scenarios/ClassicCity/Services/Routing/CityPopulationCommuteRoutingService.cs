@@ -12,6 +12,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
         private readonly ICityRouteResolutionClient _routeResolutionClient = routeResolutionClient;
         private readonly Dictionary<CommuteRouteCacheKey, CityPopulationCommuteContext> _cache = [];
 
+        public Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            CityAnchorId? destinationAnchorId,
+            CancellationToken cancellationToken)
+        {
+            return ResolveAsync(
+                cityId: cityId,
+                residentialBuildingId: residentialBuildingId,
+                destinationAnchorId: destinationAnchorId,
+                profile: CityPopulationCommuteRoutingProfiles.Pedestrian,
+                cancellationToken: cancellationToken);
+        }
+
         public Task<CityPopulationCommuteContext> ResolveEmploymentCommuteAsync(
             Guid cityId,
             ResidentialBuildingId? residentialBuildingId,
@@ -22,11 +36,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
                 ? resident.Employment.Job?.WorkplaceAnchorId
                 : null;
 
-            return ResolveAsync(
+            return ResolveAnchorCommuteAsync(
                 cityId: cityId,
                 residentialBuildingId: residentialBuildingId,
                 destinationAnchorId: workplaceAnchorId,
-                profile: CityPopulationCommuteRoutingProfiles.Pedestrian,
                 cancellationToken: cancellationToken);
         }
 
@@ -40,11 +53,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
                 ? resident.Education.CurrentInstitutionAnchorId
                 : null;
 
-            return ResolveAsync(
+            return ResolveAnchorCommuteAsync(
                 cityId: cityId,
                 residentialBuildingId: residentialBuildingId,
                 destinationAnchorId: schoolAnchorId,
-                profile: CityPopulationCommuteRoutingProfiles.Pedestrian,
                 cancellationToken: cancellationToken);
         }
 
@@ -54,11 +66,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
             CityAnchorId? healthcareAnchorId,
             CancellationToken cancellationToken)
         {
-            return ResolveAsync(
+            return ResolveAnchorCommuteAsync(
                 cityId: cityId,
                 residentialBuildingId: residentialBuildingId,
                 destinationAnchorId: healthcareAnchorId,
-                profile: CityPopulationCommuteRoutingProfiles.Pedestrian,
                 cancellationToken: cancellationToken);
         }
 

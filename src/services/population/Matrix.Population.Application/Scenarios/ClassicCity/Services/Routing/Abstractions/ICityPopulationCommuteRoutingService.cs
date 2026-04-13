@@ -6,6 +6,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.A
 {
     public interface ICityPopulationCommuteRoutingService
     {
+        Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            CityAnchorId? destinationAnchorId,
+            CancellationToken cancellationToken);
+
         Task<CityPopulationCommuteContext> ResolveEmploymentCommuteAsync(
             Guid cityId,
             ResidentialBuildingId? residentialBuildingId,
