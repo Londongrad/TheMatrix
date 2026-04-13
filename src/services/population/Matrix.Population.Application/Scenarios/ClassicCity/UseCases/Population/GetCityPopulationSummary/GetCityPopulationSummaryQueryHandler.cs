@@ -96,8 +96,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 MedicalLoadIndex: RoundMetric(summary.MedicalLoadIndex),
                 TriagePressureIndex: RoundMetric(summary.TriagePressureIndex),
                 RecoverySupportIndex: RoundMetric(summary.RecoverySupportIndex),
+                WorkforceCommuteAccessibilityIndex: RoundMetric(summary.WorkforceCommuteAccessibilityIndex),
                 WorkforceAttendanceIndex: RoundMetric(summary.WorkforceAttendanceIndex),
                 WorkforceProductivityIndex: RoundMetric(summary.WorkforceProductivityIndex),
+                StudentCommuteAccessibilityIndex: RoundMetric(summary.StudentCommuteAccessibilityIndex),
                 StudentAttendanceIndex: RoundMetric(summary.StudentAttendanceIndex));
 
             return new CityPopulationSummaryDto(

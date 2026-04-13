@@ -23,7 +23,9 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         decimal? MedicalLoadIndex,
         decimal? TriagePressureIndex,
         decimal? RecoverySupportIndex,
+        decimal? WorkforceCommuteAccessibilityIndex,
         decimal? WorkforceAttendanceIndex,
         decimal? WorkforceProductivityIndex,
+        decimal? StudentCommuteAccessibilityIndex,
         decimal? StudentAttendanceIndex);
 }
