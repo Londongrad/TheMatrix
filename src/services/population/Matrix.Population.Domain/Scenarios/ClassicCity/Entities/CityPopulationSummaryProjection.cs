@@ -49,8 +49,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
         public decimal? MedicalLoadIndex { get; private set; }
         public decimal? TriagePressureIndex { get; private set; }
         public decimal? RecoverySupportIndex { get; private set; }
+        public decimal? WorkforceCommuteAccessibilityIndex { get; private set; }
         public decimal? WorkforceAttendanceIndex { get; private set; }
         public decimal? WorkforceProductivityIndex { get; private set; }
+        public decimal? StudentCommuteAccessibilityIndex { get; private set; }
         public decimal? StudentAttendanceIndex { get; private set; }
 
         public static CityPopulationSummaryProjection Create(
@@ -92,8 +94,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             decimal? medicalLoadIndex,
             decimal? triagePressureIndex,
             decimal? recoverySupportIndex,
+            decimal? workforceCommuteAccessibilityIndex,
             decimal? workforceAttendanceIndex,
             decimal? workforceProductivityIndex,
+            decimal? studentCommuteAccessibilityIndex,
             decimal? studentAttendanceIndex)
         {
             CurrentDate = currentDate;
@@ -128,8 +132,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Entities
             MedicalLoadIndex = medicalLoadIndex;
             TriagePressureIndex = triagePressureIndex;
             RecoverySupportIndex = recoverySupportIndex;
+            WorkforceCommuteAccessibilityIndex = workforceCommuteAccessibilityIndex;
             WorkforceAttendanceIndex = workforceAttendanceIndex;
             WorkforceProductivityIndex = workforceProductivityIndex;
+            StudentCommuteAccessibilityIndex = studentCommuteAccessibilityIndex;
             StudentAttendanceIndex = studentAttendanceIndex;
         }
     }

@@ -129,8 +129,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 MedicalLoadIndex: projection?.MedicalLoadIndex,
                 TriagePressureIndex: projection?.TriagePressureIndex,
                 RecoverySupportIndex: projection?.RecoverySupportIndex,
+                WorkforceCommuteAccessibilityIndex: projection?.WorkforceCommuteAccessibilityIndex,
                 WorkforceAttendanceIndex: projection?.WorkforceAttendanceIndex,
                 WorkforceProductivityIndex: projection?.WorkforceProductivityIndex,
+                StudentCommuteAccessibilityIndex: projection?.StudentCommuteAccessibilityIndex,
                 StudentAttendanceIndex: projection?.StudentAttendanceIndex);
         }
 

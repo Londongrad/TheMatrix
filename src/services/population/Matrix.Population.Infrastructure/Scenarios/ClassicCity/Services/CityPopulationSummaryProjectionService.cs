@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -15,13 +16,15 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         PopulationDbContext dbContext,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
         CityPopulationParticipationPolicy participationPolicy,
-        CityPopulationHealthcarePressurePolicy healthcarePressurePolicy)
+        CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
+        ICityPopulationCommuteRoutingService commuteRoutingService)
         : ICityPopulationSummaryProjectionService
     {
         private readonly PopulationDbContext _dbContext = dbContext;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
         private readonly CityPopulationHealthcarePressurePolicy _healthcarePressurePolicy = healthcarePressurePolicy;
+        private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
 
         public Task UpdateAsync(
             CityId cityId,
@@ -153,7 +156,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     predicate: x => x.CityId == cityId,
                     cancellationToken: cancellationToken);
 
-            CityPopulationSummarySnapshotValues snapshotValues = BuildSnapshotValues(
+            CityPopulationSummarySnapshotValues snapshotValues = await BuildSnapshotValuesAsync(
+                cityId: cityId,
                 currentDate: currentDate,
                 persons: persons,
                 householdPlacements: resolvedPlacements,
@@ -162,7 +166,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 essentialsState: essentialsState,
                 districtImpactPolicy: _districtImpactPolicy,
                 participationPolicy: _participationPolicy,
-                healthcarePressurePolicy: _healthcarePressurePolicy);
+                healthcarePressurePolicy: _healthcarePressurePolicy,
+                commuteRoutingService: _commuteRoutingService,
+                cancellationToken: cancellationToken);
 
             await UpsertSummaryProjectionAsync(
                 cityId: cityId,
@@ -175,7 +181,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 cancellationToken: cancellationToken);
         }
 
-        private static CityPopulationSummarySnapshotValues BuildSnapshotValues(
+        private static async Task<CityPopulationSummarySnapshotValues> BuildSnapshotValuesAsync(
+            CityId cityId,
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
@@ -184,7 +191,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityPopulationEssentialsState? essentialsState,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy,
-            CityPopulationHealthcarePressurePolicy healthcarePressurePolicy)
+            CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
+            CancellationToken cancellationToken)
         {
             DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
             var housingByHouseholdId = householdPlacements
@@ -195,6 +204,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                .ToDictionary(
                     keySelector: x => x.HouseholdId,
                     elementSelector: x => x.DistrictId);
+            var residentialBuildingByHouseholdId = householdPlacements
+               .ToDictionary(
+                    keySelector: x => x.HouseholdId,
+                    elementSelector: x => x.ResidentialBuildingId);
 
             Person[] aliveResidents = persons
                .Where(x => x.IsAlive)
@@ -211,93 +224,96 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                     serviceQualityState: serviceQualityState,
                     livingConditionsState: livingConditionsState,
                     essentialsState: essentialsState);
-            decimal? workforceAttendanceIndex = employedResidents.Length == 0
-                ? null
-                : decimal.Round(
-                    d: employedResidents
-                       .Select(x => participationPolicy.ResolveEmploymentProfile(
-                            person: x,
-                            currentDate: currentDate,
-                            housingStatus: housingByHouseholdId.TryGetValue(
-                                key: x.HouseholdId,
-                                value: out HousingStatus residentHousingStatus)
-                                ? residentHousingStatus
-                                : null,
-                            livingConditions: districtImpactPolicy.ResolveLivingConditions(
-                                districtId: districtByHouseholdId.TryGetValue(
-                                    key: x.HouseholdId,
-                                    value: out DistrictId? districtId)
-                                    ? districtId
-                                    : null,
-                                livingConditionsState: livingConditionsState),
-                            essentials: districtImpactPolicy.ResolveEssentials(
-                                districtId: districtByHouseholdId.TryGetValue(
-                                    key: x.HouseholdId,
-                                    value: out districtId)
-                                    ? districtId
-                                    : null,
-                                essentialsState: essentialsState)).AttendanceIndex)
-                       .Average(),
-                    decimals: 4,
-                    mode: MidpointRounding.AwayFromZero);
-            decimal? workforceProductivityIndex = employedResidents.Length == 0
-                ? null
-                : decimal.Round(
-                    d: employedResidents
-                       .Select(x => participationPolicy.ResolveEmploymentProfile(
-                            person: x,
-                            currentDate: currentDate,
-                            housingStatus: housingByHouseholdId.TryGetValue(
-                                key: x.HouseholdId,
-                                value: out HousingStatus residentHousingStatus)
-                                ? residentHousingStatus
-                                : null,
-                            livingConditions: districtImpactPolicy.ResolveLivingConditions(
-                                districtId: districtByHouseholdId.TryGetValue(
-                                    key: x.HouseholdId,
-                                    value: out DistrictId? districtId)
-                                    ? districtId
-                                    : null,
-                                livingConditionsState: livingConditionsState),
-                            essentials: districtImpactPolicy.ResolveEssentials(
-                                districtId: districtByHouseholdId.TryGetValue(
-                                    key: x.HouseholdId,
-                                    value: out districtId)
-                                    ? districtId
-                                    : null,
-                                essentialsState: essentialsState)).ProductivityIndex)
-                       .Average(),
-                    decimals: 4,
-                    mode: MidpointRounding.AwayFromZero);
-            decimal? studentAttendanceIndex = studentResidents.Length == 0
-                ? null
-                : decimal.Round(
-                    d: studentResidents
-                       .Select(x => participationPolicy.ResolveStudentAttendanceIndex(
-                            person: x,
-                            currentDate: currentDate,
-                            housingStatus: housingByHouseholdId.TryGetValue(
-                                key: x.HouseholdId,
-                                value: out HousingStatus residentHousingStatus)
-                                ? residentHousingStatus
-                                : null,
-                            livingConditions: districtImpactPolicy.ResolveLivingConditions(
-                                districtId: districtByHouseholdId.TryGetValue(
-                                    key: x.HouseholdId,
-                                    value: out DistrictId? districtId)
-                                    ? districtId
-                                    : null,
-                                livingConditionsState: livingConditionsState),
-                            essentials: districtImpactPolicy.ResolveEssentials(
-                                districtId: districtByHouseholdId.TryGetValue(
-                                    key: x.HouseholdId,
-                                    value: out districtId)
-                                    ? districtId
-                                    : null,
-                                essentialsState: essentialsState)))
-                       .Average(),
-                    decimals: 4,
-                    mode: MidpointRounding.AwayFromZero);
+            List<decimal> workforceAttendanceSamples = [];
+            List<decimal> workforceProductivitySamples = [];
+            List<decimal> workforceCommuteAccessibilitySamples = [];
+            foreach (Person resident in employedResidents)
+            {
+                HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
+                    key: resident.HouseholdId,
+                    value: out HousingStatus resolvedHousingStatus)
+                    ? resolvedHousingStatus
+                    : null;
+                DistrictId? districtId = districtByHouseholdId.TryGetValue(
+                    key: resident.HouseholdId,
+                    value: out DistrictId? resolvedDistrictId)
+                    ? resolvedDistrictId
+                    : null;
+                ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
+                    key: resident.HouseholdId,
+                    value: out ResidentialBuildingId? resolvedResidentialBuildingId)
+                    ? resolvedResidentialBuildingId
+                    : null;
+                CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
+                    districtId: districtId,
+                    livingConditionsState: livingConditionsState);
+                CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
+                    districtId: districtId,
+                    essentialsState: essentialsState);
+                CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEmploymentCommuteAsync(
+                    cityId: cityId.Value,
+                    residentialBuildingId: residentialBuildingId,
+                    resident: resident,
+                    cancellationToken: cancellationToken);
+                CityPopulationParticipationProfile profile = participationPolicy.ResolveEmploymentProfile(
+                    person: resident,
+                    currentDate: currentDate,
+                    housingStatus: residentHousingStatus,
+                    livingConditions: districtLivingConditions,
+                    essentials: districtEssentials,
+                    commute: commute);
+                workforceAttendanceSamples.Add(profile.AttendanceIndex);
+                workforceProductivitySamples.Add(profile.ProductivityIndex);
+                workforceCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
+            }
+
+            decimal? workforceAttendanceIndex = AverageMetric(workforceAttendanceSamples);
+            decimal? workforceProductivityIndex = AverageMetric(workforceProductivitySamples);
+            decimal? workforceCommuteAccessibilityIndex = AverageMetric(workforceCommuteAccessibilitySamples);
+
+            List<decimal> studentAttendanceSamples = [];
+            List<decimal> studentCommuteAccessibilitySamples = [];
+            foreach (Person resident in studentResidents)
+            {
+                HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
+                    key: resident.HouseholdId,
+                    value: out HousingStatus resolvedHousingStatus)
+                    ? resolvedHousingStatus
+                    : null;
+                DistrictId? districtId = districtByHouseholdId.TryGetValue(
+                    key: resident.HouseholdId,
+                    value: out DistrictId? resolvedDistrictId)
+                    ? resolvedDistrictId
+                    : null;
+                ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
+                    key: resident.HouseholdId,
+                    value: out ResidentialBuildingId? resolvedResidentialBuildingId)
+                    ? resolvedResidentialBuildingId
+                    : null;
+                CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
+                    districtId: districtId,
+                    livingConditionsState: livingConditionsState);
+                CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
+                    districtId: districtId,
+                    essentialsState: essentialsState);
+                CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEducationCommuteAsync(
+                    cityId: cityId.Value,
+                    residentialBuildingId: residentialBuildingId,
+                    resident: resident,
+                    cancellationToken: cancellationToken);
+                studentAttendanceSamples.Add(
+                    participationPolicy.ResolveStudentAttendanceIndex(
+                        person: resident,
+                        currentDate: currentDate,
+                        housingStatus: residentHousingStatus,
+                        livingConditions: districtLivingConditions,
+                        essentials: districtEssentials,
+                        commute: commute));
+                studentCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
+            }
+
+            decimal? studentAttendanceIndex = AverageMetric(studentAttendanceSamples);
+            decimal? studentCommuteAccessibilityIndex = AverageMetric(studentCommuteAccessibilitySamples);
 
             return new CityPopulationSummarySnapshotValues(
                 CurrentDate: currentDate,
@@ -340,8 +356,10 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 MedicalLoadIndex: healthcarePressureProfile.MedicalLoadIndex,
                 TriagePressureIndex: healthcarePressureProfile.TriagePressureIndex,
                 RecoverySupportIndex: healthcarePressureProfile.RecoverySupportIndex,
+                WorkforceCommuteAccessibilityIndex: workforceCommuteAccessibilityIndex,
                 WorkforceAttendanceIndex: workforceAttendanceIndex,
                 WorkforceProductivityIndex: workforceProductivityIndex,
+                StudentCommuteAccessibilityIndex: studentCommuteAccessibilityIndex,
                 StudentAttendanceIndex: studentAttendanceIndex);
         }
 
@@ -353,9 +371,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             return _dbContext.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
                       INSERT INTO "CityPopulationSummaryProjections"
-                      ("CityId", "ActiveIllnessCount", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "CurrentDate", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "MedicalLoadIndex", "RecoverySupportIndex", "ResidentCount", "RetiredCount", "SeniorCount", "SevereIllnessCount", "StudentCount", "StudentAttendanceIndex", "TriagePressureIndex", "UnemployedCount", "UpdatedAtUtc", "WorkforceAttendanceIndex", "WorkforceProductivityIndex", "YouthCount")
+                      ("CityId", "ActiveIllnessCount", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "CurrentDate", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "MedicalLoadIndex", "RecoverySupportIndex", "ResidentCount", "RetiredCount", "SeniorCount", "SevereIllnessCount", "StudentCount", "StudentAttendanceIndex", "StudentCommuteAccessibilityIndex", "TriagePressureIndex", "UnemployedCount", "UpdatedAtUtc", "WorkforceAttendanceIndex", "WorkforceCommuteAccessibilityIndex", "WorkforceProductivityIndex", "YouthCount")
                       VALUES
-                      ({cityId.Value}, {snapshot.ActiveIllnessCount}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.CurrentDate}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.MedicalLoadIndex}, {snapshot.RecoverySupportIndex}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.SevereIllnessCount}, {snapshot.StudentCount}, {snapshot.StudentAttendanceIndex}, {snapshot.TriagePressureIndex}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.WorkforceAttendanceIndex}, {snapshot.WorkforceProductivityIndex}, {snapshot.YouthCount})
+                      ({cityId.Value}, {snapshot.ActiveIllnessCount}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.CurrentDate}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.MedicalLoadIndex}, {snapshot.RecoverySupportIndex}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.SevereIllnessCount}, {snapshot.StudentCount}, {snapshot.StudentAttendanceIndex}, {snapshot.StudentCommuteAccessibilityIndex}, {snapshot.TriagePressureIndex}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.WorkforceAttendanceIndex}, {snapshot.WorkforceCommuteAccessibilityIndex}, {snapshot.WorkforceProductivityIndex}, {snapshot.YouthCount})
                       ON CONFLICT ("CityId") DO UPDATE SET
                           "ActiveIllnessCount" = EXCLUDED."ActiveIllnessCount",
                           "AdultCount" = EXCLUDED."AdultCount",
@@ -381,10 +399,12 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                           "SevereIllnessCount" = EXCLUDED."SevereIllnessCount",
                           "StudentCount" = EXCLUDED."StudentCount",
                           "StudentAttendanceIndex" = EXCLUDED."StudentAttendanceIndex",
+                          "StudentCommuteAccessibilityIndex" = EXCLUDED."StudentCommuteAccessibilityIndex",
                           "TriagePressureIndex" = EXCLUDED."TriagePressureIndex",
                           "UnemployedCount" = EXCLUDED."UnemployedCount",
                           "UpdatedAtUtc" = EXCLUDED."UpdatedAtUtc",
                           "WorkforceAttendanceIndex" = EXCLUDED."WorkforceAttendanceIndex",
+                          "WorkforceCommuteAccessibilityIndex" = EXCLUDED."WorkforceCommuteAccessibilityIndex",
                           "WorkforceProductivityIndex" = EXCLUDED."WorkforceProductivityIndex",
                           "YouthCount" = EXCLUDED."YouthCount";
                       """,
@@ -399,9 +419,9 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             return _dbContext.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
                       INSERT INTO "CityPopulationDailySummarySnapshots"
-                      ("CityId", "SnapshotDate", "ActiveIllnessCount", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "MedicalLoadIndex", "RecoverySupportIndex", "ResidentCount", "RetiredCount", "SeniorCount", "SevereIllnessCount", "StudentCount", "StudentAttendanceIndex", "TriagePressureIndex", "UnemployedCount", "UpdatedAtUtc", "WorkforceAttendanceIndex", "WorkforceProductivityIndex", "YouthCount")
+                      ("CityId", "SnapshotDate", "ActiveIllnessCount", "AdultCount", "AverageEnergy", "AverageHappiness", "AverageHealth", "AverageSocialNeed", "AverageStress", "ChildCount", "DeceasedCount", "EmployedCount", "HomelessHouseholdCount", "HomelessResidentCount", "HousedHouseholdCount", "HousedResidentCount", "HouseholdCount", "MedicalLoadIndex", "RecoverySupportIndex", "ResidentCount", "RetiredCount", "SeniorCount", "SevereIllnessCount", "StudentCount", "StudentAttendanceIndex", "StudentCommuteAccessibilityIndex", "TriagePressureIndex", "UnemployedCount", "UpdatedAtUtc", "WorkforceAttendanceIndex", "WorkforceCommuteAccessibilityIndex", "WorkforceProductivityIndex", "YouthCount")
                       VALUES
-                      ({cityId.Value}, {snapshot.CurrentDate}, {snapshot.ActiveIllnessCount}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.MedicalLoadIndex}, {snapshot.RecoverySupportIndex}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.SevereIllnessCount}, {snapshot.StudentCount}, {snapshot.StudentAttendanceIndex}, {snapshot.TriagePressureIndex}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.WorkforceAttendanceIndex}, {snapshot.WorkforceProductivityIndex}, {snapshot.YouthCount})
+                      ({cityId.Value}, {snapshot.CurrentDate}, {snapshot.ActiveIllnessCount}, {snapshot.AdultCount}, {snapshot.AverageEnergy}, {snapshot.AverageHappiness}, {snapshot.AverageHealth}, {snapshot.AverageSocialNeed}, {snapshot.AverageStress}, {snapshot.ChildCount}, {snapshot.DeceasedCount}, {snapshot.EmployedCount}, {snapshot.HomelessHouseholdCount}, {snapshot.HomelessResidentCount}, {snapshot.HousedHouseholdCount}, {snapshot.HousedResidentCount}, {snapshot.HouseholdCount}, {snapshot.MedicalLoadIndex}, {snapshot.RecoverySupportIndex}, {snapshot.ResidentCount}, {snapshot.RetiredCount}, {snapshot.SeniorCount}, {snapshot.SevereIllnessCount}, {snapshot.StudentCount}, {snapshot.StudentAttendanceIndex}, {snapshot.StudentCommuteAccessibilityIndex}, {snapshot.TriagePressureIndex}, {snapshot.UnemployedCount}, {snapshot.UpdatedAtUtc}, {snapshot.WorkforceAttendanceIndex}, {snapshot.WorkforceCommuteAccessibilityIndex}, {snapshot.WorkforceProductivityIndex}, {snapshot.YouthCount})
                       ON CONFLICT ("CityId", "SnapshotDate") DO UPDATE SET
                           "ActiveIllnessCount" = EXCLUDED."ActiveIllnessCount",
                           "AdultCount" = EXCLUDED."AdultCount",
@@ -426,10 +446,12 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                           "SevereIllnessCount" = EXCLUDED."SevereIllnessCount",
                           "StudentCount" = EXCLUDED."StudentCount",
                           "StudentAttendanceIndex" = EXCLUDED."StudentAttendanceIndex",
+                          "StudentCommuteAccessibilityIndex" = EXCLUDED."StudentCommuteAccessibilityIndex",
                           "TriagePressureIndex" = EXCLUDED."TriagePressureIndex",
                           "UnemployedCount" = EXCLUDED."UnemployedCount",
                           "UpdatedAtUtc" = EXCLUDED."UpdatedAtUtc",
                           "WorkforceAttendanceIndex" = EXCLUDED."WorkforceAttendanceIndex",
+                          "WorkforceCommuteAccessibilityIndex" = EXCLUDED."WorkforceCommuteAccessibilityIndex",
                           "WorkforceProductivityIndex" = EXCLUDED."WorkforceProductivityIndex",
                           "YouthCount" = EXCLUDED."YouthCount";
                       """,
@@ -561,8 +583,20 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             decimal? MedicalLoadIndex,
             decimal? TriagePressureIndex,
             decimal? RecoverySupportIndex,
+            decimal? WorkforceCommuteAccessibilityIndex,
             decimal? WorkforceAttendanceIndex,
             decimal? WorkforceProductivityIndex,
+            decimal? StudentCommuteAccessibilityIndex,
             decimal? StudentAttendanceIndex);
+
+        private static decimal? AverageMetric(IReadOnlyCollection<decimal> values)
+        {
+            return values.Count == 0
+                ? null
+                : decimal.Round(
+                    d: values.Average(),
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero);
+        }
     }
 }

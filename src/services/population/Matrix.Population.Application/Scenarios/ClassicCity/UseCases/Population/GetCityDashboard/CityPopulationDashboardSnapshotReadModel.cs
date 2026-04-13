@@ -28,7 +28,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         decimal? MedicalLoadIndex,
         decimal? TriagePressureIndex,
         decimal? RecoverySupportIndex,
+        decimal? WorkforceCommuteAccessibilityIndex,
         decimal? WorkforceAttendanceIndex,
         decimal? WorkforceProductivityIndex,
+        decimal? StudentCommuteAccessibilityIndex,
         decimal? StudentAttendanceIndex);
 }

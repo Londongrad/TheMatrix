@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -15,7 +16,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
         CityHouseholdEconomyPolicy householdEconomyPolicy,
         CityHouseholdCashflowPolicy householdCashflowPolicy,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
-        CityPopulationParticipationPolicy participationPolicy)
+        CityPopulationParticipationPolicy participationPolicy,
+        ICityPopulationCommuteRoutingService commuteRoutingService)
         : ICityPopulationDashboardReadRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
@@ -23,6 +25,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
         private readonly CityHouseholdCashflowPolicy _householdCashflowPolicy = householdCashflowPolicy;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
+        private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
 
         public async Task<CityPopulationDashboardSnapshotReadModel?> GetCurrentSnapshotAsync(
             CityId cityId,
@@ -65,8 +68,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     medicalLoadIndex: projection.MedicalLoadIndex,
                     triagePressureIndex: projection.TriagePressureIndex,
                     recoverySupportIndex: projection.RecoverySupportIndex,
+                    workforceCommuteAccessibilityIndex: projection.WorkforceCommuteAccessibilityIndex,
                     workforceAttendanceIndex: projection.WorkforceAttendanceIndex,
                     workforceProductivityIndex: projection.WorkforceProductivityIndex,
+                    studentCommuteAccessibilityIndex: projection.StudentCommuteAccessibilityIndex,
                     studentAttendanceIndex: projection.StudentAttendanceIndex);
         }
 
@@ -112,8 +117,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     medicalLoadIndex: snapshot.MedicalLoadIndex,
                     triagePressureIndex: snapshot.TriagePressureIndex,
                     recoverySupportIndex: snapshot.RecoverySupportIndex,
+                    workforceCommuteAccessibilityIndex: snapshot.WorkforceCommuteAccessibilityIndex,
                     workforceAttendanceIndex: snapshot.WorkforceAttendanceIndex,
                     workforceProductivityIndex: snapshot.WorkforceProductivityIndex,
+                    studentCommuteAccessibilityIndex: snapshot.StudentCommuteAccessibilityIndex,
                     studentAttendanceIndex: snapshot.StudentAttendanceIndex);
         }
 
@@ -180,6 +187,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
                     cancellationToken: cancellationToken);
+            var residentialBuildingByHouseholdId = placements
+               .ToDictionary(
+                    keySelector: x => x.HouseholdId,
+                    elementSelector: x => x.ResidentialBuildingId);
 
             int stableHouseholdCount = 0;
             int strainedHouseholdCount = 0;
@@ -224,7 +235,16 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                             currentDate: currentDate,
                             housingStatus: placement.HousingStatus,
                             livingConditions: districtLivingConditions,
-                            essentials: districtEssentials).PayrollMultiplier
+                            essentials: districtEssentials,
+                            commute: await _commuteRoutingService.ResolveEmploymentCommuteAsync(
+                                cityId: cityId.Value,
+                                residentialBuildingId: residentialBuildingByHouseholdId.TryGetValue(
+                                    key: resident.HouseholdId,
+                                    value: out ResidentialBuildingId? residentialBuildingId)
+                                    ? residentialBuildingId
+                                    : null,
+                                resident: resident,
+                                cancellationToken: cancellationToken)).PayrollMultiplier
                         : 1m;
 
                     adjustedNetDailyIncomeAmount += _householdCashflowPolicy.BuildResidentIncome(
@@ -326,8 +346,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             decimal? medicalLoadIndex,
             decimal? triagePressureIndex,
             decimal? recoverySupportIndex,
+            decimal? workforceCommuteAccessibilityIndex,
             decimal? workforceAttendanceIndex,
             decimal? workforceProductivityIndex,
+            decimal? studentCommuteAccessibilityIndex,
             decimal? studentAttendanceIndex)
         {
             return new CityPopulationDashboardSnapshotReadModel(
@@ -358,8 +380,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                 MedicalLoadIndex: medicalLoadIndex,
                 TriagePressureIndex: triagePressureIndex,
                 RecoverySupportIndex: recoverySupportIndex,
+                WorkforceCommuteAccessibilityIndex: workforceCommuteAccessibilityIndex,
                 WorkforceAttendanceIndex: workforceAttendanceIndex,
                 WorkforceProductivityIndex: workforceProductivityIndex,
+                StudentCommuteAccessibilityIndex: studentCommuteAccessibilityIndex,
                 StudentAttendanceIndex: studentAttendanceIndex);
         }
     }
