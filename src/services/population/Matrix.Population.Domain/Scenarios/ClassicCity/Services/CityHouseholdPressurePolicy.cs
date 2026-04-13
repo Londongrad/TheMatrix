@@ -2,6 +2,7 @@ using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
 namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 {
@@ -12,6 +13,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
             CityPopulationHouseholdFinancialStressState? financialStressState,
+            CityHouseholdCommutePressureProfile? commutePressureProfile,
             DateOnly previousDate,
             DateOnly currentDate)
         {
@@ -40,6 +42,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     householdResidents: activeResidents,
                     housingStatus: housingStatus,
                     financialStressState: financialStressState,
+                    commutePressureProfile: commutePressureProfile,
                     currentDate: currentDate)
                .Scale(
                     Math.Clamp(
@@ -75,6 +78,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> householdResidents,
             HousingStatus? housingStatus,
             CityPopulationHouseholdFinancialStressState? financialStressState,
+            CityHouseholdCommutePressureProfile? commutePressureProfile,
             DateOnly currentDate)
         {
             int householdSize = householdResidents.Count;
@@ -172,6 +176,36 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             {
                 energyDelta -= 1;
                 happinessDelta -= 1;
+            }
+
+            if (commutePressureProfile is not null &&
+                commutePressureProfile.RoutedResidentCount > 0)
+            {
+                double accessibilityDeficit = (double)commutePressureProfile.AccessibilityDeficitIndex;
+                double travelFatigue = (double)commutePressureProfile.TravelFatigueIndex;
+
+                if (resident.Employment.Status is EmploymentStatus.Employed or EmploymentStatus.Student)
+                {
+                    stressDelta += Math.Min(
+                        val1: 2,
+                        val2: (int)Math.Round(accessibilityDeficit * 3d, MidpointRounding.AwayFromZero));
+                    energyDelta -= Math.Min(
+                        val1: 2,
+                        val2: (int)Math.Round(travelFatigue * 2d, MidpointRounding.AwayFromZero));
+
+                    if (commutePressureProfile.BlockedRouteCount > 0)
+                    {
+                        happinessDelta -= 1;
+                        stressDelta += 1;
+                    }
+                }
+
+                if (commutePressureProfile.BlockedRouteCount > 0 &&
+                    (resident.HasActiveIllness || resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior))
+                {
+                    stressDelta += 1;
+                    happinessDelta -= 1;
+                }
             }
 
             if (IsRecentFinancialStress(
