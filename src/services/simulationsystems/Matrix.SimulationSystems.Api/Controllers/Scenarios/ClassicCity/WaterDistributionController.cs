@@ -1,6 +1,7 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.DispatchCityWaterDistributionMaintenance;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityDistrictWaterDistributionConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.GetCityWaterDistributionStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.SetCityWaterDistributionEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
@@ -29,6 +30,20 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
             return status is null
                 ? Results.NotFound()
                 : Results.Ok(MapToView(status));
+        }
+
+        [HttpGet("{cityId:guid}/water-distribution/districts")]
+        public async Task<IResult> GetDistricts(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityDistrictWaterDistributionConditionsDto? status = await mediator.Send(
+                request: new GetCityDistrictWaterDistributionConditionsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return status is null
+                ? Results.NotFound()
+                : Results.Ok(MapToDistrictConditionsView(status));
         }
 
         [HttpPut("{cityId:guid}/water-distribution/emergency-mode")]
@@ -111,6 +126,31 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                     Focus: dto.Focus,
                     Intensity: dto.Intensity,
                     ReadyAtTickId: dto.ReadyAtTickId);
+        }
+
+        private static CityDistrictWaterDistributionConditionsView MapToDistrictConditionsView(
+            CityDistrictWaterDistributionConditionsDto dto)
+        {
+            return new CityDistrictWaterDistributionConditionsView(
+                CityId: dto.CityId,
+                EffectiveTickId: dto.EffectiveTickId,
+                LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                WaterSupportIndex: dto.WaterSupportIndex,
+                Districts: dto.Districts
+                    .Select(MapToDistrictConditionView)
+                    .ToArray());
+        }
+
+        private static CityDistrictWaterDistributionConditionView MapToDistrictConditionView(
+            CityDistrictWaterDistributionConditionDto dto)
+        {
+            return new CityDistrictWaterDistributionConditionView(
+                DistrictId: dto.DistrictId,
+                WaterCoverageIndex: dto.WaterCoverageIndex,
+                WaterSupportIndex: dto.WaterSupportIndex,
+                DisruptionRiskIndex: dto.DisruptionRiskIndex,
+                QualityRiskIndex: dto.QualityRiskIndex,
+                MaintenancePriorityIndex: dto.MaintenancePriorityIndex);
         }
     }
 }
