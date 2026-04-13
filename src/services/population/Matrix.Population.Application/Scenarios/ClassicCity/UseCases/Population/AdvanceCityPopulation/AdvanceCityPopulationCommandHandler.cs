@@ -198,6 +198,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                            .ToDictionary(
                                 keySelector: x => x.HouseholdId,
                                 elementSelector: x => x.DistrictId);
+                        IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId =
+                            placementsSnapshot.ToDictionary(
+                                keySelector: x => x.HouseholdId,
+                                elementSelector: x => x.ResidentialBuildingId);
                         IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState>
                             financialStressByHouseholdId =
                                 (await householdFinancialStressStateRepository.ListByCityAsync(
@@ -244,8 +248,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         {
                             ResidentLifecycleSnapshot beforeSnapshot = CreateResidentSnapshot(person);
 
-                            if (ApplyProgressionNeedsExposureAndIllness(
+                            if (await ApplyProgressionNeedsExposureAndIllnessAsync(
                                     person: person,
+                                    cityId: cityId,
                                     residentsById: personsById,
                                     householdsById: householdsById,
                                     residentsByHouseholdId: residentsByHouseholdId,
@@ -259,6 +264,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     exposureSegments: exposureSegments,
                                     housingByHouseholdId: housingByHouseholdId,
                                     districtByHouseholdId: districtByHouseholdId,
+                                    residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                                     workplaceAnchors: workplaceAnchors,
                                     schoolAnchors: schoolAnchors,
@@ -281,7 +287,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     institutionPools: institutionPools,
                                     workplacePools: workplacePools,
                                     personNeedsProgressionPolicy: personNeedsProgressionPolicy,
-                                    weatherExposurePolicy: weatherExposurePolicy))
+                                    weatherExposurePolicy: weatherExposurePolicy,
+                                    commuteRoutingService: commuteRoutingService,
+                                    cancellationToken: ct))
                             {
                                 affectedPeopleCount++;
                                 CollectResidentProgressionActivity(
@@ -505,8 +513,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 AffectedPeopleCount: affectedPeopleCount);
         }
 
-        private static bool ApplyProgressionNeedsExposureAndIllness(
+        private static async Task<bool> ApplyProgressionNeedsExposureAndIllnessAsync(
             PersonEntity person,
+            CityId cityId,
             IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
@@ -520,6 +529,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
+            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
             CityPopulationCostOfLivingState? costOfLivingState,
@@ -542,7 +552,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
             IDictionary<string, List<Job>> workplacePools,
             PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
-            CityPopulationWeatherExposurePolicy weatherExposurePolicy)
+            CityPopulationWeatherExposurePolicy weatherExposurePolicy,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
+            CancellationToken cancellationToken)
         {
             bool changed = false;
             if (requiresNeedsProgression &&
@@ -610,13 +622,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     weatherExposurePolicy: weatherExposurePolicy))
                 changed = true;
             if (requiresDateProgression &&
-                ApplyIllnessProgression(
+                await ApplyIllnessProgressionAsync(
                     person: person,
+                    cityId: cityId,
                     residentsById: residentsById,
                     previousDate: previousDate,
                     currentDate: currentDate,
                     housingByHouseholdId: housingByHouseholdId,
                     districtByHouseholdId: districtByHouseholdId,
+                    residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                     exposureSegments: exposureSegments,
                     livingConditionsState: livingConditionsState,
                     essentialsState: essentialsState,
@@ -628,7 +642,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     anchorSelectionPolicy: anchorSelectionPolicy,
                     hospitalAnchors: hospitalAnchors,
                     districtImpactPolicy: districtImpactPolicy,
-                    livingConditionsPressurePolicy: livingConditionsPressurePolicy))
+                    livingConditionsPressurePolicy: livingConditionsPressurePolicy,
+                    commuteRoutingService: commuteRoutingService,
+                    cancellationToken: cancellationToken))
                 changed = true;
             return changed;
         }
@@ -1157,13 +1173,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 currentDate: currentDate);
         }
 
-        private static bool ApplyIllnessProgression(
+        private static async Task<bool> ApplyIllnessProgressionAsync(
             PersonEntity person,
+            CityId cityId,
             IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
             DateOnly previousDate,
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
+            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             CityPopulationLivingConditionsState? livingConditionsState,
             CityPopulationEssentialsState? essentialsState,
@@ -1175,7 +1193,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
-            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy)
+            CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
+            CancellationToken cancellationToken)
         {
             HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(
                 key: person.HouseholdId,
@@ -1202,6 +1222,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 anchors: hospitalAnchors,
                 preferredDistrictId: districtId,
                 stableKey: person.Id.Value);
+            ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
+                key: person.HouseholdId,
+                value: out ResidentialBuildingId? resolvedResidentialBuildingId)
+                ? resolvedResidentialBuildingId
+                : null;
+            CityPopulationCommuteContext healthcareCommute = await commuteRoutingService.ResolveHealthcareCommuteAsync(
+                cityId: cityId.Value,
+                residentialBuildingId: residentialBuildingId,
+                healthcareAnchorId: primaryCareAnchor?.CityAnchorId,
+                cancellationToken: cancellationToken);
             double healthcareSupportStrength = healthcareAutonomyPolicy.ResolveSupportStrength(
                 resident: person,
                 householdResidents: householdResidents,
@@ -1209,6 +1239,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 currentDate: currentDate,
                 hasPrimaryCareAccess: primaryCareAnchor is not null,
                 hasDistrictPrimaryCareAccess: primaryCareAnchor?.DistrictId == districtId,
+                healthcareCommute: healthcareCommute,
                 serviceQualityState: serviceQualityState,
                 healthcarePressureProfile: healthcarePressureProfile) *
                   livingConditionsPressurePolicy.ResolveMedicineAccessStrength(

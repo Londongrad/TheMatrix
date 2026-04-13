@@ -48,6 +48,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
                 cancellationToken: cancellationToken);
         }
 
+        public Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            CityAnchorId? healthcareAnchorId,
+            CancellationToken cancellationToken)
+        {
+            return ResolveAsync(
+                cityId: cityId,
+                residentialBuildingId: residentialBuildingId,
+                destinationAnchorId: healthcareAnchorId,
+                profile: CityPopulationCommuteRoutingProfiles.Pedestrian,
+                cancellationToken: cancellationToken);
+        }
+
         private async Task<CityPopulationCommuteContext> ResolveAsync(
             Guid cityId,
             ResidentialBuildingId? residentialBuildingId,

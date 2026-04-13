@@ -15,6 +15,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             bool hasPrimaryCareAccess,
             bool hasDistrictPrimaryCareAccess,
+            CityPopulationCommuteContext? healthcareCommute = null,
             CityPopulationServiceQualityState? serviceQualityState = null,
             CityPopulationHealthcarePressureProfile? healthcarePressureProfile = null)
         {
@@ -53,6 +54,34 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 access += hasDistrictPrimaryCareAccess
                     ? 0.05d
                     : 0.02d;
+
+            if (healthcareCommute is not null)
+            {
+                double accessibility = Math.Clamp(
+                    value: (double)healthcareCommute.AccessibilityIndex,
+                    min: 0d,
+                    max: 1d);
+                double passability = Math.Clamp(
+                    value: (double)healthcareCommute.PassabilityIndex,
+                    min: 0d,
+                    max: 1d);
+
+                access *= 0.55d + (accessibility * 0.45d);
+                access *= 0.75d + (passability * 0.25d);
+
+                if (!healthcareCommute.IsAccessible)
+                    access *= 0.45d;
+
+                if (healthcareCommute.EstimatedTravelTimeMinutes.HasValue)
+                {
+                    double travelTimeMinutes = (double)healthcareCommute.EstimatedTravelTimeMinutes.Value;
+                    if (travelTimeMinutes >= 90d)
+                        access *= 0.75d;
+                    else
+                        if (travelTimeMinutes >= 45d)
+                            access *= 0.88d;
+                }
+            }
 
             if (!livelihood.HasStructuredSupport)
                 access *= 0.60d;

@@ -17,5 +17,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.A
             ResidentialBuildingId? residentialBuildingId,
             Person resident,
             CancellationToken cancellationToken);
+
+        Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            CityAnchorId? healthcareAnchorId,
+            CancellationToken cancellationToken);
     }
 }
