@@ -1,6 +1,7 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.GetCityDistrictHeatingConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.GetCityHeatingStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.SetCityHeatingEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
@@ -29,6 +30,20 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
             return status is null
                 ? Results.NotFound()
                 : Results.Ok(MapToView(status));
+        }
+
+        [HttpGet("{cityId:guid}/heating/districts")]
+        public async Task<IResult> GetDistricts(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityDistrictHeatingConditionsDto? status = await mediator.Send(
+                request: new GetCityDistrictHeatingConditionsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return status is null
+                ? Results.NotFound()
+                : Results.Ok(MapToDistrictConditionsView(status));
         }
 
         [HttpPut("{cityId:guid}/heating/emergency-mode")]
@@ -111,6 +126,31 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                     Focus: dto.Focus,
                     Intensity: dto.Intensity,
                     ReadyAtTickId: dto.ReadyAtTickId);
+        }
+
+        private static CityDistrictHeatingConditionsView MapToDistrictConditionsView(
+            CityDistrictHeatingConditionsDto dto)
+        {
+            return new CityDistrictHeatingConditionsView(
+                CityId: dto.CityId,
+                EffectiveTickId: dto.EffectiveTickId,
+                LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                HeatingSupportIndex: dto.HeatingSupportIndex,
+                Districts: dto.Districts
+                    .Select(MapToDistrictConditionView)
+                    .ToArray());
+        }
+
+        private static CityDistrictHeatingConditionView MapToDistrictConditionView(
+            CityDistrictHeatingConditionDto dto)
+        {
+            return new CityDistrictHeatingConditionView(
+                DistrictId: dto.DistrictId,
+                HeatingCoverageIndex: dto.HeatingCoverageIndex,
+                HeatingSupportIndex: dto.HeatingSupportIndex,
+                OutageRiskIndex: dto.OutageRiskIndex,
+                ComfortStressIndex: dto.ComfortStressIndex,
+                MaintenancePriorityIndex: dto.MaintenancePriorityIndex);
         }
     }
 }
