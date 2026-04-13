@@ -375,6 +375,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 costOfLivingState: costOfLivingState,
                                 serviceQualityState: serviceQualityState,
                                 housingAutonomyPolicy: housingAutonomyPolicy,
+                                anchorSelectionPolicy: anchorSelectionPolicy,
+                                cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
+                                commuteRoutingService: commuteRoutingService,
                                 activityEntries: pendingActivityEntries,
                                 cancellationToken: ct);
                         }
@@ -1550,6 +1553,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationServiceQualityState? serviceQualityState,
             CityHousingAutonomyPolicy housingAutonomyPolicy,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
             CancellationToken cancellationToken)
         {
@@ -1593,6 +1599,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var placementsByHousehold = placements.ToDictionary(
                 keySelector: x => x.HouseholdId,
                 elementSelector: x => x);
+            IReadOnlyList<CityPopulationAnchorCatalogItem> hospitalAnchors =
+                await cityPopulationAnchorCatalogRepository.ListByCityAsync(
+                    cityId: cityId,
+                    type: CityAnchorType.Hospital,
+                    cancellationToken: cancellationToken);
 
             List<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> housingPool =
                 BuildHousingOpportunityPool(placements);
@@ -1622,10 +1633,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             continue;
 
                         (DistrictId districtId, ResidentialBuildingId residentialBuildingId) opportunity =
-                            SelectHousingOpportunity(
+                            await SelectHousingOpportunityAsync(
+                                cityId: cityId,
                                 householdId: placement.HouseholdId,
                                 currentDate: currentDate,
-                                housingPool: housingPool);
+                                housingPool: housingPool,
+                                householdResidents: householdResidents,
+                                hospitalAnchors: hospitalAnchors,
+                                anchorSelectionPolicy: anchorSelectionPolicy,
+                                commuteRoutingService: commuteRoutingService,
+                                cancellationToken: cancellationToken);
 
                         placement.Relocate(
                             cityId: cityId,
@@ -1835,18 +1852,153 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                .First();
         }
 
-        private static (DistrictId districtId, ResidentialBuildingId residentialBuildingId) SelectHousingOpportunity(
+        private static async Task<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> SelectHousingOpportunityAsync(
+            CityId cityId,
             HouseholdId householdId,
             DateOnly currentDate,
-            IReadOnlyList<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> housingPool)
+            IReadOnlyList<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> housingPool,
+            IReadOnlyCollection<PersonEntity> householdResidents,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
+            CancellationToken cancellationToken)
         {
-            int index = GetStableInt(
+            int startIndex = GetStableInt(
                 householdId: householdId,
                 currentDate: currentDate,
                 salt: 1_123,
                 modulus: housingPool.Count);
+            int candidateCount = Math.Min(
+                val1: housingPool.Count,
+                val2: 12);
+            decimal bestScore = decimal.MinValue;
+            int bestIndex = startIndex;
 
-            return housingPool[index];
+            for (int offset = 0; offset < candidateCount; offset++)
+            {
+                int candidateIndex = (startIndex + offset) % housingPool.Count;
+                (DistrictId districtId, ResidentialBuildingId residentialBuildingId) candidate = housingPool[candidateIndex];
+                decimal candidateScore = await EvaluateHousingOpportunityScoreAsync(
+                    cityId: cityId,
+                    districtId: candidate.districtId,
+                    residentialBuildingId: candidate.residentialBuildingId,
+                    currentDate: currentDate,
+                    householdResidents: householdResidents,
+                    hospitalAnchors: hospitalAnchors,
+                    anchorSelectionPolicy: anchorSelectionPolicy,
+                    commuteRoutingService: commuteRoutingService,
+                    cancellationToken: cancellationToken);
+
+                if (candidateScore > bestScore)
+                {
+                    bestScore = candidateScore;
+                    bestIndex = candidateIndex;
+                }
+            }
+
+            return housingPool[bestIndex];
+        }
+
+        private static async Task<decimal> EvaluateHousingOpportunityScoreAsync(
+            CityId cityId,
+            DistrictId districtId,
+            ResidentialBuildingId residentialBuildingId,
+            DateOnly currentDate,
+            IReadOnlyCollection<PersonEntity> householdResidents,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
+            CancellationToken cancellationToken)
+        {
+            decimal weightedScoreTotal = 0m;
+            decimal totalWeight = 0m;
+
+            foreach (PersonEntity resident in householdResidents)
+            {
+                if (!resident.IsAlive)
+                    continue;
+
+                if (resident.Employment.Job?.WorkplaceAnchorId is { } workplaceAnchorId)
+                {
+                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
+                        cityId: cityId.Value,
+                        residentialBuildingId: residentialBuildingId,
+                        destinationAnchorId: workplaceAnchorId,
+                        cancellationToken: cancellationToken);
+                    weightedScoreTotal += ResolveHousingOpportunityContribution(
+                        commute: commute,
+                        weight: 1.20m);
+                    totalWeight += 1.20m;
+                }
+
+                if (resident.Education.CurrentInstitutionAnchorId is { } institutionAnchorId)
+                {
+                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
+                        cityId: cityId.Value,
+                        residentialBuildingId: residentialBuildingId,
+                        destinationAnchorId: institutionAnchorId,
+                        cancellationToken: cancellationToken);
+                    weightedScoreTotal += ResolveHousingOpportunityContribution(
+                        commute: commute,
+                        weight: 1.00m);
+                    totalWeight += 1.00m;
+                }
+
+                bool needsHealthcarePriority = resident.HasActiveIllness ||
+                                               resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
+                if (!needsHealthcarePriority)
+                    continue;
+
+                CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
+                    anchors: hospitalAnchors,
+                    preferredDistrictId: districtId,
+                    stableKey: resident.Id.Value);
+                if (primaryCareAnchor is null)
+                    continue;
+
+                CityPopulationCommuteContext healthcareCommute = await commuteRoutingService.ResolveAnchorCommuteAsync(
+                    cityId: cityId.Value,
+                    residentialBuildingId: residentialBuildingId,
+                    destinationAnchorId: primaryCareAnchor.CityAnchorId,
+                    cancellationToken: cancellationToken);
+                decimal healthcareWeight = resident.CurrentIllnessSeverity == IllnessSeverity.Severe
+                    ? 1.10m
+                    : resident.HasActiveIllness
+                        ? 0.80m
+                        : 0.45m;
+                weightedScoreTotal += ResolveHousingOpportunityContribution(
+                    commute: healthcareCommute,
+                    weight: healthcareWeight);
+                totalWeight += healthcareWeight;
+            }
+
+            if (totalWeight <= 0m)
+                return 0m;
+
+            return decimal.Round(
+                d: weightedScoreTotal / totalWeight,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal ResolveHousingOpportunityContribution(
+            CityPopulationCommuteContext commute,
+            decimal weight)
+        {
+            decimal etaScore = commute.EstimatedTravelTimeMinutes.HasValue
+                ? decimal.Clamp(
+                    value: 1m - (commute.EstimatedTravelTimeMinutes.Value / 120m),
+                    min: 0m,
+                    max: 1m)
+                : 1m;
+            decimal rawScore = (commute.AccessibilityIndex * 0.65m) +
+                               (commute.PassabilityIndex * 0.20m) +
+                               (etaScore * 0.15m);
+
+            if (!commute.IsAccessible)
+                rawScore *= 0.30m;
+
+            return rawScore * weight;
         }
 
         private static int GetStableInt(
