@@ -1,6 +1,7 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.DispatchCityPowerDistributionMaintenance;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityDistrictPowerDistributionConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.GetCityPowerDistributionStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.SetCityPowerDistributionEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
@@ -29,6 +30,20 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
             return status is null
                 ? Results.NotFound()
                 : Results.Ok(MapToView(status));
+        }
+
+        [HttpGet("{cityId:guid}/power-distribution/districts")]
+        public async Task<IResult> GetDistricts(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityDistrictPowerDistributionConditionsDto? status = await mediator.Send(
+                request: new GetCityDistrictPowerDistributionConditionsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return status is null
+                ? Results.NotFound()
+                : Results.Ok(MapToDistrictConditionsView(status));
         }
 
         [HttpPut("{cityId:guid}/power-distribution/emergency-mode")]
@@ -111,6 +126,31 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                     Focus: dto.Focus,
                     Intensity: dto.Intensity,
                     ReadyAtTickId: dto.ReadyAtTickId);
+        }
+
+        private static CityDistrictPowerDistributionConditionsView MapToDistrictConditionsView(
+            CityDistrictPowerDistributionConditionsDto dto)
+        {
+            return new CityDistrictPowerDistributionConditionsView(
+                CityId: dto.CityId,
+                EffectiveTickId: dto.EffectiveTickId,
+                LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                PowerSupportIndex: dto.PowerSupportIndex,
+                Districts: dto.Districts
+                    .Select(MapToDistrictConditionView)
+                    .ToArray());
+        }
+
+        private static CityDistrictPowerDistributionConditionView MapToDistrictConditionView(
+            CityDistrictPowerDistributionConditionDto dto)
+        {
+            return new CityDistrictPowerDistributionConditionView(
+                DistrictId: dto.DistrictId,
+                PowerCoverageIndex: dto.PowerCoverageIndex,
+                PowerSupportIndex: dto.PowerSupportIndex,
+                OutageRiskIndex: dto.OutageRiskIndex,
+                RestorationStrainIndex: dto.RestorationStrainIndex,
+                MaintenancePriorityIndex: dto.MaintenancePriorityIndex);
         }
     }
 }
