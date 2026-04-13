@@ -30,6 +30,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
             IDictionary<string, List<Job>> workplacePools,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
+            IReadOnlyCollection<CityAnchorId>? preferredWorkplaceAnchorIds = null,
             CityPopulationCostOfLivingState? costOfLivingState = null)
         {
             ArgumentNullException.ThrowIfNull(person);
@@ -66,6 +67,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     preferredDistrictId: preferredDistrictId,
                     workplaceAnchors: workplaceAnchors,
                     workplacePools: workplacePools,
+                    preferredWorkplaceAnchorIds: preferredWorkplaceAnchorIds,
                     employerStressByWorkplaceId: employerStressByWorkplaceId),
                 EmploymentStatus.Employed => TryTriggerJobLoss(
                     person: person,
@@ -85,7 +87,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DistrictId? preferredDistrictId,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
             IDictionary<string, List<Job>> workplacePools,
-            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
+            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
+            IReadOnlyCollection<CityAnchorId>? preferredWorkplaceAnchorIds)
         {
             PopulationProfessionCatalogItem profession = PickProfession(
                 personId: person.Id,
@@ -114,7 +117,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 preferredDistrictId: preferredDistrictId,
                 workplaceAnchors: workplaceAnchors,
                 workplacePools: workplacePools,
-                employerStressByWorkplaceId: employerStressByWorkplaceId);
+                employerStressByWorkplaceId: employerStressByWorkplaceId,
+                preferredWorkplaceAnchorIds: preferredWorkplaceAnchorIds);
 
             if (job is null)
                 return false;
@@ -162,7 +166,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DistrictId? preferredDistrictId,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
             IDictionary<string, List<Job>> workplacePools,
-            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId)
+            IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
+            IReadOnlyCollection<CityAnchorId>? preferredWorkplaceAnchorIds)
         {
             if (!workplacePools.TryGetValue(
                     key: jobTitle,
@@ -178,6 +183,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                          value: out CityPopulationEmployerFinancialStressState? stressState) ||
                                      !stressState.HasHiringFreeze)
                .ToList();
+            List<Job> orderedOpenPool = OrderByPreferredAnchors(
+                jobs: openPool,
+                preferredWorkplaceAnchorIds: preferredWorkplaceAnchorIds);
 
             if (titlePool.Count > 0 && openPool.Count == 0)
                 return null;
@@ -198,7 +206,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 CityAnchorId? workplaceAnchorId = anchorSelectionPolicy.SelectWorkplaceAnchor(
                     anchors: workplaceAnchors,
                     preferredDistrictId: preferredDistrictId,
-                    stableKey: person.Id.Value)?.CityAnchorId;
+                    stableKey: person.Id.Value,
+                    preferredAnchorIds: preferredWorkplaceAnchorIds)?.CityAnchorId;
                 var created = new Job(
                     workplaceId: WorkplaceId.New(),
                     title: jobTitle,
@@ -207,13 +216,18 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return created;
             }
 
+            int candidateCount = Math.Min(
+                val1: orderedOpenPool.Count,
+                val2: preferredWorkplaceAnchorIds is not null && preferredWorkplaceAnchorIds.Count > 0
+                    ? 3
+                    : orderedOpenPool.Count);
             int stableIndex = GetStableInt(
                 personId: person.Id,
                 currentDate: currentDate,
                 salt: 97,
-                modulus: openPool.Count);
+                modulus: candidateCount);
 
-            return openPool[stableIndex];
+            return orderedOpenPool[stableIndex];
         }
 
         private PopulationProfessionCatalogItem PickProfession(
@@ -467,6 +481,37 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                        salt: salt,
                        modulus: 10_000) /
                    10_000d;
+        }
+
+        private static List<Job> OrderByPreferredAnchors(
+            IReadOnlyCollection<Job> jobs,
+            IReadOnlyCollection<CityAnchorId>? preferredWorkplaceAnchorIds)
+        {
+            List<Job> orderedJobs = jobs.ToList();
+            if (preferredWorkplaceAnchorIds is null || preferredWorkplaceAnchorIds.Count == 0)
+                return orderedJobs;
+
+            var preferredOrder = preferredWorkplaceAnchorIds
+               .Select(
+                    (anchorId, index) => new
+                    {
+                        anchorId,
+                        index
+                    })
+               .ToDictionary(
+                    keySelector: x => x.anchorId,
+                    elementSelector: x => x.index);
+
+            return orderedJobs
+               .OrderBy(x => x.WorkplaceAnchorId is not null && preferredOrder.ContainsKey(x.WorkplaceAnchorId.Value)
+                    ? 0
+                    : 1)
+               .ThenBy(x => x.WorkplaceAnchorId is not null && preferredOrder.TryGetValue(
+                    key: x.WorkplaceAnchorId.Value,
+                    value: out int order)
+                    ? order
+                    : int.MaxValue)
+               .ToList();
         }
 
         private readonly record struct EmployerMarketAvailability(

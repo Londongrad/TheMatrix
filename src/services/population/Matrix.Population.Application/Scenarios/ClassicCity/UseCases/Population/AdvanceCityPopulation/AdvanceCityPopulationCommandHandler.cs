@@ -569,7 +569,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     personNeedsProgressionPolicy: personNeedsProgressionPolicy))
                 changed = true;
             if (requiresDateProgression &&
-                ApplyTimeProgression(
+                await ApplyTimeProgressionAsync(
+                    cityId: cityId,
                     person: person,
                     householdsById: householdsById,
                     residentsByHouseholdId: residentsByHouseholdId,
@@ -577,6 +578,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     currentDate: currentDate,
                     housingByHouseholdId: housingByHouseholdId,
                     districtByHouseholdId: districtByHouseholdId,
+                    residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                     employerStressByWorkplaceId: employerStressByWorkplaceId,
                     costOfLivingState: costOfLivingState,
                     serviceQualityState: serviceQualityState,
@@ -585,7 +587,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     institutionPools: institutionPools,
                     workplaceAnchors: workplaceAnchors,
                     schoolAnchors: schoolAnchors,
-                    workplacePools: workplacePools))
+                    workplacePools: workplacePools,
+                    commuteRoutingService: commuteRoutingService,
+                    cancellationToken: cancellationToken))
                 changed = true;
             if (requiresDateProgression &&
                 ApplyHouseholdPressureProgression(
@@ -678,7 +682,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return changed;
         }
 
-        private static bool ApplyTimeProgression(
+        private static async Task<bool> ApplyTimeProgressionAsync(
+            CityId cityId,
             PersonEntity person,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
@@ -686,6 +691,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly currentDate,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
+            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             IReadOnlyDictionary<WorkplaceId, CityPopulationEmployerFinancialStressState> employerStressByWorkplaceId,
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationServiceQualityState? serviceQualityState,
@@ -694,7 +700,9 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> workplaceAnchors,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
-            IDictionary<string, List<Job>> workplacePools)
+            IDictionary<string, List<Job>> workplacePools,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
+            CancellationToken cancellationToken)
         {
             bool changed = false;
             if (!person.IsAlive)
@@ -709,10 +717,27 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 value: out HousingStatus resolvedHousingStatus)
                 ? resolvedHousingStatus
                 : null;
+            ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
+                key: person.HouseholdId,
+                value: out ResidentialBuildingId? resolvedResidentialBuildingId)
+                ? resolvedResidentialBuildingId
+                : null;
             if (!householdsById.TryGetValue(
                     key: person.HouseholdId,
                     value: out HouseholdEntity? household))
                 return false;
+            IReadOnlyList<CityAnchorId> preferredSchoolAnchorIds = await RankAnchorIdsByRouteAccessAsync(
+                cityId: cityId,
+                residentialBuildingId: residentialBuildingId,
+                anchors: schoolAnchors,
+                commuteRoutingService: commuteRoutingService,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityAnchorId> preferredWorkplaceAnchorIds = await RankAnchorIdsByRouteAccessAsync(
+                cityId: cityId,
+                residentialBuildingId: residentialBuildingId,
+                anchors: workplaceAnchors,
+                commuteRoutingService: commuteRoutingService,
+                cancellationToken: cancellationToken);
             if (educationAutonomyPolicy.Apply(
                     person: person,
                     previousDate: previousDate,
@@ -724,6 +749,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         ? schoolDistrictId
                         : null,
                     schoolAnchors: schoolAnchors,
+                    preferredInstitutionAnchorIds: preferredSchoolAnchorIds,
                     serviceQualityState: serviceQualityState))
                 changed = true;
             if (employmentAutonomyPolicy.Apply(
@@ -741,6 +767,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     workplaceAnchors: workplaceAnchors,
                     workplacePools: workplacePools,
                     employerStressByWorkplaceId: employerStressByWorkplaceId,
+                    preferredWorkplaceAnchorIds: preferredWorkplaceAnchorIds,
                     costOfLivingState: costOfLivingState))
                 changed = true;
             if (person.GetAgeGroup(currentDate) != AgeGroup.Senior)
@@ -749,6 +776,36 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 return changed;
             person.Retire(currentDate);
             return true;
+        }
+
+        private static async Task<IReadOnlyList<CityAnchorId>> RankAnchorIdsByRouteAccessAsync(
+            CityId cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> anchors,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
+            CancellationToken cancellationToken)
+        {
+            if (!residentialBuildingId.HasValue || anchors.Count == 0)
+                return [];
+
+            var rankedAnchors = new List<(CityAnchorId AnchorId, CityPopulationCommuteContext Commute)>(anchors.Count);
+            foreach (CityPopulationAnchorCatalogItem anchor in anchors)
+            {
+                CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
+                    cityId: cityId.Value,
+                    residentialBuildingId: residentialBuildingId,
+                    destinationAnchorId: anchor.CityAnchorId,
+                    cancellationToken: cancellationToken);
+                rankedAnchors.Add((anchor.CityAnchorId, commute));
+            }
+
+            return rankedAnchors
+               .OrderByDescending(x => x.Commute.IsAccessible)
+               .ThenByDescending(x => x.Commute.AccessibilityIndex)
+               .ThenByDescending(x => x.Commute.PassabilityIndex)
+               .ThenBy(x => x.Commute.EstimatedTravelTimeMinutes ?? decimal.MaxValue)
+               .Select(x => x.AnchorId)
+               .ToArray();
         }
 
         private static bool ApplyLivingConditionsProgression(

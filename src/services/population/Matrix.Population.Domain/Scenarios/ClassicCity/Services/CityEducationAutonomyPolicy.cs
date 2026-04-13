@@ -19,6 +19,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             DistrictId? preferredDistrictId,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
+            IReadOnlyCollection<CityAnchorId>? preferredInstitutionAnchorIds = null,
             CityPopulationServiceQualityState? serviceQualityState = null)
         {
             ArgumentNullException.ThrowIfNull(person);
@@ -45,7 +46,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         educationLevel: nextLevel,
                         institutionPools: institutionPools,
                         preferredDistrictId: preferredDistrictId,
-                        schoolAnchors: schoolAnchors);
+                        schoolAnchors: schoolAnchors,
+                        preferredInstitutionAnchorIds: preferredInstitutionAnchorIds);
 
                     person.GraduateTo(
                         newLevel: nextLevel,
@@ -63,7 +65,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         educationLevel: EducationLevel.Preschool,
                         institutionPools: institutionPools,
                         preferredDistrictId: preferredDistrictId,
-                        schoolAnchors: schoolAnchors);
+                        schoolAnchors: schoolAnchors,
+                        preferredInstitutionAnchorIds: preferredInstitutionAnchorIds);
 
                     person.GraduateTo(
                         newLevel: EducationLevel.Preschool,
@@ -79,7 +82,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         educationLevel: person.EducationLevel,
                         institutionPools: institutionPools,
                         preferredDistrictId: preferredDistrictId,
-                        schoolAnchors: schoolAnchors);
+                        schoolAnchors: schoolAnchors,
+                        preferredInstitutionAnchorIds: preferredInstitutionAnchorIds);
 
                     person.StartStudying(
                         currentDate: currentDate,
@@ -105,6 +109,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     institutionPools: institutionPools,
                     preferredDistrictId: preferredDistrictId,
                     schoolAnchors: schoolAnchors,
+                    preferredInstitutionAnchorIds: preferredInstitutionAnchorIds,
                     serviceQualityState: serviceQualityState);
                 changed = changed || advancedPostSecondary;
 
@@ -117,6 +122,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         institutionPools: institutionPools,
                         preferredDistrictId: preferredDistrictId,
                         schoolAnchors: schoolAnchors,
+                        preferredInstitutionAnchorIds: preferredInstitutionAnchorIds,
                         serviceQualityState: serviceQualityState);
                     changed = changed || startedPostSecondary;
                 }
@@ -182,6 +188,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             DistrictId? preferredDistrictId,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
+            IReadOnlyCollection<CityAnchorId>? preferredInstitutionAnchorIds,
             CityPopulationServiceQualityState? serviceQualityState)
         {
             if (person.Employment.Status != EmploymentStatus.Student)
@@ -207,7 +214,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 educationLevel: targetLevel.Value,
                 institutionPools: institutionPools,
                 preferredDistrictId: preferredDistrictId,
-                schoolAnchors: schoolAnchors);
+                schoolAnchors: schoolAnchors,
+                preferredInstitutionAnchorIds: preferredInstitutionAnchorIds);
 
             person.GraduateTo(
                 newLevel: targetLevel.Value,
@@ -223,6 +231,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             DistrictId? preferredDistrictId,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
+            IReadOnlyCollection<CityAnchorId>? preferredInstitutionAnchorIds,
             CityPopulationServiceQualityState? serviceQualityState)
         {
             if (person.Employment.Status is not (EmploymentStatus.None or EmploymentStatus.Unemployed))
@@ -247,7 +256,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 educationLevel: EducationLevel.Vocational,
                 institutionPools: institutionPools,
                 preferredDistrictId: preferredDistrictId,
-                schoolAnchors: schoolAnchors);
+                schoolAnchors: schoolAnchors,
+                preferredInstitutionAnchorIds: preferredInstitutionAnchorIds);
 
             person.GraduateTo(
                 newLevel: EducationLevel.Vocational,
@@ -408,7 +418,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             EducationLevel educationLevel,
             IDictionary<EducationLevel, List<CityEducationInstitutionBinding>> institutionPools,
             DistrictId? preferredDistrictId,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors)
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> schoolAnchors,
+            IReadOnlyCollection<CityAnchorId>? preferredInstitutionAnchorIds)
         {
             if (!institutionPools.TryGetValue(
                     key: educationLevel,
@@ -418,12 +429,17 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 institutionPools[educationLevel] = levelPool;
             }
 
+            List<CityEducationInstitutionBinding> orderedPool = OrderByPreferredAnchors(
+                bindings: levelPool,
+                preferredInstitutionAnchorIds: preferredInstitutionAnchorIds);
+
             if (levelPool.Count == 0)
             {
                 CityAnchorId? schoolAnchorId = _anchorSelectionPolicy.SelectSchoolAnchor(
                     anchors: schoolAnchors,
                     preferredDistrictId: preferredDistrictId,
-                    stableKey: person.Id.Value)?.CityAnchorId;
+                    stableKey: person.Id.Value,
+                    preferredAnchorIds: preferredInstitutionAnchorIds)?.CityAnchorId;
                 var created = new CityEducationInstitutionBinding(
                     InstitutionId: EducationInstitutionId.New(),
                     InstitutionAnchorId: schoolAnchorId);
@@ -431,8 +447,44 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 return created;
             }
 
-            int stableIndex = Math.Abs(person.Id.Value.GetHashCode()) % levelPool.Count;
-            return levelPool[stableIndex];
+            int candidateCount = Math.Min(
+                val1: orderedPool.Count,
+                val2: preferredInstitutionAnchorIds is not null && preferredInstitutionAnchorIds.Count > 0
+                    ? 3
+                    : orderedPool.Count);
+            int stableIndex = Math.Abs(person.Id.Value.GetHashCode()) % candidateCount;
+            return orderedPool[stableIndex];
+        }
+
+        private static List<CityEducationInstitutionBinding> OrderByPreferredAnchors(
+            IReadOnlyCollection<CityEducationInstitutionBinding> bindings,
+            IReadOnlyCollection<CityAnchorId>? preferredInstitutionAnchorIds)
+        {
+            List<CityEducationInstitutionBinding> orderedBindings = bindings.ToList();
+            if (preferredInstitutionAnchorIds is null || preferredInstitutionAnchorIds.Count == 0)
+                return orderedBindings;
+
+            var preferredOrder = preferredInstitutionAnchorIds
+               .Select(
+                    (anchorId, index) => new
+                    {
+                        anchorId,
+                        index
+                    })
+               .ToDictionary(
+                    keySelector: x => x.anchorId,
+                    elementSelector: x => x.index);
+
+            return orderedBindings
+               .OrderBy(x => x.InstitutionAnchorId is not null && preferredOrder.ContainsKey(x.InstitutionAnchorId.Value)
+                    ? 0
+                    : 1)
+               .ThenBy(x => x.InstitutionAnchorId is not null && preferredOrder.TryGetValue(
+                    key: x.InstitutionAnchorId.Value,
+                    value: out int order)
+                    ? order
+                    : int.MaxValue)
+               .ToList();
         }
     }
 }
