@@ -1,19 +1,24 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.Population.Infrastructure.Http;
 using Matrix.Population.Infrastructure.Messaging;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
+using Matrix.Population.Infrastructure.Options;
 using Matrix.Population.Infrastructure.Outbox;
 using Matrix.Population.Infrastructure.Outbox.RabbitMq;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
+using Matrix.Population.Infrastructure.SimulationCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,6 +67,8 @@ namespace Matrix.Population.Infrastructure
                     validation: o => !string.IsNullOrWhiteSpace(o.Password),
                     failureMessage: "RabbitMq:Password is required.")
                .ValidateOnStart();
+            services.AddOptions<DownstreamServicesOptions>()
+               .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddOptions<ProcessedIntegrationMessageCleanupOptions>()
@@ -76,10 +83,25 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<ProcessedIntegrationMessageCleaner>();
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<PopulationDbContext>>();
             services.AddPermissionCheckingFromClaims();
+            services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
+            services.AddTransient<InternalServiceAuthenticationHandler>();
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
             services.AddOutbox<PopulationDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityEconomySettlementOutboxWriter, CityEconomySettlementOutboxWriter>();
+            services.AddHttpClient<ICityRouteResolutionClient, CityRouteResolutionClient>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
+                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationCore,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
 
             services.AddMassTransit(x =>
             {

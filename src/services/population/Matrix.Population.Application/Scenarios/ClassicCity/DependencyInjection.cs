@@ -1,4 +1,6 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Generation;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +33,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity
             services.AddSingleton<CityPopulationParticipationPolicy>();
             services.AddSingleton<CityPopulationWeatherImpactPolicy>();
             services.AddSingleton<CityPopulationWeatherExposurePolicy>();
+            services.AddScoped<ICityPopulationCommuteRoutingService, CityPopulationCommuteRoutingService>();
 
             return services;
         }
