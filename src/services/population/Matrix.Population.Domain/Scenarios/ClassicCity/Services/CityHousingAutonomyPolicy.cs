@@ -14,6 +14,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyCollection<Person> residents,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressStates,
+            IReadOnlyDictionary<HouseholdId, CityHouseholdCommutePressureProfile>? commutePressureProfiles,
             DateOnly previousDate,
             DateOnly currentDate,
             CityPopulationCostOfLivingState? costOfLivingState = null,
@@ -66,6 +67,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 financialStressStates.TryGetValue(
                     key: householdId,
                     value: out CityPopulationHouseholdFinancialStressState? financialStressState);
+                CityHouseholdCommutePressureProfile? commutePressureProfile = null;
+                commutePressureProfiles?.TryGetValue(
+                    key: householdId,
+                    value: out commutePressureProfile);
                 CityHouseholdEconomyProfile economyProfile = householdEconomyPolicy.Build(
                     household: household,
                     householdResidents: members,
@@ -79,6 +84,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         profile: profile,
                         economyProfile: economyProfile,
                         financialStressState: financialStressState,
+                        commutePressureProfile: commutePressureProfile,
                         currentDate: currentDate,
                         housingSupportIndex: housingSupportIndex))
                 {
@@ -108,6 +114,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         profile: profile,
                         economyProfile: economyProfile,
                         financialStressState: financialStressState,
+                        commutePressureProfile: commutePressureProfile,
                         currentDate: currentDate,
                         reviewWindows: reviewWindows,
                         housingSupportIndex: housingSupportIndex):
@@ -226,6 +233,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             HouseholdHousingProfile profile,
             CityHouseholdEconomyProfile economyProfile,
             CityPopulationHouseholdFinancialStressState? financialStressState,
+            CityHouseholdCommutePressureProfile? commutePressureProfile,
             DateOnly currentDate,
             int reviewWindows,
             decimal housingSupportIndex)
@@ -234,6 +242,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 profile: profile,
                 economyProfile: economyProfile,
                 financialStressState: financialStressState,
+                commutePressureProfile: commutePressureProfile,
                 currentDate: currentDate,
                 housingSupportIndex: housingSupportIndex);
             return RollOccurs(
@@ -248,6 +257,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             HouseholdHousingProfile profile,
             CityHouseholdEconomyProfile economyProfile,
             CityPopulationHouseholdFinancialStressState? financialStressState,
+            CityHouseholdCommutePressureProfile? commutePressureProfile,
             DateOnly currentDate,
             decimal housingSupportIndex)
         {
@@ -284,6 +294,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             if (housingSupportIndex >= 1.10m &&
                 (profile.HasInfant || profile.ChildCount > 0) &&
                 financialStressState.OldestOverdueAgeDays < 120)
+                return false;
+
+            if (ResolveCommuteFragilityScore(commutePressureProfile) >= 0.65d &&
+                financialStressState.DistressScore < 0.70m)
                 return false;
 
             return true;
@@ -400,6 +414,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             HouseholdHousingProfile profile,
             CityHouseholdEconomyProfile economyProfile,
             CityPopulationHouseholdFinancialStressState? financialStressState,
+            CityHouseholdCommutePressureProfile? commutePressureProfile,
             DateOnly currentDate,
             decimal housingSupportIndex)
         {
@@ -456,6 +471,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             decimal overdueAmount = ResolveRecentOverdueAmount(
                 state: financialStressState,
                 currentDate: currentDate);
+            double commuteFragility = ResolveCommuteFragilityScore(commutePressureProfile);
 
             chance += economyProfile.StrainScore * 0.016d;
             chance -= (double)((housingSupportIndex - 1m) * 0.050m);
@@ -488,6 +504,19 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             chance += Math.Min(
                 val1: 0.018d,
                 val2: (double)(overdueAmount / 1_800m));
+            chance += commuteFragility * 0.008d;
+
+            if (financialStressScore >= 0.25d)
+                chance += commuteFragility * 0.010d;
+
+            if (commutePressureProfile is not null &&
+                commutePressureProfile.BlockedRouteCount > 0 &&
+                economyProfile.StrainScore >= 0.20d)
+            {
+                chance += Math.Min(
+                    val1: 0.010d,
+                    val2: commutePressureProfile.BlockedRouteCount * 0.004d);
+            }
 
             if (profile.HasInfant)
                 chance *= 0.60d;
@@ -535,6 +564,25 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             return Math.Clamp(
                 value: value / 100d,
+                min: 0d,
+                max: 1d);
+        }
+
+        private static double ResolveCommuteFragilityScore(CityHouseholdCommutePressureProfile? commutePressureProfile)
+        {
+            if (commutePressureProfile is null ||
+                commutePressureProfile.RoutedResidentCount <= 0)
+                return 0d;
+
+            double blockedShare =
+                commutePressureProfile.BlockedRouteCount / (double)commutePressureProfile.RoutedResidentCount;
+            double fragility =
+                ((double)commutePressureProfile.AccessibilityDeficitIndex * 0.45d) +
+                ((double)commutePressureProfile.TravelFatigueIndex * 0.35d) +
+                (blockedShare * 0.20d);
+
+            return Math.Clamp(
+                value: fragility,
                 min: 0d,
                 max: 1d);
         }

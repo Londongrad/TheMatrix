@@ -1662,12 +1662,45 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 cancellationToken: cancellationToken)).ToDictionary(
                 keySelector: x => x.Id,
                 elementSelector: x => x);
+            var residentsByHousehold = residentsById.Values
+               .Where(x => x.IsAlive)
+               .GroupBy(x => x.HouseholdId)
+               .ToDictionary(
+                    keySelector: x => x.Key,
+                    elementSelector: x => x.ToList());
+            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId =
+                placements.ToDictionary(
+                    keySelector: x => x.HouseholdId,
+                    elementSelector: x => x.ResidentialBuildingId);
+            var commutePressureProfilesByHouseholdId = new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile>();
+
+            foreach (ClassicCityHouseholdPlacement placement in placements)
+            {
+                if (!residentsByHousehold.TryGetValue(
+                        key: placement.HouseholdId,
+                        value: out List<PersonEntity>? householdResidents) ||
+                    householdResidents.Count == 0)
+                    continue;
+
+                CityHouseholdCommutePressureProfile? commutePressureProfile =
+                    await BuildHouseholdCommutePressureProfileAsync(
+                        cityId: cityId,
+                        householdId: placement.HouseholdId,
+                        householdResidents: householdResidents,
+                        residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
+                        commuteRoutingService: commuteRoutingService,
+                        cancellationToken: cancellationToken);
+
+                if (commutePressureProfile is not null)
+                    commutePressureProfilesByHouseholdId[placement.HouseholdId] = commutePressureProfile;
+            }
 
             IReadOnlyList<CityHousingAutonomyDecision> decisions = housingAutonomyPolicy.Plan(
                 households: householdsById,
                 residents: residentsById.Values.ToArray(),
                 housingStatuses: housingStatuses,
                 financialStressStates: financialStressByHouseholdId,
+                commutePressureProfiles: commutePressureProfilesByHouseholdId,
                 previousDate: previousDate,
                 currentDate: currentDate,
                 costOfLivingState: costOfLivingState,
@@ -1675,13 +1708,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
             if (decisions.Count == 0)
                 return 0;
-
-            var residentsByHousehold = residentsById.Values
-               .Where(x => x.IsAlive)
-               .GroupBy(x => x.HouseholdId)
-               .ToDictionary(
-                    keySelector: x => x.Key,
-                    elementSelector: x => x.ToList());
 
             var placementsByHousehold = placements.ToDictionary(
                 keySelector: x => x.HouseholdId,
