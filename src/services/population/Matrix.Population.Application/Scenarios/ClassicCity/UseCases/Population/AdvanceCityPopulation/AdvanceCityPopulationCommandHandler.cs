@@ -5,6 +5,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Domain.Enums;
@@ -42,6 +43,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
         ICityPopulationLivingConditionsStateRepository cityPopulationLivingConditionsStateRepository,
+        ICityPopulationCommuteRoutingService commuteRoutingService,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
@@ -293,10 +295,17 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         }
 
                         if (requiresDateProgression)
-                            pendingEconomySettlement = ApplyHouseholdCashflowSettlement(
+                            pendingEconomySettlement = await ApplyHouseholdCashflowSettlementAsync(
+                                cityId: cityId,
                                 householdsById: householdsById,
                                 residentsByHouseholdId: residentsByHouseholdId,
                                 housingByHouseholdId: housingByHouseholdId,
+                                residentialBuildingIdByHouseholdId: placementsSnapshot
+                                   .GroupBy(x => x.HouseholdId)
+                                   .ToDictionary(
+                                        keySelector: x => x.Key,
+                                        elementSelector: x => x.Select(y => y.ResidentialBuildingId)
+                                           .FirstOrDefault()),
                                 previousDate: previousDate,
                                 currentDate: toDate,
                                 householdCashflowPolicy: householdCashflowPolicy,
@@ -306,8 +315,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 districtByHouseholdId: districtByHouseholdId,
                                 districtImpactPolicy: districtImpactPolicy,
                                 participationPolicy: participationPolicy,
+                                commuteRoutingService: commuteRoutingService,
                                 cashflowItems: pendingHouseholdCashflowItems,
-                                workplacePayrollItems: pendingWorkplacePayrollItems);
+                                workplacePayrollItems: pendingWorkplacePayrollItems,
+                                cancellationToken: ct);
 
                         if (requiresDateProgression)
                         {
@@ -801,10 +812,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return changed;
         }
 
-        private static CityEconomyDailySettlementSnapshot? ApplyHouseholdCashflowSettlement(
+        private static async Task<CityEconomyDailySettlementSnapshot?> ApplyHouseholdCashflowSettlementAsync(
+            CityId cityId,
             IReadOnlyDictionary<HouseholdId, HouseholdEntity> householdsById,
             IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
+            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingIdByHouseholdId,
             DateOnly previousDate,
             DateOnly currentDate,
             CityHouseholdCashflowPolicy householdCashflowPolicy,
@@ -814,8 +827,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy,
+            ICityPopulationCommuteRoutingService commuteRoutingService,
             ICollection<ClassicCityHouseholdCashflowSettlementItemV1> cashflowItems,
-            ICollection<ClassicCityWorkplacePayrollSettlementItemV1> workplacePayrollItems)
+            ICollection<ClassicCityWorkplacePayrollSettlementItemV1> workplacePayrollItems,
+            CancellationToken cancellationToken)
         {
             int daysElapsed = Math.Max(
                 val1: 0,
@@ -881,13 +896,26 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     if (resident.Employment.Status == EmploymentStatus.Employed)
                     {
                         HousingStatus? residentHousingStatus = housingStatus;
+                        ResidentialBuildingId? residentialBuildingId =
+                            residentialBuildingIdByHouseholdId.TryGetValue(
+                                key: resident.HouseholdId,
+                                value: out ResidentialBuildingId? resolvedResidentialBuildingId)
+                                ? resolvedResidentialBuildingId
+                                : null;
+                        CityPopulationCommuteContext employmentCommute =
+                            await commuteRoutingService.ResolveEmploymentCommuteAsync(
+                                cityId: cityId.Value,
+                                residentialBuildingId: residentialBuildingId,
+                                resident: resident,
+                                cancellationToken: cancellationToken);
                         CityPopulationParticipationProfile employmentProfile =
                             participationPolicy.ResolveEmploymentProfile(
                                 person: resident,
                                 currentDate: currentDate,
                                 housingStatus: residentHousingStatus,
                                 livingConditions: districtLivingConditions,
-                                essentials: districtEssentials);
+                                essentials: districtEssentials,
+                                commute: employmentCommute);
                         incomeMultiplier = employmentProfile.PayrollMultiplier;
                     }
 

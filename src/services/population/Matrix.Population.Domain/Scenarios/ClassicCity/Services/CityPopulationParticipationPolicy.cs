@@ -13,7 +13,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             HousingStatus? housingStatus,
             CityPopulationLivingConditionsContext livingConditions,
-            CityPopulationEssentialsContext essentials)
+            CityPopulationEssentialsContext essentials,
+            CityPopulationCommuteContext? commute = null)
         {
             ArgumentNullException.ThrowIfNull(person);
 
@@ -41,6 +42,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double illnessProductivityPenalty = ResolveIllnessProductivityPenalty(person);
             double housingPenalty = housingStatus == HousingStatus.Homeless ? 0.12d : 0d;
             double agePenalty = person.GetAgeGroup(currentDate) == AgeGroup.Senior ? 0.05d : 0d;
+            double commutePenalty = ResolveCommutePenalty(commute);
+            double commuteAccessPenalty = ResolveCommuteAccessPenalty(commute);
 
             double attendance = 1d -
                                 (roadDeficit * 0.32d) -
@@ -54,6 +57,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 (energyPenalty * 0.22d) -
                                 (stressPenalty * 0.16d) -
                                 (healthPenalty * 0.18d) -
+                                (commutePenalty * 0.30d) -
+                                commuteAccessPenalty -
                                 illnessAttendancePenalty -
                                 housingPenalty -
                                 agePenalty;
@@ -70,6 +75,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                   (stressPenalty * 0.22d) -
                                   (healthPenalty * 0.18d) -
                                   (happinessPenalty * 0.10d) -
+                                  (commutePenalty * 0.12d) -
+                                  (commuteAccessPenalty * 0.35d) -
                                   illnessProductivityPenalty -
                                   (housingPenalty * 0.50d);
 
@@ -91,7 +98,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             HousingStatus? housingStatus,
             CityPopulationLivingConditionsContext livingConditions,
-            CityPopulationEssentialsContext essentials)
+            CityPopulationEssentialsContext essentials,
+            CityPopulationCommuteContext? commute = null)
         {
             ArgumentNullException.ThrowIfNull(person);
 
@@ -113,6 +121,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             double illnessAttendancePenalty = ResolveIllnessAttendancePenalty(person);
             double housingPenalty = housingStatus == HousingStatus.Homeless ? 0.12d : 0d;
             double agePenalty = person.GetAgeGroup(currentDate) == AgeGroup.Child ? -0.03d : 0d;
+            double commutePenalty = ResolveCommutePenalty(commute);
+            double commuteAccessPenalty = ResolveCommuteAccessPenalty(commute);
 
             double attendance = 1d -
                                 (roadDeficit * 0.30d) -
@@ -126,6 +136,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                 (energyPenalty * 0.24d) -
                                 (stressPenalty * 0.18d) -
                                 (healthPenalty * 0.14d) -
+                                (commutePenalty * 0.34d) -
+                                commuteAccessPenalty -
                                 illnessAttendancePenalty -
                                 housingPenalty -
                                 agePenalty;
@@ -185,6 +197,21 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 d: (decimal)value,
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static double ResolveCommutePenalty(CityPopulationCommuteContext? commute)
+        {
+            if (commute is null || !commute.HasRouteData)
+                return 0d;
+
+            return Math.Clamp((double)(1m - commute.AccessibilityIndex), 0d, 1d);
+        }
+
+        private static double ResolveCommuteAccessPenalty(CityPopulationCommuteContext? commute)
+        {
+            return commute is { HasRouteData: true, IsAccessible: false }
+                ? 0.22d
+                : 0d;
         }
     }
 }
