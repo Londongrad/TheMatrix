@@ -3,10 +3,12 @@ using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
@@ -16,6 +18,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     public sealed class GetCityResidentDetailsQueryHandler(
         ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
+        ICityPopulationCommuteRoutingService cityPopulationCommuteRoutingService,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         IPersonReadRepository personReadRepository)
@@ -68,10 +71,38 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 anchors: hospitalAnchors,
                 preferredDistrictId: housing?.DistrictId,
                 stableKey: resident.Id.Value);
+            ResidentialBuildingId? residentialBuildingId = housing?.ResidentialBuildingId;
+            CityPopulationCommuteContext? workplaceRouteAccess = resident.Employment.Job is null
+                ? null
+                : await cityPopulationCommuteRoutingService.ResolveEmploymentCommuteAsync(
+                    cityId: cityId.Value,
+                    residentialBuildingId: residentialBuildingId,
+                    resident: resident,
+                    cancellationToken: cancellationToken);
+            CityPopulationCommuteContext? educationRouteAccess = resident.Education.CurrentInstitutionId is null
+                ? null
+                : await cityPopulationCommuteRoutingService.ResolveEducationCommuteAsync(
+                    cityId: cityId.Value,
+                    residentialBuildingId: residentialBuildingId,
+                    resident: resident,
+                    cancellationToken: cancellationToken);
+            CityPopulationCommuteContext? healthcareRouteAccess = primaryCareAnchor is null
+                ? null
+                : await cityPopulationCommuteRoutingService.ResolveHealthcareCommuteAsync(
+                    cityId: cityId.Value,
+                    residentialBuildingId: residentialBuildingId,
+                    healthcareAnchorId: primaryCareAnchor.CityAnchorId,
+                    cancellationToken: cancellationToken);
             CityResidentHealthcareProviderDto? primaryHealthcareProvider = primaryCareAnchor is null
                 ? null
                 : new CityResidentHealthcareProviderDto(
-                    PrimaryCareAnchorId: primaryCareAnchor.CityAnchorId.Value);
+                    PrimaryCareAnchorId: primaryCareAnchor.CityAnchorId.Value,
+                    RouteAccess: new CityResidentRouteAccessDto(
+                        HasRouteData: healthcareRouteAccess?.HasRouteData ?? false,
+                        IsAccessible: healthcareRouteAccess?.IsAccessible ?? true,
+                        AccessibilityIndex: healthcareRouteAccess?.AccessibilityIndex ?? 1m,
+                        PassabilityIndex: healthcareRouteAccess?.PassabilityIndex ?? 1m,
+                        EstimatedTravelTimeMinutes: healthcareRouteAccess?.EstimatedTravelTimeMinutes));
 
             return resident.ToResidentDetailsDto(
                 currentDate: request.CurrentDate,
@@ -80,6 +111,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 mother: mother,
                 father: father,
                 children: children,
+                workplaceRouteAccess: workplaceRouteAccess,
+                educationRouteAccess: educationRouteAccess,
                 primaryHealthcareProvider: primaryHealthcareProvider);
         }
     }

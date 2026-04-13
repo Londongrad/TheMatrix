@@ -5,6 +5,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 
 namespace Matrix.Population.Application.Mapping
 {
@@ -75,6 +76,8 @@ namespace Matrix.Population.Application.Mapping
             Person? mother = null,
             Person? father = null,
             IReadOnlyCollection<Person>? children = null,
+            CityPopulationCommuteContext? workplaceRouteAccess = null,
+            CityPopulationCommuteContext? educationRouteAccess = null,
             CityResidentHealthcareProviderDto? primaryHealthcareProvider = null)
         {
             PersonDto snapshot = person.ToDto(currentDate);
@@ -91,13 +94,15 @@ namespace Matrix.Population.Application.Mapping
                 ? null
                 : new CityResidentWorkplaceDto(
                     WorkplaceId: person.Employment.Job.WorkplaceId.Value,
-                    WorkplaceAnchorId: person.Employment.Job.WorkplaceAnchorId?.Value);
+                    WorkplaceAnchorId: person.Employment.Job.WorkplaceAnchorId?.Value,
+                    RouteAccess: ToRouteAccessDto(workplaceRouteAccess));
             CityResidentEducationInstitutionDto? educationInstitution = person.Education.CurrentInstitutionId is null
                 ? null
                 : new CityResidentEducationInstitutionDto(
                     InstitutionId: person.Education.CurrentInstitutionId.Value,
                     InstitutionAnchorId: person.Education.CurrentInstitutionAnchorId?.Value,
-                    EducationLevel: person.Education.Level.ToString());
+                    EducationLevel: person.Education.Level.ToString(),
+                    RouteAccess: ToRouteAccessDto(educationRouteAccess));
             IReadOnlyCollection<PersonReferenceDto> childReferences = (children ?? Array.Empty<Person>())
                .OrderBy(x => x.BirthDate)
                .ThenBy(x => x.Name.LastName)
@@ -155,6 +160,18 @@ namespace Matrix.Population.Application.Mapping
                 CurrentWorkplace: workplace,
                 CurrentEducationInstitution: educationInstitution,
                 PrimaryHealthcareProvider: primaryHealthcareProvider);
+        }
+
+        private static CityResidentRouteAccessDto? ToRouteAccessDto(CityPopulationCommuteContext? routeAccess)
+        {
+            return routeAccess is null
+                ? null
+                : new CityResidentRouteAccessDto(
+                    HasRouteData: routeAccess.HasRouteData,
+                    IsAccessible: routeAccess.IsAccessible,
+                    AccessibilityIndex: routeAccess.AccessibilityIndex,
+                    PassabilityIndex: routeAccess.PassabilityIndex,
+                    EstimatedTravelTimeMinutes: routeAccess.EstimatedTravelTimeMinutes);
         }
 
         /// <summary>

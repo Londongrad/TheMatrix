@@ -7,17 +7,27 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         string HousingStatus,
         Guid? ResidentialBuildingId);
 
+    public sealed record class CityResidentRouteAccessDto(
+        bool HasRouteData,
+        bool IsAccessible,
+        decimal AccessibilityIndex,
+        decimal PassabilityIndex,
+        decimal? EstimatedTravelTimeMinutes);
+
     public sealed record class CityResidentWorkplaceDto(
         Guid WorkplaceId,
-        Guid? WorkplaceAnchorId);
+        Guid? WorkplaceAnchorId,
+        CityResidentRouteAccessDto? RouteAccess);
 
     public sealed record class CityResidentEducationInstitutionDto(
         Guid InstitutionId,
         Guid? InstitutionAnchorId,
-        string EducationLevel);
+        string EducationLevel,
+        CityResidentRouteAccessDto? RouteAccess);
 
     public sealed record class CityResidentHealthcareProviderDto(
-        Guid PrimaryCareAnchorId);
+        Guid PrimaryCareAnchorId,
+        CityResidentRouteAccessDto? RouteAccess);
 
     public sealed record class CityResidentIllnessDto(
         string Kind,
