@@ -1,6 +1,7 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.DispatchCitySanitationMaintenance;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCityDistrictSanitationConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.GetCitySanitationStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.SetCitySanitationEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
@@ -29,6 +30,20 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
             return status is null
                 ? Results.NotFound()
                 : Results.Ok(MapToView(status));
+        }
+
+        [HttpGet("{cityId:guid}/sanitation/districts")]
+        public async Task<IResult> GetDistricts(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityDistrictSanitationConditionsDto? status = await mediator.Send(
+                request: new GetCityDistrictSanitationConditionsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return status is null
+                ? Results.NotFound()
+                : Results.Ok(MapToDistrictConditionsView(status));
         }
 
         [HttpPut("{cityId:guid}/sanitation/emergency-mode")]
@@ -111,6 +126,31 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                     Focus: dto.Focus,
                     Intensity: dto.Intensity,
                     ReadyAtTickId: dto.ReadyAtTickId);
+        }
+
+        private static CityDistrictSanitationConditionsView MapToDistrictConditionsView(
+            CityDistrictSanitationConditionsDto dto)
+        {
+            return new CityDistrictSanitationConditionsView(
+                CityId: dto.CityId,
+                EffectiveTickId: dto.EffectiveTickId,
+                LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                SanitationSupportIndex: dto.SanitationSupportIndex,
+                Districts: dto.Districts
+                    .Select(MapToDistrictConditionView)
+                    .ToArray());
+        }
+
+        private static CityDistrictSanitationConditionView MapToDistrictConditionView(
+            CityDistrictSanitationConditionDto dto)
+        {
+            return new CityDistrictSanitationConditionView(
+                DistrictId: dto.DistrictId,
+                SanitationCoverageIndex: dto.SanitationCoverageIndex,
+                SanitationSupportIndex: dto.SanitationSupportIndex,
+                OverflowRiskIndex: dto.OverflowRiskIndex,
+                ContaminationRiskIndex: dto.ContaminationRiskIndex,
+                MaintenancePriorityIndex: dto.MaintenancePriorityIndex);
         }
     }
 }
