@@ -26,26 +26,32 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
             Task<DistrictSanitationConditionsPayload?> sanitationTask = _client.GetFromJsonAsync<DistrictSanitationConditionsPayload>(
                 requestUri: $"/api/classic-city/cities/{cityId}/sanitation/districts",
                 cancellationToken: cancellationToken);
+            Task<DistrictUtilityIncidentConditionsPayload?> incidentsTask = _client.GetFromJsonAsync<DistrictUtilityIncidentConditionsPayload>(
+                requestUri: $"/api/classic-city/cities/{cityId}/utility-incidents/districts",
+                cancellationToken: cancellationToken);
 
-            await Task.WhenAll(heatingTask, waterTask, powerTask, sanitationTask);
+            await Task.WhenAll(heatingTask, waterTask, powerTask, sanitationTask, incidentsTask);
 
             DistrictHeatingConditionsPayload? heating = await heatingTask;
             DistrictWaterConditionsPayload? water = await waterTask;
             DistrictPowerConditionsPayload? power = await powerTask;
             DistrictSanitationConditionsPayload? sanitation = await sanitationTask;
+            DistrictUtilityIncidentConditionsPayload? incidents = await incidentsTask;
 
-            if (heating is null || water is null || power is null || sanitation is null)
+            if (heating is null || water is null || power is null || sanitation is null || incidents is null)
                 return new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>();
 
             var heatingByDistrictId = heating.Districts.ToDictionary(x => DistrictId.From(x.DistrictId));
             var waterByDistrictId = water.Districts.ToDictionary(x => DistrictId.From(x.DistrictId));
             var powerByDistrictId = power.Districts.ToDictionary(x => DistrictId.From(x.DistrictId));
             var sanitationByDistrictId = sanitation.Districts.ToDictionary(x => DistrictId.From(x.DistrictId));
+            var incidentsByDistrictId = incidents.Districts.ToDictionary(x => DistrictId.From(x.DistrictId));
 
             var districtIds = heatingByDistrictId.Keys
                 .Concat(waterByDistrictId.Keys)
                 .Concat(powerByDistrictId.Keys)
                 .Concat(sanitationByDistrictId.Keys)
+                .Concat(incidentsByDistrictId.Keys)
                 .Distinct()
                 .ToArray();
 
@@ -57,6 +63,7 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
                 waterByDistrictId.TryGetValue(districtId, out DistrictWaterConditionPayload? waterDistrict);
                 powerByDistrictId.TryGetValue(districtId, out DistrictPowerConditionPayload? powerDistrict);
                 sanitationByDistrictId.TryGetValue(districtId, out DistrictSanitationConditionPayload? sanitationDistrict);
+                incidentsByDistrictId.TryGetValue(districtId, out DistrictUtilityIncidentConditionPayload? incidentDistrict);
 
                 snapshots[districtId] = new CityDistrictUtilityConditionsSnapshot(
                     DistrictId: districtId,
@@ -67,7 +74,11 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
                     PowerCoverageIndex: powerDistrict?.PowerCoverageIndex ?? 1m,
                     PowerOutageRiskIndex: powerDistrict?.OutageRiskIndex ?? 0m,
                     SanitationCoverageIndex: sanitationDistrict?.SanitationCoverageIndex ?? 1m,
-                    SanitationContaminationRiskIndex: sanitationDistrict?.ContaminationRiskIndex ?? 0m);
+                    SanitationContaminationRiskIndex: sanitationDistrict?.ContaminationRiskIndex ?? 0m,
+                    UtilityIncidentDispatchReadinessIndex: incidentDistrict?.DispatchReadinessIndex ?? 1m,
+                    UtilityIncidentPressureIndex: incidentDistrict?.IncidentPressureIndex ?? 0m,
+                    UtilityIncidentCoordinationDifficultyIndex: incidentDistrict?.CoordinationDifficultyIndex ?? 0m,
+                    UtilityIncidentRestorationPriorityIndex: incidentDistrict?.RestorationPriorityIndex ?? 0m);
             }
 
             return snapshots;
@@ -132,5 +143,20 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
             decimal OverflowRiskIndex,
             decimal ContaminationRiskIndex,
             decimal MaintenancePriorityIndex);
+
+        private sealed record DistrictUtilityIncidentConditionsPayload(
+            Guid CityId,
+            long EffectiveTickId,
+            DateTimeOffset LastEvaluatedAtUtc,
+            decimal UtilityIncidentSupportIndex,
+            IReadOnlyList<DistrictUtilityIncidentConditionPayload> Districts);
+
+        private sealed record DistrictUtilityIncidentConditionPayload(
+            Guid DistrictId,
+            decimal UtilityContinuityIndex,
+            decimal DispatchReadinessIndex,
+            decimal IncidentPressureIndex,
+            decimal CoordinationDifficultyIndex,
+            decimal RestorationPriorityIndex);
     }
 }

@@ -146,9 +146,16 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                                  ((1m - snapshot.PowerOutageRiskIndex) * 0.05m) +
                                  ((1m - snapshot.WaterDisruptionRiskIndex) * 0.04m) +
                                  ((1m - snapshot.SanitationContaminationRiskIndex) * 0.03m);
-
+            decimal incidentAdjustment = (snapshot.UtilityIncidentDispatchReadinessIndex * 0.12m) -
+                                         (snapshot.UtilityIncidentPressureIndex * 0.16m) -
+                                         (snapshot.UtilityIncidentCoordinationDifficultyIndex * 0.08m) -
+                                         (snapshot.UtilityIncidentRestorationPriorityIndex * 0.06m);
+            decimal adjustedContinuity = Math.Clamp(
+                value: continuity + incidentAdjustment,
+                min: 0m,
+                max: 1.5m);
             decimal blended = (baselineUtilityContinuityIndex * 0.20m) +
-                              (continuity * 0.80m);
+                              (adjustedContinuity * 0.80m);
 
             return decimal.Round(
                 d: Math.Clamp(

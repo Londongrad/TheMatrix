@@ -11,5 +11,9 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Models
         decimal PowerCoverageIndex,
         decimal PowerOutageRiskIndex,
         decimal SanitationCoverageIndex,
-        decimal SanitationContaminationRiskIndex);
+        decimal SanitationContaminationRiskIndex,
+        decimal UtilityIncidentDispatchReadinessIndex,
+        decimal UtilityIncidentPressureIndex,
+        decimal UtilityIncidentCoordinationDifficultyIndex,
+        decimal UtilityIncidentRestorationPriorityIndex);
 }
