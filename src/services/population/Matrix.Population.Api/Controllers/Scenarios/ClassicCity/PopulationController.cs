@@ -11,6 +11,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.Hi
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employment.RetireResident;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDistrictPressure;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentsPage;
@@ -125,6 +126,20 @@ namespace Matrix.Population.Api.Controllers.Scenarios.ClassicCity
         {
             CityPopulationDashboardDto? result = await _sender.Send(
                 request: new GetCityDashboardQuery(cityId),
+                cancellationToken: cancellationToken);
+
+            return result is null
+                ? NotFound()
+                : Ok(result);
+        }
+
+        [HttpGet("cities/{cityId:guid}/district-pressure")]
+        public async Task<ActionResult<CityPopulationDistrictPressureDto>> GetCityDistrictPressure(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            CityPopulationDistrictPressureDto? result = await _sender.Send(
+                request: new GetCityDistrictPressureQuery(cityId),
                 cancellationToken: cancellationToken);
 
             return result is null
