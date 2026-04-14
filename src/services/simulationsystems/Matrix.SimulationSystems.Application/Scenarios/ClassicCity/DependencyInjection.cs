@@ -16,6 +16,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity
             services.AddSingleton<ClassicCityDistrictWaterDistributionProjectionPolicy>();
             services.AddSingleton<ClassicCityDistrictPowerDistributionProjectionPolicy>();
             services.AddSingleton<ClassicCityDistrictSanitationProjectionPolicy>();
+            services.AddSingleton<ClassicCityDistrictUtilityIncidentProjectionPolicy>();
             services.AddScoped<CityMaintenanceBudgetAuthorizationService>();
 
             return services;
