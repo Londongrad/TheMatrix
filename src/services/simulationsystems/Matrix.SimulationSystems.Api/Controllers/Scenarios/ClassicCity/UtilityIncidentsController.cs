@@ -1,6 +1,7 @@
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.Common;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.DispatchCityUtilityIncidentResponse;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityDistrictUtilityIncidentConditions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.GetCityUtilityIncidentStatus;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.UtilityIncidents.SetCityUtilityIncidentEmergencyMode;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
@@ -29,6 +30,20 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
             return status is null
                 ? Results.NotFound()
                 : Results.Ok(MapToView(status));
+        }
+
+        [HttpGet("{cityId:guid}/utility-incidents/districts")]
+        public async Task<IResult> GetDistricts(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityDistrictUtilityIncidentConditionsDto? status = await mediator.Send(
+                request: new GetCityDistrictUtilityIncidentConditionsQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return status is null
+                ? Results.NotFound()
+                : Results.Ok(MapToDistrictConditionsView(status));
         }
 
         [HttpPut("{cityId:guid}/utility-incidents/emergency-mode")]
@@ -111,6 +126,31 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                     Focus: dto.Focus,
                     Intensity: dto.Intensity,
                     ReadyAtTickId: dto.ReadyAtTickId);
+        }
+
+        private static CityDistrictUtilityIncidentConditionsView MapToDistrictConditionsView(
+            CityDistrictUtilityIncidentConditionsDto dto)
+        {
+            return new CityDistrictUtilityIncidentConditionsView(
+                CityId: dto.CityId,
+                EffectiveTickId: dto.EffectiveTickId,
+                LastEvaluatedAtUtc: dto.LastEvaluatedAtUtc,
+                UtilityIncidentSupportIndex: dto.UtilityIncidentSupportIndex,
+                Districts: dto.Districts
+                   .Select(MapToDistrictConditionView)
+                   .ToArray());
+        }
+
+        private static CityDistrictUtilityIncidentConditionView MapToDistrictConditionView(
+            CityDistrictUtilityIncidentConditionDto dto)
+        {
+            return new CityDistrictUtilityIncidentConditionView(
+                DistrictId: dto.DistrictId,
+                UtilityContinuityIndex: dto.UtilityContinuityIndex,
+                DispatchReadinessIndex: dto.DispatchReadinessIndex,
+                IncidentPressureIndex: dto.IncidentPressureIndex,
+                CoordinationDifficultyIndex: dto.CoordinationDifficultyIndex,
+                RestorationPriorityIndex: dto.RestorationPriorityIndex);
         }
     }
 }
