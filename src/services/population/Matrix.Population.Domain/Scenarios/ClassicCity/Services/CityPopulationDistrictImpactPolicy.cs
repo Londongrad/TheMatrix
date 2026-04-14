@@ -8,7 +8,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
     {
         public CityPopulationLivingConditionsContext ResolveLivingConditions(
             DistrictId? districtId,
-            CityPopulationLivingConditionsState? livingConditionsState)
+            CityPopulationLivingConditionsState? livingConditionsState,
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions = null)
         {
             CityPopulationLivingConditionsContext baseline = new(
                 FloodingIndex: livingConditionsState?.FloodingIndex ?? 0m,
@@ -24,6 +25,26 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
 
             DistrictImpactProfile profile = BuildProfile(districtId.Value);
 
+            decimal powerCoverageIndex = districtUtilityConditions?.PowerCoverageIndex ?? AdjustCoverage(
+                value: baseline.PowerCoverageIndex,
+                factor: profile.UtilityFragilityFactor);
+            decimal heatingCoverageIndex = districtUtilityConditions?.HeatingCoverageIndex ?? AdjustCoverage(
+                value: baseline.HeatingCoverageIndex,
+                factor: profile.UtilityFragilityFactor * 0.94d);
+            decimal waterCoverageIndex = districtUtilityConditions?.WaterCoverageIndex ?? AdjustCoverage(
+                value: baseline.WaterCoverageIndex,
+                factor: profile.UtilityFragilityFactor * 0.90d);
+            decimal sanitationCoverageIndex = districtUtilityConditions?.SanitationCoverageIndex ?? AdjustCoverage(
+                value: baseline.SanitationCoverageIndex,
+                factor: profile.SanitationFragilityFactor);
+            decimal utilityContinuityIndex = districtUtilityConditions is null
+                ? AdjustCoverage(
+                    value: baseline.UtilityContinuityIndex,
+                    factor: profile.UtilityFragilityFactor * 0.96d)
+                : ResolveUtilityContinuityIndex(
+                    snapshot: districtUtilityConditions,
+                    baselineUtilityContinuityIndex: baseline.UtilityContinuityIndex);
+
             return new CityPopulationLivingConditionsContext(
                 FloodingIndex: AdjustPressure(
                     value: baseline.FloodingIndex,
@@ -31,21 +52,11 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 RoadAccessibilityIndex: AdjustCoverage(
                     value: baseline.RoadAccessibilityIndex,
                     factor: profile.MobilityFragilityFactor * (1d + ((double)baseline.FloodingIndex * 0.12d))),
-                PowerCoverageIndex: AdjustCoverage(
-                    value: baseline.PowerCoverageIndex,
-                    factor: profile.UtilityFragilityFactor),
-                UtilityContinuityIndex: AdjustCoverage(
-                    value: baseline.UtilityContinuityIndex,
-                    factor: profile.UtilityFragilityFactor * 0.96d),
-                HeatingCoverageIndex: AdjustCoverage(
-                    value: baseline.HeatingCoverageIndex,
-                    factor: profile.UtilityFragilityFactor * 0.94d),
-                WaterCoverageIndex: AdjustCoverage(
-                    value: baseline.WaterCoverageIndex,
-                    factor: profile.UtilityFragilityFactor * 0.90d),
-                SanitationCoverageIndex: AdjustCoverage(
-                    value: baseline.SanitationCoverageIndex,
-                    factor: profile.SanitationFragilityFactor));
+                PowerCoverageIndex: powerCoverageIndex,
+                UtilityContinuityIndex: utilityContinuityIndex,
+                HeatingCoverageIndex: heatingCoverageIndex,
+                WaterCoverageIndex: waterCoverageIndex,
+                SanitationCoverageIndex: sanitationCoverageIndex);
         }
 
         public CityPopulationEssentialsContext ResolveEssentials(
@@ -120,6 +131,30 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
         {
             return decimal.Round(
                 d: (decimal)value,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal ResolveUtilityContinuityIndex(
+            CityDistrictUtilityConditionsSnapshot snapshot,
+            decimal baselineUtilityContinuityIndex)
+        {
+            decimal continuity = (snapshot.PowerCoverageIndex * 0.34m) +
+                                 (snapshot.HeatingCoverageIndex * 0.18m) +
+                                 (snapshot.WaterCoverageIndex * 0.20m) +
+                                 (snapshot.SanitationCoverageIndex * 0.16m) +
+                                 ((1m - snapshot.PowerOutageRiskIndex) * 0.05m) +
+                                 ((1m - snapshot.WaterDisruptionRiskIndex) * 0.04m) +
+                                 ((1m - snapshot.SanitationContaminationRiskIndex) * 0.03m);
+
+            decimal blended = (baselineUtilityContinuityIndex * 0.20m) +
+                              (continuity * 0.80m);
+
+            return decimal.Round(
+                d: Math.Clamp(
+                    value: blended,
+                    min: 0m,
+                    max: 1.5m),
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
         }

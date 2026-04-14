@@ -19,6 +19,7 @@ using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.SimulationCore;
+using Matrix.Population.Infrastructure.SimulationSystems;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -99,6 +100,19 @@ namespace Matrix.Population.Infrastructure
 
                     client.BaseAddress = new Uri(
                         uriString: options.SimulationCore,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+            services.AddHttpClient<ICityDistrictUtilityConditionsClient, CityDistrictUtilityConditionsClient>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationSystems))
+                        throw new InvalidOperationException("DownstreamServices:SimulationSystems is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationSystems,
                         uriKind: UriKind.Absolute);
                 })
                .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();

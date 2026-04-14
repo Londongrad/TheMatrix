@@ -43,6 +43,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
         ICityPopulationHouseholdFinancialStressStateRepository householdFinancialStressStateRepository,
         ICityPopulationLivingConditionsStateRepository cityPopulationLivingConditionsStateRepository,
+        ICityDistrictUtilityConditionsClient districtUtilityConditionsClient,
         ICityPopulationCommuteRoutingService commuteRoutingService,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
@@ -163,12 +164,32 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityEconomyDailySettlementSnapshot? pendingEconomySettlement = null;
             List<ClassicCityHouseholdCashflowSettlementItemV1> pendingHouseholdCashflowItems = [];
             List<ClassicCityWorkplacePayrollSettlementItemV1> pendingWorkplacePayrollItems = [];
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId =
+                new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>();
 
             if ((requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure) && environment is null)
                 logger.LogWarning(
                     message:
                     "Advancing city population without synced environment for cityId={CityId}. Climate adaptation will be neutral and needs progression will use UTC fallback.",
                     request.CityId);
+
+            if (requiresDateProgression || requiresNeedsProgression || requiresWeatherExposure)
+            {
+                try
+                {
+                    districtUtilityConditionsByDistrictId =
+                        await districtUtilityConditionsClient.GetByCityAsync(
+                            cityId: cityId.Value,
+                            cancellationToken: cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Failed to load district utility conditions for cityId={CityId}. Falling back to synthetic district impact.",
+                        request.CityId);
+                }
+            }
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
@@ -272,6 +293,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     costOfLivingState: costOfLivingState,
                                     essentialsState: essentialsState,
                                     livingConditionsState: livingConditionsState,
+                                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                     districtImpactPolicy: districtImpactPolicy,
                                     serviceQualityState: serviceQualityState,
                                     healthcarePressureProfile: healthcarePressureProfile,
@@ -320,6 +342,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 costOfLivingState: costOfLivingState,
                                 essentialsState: essentialsState,
                                 livingConditionsState: livingConditionsState,
+                                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                 districtByHouseholdId: districtByHouseholdId,
                                 districtImpactPolicy: districtImpactPolicy,
                                 participationPolicy: participationPolicy,
@@ -538,6 +561,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationLivingConditionsState? livingConditionsState,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationServiceQualityState? serviceQualityState,
             CityPopulationHealthcarePressureProfile healthcarePressureProfile,
@@ -617,6 +641,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     housingByHouseholdId: housingByHouseholdId,
                     districtByHouseholdId: districtByHouseholdId,
                     livingConditionsState: livingConditionsState,
+                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                     essentialsState: essentialsState,
                     districtImpactPolicy: districtImpactPolicy,
                     livingConditionsPressurePolicy: livingConditionsPressurePolicy,
@@ -644,6 +669,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
                     exposureSegments: exposureSegments,
                     livingConditionsState: livingConditionsState,
+                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                     essentialsState: essentialsState,
                     serviceQualityState: serviceQualityState,
                     healthcarePressureProfile: healthcarePressureProfile,
@@ -823,6 +849,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
             CityPopulationLivingConditionsState? livingConditionsState,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationLivingConditionsPressurePolicy livingConditionsPressurePolicy,
@@ -840,7 +867,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 : null;
             CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
                 districtId: districtId,
-                livingConditionsState: livingConditionsState);
+                livingConditionsState: livingConditionsState,
+                districtUtilityConditions: ResolveDistrictUtilityConditions(
+                    districtId: districtId,
+                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
             CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                 districtId: districtId,
                 essentialsState: essentialsState);
@@ -904,6 +934,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationLivingConditionsState? livingConditionsState,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
             IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId,
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy,
@@ -969,7 +1000,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         : null;
                     CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
                         districtId: districtId,
-                        livingConditionsState: livingConditionsState);
+                        livingConditionsState: livingConditionsState,
+                        districtUtilityConditions: ResolveDistrictUtilityConditions(
+                            districtId: districtId,
+                            districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
                     CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                         districtId: districtId,
                         essentialsState: essentialsState);
@@ -1331,6 +1365,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
             IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
             CityPopulationLivingConditionsState? livingConditionsState,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
             CityPopulationEssentialsState? essentialsState,
             CityPopulationServiceQualityState? serviceQualityState,
             CityPopulationHealthcarePressureProfile healthcarePressureProfile,
@@ -1361,7 +1396,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                .ToArray();
             CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
                 districtId: districtId,
-                livingConditionsState: livingConditionsState);
+                livingConditionsState: livingConditionsState,
+                districtUtilityConditions: ResolveDistrictUtilityConditions(
+                    districtId: districtId,
+                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
             CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                 districtId: districtId,
                 essentialsState: essentialsState);
@@ -1490,6 +1528,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             }
 
             return affectedResidents;
+        }
+
+        private static CityDistrictUtilityConditionsSnapshot? ResolveDistrictUtilityConditions(
+            DistrictId? districtId,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId)
+        {
+            if (!districtId.HasValue)
+                return null;
+
+            return districtUtilityConditionsByDistrictId.TryGetValue(
+                key: districtId.Value,
+                value: out CityDistrictUtilityConditionsSnapshot? snapshot)
+                ? snapshot
+                : null;
         }
 
         private static async Task<int> ApplyHouseholdIndependenceAutonomyAsync(
