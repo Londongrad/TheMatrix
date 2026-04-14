@@ -2,10 +2,12 @@ using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
@@ -17,6 +19,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
     public sealed class CityOperationsDashboardService(
         ICitiesApiClient citiesClient,
         IEconomyApiClient economyClient,
+        IPopulationApiClient populationClient,
         IStockpilesApiClient stockpilesClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
         HealthCheckService healthCheckService,
@@ -26,6 +29,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly IEconomyApiClient _economyClient = economyClient;
+        private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
         private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
         private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
@@ -36,6 +40,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         private sealed record CityOperationalSnapshot(
             CityListItemView City,
             CityEnvironmentalConditionsView? Conditions,
+            CityPopulationDistrictPressureDto? PopulationDistrictPressure,
             CityStockpilesView? Stockpiles,
             CityOperationalBudgetPressureView? Budget);
 
@@ -66,6 +71,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     allCities: allCities,
                     cancellationToken: cancellationToken);
             DashboardEnvironmentalAlertView[] environmentalAlerts = BuildEnvironmentalAlerts(operationalSnapshots);
+            DashboardPopulationDistrictPressureView[] populationDistrictAlerts = BuildPopulationDistrictPressureAlerts(operationalSnapshots);
             DashboardBudgetPressureView[] budgetAlerts = BuildBudgetPressureAlerts(operationalSnapshots);
             DashboardTickFreshnessView[] tickFreshnessAlerts = BuildTickFreshnessAlerts(operationalSnapshots);
             DashboardPhaseProgressView[] phaseProgressAlerts = BuildPhaseProgressAlerts(operationalSnapshots);
@@ -136,6 +142,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     DeltaMonth: null,
                     DeltaYear: null,
                     DeltaMode: "live"),
+                PopulationDistrictAlerts: new DashboardMetricView(
+                    Label: "District population alerts",
+                    Current: populationDistrictAlerts.Length,
+                    Description:
+                    "Ready classic-city simulations where one or more districts are showing acute population pressure from illness, housing fragility, or unstable utilities.",
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null,
+                    DeltaMode: "live"),
                 OperationalBudgetAlerts: new DashboardMetricView(
                     Label: "Operational budget alerts",
                     Current: budgetAlerts.Length,
@@ -190,6 +205,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 Services: healthTask.Result,
                 Events: BuildRecentEvents(allCities),
                 EnvironmentalCities: environmentalAlerts.Take(8)
+                   .ToArray(),
+                PopulationDistrictCities: populationDistrictAlerts.Take(8)
                    .ToArray(),
                 BudgetPressureCities: budgetAlerts.Take(8)
                    .ToArray(),
@@ -396,6 +413,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             Task<CityEnvironmentalConditionsView?> environmentalTask = TryLoadEnvironmentalConditionsAsync(
                 city: city,
                 cancellationToken: cancellationToken);
+            Task<CityPopulationDistrictPressureDto?> populationDistrictPressureTask = TryLoadPopulationDistrictPressureAsync(
+                city: city,
+                cancellationToken: cancellationToken);
             Task<CityStockpilesView?> stockpilesTask = TryLoadStockpilesAsync(
                 city: city,
                 cancellationToken: cancellationToken);
@@ -405,12 +425,14 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
             await Task.WhenAll(
                 environmentalTask,
+                populationDistrictPressureTask,
                 stockpilesTask,
                 budgetTask);
 
             return new CityOperationalSnapshot(
                 City: city,
                 Conditions: environmentalTask.Result,
+                PopulationDistrictPressure: populationDistrictPressureTask.Result,
                 Stockpiles: stockpilesTask.Result,
                 Budget: budgetTask.Result);
         }
@@ -423,6 +445,23 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .Where(alert => alert is not null)
                .Select(alert => alert!)
                .OrderByDescending(alert => alert.AlertScore)
+               .ThenBy(
+                    keySelector: alert => alert.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
+               .ToArray();
+        }
+
+        private static DashboardPopulationDistrictPressureView[] BuildPopulationDistrictPressureAlerts(
+            IReadOnlyList<CityOperationalSnapshot> snapshots)
+        {
+            return snapshots
+               .Select(BuildPopulationDistrictPressureAlert)
+               .Where(alert => alert is not null)
+               .Select(alert => alert!)
+               .OrderByDescending(alert => GetPopulationDistrictSeverityRank(alert.Severity))
+               .ThenByDescending(alert => alert.PopulationPressureIndex)
+               .ThenByDescending(alert => alert.HomelessResidentCount)
+               .ThenByDescending(alert => alert.ActiveIllnessCount)
                .ThenBy(
                     keySelector: alert => alert.CityName,
                     comparer: StringComparer.OrdinalIgnoreCase)
@@ -501,6 +540,39 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     exception: exception,
                     message:
                     "Skipped simulation systems metrics for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                    (int)exception.StatusCode,
+                    city.CityId);
+
+                return null;
+            }
+        }
+
+        private async Task<CityPopulationDistrictPressureDto?> TryLoadPopulationDistrictPressureAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await _populationClient.GetCityDistrictPressureAsync(
+                    cityId: city.CityId,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Failed to attach population district pressure to city operations dashboard for cityId={CityId}.",
+                    city.CityId);
+
+                return null;
+            }
+            catch (DownstreamServiceException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Skipped population district pressure for city operations dashboard because Population returned status {StatusCode} for cityId={CityId}.",
                     (int)exception.StatusCode,
                     city.CityId);
 
@@ -594,6 +666,40 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 Summary: BuildEnvironmentalSummary(conditions),
                 AlertScore: alertScore,
                 Conditions: conditions);
+        }
+
+        private static DashboardPopulationDistrictPressureView? BuildPopulationDistrictPressureAlert(
+            CityOperationalSnapshot snapshot)
+        {
+            CityPopulationDistrictPressureDto? districtPressure = snapshot.PopulationDistrictPressure;
+
+            if (districtPressure is null || districtPressure.Districts.Count == 0)
+                return null;
+
+            CityPopulationDistrictPressureItemDto leadingDistrict = districtPressure.Districts
+               .OrderByDescending(x => x.PopulationPressureIndex)
+               .ThenByDescending(x => x.HomelessResidentCount)
+               .ThenByDescending(x => x.ActiveIllnessCount)
+               .First();
+
+            if (leadingDistrict.PopulationPressureIndex < 0.2800m)
+                return null;
+
+            return new DashboardPopulationDistrictPressureView(
+                CityId: snapshot.City.CityId,
+                CityName: snapshot.City.Name,
+                CityStatus: snapshot.City.Status,
+                DistrictId: leadingDistrict.DistrictId,
+                Severity: GetPopulationDistrictSeverity(leadingDistrict.PopulationPressureIndex),
+                Summary: BuildPopulationDistrictSummary(leadingDistrict),
+                PopulationPressureIndex: leadingDistrict.PopulationPressureIndex,
+                UtilityContinuityIndex: leadingDistrict.UtilityContinuityIndex,
+                HousingFragilityIndex: leadingDistrict.HousingFragilityIndex,
+                ResidentCount: leadingDistrict.ResidentCount,
+                ActiveIllnessCount: leadingDistrict.ActiveIllnessCount,
+                SevereIllnessCount: leadingDistrict.SevereIllnessCount,
+                HomelessResidentCount: leadingDistrict.HomelessResidentCount,
+                District: leadingDistrict);
         }
 
         private static DashboardBudgetPressureView? BuildBudgetPressureAlert(CityOperationalSnapshot snapshot)
@@ -990,6 +1096,26 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             };
         }
 
+        private static string GetPopulationDistrictSeverity(decimal pressureIndex)
+        {
+            return pressureIndex switch
+            {
+                >= 0.7000m => "danger",
+                >= 0.5000m => "warning",
+                _ => "info"
+            };
+        }
+
+        private static int GetPopulationDistrictSeverityRank(string severity)
+        {
+            return severity switch
+            {
+                "danger" => 2,
+                "warning" => 1,
+                _ => 0
+            };
+        }
+
         private static string GetBudgetSeverity(CityOperationalBudgetPressureView pressure)
         {
             int restrictionRank = Max(
@@ -1176,6 +1302,37 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 "TickCompleted" => 90,
                 _ => 0
             };
+        }
+
+        private static string BuildPopulationDistrictSummary(CityPopulationDistrictPressureItemDto district)
+        {
+            decimal severeIllnessBurden = district.ResidentCount <= 0
+                ? 0m
+                : (decimal)district.SevereIllnessCount / district.ResidentCount;
+            decimal homelessnessBurden = district.ResidentCount <= 0
+                ? 0m
+                : (decimal)district.HomelessResidentCount / district.ResidentCount;
+            decimal utilityFragility = ClampUnit(1m - ClampUnit(district.UtilityContinuityIndex));
+            decimal dominantPressure = Max(
+                severeIllnessBurden,
+                homelessnessBurden,
+                district.HousingFragilityIndex,
+                district.UtilityIncidentPressureIndex,
+                utilityFragility);
+
+            if (severeIllnessBurden >= dominantPressure)
+                return "One district is carrying a severe illness burden and local recovery conditions are starting to thin out.";
+
+            if (homelessnessBurden >= dominantPressure || district.HousingFragilityIndex >= dominantPressure)
+                return "One district is showing housing fragility and is starting to push more residents into unstable living conditions.";
+
+            if (utilityFragility >= dominantPressure)
+                return "One district is losing day-to-day utility continuity and basic living conditions are starting to fray.";
+
+            if (district.UtilityIncidentPressureIndex >= dominantPressure)
+                return "One district is stuck under sustained utility incident pressure and restoration is struggling to keep up.";
+
+            return "One district is showing a compound mix of illness, housing stress, and unstable utilities.";
         }
 
         private static string BuildEnvironmentalSummary(CityEnvironmentalConditionsView conditions)

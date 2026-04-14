@@ -1,5 +1,6 @@
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 
@@ -12,6 +13,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         DashboardMetricView ArchivedRecords,
         DashboardMetricView AttentionQueue,
         DashboardMetricView EnvironmentalAlerts,
+        DashboardMetricView PopulationDistrictAlerts,
         DashboardMetricView OperationalBudgetAlerts,
         DashboardMetricView TickFreshnessAlerts,
         DashboardMetricView PhaseProgressAlerts,
@@ -22,6 +24,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         IReadOnlyList<DashboardServiceHealthView> Services,
         IReadOnlyList<DashboardRecentEventView> Events,
         IReadOnlyList<DashboardEnvironmentalAlertView> EnvironmentalCities,
+        IReadOnlyList<DashboardPopulationDistrictPressureView> PopulationDistrictCities,
         IReadOnlyList<DashboardBudgetPressureView> BudgetPressureCities,
         IReadOnlyList<DashboardTickFreshnessView> TickFreshnessCities,
         IReadOnlyList<DashboardPhaseProgressView> PhaseProgressCities,
@@ -74,6 +77,22 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         string Summary,
         decimal AlertScore,
         CityEnvironmentalConditionsView Conditions);
+
+    public sealed record DashboardPopulationDistrictPressureView(
+        Guid CityId,
+        string CityName,
+        string CityStatus,
+        Guid DistrictId,
+        string Severity,
+        string Summary,
+        decimal PopulationPressureIndex,
+        decimal UtilityContinuityIndex,
+        decimal HousingFragilityIndex,
+        int ResidentCount,
+        int ActiveIllnessCount,
+        int SevereIllnessCount,
+        int HomelessResidentCount,
+        CityPopulationDistrictPressureItemDto District);
 
     public sealed record DashboardBudgetPressureView(
         Guid CityId,
