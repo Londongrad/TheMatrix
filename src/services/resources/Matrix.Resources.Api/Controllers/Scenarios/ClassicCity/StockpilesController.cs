@@ -62,7 +62,8 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                     CityId: cityId,
                     Focus: MapFocus(request.Focus),
                     Intensity: MapIntensity(request.Intensity),
-                    EmergencyOverride: request.EmergencyOverride),
+                    EmergencyOverride: request.EmergencyOverride,
+                    FocusDistrictId: request.DistrictId),
                 cancellationToken: cancellationToken);
 
             if (result.Status == DispatchCityResupplyStatus.NotInitialized)
@@ -170,6 +171,7 @@ namespace Matrix.Resources.Api.Controllers.Scenarios.ClassicCity
                 : new PendingResupplyView(
                     Focus: dto.Focus,
                     Intensity: dto.Intensity,
+                    FocusDistrictId: dto.FocusDistrictId,
                     ReadyAtTickId: dto.ReadyAtTickId);
         }
     }
