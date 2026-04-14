@@ -397,6 +397,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 financialStressByHouseholdId: financialStressByHouseholdId,
                                 costOfLivingState: costOfLivingState,
                                 serviceQualityState: serviceQualityState,
+                                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                 housingAutonomyPolicy: housingAutonomyPolicy,
                                 anchorSelectionPolicy: anchorSelectionPolicy,
                                 cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
@@ -1691,6 +1692,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
             CityPopulationCostOfLivingState? costOfLivingState,
             CityPopulationServiceQualityState? serviceQualityState,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
             CityHousingAutonomyPolicy housingAutonomyPolicy,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
@@ -1805,6 +1807,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 housingPool: housingPool,
                                 householdResidents: householdResidents,
                                 hospitalAnchors: hospitalAnchors,
+                                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                                 anchorSelectionPolicy: anchorSelectionPolicy,
                                 commuteRoutingService: commuteRoutingService,
                                 cancellationToken: cancellationToken);
@@ -2024,6 +2027,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyList<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> housingPool,
             IReadOnlyCollection<PersonEntity> householdResidents,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
@@ -2050,6 +2054,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     currentDate: currentDate,
                     householdResidents: householdResidents,
                     hospitalAnchors: hospitalAnchors,
+                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
                     anchorSelectionPolicy: anchorSelectionPolicy,
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken);
@@ -2071,6 +2076,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             DateOnly currentDate,
             IReadOnlyCollection<PersonEntity> householdResidents,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
             CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
@@ -2138,10 +2144,46 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             }
 
             if (totalWeight <= 0m)
-                return 0m;
+                return ResolveDistrictHousingStabilityContribution(
+                    districtUtilityConditions: ResolveDistrictUtilityConditions(
+                        districtId: districtId,
+                        districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
+
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions = ResolveDistrictUtilityConditions(
+                districtId: districtId,
+                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId);
+            if (districtUtilityConditions is not null)
+            {
+                weightedScoreTotal += ResolveDistrictHousingStabilityContribution(districtUtilityConditions) * 0.90m;
+                totalWeight += 0.90m;
+            }
 
             return decimal.Round(
                 d: weightedScoreTotal / totalWeight,
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal ResolveDistrictHousingStabilityContribution(
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions)
+        {
+            if (districtUtilityConditions is null)
+                return 0.55m;
+
+            decimal score = (districtUtilityConditions.UtilityIncidentDispatchReadinessIndex * 0.22m) +
+                            ((1m - districtUtilityConditions.UtilityIncidentPressureIndex) * 0.26m) +
+                            ((1m - districtUtilityConditions.UtilityIncidentCoordinationDifficultyIndex) * 0.14m) +
+                            ((1m - districtUtilityConditions.UtilityIncidentRestorationPriorityIndex) * 0.12m) +
+                            (districtUtilityConditions.HeatingCoverageIndex * 0.08m) +
+                            (districtUtilityConditions.WaterCoverageIndex * 0.08m) +
+                            (districtUtilityConditions.PowerCoverageIndex * 0.06m) +
+                            (districtUtilityConditions.SanitationCoverageIndex * 0.04m);
+
+            return decimal.Round(
+                d: Math.Clamp(
+                    value: score,
+                    min: 0m,
+                    max: 1m),
                 decimals: 4,
                 mode: MidpointRounding.AwayFromZero);
         }
