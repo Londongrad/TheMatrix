@@ -45,7 +45,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                     requestedIntensity: request.Intensity,
                     estimatedAmount: CityMaintenanceOperationalExpenseFactory.EstimateUtilityIncidentResponseAmount(
                         focus: request.Focus,
-                        intensity: request.Intensity),
+                        intensity: request.Intensity,
+                        districtFocused: request.FocusDistrictId.HasValue),
                     emergencyOverrideRequested: request.EmergencyOverride,
                     emergencyModeEnabled: state.UtilityIncidentInfrastructure.EmergencyModeEnabled,
                     defaultAuthorizationLevel: state.OperationalBudgetPressure.OperationsAuthorizationLevel,
@@ -86,14 +87,17 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
             state.ScheduleUtilityIncidentResponse(
                 focus: focus,
                 intensity: appliedIntensity,
+                focusDistrictId: request.FocusDistrictId,
                 readyAtTickId: CalculateReadyAtTickId(
                     currentTickId: state.LastAppliedTickId,
-                    intensity: budgetDecision.AppliedIntensity));
+                    intensity: budgetDecision.AppliedIntensity,
+                    districtFocused: request.FocusDistrictId.HasValue));
             await operationalExpenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
                 expense: CityMaintenanceOperationalExpenseFactory.CreateUtilityIncidentResponseExpense(
                     cityId: request.CityId,
                     focus: request.Focus,
                     intensity: budgetDecision.AppliedIntensity,
+                    districtFocused: request.FocusDistrictId.HasValue,
                     occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -116,7 +120,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
 
         private static long CalculateReadyAtTickId(
             long currentTickId,
-            string intensity)
+            string intensity,
+            bool districtFocused)
         {
             long delay = string.Equals(
                 a: intensity,
@@ -124,6 +129,9 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 comparisonType: StringComparison.OrdinalIgnoreCase)
                 ? 2
                 : 1;
+
+            if (districtFocused)
+                delay = Math.Max(1, delay - 1);
 
             return Math.Max(0, currentTickId + delay);
         }

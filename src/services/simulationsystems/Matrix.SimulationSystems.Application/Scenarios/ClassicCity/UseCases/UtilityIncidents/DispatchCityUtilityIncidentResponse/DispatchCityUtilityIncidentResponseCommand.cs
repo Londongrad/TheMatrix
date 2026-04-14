@@ -9,7 +9,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
         Guid CityId,
         string Focus,
         string Intensity,
-        bool EmergencyOverride)
+        bool EmergencyOverride,
+        Guid? FocusDistrictId = null)
         : IRequest<CityUtilityIncidentStatusDto?>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.SimulationSystemsClassicCityManage;

@@ -335,6 +335,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PendingDrainageMaintenance.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: null,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
@@ -362,6 +363,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PendingSnowRemovalMaintenance.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: null,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
@@ -389,6 +391,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PendingRoadAccessMaintenance.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: null,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
@@ -416,6 +419,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PendingHeatingMaintenance.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: null,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
@@ -443,6 +447,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PendingWaterDistributionMaintenance.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: null,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
@@ -470,6 +475,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PendingSanitationMaintenance.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: null,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
@@ -497,6 +503,7 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
             PendingPowerDistributionMaintenance.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: null,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
@@ -519,11 +526,13 @@ namespace Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems
         public void ScheduleUtilityIncidentResponse(
             UtilityIncidentResponseFocus focus,
             UtilityIncidentResponseIntensity intensity,
+            Guid? focusDistrictId,
             long readyAtTickId)
         {
             PendingUtilityIncidentResponse.Schedule(
                 focus: focus.ToString(),
                 intensity: intensity.ToString(),
+                focusDistrictId: focusDistrictId,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));

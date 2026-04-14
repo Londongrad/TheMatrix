@@ -912,6 +912,10 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Configurations
                .HasColumnName($"{prefix}Intensity")
                .IsRequired();
 
+            builder.Property(x => x.FocusDistrictId)
+               .HasColumnName($"{prefix}FocusDistrictId")
+               .IsRequired(false);
+
             builder.Property(x => x.ReadyAtTickId)
                .HasColumnName($"{prefix}ReadyAtTickId")
                .IsRequired();

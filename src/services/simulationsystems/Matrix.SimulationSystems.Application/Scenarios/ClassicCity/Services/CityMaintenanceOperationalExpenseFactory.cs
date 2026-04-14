@@ -36,10 +36,14 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
             Guid cityId,
             string focus,
             string intensity,
+            bool districtFocused,
             DateTimeOffset occurredAtUtc)
         {
             string formattedFocus = SplitPascalCase(focus);
             string formattedIntensity = SplitPascalCase(intensity);
+            string districtScope = districtFocused
+                ? "for a district-targeted response"
+                : "for a citywide response";
 
             return new ClassicCityOperationalExpenseIncurredV1(
                 ExpenseId: Guid.NewGuid(),
@@ -47,10 +51,11 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
                 Category: "Operations",
                 Amount: EstimateUtilityIncidentResponseAmount(
                     focus: focus,
-                    intensity: intensity),
+                    intensity: intensity,
+                    districtFocused: districtFocused),
                 Title: "Dispatch utility incident response",
                 Description:
-                $"Utility incident response dispatched with {formattedIntensity.ToLowerInvariant()} intensity and {formattedFocus.ToLowerInvariant()} focus.",
+                $"Utility incident response dispatched with {formattedIntensity.ToLowerInvariant()} intensity and {formattedFocus.ToLowerInvariant()} focus {districtScope}.",
                 SourceService: "SimulationSystems",
                 OperationKind: "UtilityIncidentResponseDispatch",
                 OccurredAtUtc: occurredAtUtc);
@@ -70,13 +75,21 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services
 
         public static decimal EstimateUtilityIncidentResponseAmount(
             string focus,
-            string intensity)
+            string intensity,
+            bool districtFocused)
         {
-            return ResolveAmount(
+            decimal amount = ResolveAmount(
                 systemName: "UtilityIncidents",
                 focus: focus,
                 intensity: intensity,
                 emergencyResponse: true);
+
+            return districtFocused
+                ? decimal.Round(
+                    d: amount * 0.74m,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero)
+                : amount;
         }
 
         private static decimal ResolveAmount(
