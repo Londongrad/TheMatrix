@@ -74,7 +74,8 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                     CityId: cityId,
                     Focus: request.Focus,
                     Intensity: request.Intensity,
-                    EmergencyOverride: request.EmergencyOverride),
+                    EmergencyOverride: request.EmergencyOverride,
+                    FocusDistrictId: request.DistrictId),
                 cancellationToken: cancellationToken);
 
             return status is null
@@ -109,6 +110,7 @@ namespace Matrix.SimulationSystems.Api.Controllers.Scenarios.ClassicCity
                 BudgetAuthorizedByEmergencyOverride: dto.BudgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: dto.BudgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: dto.BudgetAuthorizationSummary,
+                FocusDistrictId: dto.FocusDistrictId,
                 PendingOperation: MapPendingOperationView(dto.PendingOperation),
                 System: new CityUtilityIncidentSystemStatusView(
                     Kind: dto.System.Kind,

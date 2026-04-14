@@ -3,5 +3,6 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncide
     public sealed record DispatchCityUtilityIncidentResponseRequest(
         string Focus = "Balanced",
         string Intensity = "Standard",
+        Guid? DistrictId = null,
         bool EmergencyOverride = false);
 }

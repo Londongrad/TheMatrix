@@ -22,6 +22,7 @@ namespace Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncide
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        Guid? FocusDistrictId,
         PendingCityOperationView? PendingOperation,
         CityUtilityIncidentSystemStatusView System);
 }

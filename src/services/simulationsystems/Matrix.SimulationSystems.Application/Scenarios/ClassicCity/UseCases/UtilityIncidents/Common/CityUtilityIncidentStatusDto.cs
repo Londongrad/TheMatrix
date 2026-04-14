@@ -23,6 +23,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
         bool? BudgetAuthorizedByEmergencyOverride,
         string? BudgetAuthorizedIntensity,
         string? BudgetAuthorizationSummary,
+        Guid? FocusDistrictId,
         PendingCityOperationDto? PendingOperation,
         CityUtilityIncidentSystemStatusDto System)
     {
@@ -59,6 +60,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 BudgetAuthorizedByEmergencyOverride: budgetAuthorizedByEmergencyOverride,
                 BudgetAuthorizedIntensity: budgetAuthorizedIntensity,
                 BudgetAuthorizationSummary: budgetAuthorizationSummary,
+                FocusDistrictId: state.PendingUtilityIncidentResponse.FocusDistrictId,
                 PendingOperation: PendingCityOperationDto.FromDomain(state.PendingUtilityIncidentResponse),
                 System: CityUtilityIncidentSystemStatusDto.FromSnapshot(state.UtilityIncidents.ToSnapshot()));
         }
