@@ -14,6 +14,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         DashboardMetricView AttentionQueue,
         DashboardMetricView EnvironmentalAlerts,
         DashboardMetricView PopulationDistrictAlerts,
+        DashboardMetricView DistrictResponsePriorityAlerts,
         DashboardMetricView OperationalBudgetAlerts,
         DashboardMetricView TickFreshnessAlerts,
         DashboardMetricView PhaseProgressAlerts,
@@ -25,6 +26,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         IReadOnlyList<DashboardRecentEventView> Events,
         IReadOnlyList<DashboardEnvironmentalAlertView> EnvironmentalCities,
         IReadOnlyList<DashboardPopulationDistrictPressureView> PopulationDistrictCities,
+        IReadOnlyList<DashboardDistrictResponsePriorityView> DistrictResponsePriorities,
         IReadOnlyList<DashboardBudgetPressureView> BudgetPressureCities,
         IReadOnlyList<DashboardTickFreshnessView> TickFreshnessCities,
         IReadOnlyList<DashboardPhaseProgressView> PhaseProgressCities,
@@ -93,6 +95,23 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         int SevereIllnessCount,
         int HomelessResidentCount,
         CityPopulationDistrictPressureItemDto District);
+
+    public sealed record DashboardDistrictResponsePriorityView(
+        Guid CityId,
+        string CityName,
+        string CityStatus,
+        Guid DistrictId,
+        string Severity,
+        string Summary,
+        string RecommendedFocus,
+        decimal PriorityScore,
+        decimal PopulationPressureIndex,
+        decimal UtilityIncidentPressureIndex,
+        decimal ServiceDisruptionIndex,
+        decimal MaintenancePriorityIndex,
+        int ActiveIllnessCount,
+        int SevereIllnessCount,
+        int HomelessResidentCount);
 
     public sealed record DashboardBudgetPressureView(
         Guid CityId,

@@ -11,6 +11,11 @@ using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -41,6 +46,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView City,
             CityEnvironmentalConditionsView? Conditions,
             CityPopulationDistrictPressureDto? PopulationDistrictPressure,
+            CityDistrictHeatingConditionsView? DistrictHeating,
+            CityDistrictWaterDistributionConditionsView? DistrictWater,
+            CityDistrictPowerDistributionConditionsView? DistrictPower,
+            CityDistrictSanitationConditionsView? DistrictSanitation,
+            CityDistrictUtilityIncidentConditionsView? DistrictUtilityIncidents,
             CityStockpilesView? Stockpiles,
             CityOperationalBudgetPressureView? Budget);
 
@@ -72,6 +82,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     cancellationToken: cancellationToken);
             DashboardEnvironmentalAlertView[] environmentalAlerts = BuildEnvironmentalAlerts(operationalSnapshots);
             DashboardPopulationDistrictPressureView[] populationDistrictAlerts = BuildPopulationDistrictPressureAlerts(operationalSnapshots);
+            DashboardDistrictResponsePriorityView[] districtResponsePriorities = BuildDistrictResponsePriorities(operationalSnapshots);
             DashboardBudgetPressureView[] budgetAlerts = BuildBudgetPressureAlerts(operationalSnapshots);
             DashboardTickFreshnessView[] tickFreshnessAlerts = BuildTickFreshnessAlerts(operationalSnapshots);
             DashboardPhaseProgressView[] phaseProgressAlerts = BuildPhaseProgressAlerts(operationalSnapshots);
@@ -151,6 +162,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     DeltaMonth: null,
                     DeltaYear: null,
                     DeltaMode: "live"),
+                DistrictResponsePriorityAlerts: new DashboardMetricView(
+                    Label: "District response priorities",
+                    Current: districtResponsePriorities.Length,
+                    Description:
+                    "District-level operator priorities where social pressure and utility instability are converging into the next best response target.",
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null,
+                    DeltaMode: "live"),
                 OperationalBudgetAlerts: new DashboardMetricView(
                     Label: "Operational budget alerts",
                     Current: budgetAlerts.Length,
@@ -207,6 +227,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 EnvironmentalCities: environmentalAlerts.Take(8)
                    .ToArray(),
                 PopulationDistrictCities: populationDistrictAlerts.Take(8)
+                   .ToArray(),
+                DistrictResponsePriorities: districtResponsePriorities.Take(8)
                    .ToArray(),
                 BudgetPressureCities: budgetAlerts.Take(8)
                    .ToArray(),
@@ -416,6 +438,21 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             Task<CityPopulationDistrictPressureDto?> populationDistrictPressureTask = TryLoadPopulationDistrictPressureAsync(
                 city: city,
                 cancellationToken: cancellationToken);
+            Task<CityDistrictHeatingConditionsView?> districtHeatingTask = TryLoadDistrictHeatingConditionsAsync(
+                city: city,
+                cancellationToken: cancellationToken);
+            Task<CityDistrictWaterDistributionConditionsView?> districtWaterTask = TryLoadDistrictWaterConditionsAsync(
+                city: city,
+                cancellationToken: cancellationToken);
+            Task<CityDistrictPowerDistributionConditionsView?> districtPowerTask = TryLoadDistrictPowerConditionsAsync(
+                city: city,
+                cancellationToken: cancellationToken);
+            Task<CityDistrictSanitationConditionsView?> districtSanitationTask = TryLoadDistrictSanitationConditionsAsync(
+                city: city,
+                cancellationToken: cancellationToken);
+            Task<CityDistrictUtilityIncidentConditionsView?> districtUtilityIncidentsTask = TryLoadDistrictUtilityIncidentConditionsAsync(
+                city: city,
+                cancellationToken: cancellationToken);
             Task<CityStockpilesView?> stockpilesTask = TryLoadStockpilesAsync(
                 city: city,
                 cancellationToken: cancellationToken);
@@ -426,6 +463,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             await Task.WhenAll(
                 environmentalTask,
                 populationDistrictPressureTask,
+                districtHeatingTask,
+                districtWaterTask,
+                districtPowerTask,
+                districtSanitationTask,
+                districtUtilityIncidentsTask,
                 stockpilesTask,
                 budgetTask);
 
@@ -433,6 +475,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 City: city,
                 Conditions: environmentalTask.Result,
                 PopulationDistrictPressure: populationDistrictPressureTask.Result,
+                DistrictHeating: districtHeatingTask.Result,
+                DistrictWater: districtWaterTask.Result,
+                DistrictPower: districtPowerTask.Result,
+                DistrictSanitation: districtSanitationTask.Result,
+                DistrictUtilityIncidents: districtUtilityIncidentsTask.Result,
                 Stockpiles: stockpilesTask.Result,
                 Budget: budgetTask.Result);
         }
@@ -464,6 +511,21 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .ThenByDescending(alert => alert.ActiveIllnessCount)
                .ThenBy(
                     keySelector: alert => alert.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
+               .ToArray();
+        }
+
+        private static DashboardDistrictResponsePriorityView[] BuildDistrictResponsePriorities(
+            IReadOnlyList<CityOperationalSnapshot> snapshots)
+        {
+            return snapshots
+               .Select(BuildDistrictResponsePriority)
+               .Where(priority => priority is not null)
+               .Select(priority => priority!)
+               .OrderByDescending(priority => GetDistrictResponseSeverityRank(priority.Severity))
+               .ThenByDescending(priority => priority.PriorityScore)
+               .ThenBy(
+                    keySelector: priority => priority.CityName,
                     comparer: StringComparer.OrdinalIgnoreCase)
                .ToArray();
         }
@@ -573,6 +635,115 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     exception: exception,
                     message:
                     "Skipped population district pressure for city operations dashboard because Population returned status {StatusCode} for cityId={CityId}.",
+                    (int)exception.StatusCode,
+                    city.CityId);
+
+                return null;
+            }
+        }
+
+        private async Task<CityDistrictHeatingConditionsView?> TryLoadDistrictHeatingConditionsAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            return await TryLoadDistrictUtilityConditionsAsync(
+                city: city,
+                load: token => _environmentalConditionsClient.GetCityDistrictHeatingConditionsAsync(
+                    cityId: city.CityId,
+                    cancellationToken: token),
+                failureMessage: "Failed to attach district heating conditions to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped district heating conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<CityDistrictWaterDistributionConditionsView?> TryLoadDistrictWaterConditionsAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            return await TryLoadDistrictUtilityConditionsAsync(
+                city: city,
+                load: token => _environmentalConditionsClient.GetCityDistrictWaterDistributionConditionsAsync(
+                    cityId: city.CityId,
+                    cancellationToken: token),
+                failureMessage: "Failed to attach district water conditions to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped district water conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<CityDistrictPowerDistributionConditionsView?> TryLoadDistrictPowerConditionsAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            return await TryLoadDistrictUtilityConditionsAsync(
+                city: city,
+                load: token => _environmentalConditionsClient.GetCityDistrictPowerDistributionConditionsAsync(
+                    cityId: city.CityId,
+                    cancellationToken: token),
+                failureMessage: "Failed to attach district power conditions to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped district power conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<CityDistrictSanitationConditionsView?> TryLoadDistrictSanitationConditionsAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            return await TryLoadDistrictUtilityConditionsAsync(
+                city: city,
+                load: token => _environmentalConditionsClient.GetCityDistrictSanitationConditionsAsync(
+                    cityId: city.CityId,
+                    cancellationToken: token),
+                failureMessage: "Failed to attach district sanitation conditions to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped district sanitation conditions for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<CityDistrictUtilityIncidentConditionsView?> TryLoadDistrictUtilityIncidentConditionsAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            return await TryLoadDistrictUtilityConditionsAsync(
+                city: city,
+                load: token => _environmentalConditionsClient.GetCityDistrictUtilityIncidentConditionsAsync(
+                    cityId: city.CityId,
+                    cancellationToken: token),
+                failureMessage:
+                "Failed to attach district utility incidents to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped district utility incidents for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<T?> TryLoadDistrictUtilityConditionsAsync<T>(
+            CityListItemView city,
+            Func<CancellationToken, Task<T?>> load,
+            string failureMessage,
+            string skippedMessage,
+            CancellationToken cancellationToken)
+            where T : class
+        {
+            try
+            {
+                return await load(cancellationToken);
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message: failureMessage,
+                    city.CityId);
+
+                return null;
+            }
+            catch (DownstreamServiceException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message: skippedMessage,
                     (int)exception.StatusCode,
                     city.CityId);
 
@@ -700,6 +871,107 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 SevereIllnessCount: leadingDistrict.SevereIllnessCount,
                 HomelessResidentCount: leadingDistrict.HomelessResidentCount,
                 District: leadingDistrict);
+        }
+
+        private static DashboardDistrictResponsePriorityView? BuildDistrictResponsePriority(
+            CityOperationalSnapshot snapshot)
+        {
+            CityPopulationDistrictPressureDto? districtPressure = snapshot.PopulationDistrictPressure;
+
+            if (districtPressure is null || districtPressure.Districts.Count == 0)
+                return null;
+
+            DashboardDistrictResponsePriorityView? leadingPriority = districtPressure.Districts
+               .Select(district => BuildDistrictResponsePriority(
+                    snapshot: snapshot,
+                    district: district))
+               .Where(priority => priority is not null)
+               .Select(priority => priority!)
+               .OrderByDescending(priority => priority.PriorityScore)
+               .ThenByDescending(priority => priority.HomelessResidentCount)
+               .ThenByDescending(priority => priority.ActiveIllnessCount)
+               .FirstOrDefault();
+
+            return leadingPriority is not null && leadingPriority.PriorityScore >= 0.3400m
+                ? leadingPriority
+                : null;
+        }
+
+        private static DashboardDistrictResponsePriorityView? BuildDistrictResponsePriority(
+            CityOperationalSnapshot snapshot,
+            CityPopulationDistrictPressureItemDto district)
+        {
+            CityDistrictHeatingConditionView? heating = snapshot.DistrictHeating?.Districts
+               .FirstOrDefault(x => x.DistrictId == district.DistrictId);
+            CityDistrictWaterDistributionConditionView? water = snapshot.DistrictWater?.Districts
+               .FirstOrDefault(x => x.DistrictId == district.DistrictId);
+            CityDistrictPowerDistributionConditionView? power = snapshot.DistrictPower?.Districts
+               .FirstOrDefault(x => x.DistrictId == district.DistrictId);
+            CityDistrictSanitationConditionView? sanitation = snapshot.DistrictSanitation?.Districts
+               .FirstOrDefault(x => x.DistrictId == district.DistrictId);
+            CityDistrictUtilityIncidentConditionView? incidents = snapshot.DistrictUtilityIncidents?.Districts
+               .FirstOrDefault(x => x.DistrictId == district.DistrictId);
+            decimal utilityIncidentPressure = incidents?.IncidentPressureIndex ?? district.UtilityIncidentPressureIndex;
+            decimal serviceDisruptionIndex = ClampUnit(Max(
+                heating is null ? 0m : 1m - heating.HeatingCoverageIndex,
+                water is null ? 0m : 1m - water.WaterCoverageIndex,
+                power is null ? 0m : 1m - power.PowerCoverageIndex,
+                sanitation is null ? 0m : 1m - sanitation.SanitationCoverageIndex,
+                1m - ClampUnit(district.UtilityContinuityIndex)));
+            decimal maintenancePriorityIndex = ClampUnit(Max(
+                heating?.MaintenancePriorityIndex ?? 0m,
+                water?.MaintenancePriorityIndex ?? 0m,
+                power?.MaintenancePriorityIndex ?? 0m,
+                sanitation?.MaintenancePriorityIndex ?? 0m,
+                incidents?.RestorationPriorityIndex ?? 0m));
+            decimal priorityScore = decimal.Round(
+                d: ClampUnit(
+                    (district.PopulationPressureIndex * 0.42m) +
+                    (utilityIncidentPressure * 0.18m) +
+                    (serviceDisruptionIndex * 0.22m) +
+                    (maintenancePriorityIndex * 0.18m)),
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+
+            return new DashboardDistrictResponsePriorityView(
+                CityId: snapshot.City.CityId,
+                CityName: snapshot.City.Name,
+                CityStatus: snapshot.City.Status,
+                DistrictId: district.DistrictId,
+                Severity: GetDistrictResponseSeverity(priorityScore),
+                Summary: BuildDistrictResponseSummary(
+                    district: district,
+                    heating: heating,
+                    water: water,
+                    power: power,
+                    sanitation: sanitation,
+                    incidents: incidents,
+                    serviceDisruptionIndex: serviceDisruptionIndex,
+                    maintenancePriorityIndex: maintenancePriorityIndex),
+                RecommendedFocus: BuildDistrictResponseFocus(
+                    district: district,
+                    heating: heating,
+                    water: water,
+                    power: power,
+                    sanitation: sanitation,
+                    incidents: incidents),
+                PriorityScore: priorityScore,
+                PopulationPressureIndex: district.PopulationPressureIndex,
+                UtilityIncidentPressureIndex: decimal.Round(
+                    d: utilityIncidentPressure,
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero),
+                ServiceDisruptionIndex: decimal.Round(
+                    d: serviceDisruptionIndex,
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero),
+                MaintenancePriorityIndex: decimal.Round(
+                    d: maintenancePriorityIndex,
+                    decimals: 4,
+                    mode: MidpointRounding.AwayFromZero),
+                ActiveIllnessCount: district.ActiveIllnessCount,
+                SevereIllnessCount: district.SevereIllnessCount,
+                HomelessResidentCount: district.HomelessResidentCount);
         }
 
         private static DashboardBudgetPressureView? BuildBudgetPressureAlert(CityOperationalSnapshot snapshot)
@@ -1116,6 +1388,26 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             };
         }
 
+        private static string GetDistrictResponseSeverity(decimal priorityScore)
+        {
+            return priorityScore switch
+            {
+                >= 0.7000m => "danger",
+                >= 0.5000m => "warning",
+                _ => "info"
+            };
+        }
+
+        private static int GetDistrictResponseSeverityRank(string severity)
+        {
+            return severity switch
+            {
+                "danger" => 2,
+                "warning" => 1,
+                _ => 0
+            };
+        }
+
         private static string GetBudgetSeverity(CityOperationalBudgetPressureView pressure)
         {
             int restrictionRank = Max(
@@ -1333,6 +1625,80 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 return "One district is stuck under sustained utility incident pressure and restoration is struggling to keep up.";
 
             return "One district is showing a compound mix of illness, housing stress, and unstable utilities.";
+        }
+
+        private static string BuildDistrictResponseSummary(
+            CityPopulationDistrictPressureItemDto district,
+            CityDistrictHeatingConditionView? heating,
+            CityDistrictWaterDistributionConditionView? water,
+            CityDistrictPowerDistributionConditionView? power,
+            CityDistrictSanitationConditionView? sanitation,
+            CityDistrictUtilityIncidentConditionView? incidents,
+            decimal serviceDisruptionIndex,
+            decimal maintenancePriorityIndex)
+        {
+            decimal heatingDisruption = heating is null ? 0m : 1m - heating.HeatingCoverageIndex;
+            decimal waterDisruption = water is null ? 0m : 1m - water.WaterCoverageIndex;
+            decimal powerDisruption = power is null ? 0m : 1m - power.PowerCoverageIndex;
+            decimal sanitationDisruption = sanitation is null ? 0m : 1m - sanitation.SanitationCoverageIndex;
+            decimal incidentPressure = incidents?.IncidentPressureIndex ?? district.UtilityIncidentPressureIndex;
+            decimal dominantPressure = Max(
+                district.PopulationPressureIndex,
+                incidentPressure,
+                serviceDisruptionIndex,
+                maintenancePriorityIndex,
+                heatingDisruption,
+                waterDisruption,
+                powerDisruption,
+                sanitationDisruption);
+
+            if (waterDisruption >= dominantPressure || sanitationDisruption >= dominantPressure)
+                return "This district is losing basic water and sanitation stability and needs rapid service recovery before living conditions slip further.";
+
+            if (powerDisruption >= dominantPressure || heatingDisruption >= dominantPressure)
+                return "This district is carrying power and heating disruption that is starting to translate directly into social strain.";
+
+            if (incidentPressure >= dominantPressure || maintenancePriorityIndex >= dominantPressure)
+                return "This district is stuck in a hard restoration queue and should move up the operator response stack.";
+
+            return "This district is showing the strongest combined social and utility strain in the city and is the best next response target.";
+        }
+
+        private static string BuildDistrictResponseFocus(
+            CityPopulationDistrictPressureItemDto district,
+            CityDistrictHeatingConditionView? heating,
+            CityDistrictWaterDistributionConditionView? water,
+            CityDistrictPowerDistributionConditionView? power,
+            CityDistrictSanitationConditionView? sanitation,
+            CityDistrictUtilityIncidentConditionView? incidents)
+        {
+            decimal heatingDisruption = heating is null ? 0m : 1m - heating.HeatingCoverageIndex;
+            decimal waterDisruption = water is null ? 0m : 1m - water.WaterCoverageIndex;
+            decimal powerDisruption = power is null ? 0m : 1m - power.PowerCoverageIndex;
+            decimal sanitationDisruption = sanitation is null ? 0m : 1m - sanitation.SanitationCoverageIndex;
+            decimal incidentPressure = incidents?.IncidentPressureIndex ?? district.UtilityIncidentPressureIndex;
+            decimal dominantPressure = Max(
+                waterDisruption,
+                sanitationDisruption,
+                powerDisruption,
+                heatingDisruption,
+                incidentPressure,
+                district.HousingFragilityIndex,
+                district.PopulationPressureIndex);
+
+            if (waterDisruption >= dominantPressure || sanitationDisruption >= dominantPressure)
+                return "Water and sanitation restoration";
+
+            if (powerDisruption >= dominantPressure || heatingDisruption >= dominantPressure)
+                return "Power and heating stabilization";
+
+            if (incidentPressure >= dominantPressure)
+                return "Incident coordination and dispatch";
+
+            if (district.HousingFragilityIndex >= dominantPressure)
+                return "Housing support and district stabilization";
+
+            return "Integrated district response";
         }
 
         private static string BuildEnvironmentalSummary(CityEnvironmentalConditionsView conditions)
