@@ -1395,12 +1395,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyCollection<PersonEntity> householdResidents = residentsById.Values
                .Where(x => x.HouseholdId == person.HouseholdId)
                .ToArray();
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions = ResolveDistrictUtilityConditions(
+                districtId: districtId,
+                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId);
             CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
                 districtId: districtId,
                 livingConditionsState: livingConditionsState,
-                districtUtilityConditions: ResolveDistrictUtilityConditions(
-                    districtId: districtId,
-                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
+                districtUtilityConditions: districtUtilityConditions);
             CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
                 districtId: districtId,
                 essentialsState: essentialsState);
@@ -1425,6 +1426,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 currentDate: currentDate,
                 hasPrimaryCareAccess: primaryCareAnchor is not null,
                 hasDistrictPrimaryCareAccess: primaryCareAnchor?.DistrictId == districtId,
+                districtUtilityConditions: districtUtilityConditions,
                 healthcareCommute: healthcareCommute,
                 serviceQualityState: serviceQualityState,
                 healthcarePressureProfile: healthcarePressureProfile) *
