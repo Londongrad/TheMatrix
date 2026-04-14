@@ -5,6 +5,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
     public sealed record PendingResupplyDto(
         string Focus,
         string Intensity,
+        Guid? FocusDistrictId,
         long ReadyAtTickId)
     {
         public static PendingResupplyDto? FromDomain(CityPendingResupplyState state)
@@ -13,6 +14,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 ? new PendingResupplyDto(
                     Focus: state.Focus,
                     Intensity: state.Intensity,
+                    FocusDistrictId: state.FocusDistrictId,
                     ReadyAtTickId: state.ReadyAtTickId)
                 : null;
         }

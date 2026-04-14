@@ -52,6 +52,10 @@ namespace Matrix.Resources.Infrastructure.Persistence.Configurations
                        .HasColumnName("PendingResupplyIntensity")
                        .IsRequired();
 
+                    pending.Property(x => x.FocusDistrictId)
+                       .HasColumnName("PendingResupplyFocusDistrictId")
+                       .IsRequired(false);
+
                     pending.Property(x => x.ReadyAtTickId)
                        .HasColumnName("PendingResupplyReadyAtTickId")
                        .IsRequired();

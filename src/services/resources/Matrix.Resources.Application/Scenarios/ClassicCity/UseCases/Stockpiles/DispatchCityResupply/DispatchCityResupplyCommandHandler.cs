@@ -62,7 +62,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                         RequestedIntensity: request.Intensity.ToString(),
                         EstimatedAmount: CityResupplyOperationalExpenseFactory.EstimateDispatchAmount(
                             focus: request.Focus,
-                            intensity: request.Intensity),
+                            intensity: request.Intensity,
+                            districtFocused: request.FocusDistrictId.HasValue),
                         EmergencyOverrideRequested: request.EmergencyOverride),
                     cancellationToken: cancellationToken);
 
@@ -124,11 +125,13 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
             long readyAtTickId = CalculateReadyAtTickId(
                 currentTickId: state.LastAppliedTickId,
                 focus: request.Focus,
-                intensity: decision.AppliedIntensity);
+                intensity: decision.AppliedIntensity,
+                districtFocused: request.FocusDistrictId.HasValue);
 
             state.ScheduleResupply(
                 focus: request.Focus,
                 intensity: decision.AppliedIntensity,
+                focusDistrictId: request.FocusDistrictId,
                 readyAtTickId: readyAtTickId);
 
             DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
@@ -137,6 +140,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     cityId: request.CityId,
                     focus: request.Focus,
                     intensity: decision.AppliedIntensity,
+                    districtFocused: request.FocusDistrictId.HasValue,
                     occurredAtUtc: occurredAtUtc),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -174,11 +178,15 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         private static long CalculateReadyAtTickId(
             long currentTickId,
             ResupplyFocus focus,
-            ResupplyIntensity intensity)
+            ResupplyIntensity intensity,
+            bool districtFocused)
         {
             long delay = focus == ResupplyFocus.All || intensity == ResupplyIntensity.High
                 ? 2
                 : 1;
+
+            if (districtFocused)
+                delay = Math.Max(1, delay - 1);
 
             return Math.Max(0, currentTickId + delay);
         }

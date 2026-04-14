@@ -9,10 +9,14 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
             Guid cityId,
             ResupplyFocus focus,
             ResupplyIntensity intensity,
+            bool districtFocused,
             DateTimeOffset occurredAtUtc)
         {
             string focusLabel = FormatFocus(focus);
             string intensityLabel = FormatIntensity(intensity);
+            string districtScope = districtFocused
+                ? "for a district-targeted resupply"
+                : "for a citywide resupply";
 
             return new ClassicCityOperationalExpenseIncurredV1(
                 ExpenseId: Guid.NewGuid(),
@@ -20,11 +24,13 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 Category: ResolveBudgetCategory(focus),
                 Amount: EstimateDispatchAmount(
                     focus: focus,
-                    intensity: intensity),
+                    intensity: intensity,
+                    districtFocused: districtFocused),
                 Title: focus == ResupplyFocus.All
                     ? "Dispatch citywide stockpile resupply"
                     : $"Dispatch {focusLabel.ToLowerInvariant()} resupply",
-                Description: $"{focusLabel} stockpile resupply dispatched with {intensityLabel.ToLowerInvariant()} intensity.",
+                Description:
+                $"{focusLabel} stockpile resupply dispatched with {intensityLabel.ToLowerInvariant()} intensity {districtScope}.",
                 SourceService: "Resources",
                 OperationKind: "StockpileResupplyDispatch",
                 OccurredAtUtc: occurredAtUtc);
@@ -32,7 +38,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
 
         public static decimal EstimateDispatchAmount(
             ResupplyFocus focus,
-            ResupplyIntensity intensity)
+            ResupplyIntensity intensity,
+            bool districtFocused)
         {
             decimal baseCost = intensity switch
             {
@@ -53,10 +60,17 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.Services
                 _ => 1m
             };
 
-            return decimal.Round(
+            decimal amount = decimal.Round(
                 d: baseCost * focusMultiplier,
                 decimals: 2,
                 mode: MidpointRounding.AwayFromZero);
+
+            return districtFocused
+                ? decimal.Round(
+                    d: amount * 0.76m,
+                    decimals: 2,
+                    mode: MidpointRounding.AwayFromZero)
+                : amount;
         }
 
         public static string ResolveBudgetCategory(ResupplyFocus focus)

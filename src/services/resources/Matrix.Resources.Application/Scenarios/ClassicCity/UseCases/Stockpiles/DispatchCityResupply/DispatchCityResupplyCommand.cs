@@ -9,7 +9,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         Guid CityId,
         ResupplyFocus Focus,
         ResupplyIntensity Intensity,
-        bool EmergencyOverride) : IRequest<DispatchCityResupplyResult>, IRequirePermission
+        bool EmergencyOverride,
+        Guid? FocusDistrictId = null) : IRequest<DispatchCityResupplyResult>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.ResourcesClassicCityManage;
     }

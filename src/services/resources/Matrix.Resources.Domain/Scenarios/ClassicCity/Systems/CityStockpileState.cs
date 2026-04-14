@@ -165,11 +165,13 @@ namespace Matrix.Resources.Domain.Scenarios.ClassicCity.Systems
         public void ScheduleResupply(
             Enums.ResupplyFocus focus,
             Enums.ResupplyIntensity intensity,
+            Guid? focusDistrictId,
             long readyAtTickId)
         {
             PendingResupply.Schedule(
                 focus: focus,
                 intensity: intensity,
+                focusDistrictId: focusDistrictId,
                 readyAtTickId: EnsureTickId(
                     value: readyAtTickId,
                     propertyName: nameof(readyAtTickId)));
