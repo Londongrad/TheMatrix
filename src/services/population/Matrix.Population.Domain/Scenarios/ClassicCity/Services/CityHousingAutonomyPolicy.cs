@@ -15,6 +15,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             IReadOnlyDictionary<HouseholdId, HousingStatus> housingStatuses,
             IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressStates,
             IReadOnlyDictionary<HouseholdId, CityHouseholdCommutePressureProfile>? commutePressureProfiles,
+            IReadOnlyDictionary<HouseholdId, CityDistrictUtilityConditionsSnapshot>? districtUtilityConditionsByHouseholdId,
             DateOnly previousDate,
             DateOnly currentDate,
             CityPopulationCostOfLivingState? costOfLivingState = null,
@@ -71,6 +72,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 commutePressureProfiles?.TryGetValue(
                     key: householdId,
                     value: out commutePressureProfile);
+                CityDistrictUtilityConditionsSnapshot? districtUtilityConditions = null;
+                districtUtilityConditionsByHouseholdId?.TryGetValue(
+                    key: householdId,
+                    value: out districtUtilityConditions);
                 CityHouseholdEconomyProfile economyProfile = householdEconomyPolicy.Build(
                     household: household,
                     householdResidents: members,
@@ -85,6 +90,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         economyProfile: economyProfile,
                         financialStressState: financialStressState,
                         commutePressureProfile: commutePressureProfile,
+                        districtUtilityConditions: districtUtilityConditions,
                         currentDate: currentDate,
                         housingSupportIndex: housingSupportIndex))
                 {
@@ -115,6 +121,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                         economyProfile: economyProfile,
                         financialStressState: financialStressState,
                         commutePressureProfile: commutePressureProfile,
+                        districtUtilityConditions: districtUtilityConditions,
                         currentDate: currentDate,
                         reviewWindows: reviewWindows,
                         housingSupportIndex: housingSupportIndex):
@@ -234,6 +241,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityHouseholdEconomyProfile economyProfile,
             CityPopulationHouseholdFinancialStressState? financialStressState,
             CityHouseholdCommutePressureProfile? commutePressureProfile,
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions,
             DateOnly currentDate,
             int reviewWindows,
             decimal housingSupportIndex)
@@ -243,6 +251,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 economyProfile: economyProfile,
                 financialStressState: financialStressState,
                 commutePressureProfile: commutePressureProfile,
+                districtUtilityConditions: districtUtilityConditions,
                 currentDate: currentDate,
                 housingSupportIndex: housingSupportIndex);
             return RollOccurs(
@@ -258,6 +267,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityHouseholdEconomyProfile economyProfile,
             CityPopulationHouseholdFinancialStressState? financialStressState,
             CityHouseholdCommutePressureProfile? commutePressureProfile,
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions,
             DateOnly currentDate,
             decimal housingSupportIndex)
         {
@@ -296,7 +306,8 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 financialStressState.OldestOverdueAgeDays < 120)
                 return false;
 
-            if (ResolveCommuteFragilityScore(commutePressureProfile) >= 0.65d &&
+            if ((ResolveCommuteFragilityScore(commutePressureProfile) >= 0.65d ||
+                 ResolveDistrictUtilityFragilityScore(districtUtilityConditions) >= 0.72d) &&
                 financialStressState.DistressScore < 0.70m)
                 return false;
 
@@ -415,6 +426,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
             CityHouseholdEconomyProfile economyProfile,
             CityPopulationHouseholdFinancialStressState? financialStressState,
             CityHouseholdCommutePressureProfile? commutePressureProfile,
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions,
             DateOnly currentDate,
             decimal housingSupportIndex)
         {
@@ -472,6 +484,7 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 state: financialStressState,
                 currentDate: currentDate);
             double commuteFragility = ResolveCommuteFragilityScore(commutePressureProfile);
+            double districtUtilityFragility = ResolveDistrictUtilityFragilityScore(districtUtilityConditions);
 
             chance += economyProfile.StrainScore * 0.016d;
             chance -= (double)((housingSupportIndex - 1m) * 0.050m);
@@ -505,9 +518,13 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 val1: 0.018d,
                 val2: (double)(overdueAmount / 1_800m));
             chance += commuteFragility * 0.008d;
+            chance += districtUtilityFragility * 0.010d;
 
             if (financialStressScore >= 0.25d)
+            {
                 chance += commuteFragility * 0.010d;
+                chance += districtUtilityFragility * 0.012d;
+            }
 
             if (commutePressureProfile is not null &&
                 commutePressureProfile.BlockedRouteCount > 0 &&
@@ -517,6 +534,10 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                     val1: 0.010d,
                     val2: commutePressureProfile.BlockedRouteCount * 0.004d);
             }
+
+            if (districtUtilityFragility >= 0.60d &&
+                economyProfile.StrainScore >= 0.20d)
+                chance += 0.006d;
 
             if (profile.HasInfant)
                 chance *= 0.60d;
@@ -580,6 +601,24 @@ namespace Matrix.Population.Domain.Scenarios.ClassicCity.Services
                 ((double)commutePressureProfile.AccessibilityDeficitIndex * 0.45d) +
                 ((double)commutePressureProfile.TravelFatigueIndex * 0.35d) +
                 (blockedShare * 0.20d);
+
+            return Math.Clamp(
+                value: fragility,
+                min: 0d,
+                max: 1d);
+        }
+
+        private static double ResolveDistrictUtilityFragilityScore(
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions)
+        {
+            if (districtUtilityConditions is null)
+                return 0d;
+
+            double fragility =
+                ((double)(1m - districtUtilityConditions.UtilityIncidentDispatchReadinessIndex) * 0.26d) +
+                ((double)districtUtilityConditions.UtilityIncidentPressureIndex * 0.34d) +
+                ((double)districtUtilityConditions.UtilityIncidentCoordinationDifficultyIndex * 0.22d) +
+                ((double)districtUtilityConditions.UtilityIncidentRestorationPriorityIndex * 0.18d);
 
             return Math.Clamp(
                 value: fragility,

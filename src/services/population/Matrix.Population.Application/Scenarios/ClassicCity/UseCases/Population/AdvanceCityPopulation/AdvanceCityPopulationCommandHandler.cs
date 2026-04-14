@@ -1726,6 +1726,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 placements.ToDictionary(
                     keySelector: x => x.HouseholdId,
                     elementSelector: x => x.ResidentialBuildingId);
+            IReadOnlyDictionary<HouseholdId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByHouseholdId =
+                placements
+                   .Where(x => x.DistrictId.HasValue)
+                   .Select(x => new
+                    {
+                        x.HouseholdId,
+                        Snapshot = ResolveDistrictUtilityConditions(
+                            districtId: x.DistrictId,
+                            districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId)
+                    })
+                   .Where(x => x.Snapshot is not null)
+                   .ToDictionary(
+                        keySelector: x => x.HouseholdId,
+                        elementSelector: x => x.Snapshot!);
             var commutePressureProfilesByHouseholdId = new Dictionary<HouseholdId, CityHouseholdCommutePressureProfile>();
 
             foreach (ClassicCityHouseholdPlacement placement in placements)
@@ -1755,6 +1769,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 housingStatuses: housingStatuses,
                 financialStressStates: financialStressByHouseholdId,
                 commutePressureProfiles: commutePressureProfilesByHouseholdId,
+                districtUtilityConditionsByHouseholdId: districtUtilityConditionsByHouseholdId,
                 previousDate: previousDate,
                 currentDate: currentDate,
                 costOfLivingState: costOfLivingState,
