@@ -298,6 +298,328 @@
     color: color-mix(in srgb, var(--app-text) 74%, transparent);
 }
 
+.city-world,
+.city-world-side,
+.city-world-trip-list,
+.city-world-surface-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.city-world-loading,
+.city-world-empty,
+.city-world-hero,
+.city-world-map,
+.city-world-side__panel,
+.city-world-trip,
+.city-world-surface-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
+    background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--shell-surface-strong) 92%, rgba(var(--shell-accent-rgb), 0.06)),
+            color-mix(in srgb, var(--shell-surface-soft) 92%, transparent)
+    ),
+    var(--shell-surface);
+}
+
+.city-world-loading::before,
+.city-world-empty::before,
+.city-world-hero::before,
+.city-world-map::before,
+.city-world-side__panel::before,
+.city-world-trip::before,
+.city-world-surface-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.08), transparent 40%);
+}
+
+.city-world-loading > *,
+.city-world-empty > *,
+.city-world-hero > *,
+.city-world-map > *,
+.city-world-side__panel > *,
+.city-world-trip > *,
+.city-world-surface-item > * {
+    position: relative;
+}
+
+.city-world-loading,
+.city-world-empty {
+    padding: 20px 22px;
+}
+
+.city-world-loading__title {
+    font-size: 18px;
+    color: var(--app-text-strong);
+}
+
+.city-world-loading__text,
+.city-world-empty__text,
+.city-world-hero__summary,
+.city-world-trip__footer {
+    color: color-mix(in srgb, var(--app-text) 74%, transparent);
+    line-height: 1.55;
+}
+
+.city-world-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 24px;
+}
+
+.city-world-hero__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.city-world-hero__title-row,
+.city-world-map__header,
+.city-world-side__header,
+.city-world-trip__topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.city-world-hero__title,
+.city-world-map__title,
+.city-world-side__title,
+.city-world-trip__title {
+    margin: 0;
+    color: var(--app-text-strong);
+}
+
+.city-world-hero__title {
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 0.96;
+    letter-spacing: -0.05em;
+}
+
+.city-world-hero__badge,
+.city-world-side__count,
+.city-world-trip__purpose,
+.city-world-map__legend-item {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.18);
+    background: color-mix(in srgb, var(--shell-surface) 90%, transparent);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.city-world-hero__badge,
+.city-world-map__legend-item {
+    color: color-mix(in srgb, var(--shell-accent) 58%, white);
+}
+
+.city-world-hero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 12px;
+    min-width: 280px;
+}
+
+.city-world-hero__stat,
+.city-world-surface-item {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px;
+}
+
+.city-world-hero__stat-label,
+.city-world-trip__stat-label,
+.city-world-surface-item__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--app-text-muted);
+}
+
+.city-world-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.city-world-map,
+.city-world-side__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+}
+
+.city-world-map__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.city-world-map__frame {
+    border-radius: 22px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
+    background:
+        radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.12), transparent 28%),
+        linear-gradient(180deg, rgba(12, 18, 28, 0.92), rgba(7, 11, 18, 0.96));
+    overflow: hidden;
+}
+
+.city-world-map__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 420px;
+}
+
+.city-world-map__road {
+    stroke: rgba(143, 220, 255, 0.26);
+    stroke-width: 3.2;
+    stroke-linecap: round;
+}
+
+.city-world-map__road--trunkroad {
+    stroke: rgba(143, 220, 255, 0.44);
+    stroke-width: 4.8;
+}
+
+.city-world-map__building {
+    fill: rgba(255, 255, 255, 0.32);
+}
+
+.city-world-map__district {
+    fill: rgba(var(--shell-accent-rgb), 0.9);
+    stroke: rgba(255, 255, 255, 0.72);
+    stroke-width: 2;
+}
+
+.city-world-map__district-label {
+    fill: rgba(240, 247, 255, 0.92);
+    font-size: 16px;
+    letter-spacing: 0.03em;
+}
+
+.city-world-map__anchor {
+    stroke: rgba(255, 255, 255, 0.8);
+    stroke-width: 1.6;
+}
+
+.city-world-map__anchor--hospital {
+    fill: rgba(255, 120, 120, 0.96);
+}
+
+.city-world-map__anchor--school {
+    fill: rgba(255, 214, 102, 0.98);
+}
+
+.city-world-map__anchor--workplace {
+    fill: rgba(125, 255, 182, 0.96);
+}
+
+.city-world-map__anchor--default {
+    fill: rgba(168, 199, 255, 0.96);
+}
+
+.city-world-map__trip {
+    stroke: rgba(255, 255, 255, 0.84);
+    stroke-width: 1.6;
+}
+
+.city-world-map__trip--commute {
+    fill: rgba(140, 194, 255, 1);
+}
+
+.city-world-map__trip--healthcare {
+    fill: rgba(255, 120, 120, 1);
+}
+
+.city-world-map__trip--response {
+    fill: rgba(255, 196, 92, 1);
+}
+
+.city-world-map__trip--resupply {
+    fill: rgba(125, 255, 182, 1);
+}
+
+.city-world-trip {
+    display: grid;
+    gap: 14px;
+    padding: 16px 18px;
+}
+
+.city-world-trip__meta,
+.city-world-trip__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.city-world-trip__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.city-world-trip__stats > div {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.1);
+    background: color-mix(in srgb, var(--shell-surface) 90%, transparent);
+}
+
+.city-world-trip__separator {
+    color: var(--app-text-muted);
+}
+
+.city-world-trip__purpose--commute {
+    color: rgba(168, 210, 255, 0.98);
+    border-color: rgba(168, 210, 255, 0.24);
+}
+
+.city-world-trip__purpose--healthcare {
+    color: rgba(255, 145, 145, 0.98);
+    border-color: rgba(255, 145, 145, 0.24);
+}
+
+.city-world-trip__purpose--response {
+    color: rgba(255, 214, 102, 0.98);
+    border-color: rgba(255, 214, 102, 0.24);
+}
+
+.city-world-trip__purpose--resupply {
+    color: rgba(125, 255, 182, 0.98);
+    border-color: rgba(125, 255, 182, 0.24);
+}
+
+.city-world-surface-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.city-world-surface-item__mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+    letter-spacing: 0.06em;
+}
+
 .city-dashboard-hero__aside {
     display: flex;
     flex-direction: column;
@@ -481,10 +803,23 @@
         flex-direction: column;
     }
 
+    .city-world-hero,
     .city-dashboard-hero,
     .city-dashboard-events-panel__header,
-    .city-dashboard-event__topline {
+    .city-dashboard-event__topline,
+    .city-world-map__header,
+    .city-world-side__header,
+    .city-world-trip__topline {
         flex-direction: column;
+    }
+
+    .city-world-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .city-world-hero__stats {
+        min-width: 0;
+        width: 100%;
     }
 
     .city-link {
@@ -503,5 +838,15 @@
 
     .city-rename-form {
         grid-template-columns: 1fr;
+    }
+
+    .city-world-hero__stats,
+    .city-world-trip__stats,
+    .city-world-surface-item {
+        grid-template-columns: 1fr;
+    }
+
+    .city-world-map__svg {
+        min-height: 320px;
     }
 }

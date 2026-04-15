@@ -9,6 +9,10 @@ import type {
     RenameCityRequest,
     RetryPopulationBootstrapRequest,
 } from "@services/simulationcore/scenarios/classic-city/contracts/citiesContracts";
+import type {
+    CityActiveTripView,
+    CityMapTopologyView,
+} from "@services/simulationcore/scenarios/classic-city/contracts/worldContracts";
 import {API_CITY_URL} from "@shared/api/config";
 
 export function getCities(includeArchived: boolean, signal?: AbortSignal) {
@@ -41,6 +45,20 @@ export function getCity(cityId: string, signal?: AbortSignal) {
 
 export function getCityDashboard(cityId: string, signal?: AbortSignal) {
     return apiRequest<CityDashboardView>(`${API_CITY_URL}/${cityId}/dashboard`, {
+        method: "GET",
+        signal,
+    });
+}
+
+export function getCityMapTopology(cityId: string, signal?: AbortSignal) {
+    return apiRequest<CityMapTopologyView>(`${API_CITY_URL}/${cityId}/map`, {
+        method: "GET",
+        signal,
+    });
+}
+
+export function getCityActiveTrips(cityId: string, signal?: AbortSignal) {
+    return apiRequest<CityActiveTripView[]>(`${API_CITY_URL}/${cityId}/trips/active`, {
         method: "GET",
         signal,
     });

@@ -6,6 +6,7 @@ import {
     CityPopulationSummaryCard
 } from "@services/simulationcore/scenarios/classic-city/components/CityPopulationSummaryCard";
 import {CityWeatherCard} from "@services/simulationcore/scenarios/classic-city/components/CityWeatherCard";
+import {CityWorldMapCard} from "@services/simulationcore/scenarios/classic-city/components/CityWorldMapCard";
 import {useCityDetails} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDetails";
 import {useCityLifecycleMutations} from "@services/simulationcore/scenarios/classic-city/hooks/useCityLifecycleMutations";
 import {getCityStatusTone, isArchivedCity,} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
@@ -25,6 +26,11 @@ const CITY_DETAILS_TABS = [
         id: "dashboard",
         label: "Dashboard",
         subtitle: "City-scale metrics, resident activity, and recent simulation signals.",
+    },
+    {
+        id: "map",
+        label: "Map",
+        subtitle: "Canonical topology, anchors, road graph, and active world travel over the city surface.",
     },
     {
         id: "overview",
@@ -148,6 +154,15 @@ const CityDetailsPage = () => {
             case "dashboard":
                 return cityQuery.data ? (
                     <CityDashboardCard
+                        cityId={cityQuery.data.cityId}
+                        cityName={cityQuery.data.name}
+                        isArchived={isArchived}
+                    />
+                ) : null;
+
+            case "map":
+                return cityQuery.data ? (
+                    <CityWorldMapCard
                         cityId={cityQuery.data.cityId}
                         cityName={cityQuery.data.name}
                         isArchived={isArchived}

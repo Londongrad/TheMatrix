@@ -15,6 +15,7 @@ export type SimulationCoreScenarioDefinition = {
 export type ClassicCityWorkspaceSection =
     | "overview"
     | "dashboard"
+    | "map"
     | "population"
     | "weather"
     | "simulation";
