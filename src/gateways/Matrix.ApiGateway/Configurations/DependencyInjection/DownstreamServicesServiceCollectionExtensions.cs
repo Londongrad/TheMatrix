@@ -1,5 +1,6 @@
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
@@ -112,6 +113,16 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         sp: sp,
                         client: client,
                         serviceName: DownstreamServiceNames.Resources))
+               .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .ConfigureHttpClient(ConfigureTimeout);
+
+            services.AddHttpClient<ITripsApiClient, TripsApiClient>((
+                        sp,
+                        client) =>
+                    ConfigureServiceBaseAddress(
+                        sp: sp,
+                        client: client,
+                        serviceName: DownstreamServiceNames.SimulationCore))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
