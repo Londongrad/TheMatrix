@@ -4,6 +4,7 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Views;
@@ -11,6 +12,11 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Weather.Views;
 using Matrix.SimulationCore.Contracts.Simulation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -26,12 +32,14 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         ISimulationApiClient simulationClient,
         IEconomyApiClient economyClient,
         IPopulationApiClient populationClient,
+        IEnvironmentalConditionsApiClient environmentalConditionsClient,
         ICityProvisioningService cityProvisioningService,
         ILogger<CitiesController> logger) : ControllerBase
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly ICityProvisioningService _cityProvisioningService = cityProvisioningService;
         private readonly IEconomyApiClient _economyClient = economyClient;
+        private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
         private readonly ILogger<CitiesController> _logger = logger;
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ISimulationApiClient _simulationClient = simulationClient;
@@ -150,6 +158,46 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
                     GeneratedAtUtc: dashboard.GeneratedAtUtc,
                     Metrics: metrics,
                     RecentEvents: dashboard.RecentEvents));
+        }
+
+        [HttpGet("{cityId:guid}/infrastructure/districts")]
+        public async Task<ActionResult<CityDistrictInfrastructureView>> GetDistrictInfrastructure(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityDistrictHeatingConditionsView? heating =
+                await _environmentalConditionsClient.GetCityDistrictHeatingConditionsAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+            CityDistrictWaterDistributionConditionsView? water =
+                await _environmentalConditionsClient.GetCityDistrictWaterDistributionConditionsAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+            CityDistrictPowerDistributionConditionsView? power =
+                await _environmentalConditionsClient.GetCityDistrictPowerDistributionConditionsAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+            CityDistrictSanitationConditionsView? sanitation =
+                await _environmentalConditionsClient.GetCityDistrictSanitationConditionsAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+            CityDistrictUtilityIncidentConditionsView? incidents =
+                await _environmentalConditionsClient.GetCityDistrictUtilityIncidentConditionsAsync(
+                    cityId: cityId,
+                    cancellationToken: cancellationToken);
+
+            if (heating is null || water is null || power is null || sanitation is null || incidents is null)
+                return NotFound();
+
+            return Ok(
+                new CityDistrictInfrastructureView(
+                    CityId: cityId,
+                    GeneratedAtUtc: DateTimeOffset.UtcNow,
+                    Heating: heating,
+                    WaterDistribution: water,
+                    PowerDistribution: power,
+                    Sanitation: sanitation,
+                    UtilityIncidents: incidents));
         }
 
         [HttpGet("{cityId:guid}/residents")]
