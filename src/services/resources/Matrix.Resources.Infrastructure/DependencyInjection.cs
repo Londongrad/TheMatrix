@@ -17,6 +17,7 @@ using Matrix.Resources.Infrastructure.Persistence.Repositories;
 using Matrix.Resources.Infrastructure.Outbox;
 using Matrix.Resources.Infrastructure.Outbox.RabbitMq;
 using Matrix.Resources.Infrastructure.Scenarios.ClassicCity;
+using Matrix.Resources.Infrastructure.SimulationCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,6 +97,19 @@ namespace Matrix.Resources.Infrastructure
 
                     client.BaseAddress = new Uri(
                         uriString: options.Economy,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+            services.AddHttpClient<ICityResupplyTripDispatcher, CityResupplyTripDispatcher>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
+                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
                .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();

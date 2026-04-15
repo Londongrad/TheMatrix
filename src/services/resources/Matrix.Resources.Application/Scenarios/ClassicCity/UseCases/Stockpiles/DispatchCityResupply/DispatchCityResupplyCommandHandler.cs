@@ -14,7 +14,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter expenseOutboxWriter,
         ICityBudgetAuthorizationClient budgetAuthorizationClient,
-        CityStockpileBudgetGuard budgetGuard)
+        CityStockpileBudgetGuard budgetGuard,
+        ICityResupplyTripDispatcher resupplyTripDispatcher)
         : IRequestHandler<DispatchCityResupplyCommand, DispatchCityResupplyResult>
     {
         public async Task<DispatchCityResupplyResult> Handle(
@@ -144,6 +145,16 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                     occurredAtUtc: occurredAtUtc),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (request.FocusDistrictId.HasValue)
+            {
+                await resupplyTripDispatcher.TryDispatchDistrictResupplyAsync(
+                    cityId: request.CityId,
+                    focusDistrictId: request.FocusDistrictId.Value,
+                    focus: request.Focus.ToString(),
+                    intensity: decision.AppliedIntensity.ToString(),
+                    cancellationToken: cancellationToken);
+            }
 
             return new DispatchCityResupplyResult(
                 Status: DispatchCityResupplyStatus.Scheduled,
