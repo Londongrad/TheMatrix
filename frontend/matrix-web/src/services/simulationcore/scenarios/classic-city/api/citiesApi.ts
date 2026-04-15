@@ -14,6 +14,12 @@ import type {
     CityMapTopologyView,
 } from "@services/simulationcore/scenarios/classic-city/contracts/worldContracts";
 import type {CityDistrictInfrastructureView} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
+import type {
+    CityUtilityIncidentStatusView,
+    DispatchCityResupplyRequest,
+    DispatchCityResupplyView,
+    DispatchCityUtilityIncidentResponseRequest,
+} from "@services/simulationcore/scenarios/classic-city/contracts/operatorContracts";
 import {API_CITY_URL} from "@shared/api/config";
 
 export function getCities(includeArchived: boolean, signal?: AbortSignal) {
@@ -69,6 +75,26 @@ export function getCityDistrictInfrastructure(cityId: string, signal?: AbortSign
     return apiRequest<CityDistrictInfrastructureView>(`${API_CITY_URL}/${cityId}/infrastructure/districts`, {
         method: "GET",
         signal,
+    });
+}
+
+export function dispatchDistrictUtilityResponse(
+    cityId: string,
+    request: DispatchCityUtilityIncidentResponseRequest,
+) {
+    return apiRequest<CityUtilityIncidentStatusView>(`${API_CITY_URL}/${cityId}/operator/utility-response`, {
+        method: "POST",
+        body: JSON.stringify(request),
+    });
+}
+
+export function dispatchDistrictResupply(
+    cityId: string,
+    request: DispatchCityResupplyRequest,
+) {
+    return apiRequest<DispatchCityResupplyView>(`${API_CITY_URL}/${cityId}/operator/resupply`, {
+        method: "POST",
+        body: JSON.stringify(request),
     });
 }
 

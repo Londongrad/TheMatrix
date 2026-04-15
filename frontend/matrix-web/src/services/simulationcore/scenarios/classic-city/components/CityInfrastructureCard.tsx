@@ -2,6 +2,7 @@ import {useMemo} from "react";
 import Button from "@shared/ui/controls/Button/Button";
 import Card from "@shared/ui/controls/Card/Card";
 import {useCityDistrictInfrastructure} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
+import {useCityDistrictOperatorActions} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictOperatorActions";
 import type {
     CityDistrictHeatingConditionView,
     CityDistrictInfrastructureView,
@@ -12,6 +13,8 @@ import type {
 } from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 import type {DistrictView} from "@services/simulationcore/scenarios/classic-city/contracts/worldContracts";
 import {useCityMapTopology} from "@services/simulationcore/scenarios/classic-city/hooks/useCityMapTopology";
+import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {usePermissions} from "@shared/permissions/usePermissions";
 
 type Props = {
     cityId: string;
@@ -140,7 +143,27 @@ function buildRows(
         .sort((left, right) => right.priorityIndex - left.priorityIndex);
 }
 
-function InfrastructureRow({row}: { row: DistrictInfrastructureRow }) {
+function InfrastructureRow({
+    row,
+    canDispatch,
+    isPendingUtility,
+    isPendingResupply,
+    notice,
+    onUtilityResponse,
+    onResupply,
+}: {
+    row: DistrictInfrastructureRow;
+    canDispatch: boolean;
+    isPendingUtility: boolean;
+    isPendingResupply: boolean;
+    notice?: {
+        tone: "success" | "warning" | "danger";
+        title: string;
+        detail: string;
+    } | null;
+    onUtilityResponse: (districtId: string) => void;
+    onResupply: (districtId: string) => void;
+}) {
     const tone = getSeverityTone(row.priorityIndex);
 
     return (
@@ -154,10 +177,39 @@ function InfrastructureRow({row}: { row: DistrictInfrastructureRow }) {
                         <span>Priority {formatIndex(row.priorityIndex)}</span>
                     </div>
                 </div>
-                <span className={`city-infra-row__priority city-infra-row__priority--${tone}`}>
-                    {tone === "danger" ? "Critical" : tone === "warning" ? "Elevated" : "Stable"}
-                </span>
+                <div className="city-infra-row__actions">
+                    <span className={`city-infra-row__priority city-infra-row__priority--${tone}`}>
+                        {tone === "danger" ? "Critical" : tone === "warning" ? "Elevated" : "Stable"}
+                    </span>
+                    {canDispatch ? (
+                        <>
+                            <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => onUtilityResponse(row.districtId)}
+                                disabled={isPendingUtility || isPendingResupply}
+                            >
+                                {isPendingUtility ? "Dispatching..." : "Respond here"}
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => onResupply(row.districtId)}
+                                disabled={isPendingUtility || isPendingResupply}
+                            >
+                                {isPendingResupply ? "Dispatching..." : "Resupply here"}
+                            </Button>
+                        </>
+                    ) : null}
+                </div>
             </div>
+
+            {notice ? (
+                <div className={`city-infra-row__notice city-infra-row__notice--${notice.tone}`}>
+                    <strong className="city-infra-row__notice-title">{notice.title}</strong>
+                    <span className="city-infra-row__notice-text">{notice.detail}</span>
+                </div>
+            ) : null}
 
             <div className="city-infra-row__grid">
                 <div className="city-infra-row__metric">
@@ -197,6 +249,11 @@ export function CityInfrastructureCard({
 }: Props) {
     const infrastructureQuery = useCityDistrictInfrastructure(cityId, isArchived ? 0 : 30000);
     const topologyQuery = useCityMapTopology(cityId);
+    const {can} = usePermissions();
+    const canDispatch = !isArchived && can(PermissionKeys.SimulationCoreSimulationControl);
+    const actions = useCityDistrictOperatorActions(cityId, async () => {
+        await infrastructureQuery.refetch();
+    });
     const infrastructure = infrastructureQuery.data;
     const districtLookup = useMemo(
         () => buildDistrictLookup(topologyQuery.data?.districts ?? []),
@@ -226,6 +283,15 @@ export function CityInfrastructureCard({
             {(infrastructureQuery.error || topologyQuery.error) ? (
                 <div className="simulationcore-error-banner" role="alert">
                     <span>{infrastructureQuery.error ?? topologyQuery.error}</span>
+                </div>
+            ) : null}
+
+            {actions.error ? (
+                <div className="simulationcore-error-banner" role="alert">
+                    <span>{actions.error}</span>
+                    <Button size="sm" variant="default" onClick={actions.clearError}>
+                        Dismiss
+                    </Button>
                 </div>
             ) : null}
 
@@ -287,7 +353,26 @@ export function CityInfrastructureCard({
 
                     <section className="city-infra-list">
                         {rows.map((row) => (
-                            <InfrastructureRow key={row.districtId} row={row}/>
+                            <InfrastructureRow
+                                key={row.districtId}
+                                row={row}
+                                canDispatch={canDispatch}
+                                isPendingUtility={
+                                    actions.pendingAction?.districtId === row.districtId
+                                    && actions.pendingAction.kind === "utility-response"
+                                }
+                                isPendingResupply={
+                                    actions.pendingAction?.districtId === row.districtId
+                                    && actions.pendingAction.kind === "resupply"
+                                }
+                                notice={actions.notice?.districtId === row.districtId ? actions.notice : null}
+                                onUtilityResponse={(districtId) => {
+                                    void actions.utilityResponse(districtId);
+                                }}
+                                onResupply={(districtId) => {
+                                    void actions.resupply(districtId);
+                                }}
+                            />
                         ))}
                     </section>
                 </div>
