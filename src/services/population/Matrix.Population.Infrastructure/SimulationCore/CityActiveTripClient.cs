@@ -1,0 +1,60 @@
+using System.Net.Http.Json;
+using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Requests;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
+
+namespace Matrix.Population.Infrastructure.SimulationCore
+{
+    internal sealed class CityActiveTripClient(HttpClient client) : ICityPopulationActiveTripClient
+    {
+        private readonly HttpClient _client = client;
+
+        public async Task<IReadOnlyCollection<CityPopulationActiveTripSnapshot>> ListActiveByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: $"/api/cities/{cityId}/trips/active",
+                cancellationToken: cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                return [];
+
+            CityActiveTripView[]? payload = await response.Content.ReadFromJsonAsync<CityActiveTripView[]>(
+                cancellationToken: cancellationToken);
+
+            return payload?.Select(x => new CityPopulationActiveTripSnapshot(
+                    TravellerEntityId: x.TravellerEntityId,
+                    Purpose: x.Purpose,
+                    Status: x.Status,
+                    FromEntityId: x.From.EntityId,
+                    ToEntityId: x.To.EntityId))
+                   .ToArray()
+                ?? [];
+        }
+
+        public async Task<bool> TryDispatchAsync(
+            CityPopulationTripDispatchRequest request,
+            CancellationToken cancellationToken)
+        {
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: $"/api/cities/{request.CityId}/trips",
+                value: new DispatchCityTripRequest(
+                    From: new CityRoutePointRequest(
+                        Kind: request.FromKind,
+                        Id: request.FromId),
+                    To: new CityRoutePointRequest(
+                        Kind: request.ToKind,
+                        Id: request.ToId),
+                    Purpose: request.Purpose,
+                    Profile: request.Profile,
+                    MovementCapabilityIndex: request.MovementCapabilityIndex,
+                    TravellerEntityId: request.TravellerEntityId,
+                    Subject: request.Subject),
+                cancellationToken: cancellationToken);
+
+            return response.IsSuccessStatusCode;
+        }
+    }
+}
