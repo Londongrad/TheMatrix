@@ -473,5 +473,191 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Errors
                 message: $"Precipitation kind '{precipitationKind}' is not coherent with weather type '{type}'.",
                 propertyName: propertyName);
         }
+
+        public static DomainException CityActiveTripTimestampMustBeUtc(
+            DateTimeOffset value,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.Timestamp.NotUtc",
+                message: "Active-trip timestamps must be in UTC (Offset=00:00).",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSubjectNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.Subject.NullOrEmpty",
+                message: "Active-trip subject cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSubjectTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.Subject.TooLong",
+                message: $"Active-trip subject cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripProfileNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.Profile.NullOrEmpty",
+                message: "Active-trip movement profile cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripPointKindNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.PointKind.NullOrEmpty",
+                message: "Active-trip point kind cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripPointNameNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.PointName.NullOrEmpty",
+                message: "Active-trip point name cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripPointNameTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.PointName.TooLong",
+                message: $"Active-trip point name cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripCapabilityOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.Capability.OutOfRange",
+                message: $"Active-trip movement capability must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripDistanceOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.Distance.OutOfRange",
+                message: $"Active-trip distance must be in range [{min}; {max}] meters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripTravelTimeOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.TravelTime.OutOfRange",
+                message: $"Active-trip travel time must be in range [{min}; {max}] minutes.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripProgressOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTrip.Progress.OutOfRange",
+                message: $"Active-trip progress must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSegmentSequenceOutOfRange(
+            int value,
+            int min,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTripSegment.Sequence.OutOfRange",
+                message: $"Active-trip segment sequence must be in range [{min}; {max}].",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSegmentNameNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTripSegment.Name.NullOrEmpty",
+                message: "Active-trip segment name cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSegmentNameTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTripSegment.Name.TooLong",
+                message: $"Active-trip segment name cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSegmentTypeNullOrEmpty(string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTripSegment.Type.NullOrEmpty",
+                message: "Active-trip segment type cannot be null or empty.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSegmentTypeTooLong(
+            string value,
+            int max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTripSegment.Type.TooLong",
+                message: $"Active-trip segment type cannot be longer than {max} characters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSegmentLengthOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTripSegment.Length.OutOfRange",
+                message: $"Active-trip segment length must be in range [{min}; {max}] meters.",
+                propertyName: propertyName);
+        }
+
+        public static DomainException CityActiveTripSegmentTraversalOutOfRange(
+            decimal value,
+            decimal min,
+            decimal max,
+            string? propertyName = null)
+        {
+            return new DomainException(
+                code: "SimulationCore.World.ActiveTripSegment.Traversal.OutOfRange",
+                message: $"Active-trip segment traversal time must be in range [{min}; {max}] minutes.",
+                propertyName: propertyName);
+        }
     }
 }

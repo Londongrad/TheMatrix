@@ -5,12 +5,14 @@ using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.SimulationCore.Domain.Simulation;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation
 {
     public sealed class ClassicCitySimulationAdvanceHandler(
         IWeatherAdvanceExecutor weatherAdvanceExecutor,
+        ICityActiveTripAdvanceExecutor activeTripAdvanceExecutor,
         ISimulationCoreOutboxWriter outboxWriter) : ISimulationScenarioAdvanceHandler
     {
         public SimulationHostKind HostKind => SimulationHostKind.City;
@@ -25,6 +27,13 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
             CityWeather? cityWeather = await weatherAdvanceExecutor.AdvanceAsync(
                 cityId: cityId,
                 evaluatedAt: advancedEvent.To,
+                cancellationToken: cancellationToken);
+
+            await activeTripAdvanceExecutor.AdvanceAsync(
+                cityId: cityId,
+                fromSimTimeUtc: advancedEvent.From.ValueUtc,
+                toSimTimeUtc: advancedEvent.To.ValueUtc,
+                tickId: advancedEvent.TickId.Value,
                 cancellationToken: cancellationToken);
 
             await outboxWriter.AddCityTimeAdvancedAsync(

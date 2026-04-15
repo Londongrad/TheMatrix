@@ -18,6 +18,7 @@ namespace Matrix.SimulationCore.Infrastructure.Scenarios.ClassicCity
             services.AddScoped<ICityAnchorRepository, CityAnchorRepository>();
             services.AddScoped<IRoadNodeRepository, RoadNodeRepository>();
             services.AddScoped<IRoadSegmentRepository, RoadSegmentRepository>();
+            services.AddScoped<ICityActiveTripRepository, CityActiveTripRepository>();
             services.AddScoped<ICityWeatherRepository, CityWeatherRepository>();
             services.AddScoped<ISimulationCoreOutboxWriter, SimulationCoreOutboxWriter>();
 
