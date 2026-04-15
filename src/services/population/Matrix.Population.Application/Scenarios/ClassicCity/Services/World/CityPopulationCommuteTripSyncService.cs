@@ -3,6 +3,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstr
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -20,14 +21,18 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
         private const string PedestrianProfile = "Pedestrian";
         private const string ResidentialBuildingPointKind = "ResidentialBuilding";
         private const string CityAnchorPointKind = "CityAnchor";
+        private const string HealthcareAccessPurpose = "HealthcareAccess";
         private const string WorkCommutePurpose = "WorkCommute";
         private const string EducationCommutePurpose = "EducationCommute";
 
         public async Task SyncAsync(
             Guid cityId,
             long tickId,
+            DateOnly currentDate,
             IReadOnlyCollection<Person> residents,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
             CancellationToken cancellationToken)
         {
             if (residents.Count == 0 || householdPlacements.Count == 0)
@@ -40,6 +45,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         keySelector: x => x.Key,
                         elementSelector: x => x.Select(y => y.ResidentialBuildingId)
                            .FirstOrDefault());
+            IReadOnlyDictionary<HouseholdId, DistrictId?> districtByHouseholdId = householdPlacements
+               .GroupBy(x => x.HouseholdId)
+               .ToDictionary(
+                    keySelector: x => x.Key,
+                    elementSelector: x => x.Select(y => y.DistrictId)
+                       .FirstOrDefault());
 
             IReadOnlyCollection<CityPopulationActiveTripSnapshot> activeTrips =
                 await activeTripClient.ListActiveByCityAsync(
@@ -64,6 +75,26 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         value: out ResidentialBuildingId? residentialBuildingId) ||
                     !residentialBuildingId.HasValue)
                     continue;
+
+                string healthcareTripKey = BuildTripConcurrencyKey(
+                    travellerEntityId: resident.Id.Value,
+                    purpose: HealthcareAccessPurpose);
+                if (!activeTripKeys.Contains(healthcareTripKey))
+                    await TryAddHealthcareCandidateAsync(
+                        cityId: cityId,
+                        tickId: tickId,
+                        currentDate: currentDate,
+                        resident: resident,
+                        residentialBuildingId: residentialBuildingId.Value,
+                        preferredDistrictId: districtByHouseholdId.TryGetValue(
+                            key: resident.HouseholdId,
+                            value: out DistrictId? preferredDistrictId)
+                            ? preferredDistrictId
+                            : null,
+                        hospitalAnchors: hospitalAnchors,
+                        anchorSelectionPolicy: anchorSelectionPolicy,
+                        candidates: candidates,
+                        cancellationToken: cancellationToken);
 
                 string workTripKey = BuildTripConcurrencyKey(
                     travellerEntityId: resident.Id.Value,
@@ -157,6 +188,62 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         salt: 101)));
         }
 
+        private async Task TryAddHealthcareCandidateAsync(
+            Guid cityId,
+            long tickId,
+            DateOnly currentDate,
+            Person resident,
+            ResidentialBuildingId residentialBuildingId,
+            DistrictId? preferredDistrictId,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            ICollection<CommuteTripCandidate> candidates,
+            CancellationToken cancellationToken)
+        {
+            bool needsHealthcarePriority = resident.HasActiveIllness ||
+                                           resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
+            if (!needsHealthcarePriority)
+                return;
+
+            CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
+                anchors: hospitalAnchors,
+                preferredDistrictId: preferredDistrictId,
+                stableKey: resident.Id.Value);
+            if (primaryCareAnchor is null)
+                return;
+
+            CityPopulationCommuteContext commute = await commuteRoutingService.ResolveHealthcareCommuteAsync(
+                cityId: cityId,
+                residentialBuildingId: residentialBuildingId,
+                healthcareAnchorId: primaryCareAnchor.CityAnchorId,
+                cancellationToken: cancellationToken);
+            if (!ShouldMaterializeCommuteTrip(commute))
+                return;
+
+            int priority = resident.CurrentIllnessSeverity switch
+            {
+                IllnessSeverity.Severe => 0,
+                IllnessSeverity.Moderate => 1,
+                _ => 2
+            };
+
+            candidates.Add(
+                new CommuteTripCandidate(
+                    TravellerEntityId: resident.Id.Value,
+                    ResidentialBuildingId: residentialBuildingId,
+                    DestinationAnchorId: primaryCareAnchor.CityAnchorId,
+                    Purpose: HealthcareAccessPurpose,
+                    Subject: "Resident healthcare access",
+                    MovementCapabilityIndex: ResolveMovementCapabilityIndex(
+                        resident: resident,
+                        purpose: HealthcareAccessPurpose),
+                    Priority: priority,
+                    OrderingKey: ResolveOrderingKey(
+                        residentId: resident.Id.Value,
+                        tickId: tickId,
+                        salt: 307)));
+        }
+
         private async Task TryAddEducationCandidateAsync(
             Guid cityId,
             long tickId,
@@ -228,6 +315,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 b: WorkCommutePurpose,
                 comparisonType: StringComparison.Ordinal)
                 ? 1.05m
+                : string.Equals(
+                    a: purpose,
+                    b: HealthcareAccessPurpose,
+                    comparisonType: StringComparison.Ordinal)
+                    ? 0.93m
                 : 1.00m;
 
             return decimal.Round(
