@@ -4,12 +4,14 @@ using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
@@ -26,6 +28,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         IEconomyApiClient economyClient,
         IPopulationApiClient populationClient,
         IStockpilesApiClient stockpilesClient,
+        ITripsApiClient tripsClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
         HealthCheckService healthCheckService,
         IHttpClientFactory httpClientFactory,
@@ -36,6 +39,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         private readonly IEconomyApiClient _economyClient = economyClient;
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
+        private readonly ITripsApiClient _tripsClient = tripsClient;
         private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
         private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
@@ -51,6 +55,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityDistrictPowerDistributionConditionsView? DistrictPower,
             CityDistrictSanitationConditionsView? DistrictSanitation,
             CityDistrictUtilityIncidentConditionsView? DistrictUtilityIncidents,
+            IReadOnlyList<CityActiveTripView>? ActiveTrips,
             CityStockpilesView? Stockpiles,
             CityOperationalBudgetPressureView? Budget);
 
@@ -83,6 +88,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             DashboardEnvironmentalAlertView[] environmentalAlerts = BuildEnvironmentalAlerts(operationalSnapshots);
             DashboardPopulationDistrictPressureView[] populationDistrictAlerts = BuildPopulationDistrictPressureAlerts(operationalSnapshots);
             DashboardDistrictResponsePriorityView[] districtResponsePriorities = BuildDistrictResponsePriorities(operationalSnapshots);
+            DashboardMobilityView[] mobilityAlerts = BuildMobilityAlerts(operationalSnapshots);
             DashboardBudgetPressureView[] budgetAlerts = BuildBudgetPressureAlerts(operationalSnapshots);
             DashboardTickFreshnessView[] tickFreshnessAlerts = BuildTickFreshnessAlerts(operationalSnapshots);
             DashboardPhaseProgressView[] phaseProgressAlerts = BuildPhaseProgressAlerts(operationalSnapshots);
@@ -171,6 +177,15 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     DeltaMonth: null,
                     DeltaYear: null,
                     DeltaMode: "live"),
+                MobilityAlerts: new DashboardMetricView(
+                    Label: "Mobility alerts",
+                    Current: mobilityAlerts.Length,
+                    Description:
+                    "Ready classic-city simulations where active commute and healthcare trips are starting to stack up under slower or more fragile movement conditions.",
+                    DeltaYesterday: null,
+                    DeltaMonth: null,
+                    DeltaYear: null,
+                    DeltaMode: "live"),
                 OperationalBudgetAlerts: new DashboardMetricView(
                     Label: "Operational budget alerts",
                     Current: budgetAlerts.Length,
@@ -229,6 +244,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 PopulationDistrictCities: populationDistrictAlerts.Take(8)
                    .ToArray(),
                 DistrictResponsePriorities: districtResponsePriorities.Take(8)
+                   .ToArray(),
+                MobilityCities: mobilityAlerts.Take(8)
                    .ToArray(),
                 BudgetPressureCities: budgetAlerts.Take(8)
                    .ToArray(),
@@ -453,6 +470,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             Task<CityDistrictUtilityIncidentConditionsView?> districtUtilityIncidentsTask = TryLoadDistrictUtilityIncidentConditionsAsync(
                 city: city,
                 cancellationToken: cancellationToken);
+            Task<IReadOnlyList<CityActiveTripView>?> activeTripsTask = TryLoadActiveTripsAsync(
+                city: city,
+                cancellationToken: cancellationToken);
             Task<CityStockpilesView?> stockpilesTask = TryLoadStockpilesAsync(
                 city: city,
                 cancellationToken: cancellationToken);
@@ -468,6 +488,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 districtPowerTask,
                 districtSanitationTask,
                 districtUtilityIncidentsTask,
+                activeTripsTask,
                 stockpilesTask,
                 budgetTask);
 
@@ -480,6 +501,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 DistrictPower: districtPowerTask.Result,
                 DistrictSanitation: districtSanitationTask.Result,
                 DistrictUtilityIncidents: districtUtilityIncidentsTask.Result,
+                ActiveTrips: activeTripsTask.Result,
                 Stockpiles: stockpilesTask.Result,
                 Budget: budgetTask.Result);
         }
@@ -526,6 +548,23 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .ThenByDescending(priority => priority.PriorityScore)
                .ThenBy(
                     keySelector: priority => priority.CityName,
+                    comparer: StringComparer.OrdinalIgnoreCase)
+               .ToArray();
+        }
+
+        private static DashboardMobilityView[] BuildMobilityAlerts(
+            IReadOnlyList<CityOperationalSnapshot> snapshots)
+        {
+            return snapshots
+               .Select(BuildMobilityAlert)
+               .Where(alert => alert is not null)
+               .Select(alert => alert!)
+               .OrderByDescending(alert => GetMobilitySeverityRank(alert.Severity))
+               .ThenByDescending(alert => alert.MobilityPressureIndex)
+               .ThenByDescending(alert => alert.ActiveHealthcareTripCount)
+               .ThenByDescending(alert => alert.ActiveTripCount)
+               .ThenBy(
+                    keySelector: alert => alert.CityName,
                     comparer: StringComparer.OrdinalIgnoreCase)
                .ToArray();
         }
@@ -716,6 +755,39 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 skippedMessage:
                 "Skipped district utility incidents for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
                 cancellationToken: cancellationToken);
+        }
+
+        private async Task<IReadOnlyList<CityActiveTripView>?> TryLoadActiveTripsAsync(
+            CityListItemView city,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await _tripsClient.GetActiveTripsAsync(
+                    cityId: city.CityId,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Failed to attach active trips to city operations dashboard for cityId={CityId}.",
+                    city.CityId);
+
+                return null;
+            }
+            catch (DownstreamServiceException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Skipped active trips for city operations dashboard because SimulationCore returned status {StatusCode} for cityId={CityId}.",
+                    (int)exception.StatusCode,
+                    city.CityId);
+
+                return null;
+            }
         }
 
         private async Task<T?> TryLoadDistrictUtilityConditionsAsync<T>(
@@ -972,6 +1044,77 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 ActiveIllnessCount: district.ActiveIllnessCount,
                 SevereIllnessCount: district.SevereIllnessCount,
                 HomelessResidentCount: district.HomelessResidentCount);
+        }
+
+        private static DashboardMobilityView? BuildMobilityAlert(CityOperationalSnapshot snapshot)
+        {
+            CityActiveTripView[] trips = snapshot.ActiveTrips?
+               .Where(trip => string.Equals(
+                    a: trip.Status,
+                    b: "Active",
+                    comparisonType: StringComparison.OrdinalIgnoreCase))
+               .ToArray() ?? [];
+
+            if (trips.Length == 0)
+                return null;
+
+            int activeTripCount = trips.Length;
+            int activeCommuteCount = trips.Count(trip => IsCommutePurpose(trip.Purpose));
+            int activeHealthcareTripCount = trips.Count(trip => IsHealthcarePurpose(trip.Purpose));
+            int dynamicRoadTripCount = trips.Count(trip => trip.UsedDynamicRoadConditions);
+            int delayedTripCount = trips.Count(trip => GetTripSlowdownRatio(trip) >= 1.2000m);
+            decimal averageSlowdownRatio = decimal.Round(
+                d: trips.Average(GetTripSlowdownRatio),
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+            decimal averageRemainingTravelMinutes = decimal.Round(
+                d: trips.Average(GetRemainingTravelMinutes),
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
+            decimal loadIndex = ClampUnit(
+                value: ((activeCommuteCount + (activeHealthcareTripCount * 1.5m)) / 18m));
+            decimal healthcareLoadIndex = ClampUnit(activeHealthcareTripCount / 4m);
+            decimal dynamicRoadExposure = ClampUnit(dynamicRoadTripCount / activeTripCount);
+            decimal delayExposure = ClampUnit(delayedTripCount / activeTripCount);
+            decimal slowdownIndex = ClampUnit((averageSlowdownRatio - 1m) / 0.75m);
+            decimal remainingTravelIndex = ClampUnit(averageRemainingTravelMinutes / 120m);
+            decimal mobilityPressureIndex = decimal.Round(
+                d: ClampUnit(
+                    value: (loadIndex * 0.30m) +
+                           (healthcareLoadIndex * 0.25m) +
+                           (delayExposure * 0.20m) +
+                           (slowdownIndex * 0.10m) +
+                           (dynamicRoadExposure * 0.10m) +
+                           (remainingTravelIndex * 0.05m)),
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+
+            if (mobilityPressureIndex < 0.2200m && activeHealthcareTripCount == 0)
+                return null;
+
+            if (mobilityPressureIndex < 0.1800m)
+                return null;
+
+            return new DashboardMobilityView(
+                CityId: snapshot.City.CityId,
+                CityName: snapshot.City.Name,
+                CityStatus: snapshot.City.Status,
+                Severity: GetMobilitySeverity(mobilityPressureIndex),
+                Summary: BuildMobilitySummary(
+                    activeCommuteCount: activeCommuteCount,
+                    activeHealthcareTripCount: activeHealthcareTripCount,
+                    delayExposure: delayExposure,
+                    dynamicRoadExposure: dynamicRoadExposure,
+                    averageRemainingTravelMinutes: averageRemainingTravelMinutes),
+                MobilityPressureIndex: mobilityPressureIndex,
+                ActiveTripCount: activeTripCount,
+                ActiveCommuteCount: activeCommuteCount,
+                ActiveHealthcareTripCount: activeHealthcareTripCount,
+                DelayedTripCount: delayedTripCount,
+                DynamicRoadTripCount: dynamicRoadTripCount,
+                AverageSlowdownRatio: averageSlowdownRatio,
+                AverageRemainingTravelMinutes: averageRemainingTravelMinutes,
+                Trips: trips);
         }
 
         private static DashboardBudgetPressureView? BuildBudgetPressureAlert(CityOperationalSnapshot snapshot)
@@ -1368,6 +1511,16 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             };
         }
 
+        private static string GetMobilitySeverity(decimal mobilityPressureIndex)
+        {
+            return mobilityPressureIndex switch
+            {
+                >= 0.6800m => "danger",
+                >= 0.4400m => "warning",
+                _ => "info"
+            };
+        }
+
         private static string GetPopulationDistrictSeverity(decimal pressureIndex)
         {
             return pressureIndex switch
@@ -1395,6 +1548,16 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 >= 0.7000m => "danger",
                 >= 0.5000m => "warning",
                 _ => "info"
+            };
+        }
+
+        private static int GetMobilitySeverityRank(string severity)
+        {
+            return severity switch
+            {
+                "danger" => 2,
+                "warning" => 1,
+                _ => 0
             };
         }
 
@@ -1699,6 +1862,78 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 return "Housing support and district stabilization";
 
             return "Integrated district response";
+        }
+
+        private static string BuildMobilitySummary(
+            int activeCommuteCount,
+            int activeHealthcareTripCount,
+            decimal delayExposure,
+            decimal dynamicRoadExposure,
+            decimal averageRemainingTravelMinutes)
+        {
+            decimal dominantPressure = Max(
+                activeCommuteCount,
+                activeHealthcareTripCount * 2,
+                delayExposure * 10m,
+                dynamicRoadExposure * 10m,
+                averageRemainingTravelMinutes / 10m);
+
+            if ((activeHealthcareTripCount * 2) >= dominantPressure && delayExposure >= 0.3000m)
+                return "Healthcare access trips are staying active under slower road conditions and medical movement is starting to stretch across the city.";
+
+            if ((activeHealthcareTripCount * 2) >= dominantPressure)
+                return "Healthcare access trips are starting to accumulate and medical movement demand is rising across the city.";
+
+            if ((delayExposure * 10m) >= dominantPressure || (dynamicRoadExposure * 10m) >= dominantPressure)
+                return "Active city trips are moving under degraded mobility conditions and commute flow is starting to stretch.";
+
+            if (averageRemainingTravelMinutes >= 75m)
+                return "Trips are staying active for longer than normal and the city is carrying heavier in-world movement load.";
+
+            return "Commute movement is building up across the city and is becoming a new live operator signal.";
+        }
+
+        private static bool IsCommutePurpose(string purpose)
+        {
+            return string.Equals(
+                       a: purpose,
+                       b: "WorkCommute",
+                       comparisonType: StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(
+                       a: purpose,
+                       b: "EducationCommute",
+                       comparisonType: StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsHealthcarePurpose(string purpose)
+        {
+            return string.Equals(
+                a: purpose,
+                b: "HealthcareAccess",
+                comparisonType: StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static decimal GetTripSlowdownRatio(CityActiveTripView trip)
+        {
+            if (trip.PlannedTravelTimeMinutes <= 0m)
+                return 1m;
+
+            return decimal.Round(
+                d: Math.Max(
+                    1m,
+                    trip.AdjustedTravelTimeMinutes / trip.PlannedTravelTimeMinutes),
+                decimals: 4,
+                mode: MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal GetRemainingTravelMinutes(CityActiveTripView trip)
+        {
+            decimal minutes = (decimal)(trip.ExpectedArrivalAtSimTimeUtc - trip.LastAdvancedAtSimTimeUtc).TotalMinutes;
+
+            return decimal.Round(
+                d: Math.Max(0m, minutes),
+                decimals: 2,
+                mode: MidpointRounding.AwayFromZero);
         }
 
         private static string BuildEnvironmentalSummary(CityEnvironmentalConditionsView conditions)

@@ -2,6 +2,7 @@ using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
 
 namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
@@ -15,6 +16,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         DashboardMetricView EnvironmentalAlerts,
         DashboardMetricView PopulationDistrictAlerts,
         DashboardMetricView DistrictResponsePriorityAlerts,
+        DashboardMetricView MobilityAlerts,
         DashboardMetricView OperationalBudgetAlerts,
         DashboardMetricView TickFreshnessAlerts,
         DashboardMetricView PhaseProgressAlerts,
@@ -27,6 +29,7 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         IReadOnlyList<DashboardEnvironmentalAlertView> EnvironmentalCities,
         IReadOnlyList<DashboardPopulationDistrictPressureView> PopulationDistrictCities,
         IReadOnlyList<DashboardDistrictResponsePriorityView> DistrictResponsePriorities,
+        IReadOnlyList<DashboardMobilityView> MobilityCities,
         IReadOnlyList<DashboardBudgetPressureView> BudgetPressureCities,
         IReadOnlyList<DashboardTickFreshnessView> TickFreshnessCities,
         IReadOnlyList<DashboardPhaseProgressView> PhaseProgressCities,
@@ -112,6 +115,22 @@ namespace Matrix.ApiGateway.Contracts.SimulationCore.Dashboard
         int ActiveIllnessCount,
         int SevereIllnessCount,
         int HomelessResidentCount);
+
+    public sealed record DashboardMobilityView(
+        Guid CityId,
+        string CityName,
+        string CityStatus,
+        string Severity,
+        string Summary,
+        decimal MobilityPressureIndex,
+        int ActiveTripCount,
+        int ActiveCommuteCount,
+        int ActiveHealthcareTripCount,
+        int DelayedTripCount,
+        int DynamicRoadTripCount,
+        decimal AverageSlowdownRatio,
+        decimal AverageRemainingTravelMinutes,
+        IReadOnlyList<CityActiveTripView> Trips);
 
     public sealed record DashboardBudgetPressureView(
         Guid CityId,
