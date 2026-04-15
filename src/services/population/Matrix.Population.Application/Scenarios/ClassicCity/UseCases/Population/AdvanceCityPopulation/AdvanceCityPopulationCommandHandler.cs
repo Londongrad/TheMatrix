@@ -6,6 +6,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Domain.Enums;
@@ -45,6 +46,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationLivingConditionsStateRepository cityPopulationLivingConditionsStateRepository,
         ICityDistrictUtilityConditionsClient districtUtilityConditionsClient,
         ICityPopulationCommuteRoutingService commuteRoutingService,
+        ICityPopulationCommuteTripSyncService commuteTripSyncService,
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         ICityPopulationProgressionStateRepository progressionStateRepository,
@@ -534,6 +536,27 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     await unitOfWork.SaveChangesAsync(ct);
                 },
                 cancellationToken: cancellationToken);
+
+            if (personsSnapshot is not null && placementsSnapshot is not null)
+            {
+                try
+                {
+                    await commuteTripSyncService.SyncAsync(
+                        cityId: cityId.Value,
+                        tickId: request.TickId,
+                        residents: personsSnapshot,
+                        householdPlacements: placementsSnapshot,
+                        cancellationToken: cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Failed to sync population commute trips for cityId={CityId} at tickId={TickId}.",
+                        request.CityId,
+                        request.TickId);
+                }
+            }
 
             return new AdvanceCityPopulationResult(
                 Status: AdvanceCityPopulationStatus.Applied,
