@@ -16,6 +16,7 @@ export type ClassicCityWorkspaceSection =
     | "overview"
     | "dashboard"
     | "map"
+    | "infrastructure"
     | "population"
     | "weather"
     | "simulation";

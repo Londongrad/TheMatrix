@@ -1,6 +1,7 @@
 import {useEffect} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDashboardCard} from "@services/simulationcore/scenarios/classic-city/components/CityDashboardCard";
+import {CityInfrastructureCard} from "@services/simulationcore/scenarios/classic-city/components/CityInfrastructureCard";
 import {CityOverviewCard} from "@services/simulationcore/scenarios/classic-city/components/CityOverviewCard";
 import {
     CityPopulationSummaryCard
@@ -31,6 +32,11 @@ const CITY_DETAILS_TABS = [
         id: "map",
         label: "Map",
         subtitle: "Canonical topology, anchors, road graph, and active world travel over the city surface.",
+    },
+    {
+        id: "infrastructure",
+        label: "Infrastructure",
+        subtitle: "District utility conditions, breakdown risk, and incident pressure across the city surface.",
     },
     {
         id: "overview",
@@ -163,6 +169,15 @@ const CityDetailsPage = () => {
             case "map":
                 return cityQuery.data ? (
                     <CityWorldMapCard
+                        cityId={cityQuery.data.cityId}
+                        cityName={cityQuery.data.name}
+                        isArchived={isArchived}
+                    />
+                ) : null;
+
+            case "infrastructure":
+                return cityQuery.data ? (
+                    <CityInfrastructureCard
                         cityId={cityQuery.data.cityId}
                         cityName={cityQuery.data.name}
                         isArchived={isArchived}

@@ -13,6 +13,7 @@ import type {
     CityActiveTripView,
     CityMapTopologyView,
 } from "@services/simulationcore/scenarios/classic-city/contracts/worldContracts";
+import type {CityDistrictInfrastructureView} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 import {API_CITY_URL} from "@shared/api/config";
 
 export function getCities(includeArchived: boolean, signal?: AbortSignal) {
@@ -59,6 +60,13 @@ export function getCityMapTopology(cityId: string, signal?: AbortSignal) {
 
 export function getCityActiveTrips(cityId: string, signal?: AbortSignal) {
     return apiRequest<CityActiveTripView[]>(`${API_CITY_URL}/${cityId}/trips/active`, {
+        method: "GET",
+        signal,
+    });
+}
+
+export function getCityDistrictInfrastructure(cityId: string, signal?: AbortSignal) {
+    return apiRequest<CityDistrictInfrastructureView>(`${API_CITY_URL}/${cityId}/infrastructure/districts`, {
         method: "GET",
         signal,
     });

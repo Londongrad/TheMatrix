@@ -33,6 +33,10 @@ const CITY_WORKSPACE_META: Record<ClassicCityWorkspaceSection, { label: string; 
         label: "Map",
         subtitle: "Canonical topology, road graph, anchors, and active world trips for the current city.",
     },
+    infrastructure: {
+        label: "Infrastructure",
+        subtitle: "District utility slices, incident pressure, and service stability across the current city.",
+    },
     population: {
         label: "Population",
         subtitle: "Resident counts, housing distribution, and wellbeing summary at the city level.",
@@ -74,6 +78,7 @@ function isWorkspaceSection(value: string | null): value is ClassicCityWorkspace
     return value === "overview" ||
         value === "dashboard" ||
         value === "map" ||
+        value === "infrastructure" ||
         value === "population" ||
         value === "weather" ||
         value === "simulation";
@@ -174,6 +179,17 @@ export default function ClassicCityLayout() {
             {
                 to: getClassicCityDetailsPath(cityId, "map"),
                 label: "Map",
+                end: true,
+                requiredPermissions: [
+                    PermissionKeys.SimulationCoreClassicCityRead,
+                    PermissionKeys.SimulationCoreSimulationRead,
+                ],
+                requiredPermissionsMode: "all",
+                permissionDisplay: "disable",
+            },
+            {
+                to: getClassicCityDetailsPath(cityId, "infrastructure"),
+                label: "Infrastructure",
                 end: true,
                 requiredPermissions: [
                     PermissionKeys.SimulationCoreClassicCityRead,
