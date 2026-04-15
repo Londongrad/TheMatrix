@@ -29,6 +29,16 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         Guid PrimaryCareAnchorId,
         CityResidentRouteAccessDto? RouteAccess);
 
+    public sealed record class CityResidentActiveTripDto(
+        string Subject,
+        string Purpose,
+        string Status,
+        decimal CurrentProgressIndex,
+        DateTimeOffset StartedAtSimTimeUtc,
+        DateTimeOffset ExpectedArrivalAtSimTimeUtc,
+        string FromName,
+        string ToName);
+
     public sealed record class CityResidentIllnessDto(
         string Kind,
         string Severity,
@@ -62,5 +72,6 @@ namespace Matrix.Population.Contracts.Scenarios.ClassicCity.Models
         CityResidentHousingDto CurrentHousing,
         CityResidentWorkplaceDto? CurrentWorkplace,
         CityResidentEducationInstitutionDto? CurrentEducationInstitution,
-        CityResidentHealthcareProviderDto? PrimaryHealthcareProvider);
+        CityResidentHealthcareProviderDto? PrimaryHealthcareProvider,
+        CityResidentActiveTripDto? CurrentActiveTrip);
 }

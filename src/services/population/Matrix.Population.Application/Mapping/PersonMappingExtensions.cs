@@ -78,7 +78,8 @@ namespace Matrix.Population.Application.Mapping
             IReadOnlyCollection<Person>? children = null,
             CityPopulationCommuteContext? workplaceRouteAccess = null,
             CityPopulationCommuteContext? educationRouteAccess = null,
-            CityResidentHealthcareProviderDto? primaryHealthcareProvider = null)
+            CityResidentHealthcareProviderDto? primaryHealthcareProvider = null,
+            CityResidentActiveTripDto? currentActiveTrip = null)
         {
             PersonDto snapshot = person.ToDto(currentDate);
             CityResidentHousingDto housing = currentHousing is null
@@ -159,7 +160,8 @@ namespace Matrix.Population.Application.Mapping
                 CurrentHousing: housing,
                 CurrentWorkplace: workplace,
                 CurrentEducationInstitution: educationInstitution,
-                PrimaryHealthcareProvider: primaryHealthcareProvider);
+                PrimaryHealthcareProvider: primaryHealthcareProvider,
+                CurrentActiveTrip: currentActiveTrip);
         }
 
         private static CityResidentRouteAccessDto? ToRouteAccessDto(CityPopulationCommuteContext? routeAccess)

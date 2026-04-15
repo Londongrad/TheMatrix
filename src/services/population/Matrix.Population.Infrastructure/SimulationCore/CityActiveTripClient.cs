@@ -26,12 +26,30 @@ namespace Matrix.Population.Infrastructure.SimulationCore
 
             return payload?.Select(x => new CityPopulationActiveTripSnapshot(
                     TravellerEntityId: x.TravellerEntityId,
+                    Subject: x.Subject,
                     Purpose: x.Purpose,
                     Status: x.Status,
+                    CurrentProgressIndex: x.CurrentProgressIndex,
+                    StartedAtSimTimeUtc: x.StartedAtSimTimeUtc,
+                    ExpectedArrivalAtSimTimeUtc: x.ExpectedArrivalAtSimTimeUtc,
+                    FromName: x.From.Name,
                     FromEntityId: x.From.EntityId,
+                    ToName: x.To.Name,
                     ToEntityId: x.To.EntityId))
                    .ToArray()
                 ?? [];
+        }
+
+        public async Task<CityPopulationActiveTripSnapshot?> FindActiveByTravellerAsync(
+            Guid cityId,
+            Guid travellerEntityId,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyCollection<CityPopulationActiveTripSnapshot> activeTrips = await ListActiveByCityAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return activeTrips.FirstOrDefault(x => x.TravellerEntityId == travellerEntityId);
         }
 
         public async Task<bool> TryDispatchAsync(

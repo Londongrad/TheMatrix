@@ -8,6 +8,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abs
             Guid cityId,
             CancellationToken cancellationToken);
 
+        Task<CityPopulationActiveTripSnapshot?> FindActiveByTravellerAsync(
+            Guid cityId,
+            Guid travellerEntityId,
+            CancellationToken cancellationToken);
+
         Task<bool> TryDispatchAsync(
             CityPopulationTripDispatchRequest request,
             CancellationToken cancellationToken);

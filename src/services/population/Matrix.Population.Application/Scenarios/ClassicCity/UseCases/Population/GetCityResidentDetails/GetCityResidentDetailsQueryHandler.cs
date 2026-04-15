@@ -4,6 +4,7 @@ using Matrix.Population.Application.Mapping;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
@@ -17,6 +18,7 @@ using MediatR;
 namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityResidentDetails
 {
     public sealed class GetCityResidentDetailsQueryHandler(
+        ICityPopulationActiveTripClient cityPopulationActiveTripClient,
         ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
         ICityPopulationCommuteRoutingService cityPopulationCommuteRoutingService,
         ICityPopulationPersonReadRepository cityPopulationPersonReadRepository,
@@ -103,6 +105,22 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         AccessibilityIndex: healthcareRouteAccess?.AccessibilityIndex ?? 1m,
                         PassabilityIndex: healthcareRouteAccess?.PassabilityIndex ?? 1m,
                         EstimatedTravelTimeMinutes: healthcareRouteAccess?.EstimatedTravelTimeMinutes));
+            CityPopulationActiveTripSnapshot? activeTrip =
+                await cityPopulationActiveTripClient.FindActiveByTravellerAsync(
+                    cityId: cityId.Value,
+                    travellerEntityId: resident.Id.Value,
+                    cancellationToken: cancellationToken);
+            CityResidentActiveTripDto? currentActiveTrip = activeTrip is null
+                ? null
+                : new CityResidentActiveTripDto(
+                    Subject: activeTrip.Subject,
+                    Purpose: activeTrip.Purpose,
+                    Status: activeTrip.Status,
+                    CurrentProgressIndex: activeTrip.CurrentProgressIndex,
+                    StartedAtSimTimeUtc: activeTrip.StartedAtSimTimeUtc,
+                    ExpectedArrivalAtSimTimeUtc: activeTrip.ExpectedArrivalAtSimTimeUtc,
+                    FromName: activeTrip.FromName,
+                    ToName: activeTrip.ToName);
 
             return resident.ToResidentDetailsDto(
                 currentDate: request.CurrentDate,
@@ -113,7 +131,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 children: children,
                 workplaceRouteAccess: workplaceRouteAccess,
                 educationRouteAccess: educationRouteAccess,
-                primaryHealthcareProvider: primaryHealthcareProvider);
+                primaryHealthcareProvider: primaryHealthcareProvider,
+                currentActiveTrip: currentActiveTrip);
         }
     }
 }
