@@ -2,6 +2,7 @@ using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalCond
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 
@@ -31,6 +32,11 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.Classi
 
         Task<CityDistrictUtilityIncidentConditionsView?> GetCityDistrictUtilityIncidentConditionsAsync(
             Guid cityId,
+            CancellationToken cancellationToken = default);
+
+        Task<CityUtilityIncidentStatusView> DispatchCityUtilityIncidentResponseAsync(
+            Guid cityId,
+            DispatchCityUtilityIncidentResponseRequest request,
             CancellationToken cancellationToken = default);
     }
 }

@@ -1,13 +1,18 @@
+using System.Net;
+using System.Text.Json;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Budget.Views;
+using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
+using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Weather.Views;
@@ -15,6 +20,7 @@ using Matrix.SimulationCore.Contracts.Simulation.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 using Matrix.Population.Contracts.Models;
@@ -32,6 +38,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         ISimulationApiClient simulationClient,
         IEconomyApiClient economyClient,
         IPopulationApiClient populationClient,
+        IStockpilesApiClient stockpilesClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
         ICityProvisioningService cityProvisioningService,
         ILogger<CitiesController> logger) : ControllerBase
@@ -43,6 +50,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         private readonly ILogger<CitiesController> _logger = logger;
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ISimulationApiClient _simulationClient = simulationClient;
+        private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
 
         [HttpPost]
         public async Task<ActionResult<CityProvisioningView>> Create(
@@ -198,6 +206,51 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
                     PowerDistribution: power,
                     Sanitation: sanitation,
                     UtilityIncidents: incidents));
+        }
+
+        [HttpPost("{cityId:guid}/operator/utility-response")]
+        public async Task<ActionResult<CityUtilityIncidentStatusView>> DispatchDistrictUtilityResponse(
+            [FromRoute] Guid cityId,
+            [FromBody] DispatchCityUtilityIncidentResponseRequest request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                CityUtilityIncidentStatusView view =
+                    await _environmentalConditionsClient.DispatchCityUtilityIncidentResponseAsync(
+                        cityId: cityId,
+                        request: request,
+                        cancellationToken: cancellationToken);
+
+                return Ok(view);
+            }
+            catch (DownstreamServiceException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+            {
+                CityUtilityIncidentStatusView? view = TryDeserializeConflict<CityUtilityIncidentStatusView>(exception);
+                return view is null ? Conflict() : Conflict(view);
+            }
+        }
+
+        [HttpPost("{cityId:guid}/operator/resupply")]
+        public async Task<ActionResult<DispatchCityResupplyView>> DispatchDistrictResupply(
+            [FromRoute] Guid cityId,
+            [FromBody] DispatchCityResupplyRequest request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                DispatchCityResupplyView view = await _stockpilesClient.DispatchCityResupplyAsync(
+                    cityId: cityId,
+                    request: request,
+                    cancellationToken: cancellationToken);
+
+                return Ok(view);
+            }
+            catch (DownstreamServiceException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+            {
+                DispatchCityResupplyView? view = TryDeserializeConflict<DispatchCityResupplyView>(exception);
+                return view is null ? Conflict() : Conflict(view);
+            }
         }
 
         [HttpGet("{cityId:guid}/residents")]
@@ -608,6 +661,24 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
                     DeltaMonth: null,
                     DeltaYear: null)
             ];
+        }
+
+        private static T? TryDeserializeConflict<T>(DownstreamServiceException exception)
+            where T : class
+        {
+            if (string.IsNullOrWhiteSpace(exception.Body))
+                return null;
+
+            try
+            {
+                return JsonSerializer.Deserialize<T>(
+                    json: exception.Body,
+                    options: new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalCond
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Requests;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 
@@ -24,6 +25,8 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.Classi
             "/api/classic-city/cities/{0}/sanitation/districts";
         private const string DistrictUtilityIncidentConditionsEndpointTemplate =
             "/api/classic-city/cities/{0}/utility-incidents/districts";
+        private const string UtilityIncidentResponseDispatchEndpointTemplate =
+            "/api/classic-city/cities/{0}/utility-incidents/response-dispatch";
 
         private readonly HttpClient _client = client;
 
@@ -101,6 +104,26 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.Classi
                     format: DistrictUtilityIncidentConditionsEndpointTemplate,
                     arg0: cityId),
                 cancellationToken: cancellationToken);
+        }
+
+        public async Task<CityUtilityIncidentStatusView> DispatchCityUtilityIncidentResponseAsync(
+            Guid cityId,
+            DispatchCityUtilityIncidentResponseRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = string.Format(
+                format: UtilityIncidentResponseDispatchEndpointTemplate,
+                arg0: cityId);
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityUtilityIncidentStatusView>(
+                serviceName: DownstreamServiceNames.SimulationSystems,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
         }
 
         private async Task<T?> GetOptionalAsync<T>(

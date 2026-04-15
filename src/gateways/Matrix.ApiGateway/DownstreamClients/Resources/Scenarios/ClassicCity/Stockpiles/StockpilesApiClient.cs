@@ -1,6 +1,7 @@
 using System.Net;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Common.Extensions;
+using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 
 namespace Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles
@@ -8,6 +9,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.St
     internal sealed class StockpilesApiClient(HttpClient client) : IStockpilesApiClient
     {
         private const string StockpilesEndpointTemplate = "/api/classic-city/cities/{0}/stockpiles";
+        private const string ResupplyEndpointTemplate = "/api/classic-city/cities/{0}/stockpiles/resupply";
 
         private readonly HttpClient _client = client;
 
@@ -27,6 +29,26 @@ namespace Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.St
                 return null;
 
             return await response.ReadJsonOrThrowDownstreamAsync<CityStockpilesView>(
+                serviceName: DownstreamServiceNames.Resources,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
+        public async Task<DispatchCityResupplyView> DispatchCityResupplyAsync(
+            Guid cityId,
+            DispatchCityResupplyRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            string url = string.Format(
+                format: ResupplyEndpointTemplate,
+                arg0: cityId);
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: request,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<DispatchCityResupplyView>(
                 serviceName: DownstreamServiceNames.Resources,
                 cancellationToken: cancellationToken,
                 requestUrl: url);
