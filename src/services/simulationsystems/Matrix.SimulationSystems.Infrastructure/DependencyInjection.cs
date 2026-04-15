@@ -116,6 +116,19 @@ namespace Matrix.SimulationSystems.Infrastructure
                         uriKind: UriKind.Absolute);
                 })
                .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+            services.AddHttpClient<ICityOperationalTripDispatcher, CityOperationalTripDispatcher>((sp, client) =>
+                {
+                    DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
+                       .Value;
+
+                    if (string.IsNullOrWhiteSpace(options.SimulationCore))
+                        throw new InvalidOperationException("DownstreamServices:SimulationCore is not configured.");
+
+                    client.BaseAddress = new Uri(
+                        uriString: options.SimulationCore,
+                        uriKind: UriKind.Absolute);
+                })
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
 
             services.AddMassTransit(x =>
             {

@@ -16,7 +16,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
         CityMaintenanceBudgetGuard budgetGuard,
-        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService,
+        ICityOperationalTripDispatcher operationalTripDispatcher)
         : IRequestHandler<DispatchCityUtilityIncidentResponseCommand, CityUtilityIncidentStatusDto?>
     {
         public async Task<CityUtilityIncidentStatusDto?> Handle(
@@ -101,6 +102,16 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                     occurredAtUtc: DateTimeOffset.UtcNow),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (request.FocusDistrictId.HasValue)
+            {
+                await operationalTripDispatcher.TryDispatchUtilityIncidentResponseAsync(
+                    cityId: request.CityId,
+                    focusDistrictId: request.FocusDistrictId.Value,
+                    focus: request.Focus,
+                    intensity: appliedIntensity.ToString(),
+                    cancellationToken: cancellationToken);
+            }
 
             decimal utilityIncidentSupport = pressureProfileFactory.Create(state).UtilityIncidentSupport;
 
