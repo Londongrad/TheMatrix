@@ -10,6 +10,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abs
             Guid cityId,
             long tickId,
             DateOnly currentDate,
+            DateTimeOffset currentSimTimeUtc,
             IReadOnlyCollection<Person> residents,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,

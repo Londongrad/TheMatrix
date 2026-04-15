@@ -545,6 +545,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         tickId: request.TickId,
                         currentDate: toDate,
+                        currentSimTimeUtc: request.ToSimTimeUtc,
                         residents: personsSnapshot,
                         householdPlacements: placementsSnapshot,
                         hospitalAnchors: await cityPopulationAnchorCatalogRepository.ListByCityAsync(

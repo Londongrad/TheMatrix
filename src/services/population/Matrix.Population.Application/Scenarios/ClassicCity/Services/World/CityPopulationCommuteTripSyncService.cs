@@ -29,6 +29,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             Guid cityId,
             long tickId,
             DateOnly currentDate,
+            DateTimeOffset currentSimTimeUtc,
             IReadOnlyCollection<Person> residents,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
@@ -36,6 +37,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             CancellationToken cancellationToken)
         {
             if (residents.Count == 0 || householdPlacements.Count == 0)
+                return;
+
+            MobilityPhaseWindow phaseWindow = ResolvePhaseWindow(currentSimTimeUtc);
+            if (!phaseWindow.HasAnyDispatch)
                 return;
 
             IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId =
@@ -79,7 +84,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 string healthcareTripKey = BuildTripConcurrencyKey(
                     travellerEntityId: resident.Id.Value,
                     purpose: HealthcareAccessPurpose);
-                if (!activeTripKeys.Contains(healthcareTripKey))
+                if (phaseWindow.ShouldDispatchHealthcare &&
+                    !activeTripKeys.Contains(healthcareTripKey))
                     await TryAddHealthcareCandidateAsync(
                         cityId: cityId,
                         tickId: tickId,
@@ -99,7 +105,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 string workTripKey = BuildTripConcurrencyKey(
                     travellerEntityId: resident.Id.Value,
                     purpose: WorkCommutePurpose);
-                if (!activeTripKeys.Contains(workTripKey))
+                if (phaseWindow.ShouldDispatchOutboundCommutes &&
+                    !activeTripKeys.Contains(workTripKey))
                     await TryAddEmploymentCandidateAsync(
                         cityId: cityId,
                         tickId: tickId,
@@ -107,11 +114,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         residentialBuildingId: residentialBuildingId.Value,
                         candidates: candidates,
                         cancellationToken: cancellationToken);
+                else if (phaseWindow.ShouldDispatchReturnCommutes &&
+                         !activeTripKeys.Contains(workTripKey))
+                    TryAddEmploymentReturnCandidate(
+                        tickId: tickId,
+                        resident: resident,
+                        residentialBuildingId: residentialBuildingId.Value,
+                        candidates: candidates);
 
                 string educationTripKey = BuildTripConcurrencyKey(
                     travellerEntityId: resident.Id.Value,
                     purpose: EducationCommutePurpose);
-                if (!activeTripKeys.Contains(educationTripKey))
+                if (phaseWindow.ShouldDispatchOutboundCommutes &&
+                    !activeTripKeys.Contains(educationTripKey))
                     await TryAddEducationCandidateAsync(
                         cityId: cityId,
                         tickId: tickId,
@@ -119,6 +134,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         residentialBuildingId: residentialBuildingId.Value,
                         candidates: candidates,
                         cancellationToken: cancellationToken);
+                else if (phaseWindow.ShouldDispatchReturnCommutes &&
+                         !activeTripKeys.Contains(educationTripKey))
+                    TryAddEducationReturnCandidate(
+                        tickId: tickId,
+                        resident: resident,
+                        residentialBuildingId: residentialBuildingId.Value,
+                        candidates: candidates);
             }
 
             foreach (CommuteTripCandidate candidate in candidates
@@ -135,10 +157,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                 bool dispatched = await activeTripClient.TryDispatchAsync(
                     request: new CityPopulationTripDispatchRequest(
                         CityId: cityId,
-                        FromKind: ResidentialBuildingPointKind,
-                        FromId: candidate.ResidentialBuildingId.Value,
-                        ToKind: CityAnchorPointKind,
-                        ToId: candidate.DestinationAnchorId.Value,
+                        FromKind: candidate.FromKind,
+                        FromId: candidate.FromId,
+                        ToKind: candidate.ToKind,
+                        ToId: candidate.ToId,
                         Purpose: candidate.Purpose,
                         Profile: PedestrianProfile,
                         MovementCapabilityIndex: candidate.MovementCapabilityIndex,
@@ -174,8 +196,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             candidates.Add(
                 new CommuteTripCandidate(
                     TravellerEntityId: resident.Id.Value,
-                    ResidentialBuildingId: residentialBuildingId,
-                    DestinationAnchorId: workplaceAnchorId,
+                    FromKind: ResidentialBuildingPointKind,
+                    FromId: residentialBuildingId.Value,
+                    ToKind: CityAnchorPointKind,
+                    ToId: workplaceAnchorId.Value,
                     Purpose: WorkCommutePurpose,
                     Subject: "Resident work commute",
                     MovementCapabilityIndex: ResolveMovementCapabilityIndex(
@@ -186,6 +210,35 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         residentId: resident.Id.Value,
                         tickId: tickId,
                         salt: 101)));
+        }
+
+        private static void TryAddEmploymentReturnCandidate(
+            long tickId,
+            Person resident,
+            ResidentialBuildingId residentialBuildingId,
+            ICollection<CommuteTripCandidate> candidates)
+        {
+            if (resident.Employment.Status != EmploymentStatus.Employed ||
+                resident.Employment.Job?.WorkplaceAnchorId is not { } workplaceAnchorId)
+                return;
+
+            candidates.Add(
+                new CommuteTripCandidate(
+                    TravellerEntityId: resident.Id.Value,
+                    FromKind: CityAnchorPointKind,
+                    FromId: workplaceAnchorId.Value,
+                    ToKind: ResidentialBuildingPointKind,
+                    ToId: residentialBuildingId.Value,
+                    Purpose: WorkCommutePurpose,
+                    Subject: "Resident work return",
+                    MovementCapabilityIndex: ResolveMovementCapabilityIndex(
+                        resident: resident,
+                        purpose: WorkCommutePurpose),
+                    Priority: 0,
+                    OrderingKey: ResolveOrderingKey(
+                        residentId: resident.Id.Value,
+                        tickId: tickId,
+                        salt: 151)));
         }
 
         private async Task TryAddHealthcareCandidateAsync(
@@ -230,8 +283,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             candidates.Add(
                 new CommuteTripCandidate(
                     TravellerEntityId: resident.Id.Value,
-                    ResidentialBuildingId: residentialBuildingId,
-                    DestinationAnchorId: primaryCareAnchor.CityAnchorId,
+                    FromKind: ResidentialBuildingPointKind,
+                    FromId: residentialBuildingId.Value,
+                    ToKind: CityAnchorPointKind,
+                    ToId: primaryCareAnchor.CityAnchorId.Value,
                     Purpose: HealthcareAccessPurpose,
                     Subject: "Resident healthcare access",
                     MovementCapabilityIndex: ResolveMovementCapabilityIndex(
@@ -267,8 +322,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             candidates.Add(
                 new CommuteTripCandidate(
                     TravellerEntityId: resident.Id.Value,
-                    ResidentialBuildingId: residentialBuildingId,
-                    DestinationAnchorId: institutionAnchorId,
+                    FromKind: ResidentialBuildingPointKind,
+                    FromId: residentialBuildingId.Value,
+                    ToKind: CityAnchorPointKind,
+                    ToId: institutionAnchorId.Value,
                     Purpose: EducationCommutePurpose,
                     Subject: "Resident education commute",
                     MovementCapabilityIndex: ResolveMovementCapabilityIndex(
@@ -279,6 +336,35 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
                         residentId: resident.Id.Value,
                         tickId: tickId,
                         salt: 211)));
+        }
+
+        private static void TryAddEducationReturnCandidate(
+            long tickId,
+            Person resident,
+            ResidentialBuildingId residentialBuildingId,
+            ICollection<CommuteTripCandidate> candidates)
+        {
+            if (resident.Employment.Status != EmploymentStatus.Student ||
+                resident.Education.CurrentInstitutionAnchorId is not { } institutionAnchorId)
+                return;
+
+            candidates.Add(
+                new CommuteTripCandidate(
+                    TravellerEntityId: resident.Id.Value,
+                    FromKind: CityAnchorPointKind,
+                    FromId: institutionAnchorId.Value,
+                    ToKind: ResidentialBuildingPointKind,
+                    ToId: residentialBuildingId.Value,
+                    Purpose: EducationCommutePurpose,
+                    Subject: "Resident education return",
+                    MovementCapabilityIndex: ResolveMovementCapabilityIndex(
+                        resident: resident,
+                        purpose: EducationCommutePurpose),
+                    Priority: 1,
+                    OrderingKey: ResolveOrderingKey(
+                        residentId: resident.Id.Value,
+                        tickId: tickId,
+                        salt: 241)));
         }
 
         private static bool ShouldMaterializeCommuteTrip(CityPopulationCommuteContext commute)
@@ -358,14 +444,41 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.World
             return $"{travellerEntityId:N}:{purpose.Trim().ToLowerInvariant()}";
         }
 
+        private static MobilityPhaseWindow ResolvePhaseWindow(DateTimeOffset currentSimTimeUtc)
+        {
+            TimeOnly time = TimeOnly.FromDateTime(currentSimTimeUtc.UtcDateTime);
+
+            bool shouldDispatchOutboundCommutes = time >= new TimeOnly(6, 0) && time < new TimeOnly(10, 30);
+            bool shouldDispatchReturnCommutes = time >= new TimeOnly(16, 0) && time < new TimeOnly(20, 30);
+            bool shouldDispatchHealthcare = time >= new TimeOnly(8, 0) && time < new TimeOnly(20, 0);
+
+            return new MobilityPhaseWindow(
+                ShouldDispatchOutboundCommutes: shouldDispatchOutboundCommutes,
+                ShouldDispatchReturnCommutes: shouldDispatchReturnCommutes,
+                ShouldDispatchHealthcare: shouldDispatchHealthcare);
+        }
+
         private sealed record CommuteTripCandidate(
             Guid TravellerEntityId,
-            ResidentialBuildingId ResidentialBuildingId,
-            CityAnchorId DestinationAnchorId,
+            string FromKind,
+            Guid FromId,
+            string ToKind,
+            Guid ToId,
             string Purpose,
             string Subject,
             decimal MovementCapabilityIndex,
             int Priority,
             long OrderingKey);
+
+        private readonly record struct MobilityPhaseWindow(
+            bool ShouldDispatchOutboundCommutes,
+            bool ShouldDispatchReturnCommutes,
+            bool ShouldDispatchHealthcare)
+        {
+            public bool HasAnyDispatch =>
+                ShouldDispatchOutboundCommutes ||
+                ShouldDispatchReturnCommutes ||
+                ShouldDispatchHealthcare;
+        }
     }
 }
