@@ -1,11 +1,18 @@
 import {useEffect} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import type {
+    DashboardBudgetPressureView,
+    DashboardEnvironmentalAlertView,
     CityOperationsDashboardView,
+    DashboardDistrictResponsePriorityView,
     DashboardMetricView,
+    DashboardMobilityView,
     DashboardPeriodComparisonRowView,
+    DashboardPhaseProgressView,
+    DashboardPopulationDistrictPressureView,
     DashboardRecentEventView,
     DashboardServiceHealthView,
+    DashboardTickFreshnessView,
 } from "@services/simulationcore/dashboard/api/dashboardTypes";
 import {useCityOperationsDashboardQuery} from "@services/simulationcore/dashboard/hooks/useCityOperationsDashboardQuery";
 import type {CityListItemView} from "@services/simulationcore/scenarios/classic-city/contracts/citiesContracts";
@@ -52,6 +59,31 @@ function formatDelta(value: number | null | undefined) {
     return value > 0 ? `+${value}` : String(value);
 }
 
+function formatIndex(value: number | null | undefined) {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+        return "--";
+    }
+
+    return `${Math.round(value * 100)}%`;
+}
+
+function formatMinutes(value: number | null | undefined) {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+        return "--";
+    }
+
+    if (value < 60) {
+        return `${Math.round(value)} min`;
+    }
+
+    const hours = value / 60;
+    return `${hours.toFixed(hours >= 10 ? 0 : 1)} h`;
+}
+
+function formatCompactId(value: string) {
+    return value.length > 8 ? value.slice(0, 8) : value;
+}
+
 function getDeltaTone(value: number) {
     if (value > 0) {
         return "positive";
@@ -72,6 +104,21 @@ function getHealthTone(status: string) {
             return "degraded";
         default:
             return "unhealthy";
+    }
+}
+
+function getSeverityTone(value: string) {
+    switch (value.trim().toLowerCase()) {
+        case "critical":
+        case "danger":
+        case "high":
+            return "danger";
+        case "warning":
+        case "elevated":
+        case "medium":
+            return "warning";
+        default:
+            return "success";
     }
 }
 
@@ -132,6 +179,31 @@ function MetricCard({metric}: MetricCardProps) {
                 </div>
             )}
         </article>
+    );
+}
+
+type MetricSectionProps = {
+    title: string;
+    subtitle: string;
+    metrics: DashboardMetricView[];
+};
+
+function MetricSection({title, subtitle, metrics}: MetricSectionProps) {
+    return (
+        <section className="dashboard-panel">
+            <div className="dashboard-panel__header">
+                <div>
+                    <h2 className="dashboard-panel__title">{title}</h2>
+                    <p className="dashboard-panel__subtitle">{subtitle}</p>
+                </div>
+            </div>
+
+            <div className="dashboard-metric-grid">
+                {metrics.map((metric) => (
+                    <MetricCard key={metric.label} metric={metric}/>
+                ))}
+            </div>
+        </section>
     );
 }
 
@@ -294,17 +366,364 @@ function WatchlistSection({title, subtitle, cities, emptyText, actionLabel, onOp
     );
 }
 
+function DistrictPriorityItem({
+                                  item,
+                                  onOpen,
+                              }: {
+    item: DashboardDistrictResponsePriorityView;
+    onOpen: (cityId: string, status: string) => void;
+}) {
+    const tone = getSeverityTone(item.severity);
+
+    return (
+        <article className={`dashboard-signal-item dashboard-signal-item--${tone}`}>
+            <div className="dashboard-signal-item__topline">
+                <div>
+                    <h3 className="dashboard-signal-item__title">{item.cityName}</h3>
+                    <div className="dashboard-signal-item__meta">
+                        <span>District {formatCompactId(item.districtId)}</span>
+                        <span className="dashboard-watch-item__separator">/</span>
+                        <span>{item.recommendedFocus}</span>
+                    </div>
+                </div>
+
+                <Button size="sm" variant={tone === "danger" ? "danger" : "default"}
+                        onClick={() => onOpen(item.cityId, item.cityStatus)}>
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-signal-item__summary">{item.summary}</p>
+
+            <div className="dashboard-signal-item__stats">
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Priority</span>
+                    <strong>{formatIndex(item.priorityScore)}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Social pressure</span>
+                    <strong>{formatIndex(item.populationPressureIndex)}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Service disruption</span>
+                    <strong>{formatIndex(item.serviceDisruptionIndex)}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Severe illness</span>
+                    <strong>{item.severeIllnessCount}</strong>
+                </div>
+            </div>
+        </article>
+    );
+}
+
+function MobilityItem({
+                          item,
+                          onOpen,
+                      }: {
+    item: DashboardMobilityView;
+    onOpen: (cityId: string, status: string) => void;
+}) {
+    const tone = getSeverityTone(item.severity);
+
+    return (
+        <article className={`dashboard-signal-item dashboard-signal-item--${tone}`}>
+            <div className="dashboard-signal-item__topline">
+                <div>
+                    <h3 className="dashboard-signal-item__title">{item.cityName}</h3>
+                    <div className="dashboard-signal-item__meta">
+                        <span>{item.activeTripCount} active trips</span>
+                        <span className="dashboard-watch-item__separator">/</span>
+                        <span>{formatMinutes(item.averageRemainingTravelMinutes)} avg remaining</span>
+                    </div>
+                </div>
+
+                <Button size="sm" variant={tone === "danger" ? "danger" : "default"}
+                        onClick={() => onOpen(item.cityId, item.cityStatus)}>
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-signal-item__summary">{item.summary}</p>
+
+            <div className="dashboard-signal-item__stats">
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Mobility pressure</span>
+                    <strong>{formatIndex(item.mobilityPressureIndex)}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Delayed</span>
+                    <strong>{item.delayedTripCount}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Dynamic roads</span>
+                    <strong>{item.dynamicRoadTripCount}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Slowdown</span>
+                    <strong>{item.averageSlowdownRatio.toFixed(2)}x</strong>
+                </div>
+            </div>
+
+            {item.trips.length > 0 ? (
+                <div className="dashboard-trip-list">
+                    {item.trips.slice(0, 3).map((trip) => (
+                        <div key={trip.tripId} className="dashboard-trip-token">
+                            <span>{trip.subject}</span>
+                            <span>{formatIndex(trip.currentProgressIndex)}</span>
+                        </div>
+                    ))}
+                </div>
+            ) : null}
+        </article>
+    );
+}
+
+function EnvironmentalAlertItem({
+                                    item,
+                                    onOpen,
+                                }: {
+    item: DashboardEnvironmentalAlertView;
+    onOpen: (cityId: string, status: string) => void;
+}) {
+    const tone = getSeverityTone(item.severity);
+
+    return (
+        <article className={`dashboard-signal-item dashboard-signal-item--${tone}`}>
+            <div className="dashboard-signal-item__topline">
+                <div>
+                    <h3 className="dashboard-signal-item__title">{item.cityName}</h3>
+                    <div className="dashboard-signal-item__meta">
+                        <span>{item.severity}</span>
+                    </div>
+                </div>
+
+                <Button size="sm" variant={tone === "danger" ? "danger" : "default"}
+                        onClick={() => onOpen(item.cityId, item.cityStatus)}>
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-signal-item__summary">{item.summary}</p>
+
+            <div className="dashboard-signal-item__stats">
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Alert score</span>
+                    <strong>{formatIndex(item.alertScore)}</strong>
+                </div>
+            </div>
+        </article>
+    );
+}
+
+function PopulationPressureItem({
+                                    item,
+                                    onOpen,
+                                }: {
+    item: DashboardPopulationDistrictPressureView;
+    onOpen: (cityId: string, status: string) => void;
+}) {
+    const tone = getSeverityTone(item.severity);
+
+    return (
+        <article className={`dashboard-signal-item dashboard-signal-item--${tone}`}>
+            <div className="dashboard-signal-item__topline">
+                <div>
+                    <h3 className="dashboard-signal-item__title">{item.cityName}</h3>
+                    <div className="dashboard-signal-item__meta">
+                        <span>District {formatCompactId(item.districtId)}</span>
+                        <span className="dashboard-watch-item__separator">/</span>
+                        <span>{item.residentCount} residents</span>
+                    </div>
+                </div>
+
+                <Button size="sm" variant={tone === "danger" ? "danger" : "default"}
+                        onClick={() => onOpen(item.cityId, item.cityStatus)}>
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-signal-item__summary">{item.summary}</p>
+
+            <div className="dashboard-signal-item__stats">
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Population pressure</span>
+                    <strong>{formatIndex(item.populationPressureIndex)}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Utility continuity</span>
+                    <strong>{formatIndex(item.utilityContinuityIndex)}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Housing fragility</span>
+                    <strong>{formatIndex(item.housingFragilityIndex)}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Homeless</span>
+                    <strong>{item.homelessResidentCount}</strong>
+                </div>
+            </div>
+        </article>
+    );
+}
+
+function BudgetPressureItem({
+                                item,
+                                onOpen,
+                            }: {
+    item: DashboardBudgetPressureView;
+    onOpen: (cityId: string, status: string) => void;
+}) {
+    const tone = getSeverityTone(item.severity);
+    const categories = [
+        item.controls.general,
+        item.controls.operations,
+        item.controls.infrastructure,
+        item.controls.healthcare,
+    ];
+
+    return (
+        <article className={`dashboard-signal-item dashboard-signal-item--${tone}`}>
+            <div className="dashboard-signal-item__topline">
+                <div>
+                    <h3 className="dashboard-signal-item__title">{item.cityName}</h3>
+                    <div className="dashboard-signal-item__meta">
+                        <span>{item.controlStatus}</span>
+                    </div>
+                </div>
+
+                <Button size="sm" variant={tone === "danger" ? "danger" : "default"}
+                        onClick={() => onOpen(item.cityId, item.cityStatus)}>
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-signal-item__summary">{item.summary}</p>
+
+            <div className="dashboard-signal-item__stats">
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Pressure</span>
+                    <strong>{formatIndex(item.pressureIndex)}</strong>
+                </div>
+            </div>
+
+            <div className="dashboard-budget-grid">
+                {categories.map((category) => (
+                    <div key={category.category} className="dashboard-budget-token">
+                        <span>{category.category}</span>
+                        <strong>{category.authorizationLevel}</strong>
+                    </div>
+                ))}
+            </div>
+        </article>
+    );
+}
+
+function TickFreshnessItem({
+                               item,
+                               onOpen,
+                           }: {
+    item: DashboardTickFreshnessView;
+    onOpen: (cityId: string, status: string) => void;
+}) {
+    const tone = getSeverityTone(item.severity);
+
+    return (
+        <article className={`dashboard-signal-item dashboard-signal-item--${tone}`}>
+            <div className="dashboard-signal-item__topline">
+                <div>
+                    <h3 className="dashboard-signal-item__title">{item.cityName}</h3>
+                    <div className="dashboard-signal-item__meta">
+                        <span>Tick skew {item.tickSkew}</span>
+                    </div>
+                </div>
+
+                <Button size="sm" variant={tone === "danger" ? "danger" : "default"}
+                        onClick={() => onOpen(item.cityId, item.cityStatus)}>
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-signal-item__summary">{item.summary}</p>
+
+            <div className="dashboard-signal-item__stats">
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Environmental tick</span>
+                    <strong>{item.environmentalTickId}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Budget tick</span>
+                    <strong>{item.budgetTickId}</strong>
+                </div>
+            </div>
+        </article>
+    );
+}
+
+function PhaseProgressItem({
+                               item,
+                               onOpen,
+                           }: {
+    item: DashboardPhaseProgressView;
+    onOpen: (cityId: string, status: string) => void;
+}) {
+    const tone = getSeverityTone(item.severity);
+
+    return (
+        <article className={`dashboard-signal-item dashboard-signal-item--${tone}`}>
+            <div className="dashboard-signal-item__topline">
+                <div>
+                    <h3 className="dashboard-signal-item__title">{item.cityName}</h3>
+                    <div className="dashboard-signal-item__meta">
+                        <span>{item.laggingService} lagging</span>
+                        <span className="dashboard-watch-item__separator">/</span>
+                        <span>{item.leadingService} leading</span>
+                    </div>
+                </div>
+
+                <Button size="sm" variant={tone === "danger" ? "danger" : "default"}
+                        onClick={() => onOpen(item.cityId, item.cityStatus)}>
+                    Open city
+                </Button>
+            </div>
+
+            <p className="dashboard-signal-item__summary">{item.summary}</p>
+
+            <div className="dashboard-signal-item__stats">
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Systems</span>
+                    <strong>{item.systemsPhase}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Resources</span>
+                    <strong>{item.resourcesPhase}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Budget</span>
+                    <strong>{item.budgetPhase}</strong>
+                </div>
+                <div>
+                    <span className="dashboard-signal-item__stat-label">Tick spread</span>
+                    <strong>{item.tickSpread}</strong>
+                </div>
+            </div>
+        </article>
+    );
+}
+
 function DashboardContent({
                               dashboard,
                               canCreateCity,
                               isRefreshing,
                               onOpenCity,
+                              onOpenCityByMeta,
                               onRefresh,
                           }: {
     dashboard: CityOperationsDashboardView;
     canCreateCity: boolean;
     isRefreshing: boolean;
     onOpenCity: (city: CityListItemView) => void;
+    onOpenCityByMeta: (cityId: string, status: string, archivedAtUtc?: string | null) => void;
     onRefresh: () => void;
 }) {
     const metrics = [
@@ -318,6 +737,15 @@ function DashboardContent({
         dashboard.archivedCities,
         dashboard.failedBootstraps,
         dashboard.readyHandOffs,
+    ];
+    const alertMetrics = [
+        dashboard.environmentalAlerts,
+        dashboard.populationDistrictAlerts,
+        dashboard.districtResponsePriorityAlerts,
+        dashboard.mobilityAlerts,
+        dashboard.operationalBudgetAlerts,
+        dashboard.tickFreshnessAlerts,
+        dashboard.phaseProgressAlerts,
     ];
 
     return (
@@ -360,6 +788,12 @@ function DashboardContent({
                     <MetricCard key={metric.label} metric={metric}/>
                 ))}
             </section>
+
+            <MetricSection
+                title="Operational alerts"
+                subtitle="The strongest live operator signals already aggregated in the gateway from district, mobility, budget, and runtime drift layers."
+                metrics={alertMetrics}
+            />
 
             <div className="dashboard-main-grid">
                 <section className="dashboard-panel dashboard-panel--wide">
@@ -427,6 +861,198 @@ function DashboardContent({
                     </div>
                 </section>
 
+                <section className="dashboard-panel dashboard-panel--wide">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">District response priorities</h2>
+                            <p className="dashboard-panel__subtitle">
+                                District-level focus recommendations built from social pressure, utility instability,
+                                and service disruption.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.districtResponsePriorities.length}</span>
+                    </div>
+
+                    {dashboard.districtResponsePriorities.length === 0 ? (
+                        <div className="dashboard-empty-state" role="status">
+                            <div className="dashboard-empty-state__text">
+                                No district-level response targets are currently ranked above the alert threshold.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="dashboard-signal-list">
+                            {dashboard.districtResponsePriorities.map((item) => (
+                                <DistrictPriorityItem
+                                    key={`${item.cityId}-${item.districtId}`}
+                                    item={item}
+                                    onOpen={onOpenCityByMeta}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                <section className="dashboard-panel">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">Mobility pressure</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Active commute and healthcare trips that are getting slower or bunching up under live
+                                road conditions.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.mobilityCities.length}</span>
+                    </div>
+
+                    {dashboard.mobilityCities.length === 0 ? (
+                        <div className="dashboard-empty-state" role="status">
+                            <div className="dashboard-empty-state__text">
+                                No cities are currently showing meaningful world-mobility pressure.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="dashboard-signal-list">
+                            {dashboard.mobilityCities.map((item) => (
+                                <MobilityItem key={item.cityId} item={item} onOpen={onOpenCityByMeta}/>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                <section className="dashboard-panel dashboard-panel--wide">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">Environmental fronts</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Cities where environmental and utility conditions are currently pushing the highest alert score.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.environmentalCities.length}</span>
+                    </div>
+
+                    {dashboard.environmentalCities.length === 0 ? (
+                        <div className="dashboard-empty-state" role="status">
+                            <div className="dashboard-empty-state__text">
+                                No cities are currently crossing the environmental alert threshold.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="dashboard-signal-list">
+                            {dashboard.environmentalCities.map((item) => (
+                                <EnvironmentalAlertItem key={item.cityId} item={item} onOpen={onOpenCityByMeta}/>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                <section className="dashboard-panel">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">District social pressure</h2>
+                            <p className="dashboard-panel__subtitle">
+                                The hardest-hit districts by population wellbeing, illness load, housing fragility, and local utility continuity.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.populationDistrictCities.length}</span>
+                    </div>
+
+                    {dashboard.populationDistrictCities.length === 0 ? (
+                        <div className="dashboard-empty-state" role="status">
+                            <div className="dashboard-empty-state__text">
+                                No district-level social pressure is currently breaching the watch threshold.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="dashboard-signal-list">
+                            {dashboard.populationDistrictCities.map((item) => (
+                                <PopulationPressureItem
+                                    key={`${item.cityId}-${item.districtId}`}
+                                    item={item}
+                                    onOpen={onOpenCityByMeta}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                <section className="dashboard-panel dashboard-panel--wide">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">Budget pressure</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Operational budget caps that are actively tightening city response capacity.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.budgetPressureCities.length}</span>
+                    </div>
+
+                    {dashboard.budgetPressureCities.length === 0 ? (
+                        <div className="dashboard-empty-state" role="status">
+                            <div className="dashboard-empty-state__text">
+                                No cities are currently breaching the budget pressure watch threshold.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="dashboard-signal-list">
+                            {dashboard.budgetPressureCities.map((item) => (
+                                <BudgetPressureItem key={item.cityId} item={item} onOpen={onOpenCityByMeta}/>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                <section className="dashboard-panel">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">Tick freshness drift</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Cities where runtime snapshots are no longer lining up on the same effective tick.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.tickFreshnessCities.length}</span>
+                    </div>
+
+                    {dashboard.tickFreshnessCities.length === 0 ? (
+                        <div className="dashboard-empty-state" role="status">
+                            <div className="dashboard-empty-state__text">
+                                No cross-service tick freshness drift is currently visible.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="dashboard-signal-list">
+                            {dashboard.tickFreshnessCities.map((item) => (
+                                <TickFreshnessItem key={item.cityId} item={item} onOpen={onOpenCityByMeta}/>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                <section className="dashboard-panel">
+                    <div className="dashboard-panel__header">
+                        <div>
+                            <h2 className="dashboard-panel__title">Phase progression</h2>
+                            <p className="dashboard-panel__subtitle">
+                                Phase discipline mismatches between systems, resources, and budget progression.
+                            </p>
+                        </div>
+                        <span className="settings-pill">{dashboard.phaseProgressCities.length}</span>
+                    </div>
+
+                    {dashboard.phaseProgressCities.length === 0 ? (
+                        <div className="dashboard-empty-state" role="status">
+                            <div className="dashboard-empty-state__text">
+                                No phase progression mismatches are currently visible.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="dashboard-signal-list">
+                            {dashboard.phaseProgressCities.map((item) => (
+                                <PhaseProgressItem key={item.cityId} item={item} onOpen={onOpenCityByMeta}/>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
                 <WatchlistSection
                     title="Attention queue"
                     subtitle="Cities still stuck in provisioning or already marked as failed."
@@ -482,6 +1108,10 @@ const DashboardPage = () => {
         navigate(openCityPath(city.cityId, city.status, city.archivedAtUtc));
     };
 
+    const openCityByMeta = (cityId: string, status: string, archivedAtUtc?: string | null) => {
+        navigate(openCityPath(cityId, status, archivedAtUtc));
+    };
+
     return (
         <section className="dashboard-page">
             {(dashboardQuery.error && !dashboardQuery.data) ? (
@@ -499,6 +1129,7 @@ const DashboardPage = () => {
                     canCreateCity={canCreateCity}
                     isRefreshing={dashboardQuery.isLoading}
                     onOpenCity={openCity}
+                    onOpenCityByMeta={openCityByMeta}
                     onRefresh={() => void dashboardQuery.refetch()}
                 />
             ) : (

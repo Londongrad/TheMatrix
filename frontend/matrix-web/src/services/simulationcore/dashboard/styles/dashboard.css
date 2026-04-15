@@ -234,7 +234,8 @@
 .dashboard-activity-list,
 .dashboard-health-list,
 .dashboard-event-list,
-.dashboard-watchlist {
+.dashboard-watchlist,
+.dashboard-signal-list {
     display: grid;
     gap: 12px;
 }
@@ -242,7 +243,8 @@
 .dashboard-activity-row,
 .dashboard-health-item,
 .dashboard-event,
-.dashboard-watch-item {
+.dashboard-watch-item,
+.dashboard-signal-item {
     display: grid;
     gap: 12px;
     padding: 16px 18px;
@@ -392,6 +394,18 @@
     border-color: rgba(255, 191, 118, 0.16);
 }
 
+.dashboard-signal-item--danger {
+    border-color: rgba(255, 120, 120, 0.2);
+}
+
+.dashboard-signal-item--warning {
+    border-color: rgba(255, 214, 102, 0.18);
+}
+
+.dashboard-signal-item--success {
+    border-color: rgba(128, 255, 176, 0.16);
+}
+
 .dashboard-watch-item__main {
     display: grid;
     gap: 8px;
@@ -419,6 +433,106 @@
 .dashboard-watch-item__actions {
     display: flex;
     justify-content: flex-end;
+}
+
+.dashboard-signal-item__topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dashboard-signal-item__title {
+    margin: 0;
+    font-size: 20px;
+    color: var(--app-text-strong);
+}
+
+.dashboard-signal-item__meta,
+.dashboard-signal-item__summary {
+    margin: 0;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--app-text) 74%, transparent);
+}
+
+.dashboard-signal-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dashboard-signal-item__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.dashboard-signal-item__stats > div {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 18px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.1);
+    background: color-mix(in srgb, var(--shell-surface-strong) 92%, transparent);
+}
+
+.dashboard-signal-item__stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--app-text-muted);
+}
+
+.dashboard-signal-item__stats strong {
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--app-text-strong);
+}
+
+.dashboard-trip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dashboard-trip-token {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.12);
+    background: color-mix(in srgb, var(--shell-surface) 92%, transparent);
+    color: color-mix(in srgb, var(--app-text) 84%, transparent);
+    font-size: 13px;
+}
+
+.dashboard-budget-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.dashboard-budget-token {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.1);
+    background: color-mix(in srgb, var(--shell-surface-strong) 92%, transparent);
+}
+
+.dashboard-budget-token span {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--app-text-muted);
+}
+
+.dashboard-budget-token strong {
+    font-size: 16px;
+    color: var(--app-text-strong);
 }
 
 .dashboard-loading {
