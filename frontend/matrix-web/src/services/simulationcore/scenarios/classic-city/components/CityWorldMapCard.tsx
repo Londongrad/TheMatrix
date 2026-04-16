@@ -3,6 +3,8 @@ import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import {useCityActiveTrips} from "@services/simulationcore/scenarios/classic-city/hooks/useCityActiveTrips";
 import {useCityMapTopology} from "@services/simulationcore/scenarios/classic-city/hooks/useCityMapTopology";
+import {useCityDistrictInfrastructure} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
+import type {CityDistrictInfrastructureView} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 import type {
     CityActiveTripView,
     CityMapTopologyView,
@@ -23,6 +25,16 @@ type Props = {
 type Point = {
     x: number;
     y: number;
+};
+
+type FocusedDistrictContext = {
+    heatingCoverageIndex: number;
+    heatingStressIndex: number;
+    waterCoverageIndex: number;
+    powerCoverageIndex: number;
+    sanitationCoverageIndex: number;
+    utilityContinuityIndex: number;
+    incidentPressureIndex: number;
 };
 
 function formatDateTime(value: string | null | undefined) {
@@ -63,6 +75,10 @@ function humanize(value: string) {
         .replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
+function formatIndex(value: number) {
+    return `${Math.round(value * 100)}%`;
+}
+
 function getAnchorTone(type: string) {
     switch (type.trim().toLowerCase()) {
         case "hospital":
@@ -100,6 +116,35 @@ function buildAnchorMap(topology: CityMapTopologyView) {
 
 function buildDistrictMap(topology: CityMapTopologyView) {
     return new Map(topology.districts.map((district) => [district.districtId, district]));
+}
+
+function buildFocusedDistrictContext(
+    infrastructure: CityDistrictInfrastructureView | null,
+    districtId?: string,
+): FocusedDistrictContext | null {
+    if (!infrastructure || !districtId) {
+        return null;
+    }
+
+    const heating = infrastructure.heating.districts.find((district) => district.districtId === districtId);
+    const water = infrastructure.waterDistribution.districts.find((district) => district.districtId === districtId);
+    const power = infrastructure.powerDistribution.districts.find((district) => district.districtId === districtId);
+    const sanitation = infrastructure.sanitation.districts.find((district) => district.districtId === districtId);
+    const incidents = infrastructure.utilityIncidents.districts.find((district) => district.districtId === districtId);
+
+    if (!heating && !water && !power && !sanitation && !incidents) {
+        return null;
+    }
+
+    return {
+        heatingCoverageIndex: heating?.heatingCoverageIndex ?? 0,
+        heatingStressIndex: heating?.comfortStressIndex ?? 0,
+        waterCoverageIndex: water?.waterCoverageIndex ?? 0,
+        powerCoverageIndex: power?.powerCoverageIndex ?? 0,
+        sanitationCoverageIndex: sanitation?.sanitationCoverageIndex ?? 0,
+        utilityContinuityIndex: incidents?.utilityContinuityIndex ?? 0,
+        incidentPressureIndex: incidents?.incidentPressureIndex ?? 0,
+    };
 }
 
 function buildProjector(topology: CityMapTopologyView, trips: CityActiveTripView[]) {
@@ -460,8 +505,13 @@ export function CityWorldMapCard({
 }: Props) {
     const topologyQuery = useCityMapTopology(cityId);
     const tripsQuery = useCityActiveTrips(cityId, isArchived ? 0 : 15000);
+    const infrastructureQuery = useCityDistrictInfrastructure(cityId, isArchived ? 0 : 30000);
     const topology = topologyQuery.data;
     const trips = tripsQuery.data;
+    const focusedDistrictContext = useMemo(
+        () => buildFocusedDistrictContext(infrastructureQuery.data, focusDistrictId),
+        [focusDistrictId, infrastructureQuery.data],
+    );
     const focusedDistrictTrips = useMemo(
         () => focusDistrictId
             ? trips.filter((trip) => trip.current.districtId === focusDistrictId)
@@ -530,17 +580,17 @@ export function CityWorldMapCard({
                 <Button
                     size="sm"
                     onClick={() => {
-                        void Promise.all([topologyQuery.refetch(), tripsQuery.refetch()]);
+                        void Promise.all([topologyQuery.refetch(), tripsQuery.refetch(), infrastructureQuery.refetch()]);
                     }}
-                    disabled={topologyQuery.isLoading || tripsQuery.isLoading}
+                    disabled={topologyQuery.isLoading || tripsQuery.isLoading || infrastructureQuery.isLoading}
                 >
-                    {topologyQuery.isLoading || tripsQuery.isLoading ? "Refreshing..." : "Refresh"}
+                    {topologyQuery.isLoading || tripsQuery.isLoading || infrastructureQuery.isLoading ? "Refreshing..." : "Refresh"}
                 </Button>
             )}
         >
-            {(topologyQuery.error || tripsQuery.error) ? (
+            {(topologyQuery.error || tripsQuery.error || infrastructureQuery.error) ? (
                 <div className="simulationcore-error-banner" role="alert">
-                    <span>{topologyQuery.error ?? tripsQuery.error}</span>
+                    <span>{topologyQuery.error ?? tripsQuery.error ?? infrastructureQuery.error}</span>
                 </div>
             ) : null}
 
@@ -592,13 +642,65 @@ export function CityWorldMapCard({
                     {focusSummary ? (
                         <section className={`city-world-focus city-world-focus--${focusSummary.tone}`}>
                             <div className="city-world-focus__content">
-                                <span className="city-world-focus__eyebrow">Resident focus</span>
+                                <span className="city-world-focus__eyebrow">
+                                    {focusTravellerId ? "Resident focus" : focusDistrictId ? "District focus" : "Map focus"}
+                                </span>
                                 <h3 className="city-world-focus__title">{focusSummary.title}</h3>
                                 <p className="city-world-focus__summary">{focusSummary.body}</p>
                             </div>
                             <div className="city-world-focus__meta">
-                                <span className="city-world-focus__meta-label">Highlighted anchors</span>
-                                <strong>{focusAnchorIds.length}</strong>
+                                <span className="city-world-focus__meta-label">
+                                    {focusDistrictId ? "Active trips here" : "Highlighted anchors"}
+                                </span>
+                                <strong>{focusDistrictId ? focusedDistrictTrips.length : focusAnchorIds.length}</strong>
+                            </div>
+                        </section>
+                    ) : null}
+
+                    {focusDistrictId && focusedDistrictContext ? (
+                        <section className="city-world-context">
+                            <div className="city-world-context__header">
+                                <div>
+                                    <span className="city-world-context__eyebrow">District action context</span>
+                                    <h3 className="city-world-context__title">
+                                        {focusDistrictName ?? "Focused district"} utility picture
+                                    </h3>
+                                </div>
+                                <span className="city-world-context__badge">
+                                    Incident pressure {formatIndex(focusedDistrictContext.incidentPressureIndex)}
+                                </span>
+                            </div>
+                            <div className="city-world-context__grid">
+                                <div className="city-world-context__metric">
+                                    <span>Heating</span>
+                                    <strong>{formatIndex(focusedDistrictContext.heatingCoverageIndex)}</strong>
+                                    <small>Stress {formatIndex(focusedDistrictContext.heatingStressIndex)}</small>
+                                </div>
+                                <div className="city-world-context__metric">
+                                    <span>Water</span>
+                                    <strong>{formatIndex(focusedDistrictContext.waterCoverageIndex)}</strong>
+                                    <small>Local service surface</small>
+                                </div>
+                                <div className="city-world-context__metric">
+                                    <span>Power</span>
+                                    <strong>{formatIndex(focusedDistrictContext.powerCoverageIndex)}</strong>
+                                    <small>Restoration-sensitive utility</small>
+                                </div>
+                                <div className="city-world-context__metric">
+                                    <span>Sanitation</span>
+                                    <strong>{formatIndex(focusedDistrictContext.sanitationCoverageIndex)}</strong>
+                                    <small>Overflow-sensitive service</small>
+                                </div>
+                                <div className="city-world-context__metric">
+                                    <span>Continuity</span>
+                                    <strong>{formatIndex(focusedDistrictContext.utilityContinuityIndex)}</strong>
+                                    <small>Combined utility uptime</small>
+                                </div>
+                                <div className="city-world-context__metric">
+                                    <span>Trips in district</span>
+                                    <strong>{focusedDistrictTrips.length}</strong>
+                                    <small>Live world movement currently here</small>
+                                </div>
                             </div>
                         </section>
                     ) : null}

@@ -311,6 +311,7 @@
 .city-world-empty,
 .city-world-hero,
 .city-world-focus,
+.city-world-context,
 .city-world-map,
 .city-world-side__panel,
 .city-world-trip,
@@ -335,6 +336,7 @@
 .city-world-empty::before,
 .city-world-hero::before,
 .city-world-focus::before,
+.city-world-context::before,
 .city-world-map::before,
 .city-world-side__panel::before,
 .city-world-trip::before,
@@ -354,6 +356,7 @@
 .city-world-empty > *,
 .city-world-hero > *,
 .city-world-focus > *,
+.city-world-context > *,
 .city-world-map > *,
 .city-world-side__panel > *,
 .city-world-trip > *,
@@ -654,6 +657,85 @@
     font-size: 28px;
     line-height: 1;
     letter-spacing: -0.04em;
+}
+
+.city-world-context {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 22px;
+}
+
+.city-world-context__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.city-world-context__eyebrow {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--app-text-muted);
+}
+
+.city-world-context__title {
+    margin: 0.45rem 0 0;
+    color: var(--app-text-strong);
+    font-size: 22px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.city-world-context__badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 214, 102, 0.22);
+    background: rgba(255, 214, 102, 0.1);
+    color: rgba(255, 214, 102, 0.98);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.city-world-context__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.city-world-context__metric {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.1);
+    background: color-mix(in srgb, var(--shell-surface) 90%, transparent);
+}
+
+.city-world-context__metric span,
+.city-world-context__metric small {
+    color: var(--app-text-muted);
+}
+
+.city-world-context__metric span {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+}
+
+.city-world-context__metric strong {
+    color: var(--app-text-strong);
+    font-size: 1.45rem;
+    line-height: 1;
+}
+
+.city-world-context__metric small {
+    line-height: 1.45;
 }
 
 .city-world-hero__content {
@@ -1155,6 +1237,7 @@
 
     .city-world-hero,
     .city-world-focus,
+    .city-world-context__header,
     .city-infra-hero,
     .city-dashboard-hero,
     .city-dashboard-events-panel__header,
