@@ -10,56 +10,65 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "GenerationDevelopmentLevel",
-                table: "Cities",
-                type: "integer",
-                nullable: false,
-                defaultValue: 2);
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                ADD COLUMN IF NOT EXISTS "GenerationDevelopmentLevel" integer NOT NULL DEFAULT 2;
+                """);
 
-            migrationBuilder.AddColumn<string>(
-                name: "GenerationSeed",
-                table: "Cities",
-                type: "character varying(128)",
-                maxLength: 128,
-                nullable: false,
-                defaultValue: "legacy-city");
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                ADD COLUMN IF NOT EXISTS "GenerationSeed" character varying(128) NOT NULL DEFAULT 'legacy-city';
+                """);
 
-            migrationBuilder.AddColumn<int>(
-                name: "GenerationSizeTier",
-                table: "Cities",
-                type: "integer",
-                nullable: false,
-                defaultValue: 2);
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                ADD COLUMN IF NOT EXISTS "GenerationSizeTier" integer NOT NULL DEFAULT 2;
+                """);
 
-            migrationBuilder.AddColumn<int>(
-                name: "GenerationUrbanDensity",
-                table: "Cities",
-                type: "integer",
-                nullable: false,
-                defaultValue: 2);
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                ADD COLUMN IF NOT EXISTS "GenerationUrbanDensity" integer NOT NULL DEFAULT 2;
+                """);
 
-            migrationBuilder.Sql("UPDATE \"Cities\" SET \"GenerationSeed\" = COALESCE(NULLIF(BTRIM(\"Name\"), ''), 'legacy-city');");
+            migrationBuilder.Sql("""
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM information_schema.tables
+                        WHERE table_schema = 'public' AND table_name = 'Cities'
+                    ) THEN
+                        UPDATE "Cities"
+                        SET "GenerationSeed" = COALESCE(NULLIF(BTRIM("Name"), ''), 'legacy-city')
+                        WHERE "GenerationSeed" IS NULL OR BTRIM("GenerationSeed") = '';
+                    END IF;
+                END
+                $$;
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "GenerationDevelopmentLevel",
-                table: "Cities");
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                DROP COLUMN IF EXISTS "GenerationDevelopmentLevel";
+                """);
 
-            migrationBuilder.DropColumn(
-                name: "GenerationSeed",
-                table: "Cities");
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                DROP COLUMN IF EXISTS "GenerationSeed";
+                """);
 
-            migrationBuilder.DropColumn(
-                name: "GenerationSizeTier",
-                table: "Cities");
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                DROP COLUMN IF EXISTS "GenerationSizeTier";
+                """);
 
-            migrationBuilder.DropColumn(
-                name: "GenerationUrbanDensity",
-                table: "Cities");
+            migrationBuilder.Sql("""
+                ALTER TABLE IF EXISTS "Cities"
+                DROP COLUMN IF EXISTS "GenerationUrbanDensity";
+                """);
         }
     }
 }

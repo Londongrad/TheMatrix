@@ -17,6 +17,10 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    GenerationSeed = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false, defaultValue: "legacy-city"),
+                    GenerationSizeTier = table.Column<int>(type: "integer", nullable: false, defaultValue: 2),
+                    GenerationDevelopmentLevel = table.Column<int>(type: "integer", nullable: false, defaultValue: 2),
+                    GenerationUrbanDensity = table.Column<int>(type: "integer", nullable: false, defaultValue: 2),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAtUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ArchivedAtUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
