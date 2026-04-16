@@ -84,6 +84,8 @@ const CityDetailsPage = () => {
     const rawTab = searchParams.get("tab");
     const focusResidentId = searchParams.get("focusResidentId") ?? "";
     const focusResidentName = searchParams.get("focusResidentName") ?? "";
+    const focusDistrictId = searchParams.get("focusDistrictId") ?? "";
+    const focusDistrictName = searchParams.get("focusDistrictName") ?? "";
     const focusAnchorIds = useMemo(() => {
         const rawValue = searchParams.get("focusAnchorIds");
         if (!rawValue) {
@@ -187,6 +189,8 @@ const CityDetailsPage = () => {
                         isArchived={isArchived}
                         focusTravellerId={focusResidentId || undefined}
                         focusTravellerName={focusResidentName || undefined}
+                        focusDistrictId={focusDistrictId || undefined}
+                        focusDistrictName={focusDistrictName || undefined}
                         focusAnchorIds={focusAnchorIds}
                     />
                 ) : null;

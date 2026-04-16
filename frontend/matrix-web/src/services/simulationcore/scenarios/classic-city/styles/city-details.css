@@ -789,10 +789,25 @@
     stroke-width: 2;
 }
 
+.city-world-map__district-focus {
+    fill: rgba(255, 255, 255, 0.06);
+    stroke: rgba(255, 214, 102, 0.72);
+    stroke-width: 2;
+    stroke-dasharray: 6 6;
+}
+
+.city-world-map__district--focused {
+    stroke-width: 2.6;
+}
+
 .city-world-map__district-label {
     fill: rgba(240, 247, 255, 0.92);
     font-size: 16px;
     letter-spacing: 0.03em;
+}
+
+.city-world-map__district-label--focused {
+    fill: rgba(255, 241, 196, 0.98);
 }
 
 .city-world-map__anchor {

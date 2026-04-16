@@ -15,6 +15,8 @@ type Props = {
     isArchived?: boolean;
     focusTravellerId?: string;
     focusTravellerName?: string;
+    focusDistrictId?: string;
+    focusDistrictName?: string;
     focusAnchorIds?: string[];
 };
 
@@ -96,6 +98,10 @@ function buildAnchorMap(topology: CityMapTopologyView) {
     return new Map(topology.anchors.map((anchor) => [anchor.cityAnchorId, anchor]));
 }
 
+function buildDistrictMap(topology: CityMapTopologyView) {
+    return new Map(topology.districts.map((district) => [district.districtId, district]));
+}
+
 function buildProjector(topology: CityMapTopologyView, trips: CityActiveTripView[]) {
     const allPoints: Point[] = [
         ...topology.districts.map((district) => ({x: district.anchorX, y: district.anchorY})),
@@ -141,19 +147,26 @@ function MapCanvas({
     trips,
     focusedTripId,
     focusedAnchorIds,
+    focusedDistrictId,
 }: {
     topology: CityMapTopologyView;
     trips: CityActiveTripView[];
     focusedTripId?: string;
     focusedAnchorIds: string[];
+    focusedDistrictId?: string;
 }) {
     const nodeMap = useMemo(() => buildNodeMap(topology), [topology]);
     const anchorMap = useMemo(() => buildAnchorMap(topology), [topology]);
+    const districtMap = useMemo(() => buildDistrictMap(topology), [topology]);
     const projector = useMemo(() => buildProjector(topology, trips), [topology, trips]);
     const focusedAnchorSet = useMemo(() => new Set(focusedAnchorIds), [focusedAnchorIds]);
     const focusedTrip = useMemo(
         () => trips.find((trip) => trip.tripId === focusedTripId) ?? null,
         [focusedTripId, trips],
+    );
+    const focusedDistrict = useMemo(
+        () => focusedDistrictId ? districtMap.get(focusedDistrictId) ?? null : null,
+        [districtMap, focusedDistrictId],
     );
     const focusedRoutePoints = useMemo(() => {
         if (!focusedTrip) {
@@ -166,6 +179,12 @@ function MapCanvas({
             to: projector.project({x: focusedTrip.to.positionX, y: focusedTrip.to.positionY}),
         };
     }, [focusedTrip, projector]);
+    const focusedDistrictPoint = useMemo(
+        () => focusedDistrict
+            ? projector.project({x: focusedDistrict.anchorX, y: focusedDistrict.anchorY})
+            : null,
+        [focusedDistrict, projector],
+    );
     const focusedAnchorPoints = useMemo(
         () => focusedAnchorIds
             .map((anchorId) => anchorMap.get(anchorId))
@@ -239,10 +258,28 @@ function MapCanvas({
             <g className="city-world-map__districts">
                 {topology.districts.map((district) => {
                     const point = projector.project({x: district.anchorX, y: district.anchorY});
+                    const isFocused = district.districtId === focusedDistrictId;
                     return (
                         <g key={district.districtId}>
-                            <circle cx={point.x} cy={point.y} r={8} className="city-world-map__district"/>
-                            <text x={point.x + 12} y={point.y - 12} className="city-world-map__district-label">
+                            {isFocused ? (
+                                <circle
+                                    cx={point.x}
+                                    cy={point.y}
+                                    r={17}
+                                    className="city-world-map__district-focus"
+                                />
+                            ) : null}
+                            <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r={isFocused ? 9.5 : 8}
+                                className={`city-world-map__district${isFocused ? " city-world-map__district--focused" : ""}`}
+                            />
+                            <text
+                                x={point.x + 12}
+                                y={point.y - 12}
+                                className={`city-world-map__district-label${isFocused ? " city-world-map__district-label--focused" : ""}`}
+                            >
                                 {district.name}
                             </text>
                         </g>
@@ -298,11 +335,23 @@ function MapCanvas({
                 </g>
             ) : null}
 
+            {focusedDistrictPoint ? (
+                <g className="city-world-map__district-focus-labels">
+                    <text
+                        x={focusedDistrictPoint.x + 12}
+                        y={focusedDistrictPoint.y + 24}
+                        className="city-world-map__focus-label"
+                    >
+                        District focus
+                    </text>
+                </g>
+            ) : null}
+
             <g className="city-world-map__trips" filter="url(#city-world-map-glow)">
                 {trips.map((trip) => {
                     const point = projector.project({x: trip.current.positionX, y: trip.current.positionY});
                     const tone = getTripTone(trip.purpose);
-                    const isFocused = trip.tripId === focusedTripId;
+                    const isFocused = trip.tripId === focusedTripId || (!focusedTripId && trip.current.districtId === focusedDistrictId);
                     return (
                         <g key={trip.tripId}>
                             {isFocused ? (
@@ -405,12 +454,20 @@ export function CityWorldMapCard({
     isArchived = false,
     focusTravellerId,
     focusTravellerName,
+    focusDistrictId,
+    focusDistrictName,
     focusAnchorIds = [],
 }: Props) {
     const topologyQuery = useCityMapTopology(cityId);
     const tripsQuery = useCityActiveTrips(cityId, isArchived ? 0 : 15000);
     const topology = topologyQuery.data;
     const trips = tripsQuery.data;
+    const focusedDistrictTrips = useMemo(
+        () => focusDistrictId
+            ? trips.filter((trip) => trip.current.districtId === focusDistrictId)
+            : [],
+        [focusDistrictId, trips],
+    );
     const focusedTrip = useMemo(
         () => focusTravellerId
             ? trips.find((trip) => trip.travellerEntityId?.toLowerCase() === focusTravellerId.toLowerCase()) ?? null
@@ -429,7 +486,17 @@ export function CityWorldMapCard({
     }, [focusedTrip, trips]);
     const focusSummary = useMemo(() => {
         if (!focusTravellerId) {
-            return null;
+            if (!focusDistrictId) {
+                return null;
+            }
+
+            return {
+                title: focusDistrictName ?? "District map focus",
+                body: focusedDistrictTrips.length > 0
+                    ? `${focusedDistrictTrips.length} active world trips are currently traversing or operating in this district.`
+                    : "This district is highlighted on the map even though no active world trips are currently materialized inside it.",
+                tone: focusedDistrictTrips.length > 0 ? "live" : "static",
+            };
         }
 
         if (focusedTrip) {
@@ -453,7 +520,7 @@ export function CityWorldMapCard({
             body: "No active trip or mapped anchors are currently available for this resident.",
             tone: "empty",
         };
-    }, [focusAnchorIds.length, focusTravellerId, focusTravellerName, focusedTrip]);
+    }, [focusAnchorIds.length, focusDistrictId, focusDistrictName, focusTravellerId, focusTravellerName, focusedDistrictTrips.length, focusedTrip]);
 
     return (
         <Card
@@ -553,6 +620,7 @@ export function CityWorldMapCard({
                                     trips={trips}
                                     focusedTripId={focusedTrip?.tripId}
                                     focusedAnchorIds={focusAnchorIds}
+                                    focusedDistrictId={focusDistrictId}
                                 />
                             </div>
                         </section>
@@ -576,7 +644,7 @@ export function CityWorldMapCard({
                                             <TripItem
                                                 key={trip.tripId}
                                                 trip={trip}
-                                                isFocused={trip.tripId === focusedTrip?.tripId}
+                                                isFocused={trip.tripId === focusedTrip?.tripId || (!focusedTrip && trip.current.districtId === focusDistrictId)}
                                             />
                                         ))}
                                     </div>
