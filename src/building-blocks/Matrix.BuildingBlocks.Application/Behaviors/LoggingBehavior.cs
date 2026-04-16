@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using Matrix.BuildingBlocks.Application.Exceptions;
+using Matrix.BuildingBlocks.Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +17,7 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
         {
             string requestName = typeof(TRequest).Name;
 
-            logger.LogInformation(
+            logger.LogDebug(
                 message: "Handling request {RequestName}",
                 requestName);
 
@@ -27,12 +29,50 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
 
                 stopwatch.Stop();
 
-                logger.LogInformation(
+                logger.LogDebug(
                     message: "Handled request {RequestName} in {ElapsedMilliseconds} ms",
                     requestName,
                     stopwatch.ElapsedMilliseconds);
 
                 return response;
+            }
+            catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+            {
+                stopwatch.Stop();
+
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Request {RequestName} was canceled after {ElapsedMilliseconds} ms",
+                    requestName,
+                    stopwatch.ElapsedMilliseconds);
+
+                throw;
+            }
+            catch (MatrixApplicationException ex)
+            {
+                stopwatch.Stop();
+
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Request {RequestName} failed with application error {ErrorCode} after {ElapsedMilliseconds} ms",
+                    requestName,
+                    ex.Code,
+                    stopwatch.ElapsedMilliseconds);
+
+                throw;
+            }
+            catch (DomainException ex)
+            {
+                stopwatch.Stop();
+
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Request {RequestName} failed with domain error {ErrorCode} after {ElapsedMilliseconds} ms",
+                    requestName,
+                    ex.Code,
+                    stopwatch.ElapsedMilliseconds);
+
+                throw;
             }
             catch (Exception ex)
             {

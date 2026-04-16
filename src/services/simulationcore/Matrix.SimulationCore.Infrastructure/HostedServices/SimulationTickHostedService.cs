@@ -25,35 +25,46 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
             var stopwatch = Stopwatch.StartNew();
             TimeSpan lastElapsed = stopwatch.Elapsed;
 
-            while (await timer.WaitForNextTickAsync(cancellationToken))
+            try
             {
-                TimeSpan currentElapsed = stopwatch.Elapsed;
-                TimeSpan realDelta = currentElapsed - lastElapsed;
-                lastElapsed = currentElapsed;
-
-                try
+                while (await timer.WaitForNextTickAsync(cancellationToken))
                 {
-                    using IServiceScope scope = scopeFactory.CreateScope();
-                    IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                    TimeSpan currentElapsed = stopwatch.Elapsed;
+                    TimeSpan realDelta = currentElapsed - lastElapsed;
+                    lastElapsed = currentElapsed;
 
-                    AdvanceRunningSimulationsResult result = await mediator.Send(
-                        request: new AdvanceRunningSimulationsCommand(realDelta),
-                        cancellationToken: cancellationToken);
+                    try
+                    {
+                        using IServiceScope scope = scopeFactory.CreateScope();
+                        IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                    logger.LogDebug(
-                        message:
-                        "SimulationCore tick processed {ProcessedCount} cities. Advanced: {AdvancedCount}, skipped: {SkippedCount}, failed: {FailedCount}.",
-                        result.ProcessedCount,
-                        result.AdvancedCount,
-                        result.SkippedCount,
-                        result.FailedCount);
+                        AdvanceRunningSimulationsResult result = await mediator.Send(
+                            request: new AdvanceRunningSimulationsCommand(realDelta),
+                            cancellationToken: cancellationToken);
+
+                        logger.LogDebug(
+                            message:
+                            "SimulationCore tick processed {ProcessedCount} cities. Advanced: {AdvancedCount}, skipped: {SkippedCount}, failed: {FailedCount}.",
+                            result.ProcessedCount,
+                            result.AdvancedCount,
+                            result.SkippedCount,
+                            result.FailedCount);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(
+                            exception: ex,
+                            message: "SimulationCore tick loop iteration failed.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    logger.LogError(
-                        exception: ex,
-                        message: "SimulationCore tick loop iteration failed.");
-                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogDebug("SimulationCore tick loop stopped.");
             }
         }
     }
