@@ -8,6 +8,7 @@ import type {
 } from "@services/population/person/api/personTypes";
 import {
     CLASSIC_CITY_LIST_PATH,
+    getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
     getClassicCityResidentDossierPath,
 } from "@services/simulationcore/scenarios/registry";
@@ -265,15 +266,36 @@ const CityResidentDossierPage = () => {
         () => DOSSIER_TABS.find((tab) => tab.key === activeTab) ?? DOSSIER_TABS[0],
         [activeTab],
     );
+    const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
+    const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
+    const resident = residentQuery.data;
+    const residentFocusAnchorIds = useMemo(() => {
+        if (!resident) {
+            return [];
+        }
+
+        return [
+            resident.currentWorkplace?.workplaceAnchorId,
+            resident.currentEducationInstitution?.institutionAnchorId,
+            resident.primaryHealthcareProvider?.primaryCareAnchorId,
+        ].filter((value): value is string => Boolean(value));
+    }, [resident]);
+    const residentMapPath = useMemo(() => {
+        if (!resident) {
+            return getClassicCityDetailsPath(cityId, "map");
+        }
+
+        return getClassicCityDetailsPath(cityId, "map", {
+            focusResidentId: resident.id,
+            focusResidentName: resident.fullName,
+            focusAnchorIds: residentFocusAnchorIds,
+        });
+    }, [cityId, resident, residentFocusAnchorIds]);
     const handleTabChange = useCallback((nextTab: ResidentDossierTabKey) => {
         const next = new URLSearchParams(searchParams);
         next.set("tab", nextTab);
         setSearchParams(next, {replace: true});
     }, [searchParams, setSearchParams]);
-
-    const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
-    const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
-    const resident = residentQuery.data;
 
     useEffect(() => {
         if (rawTab === activeTab) {
@@ -378,6 +400,11 @@ const CityResidentDossierPage = () => {
                             ))}
                         </div>
                         <div className="city-resident-dossier__hint">{activeTabMeta.helper}</div>
+                        <div className="city-resident-dossier__actions">
+                            <Link className="city-link" to={residentMapPath}>
+                                {resident?.currentActiveTrip ? "Follow on city map" : "Open mobility focus on map"}
+                            </Link>
+                        </div>
                         {activeTab === "overview" ? (
                             <div className="city-resident-dossier__grid">
                                 <section className="city-resident-dossier__section-card">
