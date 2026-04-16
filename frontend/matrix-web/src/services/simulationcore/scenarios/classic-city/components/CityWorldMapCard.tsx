@@ -4,12 +4,15 @@ import Button from "@shared/ui/controls/Button/Button";
 import {useCityActiveTrips} from "@services/simulationcore/scenarios/classic-city/hooks/useCityActiveTrips";
 import {useCityMapTopology} from "@services/simulationcore/scenarios/classic-city/hooks/useCityMapTopology";
 import {useCityDistrictInfrastructure} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
+import {useCityDistrictOperatorActions} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictOperatorActions";
 import type {CityDistrictInfrastructureView} from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 import type {
     CityActiveTripView,
     CityMapTopologyView,
     RoadNodeView,
 } from "@services/simulationcore/scenarios/classic-city/contracts/worldContracts";
+import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {usePermissions} from "@shared/permissions/usePermissions";
 
 type Props = {
     cityId: string;
@@ -503,9 +506,14 @@ export function CityWorldMapCard({
     focusDistrictName,
     focusAnchorIds = [],
 }: Props) {
+    const {can} = usePermissions();
     const topologyQuery = useCityMapTopology(cityId);
     const tripsQuery = useCityActiveTrips(cityId, isArchived ? 0 : 15000);
     const infrastructureQuery = useCityDistrictInfrastructure(cityId, isArchived ? 0 : 30000);
+    const canDispatch = !isArchived && can(PermissionKeys.SimulationCoreSimulationControl);
+    const actions = useCityDistrictOperatorActions(cityId, async () => {
+        await Promise.all([tripsQuery.refetch(), infrastructureQuery.refetch()]);
+    });
     const topology = topologyQuery.data;
     const trips = tripsQuery.data;
     const focusedDistrictContext = useMemo(
@@ -588,9 +596,14 @@ export function CityWorldMapCard({
                 </Button>
             )}
         >
-            {(topologyQuery.error || tripsQuery.error || infrastructureQuery.error) ? (
+            {(topologyQuery.error || tripsQuery.error || infrastructureQuery.error || actions.error) ? (
                 <div className="simulationcore-error-banner" role="alert">
-                    <span>{topologyQuery.error ?? tripsQuery.error ?? infrastructureQuery.error}</span>
+                    <span>{topologyQuery.error ?? tripsQuery.error ?? infrastructureQuery.error ?? actions.error}</span>
+                    {actions.error ? (
+                        <Button size="sm" variant="default" onClick={actions.clearError}>
+                            Dismiss
+                        </Button>
+                    ) : null}
                 </div>
             ) : null}
 
@@ -670,6 +683,40 @@ export function CityWorldMapCard({
                                     Incident pressure {formatIndex(focusedDistrictContext.incidentPressureIndex)}
                                 </span>
                             </div>
+                            {canDispatch ? (
+                                <div className="city-world-context__actions">
+                                    <Button
+                                        size="sm"
+                                        variant="default"
+                                        onClick={() => {
+                                            void actions.utilityResponse(focusDistrictId);
+                                        }}
+                                        disabled={actions.pendingAction?.districtId === focusDistrictId}
+                                    >
+                                        {actions.pendingAction?.districtId === focusDistrictId && actions.pendingAction.kind === "utility-response"
+                                            ? "Dispatching..."
+                                            : "Respond here"}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="primary"
+                                        onClick={() => {
+                                            void actions.resupply(focusDistrictId);
+                                        }}
+                                        disabled={actions.pendingAction?.districtId === focusDistrictId}
+                                    >
+                                        {actions.pendingAction?.districtId === focusDistrictId && actions.pendingAction.kind === "resupply"
+                                            ? "Dispatching..."
+                                            : "Resupply here"}
+                                    </Button>
+                                </div>
+                            ) : null}
+                            {actions.notice?.districtId === focusDistrictId ? (
+                                <div className={`city-world-context__notice city-world-context__notice--${actions.notice.tone}`}>
+                                    <strong>{actions.notice.title}</strong>
+                                    <span>{actions.notice.detail}</span>
+                                </div>
+                            ) : null}
                             <div className="city-world-context__grid">
                                 <div className="city-world-context__metric">
                                     <span>Heating</span>

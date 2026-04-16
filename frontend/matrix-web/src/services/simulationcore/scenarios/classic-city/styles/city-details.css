@@ -708,6 +708,42 @@
     gap: 12px;
 }
 
+.city-world-context__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.city-world-context__notice {
+    display: grid;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.14);
+    background: color-mix(in srgb, var(--shell-surface) 90%, transparent);
+}
+
+.city-world-context__notice strong {
+    color: var(--app-text-strong);
+}
+
+.city-world-context__notice span {
+    color: color-mix(in srgb, var(--app-text) 74%, transparent);
+    line-height: 1.5;
+}
+
+.city-world-context__notice--success {
+    border-color: rgba(125, 255, 182, 0.2);
+}
+
+.city-world-context__notice--warning {
+    border-color: rgba(255, 214, 102, 0.24);
+}
+
+.city-world-context__notice--danger {
+    border-color: rgba(255, 120, 120, 0.24);
+}
+
 .city-world-context__metric {
     display: grid;
     gap: 6px;
