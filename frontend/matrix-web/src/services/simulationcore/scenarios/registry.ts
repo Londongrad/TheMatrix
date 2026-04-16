@@ -45,14 +45,39 @@ export const CLASSIC_CITY_PROVISIONING_PATH_PATTERN = "/cities/:cityId/provision
 export function getClassicCityDetailsPath(
     cityId: string,
     section?: ClassicCityWorkspaceSection,
+    extraSearch?: Record<string, string | string[] | null | undefined>,
 ): string {
-    const basePath = `/cities/${cityId}`;
+    const params = new URLSearchParams();
 
-    if (!section) {
-        return basePath;
+    if (section) {
+        params.set("tab", section);
     }
 
-    return `${basePath}?tab=${encodeURIComponent(section)}`;
+    if (extraSearch) {
+        Object.entries(extraSearch).forEach(([key, value]) => {
+            if (value == null) {
+                return;
+            }
+
+            if (Array.isArray(value)) {
+                if (value.length === 0) {
+                    return;
+                }
+
+                params.set(key, value.join(","));
+                return;
+            }
+
+            if (value.trim().length === 0) {
+                return;
+            }
+
+            params.set(key, value);
+        });
+    }
+
+    const query = params.toString();
+    return query.length > 0 ? `/cities/${cityId}?${query}` : `/cities/${cityId}`;
 }
 
 export function getClassicCityResidentsPath(cityId: string): string {

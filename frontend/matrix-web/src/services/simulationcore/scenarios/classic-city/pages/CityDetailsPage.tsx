@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useEffect, useMemo} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDashboardCard} from "@services/simulationcore/scenarios/classic-city/components/CityDashboardCard";
 import {CityInfrastructureCard} from "@services/simulationcore/scenarios/classic-city/components/CityInfrastructureCard";
@@ -82,6 +82,19 @@ const CityDetailsPage = () => {
     const canDeleteCity = can(PermissionKeys.SimulationCoreClassicCityDelete);
     const canControlSimulation = can(PermissionKeys.SimulationCoreSimulationControl);
     const rawTab = searchParams.get("tab");
+    const focusResidentId = searchParams.get("focusResidentId") ?? "";
+    const focusResidentName = searchParams.get("focusResidentName") ?? "";
+    const focusAnchorIds = useMemo(() => {
+        const rawValue = searchParams.get("focusAnchorIds");
+        if (!rawValue) {
+            return [];
+        }
+
+        return rawValue
+            .split(",")
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0);
+    }, [searchParams]);
     const activeTab: CityDetailsTabId = isCityDetailsTab(rawTab)
         ? rawTab
         : "overview";
@@ -172,6 +185,9 @@ const CityDetailsPage = () => {
                         cityId={cityQuery.data.cityId}
                         cityName={cityQuery.data.name}
                         isArchived={isArchived}
+                        focusTravellerId={focusResidentId || undefined}
+                        focusTravellerName={focusResidentName || undefined}
+                        focusAnchorIds={focusAnchorIds}
                     />
                 ) : null;
 

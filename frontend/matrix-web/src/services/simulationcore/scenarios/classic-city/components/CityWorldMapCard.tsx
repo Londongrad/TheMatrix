@@ -13,6 +13,9 @@ type Props = {
     cityId: string;
     cityName?: string;
     isArchived?: boolean;
+    focusTravellerId?: string;
+    focusTravellerName?: string;
+    focusAnchorIds?: string[];
 };
 
 type Point = {
@@ -89,6 +92,10 @@ function buildNodeMap(topology: CityMapTopologyView) {
     return new Map<string, RoadNodeView>(topology.roadNodes.map((node) => [node.roadNodeId, node]));
 }
 
+function buildAnchorMap(topology: CityMapTopologyView) {
+    return new Map(topology.anchors.map((anchor) => [anchor.cityAnchorId, anchor]));
+}
+
 function buildProjector(topology: CityMapTopologyView, trips: CityActiveTripView[]) {
     const allPoints: Point[] = [
         ...topology.districts.map((district) => ({x: district.anchorX, y: district.anchorY})),
@@ -132,12 +139,43 @@ function buildProjector(topology: CityMapTopologyView, trips: CityActiveTripView
 function MapCanvas({
     topology,
     trips,
+    focusedTripId,
+    focusedAnchorIds,
 }: {
     topology: CityMapTopologyView;
     trips: CityActiveTripView[];
+    focusedTripId?: string;
+    focusedAnchorIds: string[];
 }) {
     const nodeMap = useMemo(() => buildNodeMap(topology), [topology]);
+    const anchorMap = useMemo(() => buildAnchorMap(topology), [topology]);
     const projector = useMemo(() => buildProjector(topology, trips), [topology, trips]);
+    const focusedAnchorSet = useMemo(() => new Set(focusedAnchorIds), [focusedAnchorIds]);
+    const focusedTrip = useMemo(
+        () => trips.find((trip) => trip.tripId === focusedTripId) ?? null,
+        [focusedTripId, trips],
+    );
+    const focusedRoutePoints = useMemo(() => {
+        if (!focusedTrip) {
+            return null;
+        }
+
+        return {
+            from: projector.project({x: focusedTrip.from.positionX, y: focusedTrip.from.positionY}),
+            current: projector.project({x: focusedTrip.current.positionX, y: focusedTrip.current.positionY}),
+            to: projector.project({x: focusedTrip.to.positionX, y: focusedTrip.to.positionY}),
+        };
+    }, [focusedTrip, projector]);
+    const focusedAnchorPoints = useMemo(
+        () => focusedAnchorIds
+            .map((anchorId) => anchorMap.get(anchorId))
+            .filter((anchor): anchor is NonNullable<typeof anchor> => anchor != null)
+            .map((anchor) => ({
+                anchorId: anchor.cityAnchorId,
+                point: projector.project({x: anchor.positionX, y: anchor.positionY}),
+            })),
+        [anchorMap, focusedAnchorIds, projector],
+    );
 
     return (
         <svg
@@ -217,41 +255,100 @@ function MapCanvas({
                     const point = projector.project({x: anchor.positionX, y: anchor.positionY});
                     const tone = getAnchorTone(anchor.type);
                     return (
-                        <circle
-                            key={anchor.cityAnchorId}
-                            cx={point.x}
-                            cy={point.y}
-                            r={5}
-                            className={`city-world-map__anchor city-world-map__anchor--${tone}`}
-                        />
+                        <g key={anchor.cityAnchorId}>
+                            {focusedAnchorSet.has(anchor.cityAnchorId) ? (
+                                <circle
+                                    cx={point.x}
+                                    cy={point.y}
+                                    r={10}
+                                    className="city-world-map__anchor-focus"
+                                />
+                            ) : null}
+                            <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r={5}
+                                className={`city-world-map__anchor city-world-map__anchor--${tone}${
+                                    focusedAnchorSet.has(anchor.cityAnchorId) ? " city-world-map__anchor--focused" : ""
+                                }`}
+                            />
+                        </g>
                     );
                 })}
             </g>
+
+            {focusedRoutePoints ? (
+                <g className="city-world-map__focus-route">
+                    <polyline
+                        points={`${focusedRoutePoints.from.x},${focusedRoutePoints.from.y} ${focusedRoutePoints.current.x},${focusedRoutePoints.current.y} ${focusedRoutePoints.to.x},${focusedRoutePoints.to.y}`}
+                        className="city-world-map__focus-route-line"
+                    />
+                    <circle
+                        cx={focusedRoutePoints.from.x}
+                        cy={focusedRoutePoints.from.y}
+                        r={5}
+                        className="city-world-map__focus-route-point city-world-map__focus-route-point--from"
+                    />
+                    <circle
+                        cx={focusedRoutePoints.to.x}
+                        cy={focusedRoutePoints.to.y}
+                        r={5}
+                        className="city-world-map__focus-route-point city-world-map__focus-route-point--to"
+                    />
+                </g>
+            ) : null}
 
             <g className="city-world-map__trips" filter="url(#city-world-map-glow)">
                 {trips.map((trip) => {
                     const point = projector.project({x: trip.current.positionX, y: trip.current.positionY});
                     const tone = getTripTone(trip.purpose);
+                    const isFocused = trip.tripId === focusedTripId;
                     return (
-                        <circle
-                            key={trip.tripId}
-                            cx={point.x}
-                            cy={point.y}
-                            r={6}
-                            className={`city-world-map__trip city-world-map__trip--${tone}`}
-                        />
+                        <g key={trip.tripId}>
+                            {isFocused ? (
+                                <circle
+                                    cx={point.x}
+                                    cy={point.y}
+                                    r={11}
+                                    className="city-world-map__trip-focus"
+                                />
+                            ) : null}
+                            <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r={isFocused ? 7.5 : 6}
+                                className={`city-world-map__trip city-world-map__trip--${tone}${
+                                    isFocused ? " city-world-map__trip--focused" : ""
+                                }`}
+                            />
+                        </g>
                     );
                 })}
             </g>
+
+            {focusedAnchorPoints.length > 0 ? (
+                <g className="city-world-map__focus-labels">
+                    {focusedAnchorPoints.map(({anchorId, point}) => (
+                        <text
+                            key={anchorId}
+                            x={point.x + 12}
+                            y={point.y + 20}
+                            className="city-world-map__focus-label"
+                        >
+                            Focus
+                        </text>
+                    ))}
+                </g>
+            ) : null}
         </svg>
     );
 }
 
-function TripItem({trip}: { trip: CityActiveTripView }) {
+function TripItem({trip, isFocused = false}: { trip: CityActiveTripView; isFocused?: boolean }) {
     const tone = getTripTone(trip.purpose);
 
     return (
-        <article className={`city-world-trip city-world-trip--${tone}`}>
+        <article className={`city-world-trip city-world-trip--${tone}${isFocused ? " city-world-trip--focused" : ""}`}>
             <div className="city-world-trip__topline">
                 <div>
                     <h3 className="city-world-trip__title">{trip.subject}</h3>
@@ -306,12 +403,57 @@ export function CityWorldMapCard({
     cityId,
     cityName,
     isArchived = false,
+    focusTravellerId,
+    focusTravellerName,
+    focusAnchorIds = [],
 }: Props) {
     const topologyQuery = useCityMapTopology(cityId);
     const tripsQuery = useCityActiveTrips(cityId, isArchived ? 0 : 15000);
     const topology = topologyQuery.data;
     const trips = tripsQuery.data;
-    const displayedTrips = trips.slice(0, 8);
+    const focusedTrip = useMemo(
+        () => focusTravellerId
+            ? trips.find((trip) => trip.travellerEntityId?.toLowerCase() === focusTravellerId.toLowerCase()) ?? null
+            : null,
+        [focusTravellerId, trips],
+    );
+    const displayedTrips = useMemo(() => {
+        if (!focusedTrip) {
+            return trips.slice(0, 8);
+        }
+
+        return [
+            focusedTrip,
+            ...trips.filter((trip) => trip.tripId !== focusedTrip.tripId),
+        ].slice(0, 8);
+    }, [focusedTrip, trips]);
+    const focusSummary = useMemo(() => {
+        if (!focusTravellerId) {
+            return null;
+        }
+
+        if (focusedTrip) {
+            return {
+                title: focusTravellerName ?? focusedTrip.subject,
+                body: `${humanize(focusedTrip.purpose)} is live on the map from ${focusedTrip.from.name} to ${focusedTrip.to.name}.`,
+                tone: "live",
+            };
+        }
+
+        if (focusAnchorIds.length > 0) {
+            return {
+                title: focusTravellerName ?? "Resident mobility focus",
+                body: "No active world trip is currently materialized, but assigned anchors remain highlighted for commute and care access.",
+                tone: "static",
+            };
+        }
+
+        return {
+            title: focusTravellerName ?? "Resident mobility focus",
+            body: "No active trip or mapped anchors are currently available for this resident.",
+            tone: "empty",
+        };
+    }, [focusAnchorIds.length, focusTravellerId, focusTravellerName, focusedTrip]);
 
     return (
         <Card
@@ -380,6 +522,20 @@ export function CityWorldMapCard({
                         </div>
                     </section>
 
+                    {focusSummary ? (
+                        <section className={`city-world-focus city-world-focus--${focusSummary.tone}`}>
+                            <div className="city-world-focus__content">
+                                <span className="city-world-focus__eyebrow">Resident focus</span>
+                                <h3 className="city-world-focus__title">{focusSummary.title}</h3>
+                                <p className="city-world-focus__summary">{focusSummary.body}</p>
+                            </div>
+                            <div className="city-world-focus__meta">
+                                <span className="city-world-focus__meta-label">Highlighted anchors</span>
+                                <strong>{focusAnchorIds.length}</strong>
+                            </div>
+                        </section>
+                    ) : null}
+
                     <div className="city-world-grid">
                         <section className="city-world-map">
                             <div className="city-world-map__header">
@@ -392,7 +548,12 @@ export function CityWorldMapCard({
                             </div>
 
                             <div className="city-world-map__frame">
-                                <MapCanvas topology={topology} trips={trips}/>
+                                <MapCanvas
+                                    topology={topology}
+                                    trips={trips}
+                                    focusedTripId={focusedTrip?.tripId}
+                                    focusedAnchorIds={focusAnchorIds}
+                                />
                             </div>
                         </section>
 
@@ -412,7 +573,11 @@ export function CityWorldMapCard({
                                 ) : (
                                     <div className="city-world-trip-list">
                                         {displayedTrips.map((trip) => (
-                                            <TripItem key={trip.tripId} trip={trip}/>
+                                            <TripItem
+                                                key={trip.tripId}
+                                                trip={trip}
+                                                isFocused={trip.tripId === focusedTrip?.tripId}
+                                            />
                                         ))}
                                     </div>
                                 )}
