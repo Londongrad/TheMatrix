@@ -1,4 +1,5 @@
 import {useMemo} from "react";
+import {Link} from "react-router-dom";
 import Button from "@shared/ui/controls/Button/Button";
 import Card from "@shared/ui/controls/Card/Card";
 import {useCityDistrictInfrastructure} from "@services/simulationcore/scenarios/classic-city/hooks/useCityDistrictInfrastructure";
@@ -13,6 +14,7 @@ import type {
 } from "@services/simulationcore/scenarios/classic-city/contracts/infrastructureContracts";
 import type {DistrictView} from "@services/simulationcore/scenarios/classic-city/contracts/worldContracts";
 import {useCityMapTopology} from "@services/simulationcore/scenarios/classic-city/hooks/useCityMapTopology";
+import {getClassicCityDetailsPath} from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
 
@@ -144,6 +146,7 @@ function buildRows(
 }
 
 function InfrastructureRow({
+    cityId,
     row,
     canDispatch,
     isPendingUtility,
@@ -152,6 +155,7 @@ function InfrastructureRow({
     onUtilityResponse,
     onResupply,
 }: {
+    cityId: string;
     row: DistrictInfrastructureRow;
     canDispatch: boolean;
     isPendingUtility: boolean;
@@ -165,6 +169,10 @@ function InfrastructureRow({
     onResupply: (districtId: string) => void;
 }) {
     const tone = getSeverityTone(row.priorityIndex);
+    const mapFocusPath = getClassicCityDetailsPath(cityId, "map", {
+        focusDistrictId: row.districtId,
+        focusDistrictName: row.districtName,
+    });
 
     return (
         <article className={`city-infra-row city-infra-row--${tone}`}>
@@ -181,6 +189,9 @@ function InfrastructureRow({
                     <span className={`city-infra-row__priority city-infra-row__priority--${tone}`}>
                         {tone === "danger" ? "Critical" : tone === "warning" ? "Elevated" : "Stable"}
                     </span>
+                    <Link className="city-link" to={mapFocusPath}>
+                        View on map
+                    </Link>
                     {canDispatch ? (
                         <>
                             <Button
@@ -355,6 +366,7 @@ export function CityInfrastructureCard({
                         {rows.map((row) => (
                             <InfrastructureRow
                                 key={row.districtId}
+                                cityId={cityId}
                                 row={row}
                                 canDispatch={canDispatch}
                                 isPendingUtility={
