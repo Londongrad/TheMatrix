@@ -10,8 +10,7 @@
 *.userosscache
 *.sln.docstates
 appsettings.Development.json
-.codex-tmp/
-.env.example
+.env
 
 # Vite dev certs
 frontend/matrix-web/certs/
