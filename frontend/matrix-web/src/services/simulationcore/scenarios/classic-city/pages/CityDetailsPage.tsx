@@ -84,6 +84,8 @@ const CityDetailsPage = () => {
     const rawTab = searchParams.get("tab");
     const focusResidentId = searchParams.get("focusResidentId") ?? "";
     const focusResidentName = searchParams.get("focusResidentName") ?? "";
+    const focusTripId = searchParams.get("focusTripId") ?? "";
+    const focusTripSubject = searchParams.get("focusTripSubject") ?? "";
     const focusDistrictId = searchParams.get("focusDistrictId") ?? "";
     const focusDistrictName = searchParams.get("focusDistrictName") ?? "";
     const focusAnchorIds = useMemo(() => {
@@ -166,6 +168,28 @@ const CityDetailsPage = () => {
         setSearchParams(next, {replace: false});
     }
 
+    function handleMapTripFocus(
+        tripId: string,
+        tripSubject: string,
+        districtId: string,
+        districtName?: string,
+    ) {
+        const next = new URLSearchParams(searchParams);
+        next.set("tab", "map");
+        next.set("focusTripId", tripId);
+        next.set("focusTripSubject", tripSubject);
+        next.set("focusDistrictId", districtId);
+        if (districtName) {
+            next.set("focusDistrictName", districtName);
+        } else {
+            next.delete("focusDistrictName");
+        }
+        next.delete("focusResidentId");
+        next.delete("focusResidentName");
+        next.delete("focusAnchorIds");
+        setSearchParams(next, {replace: false});
+    }
+
     const renderActiveTab = () => {
         switch (activeTab) {
             case "overview":
@@ -200,12 +224,15 @@ const CityDetailsPage = () => {
                         cityId={cityQuery.data.cityId}
                         cityName={cityQuery.data.name}
                         isArchived={isArchived}
+                        focusTripId={focusTripId || undefined}
+                        focusTripSubject={focusTripSubject || undefined}
                         focusTravellerId={focusResidentId || undefined}
                         focusTravellerName={focusResidentName || undefined}
                         focusDistrictId={focusDistrictId || undefined}
                         focusDistrictName={focusDistrictName || undefined}
                         focusAnchorIds={focusAnchorIds}
                         onFocusDistrict={handleMapDistrictFocus}
+                        onFocusTrip={handleMapTripFocus}
                     />
                 ) : null;
 

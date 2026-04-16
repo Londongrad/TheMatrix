@@ -974,6 +974,10 @@
     stroke-width: 1.6;
 }
 
+.city-world-map__trip-hit--interactive {
+    cursor: pointer;
+}
+
 .city-world-map__trip-focus {
     fill: rgba(255, 255, 255, 0.08);
     stroke: rgba(255, 196, 92, 0.78);
@@ -1033,6 +1037,16 @@
     display: grid;
     gap: 14px;
     padding: 16px 18px;
+}
+
+.city-world-trip--interactive {
+    cursor: pointer;
+}
+
+.city-world-trip--interactive:hover,
+.city-world-trip--interactive:focus-visible {
+    border-color: rgba(var(--shell-accent-rgb), 0.26);
+    transform: translateY(-1px);
 }
 
 .city-world-trip--focused {

@@ -18,12 +18,15 @@ type Props = {
     cityId: string;
     cityName?: string;
     isArchived?: boolean;
+    focusTripId?: string;
+    focusTripSubject?: string;
     focusTravellerId?: string;
     focusTravellerName?: string;
     focusDistrictId?: string;
     focusDistrictName?: string;
     focusAnchorIds?: string[];
     onFocusDistrict?: (districtId: string, districtName: string) => void;
+    onFocusTrip?: (tripId: string, tripSubject: string, districtId: string, districtName?: string) => void;
 };
 
 type Point = {
@@ -198,6 +201,7 @@ function MapCanvas({
     focusedAnchorIds,
     focusedDistrictId,
     onFocusDistrict,
+    onFocusTrip,
 }: {
     topology: CityMapTopologyView;
     trips: CityActiveTripView[];
@@ -205,6 +209,7 @@ function MapCanvas({
     focusedAnchorIds: string[];
     focusedDistrictId?: string;
     onFocusDistrict?: (districtId: string, districtName: string) => void;
+    onFocusTrip?: (tripId: string, tripSubject: string, districtId: string, districtName?: string) => void;
 }) {
     const nodeMap = useMemo(() => buildNodeMap(topology), [topology]);
     const anchorMap = useMemo(() => buildAnchorMap(topology), [topology]);
@@ -416,8 +421,22 @@ function MapCanvas({
                     const point = projector.project({x: trip.current.positionX, y: trip.current.positionY});
                     const tone = getTripTone(trip.purpose);
                     const isFocused = trip.tripId === focusedTripId || (!focusedTripId && trip.current.districtId === focusedDistrictId);
+                    const districtName = districtMap.get(trip.current.districtId)?.name;
                     return (
-                        <g key={trip.tripId}>
+                        <g
+                            key={trip.tripId}
+                            className={onFocusTrip ? "city-world-map__trip-hit city-world-map__trip-hit--interactive" : undefined}
+                            role={onFocusTrip ? "button" : undefined}
+                            tabIndex={onFocusTrip ? 0 : undefined}
+                            aria-label={onFocusTrip ? `Focus trip ${trip.subject}` : undefined}
+                            onClick={onFocusTrip ? () => onFocusTrip(trip.tripId, trip.subject, trip.current.districtId, districtName) : undefined}
+                            onKeyDown={onFocusTrip ? (event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    onFocusTrip(trip.tripId, trip.subject, trip.current.districtId, districtName);
+                                }
+                            } : undefined}
+                        >
                             {isFocused ? (
                                 <circle
                                     cx={point.x}
@@ -457,11 +476,31 @@ function MapCanvas({
     );
 }
 
-function TripItem({trip, isFocused = false}: { trip: CityActiveTripView; isFocused?: boolean }) {
+function TripItem({
+    trip,
+    isFocused = false,
+    onFocusTrip,
+}: {
+    trip: CityActiveTripView;
+    isFocused?: boolean;
+    onFocusTrip?: (tripId: string, tripSubject: string, districtId: string) => void;
+}) {
     const tone = getTripTone(trip.purpose);
 
     return (
-        <article className={`city-world-trip city-world-trip--${tone}${isFocused ? " city-world-trip--focused" : ""}`}>
+        <article
+            className={`city-world-trip city-world-trip--${tone}${isFocused ? " city-world-trip--focused" : ""}${onFocusTrip ? " city-world-trip--interactive" : ""}`}
+            role={onFocusTrip ? "button" : undefined}
+            tabIndex={onFocusTrip ? 0 : undefined}
+            aria-label={onFocusTrip ? `Focus trip ${trip.subject}` : undefined}
+            onClick={onFocusTrip ? () => onFocusTrip(trip.tripId, trip.subject, trip.current.districtId) : undefined}
+            onKeyDown={onFocusTrip ? (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onFocusTrip(trip.tripId, trip.subject, trip.current.districtId);
+                }
+            } : undefined}
+        >
             <div className="city-world-trip__topline">
                 <div>
                     <h3 className="city-world-trip__title">{trip.subject}</h3>
@@ -516,12 +555,15 @@ export function CityWorldMapCard({
     cityId,
     cityName,
     isArchived = false,
+    focusTripId,
+    focusTripSubject,
     focusTravellerId,
     focusTravellerName,
     focusDistrictId,
     focusDistrictName,
     focusAnchorIds = [],
     onFocusDistrict,
+    onFocusTrip,
 }: Props) {
     const {can} = usePermissions();
     const topologyQuery = useCityMapTopology(cityId);
@@ -544,10 +586,12 @@ export function CityWorldMapCard({
         [focusDistrictId, trips],
     );
     const focusedTrip = useMemo(
-        () => focusTravellerId
+        () => focusTripId
+            ? trips.find((trip) => trip.tripId === focusTripId) ?? null
+            : focusTravellerId
             ? trips.find((trip) => trip.travellerEntityId?.toLowerCase() === focusTravellerId.toLowerCase()) ?? null
             : null,
-        [focusTravellerId, trips],
+        [focusTravellerId, focusTripId, trips],
     );
     const displayedTrips = useMemo(() => {
         if (!focusedTrip) {
@@ -576,7 +620,7 @@ export function CityWorldMapCard({
 
         if (focusedTrip) {
             return {
-                title: focusTravellerName ?? focusedTrip.subject,
+                title: focusTravellerName ?? focusTripSubject ?? focusedTrip.subject,
                 body: `${humanize(focusedTrip.purpose)} is live on the map from ${focusedTrip.from.name} to ${focusedTrip.to.name}.`,
                 tone: "live",
             };
@@ -595,7 +639,7 @@ export function CityWorldMapCard({
             body: "No active trip or mapped anchors are currently available for this resident.",
             tone: "empty",
         };
-    }, [focusAnchorIds.length, focusDistrictId, focusDistrictName, focusTravellerId, focusTravellerName, focusedDistrictTrips.length, focusedTrip]);
+    }, [focusAnchorIds.length, focusDistrictId, focusDistrictName, focusTravellerId, focusTravellerName, focusTripSubject, focusedDistrictTrips.length, focusedTrip]);
 
     return (
         <Card
@@ -788,6 +832,7 @@ export function CityWorldMapCard({
                                     focusedAnchorIds={focusAnchorIds}
                                     focusedDistrictId={focusDistrictId}
                                     onFocusDistrict={onFocusDistrict}
+                                    onFocusTrip={onFocusTrip}
                                 />
                             </div>
                         </section>
@@ -812,6 +857,7 @@ export function CityWorldMapCard({
                                                 key={trip.tripId}
                                                 trip={trip}
                                                 isFocused={trip.tripId === focusedTrip?.tripId || (!focusedTrip && trip.current.districtId === focusDistrictId)}
+                                                onFocusTrip={onFocusTrip}
                                             />
                                         ))}
                                     </div>
