@@ -907,6 +907,15 @@
     stroke-width: 2;
 }
 
+.city-world-map__district-hit--interactive {
+    cursor: pointer;
+}
+
+.city-world-map__district-hit--interactive:focus-visible .city-world-map__district,
+.city-world-map__district-hit--interactive:hover .city-world-map__district {
+    stroke-width: 2.8;
+}
+
 .city-world-map__district-focus {
     fill: rgba(255, 255, 255, 0.06);
     stroke: rgba(255, 214, 102, 0.72);

@@ -23,6 +23,7 @@ type Props = {
     focusDistrictId?: string;
     focusDistrictName?: string;
     focusAnchorIds?: string[];
+    onFocusDistrict?: (districtId: string, districtName: string) => void;
 };
 
 type Point = {
@@ -196,12 +197,14 @@ function MapCanvas({
     focusedTripId,
     focusedAnchorIds,
     focusedDistrictId,
+    onFocusDistrict,
 }: {
     topology: CityMapTopologyView;
     trips: CityActiveTripView[];
     focusedTripId?: string;
     focusedAnchorIds: string[];
     focusedDistrictId?: string;
+    onFocusDistrict?: (districtId: string, districtName: string) => void;
 }) {
     const nodeMap = useMemo(() => buildNodeMap(topology), [topology]);
     const anchorMap = useMemo(() => buildAnchorMap(topology), [topology]);
@@ -308,7 +311,20 @@ function MapCanvas({
                     const point = projector.project({x: district.anchorX, y: district.anchorY});
                     const isFocused = district.districtId === focusedDistrictId;
                     return (
-                        <g key={district.districtId}>
+                        <g
+                            key={district.districtId}
+                            className={`city-world-map__district-hit${onFocusDistrict ? " city-world-map__district-hit--interactive" : ""}`}
+                            role={onFocusDistrict ? "button" : undefined}
+                            tabIndex={onFocusDistrict ? 0 : undefined}
+                            aria-label={onFocusDistrict ? `Focus district ${district.name}` : undefined}
+                            onClick={onFocusDistrict ? () => onFocusDistrict(district.districtId, district.name) : undefined}
+                            onKeyDown={onFocusDistrict ? (event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    onFocusDistrict(district.districtId, district.name);
+                                }
+                            } : undefined}
+                        >
                             {isFocused ? (
                                 <circle
                                     cx={point.x}
@@ -505,6 +521,7 @@ export function CityWorldMapCard({
     focusDistrictId,
     focusDistrictName,
     focusAnchorIds = [],
+    onFocusDistrict,
 }: Props) {
     const {can} = usePermissions();
     const topologyQuery = useCityMapTopology(cityId);
@@ -770,6 +787,7 @@ export function CityWorldMapCard({
                                     focusedTripId={focusedTrip?.tripId}
                                     focusedAnchorIds={focusAnchorIds}
                                     focusedDistrictId={focusDistrictId}
+                                    onFocusDistrict={onFocusDistrict}
                                 />
                             </div>
                         </section>

@@ -153,6 +153,19 @@ const CityDetailsPage = () => {
         }
     }
 
+    function handleMapDistrictFocus(districtId: string, districtName: string) {
+        const next = new URLSearchParams(searchParams);
+        next.set("tab", "map");
+        next.set("focusDistrictId", districtId);
+        next.set("focusDistrictName", districtName);
+        next.delete("focusTripId");
+        next.delete("focusTripSubject");
+        next.delete("focusResidentId");
+        next.delete("focusResidentName");
+        next.delete("focusAnchorIds");
+        setSearchParams(next, {replace: false});
+    }
+
     const renderActiveTab = () => {
         switch (activeTab) {
             case "overview":
@@ -192,6 +205,7 @@ const CityDetailsPage = () => {
                         focusDistrictId={focusDistrictId || undefined}
                         focusDistrictName={focusDistrictName || undefined}
                         focusAnchorIds={focusAnchorIds}
+                        onFocusDistrict={handleMapDistrictFocus}
                     />
                 ) : null;
 
