@@ -1,18 +1,18 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: postgres
+    container_name: matrix-postgres
     ports:
-      - "5432:5432"
+      - "${MATRIX_POSTGRES_PORT:-5433}:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-matrix}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-matrix}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - matrix_postgres_data:/var/lib/postgresql/data
       - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-matrix} -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER is required} -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -20,28 +20,36 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: redis
+    container_name: matrix-redis
     ports:
-      - "6379:6379"
+      - "${MATRIX_REDIS_PORT:-6379}:6379"
     volumes:
-      - redis_data:/data
-    command: ["redis-server", "--appendonly", "yes"]
+      - matrix_redis_data:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${MATRIX_REDIS_PASSWORD:?MATRIX_REDIS_PASSWORD is required}"
+      ]
     restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
+    container_name: matrix-rabbitmq
     ports:
-      - "5672:5672"     # AMQP
-      - "15672:15672"   # Web UI
+      - "${MATRIX_RABBITMQ_PORT:-5672}:5672"
+      - "${MATRIX_RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_VHOST: ${MATRIX_RABBITMQ_VHOST:?MATRIX_RABBITMQ_VHOST is required}
+      RABBITMQ_DEFAULT_USER: ${MATRIX_RABBITMQ_USERNAME:?MATRIX_RABBITMQ_USERNAME is required}
+      RABBITMQ_DEFAULT_PASS: ${MATRIX_RABBITMQ_PASSWORD:?MATRIX_RABBITMQ_PASSWORD is required}
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - matrix_rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped
 
 volumes:
-  postgres_data:
-  redis_data:
-  rabbitmq_data:
+  matrix_postgres_data:
+  matrix_redis_data:
+  matrix_rabbitmq_data:
