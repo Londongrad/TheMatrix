@@ -29,6 +29,8 @@
     flex-direction: column;
     gap: 0.9rem;
     overflow: hidden;
+    isolation: isolate;
+    animation: confirm-dialog-in 0.2s ease-out;
 }
 
 .confirm-dialog::before {
@@ -38,6 +40,16 @@
     pointer-events: none;
     background: var(--ui-card-highlight);
     opacity: 0.7;
+}
+
+.confirm-dialog::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-top: 1px solid rgba(var(--shell-accent-rgb), 0.26);
+    background: linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.08), transparent 22%);
+    mask: linear-gradient(180deg, rgba(0, 0, 0, 0.78), transparent 42%);
 }
 
 .confirm-dialog-header {
@@ -124,6 +136,19 @@
     0 0 0 1px var(--status-danger-border-strong);
 }
 
+html[data-theme="matrix"] .confirm-dialog::after {
+    background:
+        linear-gradient(180deg, rgba(var(--shell-accent-rgb), 0.12), transparent 20%),
+        repeating-linear-gradient(
+            180deg,
+            rgba(var(--shell-accent-rgb), 0.08) 0,
+            rgba(var(--shell-accent-rgb), 0.08) 1px,
+            transparent 1px,
+            transparent 8px
+        );
+    opacity: 0.34;
+}
+
 .confirm-dialog-field {
     display: flex;
     flex-direction: column;
@@ -171,5 +196,23 @@
 @media (max-width: 640px) {
     .confirm-dialog {
         padding: 1rem 1.1rem 1rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .confirm-dialog {
+        animation: none;
+    }
+}
+
+@keyframes confirm-dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
