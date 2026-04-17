@@ -203,6 +203,16 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
         );
     };
 
+    const handleToggleSessions = () => {
+        setIsSessionsOpen((value) => {
+            if (value) {
+                setIsEndedHistoryOpen(false);
+            }
+
+            return !value;
+        });
+    };
+
     return (
         <section className="settings-card settings-card--sessions settings-card--span-2">
             <div className="settings-card-header">
@@ -234,7 +244,7 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                     <button
                         type="button"
                         className="settings-button settings-button--secondary"
-                        onClick={() => setIsSessionsOpen((value) => !value)}
+                        onClick={handleToggleSessions}
                         disabled={!token}
                     >
                         {isSessionsOpen ? "Hide sessions" : "Show sessions"}
@@ -257,16 +267,6 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
                             <p className="settings-muted">
                                 Sessions are hidden. Click <b>Show sessions</b> to load and manage them.
                             </p>
-                            {sessions.length > 0 && (
-                                <div className="settings-session-meta">
-                                    <span className="settings-session-chip">
-                                        Active: {activeSessionsCount}
-                                    </span>
-                                    <span className="settings-session-chip">
-                                        Other active: {otherActiveSessionsCount}
-                                    </span>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
