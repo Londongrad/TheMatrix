@@ -140,7 +140,22 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({
 export const useConfirm = (): ConfirmFn => {
     const ctx = useContext(ConfirmContext);
     if (!ctx) {
-        throw new Error("useConfirm must be used within ConfirmProvider");
+        return async ({
+            title = "Are you sure?",
+            description,
+            confirmText,
+        }: ConfirmOptions) => {
+            const message = [title, description, confirmText ? `Action: ${confirmText}` : null]
+                .filter(Boolean)
+                .join("\n\n");
+
+            if (typeof window !== "undefined" && typeof window.confirm === "function") {
+                console.warn("useConfirm was used outside ConfirmProvider. Falling back to window.confirm().");
+                return window.confirm(message);
+            }
+
+            return false;
+        };
     }
     return ctx;
 };
