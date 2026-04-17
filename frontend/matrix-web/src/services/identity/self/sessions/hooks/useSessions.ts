@@ -121,6 +121,19 @@ export function useSessions(options: {
         }
     };
 
+    const openSessions = () => {
+        if (token) {
+            setIsLoadingSessions(true);
+            setSessionsError(null);
+        }
+
+        setIsSessionsOpen(true);
+    };
+
+    const closeSessions = () => {
+        setIsSessionsOpen(false);
+    };
+
     const revokeOne = async (session: SessionInfo) => {
         if (!token) {
             setSessionsError("You are not authenticated.");
@@ -226,6 +239,8 @@ export function useSessions(options: {
     return {
         isSessionsOpen,
         setIsSessionsOpen,
+        openSessions,
+        closeSessions,
         sessions,
         sortedSessions,
         sessionsError,

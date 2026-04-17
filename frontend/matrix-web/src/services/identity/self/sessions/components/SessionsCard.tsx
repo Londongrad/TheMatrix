@@ -23,7 +23,8 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
 
     const {
         isSessionsOpen,
-        setIsSessionsOpen,
+        openSessions,
+        closeSessions,
         sessions,
         sortedSessions,
         sessionsError,
@@ -204,13 +205,13 @@ const SessionsCard = ({token, logout, confirm}: Props) => {
     };
 
     const handleToggleSessions = () => {
-        setIsSessionsOpen((value) => {
-            if (value) {
-                setIsEndedHistoryOpen(false);
-            }
+        if (isSessionsOpen) {
+            setIsEndedHistoryOpen(false);
+            closeSessions();
+            return;
+        }
 
-            return !value;
-        });
+        openSessions();
     };
 
     return (
