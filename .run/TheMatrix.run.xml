@@ -9,62 +9,14 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option name="id" value="runConfig:npm.dev" />
+            <option name="id" value="runConfig:npm.clean:stack" />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>
       <ExecutableRowSnapshot>
         <option name="condition">
           <ConditionSnapshot>
-            <option name="type" value="immediately" />
-          </ConditionSnapshot>
-        </option>
-        <option name="executable">
-          <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.Population.Api: https" />
-          </ExecutableSnapshot>
-        </option>
-      </ExecutableRowSnapshot>
-      <ExecutableRowSnapshot>
-        <option name="condition">
-          <ConditionSnapshot>
-            <option name="type" value="immediately" />
-          </ConditionSnapshot>
-        </option>
-        <option name="executable">
-          <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.SimulationCore.Api: https" />
-          </ExecutableSnapshot>
-        </option>
-      </ExecutableRowSnapshot>
-      <ExecutableRowSnapshot>
-        <option name="condition">
-          <ConditionSnapshot>
-            <option name="type" value="immediately" />
-          </ConditionSnapshot>
-        </option>
-        <option name="executable">
-          <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.Economy.Api: https" />
-          </ExecutableSnapshot>
-        </option>
-      </ExecutableRowSnapshot>
-      <ExecutableRowSnapshot>
-        <option name="condition">
-          <ConditionSnapshot>
-            <option name="type" value="immediately" />
-          </ConditionSnapshot>
-        </option>
-        <option name="executable">
-          <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.ApiGateway: https" />
-          </ExecutableSnapshot>
-        </option>
-      </ExecutableRowSnapshot>
-      <ExecutableRowSnapshot>
-        <option name="condition">
-          <ConditionSnapshot>
-            <option name="type" value="immediately" />
+            <option name="type" value="afterPreviousFinished" />
           </ConditionSnapshot>
         </option>
         <option name="executable">
@@ -76,7 +28,31 @@
       <ExecutableRowSnapshot>
         <option name="condition">
           <ConditionSnapshot>
-            <option name="type" value="immediately" />
+            <option name="type" value="afterPreviousStarted" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.Economy.Api: https" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="afterPreviousStarted" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.Population.Api: https" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="afterPreviousStarted" />
           </ConditionSnapshot>
         </option>
         <option name="executable">
@@ -88,12 +64,48 @@
       <ExecutableRowSnapshot>
         <option name="condition">
           <ConditionSnapshot>
-            <option name="type" value="immediately" />
+            <option name="type" value="afterPreviousStarted" />
           </ConditionSnapshot>
         </option>
         <option name="executable">
           <ExecutableSnapshot>
             <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.SimulationSystems.Api: https" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="afterPreviousStarted" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.SimulationCore.Api: https" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="afterPreviousStarted" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:.NET Launch Settings Profile.Matrix.ApiGateway: https" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="afterPreviousStarted" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:npm.dev" />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>
