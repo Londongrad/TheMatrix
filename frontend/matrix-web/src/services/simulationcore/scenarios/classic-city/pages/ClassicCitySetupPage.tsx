@@ -41,6 +41,7 @@ import {
     formatRange,
     getPopulationPressureLabel,
     getPopulationTargetModeLabel,
+    hasMeaningfulRangeValue,
 } from "@services/simulationcore/scenarios/classic-city/utils/populationPlanning";
 import {
     SIMULATIONCORE_SCENARIO_CATALOG_PATH,
@@ -1524,6 +1525,9 @@ export default function ClassicCitySetupPage() {
                                         className="scenario-setup__stat-value">{formatRange(populationPlanningEstimate.capacityRange)}</strong>
                                     <span className="scenario-setup__review-text">
                                         Expected housing coverage: {formatOccupancyRateRange(populationPlanningEstimate.housingCoverageRange)} of launch target once topology is generated.
+                                        {hasMeaningfulRangeValue(populationPlanningEstimate.housingHeadroomRange)
+                                            ? ` Extra headroom: ${formatOccupancyRateRange(populationPlanningEstimate.housingHeadroomRange)} above launch target.`
+                                            : ""}
                                     </span>
                                 </article>
                             </div>

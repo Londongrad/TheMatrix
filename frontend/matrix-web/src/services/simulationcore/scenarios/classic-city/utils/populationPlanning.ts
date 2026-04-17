@@ -19,6 +19,7 @@ export type PopulationPlanningEstimate = {
     residentialBuildingRange: Range;
     capacityRange: Range;
     housingCoverageRange: Range;
+    housingHeadroomRange: Range;
     usesManualTarget: boolean;
     usesDeterministicRandomTarget: boolean;
 };
@@ -54,6 +55,7 @@ export function buildPopulationPlanningEstimate(input: PopulationPlanningInput):
     const districtRange = getDistrictCountRange(input, capacityRange);
     const residentialBuildingRange = getResidentialBuildingRange(input, targetPopulation, capacityRange, districtRange);
     const housingCoverageRange = getHousingCoverageRange(targetPopulation, capacityRange);
+    const housingHeadroomRange = getHousingHeadroomRange(targetPopulation, capacityRange);
 
     return {
         targetPopulation,
@@ -61,6 +63,7 @@ export function buildPopulationPlanningEstimate(input: PopulationPlanningInput):
         residentialBuildingRange,
         capacityRange,
         housingCoverageRange,
+        housingHeadroomRange,
         usesManualTarget: input.populationTargetMode === "Manual",
         usesDeterministicRandomTarget: input.populationTargetMode === "Random",
     };
@@ -132,6 +135,10 @@ export function formatOccupancyRateRange(range: Range): string {
     }
 
     return `${Math.round(range.min * 100)}% - ${Math.round(range.max * 100)}%`;
+}
+
+export function hasMeaningfulRangeValue(range: Range): boolean {
+    return range.max > 0;
 }
 
 function getTopologyPopulationBasis(
@@ -290,8 +297,22 @@ function getHousingCoverageRange(
     }
 
     return {
-        min: roundRatio(targetPopulation / capacityRange.max),
-        max: roundRatio(targetPopulation / Math.max(1, capacityRange.min)),
+        min: roundRatio(Math.min(1, capacityRange.min / targetPopulation)),
+        max: roundRatio(Math.min(1, capacityRange.max / targetPopulation)),
+    };
+}
+
+function getHousingHeadroomRange(
+    targetPopulation: number | null,
+    capacityRange: Range,
+): Range {
+    if (targetPopulation === null || targetPopulation <= 0 || capacityRange.max <= 0) {
+        return {min: 0, max: 0};
+    }
+
+    return {
+        min: roundRatio(Math.max(0, capacityRange.min / targetPopulation - 1)),
+        max: roundRatio(Math.max(0, capacityRange.max / targetPopulation - 1)),
     };
 }
 
