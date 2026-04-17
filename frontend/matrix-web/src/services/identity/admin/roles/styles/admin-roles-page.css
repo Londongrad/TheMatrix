@@ -30,6 +30,13 @@
     box-shadow: var(--shell-shadow-soft);
 }
 
+.mx-admin-roles__item.is-pending {
+    border-color: color-mix(in srgb, var(--shell-accent) 32%, var(--settings-card-border));
+    box-shadow:
+        var(--shell-shadow-soft),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.18);
+}
+
 .mx-admin-roles__head {
     display: flex;
     align-items: center;
@@ -53,6 +60,14 @@
     background: rgba(var(--shell-accent-rgb), 0.18);
     color: color-mix(in srgb, var(--shell-accent) 62%, var(--app-text));
     font-size: 12px;
+}
+
+.mx-admin-roles__chip--pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(var(--shell-accent-rgb), 0.2);
+    color: color-mix(in srgb, var(--shell-accent) 72%, white 28%);
 }
 
 .mx-admin-roles__meta {
@@ -114,6 +129,15 @@
     border-top-color: rgba(255, 255, 255, 0.92);
     box-shadow: 0 0 12px rgba(var(--shell-accent-rgb), 0.28);
     animation: mx-admin-roles-spin 0.8s linear infinite;
+}
+
+.mx-admin-roles__inlineSpinner {
+    inline-size: 10px;
+    block-size: 10px;
+    border-radius: 999px;
+    border: 2px solid rgba(var(--shell-accent-rgb), 0.18);
+    border-top-color: currentColor;
+    animation: mx-admin-roles-spin 0.7s linear infinite;
 }
 
 .mx-admin-roles__members {

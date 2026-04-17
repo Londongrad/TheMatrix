@@ -17,6 +17,7 @@ import "../styles/admin-roles-page.css";
 
 export default function AdminRolesPage() {
     const [createOpen, setCreateOpen] = useState(false);
+    const [deletingRoleId, setDeletingRoleId] = useState<string | null>(null);
     const [renameRoleTarget, setRenameRoleTarget] = useState<RoleResponse | null>(
         null,
     );
@@ -41,12 +42,14 @@ export default function AdminRolesPage() {
 
         setLoading(true);
         setError(null);
+        setDeletingRoleId(role.id);
         try {
             await deleteRole(role.id);
             await load();
         } catch (error: any) {
             setError(error?.message ?? "Failed to delete role");
         } finally {
+            setDeletingRoleId(null);
             setLoading(false);
         }
     };
@@ -94,6 +97,7 @@ export default function AdminRolesPage() {
                         <RoleCard
                             key={role.id}
                             role={role}
+                            isDeleting={deletingRoleId === role.id}
                             onMembers={setMembersRole}
                             onPermissions={setPermissionsRole}
                             onRename={setRenameRoleTarget}

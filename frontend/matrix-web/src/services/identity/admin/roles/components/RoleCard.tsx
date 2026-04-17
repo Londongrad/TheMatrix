@@ -5,24 +5,41 @@ import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 export default function RoleCard({
                                      role,
+                                     isDeleting = false,
                                      onMembers,
                                      onPermissions,
                                      onRename,
                                      onDelete,
                                  }: {
     role: RoleResponse;
+    isDeleting?: boolean;
     onMembers: (role: RoleResponse) => void;
     onPermissions: (role: RoleResponse) => void;
     onRename: (role: RoleResponse) => void;
     onDelete: (role: RoleResponse) => void;
 }) {
     return (
-        <div className="mx-admin-roles__item">
+        <div
+            className={
+                isDeleting
+                    ? "mx-admin-roles__item is-pending"
+                    : "mx-admin-roles__item"
+            }
+        >
             <div className="mx-admin-roles__head">
                 <div className="mx-admin-roles__name">{role.name}</div>
                 <div className="mx-admin-roles__chips">
                     {role.isSystem ? (
                         <span className="mx-admin-roles__chip">System</span>
+                    ) : null}
+                    {isDeleting ? (
+                        <span className="mx-admin-roles__chip mx-admin-roles__chip--pending">
+                            <span
+                                className="mx-admin-roles__inlineSpinner"
+                                aria-hidden="true"
+                            />
+                            Deleting...
+                        </span>
                     ) : null}
                 </div>
             </div>
@@ -35,12 +52,22 @@ export default function RoleCard({
         </span>
             </div>
 
+            {isDeleting ? (
+                <div className="mx-admin-roles__hint" aria-live="polite">
+                    Removing role membership links and refreshing the catalog...
+                </div>
+            ) : null}
+
             <div className="mx-admin-roles__actions">
                 <RequirePermission
                     perm={PermissionKeys.IdentityRoleMembersRead}
                     displayMode="disable"
                 >
-                    <Button type="button" onClick={() => onMembers(role)}>
+                    <Button
+                        type="button"
+                        onClick={() => onMembers(role)}
+                        disabled={isDeleting}
+                    >
                         Members
                     </Button>
                 </RequirePermission>
@@ -48,7 +75,11 @@ export default function RoleCard({
                     perm={PermissionKeys.IdentityRolePermissionsRead}
                     displayMode="disable"
                 >
-                    <Button type="button" onClick={() => onPermissions(role)}>
+                    <Button
+                        type="button"
+                        onClick={() => onPermissions(role)}
+                        disabled={isDeleting}
+                    >
                         Permissions
                     </Button>
                 </RequirePermission>
@@ -59,7 +90,7 @@ export default function RoleCard({
                     <Button
                         type="button"
                         onClick={() => onRename(role)}
-                        disabled={role.isSystem}
+                        disabled={role.isSystem || isDeleting}
                     >
                         Rename
                     </Button>
@@ -72,9 +103,10 @@ export default function RoleCard({
                         type="button"
                         variant="danger"
                         onClick={() => onDelete(role)}
-                        disabled={role.isSystem}
+                        disabled={role.isSystem || isDeleting}
+                        aria-busy={isDeleting}
                     >
-                        Delete
+                        {isDeleting ? "Deleting..." : "Delete"}
                     </Button>
                 </RequirePermission>
             </div>
