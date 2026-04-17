@@ -13,6 +13,13 @@ export function createClassicCitySetupSession(request: CreateClassicCitySetupSes
     });
 }
 
+export function listClassicCitySetupSessions(signal?: AbortSignal) {
+    return apiRequest<ClassicCitySetupSessionView[]>(API_CLASSIC_CITY_SETUP_SESSIONS_URL, {
+        method: "GET",
+        signal,
+    });
+}
+
 export function getClassicCitySetupSession(sessionId: string, signal?: AbortSignal) {
     return apiRequest<ClassicCitySetupSessionView>(`${API_CLASSIC_CITY_SETUP_SESSIONS_URL}/${sessionId}`, {
         method: "GET",

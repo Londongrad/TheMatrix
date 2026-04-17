@@ -1,8 +1,11 @@
 import {useMemo, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import CityList from "@services/simulationcore/scenarios/classic-city/components/CityList";
+import SetupSessionList from "@services/simulationcore/scenarios/classic-city/components/SetupSessionList";
 import {CitiesToolbar} from "@services/simulationcore/scenarios/classic-city/components/CitiesToolbar";
 import type {CityListItemView} from "@services/simulationcore/scenarios/classic-city/contracts/citiesContracts";
+import type {ClassicCitySetupSessionView} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
+import {useClassicCitySetupSessionsQuery} from "@services/simulationcore/scenarios/classic-city/hooks/useClassicCitySetupSessionsQuery";
 import {useCitiesQuery} from "@services/simulationcore/scenarios/classic-city/hooks/useCitiesQuery";
 import {useProvisioningCitiesQuery} from "@services/simulationcore/scenarios/classic-city/hooks/useProvisioningCitiesQuery";
 import {getCityStatusTone} from "@services/simulationcore/scenarios/classic-city/utils/presentation";
@@ -11,6 +14,7 @@ import {
     getClassicCityDetailsPath,
     getClassicCityProvisioningPath,
     getClassicCitySetupPath,
+    getClassicCitySetupSessionPath,
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
@@ -46,7 +50,28 @@ export default function CitiesPage() {
     const canCreateCity = can(PermissionKeys.SimulationCoreClassicCityCreate);
 
     const citiesQuery = useCitiesQuery(includeArchived);
+    const setupSessionsQuery = useClassicCitySetupSessionsQuery();
     const provisioningQuery = useProvisioningCitiesQuery();
+
+    const filteredSetupSessions = useMemo(() => {
+        const query = normalize(search);
+
+        if (!query) {
+            return setupSessionsQuery.data;
+        }
+
+        return setupSessionsQuery.data.filter((session) => {
+            const name = session.draft.name.toLowerCase();
+            const sessionId = session.sessionId.toLowerCase();
+            const status = session.status.toLowerCase();
+            const step = session.currentStepId.toLowerCase();
+
+            return name.includes(query) ||
+                sessionId.includes(query) ||
+                status.includes(query) ||
+                step.includes(query);
+        });
+    }, [search, setupSessionsQuery.data]);
 
     const filteredCities = useMemo(() => {
         const query = normalize(search);
@@ -83,14 +108,16 @@ export default function CitiesPage() {
         const readyCount = citiesQuery.data.filter((city) => getCityStatusTone(city.status) === "active").length;
         const archivedCount = citiesQuery.data.filter((city) => getCityStatusTone(city.status) === "archived").length;
         const provisioningCount = provisioningQuery.data.length;
+        const draftCount = setupSessionsQuery.data.length;
 
         return {
             visible: orderedCities.length,
             ready: readyCount,
             provisioning: provisioningCount,
             archived: archivedCount,
+            drafts: draftCount,
         };
-    }, [citiesQuery.data, orderedCities.length, provisioningQuery.data]);
+    }, [citiesQuery.data, orderedCities.length, provisioningQuery.data, setupSessionsQuery.data]);
 
     function handleOpen(city: CityListItemView) {
         const tone = getCityStatusTone(city.status);
@@ -99,6 +126,10 @@ export default function CitiesPage() {
                 ? getClassicCityProvisioningPath(city.cityId)
                 : getClassicCityDetailsPath(city.cityId),
         );
+    }
+
+    function handleOpenSetupSession(session: ClassicCitySetupSessionView) {
+        navigate(getClassicCitySetupSessionPath(session.sessionId));
     }
 
     return (
@@ -149,11 +180,84 @@ export default function CitiesPage() {
                     </span>
                 </article>
 
+                <article className="cities-metric-card cities-metric-card--draft">
+                    <span className="cities-metric-card__label">Drafts</span>
+                    <strong className="cities-metric-card__value">{stats.drafts}</strong>
+                    <span className="cities-metric-card__hint">
+                        Saved setup sessions that can still be resumed from the wizard.
+                    </span>
+                </article>
+
                 <article className="cities-metric-card cities-metric-card--archived">
                     <span className="cities-metric-card__label">Archived</span>
                     <strong className="cities-metric-card__value">{stats.archived}</strong>
                     <span className="cities-metric-card__hint">Inactive records retained for review or cleanup.</span>
                 </article>
+            </div>
+
+            <div className="cities-card cities-card--registry">
+                <div className="cities-card__header">
+                    <div>
+                        <h2 className="cities-card__title">Resume drafts</h2>
+                        <p className="cities-card__subtitle">
+                            Setup sessions live outside the city registry until launch succeeds. Reopen a saved draft
+                            here to continue authoring from its last backend-saved step.
+                        </p>
+                    </div>
+
+                    <Button
+                        type="button"
+                        variant="default"
+                        onClick={() => {
+                            void setupSessionsQuery.refetch();
+                        }}
+                        disabled={setupSessionsQuery.isLoading}
+                    >
+                        {setupSessionsQuery.isLoading ? "Refreshing..." : "Refresh drafts"}
+                    </Button>
+                </div>
+
+                {setupSessionsQuery.error ? (
+                    <div className="cities-error-banner" role="alert">
+                        <div className="cities-error-banner__content">
+                            <div className="cities-error-banner__title">Failed to load setup drafts</div>
+                            <div>{setupSessionsQuery.error}</div>
+                        </div>
+
+                        <Button
+                            type="button"
+                            variant="primary"
+                            onClick={() => {
+                                void setupSessionsQuery.refetch();
+                            }}
+                        >
+                            Retry
+                        </Button>
+                    </div>
+                ) : null}
+
+                {!setupSessionsQuery.error && setupSessionsQuery.isLoading && setupSessionsQuery.data.length === 0 ? (
+                    <div className="cities-empty-state">
+                        <div className="cities-empty-state__title">Loading setup drafts</div>
+                        <div className="cities-empty-state__text">
+                            Fetching resumable Classic City setup sessions saved on the gateway.
+                        </div>
+                    </div>
+                ) : null}
+
+                {!setupSessionsQuery.error && !setupSessionsQuery.isLoading && filteredSetupSessions.length === 0 ? (
+                    <div className="cities-empty-state">
+                        <div className="cities-empty-state__title">No resumable drafts</div>
+                        <div className="cities-empty-state__text">
+                            Start a new Classic City and this card will keep the draft visible until it becomes a real
+                            city or is discarded.
+                        </div>
+                    </div>
+                ) : null}
+
+                {!setupSessionsQuery.error && filteredSetupSessions.length > 0 ? (
+                    <SetupSessionList sessions={filteredSetupSessions} onOpen={handleOpenSetupSession}/>
+                ) : null}
             </div>
 
             <div className="cities-card cities-card--registry">
