@@ -83,6 +83,12 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     validation: o => o.CacheTtlHours > 0,
                     failureMessage: "ClassicCitySetupSessions:CacheTtlHours must be greater than 0.")
                .Validate(
+                    validation: o => o.DraftTtlMinutes > 0,
+                    failureMessage: "ClassicCitySetupSessions:DraftTtlMinutes must be greater than 0.")
+               .Validate(
+                    validation: o => o.RecentDraftReuseWindowSeconds > 0,
+                    failureMessage: "ClassicCitySetupSessions:RecentDraftReuseWindowSeconds must be greater than 0.")
+               .Validate(
                     validation: o => o.MutationLockLeaseSeconds > 0,
                     failureMessage: "ClassicCitySetupSessions:MutationLockLeaseSeconds must be greater than 0.")
                .Validate(

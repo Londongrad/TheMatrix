@@ -15,6 +15,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             Guid sessionId,
             CancellationToken cancellationToken = default);
 
+        Task<ClassicCitySetupSessionMutationResult> DeleteAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default);
+
         Task<ClassicCitySetupSessionMutationResult> UpdateAsync(
             Guid sessionId,
             UpdateClassicCitySetupSessionRequestDto request,

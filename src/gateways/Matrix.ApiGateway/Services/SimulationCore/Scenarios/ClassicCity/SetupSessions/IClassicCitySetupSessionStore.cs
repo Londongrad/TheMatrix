@@ -6,6 +6,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             Guid ownerUserId,
             CancellationToken cancellationToken = default);
 
+        Task DeleteAsync(
+            Guid sessionId,
+            Guid? ownerUserId,
+            CancellationToken cancellationToken = default);
+
         Task<ClassicCitySetupSessionState?> GetAsync(
             Guid sessionId,
             CancellationToken cancellationToken = default);
@@ -18,8 +23,17 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             Guid sessionId,
             CancellationToken cancellationToken = default);
 
+        Task<ClassicCitySetupSessionLockHandle?> TryAcquireCreateLockAsync(
+            Guid ownerUserId,
+            CancellationToken cancellationToken = default);
+
         Task ReleaseLockAsync(
             Guid sessionId,
+            ClassicCitySetupSessionLockHandle lockHandle,
+            CancellationToken cancellationToken = default);
+
+        Task ReleaseCreateLockAsync(
+            Guid ownerUserId,
             ClassicCitySetupSessionLockHandle lockHandle,
             CancellationToken cancellationToken = default);
 

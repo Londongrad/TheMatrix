@@ -49,6 +49,42 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Set
                 : Ok(session);
         }
 
+        [HttpDelete("{sessionId:guid}")]
+        public async Task<IActionResult> Delete(
+            [FromRoute] Guid sessionId,
+            CancellationToken cancellationToken)
+        {
+            ClassicCitySetupSessionMutationResult result = await setupSessionService.DeleteAsync(
+                sessionId: sessionId,
+                cancellationToken: cancellationToken);
+
+            return result.Status switch
+            {
+                ClassicCitySetupSessionMutationStatus.Updated => NoContent(),
+                ClassicCitySetupSessionMutationStatus.NotFound => NotFound(),
+                ClassicCitySetupSessionMutationStatus.Conflict => Conflict(
+                    new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
+                ClassicCitySetupSessionMutationStatus.Unavailable => StatusCode(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    value: new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
+                ClassicCitySetupSessionMutationStatus.Invalid => BadRequest(
+                    new
+                    {
+                        code = result.ErrorCode,
+                        message = result.ErrorMessage
+                    }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError)
+            };
+        }
+
         [HttpPut("{sessionId:guid}")]
         public async Task<ActionResult<ClassicCitySetupSessionView>> Update(
             [FromRoute] Guid sessionId,

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text;
 using MassTransit;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
@@ -88,26 +89,70 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             ArgumentNullException.ThrowIfNull(request);
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
+            Guid ownerUserId = GetCurrentUserIdOrThrow();
+            string normalizedStepId = NormalizeStepId(request.CurrentStepId);
+            string requestedReuseSignature = BuildDraftReuseSignature(
+                currentStepId: normalizedStepId,
+                draft: request.Draft);
 
-            var session = new ClassicCitySetupSessionState
+            ClassicCitySetupSessionLockHandle? createLockHandle = null;
+
+            try
             {
-                SessionId = Guid.NewGuid(),
-                OwnerUserId = GetCurrentUserIdOrThrow(),
-                ScenarioKind = "ClassicCity",
-                Status = ClassicCitySetupSessionStatuses.Draft,
-                CurrentStepId = NormalizeStepId(request.CurrentStepId),
-                CreatedAtUtc = now,
-                UpdatedAtUtc = now
-            };
-            session.Draft = NormalizeDraft(
-                draft: request.Draft,
-                fallbackSeed: BuildDefaultGenerationSeed(session.SessionId));
+                try
+                {
+                    createLockHandle = await sessionStore.TryAcquireCreateLockAsync(
+                        ownerUserId: ownerUserId,
+                        cancellationToken: cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException ||
+                                           !cancellationToken.IsCancellationRequested)
+                {
+                    logger.LogWarning(
+                        exception: ex,
+                        message: "Classic City setup session create-lock acquisition failed for ownerUserId={OwnerUserId}.",
+                        ownerUserId);
+                }
 
-            await sessionStore.SaveAsync(
-                session: session,
-                cancellationToken: cancellationToken);
+                IReadOnlyList<ClassicCitySetupSessionState> existingSessions = await sessionStore.ListOwnedAsync(
+                    ownerUserId: ownerUserId,
+                    cancellationToken: cancellationToken);
 
-            return MapToView(session);
+                ClassicCitySetupSessionState? reusableSession = FindReusableDraftCandidate(
+                    sessions: existingSessions,
+                    requestedReuseSignature: requestedReuseSignature,
+                    now: now);
+
+                if (reusableSession is not null)
+                    return MapToView(reusableSession);
+
+                var session = new ClassicCitySetupSessionState
+                {
+                    SessionId = Guid.NewGuid(),
+                    OwnerUserId = ownerUserId,
+                    ScenarioKind = "ClassicCity",
+                    Status = ClassicCitySetupSessionStatuses.Draft,
+                    CurrentStepId = normalizedStepId,
+                    CreatedAtUtc = now,
+                    UpdatedAtUtc = now
+                };
+                session.Draft = NormalizeDraft(
+                    draft: request.Draft,
+                    fallbackSeed: BuildDefaultGenerationSeed(session.SessionId));
+
+                await sessionStore.SaveAsync(
+                    session: session,
+                    cancellationToken: cancellationToken);
+
+                return MapToView(session);
+            }
+            finally
+            {
+                await TryReleaseCreateLockAsync(
+                    ownerUserId: ownerUserId,
+                    createLockHandle: createLockHandle,
+                    cancellationToken: cancellationToken);
+            }
         }
 
         public async Task<ClassicCitySetupSessionView?> GetAsync(
@@ -123,6 +168,47 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 : IsOwnedByCurrentUser(session)
                     ? MapToView(session)
                     : null;
+        }
+
+        public async Task<ClassicCitySetupSessionMutationResult> DeleteAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            return await ExecuteMutationAsync(
+                sessionId: sessionId,
+                unavailableFallbackMessage: "Setup session is temporarily unavailable for deletion.",
+                action: async () =>
+                {
+                    ClassicCitySetupSessionState? session = await sessionStore.GetAsync(
+                        sessionId: sessionId,
+                        cancellationToken: cancellationToken);
+
+                    if (session is null)
+                        return NotFound();
+
+                    if (!TryAttachOrValidateOwner(session))
+                        return NotFound();
+
+                    if (!MutableStatuses.Contains(
+                            value: session.Status,
+                            comparer: StringComparer.Ordinal))
+                        return Conflict(
+                            session: session,
+                            code: ClassicCitySetupSessionFailureCodes.InvalidLaunchState,
+                            message: "Only draft setup sessions can be deleted.");
+
+                    await sessionStore.DeleteAsync(
+                        sessionId: session.SessionId,
+                        ownerUserId: session.OwnerUserId,
+                        cancellationToken: cancellationToken);
+
+                    return new ClassicCitySetupSessionMutationResult(
+                        Status: ClassicCitySetupSessionMutationStatus.Updated,
+                        Session: null,
+                        ErrorCode: null,
+                        ErrorMessage: null);
+                },
+                cancellationToken: cancellationToken);
         }
 
         public async Task<ClassicCitySetupSessionMutationResult> UpdateAsync(
@@ -1324,6 +1410,49 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 CompletedAtUtc: session.CompletedAtUtc);
         }
 
+        private ClassicCitySetupSessionState? FindReusableDraftCandidate(
+            IReadOnlyList<ClassicCitySetupSessionState> sessions,
+            string requestedReuseSignature,
+            DateTimeOffset now)
+        {
+            TimeSpan reuseWindow = TimeSpan.FromSeconds(_options.RecentDraftReuseWindowSeconds);
+
+            return sessions.FirstOrDefault(session =>
+                string.Equals(
+                    a: session.Status,
+                    b: ClassicCitySetupSessionStatuses.Draft,
+                    comparisonType: StringComparison.Ordinal) &&
+                now - session.UpdatedAtUtc <= reuseWindow &&
+                string.Equals(
+                    a: BuildDraftReuseSignature(
+                        currentStepId: session.CurrentStepId,
+                        draft: session.Draft),
+                    b: requestedReuseSignature,
+                    comparisonType: StringComparison.Ordinal));
+        }
+
+        private static string BuildDraftReuseSignature(
+            string currentStepId,
+            ClassicCitySetupDraftDto draft)
+        {
+            ClassicCitySetupDraftDto normalizedDraft = NormalizeDraft(
+                draft: draft,
+                fallbackSeed: "reuse-seed");
+
+            ClassicCitySetupDraftDto reuseComparableDraft = normalizedDraft with
+            {
+                StartSimTimeLocal = string.Empty,
+                StartSimTimeUtc = null,
+                GenerationSeed = string.Empty
+            };
+
+            return JsonSerializer.Serialize(new
+            {
+                CurrentStepId = NormalizeStepId(currentStepId),
+                Draft = reuseComparableDraft
+            });
+        }
+
         private static ClassicCitySetupSessionMutationResult Updated(ClassicCitySetupSessionState session)
         {
             return new ClassicCitySetupSessionMutationResult(
@@ -1513,6 +1642,31 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                     exception: ex,
                     message: "Classic City setup session lock release failed for sessionId={SessionId}.",
                     sessionId);
+            }
+        }
+
+        private async Task TryReleaseCreateLockAsync(
+            Guid ownerUserId,
+            ClassicCitySetupSessionLockHandle? createLockHandle,
+            CancellationToken cancellationToken)
+        {
+            if (createLockHandle is null)
+                return;
+
+            try
+            {
+                await sessionStore.ReleaseCreateLockAsync(
+                    ownerUserId: ownerUserId,
+                    lockHandle: createLockHandle,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException ||
+                                       !cancellationToken.IsCancellationRequested)
+            {
+                logger.LogWarning(
+                    exception: ex,
+                    message: "Classic City setup session create-lock release failed for ownerUserId={OwnerUserId}.",
+                    ownerUserId);
             }
         }
     }

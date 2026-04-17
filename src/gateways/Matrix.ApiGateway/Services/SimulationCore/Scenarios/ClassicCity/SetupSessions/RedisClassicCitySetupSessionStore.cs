@@ -97,6 +97,32 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                .ToArray();
         }
 
+        public async Task DeleteAsync(
+            Guid sessionId,
+            Guid? ownerUserId,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await _distributedCache.RemoveAsync(
+                key: BuildCacheKey(sessionId),
+                token: cancellationToken);
+
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            string value = sessionId.ToString("D");
+
+            if (ownerUserId.HasValue)
+            {
+                await database.SetRemoveAsync(
+                    key: BuildOwnerIndexKey(ownerUserId.Value),
+                    value: value);
+            }
+
+            await database.SetRemoveAsync(
+                key: RecoveryIndexKey,
+                value: value);
+        }
+
         public Task SaveAsync(
             ClassicCitySetupSessionState session,
             CancellationToken cancellationToken = default)
@@ -115,33 +141,18 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             Guid sessionId,
             CancellationToken cancellationToken = default)
         {
-            IDatabase database = _connectionMultiplexer.GetDatabase();
-            string lockKey = BuildLockKey(sessionId);
-            string token = Guid.NewGuid()
-               .ToString("N");
-            var lease = TimeSpan.FromSeconds(_options.MutationLockLeaseSeconds);
-            DateTimeOffset deadline =
-                DateTimeOffset.UtcNow.AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
+            return await TryAcquireLockCoreAsync(
+                lockKey: BuildLockKey(sessionId),
+                cancellationToken: cancellationToken);
+        }
 
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                bool acquired = await database.LockTakeAsync(
-                    key: lockKey,
-                    value: token,
-                    expiry: lease);
-
-                if (acquired)
-                    return new ClassicCitySetupSessionLockHandle(token);
-
-                if (DateTimeOffset.UtcNow >= deadline)
-                    return null;
-
-                await Task.Delay(
-                    millisecondsDelay: _options.MutationLockRetryDelayMilliseconds,
-                    cancellationToken: cancellationToken);
-            }
+        public async Task<ClassicCitySetupSessionLockHandle?> TryAcquireCreateLockAsync(
+            Guid ownerUserId,
+            CancellationToken cancellationToken = default)
+        {
+            return await TryAcquireLockCoreAsync(
+                lockKey: BuildCreateLockKey(ownerUserId),
+                cancellationToken: cancellationToken);
         }
 
         public async Task ReleaseLockAsync(
@@ -149,12 +160,21 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             ClassicCitySetupSessionLockHandle lockHandle,
             CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            await ReleaseLockCoreAsync(
+                lockKey: BuildLockKey(sessionId),
+                lockHandle: lockHandle,
+                cancellationToken: cancellationToken);
+        }
 
-            IDatabase database = _connectionMultiplexer.GetDatabase();
-            await database.LockReleaseAsync(
-                key: BuildLockKey(sessionId),
-                value: lockHandle.Token);
+        public async Task ReleaseCreateLockAsync(
+            Guid ownerUserId,
+            ClassicCitySetupSessionLockHandle lockHandle,
+            CancellationToken cancellationToken = default)
+        {
+            await ReleaseLockCoreAsync(
+                lockKey: BuildCreateLockKey(ownerUserId),
+                lockHandle: lockHandle,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyList<Guid>> ListTrackedSessionIdsAsync(CancellationToken cancellationToken = default)
@@ -194,10 +214,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             await _distributedCache.SetStringAsync(
                 key: BuildCacheKey(session.SessionId),
                 value: payload,
-                options: new DistributedCacheEntryOptions
-                {
-                    SlidingExpiration = TimeSpan.FromHours(_options.CacheTtlHours)
-                },
+                options: BuildCacheEntryOptions(session.Status),
                 token: cancellationToken);
 
             IDatabase database = _connectionMultiplexer.GetDatabase();
@@ -220,12 +237,75 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                     value: value);
         }
 
+        private DistributedCacheEntryOptions BuildCacheEntryOptions(string status)
+        {
+            TimeSpan slidingExpiration = IsDraftStatus(status)
+                ? TimeSpan.FromMinutes(_options.DraftTtlMinutes)
+                : TimeSpan.FromHours(_options.CacheTtlHours);
+
+            return new DistributedCacheEntryOptions
+            {
+                SlidingExpiration = slidingExpiration
+            };
+        }
+
+        private static bool IsDraftStatus(string status)
+        {
+            return status is ClassicCitySetupSessionStatuses.Draft
+                or ClassicCitySetupSessionStatuses.LaunchFailed;
+        }
+
         private static bool ShouldTrackForRecovery(string status)
         {
             return status is ClassicCitySetupSessionStatuses.LaunchQueued
              or ClassicCitySetupSessionStatuses.CreatingCity
-             or ClassicCitySetupSessionStatuses.BootstrappingPopulation
-             or ClassicCitySetupSessionStatuses.ProvisioningFailed;
+               or ClassicCitySetupSessionStatuses.BootstrappingPopulation
+               or ClassicCitySetupSessionStatuses.ProvisioningFailed;
+        }
+
+        private async Task<ClassicCitySetupSessionLockHandle?> TryAcquireLockCoreAsync(
+            string lockKey,
+            CancellationToken cancellationToken)
+        {
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            string token = Guid.NewGuid()
+               .ToString("N");
+            var lease = TimeSpan.FromSeconds(_options.MutationLockLeaseSeconds);
+            DateTimeOffset deadline =
+                DateTimeOffset.UtcNow.AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
+
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                bool acquired = await database.LockTakeAsync(
+                    key: lockKey,
+                    value: token,
+                    expiry: lease);
+
+                if (acquired)
+                    return new ClassicCitySetupSessionLockHandle(token);
+
+                if (DateTimeOffset.UtcNow >= deadline)
+                    return null;
+
+                await Task.Delay(
+                    millisecondsDelay: _options.MutationLockRetryDelayMilliseconds,
+                    cancellationToken: cancellationToken);
+            }
+        }
+
+        private async Task ReleaseLockCoreAsync(
+            string lockKey,
+            ClassicCitySetupSessionLockHandle lockHandle,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            await database.LockReleaseAsync(
+                key: lockKey,
+                value: lockHandle.Token);
         }
 
         private static string BuildCacheKey(Guid sessionId)
@@ -241,6 +321,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         private static string BuildOwnerIndexKey(Guid ownerUserId)
         {
             return $"simulationcore:classic-city:setup-session:owner:{ownerUserId:D}";
+        }
+
+        private static string BuildCreateLockKey(Guid ownerUserId)
+        {
+            return $"simulationcore:classic-city:setup-session:create-lock:{ownerUserId:D}";
         }
     }
 }
