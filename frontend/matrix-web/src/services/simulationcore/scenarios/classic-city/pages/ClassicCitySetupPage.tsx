@@ -273,6 +273,10 @@ function getStepIndex(stepId: ClassicCitySetupStepId): number {
     return Math.max(0, setupSteps.findIndex((step) => step.id === stepId));
 }
 
+function hasReachedStep(currentStepIndex: number, stepId: ClassicCitySetupStepId): boolean {
+    return currentStepIndex >= getStepIndex(stepId);
+}
+
 function formatUtcOffset(minutesText: string): string {
     const minutes = Number(minutesText);
     if (!Number.isFinite(minutes)) {
@@ -650,6 +654,9 @@ export default function ClassicCitySetupPage() {
     const cityFormPreset = inferCityFormPreset(draft);
     const economyProfileOption = getEconomyProfileOption(draft.economyProfile);
     const showAdvancedProfile = isAdvancedProfileOpen || cityFormPreset === "Custom";
+    const hasProfileSummary = hasReachedStep(currentStepIndex, "profile");
+    const hasEnvironmentSummary = hasReachedStep(currentStepIndex, "environment");
+    const hasPopulationSummary = hasReachedStep(currentStepIndex, "population");
     const sessionStatusLabel = formatSessionStatusLabel(session?.status);
     const sessionStatusTone = getSessionStatusTone(session?.status);
     const canEditSession = isMutableSessionStatus(session?.status);
@@ -1691,27 +1698,43 @@ export default function ClassicCitySetupPage() {
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Profile</span>
-                                <strong>{getCityFormPresetLabel(cityFormPreset)}</strong>
-                                <span>{getCityFormDescription(draft)}</span>
+                                <strong>{hasProfileSummary ? getCityFormPresetLabel(cityFormPreset) : "Not configured yet"}</strong>
+                                <span>
+                                    {hasProfileSummary
+                                        ? getCityFormDescription(draft)
+                                        : "City form, launch timeline, generation seed, and economy stay neutral until the profile step is completed."}
+                                </span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Environment</span>
-                                <strong>{draft.climateZone} / {draft.hemisphere}</strong>
-                                <span>{getInitialWeatherPlanLabel(draft)}</span>
+                                <strong>{hasEnvironmentSummary ? `${draft.climateZone} / ${draft.hemisphere}` : "Not configured yet"}</strong>
+                                <span>
+                                    {hasEnvironmentSummary
+                                        ? getInitialWeatherPlanLabel(draft)
+                                        : "Climate, hemisphere, UTC offset, and initial weather are only confirmed on the environment step."}
+                                </span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Population</span>
-                                <strong>{getPopulationPlanLabel(draft, resolvedPopulationTarget)}</strong>
-                                <span>{getPopulationPlanDescription(draft, resolvedPopulationTarget)}</span>
+                                <strong>{hasPopulationSummary ? getPopulationPlanLabel(draft, resolvedPopulationTarget) : "Not configured yet"}</strong>
+                                <span>
+                                    {hasPopulationSummary
+                                        ? getPopulationPlanDescription(draft, resolvedPopulationTarget)
+                                        : "Headcount target, occupancy pressure, and housing preview appear after the population step is configured."}
+                                </span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Economy</span>
-                                <strong>{economyProfileOption.label}</strong>
-                                <span>{economyProfileOption.description}</span>
+                                <strong>{hasProfileSummary ? economyProfileOption.label : "Not configured yet"}</strong>
+                                <span>
+                                    {hasProfileSummary
+                                        ? economyProfileOption.description
+                                        : "Economy baseline is chosen together with the city profile instead of being assumed up front."}
+                                </span>
                             </div>
                             <div className="scenario-setup__aside-item">
                                 <span>Clock</span>
-                                <strong>{draft.speedMultiplier}x at {formatUtcOffset(draft.utcOffsetMinutes)}</strong>
+                                <strong>{hasProfileSummary ? `${draft.speedMultiplier}x at ${formatUtcOffset(draft.utcOffsetMinutes)}` : "Not configured yet"}</strong>
                             </div>
                         </div>
                     </div>
