@@ -20,6 +20,127 @@
     justify-content: center;
 }
 
+.mx-admin-users__overview {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+    gap: 18px;
+    margin-bottom: 16px;
+    padding: 18px;
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.2));
+    background:
+        radial-gradient(circle at top right, rgba(var(--shell-accent-rgb), 0.14), transparent 36%),
+        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    overflow: hidden;
+}
+
+.mx-admin-users__overview::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(120deg, transparent 12%, rgba(255, 255, 255, 0.05) 44%, transparent 70%),
+        linear-gradient(rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px);
+    background-size: auto, 16px 16px, 16px 16px;
+    pointer-events: none;
+}
+
+.mx-admin-users__overviewHero,
+.mx-admin-users__overviewStats {
+    position: relative;
+    z-index: 1;
+}
+
+.mx-admin-users__overviewHero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+.mx-admin-users__overviewEyebrow {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--app-text-muted);
+}
+
+.mx-admin-users__overviewTitle {
+    font-size: clamp(1.35rem, 2vw, 1.9rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--app-text-strong);
+}
+
+.mx-admin-users__overviewText {
+    max-width: 60ch;
+    color: color-mix(in srgb, var(--app-text) 84%, transparent);
+    line-height: 1.58;
+}
+
+.mx-admin-users__overviewStats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mx-admin-users__overviewStat {
+    padding: 14px 15px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.14));
+    background:
+        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 18px 28px rgba(0, 0, 0, 0.12);
+}
+
+.mx-admin-users__overviewValue {
+    display: block;
+    font-size: 1.42rem;
+    font-weight: 900;
+    color: var(--app-text-strong);
+}
+
+.mx-admin-users__overviewLabel {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--app-text-muted);
+}
+
+.mx-admin-users__deckMeta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.mx-admin-users__deckPill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.16));
+    background: color-mix(in srgb, var(--settings-card-bg) 90%, white 10%);
+    color: var(--app-text-muted);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.mx-admin-users__deckPill--live {
+    color: color-mix(in srgb, var(--shell-accent) 70%, var(--app-text));
+    border-color: rgba(var(--shell-accent-rgb), 0.24);
+    background: rgba(var(--shell-accent-rgb), 0.08);
+}
+
 .mx-admin-users__grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -27,17 +148,49 @@
 }
 
 .mx-admin-users__card {
-    background: var(--settings-card-bg);
-    border: 1px solid var(--settings-card-border);
-    border-radius: 16px;
+    position: relative;
+    background:
+        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.12));
+    border-radius: 20px;
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    box-shadow: var(--shell-shadow-soft);
+    box-shadow:
+        var(--shell-shadow-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+}
+
+.mx-admin-users__card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 12%, rgba(255, 255, 255, 0.05) 42%, transparent 68%);
+    opacity: 0.58;
+    pointer-events: none;
+}
+
+.mx-admin-users__card.is-locked {
+    border-color: rgba(247, 220, 111, 0.26);
+    box-shadow:
+        var(--shell-shadow-soft),
+        0 0 0 1px rgba(247, 220, 111, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.mx-admin-users__card.is-deleted {
+    border-color: rgba(255, 156, 156, 0.26);
+    box-shadow:
+        var(--shell-shadow-soft),
+        0 0 0 1px rgba(255, 156, 156, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .mx-admin-users__cardTop {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 12px;
@@ -88,7 +241,52 @@
     gap: 8px;
 }
 
+.mx-admin-users__signalRow {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mx-admin-users__signalTrack {
+    flex: 1 1 auto;
+    height: 7px;
+    border-radius: 999px;
+    background:
+        linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.32), rgba(var(--shell-accent-rgb), 0.08));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.mx-admin-users__signalPulse {
+    inline-size: 10px;
+    block-size: 10px;
+    border-radius: 999px;
+    background: rgba(var(--shell-accent-rgb), 0.9);
+    box-shadow: 0 0 14px rgba(var(--shell-accent-rgb), 0.28);
+}
+
+.mx-admin-users__card.is-locked .mx-admin-users__signalTrack {
+    background: linear-gradient(90deg, rgba(247, 220, 111, 0.3), rgba(247, 220, 111, 0.08));
+}
+
+.mx-admin-users__card.is-locked .mx-admin-users__signalPulse {
+    background: rgba(247, 220, 111, 0.84);
+    box-shadow: 0 0 14px rgba(247, 220, 111, 0.24);
+}
+
+.mx-admin-users__card.is-deleted .mx-admin-users__signalTrack {
+    background: linear-gradient(90deg, rgba(255, 156, 156, 0.3), rgba(255, 156, 156, 0.08));
+}
+
+.mx-admin-users__card.is-deleted .mx-admin-users__signalPulse {
+    background: rgba(255, 156, 156, 0.84);
+    box-shadow: 0 0 14px rgba(255, 156, 156, 0.24);
+}
+
 .mx-admin-users__cardRow {
+    position: relative;
+    z-index: 1;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -121,6 +319,8 @@
 }
 
 .mx-admin-users__actions {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -317,7 +517,7 @@
 
 .mx-admin-users__permissionSectionTitle::after,
 .mx-admin-users__permissionGroupTitle::after {
-    content: "▾";
+    content: "v";
     font-size: 12px;
     color: var(--app-text-muted);
     transition: transform 0.14s ease;
@@ -395,6 +595,14 @@
 }
 
 @media (max-width: 768px) {
+    .mx-admin-users__overview {
+        grid-template-columns: 1fr;
+    }
+
+    .mx-admin-users__overviewStats {
+        grid-template-columns: 1fr 1fr;
+    }
+
     .mx-admin-users__pager {
         flex-direction: column;
         align-items: flex-start;

@@ -26,6 +26,11 @@ export default function AdminUsersPage() {
         restore,
     } = useAdminUsers();
 
+    const activeCount = items.filter((user) => !user.isDeleted).length;
+    const lockedCount = items.filter((user) => user.isLocked).length;
+    const deletedCount = items.filter((user) => user.isDeleted).length;
+    const emailPendingCount = items.filter((user) => !user.isEmailConfirmed).length;
+
     return (
         <div className="mx-admin-page">
             <Card
@@ -60,6 +65,70 @@ export default function AdminUsersPage() {
                     </div>
                 ) : null}
 
+                <div className="mx-admin-users__overview">
+                    <div className="mx-admin-users__overviewHero">
+                        <div className="mx-admin-users__overviewEyebrow">
+                            Identity directory
+                        </div>
+                        <div className="mx-admin-users__overviewTitle">
+                            Access watch across live accounts
+                        </div>
+                        <div className="mx-admin-users__overviewText">
+                            Review account posture, access drift and recovery actions
+                            from one lane before drilling into per-user overrides.
+                        </div>
+                    </div>
+
+                    <div className="mx-admin-users__overviewStats">
+                        <div className="mx-admin-users__overviewStat">
+                            <span className="mx-admin-users__overviewValue">
+                                {data?.totalCount ?? items.length}
+                            </span>
+                            <span className="mx-admin-users__overviewLabel">
+                                Total users
+                            </span>
+                        </div>
+                        <div className="mx-admin-users__overviewStat">
+                            <span className="mx-admin-users__overviewValue">
+                                {activeCount}
+                            </span>
+                            <span className="mx-admin-users__overviewLabel">
+                                Active on page
+                            </span>
+                        </div>
+                        <div className="mx-admin-users__overviewStat">
+                            <span className="mx-admin-users__overviewValue">
+                                {lockedCount}
+                            </span>
+                            <span className="mx-admin-users__overviewLabel">
+                                Locked
+                            </span>
+                        </div>
+                        <div className="mx-admin-users__overviewStat">
+                            <span className="mx-admin-users__overviewValue">
+                                {emailPendingCount}
+                            </span>
+                            <span className="mx-admin-users__overviewLabel">
+                                Email pending
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mx-admin-users__deckMeta">
+                    <span className="mx-admin-users__deckPill">
+                        Page {pageNumber} / {totalPages}
+                    </span>
+                    <span className="mx-admin-users__deckPill">
+                        {deletedCount} deleted on page
+                    </span>
+                    {isLoading && items.length > 0 ? (
+                        <span className="mx-admin-users__deckPill mx-admin-users__deckPill--live">
+                            Refreshing roster
+                        </span>
+                    ) : null}
+                </div>
+
                 <div className="mx-admin-users__grid" role="list">
                     {items.map((user) => (
                         <UserCard
@@ -76,7 +145,7 @@ export default function AdminUsersPage() {
                 {data ? (
                     <div className="mx-admin-users__pager">
                         <div className="mx-admin-users__muted">
-                            Page <b>{pageNumber}</b> / {totalPages} • {data.totalCount} total
+                            Page <b>{pageNumber}</b> / {totalPages} - {data.totalCount} total
                         </div>
                         <Pagination
                             page={pageNumber}

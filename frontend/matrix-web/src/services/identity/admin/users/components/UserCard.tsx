@@ -13,12 +13,12 @@ import {
 import UserBadge from "./UserBadge";
 
 export default function UserCard({
-                                     user,
-                                     onOpenAccess,
-                                     onToggleLock,
-                                     onRestore,
-                                     isLoading,
-                                 }: {
+    user,
+    onOpenAccess,
+    onToggleLock,
+    onRestore,
+    isLoading,
+}: {
     user: UserListItemResponse;
     onOpenAccess: (id: string) => void;
     onToggleLock: (user: UserListItemResponse) => void;
@@ -40,7 +40,16 @@ export default function UserCard({
             : "Lock";
 
     return (
-        <div className="mx-admin-users__card" role="listitem">
+        <div
+            className={`mx-admin-users__card${
+                user.isDeleted
+                    ? " is-deleted"
+                    : user.isLocked
+                        ? " is-locked"
+                        : ""
+            }`}
+            role="listitem"
+        >
             <div className="mx-admin-users__cardTop">
                 <div className="mx-admin-users__avatar">
                     {avatarUrl ? (
@@ -72,6 +81,11 @@ export default function UserCard({
                         <UserBadge kind="warn">Email pending</UserBadge>
                     )}
                 </div>
+            </div>
+
+            <div className="mx-admin-users__signalRow" aria-hidden="true">
+                <span className="mx-admin-users__signalTrack"/>
+                <span className="mx-admin-users__signalPulse"/>
             </div>
 
             <div className="mx-admin-users__cardRow">

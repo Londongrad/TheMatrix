@@ -28,6 +28,8 @@ export default function AdminRolesPage() {
     const confirm = useConfirm();
 
     const {loading, error, roles, setLoading, setError, load} = useAdminRoles();
+    const systemRolesCount = roles.filter((role) => role.isSystem).length;
+    const customRolesCount = roles.filter((role) => !role.isSystem).length;
 
     const handleDelete = async (role: RoleResponse) => {
         const accepted = await confirm({
@@ -91,6 +93,49 @@ export default function AdminRolesPage() {
                         <LoadingIndicator label="Loading roles"/>
                     </div>
                 ) : null}
+
+                <div className="mx-admin-roles__overview">
+                    <div className="mx-admin-roles__overviewHero">
+                        <div className="mx-admin-roles__overviewEyebrow">
+                            Role lattice
+                        </div>
+                        <div className="mx-admin-roles__overviewTitle">
+                            Shape access groups without losing the seeded system frame
+                        </div>
+                        <div className="mx-admin-roles__overviewText">
+                            System roles stay anchored as immutable blueprints while
+                            custom roles become the mutable control layer for member
+                            access.
+                        </div>
+                    </div>
+
+                    <div className="mx-admin-roles__overviewStats">
+                        <div className="mx-admin-roles__overviewStat">
+                            <span className="mx-admin-roles__overviewValue">
+                                {roles.length}
+                            </span>
+                            <span className="mx-admin-roles__overviewLabel">
+                                Visible roles
+                            </span>
+                        </div>
+                        <div className="mx-admin-roles__overviewStat">
+                            <span className="mx-admin-roles__overviewValue">
+                                {systemRolesCount}
+                            </span>
+                            <span className="mx-admin-roles__overviewLabel">
+                                System roles
+                            </span>
+                        </div>
+                        <div className="mx-admin-roles__overviewStat">
+                            <span className="mx-admin-roles__overviewValue">
+                                {customRolesCount}
+                            </span>
+                            <span className="mx-admin-roles__overviewLabel">
+                                Custom roles
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
                 <div className="mx-admin-roles__list">
                     {roles.map((role) => (

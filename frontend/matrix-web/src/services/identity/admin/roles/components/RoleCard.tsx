@@ -4,13 +4,13 @@ import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 
 export default function RoleCard({
-                                     role,
-                                     isDeleting = false,
-                                     onMembers,
-                                     onPermissions,
-                                     onRename,
-                                     onDelete,
-                                 }: {
+    role,
+    isDeleting = false,
+    onMembers,
+    onPermissions,
+    onRename,
+    onDelete,
+}: {
     role: RoleResponse;
     isDeleting?: boolean;
     onMembers: (role: RoleResponse) => void;
@@ -27,7 +27,17 @@ export default function RoleCard({
             }
         >
             <div className="mx-admin-roles__head">
-                <div className="mx-admin-roles__name">{role.name}</div>
+                <div className="mx-admin-roles__identity">
+                    <span className="mx-admin-roles__glyph" aria-hidden="true">
+                        {role.name.charAt(0).toUpperCase()}
+                    </span>
+                    <div className="mx-admin-roles__identityCopy">
+                        <div className="mx-admin-roles__name">{role.name}</div>
+                        <div className="mx-admin-roles__type">
+                            {role.isSystem ? "System blueprint" : "Mutable access group"}
+                        </div>
+                    </div>
+                </div>
                 <div className="mx-admin-roles__chips">
                     {role.isSystem ? (
                         <span className="mx-admin-roles__chip">System</span>
@@ -46,10 +56,10 @@ export default function RoleCard({
 
             <div className="mx-admin-roles__meta">
                 <span className="mx-admin-roles__mono">{role.id}</span>
-                <span className="mx-admin-roles__muted">•</span>
+                <span className="mx-admin-roles__muted">-</span>
                 <span className="mx-admin-roles__muted">
-          {role.createdAtUtc.replace("T", " ").replace("Z", "")}
-        </span>
+                    {role.createdAtUtc.replace("T", " ").replace("Z", "")}
+                </span>
             </div>
 
             {isDeleting ? (
