@@ -88,6 +88,34 @@
     color: var(--app-text);
 }
 
+.mx-admin-roles__input:disabled {
+    opacity: 0.72;
+    cursor: wait;
+}
+
+.mx-admin-roles__hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--app-text-muted);
+    letter-spacing: 0.02em;
+}
+
+.mx-admin-roles__submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mx-admin-roles__submitSpinner {
+    inline-size: 14px;
+    block-size: 14px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 0 12px rgba(var(--shell-accent-rgb), 0.28);
+    animation: mx-admin-roles-spin 0.8s linear infinite;
+}
+
 .mx-admin-roles__members {
     display: grid;
     gap: 12px;
@@ -189,5 +217,11 @@
 
     .mx-admin-roles__permissionRow {
         grid-template-columns: 1fr;
+    }
+}
+
+@keyframes mx-admin-roles-spin {
+    to {
+        transform: rotate(360deg);
     }
 }

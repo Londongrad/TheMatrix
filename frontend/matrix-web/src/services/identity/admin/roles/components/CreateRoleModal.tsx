@@ -13,16 +13,17 @@ export default function CreateRoleModal({
     const [name, setName] = useState("");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const trimmedName = name.trim();
 
     const submit = async () => {
-        if (!name.trim()) {
+        if (!trimmedName) {
             setError("Role name is required");
             return;
         }
         setSaving(true);
         setError(null);
         try {
-            await createRole({name: name.trim()});
+            await createRole({name: trimmedName});
             await onCreated();
             onClose();
         } catch (error: any) {
@@ -37,12 +38,29 @@ export default function CreateRoleModal({
         <Modal
             open
             title="Create role"
-            onClose={onClose}
+            onClose={() => {
+                if (!saving) onClose();
+            }}
             footer={
                 <>
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button variant="primary" onClick={submit} disabled={saving}>
-                        Create
+                    <Button onClick={onClose} disabled={saving}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={submit}
+                        disabled={saving || !trimmedName}
+                        aria-busy={saving}
+                    >
+                        <span className="mx-admin-roles__submit">
+                            {saving ? (
+                                <span
+                                    className="mx-admin-roles__submitSpinner"
+                                    aria-hidden="true"
+                                />
+                            ) : null}
+                            <span>{saving ? "Creating role..." : "Create"}</span>
+                        </span>
                     </Button>
                 </>
             }
@@ -54,8 +72,15 @@ export default function CreateRoleModal({
                     className="mx-admin-roles__input"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
+                    disabled={saving}
+                    aria-disabled={saving}
                 />
             </label>
+            <div className="mx-admin-roles__hint" aria-live="polite">
+                {saving
+                    ? "Applying the role to the directory baseline..."
+                    : "The new role will appear as soon as the request completes."}
+            </div>
         </Modal>
     );
 }
