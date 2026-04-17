@@ -19,21 +19,143 @@
     padding: 18px 0;
 }
 
+.mx-admin-perm__overview {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+    gap: 18px;
+    margin-bottom: 18px;
+    padding: 18px;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.24));
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.16), transparent 34%),
+        linear-gradient(145deg, color-mix(in srgb, var(--settings-card-bg) 92%, white 8%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    overflow: hidden;
+}
+
+.mx-admin-perm__overview::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(115deg, transparent 16%, rgba(255, 255, 255, 0.06) 38%, transparent 62%),
+        linear-gradient(rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--shell-accent-rgb), 0.04) 1px, transparent 1px);
+    background-size: auto, 18px 18px, 18px 18px;
+    opacity: 0.78;
+    pointer-events: none;
+}
+
+.mx-admin-perm__overviewHero,
+.mx-admin-perm__overviewStats {
+    position: relative;
+    z-index: 1;
+}
+
+.mx-admin-perm__overviewHero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    min-height: 172px;
+}
+
+.mx-admin-perm__overviewEyebrow {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--app-text-muted) 82%, transparent);
+}
+
+.mx-admin-perm__overviewTitle {
+    font-size: clamp(1.35rem, 2vw, 1.95rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--app-text-strong);
+}
+
+.mx-admin-perm__overviewText {
+    max-width: 64ch;
+    color: color-mix(in srgb, var(--app-text) 84%, transparent);
+    line-height: 1.62;
+}
+
+.mx-admin-perm__overviewStats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mx-admin-perm__overviewStat {
+    position: relative;
+    padding: 14px 15px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 82%, rgba(var(--shell-accent-rgb), 0.18));
+    background:
+        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 94%, white 6%), color-mix(in srgb, var(--settings-card-bg) 88%, black 12%));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 32px rgba(0, 0, 0, 0.12);
+}
+
+.mx-admin-perm__overviewStat::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+}
+
+.mx-admin-perm__overviewStatValue {
+    display: block;
+    font-size: 1.45rem;
+    font-weight: 900;
+    color: var(--app-text-strong);
+}
+
+.mx-admin-perm__overviewStatLabel {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--app-text-muted);
+}
+
 .mx-admin-perm__layout {
     display: grid;
     grid-template-columns: 320px 1fr;
-    gap: 12px;
+    gap: 16px;
 }
 
 .mx-admin-perm__roles,
 .mx-admin-perm__matrix {
-    border: 1px solid var(--settings-card-border);
-    border-radius: 14px;
-    background: var(--settings-card-bg);
+    position: relative;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 86%, rgba(var(--shell-accent-rgb), 0.12));
+    border-radius: 22px;
+    background:
+        linear-gradient(155deg, color-mix(in srgb, var(--settings-card-bg) 95%, white 5%), color-mix(in srgb, var(--settings-card-bg) 90%, black 10%));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 20px 34px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+}
+
+.mx-admin-perm__roles::before,
+.mx-admin-perm__matrix::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.04) 46%, transparent 72%);
+    opacity: 0.7;
+    pointer-events: none;
 }
 
 .mx-admin-perm__roles {
-    padding: 12px;
+    padding: 14px;
 }
 
 .mx-admin-perm__sideTitle {
@@ -51,34 +173,60 @@
 }
 
 .mx-admin-perm__roleBtn {
+    position: relative;
     text-align: left;
-    border-radius: 12px;
-    border: 1px solid var(--settings-card-border);
-    background: color-mix(in srgb, var(--settings-card-bg) 84%, white 16%);
-    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.1));
+    background:
+        linear-gradient(145deg, color-mix(in srgb, var(--settings-card-bg) 90%, white 10%), color-mix(in srgb, var(--settings-card-bg) 86%, black 14%));
+    padding: 12px 13px;
     color: var(--app-text);
     cursor: pointer;
     transition: transform 0.14s ease,
     border-color 0.14s ease,
-    box-shadow 0.14s ease;
+    box-shadow 0.14s ease,
+    background 0.14s ease;
+    overflow: hidden;
+}
+
+.mx-admin-perm__roleBtn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 12%, rgba(255, 255, 255, 0.06) 42%, transparent 68%);
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
 }
 
 .mx-admin-perm__roleBtn:hover {
-    transform: translateY(-1px);
-    border-color: var(--shell-border-strong);
-    box-shadow: 0 0 18px rgba(var(--shell-accent-rgb), 0.08);
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--shell-border-strong) 72%, rgba(var(--shell-accent-rgb), 0.24));
+    box-shadow:
+        0 18px 28px rgba(0, 0, 0, 0.14),
+        0 0 28px rgba(var(--shell-accent-rgb), 0.1);
+}
+
+.mx-admin-perm__roleBtn:hover::after,
+.mx-admin-perm__roleBtn.is-active::after {
+    opacity: 1;
 }
 
 .mx-admin-perm__roleBtn.is-active {
-    background: rgba(var(--shell-accent-rgb), 0.08);
-    border-color: rgba(var(--shell-accent-rgb), 0.32);
+    background:
+        radial-gradient(circle at top left, rgba(var(--shell-accent-rgb), 0.16), transparent 55%),
+        linear-gradient(145deg, color-mix(in srgb, var(--settings-card-bg) 88%, white 12%), color-mix(in srgb, var(--settings-card-bg) 84%, black 16%));
+    border-color: rgba(var(--shell-accent-rgb), 0.34);
+    box-shadow:
+        0 18px 28px rgba(0, 0, 0, 0.14),
+        0 0 0 1px rgba(var(--shell-accent-rgb), 0.14);
 }
 
 .mx-admin-perm__roleBtn.is-baseline {
     background: linear-gradient(
         135deg,
-        rgba(var(--shell-accent-rgb), 0.12),
-        color-mix(in srgb, var(--settings-card-bg) 84%, white 16%)
+        rgba(var(--shell-accent-rgb), 0.14),
+        color-mix(in srgb, var(--settings-card-bg) 88%, white 12%)
     );
 }
 
@@ -89,8 +237,42 @@
     gap: 10px;
 }
 
+.mx-admin-perm__roleNameWrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.mx-admin-perm__roleGlyph {
+    flex: 0 0 auto;
+    inline-size: 28px;
+    block-size: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.14);
+    background: rgba(var(--shell-accent-rgb), 0.1);
+    color: color-mix(in srgb, var(--shell-accent) 76%, white 24%);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.mx-admin-perm__roleGlyph--baseline {
+    background:
+        linear-gradient(145deg, rgba(var(--shell-accent-rgb), 0.22), rgba(var(--shell-accent-rgb), 0.08));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 18px rgba(var(--shell-accent-rgb), 0.12);
+}
+
 .mx-admin-perm__roleName {
     font-weight: 900;
+    min-width: 0;
 }
 
 .mx-admin-perm__roleLock {
@@ -114,9 +296,13 @@
 }
 
 .mx-admin-perm__matrixHead {
-    padding: 12px;
-    border-bottom: 1px solid var(--settings-card-border);
-    background: color-mix(in srgb, var(--settings-card-bg) 88%, black 12%);
+    position: relative;
+    z-index: 1;
+    padding: 14px 16px;
+    border-bottom: 1px solid color-mix(in srgb, var(--settings-card-border) 88%, rgba(var(--shell-accent-rgb), 0.08));
+    background:
+        radial-gradient(circle at top right, rgba(var(--shell-accent-rgb), 0.08), transparent 36%),
+        color-mix(in srgb, var(--settings-card-bg) 88%, black 12%);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -133,6 +319,21 @@
     justify-content: flex-end;
     gap: 10px;
     flex-wrap: wrap;
+}
+
+.mx-admin-perm__matrixMetric {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--shell-accent-rgb), 0.2);
+    background: rgba(var(--shell-accent-rgb), 0.08);
+    color: color-mix(in srgb, var(--shell-accent) 70%, var(--app-text));
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .mx-admin-perm__matrixSub {
@@ -182,6 +383,11 @@
 .mx-admin-perm__scopeVersion--dirty {
     border-color: rgba(var(--shell-accent-rgb), 0.34);
     color: var(--app-text);
+}
+
+.mx-admin-perm__scopeVersion--live {
+    border-color: rgba(var(--shell-accent-rgb), 0.24);
+    color: color-mix(in srgb, var(--shell-accent) 70%, var(--app-text));
 }
 
 .mx-admin-perm__scopeNote {
@@ -263,7 +469,9 @@
 }
 
 .mx-admin-perm__groups {
-    padding: 12px;
+    position: relative;
+    z-index: 1;
+    padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -272,8 +480,9 @@
 .mx-admin-perm__section,
 .mx-admin-perm__group {
     border: 1px solid var(--settings-card-border);
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--settings-card-bg) 88%, white 12%);
+    border-radius: 18px;
+    background:
+        linear-gradient(145deg, color-mix(in srgb, var(--settings-card-bg) 90%, white 10%), color-mix(in srgb, var(--settings-card-bg) 86%, black 14%));
     overflow: hidden;
 }
 
@@ -331,10 +540,12 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px;
     align-items: start;
-    padding: 10px 10px;
-    border-radius: 12px;
-    border: 1px solid var(--settings-card-border);
-    background: color-mix(in srgb, var(--settings-card-bg) 82%, black 18%);
+    padding: 12px;
+    border-radius: 15px;
+    border: 1px solid color-mix(in srgb, var(--settings-card-border) 84%, rgba(var(--shell-accent-rgb), 0.08));
+    background:
+        linear-gradient(145deg, color-mix(in srgb, var(--settings-card-bg) 88%, white 12%), color-mix(in srgb, var(--settings-card-bg) 82%, black 18%));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .mx-admin-perm__row--readonly {
@@ -456,6 +667,10 @@
 }
 
 @media (max-width: 1060px) {
+    .mx-admin-perm__overview {
+        grid-template-columns: 1fr;
+    }
+
     .mx-admin-perm__layout {
         grid-template-columns: 1fr;
     }
@@ -474,6 +689,10 @@
 }
 
 @media (max-width: 760px) {
+    .mx-admin-perm__overviewStats {
+        grid-template-columns: 1fr;
+    }
+
     .mx-admin-perm__row {
         grid-template-columns: 1fr;
     }

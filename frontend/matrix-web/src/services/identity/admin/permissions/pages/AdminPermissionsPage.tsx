@@ -28,6 +28,18 @@ export default function AdminPermissionsPage() {
         saveChanges,
     } = useAdminPermissions();
 
+    const editableScopesCount = scopes.filter((scope) => scope.editable).length;
+    const activeGrantedCount = rolePermissions.size;
+    const permissionsCount = grouped.reduce(
+        (sectionTotal, section) =>
+            sectionTotal +
+            section.groups.reduce(
+                (groupTotal, group) => groupTotal + group.items.length,
+                0,
+            ),
+        0,
+    );
+
     return (
         <div className="mx-admin-page">
             <Card
@@ -80,6 +92,59 @@ export default function AdminPermissionsPage() {
                         <LoadingIndicator label="Loading permission scopes"/>
                     </div>
                 ) : null}
+
+                <div className="mx-admin-perm__overview">
+                    <div className="mx-admin-perm__overviewHero">
+                        <div className="mx-admin-perm__overviewEyebrow">
+                            Identity watchboard
+                        </div>
+                        <div className="mx-admin-perm__overviewTitle">
+                            {activeScope
+                                ? `Inspecting ${activeScope.name}`
+                                : "Select a permission scope"}
+                        </div>
+                        <div className="mx-admin-perm__overviewText">
+                            {activeScope?.editable
+                                ? "Mutable scopes can be tuned live. The matrix below becomes the operational baseline for future authorization snapshots."
+                                : "Read-only scopes stay visible as system blueprints so you can compare seeded grants against the mutable user baseline."}
+                        </div>
+                    </div>
+
+                    <div className="mx-admin-perm__overviewStats">
+                        <div className="mx-admin-perm__overviewStat">
+                            <span className="mx-admin-perm__overviewStatValue">
+                                {scopes.length}
+                            </span>
+                            <span className="mx-admin-perm__overviewStatLabel">
+                                Total scopes
+                            </span>
+                        </div>
+                        <div className="mx-admin-perm__overviewStat">
+                            <span className="mx-admin-perm__overviewStatValue">
+                                {editableScopesCount}
+                            </span>
+                            <span className="mx-admin-perm__overviewStatLabel">
+                                Mutable scopes
+                            </span>
+                        </div>
+                        <div className="mx-admin-perm__overviewStat">
+                            <span className="mx-admin-perm__overviewStatValue">
+                                {permissionsCount}
+                            </span>
+                            <span className="mx-admin-perm__overviewStatLabel">
+                                Catalog permissions
+                            </span>
+                        </div>
+                        <div className="mx-admin-perm__overviewStat">
+                            <span className="mx-admin-perm__overviewStatValue">
+                                {activeGrantedCount}
+                            </span>
+                            <span className="mx-admin-perm__overviewStatLabel">
+                                Active grants
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
                 <div className="mx-admin-perm__layout">
                     <RoleList

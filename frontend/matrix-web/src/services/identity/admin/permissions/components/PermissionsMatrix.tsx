@@ -149,6 +149,11 @@ export default function PermissionsMatrix({
                     </div>
                 </div>
                 <div className="mx-admin-perm__matrixActions">
+                    {activeScope ? (
+                        <span className="mx-admin-perm__matrixMetric">
+                            {rolePermissions.size} grant{rolePermissions.size === 1 ? "" : "s"}
+                        </span>
+                    ) : null}
                     <Button onClick={toggleAll} disabled={grouped.length === 0}>
                         {anyExpanded ? "Collapse all" : "Expand all"}
                     </Button>
@@ -187,6 +192,11 @@ export default function PermissionsMatrix({
                         {dirty ? (
                             <span className="mx-admin-perm__scopeVersion mx-admin-perm__scopeVersion--dirty">
                                 Unsaved
+                            </span>
+                        ) : null}
+                        {activeScope.editable ? (
+                            <span className="mx-admin-perm__scopeVersion mx-admin-perm__scopeVersion--live">
+                                Live editable
                             </span>
                         ) : null}
                     </div>
