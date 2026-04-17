@@ -4,6 +4,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 {
     public interface IClassicCitySetupSessionService
     {
+        Task<IReadOnlyList<ClassicCitySetupSessionView>> ListDraftsAsync(
+            CancellationToken cancellationToken = default);
+
         Task<ClassicCitySetupSessionView> CreateAsync(
             CreateClassicCitySetupSessionRequestDto request,
             CancellationToken cancellationToken = default);

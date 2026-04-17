@@ -2,6 +2,10 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 {
     public interface IClassicCitySetupSessionStore
     {
+        Task<IReadOnlyList<ClassicCitySetupSessionState>> ListOwnedAsync(
+            Guid ownerUserId,
+            CancellationToken cancellationToken = default);
+
         Task<ClassicCitySetupSessionState?> GetAsync(
             Guid sessionId,
             CancellationToken cancellationToken = default);

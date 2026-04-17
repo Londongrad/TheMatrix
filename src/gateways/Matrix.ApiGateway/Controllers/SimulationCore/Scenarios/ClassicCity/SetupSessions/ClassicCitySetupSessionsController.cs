@@ -11,6 +11,16 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Set
     public sealed class ClassicCitySetupSessionsController(IClassicCitySetupSessionService setupSessionService)
         : ControllerBase
     {
+        [HttpGet]
+        public async Task<ActionResult<IReadOnlyList<ClassicCitySetupSessionView>>> ListDrafts(
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<ClassicCitySetupSessionView> sessions = await setupSessionService.ListDraftsAsync(
+                cancellationToken: cancellationToken);
+
+            return Ok(sessions);
+        }
+
         [HttpPost]
         public async Task<ActionResult<ClassicCitySetupSessionView>> Create(
             [FromBody] CreateClassicCitySetupSessionRequestDto request,

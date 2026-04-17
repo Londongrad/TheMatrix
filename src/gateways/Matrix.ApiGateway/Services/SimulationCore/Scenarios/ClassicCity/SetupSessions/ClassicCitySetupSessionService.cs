@@ -64,6 +64,23 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 
         private readonly ClassicCitySetupSessionOptions _options = options.Value;
 
+        public async Task<IReadOnlyList<ClassicCitySetupSessionView>> ListDraftsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            Guid ownerUserId = GetCurrentUserIdOrThrow();
+            IReadOnlyList<ClassicCitySetupSessionState> sessions = await sessionStore.ListOwnedAsync(
+                ownerUserId: ownerUserId,
+                cancellationToken: cancellationToken);
+
+            return sessions
+               .Where(session => MutableStatuses.Contains(
+                    value: session.Status,
+                    comparer: StringComparer.Ordinal))
+               .OrderByDescending(session => session.UpdatedAtUtc)
+               .Select(MapToView)
+               .ToArray();
+        }
+
         public async Task<ClassicCitySetupSessionView> CreateAsync(
             CreateClassicCitySetupSessionRequestDto request,
             CancellationToken cancellationToken = default)

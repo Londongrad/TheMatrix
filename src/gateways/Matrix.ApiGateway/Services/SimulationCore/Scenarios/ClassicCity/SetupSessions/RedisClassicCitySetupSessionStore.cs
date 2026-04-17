@@ -33,6 +33,70 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                     options: JsonOptions);
         }
 
+        public async Task<IReadOnlyList<ClassicCitySetupSessionState>> ListOwnedAsync(
+            Guid ownerUserId,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IDatabase database = _connectionMultiplexer.GetDatabase();
+            RedisValue[] values = await database.SetMembersAsync(BuildOwnerIndexKey(ownerUserId));
+
+            if (values.Length == 0)
+                return [];
+
+            var sessionIds = values
+               .Select(value => Guid.TryParse(
+                    input: value,
+                    result: out Guid sessionId)
+                    ? sessionId
+                    : Guid.Empty)
+               .Where(sessionId => sessionId != Guid.Empty)
+               .Distinct()
+               .ToArray();
+
+            if (sessionIds.Length == 0)
+                return [];
+
+            var staleIds = new List<Guid>();
+            var sessions = new List<ClassicCitySetupSessionState>(sessionIds.Length);
+
+            foreach (Guid sessionId in sessionIds)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                ClassicCitySetupSessionState? session = await GetAsync(
+                    sessionId: sessionId,
+                    cancellationToken: cancellationToken);
+
+                if (session is null)
+                {
+                    staleIds.Add(sessionId);
+                    continue;
+                }
+
+                if (session.OwnerUserId != ownerUserId)
+                    continue;
+
+                sessions.Add(session);
+            }
+
+            if (staleIds.Count > 0)
+            {
+                RedisValue[] staleValues = staleIds
+                   .Select(sessionId => (RedisValue)sessionId.ToString("D"))
+                   .ToArray();
+
+                await database.SetRemoveAsync(
+                    key: BuildOwnerIndexKey(ownerUserId),
+                    values: staleValues);
+            }
+
+            return sessions
+               .OrderByDescending(session => session.UpdatedAtUtc)
+               .ToArray();
+        }
+
         public Task SaveAsync(
             ClassicCitySetupSessionState session,
             CancellationToken cancellationToken = default)
@@ -139,6 +203,13 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             IDatabase database = _connectionMultiplexer.GetDatabase();
             string value = session.SessionId.ToString("D");
 
+            if (session.OwnerUserId.HasValue)
+            {
+                await database.SetAddAsync(
+                    key: BuildOwnerIndexKey(session.OwnerUserId.Value),
+                    value: value);
+            }
+
             if (ShouldTrackForRecovery(session.Status))
                 await database.SetAddAsync(
                     key: RecoveryIndexKey,
@@ -165,6 +236,11 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         private static string BuildLockKey(Guid sessionId)
         {
             return $"simulationcore:classic-city:setup-session-lock:{sessionId:D}";
+        }
+
+        private static string BuildOwnerIndexKey(Guid ownerUserId)
+        {
+            return $"simulationcore:classic-city:setup-session:owner:{ownerUserId:D}";
         }
     }
 }
