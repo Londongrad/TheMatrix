@@ -245,25 +245,55 @@
 }
 
 .settings-security-activity__skeletonLine {
+    position: relative;
+    overflow: hidden;
     height: 72px;
     border-radius: 1rem;
-    background: color-mix(in srgb, var(--settings-pill-bg) 68%, transparent);
+    background:
+        linear-gradient(
+            145deg,
+            color-mix(in srgb, var(--settings-pill-bg) 72%, transparent),
+            color-mix(in srgb, var(--settings-card-bg) 86%, transparent)
+        );
     border: 1px solid color-mix(in srgb, var(--settings-pill-border) 56%, transparent);
 }
 
-html[data-theme="matrix"] .settings-security-activity__skeletonLine {
-    animation: settingsPulse 1.1s ease-in-out infinite;
+.settings-security-activity__skeletonLine::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        105deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.06) 38%,
+        rgba(var(--shell-accent-rgb), 0.22) 50%,
+        transparent 72%
+    );
+    transform: translateX(-125%);
+    animation: settingsShimmer 1.9s ease-in-out infinite;
 }
 
-@keyframes settingsPulse {
+html[data-theme="matrix"] .settings-security-activity__skeletonLine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        180deg,
+        rgba(var(--shell-accent-rgb), 0.08) 0,
+        rgba(var(--shell-accent-rgb), 0.08) 1px,
+        transparent 1px,
+        transparent 8px
+    );
+    opacity: 0.26;
+}
+
+@keyframes settingsShimmer {
     0% {
-        opacity: 0.55;
+        transform: translateX(-125%);
     }
-    50% {
-        opacity: 1;
-    }
+
     100% {
-        opacity: 0.55;
+        transform: translateX(125%);
     }
 }
 
@@ -280,5 +310,11 @@ html[data-theme="matrix"] .settings-security-activity__skeletonLine {
     .settings-security-activity__time {
         min-width: 0;
         text-align: left;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-security-activity__skeletonLine::before {
+        animation: none;
     }
 }
