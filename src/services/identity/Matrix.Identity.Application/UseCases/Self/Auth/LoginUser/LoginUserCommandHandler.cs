@@ -117,7 +117,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
 
             RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);
 
-            var deviceInfo = DeviceInfo.Create(
+            var sessionDeviceInfo = DeviceInfo.Create(
                 deviceId: request.DeviceId,
                 deviceName: request.DeviceName,
                 userAgent: request.UserAgent,
@@ -132,16 +132,20 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
 
             UserSession? session = await userSessionRepository.GetActiveByUserIdAndDeviceIdAsync(
                 userId: user.Id,
-                deviceId: deviceInfo.DeviceId,
+                deviceId: sessionDeviceInfo.DeviceId,
                 utcNow: DateTime.UtcNow,
                 cancellationToken: cancellationToken);
+
+            GeoLocation? sessionGeoLocation = CloneGeoLocation(geoLocation);
+            GeoLocation? refreshTokenGeoLocation = CloneGeoLocation(geoLocation);
+            DeviceInfo refreshTokenDeviceInfo = CloneDeviceInfo(sessionDeviceInfo);
 
             if (session is null)
             {
                 session = UserSession.Create(
                     userId: user.Id,
-                    deviceInfo: deviceInfo,
-                    geoLocation: geoLocation,
+                    deviceInfo: sessionDeviceInfo,
+                    geoLocation: sessionGeoLocation,
                     refreshTokenExpiresAtUtc: refreshDescriptor.ExpiresAtUtc,
                     isPersistent: request.RememberMe);
 
@@ -151,15 +155,15 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             }
             else
                 session.Touch(
-                    deviceInfo: deviceInfo,
-                    geoLocation: geoLocation,
+                    deviceInfo: sessionDeviceInfo,
+                    geoLocation: sessionGeoLocation,
                     refreshTokenExpiresAtUtc: refreshDescriptor.ExpiresAtUtc,
                     isPersistent: request.RememberMe);
 
             IReadOnlyCollection<UserSession> deviceSessions =
                 await userSessionRepository.ListByUserIdAndDeviceIdAsync(
                     userId: user.Id,
-                    deviceId: deviceInfo.DeviceId,
+                    deviceId: sessionDeviceInfo.DeviceId,
                     cancellationToken: cancellationToken);
 
             foreach (UserSession deviceSession in deviceSessions)
@@ -167,15 +171,15 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     deviceSession.Revoke(RefreshTokenRevocationReason.SessionReplaced);
 
             user.RevokeActiveRefreshTokensByDevice(
-                deviceId: deviceInfo.DeviceId,
+                deviceId: sessionDeviceInfo.DeviceId,
                 reason: RefreshTokenRevocationReason.SessionReplaced);
 
             user.IssueRefreshToken(
                 sessionId: session.Id,
                 tokenHash: refreshDescriptor.TokenHash,
                 expiresAtUtc: refreshDescriptor.ExpiresAtUtc,
-                deviceInfo: deviceInfo,
-                geoLocation: geoLocation,
+                deviceInfo: refreshTokenDeviceInfo,
+                geoLocation: refreshTokenGeoLocation,
                 isPersistent: request.RememberMe);
 
             AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
@@ -239,6 +243,25 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
             return trimmed.Contains('@')
                 ? trimmed.ToLowerInvariant()
                 : trimmed;
+        }
+
+        private static DeviceInfo CloneDeviceInfo(DeviceInfo source)
+        {
+            return DeviceInfo.Create(
+                deviceId: source.DeviceId,
+                deviceName: source.DeviceName,
+                userAgent: source.UserAgent,
+                ipAddress: source.IpAddress);
+        }
+
+        private static GeoLocation? CloneGeoLocation(GeoLocation? source)
+        {
+            return source is null
+                ? null
+                : GeoLocation.Create(
+                    country: source.Country,
+                    region: source.Region,
+                    city: source.City);
         }
     }
 }

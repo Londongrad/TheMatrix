@@ -96,9 +96,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                     ipAddress: request.IpAddress!,
                     cancellationToken: cancellationToken);
 
+            GeoLocation? currentTokenGeoLocation = CloneGeoLocation(geoLocation);
+            GeoLocation? sessionGeoLocation = CloneGeoLocation(geoLocation);
+            GeoLocation? newTokenGeoLocation = CloneGeoLocation(geoLocation);
+
             currentToken.Touch(
                 deviceInfo: updatedDeviceInfoForCurrent,
-                geoLocation: geoLocation);
+                geoLocation: currentTokenGeoLocation);
 
             currentToken.Revoke(
                 reason: RefreshTokenRevocationReason.SessionReplaced,
@@ -112,9 +116,11 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                 userAgent: request.UserAgent,
                 ipAddress: request.IpAddress);
 
+            DeviceInfo sessionDeviceInfo = CloneDeviceInfo(deviceInfoForNewToken);
+
             session.Touch(
-                deviceInfo: deviceInfoForNewToken,
-                geoLocation: geoLocation,
+                deviceInfo: sessionDeviceInfo,
+                geoLocation: sessionGeoLocation,
                 refreshTokenExpiresAtUtc: newDescriptor.ExpiresAtUtc,
                 isPersistent: currentToken.IsPersistent);
 
@@ -138,7 +144,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                 tokenHash: newDescriptor.TokenHash,
                 expiresAtUtc: newDescriptor.ExpiresAtUtc,
                 deviceInfo: deviceInfoForNewToken,
-                geoLocation: geoLocation,
+                geoLocation: newTokenGeoLocation,
                 isPersistent: currentToken.IsPersistent);
 
             AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
@@ -161,6 +167,25 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                 RefreshTokenExpiresAtUtc = newDescriptor.ExpiresAtUtc,
                 IsPersistent = currentToken.IsPersistent
             };
+        }
+
+        private static DeviceInfo CloneDeviceInfo(DeviceInfo source)
+        {
+            return DeviceInfo.Create(
+                deviceId: source.DeviceId,
+                deviceName: source.DeviceName,
+                userAgent: source.UserAgent,
+                ipAddress: source.IpAddress);
+        }
+
+        private static GeoLocation? CloneGeoLocation(GeoLocation? source)
+        {
+            return source is null
+                ? null
+                : GeoLocation.Create(
+                    country: source.Country,
+                    region: source.Region,
+                    city: source.City);
         }
     }
 }
