@@ -3,7 +3,9 @@ import type {ClassicCitySetupSessionView} from "@services/simulationcore/scenari
 
 interface SetupSessionListProps {
     sessions: ClassicCitySetupSessionView[];
+    deletingSessionId?: string | null;
     onOpen: (session: ClassicCitySetupSessionView) => void;
+    onDelete: (session: ClassicCitySetupSessionView) => void;
 }
 
 function formatSetupSessionStatus(status: string): string {
@@ -51,12 +53,18 @@ function getDraftName(session: ClassicCitySetupSessionView): string {
         : "Untitled Classic City";
 }
 
-export default function SetupSessionList({sessions, onOpen}: SetupSessionListProps) {
+export default function SetupSessionList({
+    sessions,
+    deletingSessionId = null,
+    onOpen,
+    onDelete,
+}: SetupSessionListProps) {
     return (
         <div className="city-list-grid">
             {sessions.map((session) => {
                 const tone = getSetupSessionTone(session.status);
                 const statusLabel = formatSetupSessionStatus(session.status);
+                const isDeleting = deletingSessionId === session.sessionId;
 
                 return (
                     <article key={session.sessionId} className={`setup-session-card setup-session-card--${tone}`}>
@@ -87,15 +95,30 @@ export default function SetupSessionList({sessions, onOpen}: SetupSessionListPro
                             <div className="setup-session-card__footer-copy">
                                 <div className="setup-session-card__footer-label">Draft session</div>
                                 <div className="setup-session-card__footer-value">{statusLabel}</div>
+                                <div className="setup-session-card__footer-hint">
+                                    Auto-clears after 1 hour of inactivity.
+                                </div>
                             </div>
 
-                            <Button
-                                size="sm"
-                                variant={tone === "failed" ? "default" : "primary"}
-                                onClick={() => onOpen(session)}
-                            >
-                                {tone === "failed" ? "Fix and resume" : "Resume draft"}
-                            </Button>
+                            <div className="setup-session-card__actions">
+                                <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={() => onDelete(session)}
+                                    disabled={isDeleting}
+                                >
+                                    {isDeleting ? "Deleting..." : "Delete draft"}
+                                </Button>
+
+                                <Button
+                                    size="sm"
+                                    variant={tone === "failed" ? "default" : "primary"}
+                                    onClick={() => onOpen(session)}
+                                    disabled={isDeleting}
+                                >
+                                    {tone === "failed" ? "Fix and resume" : "Resume draft"}
+                                </Button>
+                            </div>
                         </div>
                     </article>
                 );

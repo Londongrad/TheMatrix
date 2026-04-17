@@ -27,6 +27,12 @@ export function getClassicCitySetupSession(sessionId: string, signal?: AbortSign
     });
 }
 
+export function deleteClassicCitySetupSession(sessionId: string) {
+    return apiRequest<void>(`${API_CLASSIC_CITY_SETUP_SESSIONS_URL}/${sessionId}`, {
+        method: "DELETE",
+    });
+}
+
 export function updateClassicCitySetupSession(
     sessionId: string,
     request: UpdateClassicCitySetupSessionRequest,

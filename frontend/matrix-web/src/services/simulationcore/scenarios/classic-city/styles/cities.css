@@ -513,6 +513,20 @@
     color: var(--app-text-strong);
 }
 
+.setup-session-card__footer-hint {
+    color: var(--app-text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.setup-session-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .cities-field {
     display: flex;
     flex-direction: column;
@@ -667,6 +681,15 @@
     .setup-session-card__footer {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .setup-session-card__actions {
+        justify-content: stretch;
+    }
+
+    .setup-session-card__actions > .ui-button {
+        width: 100%;
+        justify-content: center;
     }
 
     .cities-error-banner,

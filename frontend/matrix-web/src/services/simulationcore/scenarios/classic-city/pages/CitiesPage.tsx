@@ -2,6 +2,9 @@ import {useMemo, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import CityList from "@services/simulationcore/scenarios/classic-city/components/CityList";
 import SetupSessionList from "@services/simulationcore/scenarios/classic-city/components/SetupSessionList";
+import {
+    deleteClassicCitySetupSession,
+} from "@services/simulationcore/scenarios/classic-city/api/setupSessionsApi";
 import {CitiesToolbar} from "@services/simulationcore/scenarios/classic-city/components/CitiesToolbar";
 import type {CityListItemView} from "@services/simulationcore/scenarios/classic-city/contracts/citiesContracts";
 import type {ClassicCitySetupSessionView} from "@services/simulationcore/scenarios/classic-city/contracts/setupSessionContracts";
@@ -18,6 +21,7 @@ import {
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
+import {useConfirm} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/simulationcore/scenarios/classic-city/styles/cities.css";
 
@@ -43,10 +47,13 @@ function getCityRank(city: CityListItemView): number {
 
 export default function CitiesPage() {
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const {can} = usePermissions();
 
     const [search, setSearch] = useState("");
     const [includeArchived, setIncludeArchived] = useState(false);
+    const [setupSessionActionError, setSetupSessionActionError] = useState<string | null>(null);
+    const [deletingSetupSessionId, setDeletingSetupSessionId] = useState<string | null>(null);
     const canCreateCity = can(PermissionKeys.SimulationCoreClassicCityCreate);
 
     const citiesQuery = useCitiesQuery(includeArchived);
@@ -132,6 +139,36 @@ export default function CitiesPage() {
         navigate(getClassicCitySetupSessionPath(session.sessionId));
     }
 
+    async function handleDeleteSetupSession(session: ClassicCitySetupSessionView) {
+        const draftName = session.draft.name.trim() || "Untitled Classic City";
+        const accepted = await confirm({
+            title: `Delete draft "${draftName}"?`,
+            description: "The saved setup session will be removed from the gateway and can no longer be resumed.",
+            confirmText: "Delete draft",
+            cancelText: "Keep draft",
+            tone: "danger",
+        });
+
+        if (!accepted) {
+            return;
+        }
+
+        setSetupSessionActionError(null);
+        setDeletingSetupSessionId(session.sessionId);
+
+        try {
+            await deleteClassicCitySetupSession(session.sessionId);
+            await setupSessionsQuery.refetch();
+        } catch (error: unknown) {
+            const message = error instanceof Error && error.message.trim().length > 0
+                ? error.message
+                : "Failed to delete setup draft.";
+            setSetupSessionActionError(message);
+        } finally {
+            setDeletingSetupSessionId(null);
+        }
+    }
+
     return (
         <section className="cities-page">
             <header className="cities-page__header">
@@ -201,7 +238,8 @@ export default function CitiesPage() {
                         <h2 className="cities-card__title">Resume drafts</h2>
                         <p className="cities-card__subtitle">
                             Setup sessions live outside the city registry until launch succeeds. Reopen a saved draft
-                            here to continue authoring from its last backend-saved step.
+                            here to continue authoring from its last backend-saved step. Drafts auto-expire after one
+                            hour of inactivity and can also be discarded explicitly.
                         </p>
                     </div>
 
@@ -236,6 +274,25 @@ export default function CitiesPage() {
                     </div>
                 ) : null}
 
+                {!setupSessionsQuery.error && setupSessionActionError ? (
+                    <div className="cities-error-banner" role="alert">
+                        <div className="cities-error-banner__content">
+                            <div className="cities-error-banner__title">Draft action failed</div>
+                            <div>{setupSessionActionError}</div>
+                        </div>
+
+                        <Button
+                            type="button"
+                            variant="primary"
+                            onClick={() => {
+                                setSetupSessionActionError(null);
+                            }}
+                        >
+                            Dismiss
+                        </Button>
+                    </div>
+                ) : null}
+
                 {!setupSessionsQuery.error && setupSessionsQuery.isLoading && setupSessionsQuery.data.length === 0 ? (
                     <div className="cities-empty-state">
                         <div className="cities-empty-state__title">Loading setup drafts</div>
@@ -256,7 +313,12 @@ export default function CitiesPage() {
                 ) : null}
 
                 {!setupSessionsQuery.error && filteredSetupSessions.length > 0 ? (
-                    <SetupSessionList sessions={filteredSetupSessions} onOpen={handleOpenSetupSession}/>
+                    <SetupSessionList
+                        sessions={filteredSetupSessions}
+                        deletingSessionId={deletingSetupSessionId}
+                        onOpen={handleOpenSetupSession}
+                        onDelete={handleDeleteSetupSession}
+                    />
                 ) : null}
             </div>
 
