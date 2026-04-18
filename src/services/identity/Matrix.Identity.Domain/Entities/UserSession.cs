@@ -64,8 +64,8 @@ namespace Matrix.Identity.Domain.Entities
         {
             Id = Guid.NewGuid();
             UserId = userId;
-            DeviceInfo = deviceInfo;
-            GeoLocation = geoLocation;
+            DeviceInfo = CloneDeviceInfo(deviceInfo);
+            GeoLocation = CloneGeoLocation(geoLocation);
             CreatedAtUtc = DateTime.UtcNow;
             RefreshTokenExpiresAtUtc = refreshTokenExpiresAtUtc;
             IsPersistent = isPersistent;
@@ -88,8 +88,8 @@ namespace Matrix.Identity.Domain.Entities
         {
             RefreshTokenRules.Validate(refreshTokenExpiresAtUtc);
 
-            DeviceInfo = deviceInfo;
-            GeoLocation = geoLocation;
+            DeviceInfo = CloneDeviceInfo(deviceInfo);
+            GeoLocation = CloneGeoLocation(geoLocation);
             RefreshTokenExpiresAtUtc = refreshTokenExpiresAtUtc;
             IsPersistent = isPersistent;
             LastUsedAtUtc = DateTime.UtcNow;
@@ -107,6 +107,25 @@ namespace Matrix.Identity.Domain.Entities
             RevokedReason = reason;
 
             return true;
+        }
+
+        private static DeviceInfo CloneDeviceInfo(DeviceInfo source)
+        {
+            return DeviceInfo.Create(
+                deviceId: source.DeviceId,
+                deviceName: source.DeviceName,
+                userAgent: source.UserAgent,
+                ipAddress: source.IpAddress);
+        }
+
+        private static GeoLocation? CloneGeoLocation(GeoLocation? source)
+        {
+            return source is null
+                ? null
+                : GeoLocation.Create(
+                    country: source.Country,
+                    region: source.Region,
+                    city: source.City);
         }
 
         #endregion [ Methods ]

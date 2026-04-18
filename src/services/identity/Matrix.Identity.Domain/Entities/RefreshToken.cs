@@ -78,8 +78,8 @@ namespace Matrix.Identity.Domain.Entities
 
             IsPersistent = isPersistent;
 
-            DeviceInfo = deviceInfo;
-            GeoLocation = geoLocation;
+            DeviceInfo = CloneDeviceInfo(deviceInfo);
+            GeoLocation = CloneGeoLocation(geoLocation);
         }
 
         #endregion [ Constructors ]
@@ -115,8 +115,27 @@ namespace Matrix.Identity.Domain.Entities
             GeoLocation? geoLocation)
         {
             LastUsedAtUtc = DateTime.UtcNow;
-            DeviceInfo = deviceInfo;
-            GeoLocation = geoLocation;
+            DeviceInfo = CloneDeviceInfo(deviceInfo);
+            GeoLocation = CloneGeoLocation(geoLocation);
+        }
+
+        private static DeviceInfo CloneDeviceInfo(DeviceInfo source)
+        {
+            return DeviceInfo.Create(
+                deviceId: source.DeviceId,
+                deviceName: source.DeviceName,
+                userAgent: source.UserAgent,
+                ipAddress: source.IpAddress);
+        }
+
+        private static GeoLocation? CloneGeoLocation(GeoLocation? source)
+        {
+            return source is null
+                ? null
+                : GeoLocation.Create(
+                    country: source.Country,
+                    region: source.Region,
+                    city: source.City);
         }
 
         #endregion [ Methods ]
