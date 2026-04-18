@@ -1,6 +1,7 @@
 using MassTransit;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Authorization.Claims;
+using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
@@ -80,7 +81,8 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddScoped<ISimulationBatchAdvanceExecutor, SimulationBatchAdvanceExecutor>();
             services.AddScoped<ISimulationClockMutationExecutor, SimulationClockMutationExecutor>();
             services.AddPermissionCheckingFromClaims();
-            services.AddTransient<ForwardAuthorizationHeaderHandler>();
+            services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
+            services.AddTransient<InternalServiceAuthenticationHandler>();
 
             services.AddOutbox<SimulationCoreDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
@@ -97,7 +99,7 @@ namespace Matrix.SimulationCore.Infrastructure
                         uriString: options.Economy,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>();
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
 
             services.AddHttpClient<ICityPopulationBootstrapClient, CityPopulationBootstrapClient>((sp, client) =>
                 {
@@ -111,7 +113,7 @@ namespace Matrix.SimulationCore.Infrastructure
                         uriString: options.Population,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>();
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
 
             services.AddHttpClient<ICityRoadSegmentConditionsClient, CityRoadSegmentConditionsClient>((sp, client) =>
                 {
@@ -125,7 +127,7 @@ namespace Matrix.SimulationCore.Infrastructure
                         uriString: options.SimulationSystems,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>();
+               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
 
             services.AddHostedService<SimulationTickHostedService>();
 
