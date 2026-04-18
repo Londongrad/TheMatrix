@@ -1,5 +1,9 @@
 namespace Matrix.Identity.Application.Abstractions.Services
 {
+    public sealed record AvatarFileReadResult(
+        Stream Content,
+        string ContentType);
+
     public interface IAvatarStorage
     {
         /// <summary>
@@ -9,6 +13,10 @@ namespace Matrix.Identity.Application.Abstractions.Services
             Stream content,
             string fileName,
             string contentType,
+            CancellationToken cancellationToken = default);
+
+        Task<AvatarFileReadResult?> OpenReadAsync(
+            string path,
             CancellationToken cancellationToken = default);
 
         /// <summary>

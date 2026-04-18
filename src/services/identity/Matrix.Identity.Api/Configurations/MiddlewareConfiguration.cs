@@ -35,7 +35,6 @@ namespace Matrix.Identity.Api.Configurations
         private static void ConfigureMiddleware(this WebApplication app)
         {
             app.UseMiddleware<ExceptionHandlingMiddleware>();
-            app.UseStaticFiles();
         }
     }
 }

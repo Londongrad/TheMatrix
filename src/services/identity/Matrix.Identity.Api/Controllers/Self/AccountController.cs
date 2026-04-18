@@ -10,6 +10,7 @@ using Matrix.Identity.Application.UseCases.Self.Account.GetMyProfile;
 using Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity;
 using Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange;
 using Matrix.Identity.Application.UseCases.Self.Account.ResendPendingEmailChange;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Contracts.Self.Account.Requests;
 using Matrix.Identity.Contracts.Self.Account.Responses;
 using MediatR;
@@ -22,9 +23,12 @@ namespace Matrix.Identity.Api.Controllers.Self
     [ApiController]
     [Authorize]
     [Route("api/[controller]")]
-    public class AccountController(ISender sender) : ControllerBase
+    public class AccountController(
+        ISender sender,
+        IAvatarStorage avatarStorage) : ControllerBase
     {
         private readonly ISender _sender = sender;
+        private readonly IAvatarStorage _avatarStorage = avatarStorage;
 
         private string GetUserAgent()
         {
@@ -229,6 +233,31 @@ namespace Matrix.Identity.Api.Controllers.Self
             };
 
             return Ok(response);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("/avatars/{fileName}")]
+        public async Task<IActionResult> GetAvatar(
+            [FromRoute] string fileName,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return NotFound();
+
+            AvatarFileReadResult? avatar = await _avatarStorage.OpenReadAsync(
+                path: $"/avatars/{fileName}",
+                cancellationToken: cancellationToken);
+
+            if (avatar is null)
+                return NotFound();
+
+            await using Stream stream = avatar.Content;
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms, cancellationToken);
+
+            return File(
+                fileContents: ms.ToArray(),
+                contentType: avatar.ContentType);
         }
 
         [HttpPut("password")]
