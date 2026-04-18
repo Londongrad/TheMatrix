@@ -141,7 +141,7 @@ namespace Matrix.BuildingBlocks.Api.Logging
                 ignoreCase: true,
                 result: out LogEventLevel parsed)
                 ? parsed
-                : LogEventLevel.Error;
+                : LogEventLevel.Warning;
         }
 
         private static string ResolveLogsRootDirectory(

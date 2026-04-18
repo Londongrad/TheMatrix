@@ -9,7 +9,7 @@ namespace Matrix.BuildingBlocks.Api.Logging
         public int RetentionDays { get; set; } = 14;
         public int? RetainedFileCountLimit { get; set; }
         public string FileNamePrefix { get; set; } = "errors";
-        public string RestrictedToMinimumLevel { get; set; } = "Error";
+        public string RestrictedToMinimumLevel { get; set; } = "Warning";
         public bool Shared { get; set; } = true;
         public bool Buffered { get; set; }
         public bool RollOnFileSizeLimit { get; set; } = true;
