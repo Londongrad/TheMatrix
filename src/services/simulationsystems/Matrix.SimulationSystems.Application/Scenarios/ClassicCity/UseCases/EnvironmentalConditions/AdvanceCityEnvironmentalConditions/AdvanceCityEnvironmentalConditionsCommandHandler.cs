@@ -84,7 +84,18 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     state: state,
                     occurredAtUtc: occurredAtUtc),
                 cancellationToken: cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            try
+            {
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception) when (exception.GetType().Name == "DbUpdateConcurrencyException")
+            {
+                return CreateResult(
+                    status: AdvanceCityEnvironmentalConditionsStatus.Duplicate,
+                    processedSimMinutes: 0m,
+                    state: state);
+            }
 
             return CreateResult(
                 status: AdvanceCityEnvironmentalConditionsStatus.Applied,
