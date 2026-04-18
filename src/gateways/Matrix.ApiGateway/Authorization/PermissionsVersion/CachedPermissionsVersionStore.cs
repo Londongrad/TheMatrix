@@ -243,7 +243,7 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                     LogRateLimiter.ShouldLog(
                         key: RedisCacheLogKeys.PvRedisReadSlow,
                         period: CacheLoggingDefaults.SlowPeriod))
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Redis read is slow. CacheTier={CacheTier} CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs}",
                         cacheTier,
@@ -332,7 +332,7 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                     LogRateLimiter.ShouldLog(
                         key: RedisCacheLogKeys.PvRedisReadSlow,
                         period: CacheLoggingDefaults.SlowPeriod))
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Redis read is slow. CacheTier={CacheTier} CacheKey={CacheKey} ElapsedMs={ElapsedMs}",
                         cacheTier,
@@ -429,7 +429,7 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                     LogRateLimiter.ShouldLog(
                         key: RedisCacheLogKeys.PvRedisWriteSlow,
                         period: CacheLoggingDefaults.SlowPeriod))
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Redis write is slow. CacheName={CacheName} CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs} TtlSeconds={TtlSeconds}",
                         cacheName,
@@ -493,7 +493,7 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                     LogRateLimiter.ShouldLog(
                         key: RedisCacheLogKeys.PvRedisWriteSlow,
                         period: CacheLoggingDefaults.SlowPeriod))
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Redis write is slow. CacheName={CacheName} CacheKey={CacheKey} ElapsedMs={ElapsedMs} TtlSeconds={TtlSeconds}",
                         cacheName,

@@ -43,7 +43,7 @@ namespace Matrix.ApiGateway.Authorization.AuthContext
                     LogRateLimiter.ShouldLog(
                         key: RedisCacheLogKeys.AcRedisReadSlow,
                         period: CacheLoggingDefaults.SlowPeriod))
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message: "Redis read is slow. CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs}",
                         cacheKey,
                         userId,
@@ -135,7 +135,7 @@ namespace Matrix.ApiGateway.Authorization.AuthContext
                     LogRateLimiter.ShouldLog(
                         key: RedisCacheLogKeys.AcRedisWriteSlow,
                         period: CacheLoggingDefaults.SlowPeriod))
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Redis write is slow. CacheKey={CacheKey} UserId={UserId} ElapsedMs={ElapsedMs} TtlSeconds={TtlSeconds}",
                         cacheKey,
