@@ -20,7 +20,10 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                     value: subjectId.ToString()),
                 new(
                     type: JwtRegisteredClaimNames.Jti,
-                    value: Guid.NewGuid().ToString())
+                    value: Guid.NewGuid().ToString()),
+                new(
+                    type: JwtClaimNames.Permission,
+                    value: "*")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));

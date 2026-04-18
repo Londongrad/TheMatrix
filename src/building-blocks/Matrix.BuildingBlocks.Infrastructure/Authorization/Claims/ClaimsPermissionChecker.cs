@@ -6,6 +6,7 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.Claims
 {
     public sealed class ClaimsPermissionChecker(IHttpContextAccessor httpContextAccessor) : IPermissionChecker
     {
+        private const string WildcardPermission = "*";
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
         private HashSet<string>? _cachedPermissions;
@@ -20,7 +21,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.Claims
                 return Task.FromResult(false);
 
             HashSet<string> permissions = GetPermissions(userId);
-            return Task.FromResult(permissions.Contains(permissionKey));
+            return Task.FromResult(
+                permissions.Contains(WildcardPermission) ||
+                permissions.Contains(permissionKey));
         }
 
         public Task<bool> HasAnyAsync(
@@ -32,6 +35,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.Claims
                 return Task.FromResult(false);
 
             HashSet<string> permissions = GetPermissions(userId);
+            if (permissions.Contains(WildcardPermission))
+                return Task.FromResult(true);
 
             return Task.FromResult(permissionKeys.Any(permissions.Contains));
         }
@@ -45,6 +50,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.Claims
                 return Task.FromResult(false);
 
             HashSet<string> permissions = GetPermissions(userId);
+            if (permissions.Contains(WildcardPermission))
+                return Task.FromResult(true);
 
             return Task.FromResult(permissionKeys.All(permissions.Contains));
         }
