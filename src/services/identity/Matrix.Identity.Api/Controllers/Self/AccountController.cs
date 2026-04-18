@@ -195,6 +195,8 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         [HttpPut("avatar")]
+        [RequestSizeLimit(AvatarUploadConstraints.MaxFileBytes)]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<ChangeAvatarResponse>> ChangeAvatar(
             IFormFile? avatar,
             CancellationToken cancellationToken)
@@ -207,7 +209,8 @@ namespace Matrix.Identity.Api.Controllers.Self
             var command = new ChangeAvatarFromFileCommand(
                 FileStream: stream,
                 FileName: avatar.FileName,
-                ContentType: avatar.ContentType ?? "image/png");
+                ContentType: avatar.ContentType ?? string.Empty,
+                FileSize: avatar.Length);
 
             string newAvatarPath = await _sender.Send(
                 request: command,

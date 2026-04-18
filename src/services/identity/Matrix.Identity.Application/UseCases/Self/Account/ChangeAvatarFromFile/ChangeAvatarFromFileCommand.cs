@@ -7,7 +7,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile
     public sealed record ChangeAvatarFromFileCommand(
         Stream FileStream,
         string FileName,
-        string ContentType) : IRequest<string>, IRequirePermission
+        string ContentType,
+        long FileSize) : IRequest<string>, IRequirePermission
     {
         public string PermissionKey => PermissionKeys.IdentityMeAvatarChange;
     }
