@@ -250,25 +250,18 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
 
             try
             {
-                Task<SimulationClock?> clockTask = clockRepository.GetBySimulationIdAsync(
+                // These repositories share one scoped DbContext, so querying them in
+                // parallel during provisioning can trigger EF Core concurrency errors.
+                SimulationClock? clock = await clockRepository.GetBySimulationIdAsync(
                     simulationId: new SimulationId(city.Id.Value),
                     cancellationToken: cancellationToken);
-                Task<IReadOnlyList<CityAnchor>> anchorsTask = cityAnchorRepository.ListByCityIdAsync(
+                IReadOnlyList<CityAnchor> anchors = await cityAnchorRepository.ListByCityIdAsync(
                     cityId: city.Id,
                     cancellationToken: cancellationToken);
-                Task<IReadOnlyList<ResidentialBuilding>> buildingsTask = residentialBuildingRepository.ListByCityIdAsync(
+                IReadOnlyList<ResidentialBuilding> buildings = await residentialBuildingRepository.ListByCityIdAsync(
                     cityId: city.Id,
                     districtId: null,
                     cancellationToken: cancellationToken);
-
-                await Task.WhenAll(
-                    clockTask,
-                    anchorsTask,
-                    buildingsTask);
-
-                SimulationClock? clock = await clockTask;
-                IReadOnlyList<CityAnchor> anchors = await anchorsTask;
-                IReadOnlyList<ResidentialBuilding> buildings = await buildingsTask;
 
                 if (clock is null)
                     throw new InvalidOperationException($"Simulation clock is missing for cityId={city.Id.Value}.");
