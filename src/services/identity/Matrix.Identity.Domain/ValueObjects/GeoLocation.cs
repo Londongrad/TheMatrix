@@ -1,6 +1,6 @@
 namespace Matrix.Identity.Domain.ValueObjects
 {
-    public sealed record GeoLocation
+    public sealed class GeoLocation
     {
         private GeoLocation() { }
 

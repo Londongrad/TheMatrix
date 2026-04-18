@@ -2,7 +2,7 @@ using Matrix.Identity.Domain.Rules;
 
 namespace Matrix.Identity.Domain.ValueObjects
 {
-    public sealed record DeviceInfo
+    public sealed class DeviceInfo
     {
         private DeviceInfo() { }
 
