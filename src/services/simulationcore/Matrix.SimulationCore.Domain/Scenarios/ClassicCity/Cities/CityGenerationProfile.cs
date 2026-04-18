@@ -78,5 +78,16 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                 populationOccupancyProfile: populationOccupancyProfile,
                 plannedPeopleCount: plannedPeopleCount);
         }
+
+        public CityGenerationProfile WithPlannedPeopleCount(int? plannedPeopleCount)
+        {
+            return Create(
+                sizeTier: SizeTier,
+                urbanDensity: UrbanDensity,
+                developmentLevel: DevelopmentLevel,
+                economyProfile: EconomyProfile,
+                populationOccupancyProfile: PopulationOccupancyProfile,
+                plannedPeopleCount: plannedPeopleCount);
+        }
     }
 }

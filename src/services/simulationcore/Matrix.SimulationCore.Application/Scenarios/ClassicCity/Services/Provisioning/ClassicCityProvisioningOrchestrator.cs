@@ -40,13 +40,20 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                 request: request,
                 cancellationToken: cancellationToken);
 
-            return await ProvisionAsync(
+            return await GetProvisioningViewAsync(
                 cityId: created.CityId,
-                simulationKind: created.SimulationKind,
-                populationBootstrapOperationId: created.PopulationBootstrapOperationId,
-                economyBootstrapOperationId: created.EconomyBootstrapOperationId,
-                plannedPeopleCountOverride: request.PlannedPeopleCount,
                 cancellationToken: cancellationToken);
+        }
+
+        public async Task<CityProvisioningView> GetProvisioningViewAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            City city = await GetCityOrThrowAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return BuildProvisioningViewFromState(city);
         }
 
         public async Task<CityProvisioningView> ProvisionAsync(
@@ -55,11 +62,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
             Guid populationBootstrapOperationId,
             Guid economyBootstrapOperationId,
             int? plannedPeopleCountOverride,
+            Func<CancellationToken, Task>? heartbeatAsync,
             CancellationToken cancellationToken)
         {
             City city = await GetCityOrThrowAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
+
+            if (heartbeatAsync is not null)
+                await heartbeatAsync(cancellationToken);
 
             CityEconomyBootstrapView economyBootstrap = await EnsureEconomyBootstrapAsync(
                 city: city,
@@ -93,6 +104,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                         FailureCode: null),
                     EconomyBootstrap: economyBootstrap);
 
+            if (heartbeatAsync is not null)
+                await heartbeatAsync(cancellationToken);
+
             CityPopulationBootstrapView populationBootstrap = await EnsurePopulationBootstrapAsync(
                 city: city,
                 operationId: populationBootstrapOperationId,
@@ -103,6 +117,36 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
                 CityId: cityId,
                 SimulationKind: simulationKind,
                 PopulationBootstrap: populationBootstrap,
+                EconomyBootstrap: economyBootstrap);
+        }
+
+        private CityProvisioningView BuildProvisioningViewFromState(City city)
+        {
+            string simulationKind = city.SimulationKind.ToString();
+            CityEconomyBootstrapView economyBootstrap = BuildEconomyBootstrapFromState(
+                city: city,
+                operationId: city.EconomyBootstrapOperationId);
+
+            if (!SupportsAutomaticPopulationBootstrap(simulationKind))
+                return new CityProvisioningView(
+                    CityId: city.Id.Value,
+                    SimulationKind: simulationKind,
+                    PopulationBootstrap: new CityPopulationBootstrapView(
+                        OperationId: city.PopulationBootstrapOperationId,
+                        Status: PopulationBootstrapStatuses.Skipped,
+                        PlannedPeopleCount: city.GenerationProfile.PlannedPeopleCount,
+                        ResidentialCapacity: null,
+                        Summary: null,
+                        FailureCode: null),
+                    EconomyBootstrap: economyBootstrap);
+
+            return new CityProvisioningView(
+                CityId: city.Id.Value,
+                SimulationKind: simulationKind,
+                PopulationBootstrap: BuildPopulationBootstrapFromState(
+                    city: city,
+                    operationId: city.PopulationBootstrapOperationId,
+                    plannedPeopleCountOverride: city.GenerationProfile.PlannedPeopleCount),
                 EconomyBootstrap: economyBootstrap);
         }
 

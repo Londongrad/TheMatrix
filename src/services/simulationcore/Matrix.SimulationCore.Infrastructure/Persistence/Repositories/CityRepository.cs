@@ -52,6 +52,25 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
                .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<City>> ListRecoverableProvisioningAsync(
+            DateTimeOffset asOfUtc,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            if (limit <= 0)
+                return [];
+
+            return await dbContext.Cities
+               .AsNoTracking()
+               .Where(x => x.Status == CityStatus.Provisioning &&
+                           (!x.ProvisioningLeaseExpiresAtUtc.HasValue ||
+                            x.ProvisioningLeaseExpiresAtUtc.Value <= asOfUtc))
+               .OrderBy(x => x.ProvisioningLeaseExpiresAtUtc ?? x.ProvisioningStartedAtUtc ?? x.CreatedAtUtc)
+               .ThenBy(x => x.CreatedAtUtc)
+               .Take(limit)
+               .ToListAsync(cancellationToken);
+        }
+
         public Task AddAsync(
             City city,
             CancellationToken cancellationToken)

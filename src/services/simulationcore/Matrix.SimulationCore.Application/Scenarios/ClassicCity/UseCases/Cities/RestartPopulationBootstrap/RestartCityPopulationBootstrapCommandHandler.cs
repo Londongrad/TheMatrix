@@ -26,6 +26,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 
             bool restarted = city.TryRestartPopulationBootstrap(
                 restartedAtUtc: DateTimeOffset.UtcNow,
+                plannedPeopleCountOverride: request.PlannedPeopleCountOverride,
                 populationOperationId: out Guid populationOperationId,
                 economyOperationId: out Guid economyOperationId);
 

@@ -10,5 +10,9 @@ namespace Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views
         DateTimeOffset? PopulationBootstrapCompletedAtUtc,
         DateTimeOffset? EconomyBootstrapCompletedAtUtc,
         DateTimeOffset? PopulationBootstrapFailedAtUtc,
-        DateTimeOffset? EconomyBootstrapFailedAtUtc);
+        DateTimeOffset? EconomyBootstrapFailedAtUtc,
+        DateTimeOffset? ProvisioningStartedAtUtc,
+        DateTimeOffset? ProvisioningHeartbeatAtUtc,
+        DateTimeOffset? ProvisioningLeaseExpiresAtUtc,
+        int ProvisioningAttemptCount);
 }

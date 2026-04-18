@@ -18,6 +18,11 @@ namespace Matrix.SimulationCore.Application.Abstractions.Persistence
 
         Task<IReadOnlyList<City>> ListProvisioningAsync(CancellationToken cancellationToken);
 
+        Task<IReadOnlyList<City>> ListRecoverableProvisioningAsync(
+            DateTimeOffset asOfUtc,
+            int limit,
+            CancellationToken cancellationToken);
+
         Task AddAsync(
             City city,
             CancellationToken cancellationToken);

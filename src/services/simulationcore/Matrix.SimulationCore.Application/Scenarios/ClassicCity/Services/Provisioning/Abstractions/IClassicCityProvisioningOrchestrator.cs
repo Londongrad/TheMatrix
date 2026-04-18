@@ -9,12 +9,17 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provi
             CreateCityCommand request,
             CancellationToken cancellationToken);
 
+        Task<CityProvisioningView> GetProvisioningViewAsync(
+            Guid cityId,
+            CancellationToken cancellationToken);
+
         Task<CityProvisioningView> ProvisionAsync(
             Guid cityId,
             string simulationKind,
             Guid populationBootstrapOperationId,
             Guid economyBootstrapOperationId,
             int? plannedPeopleCountOverride,
+            Func<CancellationToken, Task>? heartbeatAsync,
             CancellationToken cancellationToken);
     }
 }

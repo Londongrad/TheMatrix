@@ -358,7 +358,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
 
             return result.Status switch
             {
-                RetryCityPopulationBootstrapProvisioningStatus.Provisioned => Results.Ok(result.Provisioning),
+                RetryCityPopulationBootstrapProvisioningStatus.Accepted => Results.Ok(result.Provisioning),
                 RetryCityPopulationBootstrapProvisioningStatus.NotFound => Results.NotFound(),
                 RetryCityPopulationBootstrapProvisioningStatus.NotAllowed => Results.Conflict(
                     new
@@ -551,7 +551,11 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 PopulationBootstrapCompletedAtUtc: dto.PopulationBootstrapCompletedAtUtc,
                 EconomyBootstrapCompletedAtUtc: dto.EconomyBootstrapCompletedAtUtc,
                 PopulationBootstrapFailedAtUtc: dto.PopulationBootstrapFailedAtUtc,
-                EconomyBootstrapFailedAtUtc: dto.EconomyBootstrapFailedAtUtc);
+                EconomyBootstrapFailedAtUtc: dto.EconomyBootstrapFailedAtUtc,
+                ProvisioningStartedAtUtc: dto.ProvisioningStartedAtUtc,
+                ProvisioningHeartbeatAtUtc: dto.ProvisioningHeartbeatAtUtc,
+                ProvisioningLeaseExpiresAtUtc: dto.ProvisioningLeaseExpiresAtUtc,
+                ProvisioningAttemptCount: dto.ProvisioningAttemptCount);
         }
 
         private static CityListItemView MapToListItemView(CityDto dto)

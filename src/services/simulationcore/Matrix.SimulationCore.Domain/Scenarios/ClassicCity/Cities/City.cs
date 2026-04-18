@@ -36,6 +36,10 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             DateTimeOffset? economyBootstrapFailedAtUtc,
             string? populationBootstrapFailureCode,
             string? economyBootstrapFailureCode,
+            DateTimeOffset? provisioningStartedAtUtc,
+            DateTimeOffset? provisioningHeartbeatAtUtc,
+            DateTimeOffset? provisioningLeaseExpiresAtUtc,
+            int provisioningAttemptCount,
             DateTimeOffset? archivedAtUtc)
             : base(id)
         {
@@ -44,6 +48,9 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             EnsureUtc(economyBootstrapCompletedAtUtc);
             EnsureUtc(populationBootstrapFailedAtUtc);
             EnsureUtc(economyBootstrapFailedAtUtc);
+            EnsureUtc(provisioningStartedAtUtc);
+            EnsureUtc(provisioningHeartbeatAtUtc);
+            EnsureUtc(provisioningLeaseExpiresAtUtc);
             EnsureUtc(archivedAtUtc);
             GuardHelper.AgainstEmptyGuid(
                 id: populationBootstrapOperationId,
@@ -76,6 +83,10 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             EconomyBootstrapFailedAtUtc = economyBootstrapFailedAtUtc;
             PopulationBootstrapFailureCode = populationBootstrapFailureCode;
             EconomyBootstrapFailureCode = economyBootstrapFailureCode;
+            ProvisioningStartedAtUtc = provisioningStartedAtUtc;
+            ProvisioningHeartbeatAtUtc = provisioningHeartbeatAtUtc;
+            ProvisioningLeaseExpiresAtUtc = provisioningLeaseExpiresAtUtc;
+            ProvisioningAttemptCount = provisioningAttemptCount;
             ArchivedAtUtc = archivedAtUtc;
         }
 
@@ -97,7 +108,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
         public CityGenerationSeed GenerationSeed { get; }
         public Guid RunId { get; }
         public ScenarioModelSetVersion ScenarioModelSetVersion { get; }
-        public CityGenerationProfile GenerationProfile { get; }
+        public CityGenerationProfile GenerationProfile { get; private set; }
         public CityInitialWeatherProfile InitialWeatherProfile { get; }
         public Guid? ProvisioningCorrelationId { get; }
         public CityStatus Status { get; private set; }
@@ -110,6 +121,10 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
         public DateTimeOffset? EconomyBootstrapFailedAtUtc { get; private set; }
         public string? PopulationBootstrapFailureCode { get; private set; }
         public string? EconomyBootstrapFailureCode { get; private set; }
+        public DateTimeOffset? ProvisioningStartedAtUtc { get; private set; }
+        public DateTimeOffset? ProvisioningHeartbeatAtUtc { get; private set; }
+        public DateTimeOffset? ProvisioningLeaseExpiresAtUtc { get; private set; }
+        public int ProvisioningAttemptCount { get; private set; }
         public DateTimeOffset? ArchivedAtUtc { get; private set; }
 
         public bool IsActive => Status == CityStatus.Active;
@@ -183,6 +198,14 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                 economyBootstrapFailedAtUtc: null,
                 populationBootstrapFailureCode: null,
                 economyBootstrapFailureCode: null,
+                provisioningStartedAtUtc: requiresPopulationBootstrap || requiresEconomyBootstrap
+                    ? createdAtUtc
+                    : null,
+                provisioningHeartbeatAtUtc: requiresPopulationBootstrap || requiresEconomyBootstrap
+                    ? createdAtUtc
+                    : null,
+                provisioningLeaseExpiresAtUtc: null,
+                provisioningAttemptCount: 0,
                 archivedAtUtc: null);
 
             city.AddDomainEvent(
@@ -355,6 +378,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             PopulationBootstrapFailureCode = normalizedFailureCode;
             EconomyBootstrapFailedAtUtc = null;
             EconomyBootstrapFailureCode = null;
+            ClearProvisioningLease();
 
             AddDomainEvent(
                 new CityPopulationBootstrapFailedDomainEvent(
@@ -404,12 +428,14 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             EconomyBootstrapFailureCode = normalizedFailureCode;
             PopulationBootstrapFailedAtUtc = null;
             PopulationBootstrapFailureCode = null;
+            ClearProvisioningLease();
 
             return true;
         }
 
         public bool TryRestartPopulationBootstrap(
             DateTimeOffset restartedAtUtc,
+            int? plannedPeopleCountOverride,
             out Guid populationOperationId,
             out Guid economyOperationId)
         {
@@ -433,6 +459,9 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
 
             PopulationBootstrapOperationId = populationOperationId;
             EconomyBootstrapOperationId = economyOperationId;
+            GenerationProfile = plannedPeopleCountOverride.HasValue
+                ? GenerationProfile.WithPlannedPeopleCount(plannedPeopleCountOverride.Value)
+                : GenerationProfile;
             Status = CityStatus.Provisioning;
             PopulationBootstrapCompletedAtUtc = null;
             EconomyBootstrapCompletedAtUtc = null;
@@ -440,6 +469,10 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
             EconomyBootstrapFailedAtUtc = null;
             PopulationBootstrapFailureCode = null;
             EconomyBootstrapFailureCode = null;
+            ProvisioningStartedAtUtc = restartedAtUtc;
+            ProvisioningHeartbeatAtUtc = restartedAtUtc;
+            ProvisioningLeaseExpiresAtUtc = null;
+            ProvisioningAttemptCount = 0;
 
             AddDomainEvent(
                 new CityPopulationBootstrapRestartedDomainEvent(
@@ -447,6 +480,56 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
                     PreviousOperationId: previousOperationId,
                     OperationId: populationOperationId,
                     RestartedAtUtc: restartedAtUtc));
+
+            return true;
+        }
+
+        public bool TryAcquireProvisioningLease(
+            DateTimeOffset acquiredAtUtc,
+            TimeSpan leaseDuration)
+        {
+            EnsureUtc(acquiredAtUtc);
+
+            GuardHelper.Ensure(
+                condition: !IsArchived,
+                value: Status,
+                errorFactory: ClassicCityDomainErrorsFactory.CityIsArchived);
+
+            if (Status != CityStatus.Provisioning)
+                return false;
+
+            if (leaseDuration <= TimeSpan.Zero)
+                throw new InvalidOperationException("Provisioning lease duration must be greater than zero.");
+
+            if (ProvisioningLeaseExpiresAtUtc.HasValue && ProvisioningLeaseExpiresAtUtc.Value > acquiredAtUtc)
+                return false;
+
+            ProvisioningStartedAtUtc ??= acquiredAtUtc;
+            ProvisioningHeartbeatAtUtc = acquiredAtUtc;
+            ProvisioningLeaseExpiresAtUtc = acquiredAtUtc.Add(leaseDuration);
+            ProvisioningAttemptCount += 1;
+
+            return true;
+        }
+
+        public bool TryRefreshProvisioningLease(
+            DateTimeOffset heartbeatAtUtc,
+            TimeSpan leaseDuration)
+        {
+            EnsureUtc(heartbeatAtUtc);
+
+            if (Status != CityStatus.Provisioning)
+                return false;
+
+            if (leaseDuration <= TimeSpan.Zero)
+                throw new InvalidOperationException("Provisioning lease duration must be greater than zero.");
+
+            if (ProvisioningLeaseExpiresAtUtc.HasValue && ProvisioningLeaseExpiresAtUtc.Value < heartbeatAtUtc)
+                return false;
+
+            ProvisioningStartedAtUtc ??= heartbeatAtUtc;
+            ProvisioningHeartbeatAtUtc = heartbeatAtUtc;
+            ProvisioningLeaseExpiresAtUtc = heartbeatAtUtc.Add(leaseDuration);
 
             return true;
         }
@@ -460,6 +543,7 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
 
             Status = CityStatus.Archived;
             ArchivedAtUtc = archivedAtUtc;
+            ClearProvisioningLease();
 
             AddDomainEvent(
                 new CityArchivedDomainEvent(
@@ -471,7 +555,16 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities
         {
             if (PopulationBootstrapCompletedAtUtc.HasValue &&
                 EconomyBootstrapCompletedAtUtc.HasValue)
+            {
                 Status = CityStatus.Active;
+                ClearProvisioningLease();
+            }
+        }
+
+        private void ClearProvisioningLease()
+        {
+            ProvisioningHeartbeatAtUtc = null;
+            ProvisioningLeaseExpiresAtUtc = null;
         }
 
         private static string NormalizePopulationBootstrapFailureCode(string failureCode)

@@ -14,19 +14,17 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             CancellationToken cancellationToken)
         {
             RestartCityPopulationBootstrapResult restarted = await mediator.Send(
-                request: new RestartCityPopulationBootstrapCommand(CityId: request.CityId),
+                request: new RestartCityPopulationBootstrapCommand(
+                    CityId: request.CityId,
+                    PlannedPeopleCountOverride: request.PlannedPeopleCountOverride),
                 cancellationToken: cancellationToken);
 
             return restarted.Status switch
             {
                 RestartCityPopulationBootstrapStatus.Restarted =>
-                    RetryCityPopulationBootstrapProvisioningResult.Provisioned(
-                        await orchestrator.ProvisionAsync(
+                    RetryCityPopulationBootstrapProvisioningResult.Accepted(
+                        await orchestrator.GetProvisioningViewAsync(
                             cityId: request.CityId,
-                            simulationKind: restarted.SimulationKind!,
-                            populationBootstrapOperationId: restarted.PopulationBootstrapOperationId!.Value,
-                            economyBootstrapOperationId: restarted.EconomyBootstrapOperationId!.Value,
-                            plannedPeopleCountOverride: request.PlannedPeopleCountOverride,
                             cancellationToken: cancellationToken)),
                 RestartCityPopulationBootstrapStatus.NotFound =>
                     RetryCityPopulationBootstrapProvisioningResult.NotFound(),

@@ -58,6 +58,8 @@ namespace Matrix.SimulationCore.Infrastructure
 
             services.AddOptions<SimulationTickOptions>()
                .Bind(configuration.GetSection(SimulationTickOptions.SectionName));
+            services.AddOptions<ProvisioningRecoveryOptions>()
+               .Bind(configuration.GetSection(ProvisioningRecoveryOptions.SectionName));
 
             services.AddOptions<RabbitMqOptions>()
                .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
@@ -130,6 +132,7 @@ namespace Matrix.SimulationCore.Infrastructure
                .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
 
             services.AddHostedService<SimulationTickHostedService>();
+            services.AddHostedService<CityProvisioningHostedService>();
 
             services.AddMassTransit(x =>
             {

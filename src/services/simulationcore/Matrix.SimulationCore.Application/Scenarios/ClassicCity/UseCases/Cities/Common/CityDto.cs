@@ -29,6 +29,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         DateTimeOffset? EconomyBootstrapFailedAtUtc,
         string? PopulationBootstrapFailureCode,
         string? EconomyBootstrapFailureCode,
+        DateTimeOffset? ProvisioningStartedAtUtc,
+        DateTimeOffset? ProvisioningHeartbeatAtUtc,
+        DateTimeOffset? ProvisioningLeaseExpiresAtUtc,
+        int ProvisioningAttemptCount,
         DateTimeOffset? ArchivedAtUtc,
         bool IsArchived)
     {
@@ -61,6 +65,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                 EconomyBootstrapFailedAtUtc: city.EconomyBootstrapFailedAtUtc,
                 PopulationBootstrapFailureCode: city.PopulationBootstrapFailureCode,
                 EconomyBootstrapFailureCode: city.EconomyBootstrapFailureCode,
+                ProvisioningStartedAtUtc: city.ProvisioningStartedAtUtc,
+                ProvisioningHeartbeatAtUtc: city.ProvisioningHeartbeatAtUtc,
+                ProvisioningLeaseExpiresAtUtc: city.ProvisioningLeaseExpiresAtUtc,
+                ProvisioningAttemptCount: city.ProvisioningAttemptCount,
                 ArchivedAtUtc: city.ArchivedAtUtc,
                 IsArchived: city.IsArchived);
         }

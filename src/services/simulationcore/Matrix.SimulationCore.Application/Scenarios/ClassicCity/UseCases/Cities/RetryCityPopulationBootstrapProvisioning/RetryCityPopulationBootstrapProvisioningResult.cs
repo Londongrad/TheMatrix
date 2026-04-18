@@ -4,7 +4,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public enum RetryCityPopulationBootstrapProvisioningStatus
     {
-        Provisioned = 1,
+        Accepted = 1,
         NotFound = 2,
         NotAllowed = 3
     }
@@ -13,10 +13,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         RetryCityPopulationBootstrapProvisioningStatus Status,
         CityProvisioningView? Provisioning)
     {
-        public static RetryCityPopulationBootstrapProvisioningResult Provisioned(CityProvisioningView provisioning)
+        public static RetryCityPopulationBootstrapProvisioningResult Accepted(CityProvisioningView provisioning)
         {
             return new RetryCityPopulationBootstrapProvisioningResult(
-                Status: RetryCityPopulationBootstrapProvisioningStatus.Provisioned,
+                Status: RetryCityPopulationBootstrapProvisioningStatus.Accepted,
                 Provisioning: provisioning);
         }
 

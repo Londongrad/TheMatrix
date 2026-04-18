@@ -4,7 +4,9 @@ using AppPermissionKeys = Matrix.SimulationCore.Application.Authorization.Permis
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap
 {
-    public sealed record RestartCityPopulationBootstrapCommand(Guid CityId)
+    public sealed record RestartCityPopulationBootstrapCommand(
+        Guid CityId,
+        int? PlannedPeopleCountOverride = null)
         : IRequest<RestartCityPopulationBootstrapResult>, IRequirePermissions
     {
         public IReadOnlyCollection<string> PermissionKeys =>

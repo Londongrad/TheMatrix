@@ -180,6 +180,18 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .HasMaxLength(City.EconomyBootstrapFailureCodeMaxLength)
                .IsRequired(false);
 
+            builder.Property(x => x.ProvisioningStartedAtUtc)
+               .IsRequired(false);
+
+            builder.Property(x => x.ProvisioningHeartbeatAtUtc)
+               .IsRequired(false);
+
+            builder.Property(x => x.ProvisioningLeaseExpiresAtUtc)
+               .IsRequired(false);
+
+            builder.Property(x => x.ProvisioningAttemptCount)
+               .IsRequired();
+
             builder.Property(x => x.ArchivedAtUtc)
                .IsRequired(false);
 
@@ -188,6 +200,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             // Optimizations for common queries
             builder.HasIndex(x => x.Status);
             builder.HasIndex(x => x.CreatedAtUtc);
+            builder.HasIndex(x => x.ProvisioningLeaseExpiresAtUtc);
             builder.HasIndex(x => x.ProvisioningCorrelationId)
                .IsUnique()
                .HasFilter("\"ProvisioningCorrelationId\" IS NOT NULL");
