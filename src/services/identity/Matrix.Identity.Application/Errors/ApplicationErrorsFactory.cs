@@ -189,6 +189,22 @@ namespace Matrix.Identity.Application.Errors
                 errorType: ApplicationErrorType.Unauthorized);
         }
 
+        public static MatrixApplicationException AvatarFormatNotSupported()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Avatar.UnsupportedFormat",
+                message: "Avatar must be a JPG, PNG, or WebP image.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
+        public static MatrixApplicationException AvatarContentInvalid()
+        {
+            return new MatrixApplicationException(
+                code: "Identity.Avatar.InvalidContent",
+                message: "Avatar file is not a valid image.",
+                errorType: ApplicationErrorType.Validation);
+        }
+
         public static MatrixApplicationException AccountDeletionRequiresPassword()
         {
             return new MatrixApplicationException(

@@ -1,6 +1,9 @@
 using Matrix.Identity.Application.Abstractions.Services;
+using Matrix.Identity.Application.Errors;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Hosting;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 
 namespace Matrix.Identity.Infrastructure.Storage
 {
@@ -10,9 +13,15 @@ namespace Matrix.Identity.Infrastructure.Storage
     public sealed class FileSystemAvatarStorage(IHostEnvironment env) : IAvatarStorage
     {
         private const string AvatarUrlPrefix = "/avatars/";
-        private const string DefaultExtension = ".png";
 
         private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
+        private static readonly IReadOnlyDictionary<string, AvatarFormatDescriptor> AllowedFormats =
+            new Dictionary<string, AvatarFormatDescriptor>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["JPEG"] = new(".jpg", "image/jpeg"),
+                ["PNG"] = new(".png", "image/png"),
+                ["WEBP"] = new(".webp", "image/webp")
+            };
 
         public async Task<string> SaveAsync(
             Stream content,
@@ -22,14 +31,14 @@ namespace Matrix.Identity.Infrastructure.Storage
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            string ext = Path.GetExtension(fileName);
-            if (string.IsNullOrWhiteSpace(ext))
-                ext = DefaultExtension;
+            AvatarValidatedContent validatedContent = await ValidateAsync(
+                content: content,
+                cancellationToken: cancellationToken);
 
             string avatarsRoot = GetPrivateAvatarsRoot();
             Directory.CreateDirectory(avatarsRoot);
 
-            string finalFileName = $"{Guid.NewGuid()}{ext}";
+            string finalFileName = $"{Guid.NewGuid()}{validatedContent.Extension}";
             string physicalPath = Path.Combine(
                 path1: avatarsRoot,
                 path2: finalFileName);
@@ -40,7 +49,8 @@ namespace Matrix.Identity.Infrastructure.Storage
                 access: FileAccess.Write,
                 share: FileShare.None);
 
-            await content.CopyToAsync(
+            validatedContent.Buffer.Position = 0;
+            await validatedContent.Buffer.CopyToAsync(
                 destination: fs,
                 cancellationToken: cancellationToken);
 
@@ -150,5 +160,65 @@ namespace Matrix.Identity.Infrastructure.Storage
                 ? contentType
                 : "application/octet-stream";
         }
+
+        private static async Task<AvatarValidatedContent> ValidateAsync(
+            Stream content,
+            CancellationToken cancellationToken)
+        {
+            var buffer = new MemoryStream();
+            await content.CopyToAsync(
+                destination: buffer,
+                cancellationToken: cancellationToken);
+
+            if (buffer.Length == 0)
+            {
+                await buffer.DisposeAsync();
+                throw ApplicationErrorsFactory.AvatarContentInvalid();
+            }
+
+            buffer.Position = 0;
+
+            try
+            {
+                using Image image = await Image.LoadAsync(
+                    stream: buffer,
+                    cancellationToken: cancellationToken);
+
+                IImageFormat? format = image.Metadata.DecodedImageFormat;
+                if (format is null ||
+                    !AllowedFormats.TryGetValue(format.Name, out AvatarFormatDescriptor? descriptor))
+                {
+                    await buffer.DisposeAsync();
+                    throw ApplicationErrorsFactory.AvatarFormatNotSupported();
+                }
+
+                buffer.Position = 0;
+                return new AvatarValidatedContent(
+                    Buffer: buffer,
+                    Extension: descriptor.Extension);
+            }
+            catch (Matrix.BuildingBlocks.Application.Exceptions.MatrixApplicationException)
+            {
+                throw;
+            }
+            catch (UnknownImageFormatException)
+            {
+                await buffer.DisposeAsync();
+                throw ApplicationErrorsFactory.AvatarFormatNotSupported();
+            }
+            catch (InvalidImageContentException)
+            {
+                await buffer.DisposeAsync();
+                throw ApplicationErrorsFactory.AvatarContentInvalid();
+            }
+        }
+
+        private sealed record AvatarValidatedContent(
+            MemoryStream Buffer,
+            string Extension);
+
+        private sealed record AvatarFormatDescriptor(
+            string Extension,
+            string ContentType);
     }
 }
