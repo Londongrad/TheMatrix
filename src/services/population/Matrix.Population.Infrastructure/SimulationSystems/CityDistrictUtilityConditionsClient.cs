@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -14,19 +15,19 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
             Guid cityId,
             CancellationToken cancellationToken)
         {
-            Task<DistrictHeatingConditionsPayload?> heatingTask = _client.GetFromJsonAsync<DistrictHeatingConditionsPayload>(
+            Task<DistrictHeatingConditionsPayload?> heatingTask = TryGetPayloadAsync<DistrictHeatingConditionsPayload>(
                 requestUri: $"/api/classic-city/cities/{cityId}/heating/districts",
                 cancellationToken: cancellationToken);
-            Task<DistrictWaterConditionsPayload?> waterTask = _client.GetFromJsonAsync<DistrictWaterConditionsPayload>(
+            Task<DistrictWaterConditionsPayload?> waterTask = TryGetPayloadAsync<DistrictWaterConditionsPayload>(
                 requestUri: $"/api/classic-city/cities/{cityId}/water-distribution/districts",
                 cancellationToken: cancellationToken);
-            Task<DistrictPowerConditionsPayload?> powerTask = _client.GetFromJsonAsync<DistrictPowerConditionsPayload>(
+            Task<DistrictPowerConditionsPayload?> powerTask = TryGetPayloadAsync<DistrictPowerConditionsPayload>(
                 requestUri: $"/api/classic-city/cities/{cityId}/power-distribution/districts",
                 cancellationToken: cancellationToken);
-            Task<DistrictSanitationConditionsPayload?> sanitationTask = _client.GetFromJsonAsync<DistrictSanitationConditionsPayload>(
+            Task<DistrictSanitationConditionsPayload?> sanitationTask = TryGetPayloadAsync<DistrictSanitationConditionsPayload>(
                 requestUri: $"/api/classic-city/cities/{cityId}/sanitation/districts",
                 cancellationToken: cancellationToken);
-            Task<DistrictUtilityIncidentConditionsPayload?> incidentsTask = _client.GetFromJsonAsync<DistrictUtilityIncidentConditionsPayload>(
+            Task<DistrictUtilityIncidentConditionsPayload?> incidentsTask = TryGetPayloadAsync<DistrictUtilityIncidentConditionsPayload>(
                 requestUri: $"/api/classic-city/cities/{cityId}/utility-incidents/districts",
                 cancellationToken: cancellationToken);
 
@@ -82,6 +83,22 @@ namespace Matrix.Population.Infrastructure.SimulationSystems
             }
 
             return snapshots;
+        }
+
+        private async Task<TPayload?> TryGetPayloadAsync<TPayload>(
+            string requestUri,
+            CancellationToken cancellationToken)
+        {
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: requestUri,
+                cancellationToken: cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return default;
+
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<TPayload>(cancellationToken: cancellationToken);
         }
 
         private sealed record DistrictHeatingConditionsPayload(
