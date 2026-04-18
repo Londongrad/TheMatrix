@@ -48,10 +48,17 @@ namespace Matrix.BuildingBlocks.Api.Middleware
             }
             catch (MatrixApplicationException ex)
             {
-                logger.LogWarning(
-                    exception: ex,
-                    message: "Handled application exception with code {Code}",
-                    ex.Code);
+                if (ex.ErrorType is ApplicationErrorType.Forbidden or
+                    ApplicationErrorType.Unauthorized or
+                    ApplicationErrorType.NotFound)
+                    logger.LogInformation(
+                        message: "Handled expected application exception with code {Code}",
+                        ex.Code);
+                else
+                    logger.LogWarning(
+                        exception: ex,
+                        message: "Handled application exception with code {Code}",
+                        ex.Code);
 
                 HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
 

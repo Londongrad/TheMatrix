@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Matrix.BuildingBlocks.Application.Exceptions;
+using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -52,12 +53,21 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
             {
                 stopwatch.Stop();
 
-                logger.LogWarning(
-                    exception: ex,
-                    message: "Request {RequestName} failed with application error {ErrorCode} after {ElapsedMilliseconds} ms",
-                    requestName,
-                    ex.Code,
-                    stopwatch.ElapsedMilliseconds);
+                if (ex.ErrorType is ApplicationErrorType.Forbidden or
+                    ApplicationErrorType.Unauthorized or
+                    ApplicationErrorType.NotFound)
+                    logger.LogInformation(
+                        message: "Request {RequestName} failed with expected application error {ErrorCode} after {ElapsedMilliseconds} ms",
+                        requestName,
+                        ex.Code,
+                        stopwatch.ElapsedMilliseconds);
+                else
+                    logger.LogWarning(
+                        exception: ex,
+                        message: "Request {RequestName} failed with application error {ErrorCode} after {ElapsedMilliseconds} ms",
+                        requestName,
+                        ex.Code,
+                        stopwatch.ElapsedMilliseconds);
 
                 throw;
             }
