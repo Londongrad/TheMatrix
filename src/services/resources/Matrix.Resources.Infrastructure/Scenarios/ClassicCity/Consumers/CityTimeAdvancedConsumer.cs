@@ -45,7 +45,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                     break;
 
                 case AdvanceCityStockpilesStatus.OutOfOrder:
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message: "Skipped out-of-order classic city stockpile time progression for cityId={CityId}, tickId={TickId}.",
                         message.CityId,
                         message.TickId);

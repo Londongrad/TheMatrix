@@ -47,7 +47,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                     break;
 
                 case AdvanceCityEconomySimulationStatus.OutOfOrder:
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message: "Skipped out-of-order city economy progression for cityId={CityId}, tickId={TickId}.",
                         message.CityId,
                         message.TickId);

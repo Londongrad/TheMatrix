@@ -48,7 +48,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     break;
 
                 case AdvanceCityEnvironmentalConditionsStatus.OutOfOrder:
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Skipped out-of-order classic city environmental time progression for cityId={CityId}, tickId={TickId}.",
                         message.CityId,

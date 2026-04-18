@@ -55,7 +55,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     break;
 
                 case SyncCityWeatherExposureStateStatus.OutOfOrder:
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Skipped out-of-order city weather exposure initialization for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,

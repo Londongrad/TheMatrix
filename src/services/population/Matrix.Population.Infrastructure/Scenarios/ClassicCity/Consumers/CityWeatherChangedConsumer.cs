@@ -91,7 +91,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     break;
 
                 case ApplyCityWeatherImpactStatus.OutOfOrder:
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message: "Skipped out-of-order city weather impact for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
                         context.MessageId);
@@ -115,7 +115,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
             switch (syncResult.Status)
             {
                 case SyncCityWeatherExposureStateStatus.OutOfOrder:
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Skipped out-of-order city weather exposure sync for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,

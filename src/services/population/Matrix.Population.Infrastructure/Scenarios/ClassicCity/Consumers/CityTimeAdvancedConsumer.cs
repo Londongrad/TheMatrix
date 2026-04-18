@@ -44,7 +44,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     break;
 
                 case AdvanceCityPopulationStatus.OutOfOrder:
-                    logger.LogWarning(
+                    logger.LogDebug(
                         message:
                         "Skipped out-of-order city population progression for cityId={CityId}, tickId={TickId}.",
                         message.CityId,
