@@ -13,6 +13,10 @@ namespace Matrix.Identity.Infrastructure.Storage
     public sealed class FileSystemAvatarStorage(IHostEnvironment env) : IAvatarStorage
     {
         private const string AvatarUrlPrefix = "/avatars/";
+        private static readonly StringComparison PathComparison =
+            OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
 
         private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
         private static readonly IReadOnlyDictionary<string, AvatarFormatDescriptor> AllowedFormats =
@@ -92,20 +96,16 @@ namespace Matrix.Identity.Infrastructure.Storage
             if (string.IsNullOrWhiteSpace(path))
                 return Task.CompletedTask;
 
-            string fileName = ExtractFileName(path);
-            if (string.IsNullOrWhiteSpace(fileName))
-                return Task.CompletedTask;
-
-            string privatePath = Path.Combine(
-                path1: GetPrivateAvatarsRoot(),
-                path2: fileName);
-            if (File.Exists(privatePath))
+            string? privatePath = TryResolveAvatarPath(
+                root: GetPrivateAvatarsRoot(),
+                path: path);
+            if (privatePath is not null && File.Exists(privatePath))
                 File.Delete(privatePath);
 
-            string legacyPath = Path.Combine(
-                path1: GetLegacyAvatarsRoot(),
-                path2: fileName);
-            if (File.Exists(legacyPath))
+            string? legacyPath = TryResolveAvatarPath(
+                root: GetLegacyAvatarsRoot(),
+                path: path);
+            if (legacyPath is not null && File.Exists(legacyPath))
                 File.Delete(legacyPath);
 
             return Task.CompletedTask;
@@ -113,16 +113,16 @@ namespace Matrix.Identity.Infrastructure.Storage
 
         private string? ResolveExistingAvatarPath(string fileName)
         {
-            string privatePath = Path.Combine(
-                path1: GetPrivateAvatarsRoot(),
-                path2: fileName);
-            if (File.Exists(privatePath))
+            string? privatePath = TryResolveAvatarPath(
+                root: GetPrivateAvatarsRoot(),
+                path: fileName);
+            if (privatePath is not null && File.Exists(privatePath))
                 return privatePath;
 
-            string legacyPath = Path.Combine(
-                path1: GetLegacyAvatarsRoot(),
-                path2: fileName);
-            return File.Exists(legacyPath)
+            string? legacyPath = TryResolveAvatarPath(
+                root: GetLegacyAvatarsRoot(),
+                path: fileName);
+            return legacyPath is not null && File.Exists(legacyPath)
                 ? legacyPath
                 : null;
         }
@@ -159,6 +159,47 @@ namespace Matrix.Identity.Infrastructure.Storage
             return ContentTypeProvider.TryGetContentType(fileName, out string? contentType)
                 ? contentType
                 : "application/octet-stream";
+        }
+
+        private static string? TryResolveAvatarPath(
+            string root,
+            string path)
+        {
+            string? relative = ExtractRelativePath(path);
+            if (string.IsNullOrWhiteSpace(relative))
+                return null;
+
+            if (!string.Equals(relative, Path.GetFileName(relative), PathComparison))
+                return null;
+
+            string rootFullPath = EnsureTrailingDirectorySeparator(Path.GetFullPath(root));
+            string candidateFullPath = Path.GetFullPath(Path.Combine(rootFullPath, relative));
+
+            return candidateFullPath.StartsWith(rootFullPath, PathComparison)
+                ? candidateFullPath
+                : null;
+        }
+
+        private static string? ExtractRelativePath(string path)
+        {
+            string normalized = path.Trim()
+               .Replace('\\', '/');
+
+            if (normalized.StartsWith(AvatarUrlPrefix, StringComparison.OrdinalIgnoreCase))
+                normalized = normalized[AvatarUrlPrefix.Length..];
+            else
+                normalized = normalized.TrimStart('/', '\\');
+
+            return string.IsNullOrWhiteSpace(normalized)
+                ? null
+                : normalized;
+        }
+
+        private static string EnsureTrailingDirectorySeparator(string path)
+        {
+            return path.EndsWith(Path.DirectorySeparatorChar) || path.EndsWith(Path.AltDirectorySeparatorChar)
+                ? path
+                : path + Path.DirectorySeparatorChar;
         }
 
         private static async Task<AvatarValidatedContent> ValidateAsync(
@@ -217,8 +258,6 @@ namespace Matrix.Identity.Infrastructure.Storage
             MemoryStream Buffer,
             string Extension);
 
-        private sealed record AvatarFormatDescriptor(
-            string Extension,
-            string ContentType);
+        private sealed record AvatarFormatDescriptor(string Extension, string ContentType);
     }
 }
