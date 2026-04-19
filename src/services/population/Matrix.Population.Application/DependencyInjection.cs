@@ -1,7 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Population.Application.Errors;
 using Matrix.Population.Application.Scenarios.ClassicCity;
 using Matrix.Population.Domain.Services;
@@ -25,16 +25,7 @@ namespace Matrix.Population.Application
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped<IValidationExceptionFactory, PopulationValidationErrorFactory>();
-
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(LoggingBehavior<,>));
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(ValidationBehavior<,>));
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(PermissionBehavior<,>));
+            services.AddDefaultApplicationPipeline();
         }
     }
 }

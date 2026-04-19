@@ -1,7 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Resources.Application.Errors;
 using Matrix.Resources.Application.Scenarios.ClassicCity;
 using MediatR;
@@ -19,16 +19,7 @@ namespace Matrix.Resources.Application
             services.AddValidatorsFromAssembly(assembly);
             services.AddScoped<IValidationExceptionFactory, ResourcesValidationErrorFactory>();
             services.AddClassicCityScenarioApplication();
-
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(LoggingBehavior<,>));
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(ValidationBehavior<,>));
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(PermissionBehavior<,>));
+            services.AddDefaultApplicationPipeline();
         }
     }
 }

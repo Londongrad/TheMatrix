@@ -1,7 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using Matrix.BuildingBlocks.Application.Abstractions;
-using Matrix.BuildingBlocks.Application.Behaviors;
+using Matrix.BuildingBlocks.Application.DependencyInjection;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
@@ -22,33 +22,19 @@ namespace Matrix.Identity.Application
             Assembly assembly = typeof(DependencyInjection).Assembly;
 
             services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(assembly); });
-
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped<IValidationExceptionFactory, IdentityValidationErrorFactory>();
 
-            // Security state change collector
             services.AddScoped<ISecurityStateChangeCollector, SecurityStateChangeCollector>();
-
-            // Admin guards
             services.AddScoped<IAdminUserGuard, AdminUserGuard>();
             services.AddScoped<IOneTimeTokenDeliveryService, OneTimeTokenDeliveryService>();
             services.AddScoped<IPendingEmailChangeDeliveryService, PendingEmailChangeDeliveryService>();
 
-            // Validators
             services.AddScoped<IRoleIdsValidator, RoleIdsValidator>();
             services.AddScoped<IPermissionKeysValidator, PermissionKeysValidator>();
 
-            // Behaviors (используем общие из BuildingBlocks)
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(LoggingBehavior<,>));
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(ValidationBehavior<,>));
-            services.AddTransient(
-                serviceType: typeof(IPipelineBehavior<,>),
-                implementationType: typeof(PermissionBehavior<,>));
+            services.AddDefaultApplicationPipeline();
         }
     }
 }

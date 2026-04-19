@@ -20,7 +20,7 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
             PermissionRequirement? requirement = CreateRequirement(request);
 
             if (requirement is null)
-                return await next();
+                return await next(cancellationToken);
 
             if (!currentUser.IsAuthenticated || currentUser.UserId is null)
                 throw new MatrixApplicationException(
@@ -48,7 +48,7 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
                     errorType: ApplicationErrorType.Forbidden,
                     errors: null);
 
-            return await next();
+            return await next(cancellationToken);
         }
 
         private static PermissionRequirement? CreateRequirement(TRequest request)
