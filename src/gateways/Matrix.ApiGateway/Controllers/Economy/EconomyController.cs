@@ -1,9 +1,11 @@
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.Economy.Contracts.Budget.Views;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.Controllers.Economy
 {
+    [Authorize]
     [ApiController]
     [Route("api/economy")]
     public class EconomyController(IEconomyApiClient economyClient) : ControllerBase
