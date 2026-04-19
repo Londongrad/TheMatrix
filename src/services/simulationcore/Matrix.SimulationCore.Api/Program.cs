@@ -9,6 +9,6 @@ WebApplication app = builder.Build();
 
 app.ConfigureApplicationMiddleware();
 
-await app.MigrateSimulationCoreDatabaseAsync();
+await app.Services.MigrateSimulationCoreDatabaseAsync();
 
 app.Run();

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,13 +7,13 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence
     public static class ApplicationBuilderExtensions
     {
         public static async Task MigrateSimulationCoreDatabaseAsync(
-            this IApplicationBuilder app,
+            this IServiceProvider services,
             CancellationToken cancellationToken = default)
         {
-            await using AsyncServiceScope scope = app.ApplicationServices.CreateAsyncScope();
-
-            SimulationCoreDbContext dbContext = scope.ServiceProvider.GetRequiredService<SimulationCoreDbContext>();
-            await dbContext.Database.MigrateAsync(cancellationToken);
+            await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<SimulationCoreDbContext>(
+                services,
+                serviceName: "SimulationCore",
+                cancellationToken);
         }
     }
 }

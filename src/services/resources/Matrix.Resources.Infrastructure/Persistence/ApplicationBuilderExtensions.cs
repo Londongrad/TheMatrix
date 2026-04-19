@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,9 +10,10 @@ namespace Matrix.Resources.Infrastructure.Persistence
             this IServiceProvider services,
             CancellationToken cancellationToken = default)
         {
-            using IServiceScope scope = services.CreateScope();
-            ResourcesDbContext dbContext = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
-            await dbContext.Database.MigrateAsync(cancellationToken);
+            await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<ResourcesDbContext>(
+                services,
+                serviceName: "Resources",
+                cancellationToken);
         }
     }
 }

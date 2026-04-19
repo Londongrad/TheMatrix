@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.SimulationSystems.Application;
 using Matrix.SimulationSystems.Infrastructure;
 
@@ -19,6 +20,7 @@ namespace Matrix.SimulationSystems.Api.Configurations
 
             services.AddControllers();
             services.AddOperationalHealthChecks(configuration);
+            services.AddDatabaseStartup(configuration);
 
             services.AddInternalJwtAuthentication(configuration);
 

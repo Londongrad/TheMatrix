@@ -9,6 +9,6 @@ WebApplication app = builder.Build();
 
 app.ConfigureApplicationMiddleware();
 
-await app.MigratePopulationDatabaseAsync();
+await app.Services.MigratePopulationDatabaseAsync();
 
 app.Run();

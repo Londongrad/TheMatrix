@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,9 +10,10 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence
             this IServiceProvider services,
             CancellationToken cancellationToken = default)
         {
-            using IServiceScope scope = services.CreateScope();
-            SimulationSystemsDbContext dbContext = scope.ServiceProvider.GetRequiredService<SimulationSystemsDbContext>();
-            await dbContext.Database.MigrateAsync(cancellationToken);
+            await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<SimulationSystemsDbContext>(
+                services,
+                serviceName: "SimulationSystems",
+                cancellationToken);
         }
     }
 }

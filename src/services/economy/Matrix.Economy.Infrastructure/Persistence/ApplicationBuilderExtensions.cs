@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,9 +10,10 @@ namespace Matrix.Economy.Infrastructure.Persistence
             this IServiceProvider services,
             CancellationToken cancellationToken = default)
         {
-            using IServiceScope scope = services.CreateScope();
-            EconomyDbContext dbContext = scope.ServiceProvider.GetRequiredService<EconomyDbContext>();
-            await dbContext.Database.MigrateAsync(cancellationToken);
+            await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<EconomyDbContext>(
+                services,
+                serviceName: "Economy",
+                cancellationToken);
         }
     }
 }

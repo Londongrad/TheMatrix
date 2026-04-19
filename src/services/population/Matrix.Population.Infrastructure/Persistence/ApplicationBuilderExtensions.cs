@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,13 +7,13 @@ namespace Matrix.Population.Infrastructure.Persistence
     public static class ApplicationBuilderExtensions
     {
         public static async Task MigratePopulationDatabaseAsync(
-            this IApplicationBuilder app,
+            this IServiceProvider services,
             CancellationToken cancellationToken = default)
         {
-            await using AsyncServiceScope scope = app.ApplicationServices.CreateAsyncScope();
-
-            PopulationDbContext dbContext = scope.ServiceProvider.GetRequiredService<PopulationDbContext>();
-            await dbContext.Database.MigrateAsync(cancellationToken);
+            await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<PopulationDbContext>(
+                services,
+                serviceName: "Population",
+                cancellationToken);
         }
     }
 }

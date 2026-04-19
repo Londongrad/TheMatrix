@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,34 +7,40 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
     public static class ApplicationBuilderExtensions
     {
         public static async Task MigrateIdentityDatabaseAsync(
-            this IApplicationBuilder app,
+            this IServiceProvider services,
             CancellationToken cancellationToken = default)
         {
-            await using AsyncServiceScope scope = app.ApplicationServices.CreateAsyncScope();
-
-            IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-            await dbContext.Database.MigrateAsync(cancellationToken);
+            await DatabaseStartupRunner.ApplyMigrationsIfEnabledAsync<IdentityDbContext>(
+                services,
+                serviceName: "Identity",
+                cancellationToken);
         }
 
         public static async Task SeedIdentityPermissionsAsync(
-            this IApplicationBuilder app,
+            this IServiceProvider services,
             CancellationToken cancellationToken = default)
         {
-            using IServiceScope scope = app.ApplicationServices.CreateScope();
+            await DatabaseStartupRunner.RunSeedIfEnabledAsync(
+                services,
+                serviceName: "Identity",
+                seedName: "IdentityPermissions",
+                seedAction: async (serviceProvider, token) =>
+                {
+                    PermissionsSeeder permissionsSeeder = serviceProvider.GetRequiredService<PermissionsSeeder>();
+                    await permissionsSeeder.SeedAsync(token);
 
-            PermissionsSeeder permissionsSeeder = scope.ServiceProvider.GetRequiredService<PermissionsSeeder>();
-            await permissionsSeeder.SeedAsync(cancellationToken);
+                    RolesSeeder rolesSeeder = serviceProvider.GetRequiredService<RolesSeeder>();
+                    await rolesSeeder.SeedSystemRolesAsync(token);
 
-            RolesSeeder rolesSeeder = scope.ServiceProvider.GetRequiredService<RolesSeeder>();
-            await rolesSeeder.SeedSystemRolesAsync(cancellationToken);
+                    DefaultUserAccessPolicySeeder defaultUserAccessPolicySeeder =
+                        serviceProvider.GetRequiredService<DefaultUserAccessPolicySeeder>();
+                    await defaultUserAccessPolicySeeder.SeedAsync(token);
 
-            DefaultUserAccessPolicySeeder defaultUserAccessPolicySeeder =
-                scope.ServiceProvider.GetRequiredService<DefaultUserAccessPolicySeeder>();
-            await defaultUserAccessPolicySeeder.SeedAsync(cancellationToken);
-
-            BootstrapSuperAdminSeeder bootstrapSuperAdminSeeder =
-                scope.ServiceProvider.GetRequiredService<BootstrapSuperAdminSeeder>();
-            await bootstrapSuperAdminSeeder.EnsureAtLeastOneSuperAdminAsync(cancellationToken);
+                    BootstrapSuperAdminSeeder bootstrapSuperAdminSeeder =
+                        serviceProvider.GetRequiredService<BootstrapSuperAdminSeeder>();
+                    await bootstrapSuperAdminSeeder.EnsureAtLeastOneSuperAdminAsync(token);
+                },
+                cancellationToken);
         }
     }
 }

@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
 using Matrix.Identity.Infrastructure.Authentication.ExternalJwt;
@@ -20,6 +21,7 @@ namespace Matrix.Identity.Api.Configurations
             builder.AddSerilogLogging();
             services.AddOperationalHealthChecks(configuration);
             services.AddTrustedForwardedHeaders(configuration);
+            services.AddDatabaseStartup(configuration);
 
             services
                .AddPresentationLayer() // Controllers + Swagger
