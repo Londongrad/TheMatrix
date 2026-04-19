@@ -10,7 +10,6 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
-using Matrix.Population.Infrastructure.Http;
 using Matrix.Population.Infrastructure.Messaging;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Options;
@@ -21,6 +20,7 @@ using Matrix.Population.Infrastructure.Persistence.Repositories;
 using Matrix.Population.Infrastructure.Scenarios.ClassicCity;
 using Matrix.Population.Infrastructure.SimulationCore;
 using Matrix.Population.Infrastructure.SimulationSystems;
+using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +35,8 @@ namespace Matrix.Population.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            Guid populationServicePrincipalId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
             string? connectionString = configuration.GetConnectionString("PopulationDb");
 
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -86,7 +88,6 @@ namespace Matrix.Population.Infrastructure
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<PopulationDbContext>>();
             services.AddPermissionCheckingFromClaims();
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
-            services.AddTransient<InternalServiceAuthenticationHandler>();
             services.AddHostedService<ProcessedIntegrationMessageCleanupHostedService>();
             services.AddOutbox<PopulationDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
@@ -103,7 +104,14 @@ namespace Matrix.Population.Infrastructure
                         uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: populationServicePrincipalId,
+                    serviceName: "population",
+                    permissions:
+                    [
+                        SimulationCorePermissionKeys.SimulationCoreClassicCityRead
+                    ]));
             services.AddHttpClient<ICityPopulationActiveTripClient, CityActiveTripClient>((sp, client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
@@ -116,7 +124,15 @@ namespace Matrix.Population.Infrastructure
                         uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: populationServicePrincipalId,
+                    serviceName: "population",
+                    permissions:
+                    [
+                        SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
+                        SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate
+                    ]));
             services.AddHttpClient<ICityDistrictUtilityConditionsClient, CityDistrictUtilityConditionsClient>((sp, client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
@@ -129,7 +145,11 @@ namespace Matrix.Population.Infrastructure
                         uriString: options.SimulationSystems,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: populationServicePrincipalId,
+                    serviceName: "population",
+                    permissions: []));
 
             services.AddMassTransit(x =>
             {

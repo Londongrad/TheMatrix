@@ -5,9 +5,10 @@ using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
+using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
+using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permissions.PermissionKeys;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Infrastructure.Economy;
-using Matrix.SimulationCore.Infrastructure.Http;
 using Matrix.SimulationCore.Infrastructure.Options;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.SimulationCore.Infrastructure.Population;
@@ -34,6 +35,8 @@ namespace Matrix.SimulationCore.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            Guid simulationCoreServicePrincipalId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+
             string? connectionString = configuration.GetConnectionString("SimulationCoreDb");
 
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -84,7 +87,6 @@ namespace Matrix.SimulationCore.Infrastructure
             services.AddScoped<ISimulationClockMutationExecutor, SimulationClockMutationExecutor>();
             services.AddPermissionCheckingFromClaims();
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
-            services.AddTransient<InternalServiceAuthenticationHandler>();
 
             services.AddOutbox<SimulationCoreDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
@@ -101,7 +103,14 @@ namespace Matrix.SimulationCore.Infrastructure
                         uriString: options.Economy,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: simulationCoreServicePrincipalId,
+                    serviceName: "simulationcore",
+                    permissions:
+                    [
+                        EconomyPermissionKeys.EconomyBudgetBootstrap
+                    ]));
 
             services.AddHttpClient<ICityPopulationBootstrapClient, CityPopulationBootstrapClient>((sp, client) =>
                 {
@@ -115,7 +124,14 @@ namespace Matrix.SimulationCore.Infrastructure
                         uriString: options.Population,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: simulationCoreServicePrincipalId,
+                    serviceName: "simulationcore",
+                    permissions:
+                    [
+                        PopulationPermissionKeys.PopulationPeopleInitialize
+                    ]));
 
             services.AddHttpClient<ICityRoadSegmentConditionsClient, CityRoadSegmentConditionsClient>((sp, client) =>
                 {
@@ -129,7 +145,11 @@ namespace Matrix.SimulationCore.Infrastructure
                         uriString: options.SimulationSystems,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: simulationCoreServicePrincipalId,
+                    serviceName: "simulationcore",
+                    permissions: []));
 
             services.AddHostedService<SimulationTickHostedService>();
             services.AddHostedService<CityProvisioningHostedService>();

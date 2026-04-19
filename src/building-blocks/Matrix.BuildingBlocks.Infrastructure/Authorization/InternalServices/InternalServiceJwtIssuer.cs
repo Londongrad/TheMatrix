@@ -11,8 +11,14 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
     {
         private readonly InternalJwtOptions _options = options.Value;
 
-        public string Issue(Guid subjectId)
+        public string Issue(
+            Guid subjectId,
+            string serviceName,
+            IReadOnlyCollection<string> permissions)
         {
+            if (string.IsNullOrWhiteSpace(serviceName))
+                throw new ArgumentException("Internal service name must be provided.", nameof(serviceName));
+
             var claims = new List<Claim>
             {
                 new(
@@ -22,20 +28,32 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                     type: JwtRegisteredClaimNames.Jti,
                     value: Guid.NewGuid().ToString()),
                 new(
-                    type: JwtClaimNames.Permission,
-                    value: "*")
+                    type: JwtClaimNames.Service,
+                    value: serviceName)
             };
+
+            foreach (string permission in permissions
+                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                        .Distinct(StringComparer.Ordinal)
+                        .OrderBy(x => x, StringComparer.Ordinal))
+            {
+                claims.Add(new Claim(
+                    type: JwtClaimNames.Permission,
+                    value: permission));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
             var credentials = new SigningCredentials(
                 key: key,
                 algorithm: SecurityAlgorithms.HmacSha256);
 
+            DateTime expiresAtUtc = DateTime.UtcNow.AddSeconds(_options.LifetimeSeconds);
+
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer,
                 audience: _options.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(5),
+                expires: expiresAtUtc,
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

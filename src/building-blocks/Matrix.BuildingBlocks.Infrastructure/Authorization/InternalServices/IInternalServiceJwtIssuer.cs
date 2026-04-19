@@ -2,6 +2,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
 {
     public interface IInternalServiceJwtIssuer
     {
-        string Issue(Guid subjectId);
+        string Issue(
+            Guid subjectId,
+            string serviceName,
+            IReadOnlyCollection<string> permissions);
     }
 }

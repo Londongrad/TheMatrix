@@ -8,8 +8,8 @@ using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
+using EconomyPermissionKeys = Matrix.Economy.Contracts.Authorization.Permissions.PermissionKeys;
 using Matrix.SimulationSystems.Infrastructure.Economy;
-using Matrix.SimulationSystems.Infrastructure.Http;
 using Matrix.SimulationSystems.Infrastructure.Messaging;
 using Matrix.SimulationSystems.Infrastructure.Options;
 using Matrix.SimulationSystems.Infrastructure.Outbox;
@@ -18,6 +18,7 @@ using Matrix.SimulationSystems.Infrastructure.Persistence;
 using Matrix.SimulationSystems.Infrastructure.Persistence.Repositories;
 using Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity;
 using Matrix.SimulationSystems.Infrastructure.SimulationCore;
+using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,8 @@ namespace Matrix.SimulationSystems.Infrastructure
             IConfiguration configuration,
             IHostEnvironment environment)
         {
+            Guid simulationSystemsServicePrincipalId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
             string connectionString = configuration.GetConnectionString("SimulationSystemsDb") ??
                                       throw new InvalidOperationException(
                                           "Connection string 'SimulationSystemsDb' is not configured.");
@@ -84,7 +87,6 @@ namespace Matrix.SimulationSystems.Infrastructure
             services.AddScoped<IUnitOfWork, EfCoreUnitOfWork<SimulationSystemsDbContext>>();
             services.AddPermissionCheckingFromClaims();
             services.AddSingleton<IInternalServiceJwtIssuer, InternalServiceJwtIssuer>();
-            services.AddTransient<InternalServiceAuthenticationHandler>();
             services.AddOutbox<SimulationSystemsDbContext>(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
             services.AddScoped<ICityOperationalExpenseOutboxWriter, CityOperationalExpenseOutboxWriter>();
@@ -102,7 +104,14 @@ namespace Matrix.SimulationSystems.Infrastructure
                         uriString: options.Economy,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: simulationSystemsServicePrincipalId,
+                    serviceName: "simulationsystems",
+                    permissions:
+                    [
+                        EconomyPermissionKeys.EconomyBudgetAuthorize
+                    ]));
             services.AddHttpClient<ICityMapTopologyClient, CityMapTopologyClient>((sp, client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
@@ -115,7 +124,14 @@ namespace Matrix.SimulationSystems.Infrastructure
                         uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: simulationSystemsServicePrincipalId,
+                    serviceName: "simulationsystems",
+                    permissions:
+                    [
+                        SimulationCorePermissionKeys.SimulationCoreClassicCityRead
+                    ]));
             services.AddHttpClient<ICityOperationalTripDispatcher, CityOperationalTripDispatcher>((sp, client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
@@ -128,7 +144,15 @@ namespace Matrix.SimulationSystems.Infrastructure
                         uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler<InternalServiceAuthenticationHandler>();
+               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
+                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
+                    subjectId: simulationSystemsServicePrincipalId,
+                    serviceName: "simulationsystems",
+                    permissions:
+                    [
+                        SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
+                        SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate
+                    ]));
 
             services.AddMassTransit(x =>
             {
