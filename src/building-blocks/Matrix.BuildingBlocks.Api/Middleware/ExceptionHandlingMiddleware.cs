@@ -4,7 +4,6 @@ using Matrix.BuildingBlocks.Api.Exceptions;
 using Matrix.BuildingBlocks.Application.Enums;
 using Matrix.BuildingBlocks.Application.Exceptions;
 using Matrix.BuildingBlocks.Domain.Exceptions;
-using Matrix.BuildingBlocks.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 

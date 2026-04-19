@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Enums;
 
-namespace Matrix.BuildingBlocks.Infrastructure.Exceptions
+namespace Matrix.BuildingBlocks.Application.Exceptions
 {
     public sealed class MatrixInfrastructureException(
         string code,

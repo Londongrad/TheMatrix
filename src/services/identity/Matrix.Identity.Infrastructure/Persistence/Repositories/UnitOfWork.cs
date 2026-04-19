@@ -2,7 +2,6 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Exceptions;
-using Matrix.BuildingBlocks.Infrastructure.Exceptions;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
