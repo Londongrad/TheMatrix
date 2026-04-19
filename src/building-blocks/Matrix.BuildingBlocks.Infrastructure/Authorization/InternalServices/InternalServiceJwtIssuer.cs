@@ -9,7 +9,7 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
 {
     public sealed class InternalServiceJwtIssuer(IOptions<InternalJwtOptions> options) : IInternalServiceJwtIssuer
     {
-        private readonly InternalJwtOptions _options = options.Value;
+        private readonly InternalJwtOptions _options = ValidateOptions(options.Value);
 
         public string Issue(
             Guid subjectId,
@@ -57,6 +57,15 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private static InternalJwtOptions ValidateOptions(InternalJwtOptions options)
+        {
+            InternalJwtSigningKeyPolicy.EnsureStrong(
+                signingKey: options.SigningKey,
+                optionsPath: InternalJwtOptions.SectionName);
+
+            return options;
         }
     }
 }

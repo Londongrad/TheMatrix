@@ -32,6 +32,13 @@ namespace Matrix.BuildingBlocks.Api.Authorization
                .Validate(
                     validation: o => !string.IsNullOrWhiteSpace(o.SigningKey),
                     failureMessage: $"{sectionName}:SigningKey is required.")
+               .Validate(
+                    validation: o => typeof(TJwtOptions) != typeof(InternalJwtOptions) ||
+                                     InternalJwtSigningKeyPolicy.TryValidate(
+                                         signingKey: o.SigningKey,
+                                         validationError: out _),
+                    failureMessage:
+                    $"{sectionName}:SigningKey must be at least {InternalJwtSigningKeyPolicy.MinSigningKeyBytes} UTF-8 bytes long, contain at least {InternalJwtSigningKeyPolicy.MinDistinctCharacters} distinct characters, and avoid low-entropy secrets.")
                .ValidateOnStart();
 
             if (configureAuthentication is null)

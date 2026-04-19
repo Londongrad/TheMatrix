@@ -11,7 +11,7 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
 {
     public sealed class InternalJwtIssuer(IOptions<InternalJwtOptions> options) : IInternalJwtIssuer
     {
-        private readonly InternalJwtOptions _options = options.Value;
+        private readonly InternalJwtOptions _options = ValidateOptions(options.Value);
 
         public string Issue(
             Guid userId,
@@ -62,6 +62,15 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private static InternalJwtOptions ValidateOptions(InternalJwtOptions options)
+        {
+            InternalJwtSigningKeyPolicy.EnsureStrong(
+                signingKey: options.SigningKey,
+                optionsPath: InternalJwtOptions.SectionName);
+
+            return options;
         }
     }
 }
