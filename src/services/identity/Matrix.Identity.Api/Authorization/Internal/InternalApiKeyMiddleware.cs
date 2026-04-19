@@ -15,37 +15,35 @@ namespace Matrix.Identity.Api.Authorization.Internal
 
         public async Task InvokeAsync(HttpContext context)
         {
-            // Protect only internal endpoints
-            if (!context.Request.Path.StartsWithSegments(
-                    other: "/api/internal",
-                    comparisonType: StringComparison.OrdinalIgnoreCase))
-            {
-                await next(context);
-                return;
-            }
-
-            // Optional: allow health checks if you want
-            // if (context.Request.Path.StartsWithSegments("/api/internal/health")) { ... }
+            bool requiresInternalKey = context.Request.Path.StartsWithSegments(
+                other: "/api/internal",
+                comparisonType: StringComparison.OrdinalIgnoreCase);
 
             if (!context.Request.Headers.TryGetValue(
                     key: ApiKeyHeaderName,
                     value: out StringValues providedKey))
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                if (requiresInternalKey)
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                else
+                    await next(context);
+
                 return;
             }
 
             string expected = _opts.ApiKey;
             if (string.IsNullOrWhiteSpace(expected))
             {
-                // Misconfiguration: treat as unauthorized
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                if (requiresInternalKey)
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                else
+                    await next(context);
+
                 return;
             }
 
             string provided = providedKey.ToString();
 
-            // Constant-time compare
             byte[] providedBytes = Encoding.UTF8.GetBytes(provided);
             byte[] expectedBytes = Encoding.UTF8.GetBytes(expected);
 
@@ -54,11 +52,18 @@ namespace Matrix.Identity.Api.Authorization.Internal
                           left: providedBytes,
                           right: expectedBytes);
 
+            // Protect only internal endpoints
             if (!ok)
             {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                if (requiresInternalKey)
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                else
+                    await next(context);
+
                 return;
             }
+
+            TrustedGatewayRequestContext.Mark(context);
 
             await next(context);
         }

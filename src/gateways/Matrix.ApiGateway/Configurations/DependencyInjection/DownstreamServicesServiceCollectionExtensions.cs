@@ -5,6 +5,7 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.HttpHandlers;
+using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
 using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
@@ -50,7 +51,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .ValidateOnStart();
 
             services.AddHttpContextAccessor();
-            services.AddTransient<ForwardClientInfoHeadersHandler>();
+            services.AddTransient<TrustedIdentityClientContextHandler>();
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
             services.AddTransient<InternalJwtExchangeHandler>();
 
@@ -178,7 +179,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         sp: sp,
                         client: client,
                         serviceName: DownstreamServiceNames.Identity))
-               .AddHttpMessageHandler<ForwardClientInfoHeadersHandler>()
+               .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IIdentityAccountClient, IdentityAccountApiClient>((
@@ -189,6 +190,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         client: client,
                         serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IIdentityAssetsClient, IdentityAssetsApiClient>((
@@ -209,7 +211,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         client: client,
                         serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
-               .AddHttpMessageHandler<ForwardClientInfoHeadersHandler>()
+               .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
             services.AddHttpClient<IIdentityAdminRolesClient, IdentityAdminRolesApiClient>((

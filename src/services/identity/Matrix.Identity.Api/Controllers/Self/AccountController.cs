@@ -16,7 +16,7 @@ using Matrix.Identity.Contracts.Self.Account.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
+using Matrix.Identity.Api.Authorization.Internal;
 
 namespace Matrix.Identity.Api.Controllers.Self
 {
@@ -37,12 +37,7 @@ namespace Matrix.Identity.Api.Controllers.Self
 
         private string? GetIpAddress()
         {
-            if (Request.Headers.TryGetValue(
-                    key: "X-Real-IP",
-                    value: out StringValues realIpHeader))
-                return realIpHeader.ToString();
-
-            return HttpContext.Connection.RemoteIpAddress?.ToString();
+            return TrustedGatewayClientIpResolver.Resolve(HttpContext);
         }
 
         #region [ Profile ]
