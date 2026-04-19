@@ -1,6 +1,6 @@
 using Matrix.BuildingBlocks.Application.Authorization.Permissions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
-using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using CityProvisioningView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityProvisioningModel;
 using MediatR;
 
 namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateProvisionedCity

@@ -1,6 +1,10 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using CityEconomyBootstrapView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityEconomyBootstrapModel;
+using CityPopulationBootstrapSummaryView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityPopulationBootstrapSummaryModel;
+using CityPopulationBootstrapView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityPopulationBootstrapModel;
+using CityProvisioningView = Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning.CityProvisioningModel;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
@@ -10,7 +14,6 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Fa
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities;
-using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Domain.Simulation;

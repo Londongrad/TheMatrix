@@ -16,6 +16,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Li
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RenameCity;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RestartPopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.RetryCityPopulationBootstrapProvisioning;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.UpdateCityEnvironment;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityAnchors;
@@ -80,7 +81,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             [FromBody] CreateCityRequest request,
             CancellationToken cancellationToken)
         {
-            CityProvisioningView provisioning = await mediator.Send(
+            CityProvisioningModel provisioning = await mediator.Send(
                 request: new CreateProvisionedCityCommand(
                     City: new CreateCityCommand(
                         Name: request.Name,
@@ -107,7 +108,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
 
             return Results.Created(
                 uri: $"/api/cities/{provisioning.CityId}",
-                value: provisioning);
+                value: MapToProvisioningView(provisioning));
         }
 
         [HttpGet("generation/catalog")]
@@ -358,7 +359,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
 
             return result.Status switch
             {
-                RetryCityPopulationBootstrapProvisioningStatus.Accepted => Results.Ok(result.Provisioning),
+                RetryCityPopulationBootstrapProvisioningStatus.Accepted => Results.Ok(MapToProvisioningView(result.Provisioning!)),
                 RetryCityPopulationBootstrapProvisioningStatus.NotFound => Results.NotFound(),
                 RetryCityPopulationBootstrapProvisioningStatus.NotAllowed => Results.Conflict(
                     new
@@ -556,6 +557,51 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                 ProvisioningHeartbeatAtUtc: dto.ProvisioningHeartbeatAtUtc,
                 ProvisioningLeaseExpiresAtUtc: dto.ProvisioningLeaseExpiresAtUtc,
                 ProvisioningAttemptCount: dto.ProvisioningAttemptCount);
+        }
+
+        private static CityProvisioningView MapToProvisioningView(CityProvisioningModel model)
+        {
+            return new CityProvisioningView(
+                CityId: model.CityId,
+                SimulationKind: model.SimulationKind,
+                PopulationBootstrap: MapToPopulationBootstrapView(model.PopulationBootstrap),
+                EconomyBootstrap: MapToEconomyBootstrapView(model.EconomyBootstrap));
+        }
+
+        private static CityPopulationBootstrapView MapToPopulationBootstrapView(CityPopulationBootstrapModel model)
+        {
+            return new CityPopulationBootstrapView(
+                OperationId: model.OperationId,
+                Status: model.Status,
+                PlannedPeopleCount: model.PlannedPeopleCount,
+                ResidentialCapacity: model.ResidentialCapacity,
+                Summary: model.Summary is null ? null : MapToPopulationBootstrapSummaryView(model.Summary),
+                FailureCode: model.FailureCode);
+        }
+
+        private static CityPopulationBootstrapSummaryView MapToPopulationBootstrapSummaryView(CityPopulationBootstrapSummaryModel model)
+        {
+            return new CityPopulationBootstrapSummaryView(
+                CityId: model.CityId,
+                RequestedPeopleCount: model.RequestedPeopleCount,
+                GeneratedPeopleCount: model.GeneratedPeopleCount,
+                HouseholdCount: model.HouseholdCount,
+                HousedHouseholdCount: model.HousedHouseholdCount,
+                HomelessHouseholdCount: model.HomelessHouseholdCount,
+                HousedPeopleCount: model.HousedPeopleCount,
+                HomelessPeopleCount: model.HomelessPeopleCount);
+        }
+
+        private static CityEconomyBootstrapView MapToEconomyBootstrapView(CityEconomyBootstrapModel model)
+        {
+            return new CityEconomyBootstrapView(
+                OperationId: model.OperationId,
+                Status: model.Status,
+                FailureCode: model.FailureCode,
+                UnitKind: model.UnitKind,
+                UnitCode: model.UnitCode,
+                UnitDisplayName: model.UnitDisplayName,
+                UnitSymbol: model.UnitSymbol);
         }
 
         private static CityListItemView MapToListItemView(CityDto dto)
