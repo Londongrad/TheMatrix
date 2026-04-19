@@ -50,11 +50,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange
                 throw ApplicationErrorsFactory.EmailChangeRequiresDifferentAddress();
             }
 
-            bool isCurrentPasswordValid = passwordHasher.Verify(
+            PasswordVerificationOutcome currentPasswordVerification = passwordHasher.Verify(
+                user: user,
                 passwordHash: user.PasswordHash,
                 providedPassword: request.CurrentPassword);
 
-            if (!isCurrentPasswordValid)
+            if (!currentPasswordVerification.Succeeded)
             {
                 await WriteAuditAsync(
                     user: user,

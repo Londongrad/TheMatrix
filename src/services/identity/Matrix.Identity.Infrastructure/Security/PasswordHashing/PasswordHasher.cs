@@ -1,34 +1,40 @@
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
-using IPasswordHasher = Matrix.Identity.Application.Abstractions.Services.IPasswordHasher;
 
 namespace Matrix.Identity.Infrastructure.Security.PasswordHashing
 {
     public sealed class PasswordHasher : IPasswordHasher
     {
-        private readonly PasswordHasher<User> _inner = new();
+        private static readonly object HashingContext = new();
+        private readonly Microsoft.AspNetCore.Identity.PasswordHasher<object> _hashingHasher = new();
+        private readonly Microsoft.AspNetCore.Identity.PasswordHasher<User> _verificationHasher = new();
 
         public string Hash(string password)
         {
-            // временный User только для соли, но можно и настоящий, если есть
-            User? fakeUser = null;
-            return _inner.HashPassword(
-                user: fakeUser!,
+            // New-password flows can happen before we have a concrete User instance,
+            // so hashing uses a dedicated non-null context instead of a fake null user.
+            return _hashingHasher.HashPassword(
+                user: HashingContext,
                 password: password);
         }
 
-        public bool Verify(
+        public PasswordVerificationOutcome Verify(
+            User user,
             string passwordHash,
             string providedPassword)
         {
-            User? fakeUser = null;
-
-            PasswordVerificationResult result = _inner.VerifyHashedPassword(
-                user: fakeUser!,
+            PasswordVerificationResult result = _verificationHasher.VerifyHashedPassword(
+                user: user ?? throw new ArgumentNullException(nameof(user)),
                 hashedPassword: passwordHash,
                 providedPassword: providedPassword);
 
-            return result is PasswordVerificationResult.Success or PasswordVerificationResult.SuccessRehashNeeded;
+            return result switch
+            {
+                PasswordVerificationResult.Success => PasswordVerificationOutcome.Success,
+                PasswordVerificationResult.SuccessRehashNeeded => PasswordVerificationOutcome.SuccessRehashNeeded,
+                _ => PasswordVerificationOutcome.Failed
+            };
         }
     }
 }

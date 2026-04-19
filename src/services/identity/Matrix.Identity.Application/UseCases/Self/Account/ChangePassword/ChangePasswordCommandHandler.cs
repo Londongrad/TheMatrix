@@ -27,11 +27,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangePassword
                         throw ApplicationErrorsFactory.UserNotFound(userId);
 
             // проверяем текущий пароль
-            bool isCurrentValid = passwordHasher.Verify(
+            PasswordVerificationOutcome currentPasswordVerification = passwordHasher.Verify(
+                user: user,
                 passwordHash: user.PasswordHash,
                 providedPassword: request.CurrentPassword);
 
-            if (!isCurrentValid)
+            if (!currentPasswordVerification.Succeeded)
                 throw ApplicationErrorsFactory.InvalidCurrentPassword();
 
             // хэшируем новый пароль и сохраняем в домен

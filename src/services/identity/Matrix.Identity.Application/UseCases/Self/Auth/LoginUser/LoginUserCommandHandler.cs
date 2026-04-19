@@ -77,11 +77,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                 throw ApplicationErrorsFactory.InvalidCredentials();
             }
 
-            bool passwordValid = passwordHasher.Verify(
+            PasswordVerificationOutcome passwordVerification = passwordHasher.Verify(
+                user: user,
                 passwordHash: user.PasswordHash,
                 providedPassword: request.Password);
 
-            if (!passwordValid)
+            if (!passwordVerification.Succeeded)
             {
                 await WriteLoginAuditAsync(
                     request: request,
@@ -114,6 +115,9 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     ? ApplicationErrorsFactory.AccountDeleted()
                     : ApplicationErrorsFactory.UserBlocked();
             }
+
+            if (passwordVerification.RequiresRehash)
+                user.ChangePasswordHash(passwordHasher.Hash(request.Password));
 
             RefreshTokenDescriptor refreshDescriptor = refreshTokenProvider.Generate(request.RememberMe);
 
