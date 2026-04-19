@@ -37,8 +37,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
             services.AddJwtValidationOptions<InternalUserContextJwtOptions>(
                     configuration: configuration,
-                    sectionName: InternalUserContextJwtOptions.SectionName,
-                    legacySectionName: InternalJwtOptions.SectionName)
+                    sectionName: InternalUserContextJwtOptions.SectionName)
                .Validate(
                     validation: o => o.LifetimeSeconds > 0,
                     failureMessage: $"{InternalUserContextJwtOptions.SectionName}:LifetimeSeconds must be > 0.")

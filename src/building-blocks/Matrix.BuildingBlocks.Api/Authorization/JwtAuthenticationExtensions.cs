@@ -57,8 +57,7 @@ namespace Matrix.BuildingBlocks.Api.Authorization
         {
             services.AddJwtValidationOptions<InternalUserContextJwtOptions>(
                     configuration: configuration,
-                    sectionName: InternalUserContextJwtOptions.SectionName,
-                    legacySectionName: InternalJwtOptions.SectionName)
+                    sectionName: InternalUserContextJwtOptions.SectionName)
                .Validate(
                     validation: options => options.LifetimeSeconds > 0,
                     failureMessage: $"{InternalUserContextJwtOptions.SectionName}:LifetimeSeconds must be > 0.")
@@ -66,8 +65,7 @@ namespace Matrix.BuildingBlocks.Api.Authorization
 
             services.AddJwtValidationOptions<InternalServiceJwtOptions>(
                     configuration: configuration,
-                    sectionName: InternalServiceJwtOptions.SectionName,
-                    legacySectionName: InternalJwtOptions.SectionName)
+                    sectionName: InternalServiceJwtOptions.SectionName)
                .Validate(
                     validation: options => options.LifetimeSeconds > 0,
                     failureMessage: $"{InternalServiceJwtOptions.SectionName}:LifetimeSeconds must be > 0.")
@@ -107,22 +105,14 @@ namespace Matrix.BuildingBlocks.Api.Authorization
         public static OptionsBuilder<TJwtOptions> AddJwtValidationOptions<TJwtOptions>(
             this IServiceCollection services,
             IConfiguration configuration,
-            string sectionName,
-            string? legacySectionName = null)
+            string sectionName)
             where TJwtOptions : class, IJwtValidationOptions
         {
             var optionsBuilder = services.AddOptions<TJwtOptions>()
                .Configure(options =>
                 {
-                    IConfigurationSection primarySection = configuration.GetSection(sectionName);
-                    IConfigurationSection? configuredSection =
-                        HasConfiguredJwtValues(primarySection)
-                            ? primarySection
-                            : !string.IsNullOrWhiteSpace(legacySectionName)
-                                ? configuration.GetSection(legacySectionName)
-                                : null;
-
-                    configuredSection?.Bind(options);
+                    configuration.GetSection(sectionName)
+                       .Bind(options);
                 })
                .Validate(
                     validation: options => !string.IsNullOrWhiteSpace(options.Issuer),
@@ -255,8 +245,7 @@ namespace Matrix.BuildingBlocks.Api.Authorization
 
         private static bool RequiresInternalSigningKeyValidation(Type optionsType)
         {
-            return optionsType == typeof(InternalJwtOptions) ||
-                   optionsType == typeof(InternalUserContextJwtOptions) ||
+            return optionsType == typeof(InternalUserContextJwtOptions) ||
                    optionsType == typeof(InternalServiceJwtOptions);
         }
 

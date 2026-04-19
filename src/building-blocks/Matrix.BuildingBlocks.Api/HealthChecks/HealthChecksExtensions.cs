@@ -88,8 +88,7 @@ namespace Matrix.BuildingBlocks.Api.HealthChecks
         {
             TOptions? options = TryBindJwtOptions<TOptions>(
                 configuration: configuration,
-                sectionName: sectionName,
-                legacySectionName: InternalJwtOptions.SectionName);
+                sectionName: sectionName);
 
             if (options is null)
                 return;
@@ -110,15 +109,10 @@ namespace Matrix.BuildingBlocks.Api.HealthChecks
 
         private static TOptions? TryBindJwtOptions<TOptions>(
             IConfiguration configuration,
-            string sectionName,
-            string legacySectionName)
+            string sectionName)
             where TOptions : class
         {
-            IConfigurationSection primarySection = configuration.GetSection(sectionName);
-            IConfigurationSection configuredSection = HasConfiguredJwtValues(primarySection)
-                ? primarySection
-                : configuration.GetSection(legacySectionName);
-
+            IConfigurationSection configuredSection = configuration.GetSection(sectionName);
             if (!HasConfiguredJwtValues(configuredSection))
                 return null;
 
