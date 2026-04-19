@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Api.HealthChecks;
+using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Api.Middleware;
 using Matrix.Identity.Api.Authorization.Internal;
 
@@ -21,6 +22,7 @@ namespace Matrix.Identity.Api.Configurations
 
         private static void UseSecurityPipeline(this WebApplication app)
         {
+            app.UseTrustedForwardedHeaders();
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();

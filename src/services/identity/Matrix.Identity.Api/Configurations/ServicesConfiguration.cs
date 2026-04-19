@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
@@ -18,6 +19,7 @@ namespace Matrix.Identity.Api.Configurations
 
             builder.AddSerilogLogging();
             services.AddOperationalHealthChecks(configuration);
+            services.AddTrustedForwardedHeaders(configuration);
 
             services
                .AddPresentationLayer() // Controllers + Swagger
