@@ -20,9 +20,7 @@ namespace Matrix.Economy.Api.Configurations
             builder.Services.AddControllers();
             builder.Services.AddOperationalHealthChecks(configuration);
 
-            services.AddJwtBearerAuthentication<InternalJwtOptions>(
-                configuration: configuration,
-                sectionName: InternalJwtOptions.SectionName);
+            services.AddInternalJwtAuthentication(configuration);
 
             services.AddAuthorization();
             services.AddHttpContextAccessor();

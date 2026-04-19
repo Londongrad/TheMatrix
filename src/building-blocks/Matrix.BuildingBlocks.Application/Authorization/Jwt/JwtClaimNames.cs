@@ -6,5 +6,6 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
         public const string Permission = "perm";
         public const string SessionId = "sid";
         public const string Service = "svc";
+        public const string InternalTokenKind = "itk";
     }
 }

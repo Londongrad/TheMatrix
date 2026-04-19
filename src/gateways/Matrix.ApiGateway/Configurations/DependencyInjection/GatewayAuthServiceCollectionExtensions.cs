@@ -35,20 +35,13 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
             services.AddAuthorization();
 
-            services.AddOptions<InternalJwtOptions>()
-               .Bind(configuration.GetSection(InternalJwtOptions.SectionName))
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Issuer),
-                    failureMessage: "InternalJwt:Issuer is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Audience),
-                    failureMessage: "InternalJwt:Audience is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.SigningKey),
-                    failureMessage: "InternalJwt:SigningKey is required.")
+            services.AddJwtValidationOptions<InternalUserContextJwtOptions>(
+                    configuration: configuration,
+                    sectionName: InternalUserContextJwtOptions.SectionName,
+                    legacySectionName: InternalJwtOptions.SectionName)
                .Validate(
                     validation: o => o.LifetimeSeconds > 0,
-                    failureMessage: "InternalJwt:LifetimeSeconds must be > 0.")
+                    failureMessage: $"{InternalUserContextJwtOptions.SectionName}:LifetimeSeconds must be > 0.")
                .ValidateOnStart();
 
             services.AddOptions<AuthContextOptions>()

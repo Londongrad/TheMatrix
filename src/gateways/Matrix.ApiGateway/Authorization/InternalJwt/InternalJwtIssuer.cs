@@ -9,9 +9,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.ApiGateway.Authorization.InternalJwt
 {
-    public sealed class InternalJwtIssuer(IOptions<InternalJwtOptions> options) : IInternalJwtIssuer
+    public sealed class InternalJwtIssuer(IOptions<InternalUserContextJwtOptions> options) : IInternalJwtIssuer
     {
-        private readonly InternalJwtOptions _options = ValidateOptions(options.Value);
+        private readonly InternalUserContextJwtOptions _options = ValidateOptions(options.Value);
 
         public string Issue(
             Guid userId,
@@ -30,6 +30,9 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
                         ? Guid.NewGuid()
                            .ToString()
                         : jti),
+                new(
+                    type: JwtClaimNames.InternalTokenKind,
+                    value: InternalJwtTokenKinds.UserContext),
                 new(
                     type: JwtClaimNames.PermissionsVersion,
                     value: permissionsVersion.ToString(CultureInfo.InvariantCulture))
@@ -64,11 +67,11 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private static InternalJwtOptions ValidateOptions(InternalJwtOptions options)
+        private static InternalUserContextJwtOptions ValidateOptions(InternalUserContextJwtOptions options)
         {
             InternalJwtSigningKeyPolicy.EnsureStrong(
                 signingKey: options.SigningKey,
-                optionsPath: InternalJwtOptions.SectionName);
+                optionsPath: InternalUserContextJwtOptions.SectionName);
 
             return options;
         }

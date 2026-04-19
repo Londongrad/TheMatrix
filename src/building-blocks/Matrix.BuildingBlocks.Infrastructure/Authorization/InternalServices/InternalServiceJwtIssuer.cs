@@ -7,9 +7,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
 {
-    public sealed class InternalServiceJwtIssuer(IOptions<InternalJwtOptions> options) : IInternalServiceJwtIssuer
+    public sealed class InternalServiceJwtIssuer(IOptions<InternalServiceJwtOptions> options) : IInternalServiceJwtIssuer
     {
-        private readonly InternalJwtOptions _options = ValidateOptions(options.Value);
+        private readonly InternalServiceJwtOptions _options = ValidateOptions(options.Value);
 
         public string Issue(
             Guid subjectId,
@@ -27,6 +27,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                 new(
                     type: JwtRegisteredClaimNames.Jti,
                     value: Guid.NewGuid().ToString()),
+                new(
+                    type: JwtClaimNames.InternalTokenKind,
+                    value: InternalJwtTokenKinds.Service),
                 new(
                     type: JwtClaimNames.Service,
                     value: serviceName)
@@ -59,11 +62,11 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private static InternalJwtOptions ValidateOptions(InternalJwtOptions options)
+        private static InternalServiceJwtOptions ValidateOptions(InternalServiceJwtOptions options)
         {
             InternalJwtSigningKeyPolicy.EnsureStrong(
                 signingKey: options.SigningKey,
-                optionsPath: InternalJwtOptions.SectionName);
+                optionsPath: InternalServiceJwtOptions.SectionName);
 
             return options;
         }
