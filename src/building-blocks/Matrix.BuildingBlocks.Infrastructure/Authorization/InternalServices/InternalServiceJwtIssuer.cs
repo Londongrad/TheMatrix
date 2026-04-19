@@ -9,7 +9,8 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
 {
     public sealed class InternalServiceJwtIssuer(IOptions<InternalServiceJwtOptions> options) : IInternalServiceJwtIssuer
     {
-        private readonly InternalServiceJwtOptions _options = ValidateOptions(options.Value);
+        private readonly InternalServiceJwtOptions _options = options.Value;
+        private readonly InternalJwtResolvedKeyRing _keyRing = ValidateOptions(options.Value);
 
         public string Issue(
             Guid subjectId,
@@ -45,30 +46,36 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                     value: permission));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_keyRing.CurrentSigningKey));
             var credentials = new SigningCredentials(
                 key: key,
                 algorithm: SecurityAlgorithms.HmacSha256);
 
             DateTime expiresAtUtc = DateTime.UtcNow.AddSeconds(_options.LifetimeSeconds);
 
-            var token = new JwtSecurityToken(
+            var header = new JwtHeader(credentials)
+            {
+                [JwtHeaderParameterNames.Kid] = _keyRing.CurrentKeyId
+            };
+
+            var payload = new JwtPayload(
                 issuer: _options.Issuer,
                 audience: _options.Audience,
                 claims: claims,
+                notBefore: null,
                 expires: expiresAtUtc,
-                signingCredentials: credentials);
+                issuedAt: DateTime.UtcNow);
+
+            var token = new JwtSecurityToken(header, payload);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private static InternalServiceJwtOptions ValidateOptions(InternalServiceJwtOptions options)
+        private static InternalJwtResolvedKeyRing ValidateOptions(InternalServiceJwtOptions options)
         {
-            InternalJwtSigningKeyPolicy.EnsureStrong(
-                signingKey: options.SigningKey,
+            return InternalJwtKeyRingPolicy.Resolve(
+                options: options,
                 optionsPath: InternalServiceJwtOptions.SectionName);
-
-            return options;
         }
     }
 }

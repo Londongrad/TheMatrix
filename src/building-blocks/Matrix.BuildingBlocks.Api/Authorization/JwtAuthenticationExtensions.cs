@@ -131,16 +131,15 @@ namespace Matrix.BuildingBlocks.Api.Authorization
                     validation: options => !string.IsNullOrWhiteSpace(options.Audience),
                     failureMessage: $"{sectionName}:Audience is required.")
                .Validate(
-                    validation: options => !string.IsNullOrWhiteSpace(options.SigningKey),
+                    validation: options => HasAnySigningKeyMaterial(options),
                     failureMessage: $"{sectionName}:SigningKey is required.");
 
             if (RequiresInternalSigningKeyValidation(typeof(TJwtOptions)))
                 optionsBuilder = optionsBuilder.Validate(
-                    validation: options => InternalJwtSigningKeyPolicy.TryValidate(
-                        signingKey: options.SigningKey,
-                        validationError: out _),
-                    failureMessage:
-                    $"{sectionName}:SigningKey must be at least {InternalJwtSigningKeyPolicy.MinSigningKeyBytes} UTF-8 bytes long, contain at least {InternalJwtSigningKeyPolicy.MinDistinctCharacters} distinct characters, and avoid low-entropy secrets.");
+                    validation: options => TryValidateInternalKeyMaterial(
+                        options: options,
+                        optionsPath: sectionName),
+                    failureMessage: $"{sectionName}: invalid signing key material.");
 
             return optionsBuilder.ValidateOnStart();
         }
@@ -160,17 +159,38 @@ namespace Matrix.BuildingBlocks.Api.Authorization
 
                     jwtBearerOptions.RequireHttpsMetadata = requireHttpsMetadata;
                     jwtBearerOptions.SaveToken = saveToken;
-                    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+                    var tokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidIssuer = jwt.Issuer,
                         ValidateAudience = true,
                         ValidAudience = jwt.Audience,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
+
+                    if (jwt is IInternalJwtKeyRingOptions keyRingOptions)
+                    {
+                        InternalJwtResolvedKeyRing keyRing = InternalJwtKeyRingPolicy.Resolve(
+                            options: keyRingOptions,
+                            optionsPath: scheme);
+
+                        tokenValidationParameters.IssuerSigningKeyResolver = (
+                            token,
+                            securityToken,
+                            kid,
+                            validationParameters) => ResolveIssuerSigningKeys(
+                            keyRing: keyRing,
+                            kid: kid);
+                    }
+                    else
+                    {
+                        tokenValidationParameters.IssuerSigningKey =
+                            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey));
+                    }
+
+                    jwtBearerOptions.TokenValidationParameters = tokenValidationParameters;
 
                     configureJwtBearer?.Invoke(jwtBearerOptions);
                 });
@@ -226,7 +246,11 @@ namespace Matrix.BuildingBlocks.Api.Authorization
         {
             return !string.IsNullOrWhiteSpace(section["Issuer"]) ||
                    !string.IsNullOrWhiteSpace(section["Audience"]) ||
-                   !string.IsNullOrWhiteSpace(section["SigningKey"]);
+                   !string.IsNullOrWhiteSpace(section["SigningKey"]) ||
+                   !string.IsNullOrWhiteSpace(section["CurrentKeyId"]) ||
+                   section.GetSection("Keys")
+                      .GetChildren()
+                      .Any();
         }
 
         private static bool RequiresInternalSigningKeyValidation(Type optionsType)
@@ -234,6 +258,66 @@ namespace Matrix.BuildingBlocks.Api.Authorization
             return optionsType == typeof(InternalJwtOptions) ||
                    optionsType == typeof(InternalUserContextJwtOptions) ||
                    optionsType == typeof(InternalServiceJwtOptions);
+        }
+
+        private static bool HasAnySigningKeyMaterial<TJwtOptions>(TJwtOptions options)
+            where TJwtOptions : class, IJwtValidationOptions
+        {
+            if (!string.IsNullOrWhiteSpace(options.SigningKey))
+                return true;
+
+            return options is IInternalJwtKeyRingOptions
+            {
+                Keys.Count: > 0
+            };
+        }
+
+        private static bool TryValidateInternalKeyMaterial<TJwtOptions>(
+            TJwtOptions options,
+            string optionsPath)
+            where TJwtOptions : class, IJwtValidationOptions
+        {
+            try
+            {
+                if (options is IInternalJwtKeyRingOptions keyRingOptions)
+                {
+                    _ = InternalJwtKeyRingPolicy.Resolve(
+                        options: keyRingOptions,
+                        optionsPath: optionsPath);
+
+                    return true;
+                }
+
+                return InternalJwtSigningKeyPolicy.TryValidate(
+                    signingKey: options.SigningKey,
+                    validationError: out _);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static IEnumerable<SecurityKey> ResolveIssuerSigningKeys(
+            InternalJwtResolvedKeyRing keyRing,
+            string? kid)
+        {
+            if (string.IsNullOrWhiteSpace(kid))
+                return keyRing.Keys.Values
+                   .Select(CreateSecurityKey)
+                   .ToArray();
+
+            if (!keyRing.Keys.TryGetValue(
+                    key: kid,
+                    value: out string? signingKey))
+                return [];
+
+            return [CreateSecurityKey(signingKey)];
+        }
+
+        private static SecurityKey CreateSecurityKey(string signingKey)
+        {
+            return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey));
         }
     }
 }
