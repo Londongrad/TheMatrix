@@ -39,50 +39,64 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
                                RETURNING o."Id", o."Type", o."PayloadJson", o."AttemptCount";
                                """;
 
-            await dbContext.Database.OpenConnectionAsync(cancellationToken);
+            DbConnection connection = dbContext.Database.GetDbConnection();
+            bool openedHere = connection.State != ConnectionState.Open;
 
-            await using IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(
-                isolationLevel: IsolationLevel.ReadCommitted,
-                cancellationToken: cancellationToken);
-            DbCommand cmd = CreateCommand(sql);
+            if (openedHere)
+                await connection.OpenAsync(cancellationToken);
 
-            AddParam(
-                cmd: cmd,
-                name: "@nowUtc",
-                value: nowUtc);
-            AddParam(
-                cmd: cmd,
-                name: "@batchSize",
-                value: batchSize);
-            AddParam(
-                cmd: cmd,
-                name: "@lockToken",
-                value: lockToken);
-            AddParam(
-                cmd: cmd,
-                name: "@lockedUntilUtc",
-                value: lockedUntilUtc);
+            try
+            {
+                await using IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(
+                    isolationLevel: IsolationLevel.ReadCommitted,
+                    cancellationToken: cancellationToken);
+                using DbCommand cmd = CreateCommand(
+                    connection: connection,
+                    sql: sql);
 
-            var result = new List<LeasedOutboxMessage>(batchSize);
+                AddParam(
+                    cmd: cmd,
+                    name: "@nowUtc",
+                    value: nowUtc);
+                AddParam(
+                    cmd: cmd,
+                    name: "@batchSize",
+                    value: batchSize);
+                AddParam(
+                    cmd: cmd,
+                    name: "@lockToken",
+                    value: lockToken);
+                AddParam(
+                    cmd: cmd,
+                    name: "@lockedUntilUtc",
+                    value: lockedUntilUtc);
 
-            await using (DbDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken))
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    Guid id = reader.GetGuid(0);
-                    string type = reader.GetString(1);
-                    string payloadJson = reader.GetString(2);
-                    int attemptCount = reader.GetInt32(3);
+                var result = new List<LeasedOutboxMessage>(batchSize);
 
-                    result.Add(
-                        new LeasedOutboxMessage(
-                            Id: id,
-                            Type: type,
-                            PayloadJson: payloadJson,
-                            AttemptCount: attemptCount));
-                }
+                await using (DbDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken))
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        Guid id = reader.GetGuid(0);
+                        string type = reader.GetString(1);
+                        string payloadJson = reader.GetString(2);
+                        int attemptCount = reader.GetInt32(3);
 
-            await tx.CommitAsync(cancellationToken);
-            return result;
+                        result.Add(
+                            new LeasedOutboxMessage(
+                                Id: id,
+                                Type: type,
+                                PayloadJson: payloadJson,
+                                AttemptCount: attemptCount));
+                    }
+
+                await tx.CommitAsync(cancellationToken);
+                return result;
+            }
+            finally
+            {
+                if (openedHere && connection.State != ConnectionState.Closed)
+                    await connection.CloseAsync();
+            }
         }
 
         public Task MarkProcessedAsync(
@@ -146,10 +160,11 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
                 cancellationToken: cancellationToken);
         }
 
-        private DbCommand CreateCommand(string sql)
+        private DbCommand CreateCommand(
+            DbConnection connection,
+            string sql)
         {
-            DbCommand cmd = dbContext.Database.GetDbConnection()
-               .CreateCommand();
+            DbCommand cmd = connection.CreateCommand();
             cmd.Transaction = dbContext.Database.CurrentTransaction?.GetDbTransaction();
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = sql;
