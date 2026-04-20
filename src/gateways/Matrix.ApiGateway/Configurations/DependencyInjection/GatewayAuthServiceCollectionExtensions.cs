@@ -5,6 +5,7 @@ using Matrix.ApiGateway.Authorization.PermissionsVersion;
 using Matrix.BuildingBlocks.Api.Authorization;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
@@ -14,11 +15,12 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            services.TryAddSingleton(TimeProvider.System);
+
             services.AddJwtBearerAuthentication<ExternalJwtOptions>(
                 configuration: configuration,
                 sectionName: ExternalJwtOptions.SectionName,
                 requireHttpsMetadata: false,
-                saveToken: true,
                 configureAuthentication: options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

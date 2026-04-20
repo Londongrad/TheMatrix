@@ -61,7 +61,6 @@ namespace Matrix.Identity.Api.Configurations
                 configuration: configuration,
                 sectionName: ExternalJwtOptions.SectionName,
                 requireHttpsMetadata: false,
-                saveToken: true,
                 configureAuthentication: options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
