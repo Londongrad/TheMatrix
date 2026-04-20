@@ -2,13 +2,13 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Exceptions;
+using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
@@ -65,36 +65,28 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken,
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
+            bool hasAmbientTransaction = dbContext.Database.CurrentTransaction is not null;
 
             try
             {
-                return await strategy.ExecuteAsync(async () =>
-                {
-                    // Nested transaction: do not create/commit/rollback here.
-                    if (dbContext.Database.CurrentTransaction is not null)
+                return await EfCoreTransactionExecutor.ExecuteAsync<IdentityDbContext, T>(
+                    dbContext: dbContext,
+                    action: async ct =>
                     {
-                        T result = await action(cancellationToken);
+                        T result = await action(ct);
 
-                        await SaveChangesAsync(cancellationToken);
+                        await SaveChangesAsync(ct);
+
+                        if (!hasAmbientTransaction)
+                        {
+                            await securityStateChangeProcessor.ProcessAsync(ct);
+                            await SaveChangesAsync(ct);
+                        }
 
                         return result;
-                    }
-
-                    await using IDbContextTransaction tx =
-                        await dbContext.Database.BeginTransactionAsync(
-                            isolationLevel: isolationLevel,
-                            cancellationToken: cancellationToken);
-
-                    T result2 = await action(cancellationToken);
-
-                    await SaveChangesAsync(cancellationToken);
-                    await securityStateChangeProcessor.ProcessAsync(cancellationToken);
-                    await SaveChangesAsync(cancellationToken);
-
-                    await tx.CommitAsync(cancellationToken);
-                    return result2;
-                });
+                    },
+                    cancellationToken: cancellationToken,
+                    isolationLevel: isolationLevel);
             }
             catch (OperationCanceledException)
             {

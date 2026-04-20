@@ -1,7 +1,6 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Matrix.BuildingBlocks.Infrastructure.Persistence
 {
@@ -33,22 +32,11 @@ namespace Matrix.BuildingBlocks.Infrastructure.Persistence
             CancellationToken cancellationToken,
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            if (dbContext.Database.CurrentTransaction is not null)
-                return await action(cancellationToken);
-
-            IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
-
-            return await strategy.ExecuteAsync(async () =>
-            {
-                await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(
-                    isolationLevel: isolationLevel,
-                    cancellationToken: cancellationToken);
-
-                T result = await action(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-
-                return result;
-            });
+            return await EfCoreTransactionExecutor.ExecuteAsync<TDbContext, T>(
+                dbContext: dbContext,
+                action: action,
+                cancellationToken: cancellationToken,
+                isolationLevel: isolationLevel);
         }
     }
 }
