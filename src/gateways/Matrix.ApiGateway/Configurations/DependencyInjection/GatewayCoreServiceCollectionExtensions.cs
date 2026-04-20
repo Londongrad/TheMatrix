@@ -1,6 +1,7 @@
 using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
+using Matrix.ApiGateway.Configurations.Security;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,8 +9,18 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
     public static class GatewayCoreServiceCollectionExtensions
     {
-        public static IServiceCollection AddGatewayCore(this IServiceCollection services)
+        public static IServiceCollection AddGatewayCore(
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
+            services.AddOptions<FrontendSecurityOptions>()
+               .Bind(configuration.GetSection(FrontendSecurityOptions.SectionName))
+               .Validate(
+                    validation: options => !options.EnforceCookieOriginProtection ||
+                                           options.AllowedOrigins.Any(x => !string.IsNullOrWhiteSpace(x)),
+                    failureMessage: $"{FrontendSecurityOptions.SectionName}:AllowedOrigins must contain at least one origin when cookie origin protection is enabled.")
+               .ValidateOnStart();
+
             services
                .AddScoped<ICityOperationsDashboardService, CityOperationsDashboardService>()
                .AddScoped<ICityProvisioningService, CityProvisioningService>()
@@ -17,7 +28,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()
                .AddHostedService<ClassicCitySetupSessionRecoveryHostedService>()
                .AddGatewayControllers()
-               .AddGatewayCors();
+               .AddGatewayCors(configuration);
 
             return services;
         }
@@ -50,8 +61,15 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddGatewayCors(this IServiceCollection services)
+        private static IServiceCollection AddGatewayCors(
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
+            string[] allowedOrigins = configuration
+               .GetSection(FrontendSecurityOptions.SectionName)
+               .GetSection(nameof(FrontendSecurityOptions.AllowedOrigins))
+               .Get<string[]>() ?? [];
+
             services.AddCors(options =>
             {
                 options.AddPolicy(
@@ -59,7 +77,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     configurePolicy: policy =>
                     {
                         policy
-                           .WithOrigins("https://localhost:5173")
+                           .WithOrigins(allowedOrigins)
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();

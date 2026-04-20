@@ -1,4 +1,5 @@
 using Matrix.ApiGateway.Configurations.DependencyInjection;
+using Matrix.ApiGateway.Configurations.Security;
 using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Api.Middleware;
@@ -15,6 +16,7 @@ namespace Matrix.ApiGateway.Configurations
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.UseCors(GatewayCorsDefaults.PolicyName);
+            app.UseMiddleware<BrowserCookieRequestProtectionMiddleware>();
 
             app.UseAuthentication();
             app.UseAuthorization();
