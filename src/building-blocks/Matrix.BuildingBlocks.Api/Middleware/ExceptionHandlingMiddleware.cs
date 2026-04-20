@@ -96,8 +96,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     context: context,
                     statusCode: (int)statusCode,
                     code: ex.Code,
-                    message: ex.Message,
-                    errors: ex.Details,
+                    message: BuildPublicInfrastructureMessage(ex.ErrorType),
                     cancellationToken: context.RequestAborted);
             }
             catch (ArgumentException ex)
@@ -345,6 +344,19 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 ApplicationErrorType.BusinessRule => HttpStatusCode.BadRequest,
                 ApplicationErrorType.TooManyRequests => HttpStatusCode.TooManyRequests,
                 _ => HttpStatusCode.InternalServerError
+            };
+        }
+
+        private static string BuildPublicInfrastructureMessage(ApplicationErrorType errorType)
+        {
+            return errorType switch
+            {
+                ApplicationErrorType.NotFound => "Requested resource was not found.",
+                ApplicationErrorType.Unauthorized => "Authentication is required.",
+                ApplicationErrorType.Forbidden => "Access denied.",
+                ApplicationErrorType.Conflict => "Operation could not be completed due to a server state conflict.",
+                ApplicationErrorType.TooManyRequests => "Service is temporarily unavailable. Please retry later.",
+                _ => "Internal server error"
             };
         }
     }
