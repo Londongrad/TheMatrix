@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Cities;
@@ -94,7 +95,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             SimTime to,
             TickId tickId,
             SimSpeed speed,
-            CityTickPhaseV1 phase,
+            CityTickPhase phase,
             CancellationToken cancellationToken)
         {
             DateTime occurredOnUtc = DateTime.UtcNow;
@@ -118,7 +119,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                     SimulationKind: simulationKind.ToString(),
                     TickId: tickId.Value,
                     EffectiveSimTimeUtc: to.ValueUtc,
-                    Phase: phase,
+                    Phase: MapPhase(phase),
                     ModelVersion: 1,
                     CausationId: causationId,
                     CorrelationId: correlationId),
@@ -141,7 +142,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             SimTime to,
             TickId tickId,
             SimSpeed speed,
-            CityTickPhaseV1 phase,
+            CityTickPhase phase,
             CancellationToken cancellationToken)
         {
             DateTime occurredOnUtc = DateTime.UtcNow;
@@ -165,7 +166,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
                     SimulationKind: simulationKind.ToString(),
                     TickId: tickId.Value,
                     EffectiveSimTimeUtc: to.ValueUtc,
-                    Phase: phase,
+                    Phase: MapPhase(phase),
                     ModelVersion: 1,
                     CausationId: causationId,
                     CorrelationId: correlationId),
@@ -190,9 +191,26 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
 
         private static string BuildTickCausationId(
             string correlationId,
-            CityTickPhaseV1 phase)
+            CityTickPhase phase)
         {
             return $"{correlationId}:phase:{phase}";
+        }
+
+        private static CityTickPhaseV1 MapPhase(CityTickPhase phase)
+        {
+            return phase switch
+            {
+                CityTickPhase.AdvanceTime => CityTickPhaseV1.AdvanceTime,
+                CityTickPhase.SystemsDegradation => CityTickPhaseV1.SystemsDegradation,
+                CityTickPhase.IncidentGeneration => CityTickPhaseV1.IncidentGeneration,
+                CityTickPhase.DispatchExecution => CityTickPhaseV1.DispatchExecution,
+                CityTickPhase.ResourceSettlement => CityTickPhaseV1.ResourceSettlement,
+                CityTickPhase.BudgetSettlement => CityTickPhaseV1.BudgetSettlement,
+                CityTickPhase.PopulationReaction => CityTickPhaseV1.PopulationReaction,
+                CityTickPhase.Projection => CityTickPhaseV1.Projection,
+                CityTickPhase.TickCompleted => CityTickPhaseV1.TickCompleted,
+                _ => throw new InvalidOperationException($"Unsupported city tick phase '{phase}'.")
+            };
         }
 
         public Task AddWeatherEventsAsync(

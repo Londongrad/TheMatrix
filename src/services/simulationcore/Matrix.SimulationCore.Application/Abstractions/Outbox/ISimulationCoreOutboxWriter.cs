@@ -1,5 +1,5 @@
 using Matrix.BuildingBlocks.Domain.Events;
-using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 
@@ -19,7 +19,7 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
             SimTime to,
             TickId tickId,
             SimSpeed speed,
-            CityTickPhaseV1 phase,
+            CityTickPhase phase,
             CancellationToken cancellationToken);
 
         Task AddCityTickPhaseReachedAsync(
@@ -30,7 +30,7 @@ namespace Matrix.SimulationCore.Application.Abstractions.Outbox
             SimTime to,
             TickId tickId,
             SimSpeed speed,
-            CityTickPhaseV1 phase,
+            CityTickPhase phase,
             CancellationToken cancellationToken);
 
         Task AddWeatherEventsAsync(

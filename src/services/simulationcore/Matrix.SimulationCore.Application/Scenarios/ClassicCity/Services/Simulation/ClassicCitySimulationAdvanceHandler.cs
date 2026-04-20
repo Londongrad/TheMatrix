@@ -1,5 +1,4 @@
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
-using Matrix.SimulationCore.Contracts.Events;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Events.Simulation;
@@ -44,7 +43,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                 to: advancedEvent.To,
                 tickId: advancedEvent.TickId,
                 speed: advancedEvent.Speed,
-                phase: CityTickPhaseV1.AdvanceTime,
+                phase: CityTickPhase.AdvanceTime,
                 cancellationToken: cancellationToken);
 
             if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
@@ -55,7 +54,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
                 cityWeather.ClearDomainEvents();
             }
 
-            foreach (CityTickPhaseV1 phase in GetClassicCityPhaseWatermarks())
+            foreach (CityTickPhase phase in GetClassicCityPhaseWatermarks())
             {
                 await outboxWriter.AddCityTickPhaseReachedAsync(
                     cityId: cityId,
@@ -70,18 +69,18 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
             }
         }
 
-        private static IReadOnlyList<CityTickPhaseV1> GetClassicCityPhaseWatermarks()
+        private static IReadOnlyList<CityTickPhase> GetClassicCityPhaseWatermarks()
         {
             return
             [
-                CityTickPhaseV1.SystemsDegradation,
-                CityTickPhaseV1.IncidentGeneration,
-                CityTickPhaseV1.DispatchExecution,
-                CityTickPhaseV1.ResourceSettlement,
-                CityTickPhaseV1.BudgetSettlement,
-                CityTickPhaseV1.PopulationReaction,
-                CityTickPhaseV1.Projection,
-                CityTickPhaseV1.TickCompleted
+                CityTickPhase.SystemsDegradation,
+                CityTickPhase.IncidentGeneration,
+                CityTickPhase.DispatchExecution,
+                CityTickPhase.ResourceSettlement,
+                CityTickPhase.BudgetSettlement,
+                CityTickPhase.PopulationReaction,
+                CityTickPhase.Projection,
+                CityTickPhase.TickCompleted
             ];
         }
     }
