@@ -43,7 +43,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => new
             {
                 x.CityId,
-                x.OccurredAtUtc
+                x.OccurredAtUtc,
+                x.Id
             });
             builder.HasIndex(x => x.ReferenceCode);
         }

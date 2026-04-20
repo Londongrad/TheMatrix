@@ -189,6 +189,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => x.CityId);
             builder.HasIndex(x => x.Status);
             builder.HasIndex(x => new { x.CityId, x.Status });
+            builder.HasIndex(x => new { x.CityId, x.Status, x.StartedAtSimTimeUtc, x.Id });
             builder.HasIndex(x => x.TravellerEntityId);
 
             builder

@@ -44,7 +44,8 @@ namespace Matrix.Economy.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => new
             {
                 x.HouseholdAccountId,
-                x.OccurredAtUtc
+                x.OccurredAtUtc,
+                x.Id
             });
             builder.HasIndex(x => new
                 {
