@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
+using Matrix.Economy.Application.UseCases.Ledger.Common;
 
 namespace Matrix.Economy.Application.Abstractions
 {
@@ -19,6 +20,12 @@ namespace Matrix.Economy.Application.Abstractions
         Task<PagedResult<CityBusinessLedgerEntry>> GetPageByBusinessAsync(
             Guid businessId,
             int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+
+        Task<CursorPagedResult<CityBusinessLedgerEntry>> GetSliceByBusinessAsync(
+            Guid businessId,
+            LedgerCursor? cursor,
             int pageSize,
             CancellationToken cancellationToken = default);
     }

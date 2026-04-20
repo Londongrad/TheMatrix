@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.Abstractions;
+using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +63,53 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                 totalCount: totalCount,
                 pageNumber: normalizedPageNumber,
                 pageSize: normalizedPageSize);
+        }
+
+        public async Task<CursorPagedResult<CityBusinessLedgerEntry>> GetSliceByBusinessAsync(
+            Guid businessId,
+            LedgerCursor? cursor,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            int normalizedPageSize = LedgerPageSizePolicy.Normalize(pageSize);
+
+            IQueryable<CityBusinessLedgerEntry> query = _dbContext.CityBusinessLedgerEntries
+               .AsNoTracking()
+               .Where(x => x.BusinessId == businessId);
+
+            if (cursor.HasValue)
+            {
+                DateTimeOffset cursorOccurredAtUtc = new(new DateTime(
+                    ticks: cursor.Value.UtcTicks,
+                    kind: DateTimeKind.Utc));
+                Guid cursorEntryId = cursor.Value.EntryId;
+
+                query = query.Where(x => x.OccurredAtUtc < cursorOccurredAtUtc ||
+                                         (x.OccurredAtUtc == cursorOccurredAtUtc && x.Id.CompareTo(cursorEntryId) < 0));
+            }
+
+            CityBusinessLedgerEntry[] fetchedItems = await query
+               .OrderByDescending(x => x.OccurredAtUtc)
+               .ThenByDescending(x => x.Id)
+               .Take(normalizedPageSize + 1)
+               .ToArrayAsync(cancellationToken);
+
+            bool hasNext = fetchedItems.Length > normalizedPageSize;
+            CityBusinessLedgerEntry[] pageItems = hasNext
+                ? fetchedItems.Take(normalizedPageSize).ToArray()
+                : fetchedItems;
+
+            string? nextCursor = hasNext
+                ? LedgerCursorCodec.Encode(
+                    new LedgerCursor(
+                        UtcTicks: pageItems[^1].OccurredAtUtc.UtcTicks,
+                        EntryId: pageItems[^1].Id))
+                : null;
+
+            return new CursorPagedResult<CityBusinessLedgerEntry>(
+                items: pageItems,
+                pageSize: normalizedPageSize,
+                nextCursor: nextCursor);
         }
     }
 }

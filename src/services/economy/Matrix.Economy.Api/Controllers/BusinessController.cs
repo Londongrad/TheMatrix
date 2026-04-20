@@ -3,6 +3,7 @@ using Matrix.Economy.Contracts.Business.Requests;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinesses;
 using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedger;
+using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedgerFeed;
 using Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness;
 using Matrix.Economy.Domain.Enums;
 using MediatR;
@@ -71,6 +72,23 @@ namespace Matrix.Economy.Api.Controllers
                 request: new GetCityBusinessLedgerQuery(
                     BusinessId: businessId,
                     PageNumber: pageNumber,
+                    PageSize: pageSize),
+                cancellationToken: cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpGet("{businessId:guid}/ledger-feed")]
+        public async Task<IActionResult> GetBusinessLedgerFeed(
+            [FromRoute] Guid businessId,
+            [FromQuery] string? cursor = null,
+            [FromQuery] int pageSize = 50,
+            CancellationToken cancellationToken = default)
+        {
+            CursorPagedResult<CityBusinessLedgerEntryDto> result = await _sender.Send(
+                request: new GetCityBusinessLedgerFeedQuery(
+                    BusinessId: businessId,
+                    Cursor: cursor,
                     PageSize: pageSize),
                 cancellationToken: cancellationToken);
 
