@@ -7,6 +7,9 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
     public sealed class UserRepository(IdentityDbContext dbContext) : IUserRepository
     {
         private DbSet<User> Users => dbContext.Users;
+        private IQueryable<User> UsersWithRefreshTokens => Users
+           .Include(u => u.RefreshTokens)
+           .AsSplitQuery();
 
         public async Task<User?> GetByIdAsync(
             Guid id,
@@ -22,8 +25,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             Guid id,
             CancellationToken cancellationToken = default)
         {
-            return await Users
-               .Include(u => u.RefreshTokens)
+            return await UsersWithRefreshTokens
                .FirstOrDefaultAsync(
                     predicate: u => u.Id == id,
                     cancellationToken: cancellationToken);
@@ -33,8 +35,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             string email,
             CancellationToken cancellationToken = default)
         {
-            return await Users
-               .Include(u => u.RefreshTokens)
+            return await UsersWithRefreshTokens
                .FirstOrDefaultAsync(
                     predicate: u => u.Email.Value == email,
                     cancellationToken: cancellationToken);
@@ -44,8 +45,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             string email,
             CancellationToken cancellationToken = default)
         {
-            return await Users
-               .Include(u => u.RefreshTokens)
+            return await UsersWithRefreshTokens
                .FirstOrDefaultAsync(
                     predicate: u => u.PendingEmail == email,
                     cancellationToken: cancellationToken);
@@ -65,8 +65,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             string username,
             CancellationToken cancellationToken = default)
         {
-            return await Users
-               .Include(u => u.RefreshTokens)
+            return await UsersWithRefreshTokens
                .FirstOrDefaultAsync(
                     predicate: u => u.Username.Value == username,
                     cancellationToken: cancellationToken);
@@ -86,8 +85,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             string tokenHash,
             CancellationToken cancellationToken = default)
         {
-            return await Users
-               .Include(u => u.RefreshTokens)
+            return await UsersWithRefreshTokens
                .FirstOrDefaultAsync(
                     predicate: u => u.RefreshTokens.Any(t => t.TokenHash == tokenHash),
                     cancellationToken: cancellationToken);

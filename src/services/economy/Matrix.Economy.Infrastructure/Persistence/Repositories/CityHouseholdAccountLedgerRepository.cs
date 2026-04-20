@@ -26,7 +26,9 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
             string referenceCode,
             CancellationToken cancellationToken = default)
         {
-            return await _dbContext.CityHouseholdAccountLedgerEntries.AnyAsync(
+            return await _dbContext.CityHouseholdAccountLedgerEntries
+               .AsNoTracking()
+               .AnyAsync(
                 predicate: x
                     => x.HouseholdAccountId == householdAccountId && x.Kind == kind && x.ReferenceCode == referenceCode,
                 cancellationToken: cancellationToken);
@@ -46,8 +48,10 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                 : pageSize;
 
             IQueryable<CityHouseholdAccountLedgerEntry> query = _dbContext.CityHouseholdAccountLedgerEntries
+               .AsNoTracking()
                .Where(x => x.HouseholdAccountId == householdAccountId)
-               .OrderByDescending(x => x.OccurredAtUtc);
+               .OrderByDescending(x => x.OccurredAtUtc)
+               .ThenByDescending(x => x.Id);
 
             int totalCount = await query.CountAsync(cancellationToken);
             CityHouseholdAccountLedgerEntry[] items = await query

@@ -13,11 +13,13 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             return await dbContext.Set<CityActiveTrip>()
-               .AsNoTracking()
-               .Include(x => x.Segments)
-               .Where(x => x.CityId == cityId && x.Status == CityActiveTripStatus.Active)
-               .OrderByDescending(x => x.StartedAtSimTimeUtc)
-               .ToListAsync(cancellationToken);
+                .AsNoTracking()
+                .Include(x => x.Segments)
+                .AsSplitQuery()
+                .Where(x => x.CityId == cityId && x.Status == CityActiveTripStatus.Active)
+                .OrderByDescending(x => x.StartedAtSimTimeUtc)
+                .ThenByDescending(x => x.Id)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<IReadOnlyList<CityActiveTrip>> ListActiveForUpdateByCityIdAsync(
@@ -26,8 +28,10 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
         {
             return await dbContext.Set<CityActiveTrip>()
                .Include(x => x.Segments)
+               .AsSplitQuery()
                .Where(x => x.CityId == cityId && x.Status == CityActiveTripStatus.Active)
                .OrderBy(x => x.StartedAtSimTimeUtc)
+               .ThenBy(x => x.Id)
                .ToListAsync(cancellationToken);
         }
 
