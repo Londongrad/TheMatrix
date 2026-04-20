@@ -1,4 +1,6 @@
 using System.Net;
+using System.Runtime.ExceptionServices;
+using System.Text.Json;
 using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.BuildingBlocks.Api.Exceptions;
 using Matrix.BuildingBlocks.Application.Enums;
@@ -25,6 +27,11 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     exception: ex,
                     message: "Handled domain exception with code {Code}",
                     ex.Code);
+
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
 
                 IReadOnlyDictionary<string, string[]>? errors = null;
 
@@ -56,6 +63,11 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                         message: "Handled application exception with code {Code}",
                         ex.Code);
 
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
+
                 HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
 
                 await ApiProblemDetailsFactory.WriteAsync(
@@ -73,6 +85,11 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     message: "Handled infrastructure exception with code {Code}",
                     ex.Code);
 
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
+
                 HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
 
                 await ApiProblemDetailsFactory.WriteAsync(
@@ -89,6 +106,11 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     exception: ex,
                     message: "Invalid argument");
 
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
+
                 await ApiProblemDetailsFactory.WriteAsync(
                     context: context,
                     statusCode: (int)HttpStatusCode.BadRequest,
@@ -101,6 +123,11 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                 logger.LogWarning(
                     exception: ex,
                     message: "Gateway timeout while calling downstream service");
+
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
 
                 await ApiProblemDetailsFactory.WriteAsync(
                     context: context,
@@ -124,12 +151,24 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     (int)httpEx.StatusCode,
                     httpEx.RequestUrl);
 
-                context.Response.StatusCode = (int)httpEx.StatusCode;
-                context.Response.ContentType = httpEx.ContentType ?? ApiProblemDetailsFactory.ProblemContentType;
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
 
-                if (!string.IsNullOrWhiteSpace(httpEx.Body))
+                if (TrySanitizeDownstreamError(
+                        httpEx: httpEx,
+                        code: out string code,
+                        message: out string message,
+                        errors: out IReadOnlyDictionary<string, string[]>? errors))
                 {
-                    await context.Response.WriteAsync(httpEx.Body);
+                    await ApiProblemDetailsFactory.WriteAsync(
+                        context: context,
+                        statusCode: (int)httpEx.StatusCode,
+                        code: code,
+                        message: message,
+                        errors: errors,
+                        cancellationToken: context.RequestAborted);
                     return;
                 }
 
@@ -140,12 +179,16 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     message: "Downstream service error.",
                     cancellationToken: context.RequestAborted);
             }
-
             catch (HttpRequestException ex)
             {
                 logger.LogWarning(
                     exception: ex,
                     message: "Bad gateway while calling downstream service");
+
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
 
                 await ApiProblemDetailsFactory.WriteAsync(
                     context: context,
@@ -160,6 +203,11 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     exception: ex,
                     message: "Unhandled exception");
 
+                EnsureResponseCanBeWritten(
+                    context: context,
+                    exception: ex,
+                    logger: logger);
+
                 await ApiProblemDetailsFactory.WriteAsync(
                     context: context,
                     statusCode: (int)HttpStatusCode.InternalServerError,
@@ -167,6 +215,122 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     message: "Internal server error",
                     cancellationToken: context.RequestAborted);
             }
+        }
+
+        private static void EnsureResponseCanBeWritten(
+            HttpContext context,
+            Exception exception,
+            ILogger logger)
+        {
+            if (!context.Response.HasStarted)
+                return;
+
+            logger.LogWarning(
+                exception: exception,
+                message: "Cannot write error response because the HTTP response has already started. TraceId={TraceId} Path={Path}",
+                context.TraceIdentifier,
+                context.Request.Path.Value);
+
+            ExceptionDispatchInfo.Capture(exception).Throw();
+        }
+
+        private static bool TrySanitizeDownstreamError(
+            IHttpResponseException httpEx,
+            out string code,
+            out string message,
+            out IReadOnlyDictionary<string, string[]>? errors)
+        {
+            code = "Common.DownstreamError";
+            message = "Downstream service error.";
+            errors = null;
+
+            if (string.IsNullOrWhiteSpace(httpEx.Body))
+                return false;
+
+            if (!LooksLikeJson(httpEx.ContentType, httpEx.Body))
+                return false;
+
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(httpEx.Body);
+                JsonElement root = document.RootElement;
+                if (root.ValueKind != JsonValueKind.Object)
+                    return false;
+
+                code = GetString(root, "code") ?? code;
+                message = GetString(root, "detail") ??
+                          GetString(root, "message") ??
+                          GetString(root, "title") ??
+                          message;
+
+                errors = TryReadErrors(root);
+
+                if ((string.IsNullOrWhiteSpace(message) || message == "Downstream service error.") &&
+                    errors is not null)
+                {
+                    string? firstError = errors
+                       .SelectMany(static kvp => kvp.Value)
+                       .FirstOrDefault();
+
+                    if (!string.IsNullOrWhiteSpace(firstError))
+                        message = firstError;
+                }
+
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        private static bool LooksLikeJson(string? contentType, string body)
+        {
+            if (!string.IsNullOrWhiteSpace(contentType) &&
+                (contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase) ||
+                 contentType.Contains("application/problem+json", StringComparison.OrdinalIgnoreCase)))
+                return true;
+
+            body = body.TrimStart();
+            return body.StartsWith("{", StringComparison.Ordinal) ||
+                   body.StartsWith("[", StringComparison.Ordinal);
+        }
+
+        private static string? GetString(JsonElement root, string propertyName)
+        {
+            return root.TryGetProperty(propertyName, out JsonElement property) &&
+                   property.ValueKind == JsonValueKind.String
+                ? property.GetString()
+                : null;
+        }
+
+        private static IReadOnlyDictionary<string, string[]>? TryReadErrors(JsonElement root)
+        {
+            if (!root.TryGetProperty("errors", out JsonElement errorsElement) ||
+                errorsElement.ValueKind != JsonValueKind.Object)
+                return null;
+
+            var errors = new Dictionary<string, string[]>();
+
+            foreach (JsonProperty property in errorsElement.EnumerateObject())
+            {
+                string[] values = property.Value.ValueKind switch
+                {
+                    JsonValueKind.Array => property.Value
+                       .EnumerateArray()
+                       .Where(static item => item.ValueKind == JsonValueKind.String)
+                       .Select(static item => item.GetString())
+                       .OfType<string>()
+                       .ToArray(),
+                    JsonValueKind.String => [property.Value.GetString() ?? string.Empty],
+                    _ => []
+                };
+
+                if (values.Length > 0)
+                    errors[property.Name] = values;
+            }
+
+            return errors.Count > 0 ? errors : null;
         }
 
         private static HttpStatusCode MapToHttpStatusCode(ApplicationErrorType errorType)
