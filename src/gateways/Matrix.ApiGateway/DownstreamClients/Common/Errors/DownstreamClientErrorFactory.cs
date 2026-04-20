@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.BuildingBlocks.Api.Errors;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.ApiGateway.DownstreamClients.Common.Errors
 {
@@ -15,11 +16,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Errors
             string? requestUrl,
             string expected)
         {
-            var error = new ErrorResponse(
-                Code: "Gateway.InvalidDownstreamResponse",
-                Message: $"Invalid response body from {serviceName}. Expected: {expected}.",
-                Errors: null,
-                TraceId: null);
+            ProblemDetails error = ApiProblemDetailsFactory.Create(
+                statusCode: (int)HttpStatusCode.BadGateway,
+                code: "Gateway.InvalidDownstreamResponse",
+                message: $"Invalid response body from {serviceName}. Expected: {expected}.");
 
             string body = JsonSerializer.Serialize(
                 value: error,
@@ -29,7 +29,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Errors
                 serviceName: serviceName,
                 statusCode: HttpStatusCode.BadGateway,
                 body: body,
-                contentType: "application/json",
+                contentType: ApiProblemDetailsFactory.ProblemContentType,
                 requestUrl: requestUrl);
         }
 
@@ -39,11 +39,10 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Errors
             string expected,
             Exception inner)
         {
-            var error = new ErrorResponse(
-                Code: "Gateway.InvalidDownstreamJson",
-                Message: $"Invalid JSON from {serviceName}. Expected: {expected}.",
-                Errors: null,
-                TraceId: null);
+            ProblemDetails error = ApiProblemDetailsFactory.Create(
+                statusCode: (int)HttpStatusCode.BadGateway,
+                code: "Gateway.InvalidDownstreamJson",
+                message: $"Invalid JSON from {serviceName}. Expected: {expected}.");
 
             string body = JsonSerializer.Serialize(
                 value: error,
@@ -53,7 +52,7 @@ namespace Matrix.ApiGateway.DownstreamClients.Common.Errors
                 serviceName: serviceName,
                 statusCode: HttpStatusCode.BadGateway,
                 body: body,
-                contentType: "application/json",
+                contentType: ApiProblemDetailsFactory.ProblemContentType,
                 requestUrl: requestUrl);
         }
     }

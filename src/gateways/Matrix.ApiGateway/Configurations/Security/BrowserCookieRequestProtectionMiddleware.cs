@@ -139,15 +139,12 @@ namespace Matrix.ApiGateway.Configurations.Security
             string code,
             string message)
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            context.Response.ContentType = "application/json";
-
-            var error = new ErrorResponse(
-                Code: code,
-                Message: message,
-                TraceId: context.TraceIdentifier);
-
-            await context.Response.WriteAsJsonAsync(error);
+            await ApiProblemDetailsFactory.WriteAsync(
+                context: context,
+                statusCode: StatusCodes.Status403Forbidden,
+                code: code,
+                message: message,
+                cancellationToken: context.RequestAborted);
         }
     }
 }

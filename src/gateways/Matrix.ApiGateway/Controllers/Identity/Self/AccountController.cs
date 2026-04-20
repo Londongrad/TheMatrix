@@ -61,11 +61,11 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
         {
             if (avatar is null || avatar.Length == 0)
             {
-                ErrorResponse error = new(
-                    Code: "Gateway.EmptyAvatar",
-                    Message: "Avatar file is required.");
-
-                return BadRequest(error);
+                return ApiProblemDetailsFactory.CreateObjectResult(
+                    context: HttpContext,
+                    statusCode: StatusCodes.Status400BadRequest,
+                    code: "Gateway.EmptyAvatar",
+                    message: "Avatar file is required.");
             }
 
             ChangeAvatarResponse dto =

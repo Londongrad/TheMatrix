@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Infrastructure.Logging;
+using Matrix.BuildingBlocks.Api.Errors;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
@@ -104,18 +105,11 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 unavailableFlag is true)
             {
                 context.HandleResponse();
-
-                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-                context.Response.ContentType = "application/json";
-
-                var unavailablePayload = new
-                {
-                    code = PermissionsVersionValidationDefaults.UnavailableErrorCode,
-                    message = PermissionsVersionValidationDefaults.UnavailableMessage
-                };
-
-                await context.Response.WriteAsJsonAsync(
-                    value: unavailablePayload,
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context.HttpContext,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    code: PermissionsVersionValidationDefaults.UnavailableErrorCode,
+                    message: PermissionsVersionValidationDefaults.UnavailableMessage,
                     cancellationToken: context.HttpContext.RequestAborted);
                 return;
             }
@@ -127,18 +121,11 @@ namespace Matrix.ApiGateway.Authorization.PermissionsVersion
                 return;
 
             context.HandleResponse();
-
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-
-            var payload = new
-            {
-                code = PermissionsVersionValidationDefaults.TokenStaleErrorCode,
-                message = PermissionsVersionValidationDefaults.TokenStaleMessage
-            };
-
-            await context.Response.WriteAsJsonAsync(
-                value: payload,
+            await ApiProblemDetailsFactory.WriteAsync(
+                context: context.HttpContext,
+                statusCode: StatusCodes.Status401Unauthorized,
+                code: PermissionsVersionValidationDefaults.TokenStaleErrorCode,
+                message: PermissionsVersionValidationDefaults.TokenStaleMessage,
                 cancellationToken: context.HttpContext.RequestAborted);
         }
 

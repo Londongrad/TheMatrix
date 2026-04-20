@@ -48,13 +48,12 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                                    .Select(e => e.ErrorMessage)
                                    .ToArray());
 
-                        var error = new ErrorResponse(
-                            Code: "Gateway.ValidationError",
-                            Message: "Validation failed.",
-                            Errors: errors,
-                            TraceId: context.HttpContext.TraceIdentifier);
-
-                        return new BadRequestObjectResult(error);
+                        return ApiProblemDetailsFactory.CreateObjectResult(
+                            context: context.HttpContext,
+                            statusCode: StatusCodes.Status400BadRequest,
+                            code: "Gateway.ValidationError",
+                            message: "Validation failed.",
+                            errors: errors);
                     };
                 });
 

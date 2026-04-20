@@ -131,7 +131,7 @@ export async function request<T>(
 
             if (text) {
                 // если пришёл JSON (ProblemDetails)
-                if (contentType.includes("application/json")) {
+                if (contentType.includes("application/json") || contentType.includes("application/problem+json")) {
                     try {
                         const data = JSON.parse(text);
                         payload = data; // 👈 сохраняем JSON

@@ -26,9 +26,6 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     message: "Handled domain exception with code {Code}",
                     ex.Code);
 
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                context.Response.ContentType = "application/json";
-
                 IReadOnlyDictionary<string, string[]>? errors = null;
 
                 if (ex.PropertyName is not null)
@@ -37,13 +34,13 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                         [ex.PropertyName] = [ex.Message]
                     };
 
-                var response = new ErrorResponse(
-                    Code: ex.Code,
-                    Message: ex.Message,
-                    Errors: errors,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)HttpStatusCode.BadRequest,
+                    code: ex.Code,
+                    message: ex.Message,
+                    errors: errors,
+                    cancellationToken: context.RequestAborted);
             }
             catch (MatrixApplicationException ex)
             {
@@ -61,16 +58,13 @@ namespace Matrix.BuildingBlocks.Api.Middleware
 
                 HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
 
-                context.Response.StatusCode = (int)statusCode;
-                context.Response.ContentType = "application/json";
-
-                var response = new ErrorResponse(
-                    Code: ex.Code,
-                    Message: ex.Message,
-                    Errors: ex.Errors,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)statusCode,
+                    code: ex.Code,
+                    message: ex.Message,
+                    errors: ex.Errors,
+                    cancellationToken: context.RequestAborted);
             }
             catch (MatrixInfrastructureException ex)
             {
@@ -81,16 +75,13 @@ namespace Matrix.BuildingBlocks.Api.Middleware
 
                 HttpStatusCode statusCode = MapToHttpStatusCode(ex.ErrorType);
 
-                context.Response.StatusCode = (int)statusCode;
-                context.Response.ContentType = "application/json";
-
-                var response = new ErrorResponse(
-                    Code: ex.Code,
-                    Message: ex.Message,
-                    Errors: ex.Details,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)statusCode,
+                    code: ex.Code,
+                    message: ex.Message,
+                    errors: ex.Details,
+                    cancellationToken: context.RequestAborted);
             }
             catch (ArgumentException ex)
             {
@@ -98,16 +89,12 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     exception: ex,
                     message: "Invalid argument");
 
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                context.Response.ContentType = "application/json";
-
-                var response = new ErrorResponse(
-                    Code: "Common.InvalidArgument",
-                    Message: ex.Message,
-                    Errors: null,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)HttpStatusCode.BadRequest,
+                    code: "Common.InvalidArgument",
+                    message: ex.Message,
+                    cancellationToken: context.RequestAborted);
             }
             catch (InvalidOperationException ex)
             {
@@ -115,42 +102,31 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     exception: ex,
                     message: "Invalid operation");
 
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                context.Response.ContentType = "application/json";
-
-                var response = new ErrorResponse(
-                    Code: "Common.InvalidOperation",
-                    Message: ex.Message,
-                    Errors: null,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)HttpStatusCode.BadRequest,
+                    code: "Common.InvalidOperation",
+                    message: ex.Message,
+                    cancellationToken: context.RequestAborted);
             }
             catch (TaskCanceledException ex) when (!context.RequestAborted.IsCancellationRequested)
             {
-                // Это именно таймаут HttpClient (а не отмена клиентом)
                 logger.LogWarning(
                     exception: ex,
                     message: "Gateway timeout while calling downstream service");
 
-                context.Response.StatusCode = (int)HttpStatusCode.GatewayTimeout;
-                context.Response.ContentType = "application/json";
-
-                var response = new ErrorResponse(
-                    Code: "Common.GatewayTimeout",
-                    Message: "Downstream service did not respond in time.",
-                    Errors: null,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)HttpStatusCode.GatewayTimeout,
+                    code: "Common.GatewayTimeout",
+                    message: "Downstream service did not respond in time.",
+                    cancellationToken: context.RequestAborted);
             }
             catch (OperationCanceledException ex) when (context.RequestAborted.IsCancellationRequested)
             {
-                // Клиент сам оборвал запрос (закрыл вкладку/навигация/abort)
                 logger.LogInformation(
                     exception: ex,
                     message: "Request aborted by client");
-                // Можно просто ничего не писать в response
             }
             catch (Exception ex) when (ex is IHttpResponseException httpEx)
             {
@@ -162,7 +138,7 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     httpEx.RequestUrl);
 
                 context.Response.StatusCode = (int)httpEx.StatusCode;
-                context.Response.ContentType = httpEx.ContentType ?? "application/json";
+                context.Response.ContentType = httpEx.ContentType ?? ApiProblemDetailsFactory.ProblemContentType;
 
                 if (!string.IsNullOrWhiteSpace(httpEx.Body))
                 {
@@ -170,32 +146,26 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     return;
                 }
 
-                var response = new ErrorResponse(
-                    Code: "Common.DownstreamError",
-                    Message: "Downstream service error.",
-                    Errors: null,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)httpEx.StatusCode,
+                    code: "Common.DownstreamError",
+                    message: "Downstream service error.",
+                    cancellationToken: context.RequestAborted);
             }
 
             catch (HttpRequestException ex)
             {
-                // Сюда часто попадает EnsureSuccessStatusCode() или проблемы сети/SSL/DNS
                 logger.LogWarning(
                     exception: ex,
                     message: "Bad gateway while calling downstream service");
 
-                context.Response.StatusCode = (int)HttpStatusCode.BadGateway;
-                context.Response.ContentType = "application/json";
-
-                var response = new ErrorResponse(
-                    Code: "Common.BadGateway",
-                    Message: "Downstream service error.",
-                    Errors: null,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)HttpStatusCode.BadGateway,
+                    code: "Common.BadGateway",
+                    message: "Downstream service error.",
+                    cancellationToken: context.RequestAborted);
             }
             catch (Exception ex)
             {
@@ -203,16 +173,12 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     exception: ex,
                     message: "Unhandled exception");
 
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.ContentType = "application/json";
-
-                var response = new ErrorResponse(
-                    Code: "Common.UnexpectedError",
-                    Message: "Internal server error",
-                    Errors: null,
-                    TraceId: context.TraceIdentifier);
-
-                await context.Response.WriteAsJsonAsync(response);
+                await ApiProblemDetailsFactory.WriteAsync(
+                    context: context,
+                    statusCode: (int)HttpStatusCode.InternalServerError,
+                    code: "Common.UnexpectedError",
+                    message: "Internal server error",
+                    cancellationToken: context.RequestAborted);
             }
         }
 
