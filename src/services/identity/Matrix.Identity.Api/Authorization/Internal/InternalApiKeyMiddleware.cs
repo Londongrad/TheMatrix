@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Matrix.BuildingBlocks.Application.Security.InternalApiKey;
 using Matrix.Identity.Api.Configurations;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -11,7 +12,10 @@ namespace Matrix.Identity.Api.Authorization.Internal
         IOptions<IdentityInternalOptions> options)
     {
         public const string ApiKeyHeaderName = "X-Internal-Key";
-        private readonly IdentityInternalOptions _opts = options.Value;
+        public const string ApiKeyIdHeaderName = "X-Internal-Key-Id";
+        private readonly InternalApiKeyResolvedKeyRing _keyRing = InternalApiKeyRingPolicy.Resolve(
+            options: options.Value,
+            optionsPath: IdentityInternalOptions.SectionName);
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -31,26 +35,10 @@ namespace Matrix.Identity.Api.Authorization.Internal
                 return;
             }
 
-            string expected = _opts.ApiKey;
-            if (string.IsNullOrWhiteSpace(expected))
-            {
-                if (requiresInternalKey)
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                else
-                    await next(context);
-
-                return;
-            }
-
             string provided = providedKey.ToString();
-
-            byte[] providedBytes = Encoding.UTF8.GetBytes(provided);
-            byte[] expectedBytes = Encoding.UTF8.GetBytes(expected);
-
-            bool ok = providedBytes.Length == expectedBytes.Length &&
-                      CryptographicOperations.FixedTimeEquals(
-                          left: providedBytes,
-                          right: expectedBytes);
+            bool ok = TryValidateProvidedKey(
+                context: context,
+                providedKey: provided);
 
             // Protect only internal endpoints
             if (!ok)
@@ -66,6 +54,46 @@ namespace Matrix.Identity.Api.Authorization.Internal
             TrustedGatewayRequestContext.Mark(context);
 
             await next(context);
+        }
+
+        private bool TryValidateProvidedKey(
+            HttpContext context,
+            string providedKey)
+        {
+            if (context.Request.Headers.TryGetValue(
+                    key: ApiKeyIdHeaderName,
+                    value: out StringValues keyIdValues))
+            {
+                string? keyId = keyIdValues.ToString();
+                if (!string.IsNullOrWhiteSpace(keyId) &&
+                    _keyRing.Keys.TryGetValue(
+                        key: keyId,
+                        value: out string? expectedKey))
+                    return FixedTimeEquals(
+                        provided: providedKey,
+                        expected: expectedKey);
+            }
+
+            foreach (string expectedKey in _keyRing.Keys.Values)
+                if (FixedTimeEquals(
+                        provided: providedKey,
+                        expected: expectedKey))
+                    return true;
+
+            return false;
+        }
+
+        private static bool FixedTimeEquals(
+            string provided,
+            string expected)
+        {
+            byte[] providedBytes = Encoding.UTF8.GetBytes(provided);
+            byte[] expectedBytes = Encoding.UTF8.GetBytes(expected);
+
+            return providedBytes.Length == expectedBytes.Length &&
+                   CryptographicOperations.FixedTimeEquals(
+                       left: providedBytes,
+                       right: expectedBytes);
         }
     }
 }

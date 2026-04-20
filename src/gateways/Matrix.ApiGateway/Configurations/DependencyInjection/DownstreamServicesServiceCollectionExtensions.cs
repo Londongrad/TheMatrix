@@ -51,6 +51,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .ValidateOnStart();
 
             services.AddHttpContextAccessor();
+            services.AddTransient<InternalIdentityApiKeyAuthenticationHandler>();
             services.AddTransient<TrustedIdentityClientContextHandler>();
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
             services.AddTransient<InternalJwtExchangeHandler>();
@@ -179,6 +180,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         sp: sp,
                         client: client,
                         serviceName: DownstreamServiceNames.Identity))
+               .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>()
                .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -190,6 +192,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         client: client,
                         serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>()
                .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 
@@ -211,6 +214,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                         client: client,
                         serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>()
                .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
                .ConfigureHttpClient(ConfigureTimeout);
 

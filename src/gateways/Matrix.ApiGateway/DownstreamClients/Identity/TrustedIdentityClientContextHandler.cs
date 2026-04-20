@@ -1,28 +1,18 @@
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.BuildingBlocks.Api.Forwarding;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.DownstreamClients.Identity
 {
     public sealed class TrustedIdentityClientContextHandler(
-        IHttpContextAccessor accessor,
-        IOptions<IdentityInternalOptions> options) : DelegatingHandler
+        IHttpContextAccessor accessor) : DelegatingHandler
     {
-        private const string InternalApiKeyHeaderName = "X-Internal-Key";
-
         private readonly IHttpContextAccessor _accessor = accessor;
-        private readonly IdentityInternalOptions _options = options.Value;
 
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            request.Headers.Remove(InternalApiKeyHeaderName);
-            request.Headers.TryAddWithoutValidation(
-                name: InternalApiKeyHeaderName,
-                value: _options.ApiKey);
-
             HttpContext? ctx = _accessor.HttpContext;
             if (ctx is not null)
             {

@@ -3,6 +3,7 @@ using Matrix.BuildingBlocks.Api.Forwarding;
 using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Security.InternalApiKey;
 using Matrix.BuildingBlocks.Infrastructure.DatabaseStartup;
 using Matrix.Identity.Application;
 using Matrix.Identity.Infrastructure;
@@ -70,8 +71,10 @@ namespace Matrix.Identity.Api.Configurations
             services.AddOptions<IdentityInternalOptions>()
                .BindConfiguration(IdentityInternalOptions.SectionName)
                .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.ApiKey),
-                    failureMessage: "IdentityInternal:ApiKey is required.")
+                    validation: o => TryValidateInternalApiKeyRing(
+                        options: o,
+                        validationError: out _),
+                    failureMessage: $"{IdentityInternalOptions.SectionName}: invalid key rotation configuration.")
                .ValidateOnStart();
 
             services.AddAuthorization();
@@ -80,6 +83,25 @@ namespace Matrix.Identity.Api.Configurations
             services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
 
             return services;
+        }
+
+        private static bool TryValidateInternalApiKeyRing(
+            IdentityInternalOptions options,
+            out string? validationError)
+        {
+            try
+            {
+                _ = InternalApiKeyRingPolicy.Resolve(
+                    options: options,
+                    optionsPath: IdentityInternalOptions.SectionName);
+                validationError = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                validationError = ex.Message;
+                return false;
+            }
         }
     }
 }

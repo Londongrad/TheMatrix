@@ -6,7 +6,9 @@ using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
+using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
+using Matrix.BuildingBlocks.Application.Security.InternalApiKey;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -45,15 +47,17 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => Uri.TryCreate(
                         uriString: o.BaseUrl,
-                        uriKind: UriKind.Absolute,
-                        result: out _),
+                    uriKind: UriKind.Absolute,
+                    result: out _),
                     failureMessage: "IdentityInternal:BaseUrl must be an absolute URI.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.ApiKey),
-                    failureMessage: "IdentityInternal:ApiKey is required.")
                .Validate(
                     validation: o => o.RequestTimeoutSeconds > 0,
                     failureMessage: "IdentityInternal:RequestTimeoutSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => TryValidateInternalApiKeyRing(
+                        options: o,
+                        validationError: out _),
+                    failureMessage: $"{IdentityInternalOptions.SectionName}: invalid key rotation configuration.")
                .ValidateOnStart();
 
             services.AddOptions<PermissionsVersionOptions>()
@@ -163,6 +167,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddIdentityInternalUsersClient(this IServiceCollection services)
         {
+            services.AddTransient<InternalIdentityApiKeyAuthenticationHandler>();
+
             services.AddHttpClient<IIdentityInternalUsersClient, IdentityInternalUsersClient>((
                 sp,
                 client) =>
@@ -174,14 +180,29 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     uriString: options.BaseUrl,
                     uriKind: UriKind.Absolute);
                 client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
-
-                client.DefaultRequestHeaders.Remove("X-Internal-Key");
-                client.DefaultRequestHeaders.Add(
-                    name: "X-Internal-Key",
-                    value: options.ApiKey);
-            });
+            })
+               .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>();
 
             return services;
+        }
+
+        private static bool TryValidateInternalApiKeyRing(
+            IdentityInternalOptions options,
+            out string? validationError)
+        {
+            try
+            {
+                _ = InternalApiKeyRingPolicy.Resolve(
+                    options: options,
+                    optionsPath: IdentityInternalOptions.SectionName);
+                validationError = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                validationError = ex.Message;
+                return false;
+            }
         }
 
         private static IServiceCollection AddGatewayMessaging(this IServiceCollection services)
