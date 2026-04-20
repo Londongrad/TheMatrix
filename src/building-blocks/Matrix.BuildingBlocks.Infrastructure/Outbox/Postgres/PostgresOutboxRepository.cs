@@ -9,6 +9,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
     public sealed class PostgresOutboxRepository<TDbContext>(TDbContext dbContext) : IOutboxRepository
         where TDbContext : DbContext
     {
+        private const int MaxStoredErrorLength = 1024;
+        private const string TruncationSuffix = " ...[truncated]";
+
         public async Task<IReadOnlyList<LeasedOutboxMessage>> LeaseBatchAsync(
             DateTime nowUtc,
             Guid lockToken,
@@ -126,10 +129,12 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
             DateTime nextAttemptOnUtc,
             CancellationToken cancellationToken)
         {
+            string storedError = NormalizeError(error);
+
             return dbContext.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
                           UPDATE "OutboxMessages"
-                          SET "Error" = {error},
+                          SET "Error" = {storedError},
                               "NextAttemptOnUtc" = {nextAttemptOnUtc},
                               "LockToken" = NULL,
                               "LockedUntilUtc" = NULL
@@ -180,6 +185,22 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.Postgres
             p.ParameterName = name;
             p.Value = value;
             cmd.Parameters.Add(p);
+        }
+
+        private static string NormalizeError(string error)
+        {
+            if (string.IsNullOrWhiteSpace(error))
+                return "Unexpected outbox publish failure.";
+
+            if (error.Length <= MaxStoredErrorLength)
+                return error;
+
+            int prefixLength = MaxStoredErrorLength - TruncationSuffix.Length;
+            return string.Concat(
+                error.AsSpan(
+                    start: 0,
+                    length: prefixLength),
+                TruncationSuffix);
         }
     }
 }
