@@ -17,7 +17,27 @@ namespace Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection
             where TDbContext : DbContext
         {
             services.AddOptions<OutboxOptions>()
-               .Bind(configuration.GetSection(OutboxOptions.SectionName));
+               .Bind(configuration.GetSection(OutboxOptions.SectionName))
+               .Validate(
+                    validation: o => o.BatchSize > 0,
+                    failureMessage: $"{OutboxOptions.SectionName}:BatchSize must be greater than 0.")
+               .Validate(
+                    validation: o => o.PollIntervalSeconds > 0,
+                    failureMessage: $"{OutboxOptions.SectionName}:PollIntervalSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.LeaseTtlSeconds > 0,
+                    failureMessage: $"{OutboxOptions.SectionName}:LeaseTtlSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.FailureBackoffMaxSeconds > 0,
+                    failureMessage: $"{OutboxOptions.SectionName}:FailureBackoffMaxSeconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.ProcessedRetentionSeconds >= 0,
+                    failureMessage:
+                    $"{OutboxOptions.SectionName}:ProcessedRetentionSeconds must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.CleanupBatchSize >= 0,
+                    failureMessage: $"{OutboxOptions.SectionName}:CleanupBatchSize must be greater than or equal to 0.")
+               .ValidateOnStart();
 
             services.TryAddSingleton(TimeProvider.System);
 
