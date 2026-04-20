@@ -96,19 +96,6 @@ namespace Matrix.BuildingBlocks.Api.Middleware
                     message: ex.Message,
                     cancellationToken: context.RequestAborted);
             }
-            catch (InvalidOperationException ex)
-            {
-                logger.LogWarning(
-                    exception: ex,
-                    message: "Invalid operation");
-
-                await ApiProblemDetailsFactory.WriteAsync(
-                    context: context,
-                    statusCode: (int)HttpStatusCode.BadRequest,
-                    code: "Common.InvalidOperation",
-                    message: ex.Message,
-                    cancellationToken: context.RequestAborted);
-            }
             catch (TaskCanceledException ex) when (!context.RequestAborted.IsCancellationRequested)
             {
                 logger.LogWarning(
