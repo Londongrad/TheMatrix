@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Matrix.BuildingBlocks.Application\Matrix.BuildingBlocks.Application.csproj"/>
-    <ProjectReference Include="..\Matrix.SimulationCore.Contracts\Matrix.SimulationCore.Contracts.csproj"/>
     <ProjectReference Include="..\Matrix.SimulationCore.Domain\Matrix.SimulationCore.Domain.csproj"/>
   </ItemGroup>
 

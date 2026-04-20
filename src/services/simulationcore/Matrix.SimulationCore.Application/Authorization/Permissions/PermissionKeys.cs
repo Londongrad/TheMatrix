@@ -1,21 +1,19 @@
-using ContractPermissionKeys = Matrix.SimulationCore.Contracts.Authorization.Permissions.PermissionKeys;
-
 namespace Matrix.SimulationCore.Application.Authorization.Permissions
 {
     public static class PermissionKeys
     {
-        public const string SimulationCoreScenariosCatalogRead = ContractPermissionKeys.SimulationCoreScenariosCatalogRead;
+        public const string SimulationCoreScenariosCatalogRead = "simulationcore.scenarios.catalog.read";
 
-        public const string SimulationCoreClassicCityRead = ContractPermissionKeys.SimulationCoreClassicCityRead;
-        public const string SimulationCoreClassicCityCreate = ContractPermissionKeys.SimulationCoreClassicCityCreate;
-        public const string SimulationCoreClassicCityUpdate = ContractPermissionKeys.SimulationCoreClassicCityUpdate;
-        public const string SimulationCoreClassicCityArchive = ContractPermissionKeys.SimulationCoreClassicCityArchive;
-        public const string SimulationCoreClassicCityDelete = ContractPermissionKeys.SimulationCoreClassicCityDelete;
+        public const string SimulationCoreClassicCityRead = "simulationcore.classic-city.read";
+        public const string SimulationCoreClassicCityCreate = "simulationcore.classic-city.create";
+        public const string SimulationCoreClassicCityUpdate = "simulationcore.classic-city.update";
+        public const string SimulationCoreClassicCityArchive = "simulationcore.classic-city.archive";
+        public const string SimulationCoreClassicCityDelete = "simulationcore.classic-city.delete";
 
         public const string SimulationCoreClassicCityPopulationBootstrapRetry =
-            ContractPermissionKeys.SimulationCoreClassicCityPopulationBootstrapRetry;
+            "simulationcore.classic-city.population-bootstrap.retry";
 
-        public const string SimulationCoreSimulationRead = ContractPermissionKeys.SimulationCoreSimulationRead;
-        public const string SimulationCoreSimulationControl = ContractPermissionKeys.SimulationCoreSimulationControl;
+        public const string SimulationCoreSimulationRead = "simulationcore.simulations.read";
+        public const string SimulationCoreSimulationControl = "simulationcore.simulations.control";
     }
 }
