@@ -25,6 +25,7 @@ using Matrix.SimulationCore.Infrastructure.SimulationSystems;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.SimulationCore.Infrastructure
@@ -63,6 +64,7 @@ namespace Matrix.SimulationCore.Infrastructure
                .Bind(configuration.GetSection(SimulationTickOptions.SectionName));
             services.AddOptions<ProvisioningRecoveryOptions>()
                .Bind(configuration.GetSection(ProvisioningRecoveryOptions.SectionName));
+            services.TryAddSingleton(TimeProvider.System);
 
             services.AddOptions<RabbitMqOptions>()
                .Bind(configuration.GetSection(RabbitMqOptions.SectionName))

@@ -22,6 +22,7 @@ using SimulationCorePermissionKeys = Matrix.SimulationCore.Contracts.Authorizati
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -47,6 +48,7 @@ namespace Matrix.SimulationSystems.Infrastructure
 
             string effectiveConnectionString = connectionStringBuilder.ConnectionString;
             services.AddPostgresResilienceOptions(configuration);
+            services.TryAddSingleton(TimeProvider.System);
 
             services.AddDbContext<SimulationSystemsDbContext>((
                 sp,

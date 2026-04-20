@@ -7,10 +7,13 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
 {
-    public sealed class InternalServiceJwtIssuer(IOptions<InternalServiceJwtOptions> options) : IInternalServiceJwtIssuer
+    public sealed class InternalServiceJwtIssuer(
+        IOptions<InternalServiceJwtOptions> options,
+        TimeProvider timeProvider) : IInternalServiceJwtIssuer
     {
         private readonly InternalServiceJwtOptions _options = options.Value;
         private readonly InternalJwtResolvedKeyRing _keyRing = ValidateOptions(options.Value);
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public string Issue(
             Guid subjectId,
@@ -51,7 +54,9 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                 key: key,
                 algorithm: SecurityAlgorithms.HmacSha256);
 
-            DateTime expiresAtUtc = DateTime.UtcNow.AddSeconds(_options.LifetimeSeconds);
+            DateTimeOffset now = _timeProvider.GetUtcNow();
+            DateTime issuedAtUtc = now.UtcDateTime;
+            DateTime expiresAtUtc = now.AddSeconds(_options.LifetimeSeconds).UtcDateTime;
 
             var header = new JwtHeader(credentials)
             {
@@ -64,7 +69,7 @@ namespace Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices
                 claims: claims,
                 notBefore: null,
                 expires: expiresAtUtc,
-                issuedAt: DateTime.UtcNow);
+                issuedAt: issuedAtUtc);
 
             var token = new JwtSecurityToken(header, payload);
 

@@ -9,10 +9,13 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.ApiGateway.Authorization.InternalJwt
 {
-    public sealed class InternalJwtIssuer(IOptions<InternalUserContextJwtOptions> options) : IInternalJwtIssuer
+    public sealed class InternalJwtIssuer(
+        IOptions<InternalUserContextJwtOptions> options,
+        TimeProvider timeProvider) : IInternalJwtIssuer
     {
         private readonly InternalUserContextJwtOptions _options = options.Value;
         private readonly InternalJwtResolvedKeyRing _keyRing = ValidateOptions(options.Value);
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public string Issue(
             Guid userId,
@@ -56,7 +59,9 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
                 key: key,
                 algorithm: SecurityAlgorithms.HmacSha256);
 
-            DateTime expiresAtUtc = DateTime.UtcNow.AddSeconds(_options.LifetimeSeconds);
+            DateTimeOffset now = _timeProvider.GetUtcNow();
+            DateTime issuedAtUtc = now.UtcDateTime;
+            DateTime expiresAtUtc = now.AddSeconds(_options.LifetimeSeconds).UtcDateTime;
 
             var header = new JwtHeader(credentials)
             {
@@ -69,7 +74,7 @@ namespace Matrix.ApiGateway.Authorization.InternalJwt
                 claims: claims,
                 notBefore: null,
                 expires: expiresAtUtc,
-                issuedAt: DateTime.UtcNow);
+                issuedAt: issuedAtUtc);
 
             var token = new JwtSecurityToken(header, payload);
 
