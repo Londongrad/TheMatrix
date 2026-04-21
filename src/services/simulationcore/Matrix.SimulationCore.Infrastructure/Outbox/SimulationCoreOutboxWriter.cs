@@ -12,7 +12,9 @@ using Matrix.SimulationCore.Infrastructure.Persistence;
 
 namespace Matrix.SimulationCore.Infrastructure.Outbox
 {
-    public sealed class SimulationCoreOutboxWriter(SimulationCoreDbContext dbContext) : ISimulationCoreOutboxWriter
+    public sealed class SimulationCoreOutboxWriter(
+        SimulationCoreDbContext dbContext,
+        TimeProvider timeProvider) : ISimulationCoreOutboxWriter
     {
         public Task AddCityEventsAsync(
             IReadOnlyCollection<IDomainEvent> domainEvents,
@@ -21,7 +23,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             if (domainEvents.Count == 0)
                 return Task.CompletedTask;
 
-            DateTimeOffset occurredOnUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset occurredOnUtc = timeProvider.GetUtcNow();
 
             foreach (IDomainEvent domainEvent in domainEvents)
             {
@@ -98,7 +100,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             CityTickPhase phase,
             CancellationToken cancellationToken)
         {
-            DateTime occurredOnUtc = DateTime.UtcNow;
+            DateTime occurredOnUtc = timeProvider.GetUtcNow().UtcDateTime;
             string correlationId = BuildTickCorrelationId(
                 simulationId: simulationId,
                 cityId: cityId,
@@ -145,7 +147,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             CityTickPhase phase,
             CancellationToken cancellationToken)
         {
-            DateTime occurredOnUtc = DateTime.UtcNow;
+            DateTime occurredOnUtc = timeProvider.GetUtcNow().UtcDateTime;
             string correlationId = BuildTickCorrelationId(
                 simulationId: simulationId,
                 cityId: cityId,
@@ -220,7 +222,7 @@ namespace Matrix.SimulationCore.Infrastructure.Outbox
             if (domainEvents.Count == 0)
                 return Task.CompletedTask;
 
-            DateTime occurredOnUtc = DateTime.UtcNow;
+            DateTime occurredOnUtc = timeProvider.GetUtcNow().UtcDateTime;
 
             foreach (IDomainEvent domainEvent in domainEvents)
             {
