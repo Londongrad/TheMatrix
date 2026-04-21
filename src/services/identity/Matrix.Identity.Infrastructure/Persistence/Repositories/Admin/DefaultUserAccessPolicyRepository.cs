@@ -1,14 +1,18 @@
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
 {
-    public sealed class DefaultUserAccessPolicyRepository(IdentityDbContext db)
+    public sealed class DefaultUserAccessPolicyRepository(
+        IdentityDbContext db,
+        IClock clock)
         : IDefaultUserAccessPolicyRepository
     {
         private readonly IdentityDbContext _db = db;
+        private readonly IClock _clock = clock;
 
         public async Task<DefaultUserAccessPolicy> GetForUpdateAsync(CancellationToken cancellationToken)
         {
@@ -20,7 +24,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories.Admin
             if (policy is not null)
                 return policy;
 
-            policy = DefaultUserAccessPolicy.CreateDefault(DateTime.UtcNow);
+            policy = DefaultUserAccessPolicy.CreateDefault(_clock.UtcNow);
             await _db.DefaultUserAccessPolicies.AddAsync(
                 entity: policy,
                 cancellationToken: cancellationToken);

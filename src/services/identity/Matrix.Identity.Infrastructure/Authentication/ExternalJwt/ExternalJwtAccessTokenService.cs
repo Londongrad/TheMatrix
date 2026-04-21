@@ -10,9 +10,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
 {
-    public sealed class ExternalJwtAccessTokenService(IOptions<ExternalJwtOptions> options) : IAccessTokenService
+    public sealed class ExternalJwtAccessTokenService(
+        IOptions<ExternalJwtOptions> options,
+        IClock clock) : IAccessTokenService
     {
         private readonly ExternalJwtOptions _options = options.Value;
+        private readonly IClock _clock = clock;
 
         public AccessTokenModel Generate(
             Guid userId,
@@ -41,7 +44,7 @@ namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
                 key: key,
                 algorithm: SecurityAlgorithms.HmacSha256);
 
-            DateTime expiresAt = DateTime.UtcNow.AddMinutes(_options.AccessTokenLifetimeMinutes);
+            DateTime expiresAt = _clock.UtcNow.AddMinutes(_options.AccessTokenLifetimeMinutes);
 
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer,

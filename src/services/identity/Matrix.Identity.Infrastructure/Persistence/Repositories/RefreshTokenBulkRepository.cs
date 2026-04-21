@@ -1,20 +1,24 @@
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 {
-    public sealed class RefreshTokenBulkRepository(IdentityDbContext db) : IRefreshTokenBulkRepository
+    public sealed class RefreshTokenBulkRepository(
+        IdentityDbContext db,
+        IClock clock) : IRefreshTokenBulkRepository
     {
         private readonly IdentityDbContext _db = db;
+        private readonly IClock _clock = clock;
 
         public Task<int> RevokeAllByUserIdAsync(
             Guid userId,
             RefreshTokenRevocationReason reason,
             CancellationToken cancellationToken)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = _clock.UtcNow;
 
             return _db.Set<RefreshToken>()
                .Where(t => t.UserId == userId)
@@ -39,7 +43,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             RefreshTokenRevocationReason reason,
             CancellationToken cancellationToken)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = _clock.UtcNow;
 
             return _db.Set<RefreshToken>()
                .Where(t => t.UserId == userId)

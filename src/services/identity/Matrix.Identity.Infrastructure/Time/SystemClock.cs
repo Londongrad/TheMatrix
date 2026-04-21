@@ -2,8 +2,8 @@ using Matrix.Identity.Application.Abstractions.Services;
 
 namespace Matrix.Identity.Infrastructure.Time
 {
-    public class SystemClock : IClock
+    public sealed class SystemClock(TimeProvider timeProvider) : IClock
     {
-        public DateTime UtcNow { get; } = DateTime.UtcNow;
+        public DateTime UtcNow => timeProvider.GetUtcNow().UtcDateTime;
     }
 }

@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Administration;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Errors;
@@ -14,6 +15,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
         IUserSessionRepository userSessionRepository,
         IAdminUserGuard adminUserGuard,
         ISecurityStateChangeCollector securityStateChangeCollector,
+        IClock clock,
         IUnitOfWork unitOfWork)
         : IRequestHandler<LockUserCommand>
     {
@@ -34,11 +36,12 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
                         cancellationToken: token);
 
                     bool wasLocked = user.IsLocked;
+                    DateTime utcNow = clock.UtcNow;
 
                     user.Lock();
                     user.RevokeAllRefreshTokens(
                         reason: RefreshTokenRevocationReason.UserLocked,
-                        revokedAtUtc: DateTime.UtcNow);
+                        revokedAtUtc: utcNow);
 
                     IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
                         userId: user.Id,
@@ -48,7 +51,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
                         if (session.IsActive())
                             session.Revoke(
                                 reason: RefreshTokenRevocationReason.UserLocked,
-                                revokedAtUtc: DateTime.UtcNow);
+                                revokedAtUtc: utcNow);
 
                     if (!wasLocked)
                         securityStateChangeCollector.MarkUserChanged(user.Id);

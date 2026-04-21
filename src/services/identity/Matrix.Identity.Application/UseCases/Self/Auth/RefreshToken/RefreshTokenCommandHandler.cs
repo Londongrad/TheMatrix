@@ -19,6 +19,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
         IRefreshTokenProvider refreshTokenProvider,
         IGeoLocationService geoLocationService,
         IUnitOfWork unitOfWork,
+        IClock clock,
         IEffectivePermissionsService permissionsService)
         : IRequestHandler<RefreshTokenCommand, LoginUserResult>
     {
@@ -32,6 +33,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                             tokenHash: hash,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.InvalidRefreshToken();
+            DateTime utcNow = clock.UtcNow;
 
             if (!user.CanLogin())
             {
@@ -41,7 +43,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                         reason: user.IsDeleted
                             ? RefreshTokenRevocationReason.AccountDeleted
                             : RefreshTokenRevocationReason.UserLocked,
-                        revokedAtUtc: DateTime.UtcNow);
+                        revokedAtUtc: utcNow);
 
                 await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -73,11 +75,11 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
             {
                 currentToken.Revoke(
                     reason: RefreshTokenRevocationReason.SecurityEvent,
-                    revokedAtUtc: DateTime.UtcNow);
+                    revokedAtUtc: utcNow);
 
                 session.Revoke(
                     reason: RefreshTokenRevocationReason.SecurityEvent,
-                    revokedAtUtc: DateTime.UtcNow);
+                    revokedAtUtc: utcNow);
 
                 await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -106,7 +108,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
 
             currentToken.Revoke(
                 reason: RefreshTokenRevocationReason.SessionReplaced,
-                revokedAtUtc: DateTime.UtcNow);
+                revokedAtUtc: utcNow);
 
             RefreshTokenDescriptor newDescriptor = refreshTokenProvider.Generate(currentToken.IsPersistent);
 

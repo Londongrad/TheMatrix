@@ -6,9 +6,12 @@ using Microsoft.Extensions.Options;
 
 namespace Matrix.Identity.Infrastructure.Security.Tokens
 {
-    public sealed class RefreshTokenProvider(IOptions<ExternalJwtOptions> options) : IRefreshTokenProvider
+    public sealed class RefreshTokenProvider(
+        IOptions<ExternalJwtOptions> options,
+        IClock clock) : IRefreshTokenProvider
     {
         private readonly ExternalJwtOptions _options = options.Value;
+        private readonly IClock _clock = clock;
 
         public RefreshTokenDescriptor Generate(bool isPersistent)
         {
@@ -20,8 +23,8 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
             string hash = ComputeHash(token);
 
             DateTime expiresAt = isPersistent
-                ? DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays)
-                : DateTime.UtcNow.AddHours(_options.ShortRefreshTokenLifetimeHours);
+                ? _clock.UtcNow.AddDays(_options.RefreshTokenLifetimeDays)
+                : _clock.UtcNow.AddHours(_options.ShortRefreshTokenLifetimeHours);
 
             return new RefreshTokenDescriptor(
                 Token: token,
