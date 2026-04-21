@@ -45,6 +45,9 @@ export const PermissionKeys = {
     PopulationEducationManage: "population.education.manage",
     PopulationPersonResurrect: "population.person.resurrect",
     PopulationPersonKill: "population.person.kill",
+    EconomyBudgetRead: "economy.budget.read",
+    EconomyBusinessesRead: "economy.businesses.read",
+    EconomyHouseholdAccountsRead: "economy.household-accounts.read",
 } as const;
 
 export type PermissionKey =

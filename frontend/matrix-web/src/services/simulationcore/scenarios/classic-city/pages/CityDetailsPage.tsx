@@ -1,6 +1,7 @@
 import {useEffect, useMemo} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDashboardCard} from "@services/simulationcore/scenarios/classic-city/components/CityDashboardCard";
+import {CityEconomyCard} from "@services/simulationcore/scenarios/classic-city/components/CityEconomyCard";
 import {CityInfrastructureCard} from "@services/simulationcore/scenarios/classic-city/components/CityInfrastructureCard";
 import {CityOverviewCard} from "@services/simulationcore/scenarios/classic-city/components/CityOverviewCard";
 import {
@@ -27,6 +28,11 @@ const CITY_DETAILS_TABS = [
         id: "dashboard",
         label: "Dashboard",
         subtitle: "City-scale metrics, resident activity, and recent simulation signals.",
+    },
+    {
+        id: "economy",
+        label: "Economy",
+        subtitle: "Budget posture, business operators, household accounts, and cursor-based financial feeds.",
     },
     {
         id: "map",
@@ -212,6 +218,15 @@ const CityDetailsPage = () => {
             case "dashboard":
                 return cityQuery.data ? (
                     <CityDashboardCard
+                        cityId={cityQuery.data.cityId}
+                        cityName={cityQuery.data.name}
+                        isArchived={isArchived}
+                    />
+                ) : null;
+
+            case "economy":
+                return cityQuery.data ? (
+                    <CityEconomyCard
                         cityId={cityQuery.data.cityId}
                         cityName={cityQuery.data.name}
                         isArchived={isArchived}

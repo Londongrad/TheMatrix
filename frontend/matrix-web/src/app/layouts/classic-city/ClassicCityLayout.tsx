@@ -29,6 +29,10 @@ const CITY_WORKSPACE_META: Record<ClassicCityWorkspaceSection, { label: string; 
         label: "Dashboard",
         subtitle: "City-wide metrics, recent activity, and simulation signals without leaving the active host.",
     },
+    economy: {
+        label: "Economy",
+        subtitle: "Budget posture, business operators, household accounts, and cursor-based financial feeds for the city.",
+    },
     map: {
         label: "Map",
         subtitle: "Canonical topology, road graph, anchors, and active world trips for the current city.",
@@ -77,6 +81,7 @@ const RESIDENT_META: Record<ClassicCityResidentSection, { label: string; subtitl
 function isWorkspaceSection(value: string | null): value is ClassicCityWorkspaceSection {
     return value === "overview" ||
         value === "dashboard" ||
+        value === "economy" ||
         value === "map" ||
         value === "infrastructure" ||
         value === "population" ||
@@ -174,6 +179,17 @@ export default function ClassicCityLayout() {
                     PermissionKeys.PopulationPeopleRead,
                 ],
                 requiredPermissionsMode: "all",
+                permissionDisplay: "disable",
+            },
+            {
+                to: getClassicCityDetailsPath(cityId, "economy"),
+                label: "Economy",
+                end: true,
+                requiredPermissions: [
+                    PermissionKeys.EconomyBudgetRead,
+                    PermissionKeys.EconomyBusinessesRead,
+                    PermissionKeys.EconomyHouseholdAccountsRead,
+                ],
                 permissionDisplay: "disable",
             },
             {
