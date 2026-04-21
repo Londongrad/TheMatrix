@@ -1,5 +1,4 @@
 using FluentValidation;
-using Matrix.BuildingBlocks.Application.Validation;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity
 {
@@ -7,8 +6,10 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivit
     {
         public GetMySecurityActivityQueryValidator()
         {
-            RuleFor(x => x.Pagination)
-               .SetValidator(new PaginationValidator());
+            RuleFor(x => x.PageSize)
+               .InclusiveBetween(
+                    from: 1,
+                    to: SecurityActivityPageSizePolicy.MaxPageSize);
         }
     }
 }

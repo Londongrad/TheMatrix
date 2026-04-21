@@ -5,9 +5,10 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
 {
     public interface ISecurityAuditReadRepository
     {
-        Task<(IReadOnlyCollection<SecurityActivityItemResult> Items, int TotalCount)> GetPageByUserIdAsync(
+        Task<CursorPagedResult<SecurityActivityItemResult>> GetSliceByUserIdAsync(
             Guid userId,
-            Pagination pagination,
+            SecurityActivityCursor? cursor,
+            int pageSize,
             CancellationToken cancellationToken);
     }
 }

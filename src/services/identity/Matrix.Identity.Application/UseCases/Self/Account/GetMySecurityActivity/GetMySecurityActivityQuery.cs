@@ -3,6 +3,8 @@ using MediatR;
 
 namespace Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity
 {
-    public sealed record GetMySecurityActivityQuery(Pagination Pagination)
-        : IRequest<PagedResult<SecurityActivityItemResult>>;
+    public sealed record GetMySecurityActivityQuery(
+        string? Cursor,
+        int PageSize)
+        : IRequest<CursorPagedResult<SecurityActivityItemResult>>;
 }

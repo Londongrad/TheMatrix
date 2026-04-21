@@ -63,6 +63,12 @@ namespace Matrix.Identity.Infrastructure.Persistence.Configurations
                 x.IsSuccessful,
                 x.OccurredAtUtc
             });
+            builder.HasIndex(x => new
+            {
+                x.UserId,
+                x.OccurredAtUtc,
+                x.Id
+            });
             builder.HasIndex(x => x.UserId);
             builder.HasIndex(x => x.SessionId);
         }

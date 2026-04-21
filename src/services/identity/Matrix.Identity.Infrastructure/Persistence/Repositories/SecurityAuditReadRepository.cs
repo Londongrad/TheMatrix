@@ -12,25 +12,41 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
         IdentityDbContext dbContext,
         ILogger<SecurityAuditReadRepository> logger) : ISecurityAuditReadRepository
     {
-        public async Task<(IReadOnlyCollection<SecurityActivityItemResult> Items, int TotalCount)> GetPageByUserIdAsync(
+        public async Task<CursorPagedResult<SecurityActivityItemResult>> GetSliceByUserIdAsync(
             Guid userId,
-            Pagination pagination,
+            SecurityActivityCursor? cursor,
+            int pageSize,
             CancellationToken cancellationToken)
         {
+            int normalizedPageSize = SecurityActivityPageSizePolicy.Normalize(pageSize);
+
             try
             {
                 IOrderedQueryable<SecurityAuditEventRecord> query = dbContext.SecurityAuditEvents
                    .AsNoTracking()
                    .Where(x => x.UserId == userId)
-                   .OrderByDescending(x => x.OccurredAtUtc);
+                   .OrderByDescending(x => x.OccurredAtUtc)
+                   .ThenByDescending(x => x.Id);
 
-                int totalCount = await query.CountAsync(cancellationToken);
+                if (cursor.HasValue)
+                {
+                    DateTime cursorOccurredAtUtc = new(
+                        ticks: cursor.Value.UtcTicks,
+                        kind: DateTimeKind.Utc);
+                    Guid cursorEventId = cursor.Value.EventId;
+
+                    query = query.Where(x => x.OccurredAtUtc < cursorOccurredAtUtc ||
+                                             (x.OccurredAtUtc == cursorOccurredAtUtc &&
+                                              x.Id.CompareTo(cursorEventId) < 0))
+                       .OrderByDescending(x => x.OccurredAtUtc)
+                       .ThenByDescending(x => x.Id);
+                }
 
                 List<SecurityActivityItemResult> items = await query
-                   .Skip(pagination.Skip)
-                   .Take(pagination.PageSize)
+                   .Take(normalizedPageSize + 1)
                    .Select(x => new SecurityActivityItemResult
                     {
+                        EventId = x.Id,
                         EventType = x.EventType,
                         IsSuccessful = x.IsSuccessful,
                         OccurredAtUtc = x.OccurredAtUtc,
@@ -42,14 +58,32 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                     })
                    .ToListAsync(cancellationToken);
 
-                return (items, totalCount);
+                bool hasNext = items.Count > normalizedPageSize;
+                SecurityActivityItemResult[] pageItems = items
+                   .Take(normalizedPageSize)
+                   .ToArray();
+
+                string? nextCursor = hasNext && pageItems.Length > 0
+                    ? SecurityActivityCursorCodec.Encode(
+                        new SecurityActivityCursor(
+                            UtcTicks: pageItems[^1].OccurredAtUtc.Ticks,
+                            EventId: pageItems[^1].EventId))
+                    : null;
+
+                return new CursorPagedResult<SecurityActivityItemResult>(
+                    items: pageItems,
+                    pageSize: normalizedPageSize,
+                    nextCursor: nextCursor);
             }
             catch (PostgresException ex) when (IsMissingSecurityAuditTable(ex))
             {
                 logger.LogWarning(
                     exception: ex,
                     message: "Security audit table is missing. Returning empty security activity history.");
-                return (Array.Empty<SecurityActivityItemResult>(), 0);
+                return new CursorPagedResult<SecurityActivityItemResult>(
+                    items: Array.Empty<SecurityActivityItemResult>(),
+                    pageSize: normalizedPageSize,
+                    nextCursor: null);
             }
         }
 

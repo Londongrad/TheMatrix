@@ -153,24 +153,28 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<PagedResult<SecurityActivityItemResponse>> GetSecurityActivityPageAsync(
-            int pageNumber,
+        public async Task<CursorPagedResult<SecurityActivityItemResponse>> GetSecurityActivityFeedAsync(
+            string? cursor,
             int pageSize,
             CancellationToken cancellationToken)
         {
+            var queryString = new Dictionary<string, string?>
+            {
+                ["pageSize"] = pageSize.ToString()
+            };
+
+            if (!string.IsNullOrWhiteSpace(cursor))
+                queryString["cursor"] = cursor;
+
             string url = QueryHelpers.AddQueryString(
                 uri: SecurityActivityEndpoint,
-                queryString: new Dictionary<string, string?>
-                {
-                    ["pageNumber"] = pageNumber.ToString(),
-                    ["pageSize"] = pageSize.ToString()
-                });
+                queryString: queryString);
 
             using HttpResponseMessage response = await _httpClient.GetAsync(
                 requestUri: url,
                 cancellationToken: cancellationToken);
 
-            return await response.ReadJsonOrThrowDownstreamAsync<PagedResult<SecurityActivityItemResponse>>(
+            return await response.ReadJsonOrThrowDownstreamAsync<CursorPagedResult<SecurityActivityItemResponse>>(
                 serviceName: ServiceName,
                 cancellationToken: cancellationToken,
                 requestUrl: url);

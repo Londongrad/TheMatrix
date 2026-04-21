@@ -70,23 +70,23 @@ namespace Matrix.Identity.Api.Controllers.Self
         }
 
         [HttpGet("security-activity")]
-        public async Task<ActionResult<PagedResult<SecurityActivityItemResponse>>> GetSecurityActivity(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 12,
+        public async Task<ActionResult<CursorPagedResult<SecurityActivityItemResponse>>> GetSecurityActivity(
+            [FromQuery] string? cursor = null,
+            [FromQuery] int pageSize = SecurityActivityPageSizePolicy.DefaultPageSize,
             CancellationToken cancellationToken = default)
         {
             var query = new GetMySecurityActivityQuery(
-                new Pagination(
-                    pageNumber: pageNumber,
-                    pageSize: pageSize));
+                Cursor: cursor,
+                PageSize: pageSize);
 
-            PagedResult<SecurityActivityItemResult> result = await _sender.Send(
+            CursorPagedResult<SecurityActivityItemResult> result = await _sender.Send(
                 request: query,
                 cancellationToken: cancellationToken);
 
-            var response = new PagedResult<SecurityActivityItemResponse>(
+            var response = new CursorPagedResult<SecurityActivityItemResponse>(
                 items: result.Items.Select(item => new SecurityActivityItemResponse
                     {
+                        EventId = item.EventId,
                         EventType = item.EventType.ToString(),
                         IsSuccessful = item.IsSuccessful,
                         OccurredAtUtc = item.OccurredAtUtc,
@@ -97,9 +97,8 @@ namespace Matrix.Identity.Api.Controllers.Self
                         Details = item.Details
                     })
                    .ToList(),
-                totalCount: result.TotalCount,
-                pageNumber: result.PageNumber,
-                pageSize: result.PageSize);
+                pageSize: result.PageSize,
+                nextCursor: result.NextCursor);
 
             return Ok(response);
         }

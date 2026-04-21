@@ -4,6 +4,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivit
 {
     public sealed class SecurityActivityItemResult
     {
+        public Guid EventId { get; init; }
         public SecurityAuditEventType EventType { get; init; }
         public bool IsSuccessful { get; init; }
         public DateTime OccurredAtUtc { get; init; }

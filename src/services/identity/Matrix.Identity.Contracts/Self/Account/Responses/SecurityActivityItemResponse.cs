@@ -2,6 +2,7 @@ namespace Matrix.Identity.Contracts.Self.Account.Responses
 {
     public sealed class SecurityActivityItemResponse
     {
+        public Guid EventId { get; init; }
         public required string EventType { get; init; }
         public bool IsSuccessful { get; init; }
         public DateTime OccurredAtUtc { get; init; }

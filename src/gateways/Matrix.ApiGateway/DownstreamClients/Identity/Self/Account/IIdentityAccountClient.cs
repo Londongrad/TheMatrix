@@ -38,8 +38,8 @@ namespace Matrix.ApiGateway.DownstreamClients.Identity.Self.Account
 
         Task<UserProfileResponse> GetProfileAsync(CancellationToken cancellationToken);
 
-        Task<PagedResult<SecurityActivityItemResponse>> GetSecurityActivityPageAsync(
-            int pageNumber,
+        Task<CursorPagedResult<SecurityActivityItemResponse>> GetSecurityActivityFeedAsync(
+            string? cursor,
             int pageSize,
             CancellationToken cancellationToken);
     }

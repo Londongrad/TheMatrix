@@ -38,14 +38,14 @@ namespace Matrix.ApiGateway.Controllers.Identity.Self
         }
 
         [HttpGet("security-activity")]
-        public async Task<ActionResult<PagedResult<SecurityActivityItemResponse>>> GetSecurityActivity(
-            [FromQuery] int pageNumber = 1,
+        public async Task<ActionResult<CursorPagedResult<SecurityActivityItemResponse>>> GetSecurityActivity(
+            [FromQuery] string? cursor = null,
             [FromQuery] int pageSize = 12,
             CancellationToken cancellationToken = default)
         {
-            PagedResult<SecurityActivityItemResponse> activity =
-                await _identityAccountClient.GetSecurityActivityPageAsync(
-                    pageNumber: pageNumber,
+            CursorPagedResult<SecurityActivityItemResponse> activity =
+                await _identityAccountClient.GetSecurityActivityFeedAsync(
+                    cursor: cursor,
                     pageSize: pageSize,
                     cancellationToken: cancellationToken);
 
