@@ -1,8 +1,6 @@
 using Matrix.ApiGateway.Configurations.Options;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
-using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common;
+using Matrix.ApiGateway.DownstreamClients.Common.Resilience;
 using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.HttpHandlers;
 using Matrix.ApiGateway.DownstreamClients.Identity;
@@ -16,8 +14,12 @@ using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Microsoft.Extensions.Options;
+using Polly;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
@@ -34,8 +36,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:SimulationCore must be an absolute URI.")
                .Validate(
                     validation: o => IsAbsoluteUri(o.SimulationSystems),
-                    failureMessage:
-                    $"{DownstreamServicesOptions.SectionName}:SimulationSystems must be an absolute URI.")
+                    failureMessage: $"{DownstreamServicesOptions.SectionName}:SimulationSystems must be an absolute URI.")
                .Validate(
                     validation: o => IsAbsoluteUri(o.Economy),
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Economy must be an absolute URI.")
@@ -50,11 +51,28 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Identity must be an absolute URI.")
                .ValidateOnStart();
 
+            services.AddOptions<DownstreamReadResilienceOptions>()
+               .Bind(configuration.GetSection(DownstreamReadResilienceOptions.SectionName))
+               .Validate(
+                    validation: o => o.MaxRetryAttempts >= 0,
+                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:MaxRetryAttempts must be greater than or equal to 0.")
+               .Validate(
+                    validation: o => o.BaseRetryDelayMilliseconds > 0,
+                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:BaseRetryDelayMilliseconds must be greater than 0.")
+               .Validate(
+                    validation: o => o.CircuitBreakerConsecutiveFailureThreshold > 0,
+                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakerConsecutiveFailureThreshold must be greater than 0.")
+               .Validate(
+                    validation: o => o.CircuitBreakDurationSeconds > 0,
+                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakDurationSeconds must be greater than 0.")
+               .ValidateOnStart();
+
             services.AddHttpContextAccessor();
             services.AddTransient<InternalIdentityApiKeyAuthenticationHandler>();
             services.AddTransient<TrustedIdentityClientContextHandler>();
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
             services.AddTransient<InternalJwtExchangeHandler>();
+            services.AddSingleton<DownstreamReadResiliencePolicyProvider>();
 
             services.AddSimulationCoreClients();
             services.AddSimulationSystemsClients();
@@ -68,24 +86,22 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddSimulationCoreClients(this IServiceCollection services)
         {
-            services.AddHttpClient<ISimulationApiClient, SimulationApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationCore))
+            services.AddHttpClient<ISimulationApiClient, SimulationApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.SimulationCore))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationCore)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<ICitiesApiClient, CitiesApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationCore))
+            services.AddHttpClient<ICitiesApiClient, CitiesApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.SimulationCore))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationCore)
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
@@ -93,14 +109,13 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddEconomyClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IEconomyApiClient, EconomyApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Economy))
+            services.AddHttpClient<IEconomyApiClient, EconomyApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Economy))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Economy)
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
@@ -108,24 +123,22 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddResourcesClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IStockpilesApiClient, StockpilesApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Resources))
+            services.AddHttpClient<IStockpilesApiClient, StockpilesApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Resources))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Resources)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<ITripsApiClient, TripsApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationCore))
+            services.AddHttpClient<ITripsApiClient, TripsApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.SimulationCore))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationCore)
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
@@ -133,14 +146,13 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddSimulationSystemsClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IEnvironmentalConditionsApiClient, EnvironmentalConditionsApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.SimulationSystems))
+            services.AddHttpClient<IEnvironmentalConditionsApiClient, EnvironmentalConditionsApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.SimulationSystems))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.SimulationSystems)
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
@@ -148,24 +160,22 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddPopulationClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IPersonApiClient, PersonApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Population))
+            services.AddHttpClient<IPersonApiClient, PersonApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Population))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Population)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IPopulationApiClient, PopulationApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Population))
+            services.AddHttpClient<IPopulationApiClient, PopulationApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Population))
                .AddHttpMessageHandler<InternalJwtExchangeHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Population)
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
@@ -173,79 +183,72 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddIdentityClients(this IServiceCollection services)
         {
-            services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Identity))
+            services.AddHttpClient<IIdentityAuthClient, IdentityAuthApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>()
                .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentityAccountClient, IdentityAccountApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Identity))
+            services.AddHttpClient<IIdentityAccountClient, IdentityAccountApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>()
                .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentityAssetsClient, IdentityAssetsApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Identity))
+            services.AddHttpClient<IIdentityAssetsClient, IdentityAssetsApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentitySessionsClient, IdentitySessionsApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Identity))
+            services.AddHttpClient<IIdentitySessionsClient, IdentitySessionsApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
                .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>()
                .AddHttpMessageHandler<TrustedIdentityClientContextHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentityAdminRolesClient, IdentityAdminRolesApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Identity))
+            services.AddHttpClient<IIdentityAdminRolesClient, IdentityAdminRolesApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentityAdminPermissionsClient, IdentityAdminPermissionsApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Identity))
+            services.AddHttpClient<IIdentityAdminPermissionsClient, IdentityAdminPermissionsApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .ConfigureHttpClient(ConfigureTimeout);
 
-            services.AddHttpClient<IIdentityAdminUsersClient, IdentityAdminUsersApiClient>((
-                        sp,
-                        client) =>
-                    ConfigureServiceBaseAddress(
-                        sp: sp,
-                        client: client,
-                        serviceName: DownstreamServiceNames.Identity))
+            services.AddHttpClient<IIdentityAdminUsersClient, IdentityAdminUsersApiClient>((sp, client) =>
+                ConfigureServiceBaseAddress(
+                    sp: sp,
+                    client: client,
+                    serviceName: DownstreamServiceNames.Identity))
                .AddHttpMessageHandler<ForwardAuthorizationHeaderHandler>()
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .ConfigureHttpClient(ConfigureTimeout);
 
             return services;
@@ -292,6 +295,23 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 uriString: value,
                 uriKind: UriKind.Absolute,
                 result: out _);
+        }
+
+        private static IHttpClientBuilder AddDownstreamReadResilience(
+            this IHttpClientBuilder builder,
+            string serviceName)
+        {
+            return builder
+               .AddPolicyHandler((sp, request) =>
+               {
+                   DownstreamReadResiliencePolicyProvider provider = sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
+                   return provider.GetRetryPolicy(serviceName, request);
+               })
+               .AddPolicyHandler((sp, request) =>
+               {
+                   DownstreamReadResiliencePolicyProvider provider = sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
+                   return provider.GetCircuitBreakerPolicy(serviceName, request);
+               });
         }
     }
 }
