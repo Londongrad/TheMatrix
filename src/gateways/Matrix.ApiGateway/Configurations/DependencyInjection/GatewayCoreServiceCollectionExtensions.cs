@@ -22,6 +22,9 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: options => options.HealthProbeTimeoutSeconds > 0,
                     failureMessage: $"{CityOperationsDashboardOptions.SectionName}:HealthProbeTimeoutSeconds must be greater than 0.")
+               .Validate(
+                    validation: options => options.MaxConcurrentCitySnapshotLoads > 0,
+                    failureMessage: $"{CityOperationsDashboardOptions.SectionName}:MaxConcurrentCitySnapshotLoads must be greater than 0.")
                .ValidateOnStart();
 
             services.AddOptions<FrontendSecurityOptions>()

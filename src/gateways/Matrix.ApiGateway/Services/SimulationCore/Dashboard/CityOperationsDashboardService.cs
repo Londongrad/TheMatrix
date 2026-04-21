@@ -439,13 +439,44 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             if (readyClassicCities.Length == 0)
                 return [];
 
-            Task<CityOperationalSnapshot>[] snapshotTasks = readyClassicCities
-               .Select(city => LoadReadyClassicCitySnapshotAsync(
+            var snapshots = new CityOperationalSnapshot[readyClassicCities.Length];
+            using var gate = new SemaphoreSlim(
+                initialCount: _dashboardOptions.MaxConcurrentCitySnapshotLoads,
+                maxCount: _dashboardOptions.MaxConcurrentCitySnapshotLoads);
+
+            Task[] snapshotTasks = readyClassicCities
+               .Select((city, index) => LoadReadyClassicCitySnapshotWithGateAsync(
                     city: city,
+                    index: index,
+                    snapshots: snapshots,
+                    gate: gate,
                     cancellationToken: cancellationToken))
                .ToArray();
 
-            return await Task.WhenAll(snapshotTasks);
+            await Task.WhenAll(snapshotTasks);
+
+            return snapshots;
+        }
+
+        private async Task LoadReadyClassicCitySnapshotWithGateAsync(
+            CityListItemView city,
+            int index,
+            CityOperationalSnapshot[] snapshots,
+            SemaphoreSlim gate,
+            CancellationToken cancellationToken)
+        {
+            await gate.WaitAsync(cancellationToken);
+
+            try
+            {
+                snapshots[index] = await LoadReadyClassicCitySnapshotAsync(
+                    city: city,
+                    cancellationToken: cancellationToken);
+            }
+            finally
+            {
+                gate.Release();
+            }
         }
 
         private async Task<CityOperationalSnapshot> LoadReadyClassicCitySnapshotAsync(
