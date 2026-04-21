@@ -79,8 +79,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 provisioningTask,
                 healthTask);
 
-            IReadOnlyList<CityListItemView> allCities = allCitiesTask.Result;
-            IReadOnlyList<CityListItemView> attentionCities = provisioningTask.Result;
+            IReadOnlyList<CityListItemView> allCities = await allCitiesTask;
+            IReadOnlyList<CityListItemView> attentionCities = await provisioningTask;
+            IReadOnlyList<DashboardServiceHealthView> services = await healthTask;
             IReadOnlyList<CityOperationalSnapshot> operationalSnapshots =
                 await LoadReadyClassicCitySnapshotsAsync(
                     allCities: allCities,
@@ -237,7 +238,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     selectMoment: city => city.PopulationBootstrapCompletedAtUtc,
                     now: now,
                     source: allCities),
-                Services: healthTask.Result,
+                Services: services,
                 Events: BuildRecentEvents(allCities),
                 EnvironmentalCities: environmentalAlerts.Take(8)
                    .ToArray(),
@@ -492,18 +493,29 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 stockpilesTask,
                 budgetTask);
 
+            CityEnvironmentalConditionsView? environmental = await environmentalTask;
+            CityPopulationDistrictPressureDto? populationDistrictPressure = await populationDistrictPressureTask;
+            CityDistrictHeatingConditionsView? districtHeating = await districtHeatingTask;
+            CityDistrictWaterDistributionConditionsView? districtWater = await districtWaterTask;
+            CityDistrictPowerDistributionConditionsView? districtPower = await districtPowerTask;
+            CityDistrictSanitationConditionsView? districtSanitation = await districtSanitationTask;
+            CityDistrictUtilityIncidentConditionsView? districtUtilityIncidents = await districtUtilityIncidentsTask;
+            IReadOnlyList<CityActiveTripView>? activeTrips = await activeTripsTask;
+            CityStockpilesView? stockpiles = await stockpilesTask;
+            CityOperationalBudgetPressureView? budget = await budgetTask;
+
             return new CityOperationalSnapshot(
                 City: city,
-                Conditions: environmentalTask.Result,
-                PopulationDistrictPressure: populationDistrictPressureTask.Result,
-                DistrictHeating: districtHeatingTask.Result,
-                DistrictWater: districtWaterTask.Result,
-                DistrictPower: districtPowerTask.Result,
-                DistrictSanitation: districtSanitationTask.Result,
-                DistrictUtilityIncidents: districtUtilityIncidentsTask.Result,
-                ActiveTrips: activeTripsTask.Result,
-                Stockpiles: stockpilesTask.Result,
-                Budget: budgetTask.Result);
+                Conditions: environmental,
+                PopulationDistrictPressure: populationDistrictPressure,
+                DistrictHeating: districtHeating,
+                DistrictWater: districtWater,
+                DistrictPower: districtPower,
+                DistrictSanitation: districtSanitation,
+                DistrictUtilityIncidents: districtUtilityIncidents,
+                ActiveTrips: activeTrips,
+                Stockpiles: stockpiles,
+                Budget: budget);
         }
 
         private static DashboardEnvironmentalAlertView[] BuildEnvironmentalAlerts(

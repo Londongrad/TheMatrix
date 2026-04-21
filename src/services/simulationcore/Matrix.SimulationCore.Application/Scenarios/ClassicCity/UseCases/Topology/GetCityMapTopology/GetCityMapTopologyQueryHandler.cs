@@ -48,21 +48,27 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                 roadNodesTask,
                 roadSegmentsTask);
 
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.District> districts = await districtsTask;
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.ResidentialBuilding> buildings = await buildingsTask;
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.CityAnchor> anchors = await anchorsTask;
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadNode> roadNodes = await roadNodesTask;
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadSegment> roadSegments = await roadSegmentsTask;
+
             return new CityMapTopologyDto(
                 CityId: request.CityId,
-                Districts: districtsTask.Result
+                Districts: districts
                    .Select(DistrictDto.FromDomain)
                    .ToArray(),
-                ResidentialBuildings: buildingsTask.Result
+                ResidentialBuildings: buildings
                    .Select(ResidentialBuildingDto.FromDomain)
                    .ToArray(),
-                Anchors: anchorsTask.Result
+                Anchors: anchors
                    .Select(GetCityAnchors.CityAnchorDto.FromDomain)
                    .ToArray(),
-                RoadNodes: roadNodesTask.Result
+                RoadNodes: roadNodes
                    .Select(RoadNodeDto.FromDomain)
                    .ToArray(),
-                RoadSegments: roadSegmentsTask.Result
+                RoadSegments: roadSegments
                    .Select(RoadSegmentDto.FromDomain)
                    .ToArray());
         }

@@ -45,13 +45,19 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                 anchorsTask,
                 conditionsTask);
 
-            Dictionary<Guid, RoadNode> roadNodeById = roadNodesTask.Result.ToDictionary(
+            IReadOnlyList<RoadNode> roadNodes = await roadNodesTask;
+            IReadOnlyList<RoadSegment> roadSegments = await roadSegmentsTask;
+            IReadOnlyList<ResidentialBuilding> buildings = await buildingsTask;
+            IReadOnlyList<CityAnchor> anchors = await anchorsTask;
+            Services.Routing.CityRoadSegmentConditionsSnapshot? conditions = await conditionsTask;
+
+            Dictionary<Guid, RoadNode> roadNodeById = roadNodes.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
-            Dictionary<Guid, ResidentialBuilding> buildingById = buildingsTask.Result.ToDictionary(
+            Dictionary<Guid, ResidentialBuilding> buildingById = buildings.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
-            Dictionary<Guid, CityAnchor> anchorById = anchorsTask.Result.ToDictionary(
+            Dictionary<Guid, CityAnchor> anchorById = anchors.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
 
@@ -76,9 +82,9 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                 profile: CityRouteProfiles.Normalize(request.Profile),
                 from: from,
                 to: to,
-                roadNodes: roadNodesTask.Result,
-                roadSegments: roadSegmentsTask.Result,
-                segmentConditions: conditionsTask.Result);
+                roadNodes: roadNodes,
+                roadSegments: roadSegments,
+                segmentConditions: conditions);
         }
 
         private static CityRoutePointDto? ResolvePoint(
