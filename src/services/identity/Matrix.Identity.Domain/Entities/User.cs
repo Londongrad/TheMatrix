@@ -19,7 +19,8 @@ namespace Matrix.Identity.Domain.Entities
         public static User CreateNew(
             Email email,
             Username username,
-            string passwordHash)
+            string passwordHash,
+            DateTime createdAtUtc)
         {
             if (string.IsNullOrWhiteSpace(passwordHash))
                 throw DomainErrorsFactory.EmptyPasswordHash(nameof(passwordHash));
@@ -27,7 +28,8 @@ namespace Matrix.Identity.Domain.Entities
             return new User(
                 email: email,
                 username: username,
-                passwordHash: passwordHash);
+                passwordHash: passwordHash,
+                createdAtUtc: createdAtUtc);
         }
 
         #endregion [ Factory Methods ]
@@ -69,13 +71,14 @@ namespace Matrix.Identity.Domain.Entities
         private User(
             Email email,
             Username username,
-            string passwordHash)
+            string passwordHash,
+            DateTime createdAtUtc)
         {
             Id = Guid.NewGuid();
             Email = email;
             Username = username;
             PasswordHash = passwordHash;
-            CreatedAtUtc = DateTime.UtcNow;
+            CreatedAtUtc = createdAtUtc;
             IsEmailConfirmed = false;
             IsLocked = false;
             IsDeleted = false;
@@ -197,7 +200,8 @@ namespace Matrix.Identity.Domain.Entities
             DateTime expiresAtUtc,
             DeviceInfo deviceInfo,
             GeoLocation? geoLocation,
-            bool isPersistent)
+            bool isPersistent,
+            DateTime createdAtUtc)
         {
             if (sessionId == Guid.Empty)
                 throw DomainErrorsFactory.EmptyId(nameof(sessionId));
@@ -212,7 +216,8 @@ namespace Matrix.Identity.Domain.Entities
                 expiresAtUtc: expiresAtUtc,
                 deviceInfo: deviceInfo,
                 geoLocation: geoLocation,
-                isPersistent: isPersistent);
+                isPersistent: isPersistent,
+                createdAtUtc: createdAtUtc);
 
             _refreshTokens.Add(refreshToken);
 
@@ -222,7 +227,7 @@ namespace Matrix.Identity.Domain.Entities
         public void RevokeRefreshToken(
             Guid refreshTokenId,
             RefreshTokenRevocationReason reason,
-            DateTime? revokedAtUtc = null)
+            DateTime revokedAtUtc)
         {
             RefreshToken? token = _refreshTokens.FirstOrDefault(t => t.Id == refreshTokenId);
             if (token is null)
@@ -235,10 +240,10 @@ namespace Matrix.Identity.Domain.Entities
 
         public void RevokeAllRefreshTokens(
             RefreshTokenRevocationReason reason,
-            DateTime? revokedAtUtc = null)
+            DateTime revokedAtUtc)
         {
             foreach (RefreshToken token in _refreshTokens)
-                if (token.IsActive())
+                if (token.IsActive(revokedAtUtc))
                     token.Revoke(
                         reason: reason,
                         revokedAtUtc: revokedAtUtc);
@@ -247,6 +252,7 @@ namespace Matrix.Identity.Domain.Entities
         public int RevokeActiveRefreshTokensByDevice(
             string deviceId,
             RefreshTokenRevocationReason reason,
+            DateTime utcNow,
             Guid? excludedRefreshTokenId = null,
             DateTime? revokedAtUtc = null)
         {
@@ -254,10 +260,11 @@ namespace Matrix.Identity.Domain.Entities
                 throw DomainErrorsFactory.InvalidDeviceId(nameof(deviceId));
 
             int revokedCount = 0;
+            DateTime effectiveRevokedAtUtc = revokedAtUtc ?? utcNow;
 
             foreach (RefreshToken token in _refreshTokens)
             {
-                if (!token.IsActive())
+                if (!token.IsActive(utcNow))
                     continue;
 
                 if (excludedRefreshTokenId.HasValue && token.Id == excludedRefreshTokenId.Value)
@@ -271,7 +278,7 @@ namespace Matrix.Identity.Domain.Entities
 
                 if (token.Revoke(
                         reason: reason,
-                        revokedAtUtc: revokedAtUtc))
+                        revokedAtUtc: effectiveRevokedAtUtc))
                     revokedCount++;
             }
 
@@ -281,6 +288,7 @@ namespace Matrix.Identity.Domain.Entities
         public int RevokeActiveRefreshTokensBySession(
             Guid sessionId,
             RefreshTokenRevocationReason reason,
+            DateTime utcNow,
             Guid? excludedRefreshTokenId = null,
             DateTime? revokedAtUtc = null)
         {
@@ -288,10 +296,11 @@ namespace Matrix.Identity.Domain.Entities
                 throw DomainErrorsFactory.EmptyId(nameof(sessionId));
 
             int revokedCount = 0;
+            DateTime effectiveRevokedAtUtc = revokedAtUtc ?? utcNow;
 
             foreach (RefreshToken token in _refreshTokens)
             {
-                if (!token.IsActive())
+                if (!token.IsActive(utcNow))
                     continue;
 
                 if (excludedRefreshTokenId.HasValue && token.Id == excludedRefreshTokenId.Value)
@@ -302,7 +311,7 @@ namespace Matrix.Identity.Domain.Entities
 
                 if (token.Revoke(
                         reason: reason,
-                        revokedAtUtc: revokedAtUtc))
+                        revokedAtUtc: effectiveRevokedAtUtc))
                     revokedCount++;
             }
 

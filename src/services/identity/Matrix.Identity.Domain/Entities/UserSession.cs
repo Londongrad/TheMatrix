@@ -14,19 +14,23 @@ namespace Matrix.Identity.Domain.Entities
             DeviceInfo deviceInfo,
             GeoLocation? geoLocation,
             DateTime refreshTokenExpiresAtUtc,
-            bool isPersistent)
+            bool isPersistent,
+            DateTime createdAtUtc)
         {
             if (userId == Guid.Empty)
                 throw DomainErrorsFactory.EmptyUserId(nameof(userId));
 
-            RefreshTokenRules.Validate(refreshTokenExpiresAtUtc);
+            RefreshTokenRules.Validate(
+                expiresAtUtc: refreshTokenExpiresAtUtc,
+                nowUtc: createdAtUtc);
 
             return new UserSession(
                 userId: userId,
                 deviceInfo: deviceInfo,
                 geoLocation: geoLocation,
                 refreshTokenExpiresAtUtc: refreshTokenExpiresAtUtc,
-                isPersistent: isPersistent);
+                isPersistent: isPersistent,
+                createdAtUtc: createdAtUtc);
         }
 
         #endregion [ Factory Methods ]
@@ -60,13 +64,14 @@ namespace Matrix.Identity.Domain.Entities
             DeviceInfo deviceInfo,
             GeoLocation? geoLocation,
             DateTime refreshTokenExpiresAtUtc,
-            bool isPersistent)
+            bool isPersistent,
+            DateTime createdAtUtc)
         {
             Id = Guid.NewGuid();
             UserId = userId;
             DeviceInfo = CloneDeviceInfo(deviceInfo);
             GeoLocation = CloneGeoLocation(geoLocation);
-            CreatedAtUtc = DateTime.UtcNow;
+            CreatedAtUtc = createdAtUtc;
             RefreshTokenExpiresAtUtc = refreshTokenExpiresAtUtc;
             IsPersistent = isPersistent;
         }
@@ -75,35 +80,38 @@ namespace Matrix.Identity.Domain.Entities
 
         #region [ Methods ]
 
-        public bool IsActive()
+        public bool IsActive(DateTime nowUtc)
         {
-            return !IsRevoked && DateTime.UtcNow < RefreshTokenExpiresAtUtc;
+            return !IsRevoked && nowUtc < RefreshTokenExpiresAtUtc;
         }
 
         public void Touch(
             DeviceInfo deviceInfo,
             GeoLocation? geoLocation,
             DateTime refreshTokenExpiresAtUtc,
-            bool isPersistent)
+            bool isPersistent,
+            DateTime touchedAtUtc)
         {
-            RefreshTokenRules.Validate(refreshTokenExpiresAtUtc);
+            RefreshTokenRules.Validate(
+                expiresAtUtc: refreshTokenExpiresAtUtc,
+                nowUtc: touchedAtUtc);
 
             DeviceInfo = CloneDeviceInfo(deviceInfo);
             GeoLocation = CloneGeoLocation(geoLocation);
             RefreshTokenExpiresAtUtc = refreshTokenExpiresAtUtc;
             IsPersistent = isPersistent;
-            LastUsedAtUtc = DateTime.UtcNow;
+            LastUsedAtUtc = touchedAtUtc;
         }
 
         public bool Revoke(
             RefreshTokenRevocationReason reason,
-            DateTime? revokedAtUtc = null)
+            DateTime revokedAtUtc)
         {
             if (IsRevoked)
                 return false;
 
             IsRevoked = true;
-            RevokedAtUtc = revokedAtUtc ?? DateTime.UtcNow;
+            RevokedAtUtc = revokedAtUtc;
             RevokedReason = reason;
 
             return true;

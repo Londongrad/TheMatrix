@@ -12,13 +12,14 @@ namespace Matrix.Identity.Domain.Entities
         private Role(
             string name,
             string normalizedName,
-            bool isSystem)
+            bool isSystem,
+            DateTime createdAtUtc)
         {
             Id = Guid.NewGuid();
             Name = name;
             NormalizedName = normalizedName;
             IsSystem = isSystem;
-            CreatedAtUtc = DateTime.UtcNow;
+            CreatedAtUtc = createdAtUtc;
         }
 
         public Guid Id { get; private set; }
@@ -29,7 +30,8 @@ namespace Matrix.Identity.Domain.Entities
 
         public static Role Create(
             string name,
-            bool isSystem)
+            bool isSystem,
+            DateTime createdAtUtc)
         {
             name = GuardHelper.AgainstNullOrWhiteSpace(
                 value: name,
@@ -43,7 +45,8 @@ namespace Matrix.Identity.Domain.Entities
             return new Role(
                 name: name,
                 normalizedName: normalizedName,
-                isSystem: isSystem);
+                isSystem: isSystem,
+                createdAtUtc: createdAtUtc);
         }
 
         public void MarkAsSystem()

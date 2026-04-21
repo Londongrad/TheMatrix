@@ -4,9 +4,11 @@ namespace Matrix.Identity.Domain.Rules
 {
     public static class RefreshTokenRules
     {
-        public static void Validate(DateTime expiresAtUtc)
+        public static void Validate(
+            DateTime expiresAtUtc,
+            DateTime nowUtc)
         {
-            if (expiresAtUtc <= DateTime.UtcNow)
+            if (expiresAtUtc <= nowUtc)
                 throw DomainErrorsFactory.InvalidExpireDate(nameof(expiresAtUtc));
         }
     }

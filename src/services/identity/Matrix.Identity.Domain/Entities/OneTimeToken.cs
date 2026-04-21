@@ -12,19 +12,17 @@ namespace Matrix.Identity.Domain.Entities
             OneTimeTokenPurpose purpose,
             string tokenHash,
             DateTime expiresAtUtc,
-            DateTime? createdAtUtc = null)
+            DateTime createdAtUtc)
         {
-            DateTime created = createdAtUtc ?? DateTime.UtcNow;
-
             OneTimeTokenRules.ValidateExpiration(
-                createdAtUtc: created,
+                createdAtUtc: createdAtUtc,
                 expiresAtUtc: expiresAtUtc);
 
             return new OneTimeToken(
                 userId: userId,
                 purpose: purpose,
                 tokenHash: tokenHash,
-                createdAtUtc: created,
+                createdAtUtc: createdAtUtc,
                 expiresAtUtc: expiresAtUtc);
         }
 
