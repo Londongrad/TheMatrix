@@ -62,6 +62,11 @@ export function useCursorFeed<T>(
             try {
                 setIsLoadingInitial(true);
                 setError(null);
+                setState({
+                    items: [],
+                    nextCursor: null,
+                    hasNext: false,
+                });
 
                 const result = await fetchSlice(
                     null,
