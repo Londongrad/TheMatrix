@@ -1,6 +1,7 @@
 using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
+using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Configurations.Security;
 using Matrix.BuildingBlocks.Api.Errors;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,16 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            services.AddOptions<CityOperationsDashboardOptions>()
+               .Bind(configuration.GetSection(CityOperationsDashboardOptions.SectionName))
+               .Validate(
+                    validation: options => options.PanelReadTimeoutSeconds > 0,
+                    failureMessage: $"{CityOperationsDashboardOptions.SectionName}:PanelReadTimeoutSeconds must be greater than 0.")
+               .Validate(
+                    validation: options => options.HealthProbeTimeoutSeconds > 0,
+                    failureMessage: $"{CityOperationsDashboardOptions.SectionName}:HealthProbeTimeoutSeconds must be greater than 0.")
+               .ValidateOnStart();
+
             services.AddOptions<FrontendSecurityOptions>()
                .Bind(configuration.GetSection(FrontendSecurityOptions.SectionName))
                .Validate(

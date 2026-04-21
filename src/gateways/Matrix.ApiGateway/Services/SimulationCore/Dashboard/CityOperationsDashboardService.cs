@@ -33,6 +33,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         HealthCheckService healthCheckService,
         IHttpClientFactory httpClientFactory,
         IOptions<DownstreamServicesOptions> downstreamOptions,
+        IOptions<CityOperationsDashboardOptions> dashboardOptions,
         ILogger<CityOperationsDashboardService> logger) : ICityOperationsDashboardService
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
@@ -42,6 +43,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         private readonly ITripsApiClient _tripsClient = tripsClient;
         private readonly IEnvironmentalConditionsApiClient _environmentalConditionsClient = environmentalConditionsClient;
         private readonly DownstreamServicesOptions _downstreamOptions = downstreamOptions.Value;
+        private readonly CityOperationsDashboardOptions _dashboardOptions = dashboardOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private readonly ILogger<CityOperationsDashboardService> _logger = logger;
@@ -631,74 +633,43 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                return await _environmentalConditionsClient.GetCityEnvironmentalConditionsAsync(
+            return await TryLoadDashboardReadAsync<CityEnvironmentalConditionsView>(
+                city: city,
+                serviceName: "SimulationSystems",
+                load: token => _environmentalConditionsClient.GetCityEnvironmentalConditionsAsync(
                     cityId: city.CityId,
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Failed to attach simulation systems metrics to city operations dashboard for cityId={CityId}.",
-                    city.CityId);
-
-                return null;
-            }
-            catch (DownstreamServiceException exception)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Skipped simulation systems metrics for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
-                    (int)exception.StatusCode,
-                    city.CityId);
-
-                return null;
-            }
+                    cancellationToken: token),
+                failureMessage:
+                "Failed to attach simulation systems metrics to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped simulation systems metrics for city operations dashboard because SimulationSystems returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
         }
 
         private async Task<CityPopulationDistrictPressureDto?> TryLoadPopulationDistrictPressureAsync(
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                return await _populationClient.GetCityDistrictPressureAsync(
+            return await TryLoadDashboardReadAsync<CityPopulationDistrictPressureDto>(
+                city: city,
+                serviceName: "Population",
+                load: async token => await _populationClient.GetCityDistrictPressureAsync(
                     cityId: city.CityId,
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Failed to attach population district pressure to city operations dashboard for cityId={CityId}.",
-                    city.CityId);
-
-                return null;
-            }
-            catch (DownstreamServiceException exception)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Skipped population district pressure for city operations dashboard because Population returned status {StatusCode} for cityId={CityId}.",
-                    (int)exception.StatusCode,
-                    city.CityId);
-
-                return null;
-            }
+                    cancellationToken: token),
+                failureMessage:
+                "Failed to attach population district pressure to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped population district pressure for city operations dashboard because Population returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
         }
 
         private async Task<CityDistrictHeatingConditionsView?> TryLoadDistrictHeatingConditionsAsync(
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            return await TryLoadDistrictUtilityConditionsAsync(
+            return await TryLoadDashboardReadAsync<CityDistrictHeatingConditionsView>(
                 city: city,
+                serviceName: "SimulationSystems",
                 load: token => _environmentalConditionsClient.GetCityDistrictHeatingConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
@@ -712,8 +683,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            return await TryLoadDistrictUtilityConditionsAsync(
+            return await TryLoadDashboardReadAsync<CityDistrictWaterDistributionConditionsView>(
                 city: city,
+                serviceName: "SimulationSystems",
                 load: token => _environmentalConditionsClient.GetCityDistrictWaterDistributionConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
@@ -727,8 +699,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            return await TryLoadDistrictUtilityConditionsAsync(
+            return await TryLoadDashboardReadAsync<CityDistrictPowerDistributionConditionsView>(
                 city: city,
+                serviceName: "SimulationSystems",
                 load: token => _environmentalConditionsClient.GetCityDistrictPowerDistributionConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
@@ -742,8 +715,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            return await TryLoadDistrictUtilityConditionsAsync(
+            return await TryLoadDashboardReadAsync<CityDistrictSanitationConditionsView>(
                 city: city,
+                serviceName: "SimulationSystems",
                 load: token => _environmentalConditionsClient.GetCityDistrictSanitationConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
@@ -757,8 +731,9 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            return await TryLoadDistrictUtilityConditionsAsync(
+            return await TryLoadDashboardReadAsync<CityDistrictUtilityIncidentConditionsView>(
                 city: city,
+                serviceName: "SimulationSystems",
                 load: token => _environmentalConditionsClient.GetCityDistrictUtilityIncidentConditionsAsync(
                     cityId: city.CityId,
                     cancellationToken: token),
@@ -773,37 +748,22 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                return await _tripsClient.GetActiveTripsAsync(
+            return await TryLoadDashboardReadAsync<IReadOnlyList<CityActiveTripView>>(
+                city: city,
+                serviceName: "SimulationCore",
+                load: async token => await _tripsClient.GetActiveTripsAsync(
                     cityId: city.CityId,
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Failed to attach active trips to city operations dashboard for cityId={CityId}.",
-                    city.CityId);
-
-                return null;
-            }
-            catch (DownstreamServiceException exception)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Skipped active trips for city operations dashboard because SimulationCore returned status {StatusCode} for cityId={CityId}.",
-                    (int)exception.StatusCode,
-                    city.CityId);
-
-                return null;
-            }
+                    cancellationToken: token),
+                failureMessage:
+                "Failed to attach active trips to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped active trips for city operations dashboard because SimulationCore returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
         }
 
-        private async Task<T?> TryLoadDistrictUtilityConditionsAsync<T>(
+        private async Task<T?> TryLoadDashboardReadAsync<T>(
             CityListItemView city,
+            string serviceName,
             Func<CancellationToken, Task<T?>> load,
             string failureMessage,
             string skippedMessage,
@@ -812,9 +772,27 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         {
             try
             {
-                return await load(cancellationToken);
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(_dashboardOptions.PanelReadTimeoutSeconds));
+                return await load(timeoutCts.Token);
             }
-            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (OperationCanceledException exception)
+            {
+                _logger.LogWarning(
+                    exception: exception,
+                    message:
+                    "Timed out attaching {ServiceName} dashboard panel data for cityId={CityId} after {TimeoutSeconds}s.",
+                    serviceName,
+                    city.CityId,
+                    _dashboardOptions.PanelReadTimeoutSeconds);
+
+                return null;
+            }
+            catch (HttpRequestException exception)
             {
                 _logger.LogWarning(
                     exception: exception,
@@ -839,66 +817,34 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                return await _economyClient.GetCityOperationalBudgetPressureAsync(
+            return await TryLoadDashboardReadAsync<CityOperationalBudgetPressureView>(
+                city: city,
+                serviceName: "Economy",
+                load: token => _economyClient.GetCityOperationalBudgetPressureAsync(
                     cityId: city.CityId,
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Failed to attach economy operational pressure to city operations dashboard for cityId={CityId}.",
-                    city.CityId);
-
-                return null;
-            }
-            catch (DownstreamServiceException exception)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Skipped economy operational pressure for city operations dashboard because Economy returned status {StatusCode} for cityId={CityId}.",
-                    (int)exception.StatusCode,
-                    city.CityId);
-
-                return null;
-            }
+                    cancellationToken: token),
+                failureMessage:
+                "Failed to attach economy operational pressure to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped economy operational pressure for city operations dashboard because Economy returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
         }
 
         private async Task<CityStockpilesView?> TryLoadStockpilesAsync(
             CityListItemView city,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                return await _stockpilesClient.GetCityStockpilesAsync(
+            return await TryLoadDashboardReadAsync<CityStockpilesView>(
+                city: city,
+                serviceName: "Resources",
+                load: token => _stockpilesClient.GetCityStockpilesAsync(
                     cityId: city.CityId,
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Failed to attach resource stockpiles to city operations dashboard for cityId={CityId}.",
-                    city.CityId);
-
-                return null;
-            }
-            catch (DownstreamServiceException exception)
-            {
-                _logger.LogWarning(
-                    exception: exception,
-                    message:
-                    "Skipped resource stockpiles for city operations dashboard because Resources returned status {StatusCode} for cityId={CityId}.",
-                    (int)exception.StatusCode,
-                    city.CityId);
-
-                return null;
-            }
+                    cancellationToken: token),
+                failureMessage:
+                "Failed to attach resource stockpiles to city operations dashboard for cityId={CityId}.",
+                skippedMessage:
+                "Skipped resource stockpiles for city operations dashboard because Resources returned status {StatusCode} for cityId={CityId}.",
+                cancellationToken: cancellationToken);
         }
 
         private static DashboardEnvironmentalAlertView? BuildEnvironmentalAlert(CityOperationalSnapshot snapshot)
@@ -1290,8 +1236,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
             try
             {
-                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(_dashboardOptions.HealthProbeTimeoutSeconds));
 
                 HttpClient client = _httpClientFactory.CreateClient();
                 client.BaseAddress = new Uri(
