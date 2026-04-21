@@ -19,7 +19,6 @@ using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.T
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
 using Microsoft.Extensions.Options;
-using Polly;
 
 namespace Matrix.ApiGateway.Configurations.DependencyInjection
 {
@@ -50,29 +49,13 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     validation: o => IsAbsoluteUri(o.Identity),
                     failureMessage: $"{DownstreamServicesOptions.SectionName}:Identity must be an absolute URI.")
                .ValidateOnStart();
-
-            services.AddOptions<DownstreamReadResilienceOptions>()
-               .Bind(configuration.GetSection(DownstreamReadResilienceOptions.SectionName))
-               .Validate(
-                    validation: o => o.MaxRetryAttempts >= 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:MaxRetryAttempts must be greater than or equal to 0.")
-               .Validate(
-                    validation: o => o.BaseRetryDelayMilliseconds > 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:BaseRetryDelayMilliseconds must be greater than 0.")
-               .Validate(
-                    validation: o => o.CircuitBreakerConsecutiveFailureThreshold > 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakerConsecutiveFailureThreshold must be greater than 0.")
-               .Validate(
-                    validation: o => o.CircuitBreakDurationSeconds > 0,
-                    failureMessage: $"{DownstreamReadResilienceOptions.SectionName}:CircuitBreakDurationSeconds must be greater than 0.")
-               .ValidateOnStart();
+            services.AddDownstreamReadResilience(configuration);
 
             services.AddHttpContextAccessor();
             services.AddTransient<InternalIdentityApiKeyAuthenticationHandler>();
             services.AddTransient<TrustedIdentityClientContextHandler>();
             services.AddTransient<ForwardAuthorizationHeaderHandler>();
             services.AddTransient<InternalJwtExchangeHandler>();
-            services.AddSingleton<DownstreamReadResiliencePolicyProvider>();
 
             services.AddSimulationCoreClients();
             services.AddSimulationSystemsClients();
@@ -295,23 +278,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                 uriString: value,
                 uriKind: UriKind.Absolute,
                 result: out _);
-        }
-
-        private static IHttpClientBuilder AddDownstreamReadResilience(
-            this IHttpClientBuilder builder,
-            string serviceName)
-        {
-            return builder
-               .AddPolicyHandler((sp, request) =>
-               {
-                   DownstreamReadResiliencePolicyProvider provider = sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
-                   return provider.GetRetryPolicy(serviceName, request);
-               })
-               .AddPolicyHandler((sp, request) =>
-               {
-                   DownstreamReadResiliencePolicyProvider provider = sp.GetRequiredService<DownstreamReadResiliencePolicyProvider>();
-                   return provider.GetCircuitBreakerPolicy(serviceName, request);
-               });
         }
     }
 }

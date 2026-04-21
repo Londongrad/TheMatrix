@@ -6,6 +6,7 @@ using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
 using Matrix.ApiGateway.Consumers;
+using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Application.Security.InternalApiKey;
@@ -22,6 +23,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             IConfiguration configuration)
         {
             services.AddPermissionsVersionOptions(configuration);
+            services.AddDownstreamReadResilience(configuration);
             services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
             services.AddClassicCitySetupSessionOptions(configuration);
@@ -181,6 +183,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                     uriKind: UriKind.Absolute);
                 client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
             })
+               .AddDownstreamReadResilience(serviceName: DownstreamServiceNames.Identity)
                .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>();
 
             return services;
