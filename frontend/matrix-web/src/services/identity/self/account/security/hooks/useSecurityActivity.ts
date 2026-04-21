@@ -1,6 +1,6 @@
 import {useState} from "react";
-import {fetchSecurityActivityPage} from "@services/identity/api/self/account/accountApi";
-import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
+import {fetchSecurityActivityFeed} from "@services/identity/api/self/account/accountApi";
+import {useCursorFeed} from "@shared/lib/paging/useCursorFeed";
 
 const DEFAULT_PAGE_SIZE = 12;
 
@@ -12,29 +12,25 @@ export function useSecurityActivity(
 ) {
     const enabled = options?.enabled ?? true;
     const [refreshVersion, setRefreshVersion] = useState(0);
-    const query = usePagedQuery(
-        fetchSecurityActivityPage,
-        DEFAULT_PAGE_SIZE,
+    const feed = useCursorFeed(
+        (cursor, pageSize, signal) => fetchSecurityActivityFeed(cursor, pageSize, signal),
         [token, refreshVersion],
         {
             enabled: enabled && Boolean(token),
-            initialPage: 1,
+            pageSize: DEFAULT_PAGE_SIZE,
             errorMessage: "Failed to load security activity.",
         },
     );
 
     return {
-        items: query.data?.items ?? [],
-        totalCount: query.data?.totalCount ?? 0,
-        totalPages: query.data?.totalPages ?? 1,
-        pageNumber: query.data?.pageNumber ?? query.pageNumber,
-        pageSize: query.data?.pageSize ?? DEFAULT_PAGE_SIZE,
-        hasLoaded: query.data !== null,
-        isLoading: query.isLoading,
-        error: query.error,
+        items: feed.items,
+        hasNext: feed.hasNext,
+        isLoadingInitial: feed.isLoadingInitial,
+        isLoadingMore: feed.isLoadingMore,
+        error: feed.error,
         reload: () => {
             setRefreshVersion((value) => value + 1);
         },
-        setPageNumber: query.setPageNumber,
+        loadMore: feed.loadMore,
     };
 }

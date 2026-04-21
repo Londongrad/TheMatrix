@@ -1,8 +1,6 @@
 import {useState} from "react";
 import type {SecurityActivityItem} from "@services/identity/api/self/account/accountTypes";
 import {formatIpAddress} from "@services/identity/self/shared/utils/formatIpAddress";
-import {getPageRange} from "@shared/lib/paging/pageRange";
-import Pagination from "@shared/ui/components/Pagination/Pagination";
 import {useSecurityActivity} from "../hooks/useSecurityActivity";
 import "@services/identity/self/account/security/styles/security-card.css";
 
@@ -253,38 +251,15 @@ export default function SecurityActivityCard({token}: Props) {
     const [isActivityOpen, setIsActivityOpen] = useState(false);
     const {
         items,
-        totalCount,
-        totalPages,
-        pageNumber,
-        pageSize,
-        isLoading,
+        hasNext,
+        isLoadingInitial,
+        isLoadingMore,
         error,
-        hasLoaded,
         reload,
-        setPageNumber,
+        loadMore,
     } = useSecurityActivity(token, {
         enabled: isActivityOpen,
     });
-    const activityRange = getPageRange(pageNumber, pageSize, totalCount);
-    const shouldShowPagination = totalPages > 1;
-
-    const renderActivityPagination = (position: "top" | "bottom") => {
-        if (!shouldShowPagination) {
-            return null;
-        }
-
-        return (
-            <div
-                className={`settings-security-activity__pagination settings-security-activity__pagination--${position}`}
-            >
-                <Pagination
-                    page={pageNumber}
-                    totalPages={totalPages}
-                    onChange={setPageNumber}
-                />
-            </div>
-        );
-    };
 
     return (
         <section className="settings-card settings-card--security-activity">
@@ -303,9 +278,9 @@ export default function SecurityActivityCard({token}: Props) {
                             type="button"
                             className="settings-button settings-button--secondary"
                             onClick={() => void reload()}
-                            disabled={!token || isLoading}
+                            disabled={!token || isLoadingInitial || isLoadingMore}
                         >
-                            {isLoading ? "Loading..." : "Refresh"}
+                            {isLoadingInitial ? "Loading..." : "Refresh"}
                         </button>
                     )}
 
@@ -327,20 +302,13 @@ export default function SecurityActivityCard({token}: Props) {
             ) : !isActivityOpen ? (
                 <div className="settings-security-activity__summary">
                     <p className="settings-muted">
-                        Recent security activity stays collapsed until you open it. Entries are fetched page by page
-                        only when you need them.
+                        Recent security activity stays collapsed until you open it. Entries are loaded from newest to
+                        oldest only when you ask for them.
                     </p>
-                    {hasLoaded && items.length > 0 && (
-                        <div className="settings-security-activity__meta">
-                            <span className="settings-security-activity__chip">
-                                Last loaded: {items.length} recent events
-                            </span>
-                        </div>
-                    )}
                 </div>
             ) : error ? (
                 <div className="settings-alert settings-alert--error">{error}</div>
-            ) : isLoading ? (
+            ) : isLoadingInitial ? (
                 <div className="settings-security-activity__skeleton">
                     <div className="settings-security-activity__skeletonLine"/>
                     <div className="settings-security-activity__skeletonLine"/>
@@ -355,11 +323,14 @@ export default function SecurityActivityCard({token}: Props) {
                     <div className="settings-security-activity__controls">
                         <div className="settings-security-activity__meta">
                             <span className="settings-security-activity__chip">
-                                Showing {activityRange.start}-{activityRange.end} of {totalCount}
+                                Loaded {items.length} recent events
                             </span>
+                            {hasNext ? (
+                                <span className="settings-security-activity__chip">
+                                    Older events are available
+                                </span>
+                            ) : null}
                         </div>
-
-                        {renderActivityPagination("top")}
                     </div>
 
                     <div className="settings-security-activity__list">
@@ -370,7 +341,7 @@ export default function SecurityActivityCard({token}: Props) {
 
                             return (
                                 <article
-                                    key={`${item.eventType}-${item.occurredAtUtc}-${index}`}
+                                    key={item.eventId || `${item.eventType}-${item.occurredAtUtc}-${index}`}
                                     className={`settings-security-activity__item settings-security-activity__item--${presentation.tone}`}
                                 >
                                     <div className="settings-security-activity__itemTop">
@@ -421,7 +392,18 @@ export default function SecurityActivityCard({token}: Props) {
                         })}
                     </div>
 
-                    {renderActivityPagination("bottom")}
+                    {hasNext ? (
+                        <div className="settings-security-activity__loadMore">
+                            <button
+                                type="button"
+                                className="settings-button settings-button--secondary"
+                                onClick={() => void loadMore()}
+                                disabled={isLoadingInitial || isLoadingMore}
+                            >
+                                {isLoadingMore ? "Loading more..." : "Load older activity"}
+                            </button>
+                        </div>
+                    ) : null}
                 </>
             )}
         </section>

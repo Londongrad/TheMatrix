@@ -148,18 +148,15 @@
     flex-wrap: wrap;
 }
 
-.settings-security-activity__pagination {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.settings-security-activity__pagination--bottom {
-    margin-top: 0.85rem;
-}
-
 .settings-security-activity__list {
     display: grid;
     gap: 0.75rem;
+}
+
+.settings-security-activity__loadMore {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.9rem;
 }
 
 .settings-security-activity__item {
@@ -298,8 +295,7 @@ html[data-theme="matrix"] .settings-security-activity__skeletonLine::after {
 }
 
 @media (max-width: 760px) {
-    .settings-security-activity__controls,
-    .settings-security-activity__pagination {
+    .settings-security-activity__controls {
         align-items: stretch;
     }
 

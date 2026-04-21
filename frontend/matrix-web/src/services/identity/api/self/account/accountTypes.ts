@@ -54,6 +54,7 @@ export interface ProfileResponse {
 }
 
 export interface SecurityActivityItem {
+    eventId: string;
     eventType: string;
     isSuccessful: boolean;
     occurredAtUtc: string;

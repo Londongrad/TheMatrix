@@ -1,7 +1,7 @@
 // src/services/identity/api/account/accountApi.ts
 import {API_ACCOUNT_URL} from "@shared/api/config";
 import {apiRequest} from "@shared/api/http";
-import type {PagedResult} from "@shared/lib/paging/pagingTypes";
+import type {CursorPagedResult} from "@shared/lib/paging/cursorPagingTypes";
 import type {
     ChangeAvatarResponse,
     ChangeDisplayNameRequest,
@@ -22,14 +22,24 @@ export async function fetchProfile(): Promise<ProfileResponse> {
     });
 }
 
-export async function fetchSecurityActivityPage(
-    pageNumber = 1,
+export async function fetchSecurityActivityFeed(
+    cursor: string | null = null,
     pageSize = 12,
-): Promise<PagedResult<SecurityActivityItem>> {
-    return await apiRequest<PagedResult<SecurityActivityItem>>(
-        `${API_ACCOUNT_URL}/security-activity?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+    signal?: AbortSignal,
+): Promise<CursorPagedResult<SecurityActivityItem>> {
+    const params = new URLSearchParams({
+        pageSize: pageSize.toString(),
+    });
+
+    if (cursor) {
+        params.set("cursor", cursor);
+    }
+
+    return await apiRequest<CursorPagedResult<SecurityActivityItem>>(
+        `${API_ACCOUNT_URL}/security-activity?${params.toString()}`,
         {
             method: "GET",
+            signal,
         },
     );
 }
