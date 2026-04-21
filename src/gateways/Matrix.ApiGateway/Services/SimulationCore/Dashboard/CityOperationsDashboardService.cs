@@ -97,7 +97,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             DashboardBudgetPressureView[] budgetAlerts = BuildBudgetPressureAlerts(operationalSnapshots);
             DashboardTickFreshnessView[] tickFreshnessAlerts = BuildTickFreshnessAlerts(operationalSnapshots);
             DashboardPhaseProgressView[] phaseProgressAlerts = BuildPhaseProgressAlerts(operationalSnapshots);
-            DateTimeOffset now = _timeProvider.GetLocalNow();
+            DateTimeOffset generatedAtUtc = _timeProvider.GetUtcNow();
+            DateTimeOffset localNow = _timeProvider.GetLocalNow();
 
             CityListItemView[] readyCities = allCities
                .Where(IsReady)
@@ -126,7 +127,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                .ToArray();
 
             return new CityOperationsDashboardView(
-                GeneratedAtUtc: now,
+                GeneratedAtUtc: generatedAtUtc,
                 TrackedHosts: BuildSnapshotMetric(
                     label: "Tracked hosts",
                     description:
@@ -222,25 +223,25 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     label: "New cities",
                     description: "Fresh hosts entering the system through the setup and provisioning pipeline.",
                     selectMoment: city => city.CreatedAtUtc,
-                    now: now,
+                    now: localNow,
                     source: allCities),
                 ArchivedCities: BuildPeriodComparisonRow(
                     label: "Archived cities",
                     description: "Hosts moved out of active monitoring and kept only as records.",
                     selectMoment: city => city.ArchivedAtUtc,
-                    now: now,
+                    now: localNow,
                     source: allCities),
                 FailedBootstraps: BuildPeriodComparisonRow(
                     label: "Failed bootstraps",
                     description: "Population bootstrap failures that interrupted a city before it became ready.",
                     selectMoment: city => city.PopulationBootstrapFailedAtUtc,
-                    now: now,
+                    now: localNow,
                     source: allCities),
                 ReadyHandOffs: BuildPeriodComparisonRow(
                     label: "Ready handoffs",
                     description: "Cities that completed provisioning and became available for monitoring.",
                     selectMoment: city => city.PopulationBootstrapCompletedAtUtc,
-                    now: now,
+                    now: localNow,
                     source: allCities),
                 Services: services,
                 Events: BuildRecentEvents(allCities),
