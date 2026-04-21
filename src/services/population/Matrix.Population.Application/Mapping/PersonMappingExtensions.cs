@@ -176,12 +176,19 @@ namespace Matrix.Population.Application.Mapping
                     EstimatedTravelTimeMinutes: routeAccess.EstimatedTravelTimeMinutes);
         }
 
+        public static PersonDto ToDto(
+            this Person person,
+            TimeProvider timeProvider)
+        {
+            return person.ToDto(DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
+        }
+
         /// <summary>
-        ///     Упрощённый вариант: считает возраст на основе DateTime.UtcNow.
+        ///     Упрощённый вариант: считает возраст на основе системного времени.
         /// </summary>
         public static PersonDto ToDto(this Person person)
         {
-            return person.ToDto(DateOnly.FromDateTime(DateTime.UtcNow));
+            return person.ToDto(TimeProvider.System);
         }
 
         /// <summary>
@@ -200,12 +207,19 @@ namespace Matrix.Population.Application.Mapping
                .ToArray();
         }
 
+        public static IReadOnlyCollection<PersonDto> ToDtoCollection(
+            this IEnumerable<Person> persons,
+            TimeProvider timeProvider)
+        {
+            return persons.ToDtoCollection(DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
+        }
+
         /// <summary>
-        ///     Маппинг коллекции Person в коллекцию PersonDto, используя DateTime.UtcNow.
+        ///     Маппинг коллекции Person в коллекцию PersonDto, используя системное время.
         /// </summary>
         public static IReadOnlyCollection<PersonDto> ToDtoCollection(this IEnumerable<Person> persons)
         {
-            return persons.ToDtoCollection(DateOnly.FromDateTime(DateTime.UtcNow));
+            return persons.ToDtoCollection(TimeProvider.System);
         }
     }
 }

@@ -17,6 +17,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
         CityPopulationParticipationPolicy participationPolicy,
         CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
+        TimeProvider timeProvider,
         ICityPopulationCommuteRoutingService commuteRoutingService)
         : ICityPopulationSummaryProjectionService
     {
@@ -24,6 +25,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
         private readonly CityPopulationHealthcarePressurePolicy _healthcarePressurePolicy = healthcarePressurePolicy;
+        private readonly TimeProvider _timeProvider = timeProvider;
         private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
 
         public Task UpdateAsync(
@@ -167,6 +169,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 districtImpactPolicy: _districtImpactPolicy,
                 participationPolicy: _participationPolicy,
                 healthcarePressurePolicy: _healthcarePressurePolicy,
+                timeProvider: _timeProvider,
                 commuteRoutingService: _commuteRoutingService,
                 cancellationToken: cancellationToken);
 
@@ -192,10 +195,11 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityPopulationDistrictImpactPolicy districtImpactPolicy,
             CityPopulationParticipationPolicy participationPolicy,
             CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
+            TimeProvider timeProvider,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             CancellationToken cancellationToken)
         {
-            DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
             var housingByHouseholdId = householdPlacements
                .ToDictionary(
                     keySelector: x => x.HouseholdId,
@@ -552,7 +556,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
 
             return deletedAtUtc.HasValue
                 ? DateOnly.FromDateTime(deletedAtUtc.Value.UtcDateTime)
-                : DateOnly.FromDateTime(DateTime.UtcNow);
+                : DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
         }
 
         private sealed record CityPopulationSummarySnapshotValues(

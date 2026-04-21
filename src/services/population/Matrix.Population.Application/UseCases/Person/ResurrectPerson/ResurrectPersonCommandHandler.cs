@@ -19,6 +19,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         IPersonWriteRepository personWriteRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<ResurrectPersonCommand, PersonDto>
     {
@@ -47,7 +48,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
                 DateOnly currentDate = (await cityPopulationProgressionStateRepository.GetByCityAsync(
                                            cityId: cityId.Value,
                                            cancellationToken: cancellationToken))?.LastProcessedDate ??
-                                       DateOnly.FromDateTime(DateTime.UtcNow);
+                                       DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
 
                 await cityPopulationSummaryProjectionService.RebuildAsync(
                     cityId: cityId.Value,
@@ -65,7 +66,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return person.ToDto();
+            return person.ToDto(timeProvider);
         }
     }
 }

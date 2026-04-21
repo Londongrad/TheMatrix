@@ -22,6 +22,7 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         MarriageDomainService marriageDomainService,
         IPersonWriteRepository personWriteRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<KillPersonCommand, PersonDto>
     {
@@ -35,7 +36,9 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                     cancellationToken: cancellationToken) ??
                 throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
-            person.Die(DateOnly.FromDateTime(DateTime.UtcNow));
+            DateOnly today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+
+            person.Die(today);
 
             CityId? cityId = await cityPopulationPersonReadRepository.FindCityIdByPersonIdAsync(
                 personId: person.Id,
@@ -44,8 +47,8 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                 ? (await cityPopulationProgressionStateRepository.GetByCityAsync(
                       cityId: cityId.Value,
                       cancellationToken: cancellationToken))?.LastProcessedDate ??
-                  DateOnly.FromDateTime(DateTime.UtcNow)
-                : DateOnly.FromDateTime(DateTime.UtcNow);
+                  today
+                : today;
 
             if (cityId is not null && person.SpouseId is not null)
             {
@@ -104,7 +107,7 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return person.ToDto();
+            return person.ToDto(timeProvider);
         }
     }
 }

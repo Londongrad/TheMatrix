@@ -6,10 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.ClassicCity
 {
-    public sealed class CityPopulationSummaryReadRepository(PopulationDbContext dbContext)
+    public sealed class CityPopulationSummaryReadRepository(
+        PopulationDbContext dbContext,
+        TimeProvider timeProvider)
         : ICityPopulationSummaryReadRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task<CityPopulationSummaryReadModel?> GetByCityIdAsync(
             CityId cityId,
@@ -81,7 +84,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                                        weatherExposure: weatherExposure,
                                        weatherImpact: weatherImpact,
                                        archiveState: archiveState,
-                                       deletionState: deletionState);
+                                       deletionState: deletionState,
+                                       timeProvider: _timeProvider);
 
             return new CityPopulationSummaryReadModel(
                 CityId: cityId.Value,
@@ -140,7 +144,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
             CityPopulationWeatherExposureState? weatherExposure,
             CityPopulationWeatherImpactState? weatherImpact,
             CityPopulationArchiveState? archiveState,
-            CityPopulationDeletionState? deletionState)
+            CityPopulationDeletionState? deletionState,
+            TimeProvider timeProvider)
         {
             DateTimeOffset? fallbackTimestamp = weatherExposure?.LastExposureProcessedAtSimTimeUtc ??
                                                 weatherImpact?.LastAppliedAtSimTimeUtc ??
@@ -149,7 +154,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             return fallbackTimestamp.HasValue
                 ? DateOnly.FromDateTime(fallbackTimestamp.Value.UtcDateTime)
-                : DateOnly.FromDateTime(DateTime.UtcNow);
+                : DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
         }
     }
 }

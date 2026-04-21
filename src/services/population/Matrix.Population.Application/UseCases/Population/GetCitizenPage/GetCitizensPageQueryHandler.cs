@@ -7,7 +7,9 @@ using DomainPerson = Matrix.Population.Domain.Entities.Person;
 
 namespace Matrix.Population.Application.UseCases.Population.GetCitizenPage
 {
-    public sealed class GetCitizensPageQueryHandler(IPersonReadRepository personReadRepository)
+    public sealed class GetCitizensPageQueryHandler(
+        IPersonReadRepository personReadRepository,
+        TimeProvider timeProvider)
         : IRequestHandler<GetCitizensPageQuery, PagedResult<PersonDto>>
     {
         public async Task<PagedResult<PersonDto>> Handle(
@@ -19,7 +21,7 @@ namespace Matrix.Population.Application.UseCases.Population.GetCitizenPage
                     pagination: request.Pagination,
                     cancellationToken: cancellationToken);
 
-            IReadOnlyCollection<PersonDto> dtos = persons.ToDtoCollection();
+            IReadOnlyCollection<PersonDto> dtos = persons.ToDtoCollection(timeProvider);
 
             return new PagedResult<PersonDto>(
                 items: dtos,
