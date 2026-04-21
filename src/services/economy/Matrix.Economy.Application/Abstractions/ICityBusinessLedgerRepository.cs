@@ -17,12 +17,6 @@ namespace Matrix.Economy.Application.Abstractions
             string referenceCode,
             CancellationToken cancellationToken = default);
 
-        Task<PagedResult<CityBusinessLedgerEntry>> GetPageByBusinessAsync(
-            Guid businessId,
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancellationToken = default);
-
         Task<CursorPagedResult<CityBusinessLedgerEntry>> GetSliceByBusinessAsync(
             Guid businessId,
             LedgerCursor? cursor,

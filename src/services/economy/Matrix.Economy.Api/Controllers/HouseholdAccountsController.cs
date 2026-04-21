@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.HouseholdAccounts.Requests;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts;
-using Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedger;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccountLedgerFeed;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.GetCityHouseholdAccounts;
 using Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHouseholdAccount;
@@ -45,23 +44,6 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
-                cancellationToken: cancellationToken);
-
-            return Ok(result);
-        }
-
-        [HttpGet("{householdAccountId:guid}/ledger")]
-        public async Task<IActionResult> GetHouseholdAccountLedger(
-            [FromRoute] Guid householdAccountId,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 50,
-            CancellationToken cancellationToken = default)
-        {
-            PagedResult<CityHouseholdAccountLedgerEntryDto> result = await _sender.Send(
-                request: new GetCityHouseholdAccountLedgerQuery(
-                    HouseholdAccountId: householdAccountId,
-                    PageNumber: pageNumber,
-                    PageSize: pageSize),
                 cancellationToken: cancellationToken);
 
             return Ok(result);

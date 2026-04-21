@@ -7,7 +7,6 @@ using Matrix.Economy.Application.UseCases.BudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.GetCityBudgetAllocations;
 using Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAllocation;
 using Matrix.Economy.Application.UseCases.BudgetLedger;
-using Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetLedger.GetCityBudgetLedgerFeed;
 using Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudgetToBusiness;
 using Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetExpense;
@@ -154,23 +153,6 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: result.UnitCode,
                     UnitDisplayName: result.UnitDisplayName,
                     UnitSymbol: result.UnitSymbol));
-        }
-
-        [HttpGet("cities/{cityId:guid}/ledger")]
-        public async Task<IActionResult> GetCityLedger(
-            [FromRoute] Guid cityId,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 50,
-            CancellationToken cancellationToken = default)
-        {
-            PagedResult<BudgetLedgerEntryDto> result = await _sender.Send(
-                request: new GetCityBudgetLedgerQuery(
-                    CityId: cityId,
-                    PageNumber: pageNumber,
-                    PageSize: pageSize),
-                cancellationToken: cancellationToken);
-
-            return Ok(result);
         }
 
         [HttpGet("cities/{cityId:guid}/ledger-feed")]

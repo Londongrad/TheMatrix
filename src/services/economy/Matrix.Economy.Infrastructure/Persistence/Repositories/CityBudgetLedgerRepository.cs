@@ -35,39 +35,6 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                     cancellationToken: cancellationToken);
         }
 
-        public async Task<PagedResult<CityBudgetLedgerEntry>> GetPageByCityAsync(
-            Guid cityId,
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancellationToken = default)
-        {
-            int safePageNumber = pageNumber > 0
-                ? pageNumber
-                : 1;
-            int safePageSize = pageSize > 0
-                ? pageSize
-                : 50;
-
-            IQueryable<CityBudgetLedgerEntry> query = _dbContext.CityBudgetLedgerEntries
-               .AsNoTracking()
-               .Where(x => x.CityId == cityId)
-               .OrderByDescending(x => x.OccurredAtUtc)
-               .ThenByDescending(x => x.Id);
-
-            int totalCount = await query.CountAsync(cancellationToken);
-
-            List<CityBudgetLedgerEntry> items = await query
-               .Skip((safePageNumber - 1) * safePageSize)
-               .Take(safePageSize)
-               .ToListAsync(cancellationToken);
-
-            return new PagedResult<CityBudgetLedgerEntry>(
-                items: items,
-                totalCount: totalCount,
-                pageNumber: safePageNumber,
-                pageSize: safePageSize);
-        }
-
         public async Task<CursorPagedResult<CityBudgetLedgerEntry>> GetSliceByCityAsync(
             Guid cityId,
             LedgerCursor? cursor,

@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Contracts.Business.Requests;
 using Matrix.Economy.Application.UseCases.Businesses;
 using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinesses;
-using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedger;
 using Matrix.Economy.Application.UseCases.Businesses.GetCityBusinessLedgerFeed;
 using Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness;
 using Matrix.Economy.Domain.Enums;
@@ -56,23 +55,6 @@ namespace Matrix.Economy.Api.Controllers
                     UnitCode: request.UnitCode,
                     UnitDisplayName: request.UnitDisplayName,
                     UnitSymbol: request.UnitSymbol),
-                cancellationToken: cancellationToken);
-
-            return Ok(result);
-        }
-
-        [HttpGet("{businessId:guid}/ledger")]
-        public async Task<IActionResult> GetBusinessLedger(
-            [FromRoute] Guid businessId,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 50,
-            CancellationToken cancellationToken = default)
-        {
-            PagedResult<CityBusinessLedgerEntryDto> result = await _sender.Send(
-                request: new GetCityBusinessLedgerQuery(
-                    BusinessId: businessId,
-                    PageNumber: pageNumber,
-                    PageSize: pageSize),
                 cancellationToken: cancellationToken);
 
             return Ok(result);

@@ -33,38 +33,6 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<PagedResult<CityBusinessLedgerEntry>> GetPageByBusinessAsync(
-            Guid businessId,
-            int pageNumber,
-            int pageSize,
-            CancellationToken cancellationToken = default)
-        {
-            int normalizedPageNumber = pageNumber <= 0
-                ? 1
-                : pageNumber;
-            int normalizedPageSize = pageSize <= 0
-                ? 50
-                : pageSize;
-
-            IQueryable<CityBusinessLedgerEntry> query = _dbContext.CityBusinessLedgerEntries
-               .AsNoTracking()
-               .Where(x => x.BusinessId == businessId)
-               .OrderByDescending(x => x.OccurredAtUtc)
-               .ThenByDescending(x => x.Id);
-
-            int totalCount = await query.CountAsync(cancellationToken);
-            CityBusinessLedgerEntry[] items = await query
-               .Skip((normalizedPageNumber - 1) * normalizedPageSize)
-               .Take(normalizedPageSize)
-               .ToArrayAsync(cancellationToken);
-
-            return new PagedResult<CityBusinessLedgerEntry>(
-                items: items,
-                totalCount: totalCount,
-                pageNumber: normalizedPageNumber,
-                pageSize: normalizedPageSize);
-        }
-
         public async Task<CursorPagedResult<CityBusinessLedgerEntry>> GetSliceByBusinessAsync(
             Guid businessId,
             LedgerCursor? cursor,
