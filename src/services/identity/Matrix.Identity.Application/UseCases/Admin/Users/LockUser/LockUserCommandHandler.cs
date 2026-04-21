@@ -48,7 +48,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Users.LockUser
                         cancellationToken: token);
 
                     foreach (UserSession session in sessions)
-                        if (session.IsActive())
+                        if (session.IsActive(utcNow))
                             session.Revoke(
                                 reason: RefreshTokenRevocationReason.UserLocked,
                                 revokedAtUtc: utcNow);

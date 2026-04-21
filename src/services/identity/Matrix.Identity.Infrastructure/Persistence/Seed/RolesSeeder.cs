@@ -1,4 +1,5 @@
 using Matrix.Identity.Contracts.Authorization.Permissions;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -7,9 +8,12 @@ using PopulationPermissionKeys = Matrix.Population.Contracts.Authorization.Permi
 
 namespace Matrix.Identity.Infrastructure.Persistence.Seed
 {
-    public sealed class RolesSeeder(IdentityDbContext db)
+    public sealed class RolesSeeder(
+        IdentityDbContext db,
+        IClock clock)
     {
         private readonly IdentityDbContext _db = db;
+        private readonly IClock _clock = clock;
 
         public async Task SeedSystemRolesAsync(CancellationToken cancellationToken)
         {
@@ -84,7 +88,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 {
                     role = Role.Create(
                         name: roleName,
-                        isSystem: true);
+                        isSystem: true,
+                        createdAtUtc: _clock.UtcNow);
 
                     _db.Roles.Add(role);
                     rolesByName.Add(

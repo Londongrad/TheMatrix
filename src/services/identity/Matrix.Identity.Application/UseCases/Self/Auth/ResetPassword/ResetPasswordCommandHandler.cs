@@ -88,7 +88,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
 
             foreach (UserSession session in sessions)
             {
-                if (!session.IsActive())
+                if (!session.IsActive(nowUtc))
                     continue;
 
                 session.Revoke(

@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
@@ -13,6 +14,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
         IUnitOfWork unitOfWork,
+        IClock clock,
         ICurrentUserContext currentUser,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<RevokeMySessionCommand>
@@ -35,10 +37,15 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession
             if (session is null || session.UserId != userId)
                 return;
 
-            session.Revoke(RefreshTokenRevocationReason.UserRevoked);
+            DateTime utcNow = clock.UtcNow;
+
+            session.Revoke(
+                reason: RefreshTokenRevocationReason.UserRevoked,
+                revokedAtUtc: utcNow);
             user.RevokeActiveRefreshTokensBySession(
                 sessionId: request.SessionId,
-                reason: RefreshTokenRevocationReason.UserRevoked);
+                reason: RefreshTokenRevocationReason.UserRevoked,
+                utcNow: utcNow);
 
             await securityAuditService.WriteAsync(
                 entry: new SecurityAuditEntry(

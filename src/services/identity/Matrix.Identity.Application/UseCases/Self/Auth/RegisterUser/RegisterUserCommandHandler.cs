@@ -15,6 +15,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
         IUserRolesRepository userRolesRepository,
         IRoleReadRepository roleReadRepository,
         IPasswordHasher passwordHasher,
+        IClock clock,
         IUnitOfWork unitOfWork)
         : IRequestHandler<RegisterUserCommand, RegisterUserResult>
     {
@@ -60,7 +61,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
                     var user = User.CreateNew(
                         email: email,
                         username: username,
-                        passwordHash: passwordHash);
+                        passwordHash: passwordHash,
+                        createdAtUtc: clock.UtcNow);
 
                     await userRepository.AddAsync(
                         user: user,

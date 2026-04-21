@@ -75,7 +75,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount
                 cancellationToken: cancellationToken);
 
             foreach (UserSession session in sessions)
-                if (session.IsActive())
+                if (session.IsActive(nowUtc))
                     session.Revoke(
                         reason: RefreshTokenRevocationReason.AccountDeleted,
                         revokedAtUtc: nowUtc);

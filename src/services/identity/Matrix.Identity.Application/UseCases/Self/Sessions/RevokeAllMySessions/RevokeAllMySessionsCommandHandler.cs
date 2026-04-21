@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
@@ -13,6 +14,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
         IUnitOfWork unitOfWork,
+        IClock clock,
         ICurrentUserContext currentUser,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<RevokeAllMySessionsCommand>
@@ -31,17 +33,22 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
             IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
                 userId: userId,
                 cancellationToken: cancellationToken);
+            DateTime utcNow = clock.UtcNow;
 
             int revokedSessionsCount = 0;
 
             foreach (UserSession session in sessions)
-                if (session.IsActive())
+                if (session.IsActive(utcNow))
                 {
-                    session.Revoke(RefreshTokenRevocationReason.UserRevoked);
+                    session.Revoke(
+                        reason: RefreshTokenRevocationReason.UserRevoked,
+                        revokedAtUtc: utcNow);
                     revokedSessionsCount++;
                 }
 
-            user.RevokeAllRefreshTokens(RefreshTokenRevocationReason.UserRevoked);
+            user.RevokeAllRefreshTokens(
+                reason: RefreshTokenRevocationReason.UserRevoked,
+                revokedAtUtc: utcNow);
 
             await securityAuditService.WriteAsync(
                 entry: new SecurityAuditEntry(

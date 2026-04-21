@@ -13,6 +13,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
         IUserSessionRepository userSessionRepository,
         IRefreshTokenProvider refreshTokenProvider,
         IUnitOfWork unitOfWork,
+        IClock clock,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<RevokeRefreshTokenCommand>
     {
@@ -21,6 +22,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
             CancellationToken cancellationToken)
         {
             string hash = refreshTokenProvider.ComputeHash(request.RefreshToken);
+            DateTime utcNow = clock.UtcNow;
 
             User? user = await userRepository.GetByRefreshTokenHashAsync(
                 tokenHash: hash,
@@ -35,13 +37,18 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
 
             if (!token.IsRevoked)
             {
-                token.Revoke(RefreshTokenRevocationReason.UserRevoked);
+                token.Revoke(
+                    reason: RefreshTokenRevocationReason.UserRevoked,
+                    revokedAtUtc: utcNow);
 
                 UserSession? session = await userSessionRepository.GetByIdAsync(
                     sessionId: token.SessionId,
                     cancellationToken: cancellationToken);
 
-                session?.Revoke(RefreshTokenRevocationReason.UserRevoked);
+                if (session is not null)
+                    session.Revoke(
+                        reason: RefreshTokenRevocationReason.UserRevoked,
+                        revokedAtUtc: utcNow);
 
                 await securityAuditService.WriteAsync(
                     entry: new SecurityAuditEntry(

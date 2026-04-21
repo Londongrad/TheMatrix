@@ -38,7 +38,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
             if (!user.CanLogin())
             {
                 DomainRefreshToken? activeToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash);
-                if (activeToken is not null && activeToken.IsActive())
+                if (activeToken is not null && activeToken.IsActive(utcNow))
                     activeToken.Revoke(
                         reason: user.IsDeleted
                             ? RefreshTokenRevocationReason.AccountDeleted
@@ -55,7 +55,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
             DomainRefreshToken currentToken = user.RefreshTokens.SingleOrDefault(t => t.TokenHash == hash) ??
                                               throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            if (!currentToken.IsActive())
+            if (!currentToken.IsActive(utcNow))
                 throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             UserSession session = await userSessionRepository.GetByIdAsync(
@@ -63,7 +63,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                                       cancellationToken: cancellationToken) ??
                                   throw ApplicationErrorsFactory.InvalidRefreshToken();
 
-            if (!session.IsActive())
+            if (!session.IsActive(utcNow))
                 throw ApplicationErrorsFactory.InvalidRefreshToken();
 
             DeviceInfo currentDeviceInfo = currentToken.DeviceInfo;
@@ -104,7 +104,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
 
             currentToken.Touch(
                 deviceInfo: updatedDeviceInfoForCurrent,
-                geoLocation: currentTokenGeoLocation);
+                geoLocation: currentTokenGeoLocation,
+                touchedAtUtc: utcNow);
 
             currentToken.Revoke(
                 reason: RefreshTokenRevocationReason.SessionReplaced,
@@ -124,7 +125,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                 deviceInfo: sessionDeviceInfo,
                 geoLocation: sessionGeoLocation,
                 refreshTokenExpiresAtUtc: newDescriptor.ExpiresAtUtc,
-                isPersistent: currentToken.IsPersistent);
+                isPersistent: currentToken.IsPersistent,
+                touchedAtUtc: utcNow);
 
             IReadOnlyCollection<UserSession> deviceSessions =
                 await userSessionRepository.ListByUserIdAndDeviceIdAsync(
@@ -133,12 +135,15 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                     cancellationToken: cancellationToken);
 
             foreach (UserSession deviceSession in deviceSessions)
-                if (deviceSession.Id != session.Id && deviceSession.IsActive())
-                    deviceSession.Revoke(RefreshTokenRevocationReason.SessionReplaced);
+                if (deviceSession.Id != session.Id && deviceSession.IsActive(utcNow))
+                    deviceSession.Revoke(
+                        reason: RefreshTokenRevocationReason.SessionReplaced,
+                        revokedAtUtc: utcNow);
 
             user.RevokeActiveRefreshTokensBySession(
                 sessionId: session.Id,
                 reason: RefreshTokenRevocationReason.SessionReplaced,
+                utcNow: utcNow,
                 excludedRefreshTokenId: currentToken.Id);
 
             user.IssueRefreshToken(
@@ -147,7 +152,8 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                 expiresAtUtc: newDescriptor.ExpiresAtUtc,
                 deviceInfo: deviceInfoForNewToken,
                 geoLocation: newTokenGeoLocation,
-                isPersistent: currentToken.IsPersistent);
+                isPersistent: currentToken.IsPersistent,
+                createdAtUtc: utcNow);
 
             AuthorizationContext ctx = await permissionsService.GetAuthContextAsync(
                 userId: user.Id,

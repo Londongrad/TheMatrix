@@ -20,6 +20,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
             CancellationToken cancellationToken)
         {
             Guid userId = currentUser.GetUserIdOrThrow();
+            DateTime utcNow = clock.UtcNow;
 
             bool userExists = await userRepository.ExistsAsync(
                 userId: userId,
@@ -30,7 +31,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
 
             IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListActiveByUserIdAsync(
                 userId: userId,
-                utcNow: clock.UtcNow,
+                utcNow: utcNow,
                 cancellationToken: cancellationToken);
 
             return sessions
@@ -48,7 +49,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
                     CreatedAtUtc = t.CreatedAtUtc,
                     LastUsedAtUtc = t.LastUsedAtUtc,
                     RefreshTokenExpiresAtUtc = t.RefreshTokenExpiresAtUtc,
-                    IsActive = t.IsActive(),
+                    IsActive = t.IsActive(utcNow),
                     IsPersistent = t.IsPersistent
                 })
                .ToArray();
