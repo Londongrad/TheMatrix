@@ -34,6 +34,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         IHttpClientFactory httpClientFactory,
         IOptions<DownstreamServicesOptions> downstreamOptions,
         IOptions<CityOperationsDashboardOptions> dashboardOptions,
+        TimeProvider timeProvider,
         ILogger<CityOperationsDashboardService> logger) : ICityOperationsDashboardService
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
@@ -46,6 +47,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         private readonly CityOperationsDashboardOptions _dashboardOptions = dashboardOptions.Value;
         private readonly HealthCheckService _healthCheckService = healthCheckService;
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+        private readonly TimeProvider _timeProvider = timeProvider;
         private readonly ILogger<CityOperationsDashboardService> _logger = logger;
 
         private sealed record CityOperationalSnapshot(
@@ -95,7 +97,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             DashboardBudgetPressureView[] budgetAlerts = BuildBudgetPressureAlerts(operationalSnapshots);
             DashboardTickFreshnessView[] tickFreshnessAlerts = BuildTickFreshnessAlerts(operationalSnapshots);
             DashboardPhaseProgressView[] phaseProgressAlerts = BuildPhaseProgressAlerts(operationalSnapshots);
-            DateTimeOffset now = DateTimeOffset.Now;
+            DateTimeOffset now = _timeProvider.GetLocalNow();
 
             CityListItemView[] readyCities = allCities
                .Where(IsReady)
@@ -268,7 +270,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             int current,
             Func<DateTimeOffset, int> countAtCutoff)
         {
-            DateTimeOffset now = DateTimeOffset.Now;
+            DateTimeOffset now = _timeProvider.GetLocalNow();
             DateTimeOffset dayStart = new(
                 year: now.Year,
                 month: now.Month,
