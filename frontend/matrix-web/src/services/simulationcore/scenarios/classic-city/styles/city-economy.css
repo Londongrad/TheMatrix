@@ -131,6 +131,12 @@
     gap: 14px;
 }
 
+.city-economy__focus-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .city-economy__metric-grid {
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }

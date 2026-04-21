@@ -1,4 +1,5 @@
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
+import {useSearchParams} from "react-router-dom";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import {usePermissions} from "@shared/permissions/usePermissions";
@@ -48,8 +49,32 @@ type LedgerFeedPanelProps<T> = {
     right?: React.ReactNode;
 };
 
+type EconomyWorkspaceView = "all" | "budget" | "businesses" | "households";
+
 const BUDGET_LEDGER_PAGE_SIZE = 24;
 const ENTITY_LEDGER_PAGE_SIZE = 18;
+
+function isEconomyWorkspaceView(value: string | null): value is EconomyWorkspaceView {
+    return value === "all" || value === "budget" || value === "businesses" || value === "households";
+}
+
+function buildEconomySearchParams(
+    currentSearchParams: URLSearchParams,
+    updates: Record<string, string | null | undefined>,
+) {
+    const nextSearchParams = new URLSearchParams(currentSearchParams);
+
+    Object.entries(updates).forEach(([key, value]) => {
+        if (!value || value.trim().length === 0) {
+            nextSearchParams.delete(key);
+            return;
+        }
+
+        nextSearchParams.set(key, value);
+    });
+
+    return nextSearchParams;
+}
 
 function formatAmount(
     amount: number,
@@ -402,14 +427,19 @@ export function CityEconomyCard({
     cityName,
     isArchived = false,
 }: Props) {
+    const [searchParams, setSearchParams] = useSearchParams();
     const {can} = usePermissions();
     const canReadBudget = can(PermissionKeys.EconomyBudgetRead);
     const canReadBusinesses = can(PermissionKeys.EconomyBusinessesRead);
     const canReadHouseholds = can(PermissionKeys.EconomyHouseholdAccountsRead);
     const hasAnyEconomyAccess = canReadBudget || canReadBusinesses || canReadHouseholds;
-
-    const [selectedBusinessId, setSelectedBusinessId] = useState("");
-    const [selectedHouseholdAccountId, setSelectedHouseholdAccountId] = useState("");
+    const searchParamsKey = searchParams.toString();
+    const requestedEconomyView = searchParams.get("economyView");
+    const requestedBusinessId = searchParams.get("businessId") ?? "";
+    const requestedHouseholdAccountId = searchParams.get("householdAccountId") ?? "";
+    const activeEconomyView: EconomyWorkspaceView = isEconomyWorkspaceView(requestedEconomyView)
+        ? requestedEconomyView
+        : "all";
 
     const overviewQuery = useCityEconomyWorkspace(cityId, {
         includeBudget: canReadBudget,
@@ -417,61 +447,36 @@ export function CityEconomyCard({
         includeHouseholds: canReadHouseholds,
     });
 
+    const activeBusinessId = canReadBusinesses && overviewQuery.businesses.some((business) => business.businessId === requestedBusinessId)
+        ? requestedBusinessId
+        : canReadBusinesses
+            ? overviewQuery.businesses[0]?.businessId ?? ""
+            : "";
+    const activeHouseholdAccountId = canReadHouseholds && overviewQuery.householdAccounts.some((account) => account.householdAccountId === requestedHouseholdAccountId)
+        ? requestedHouseholdAccountId
+        : canReadHouseholds
+            ? overviewQuery.householdAccounts[0]?.householdAccountId ?? ""
+            : "";
+    const showBudget = canReadBudget && (activeEconomyView === "all" || activeEconomyView === "budget");
+    const showBusinesses = canReadBusinesses && (activeEconomyView === "all" || activeEconomyView === "businesses");
+    const showHouseholds = canReadHouseholds && (activeEconomyView === "all" || activeEconomyView === "households");
     const budgetFeed = useBudgetLedgerFeed(cityId, {
-        enabled: canReadBudget,
+        enabled: showBudget,
         pageSize: BUDGET_LEDGER_PAGE_SIZE,
     });
-
-    useEffect(() => {
-        if (!canReadBusinesses) {
-            setSelectedBusinessId("");
-            return;
-        }
-
-        setSelectedBusinessId((currentValue) => {
-            if (overviewQuery.businesses.some((business) => business.businessId === currentValue)) {
-                return currentValue;
-            }
-
-            return overviewQuery.businesses[0]?.businessId ?? "";
-        });
-    }, [canReadBusinesses, overviewQuery.businesses]);
-
-    useEffect(() => {
-        if (!canReadHouseholds) {
-            setSelectedHouseholdAccountId("");
-            return;
-        }
-
-        setSelectedHouseholdAccountId((currentValue) => {
-            if (overviewQuery.householdAccounts.some((account) => account.householdAccountId === currentValue)) {
-                return currentValue;
-            }
-
-            return overviewQuery.householdAccounts[0]?.householdAccountId ?? "";
-        });
-    }, [canReadHouseholds, overviewQuery.householdAccounts]);
-
-    const activeBusinessId = overviewQuery.businesses.some((business) => business.businessId === selectedBusinessId)
-        ? selectedBusinessId
-        : null;
-    const activeHouseholdAccountId = overviewQuery.householdAccounts.some((account) => account.householdAccountId === selectedHouseholdAccountId)
-        ? selectedHouseholdAccountId
-        : null;
-    const businessFeed = useBusinessLedgerFeed(activeBusinessId, {
-        enabled: canReadBusinesses && Boolean(activeBusinessId),
+    const businessFeed = useBusinessLedgerFeed(activeBusinessId || null, {
+        enabled: showBusinesses && Boolean(activeBusinessId),
         pageSize: ENTITY_LEDGER_PAGE_SIZE,
     });
-    const householdFeed = useHouseholdAccountLedgerFeed(activeHouseholdAccountId, {
-        enabled: canReadHouseholds && Boolean(activeHouseholdAccountId),
+    const householdFeed = useHouseholdAccountLedgerFeed(activeHouseholdAccountId || null, {
+        enabled: showHouseholds && Boolean(activeHouseholdAccountId),
         pageSize: ENTITY_LEDGER_PAGE_SIZE,
     });
-
     const selectedBusiness = activeBusinessId
-        ? overviewQuery.businesses.find((business) => business.businessId === selectedBusinessId) ?? null
+        ? overviewQuery.businesses.find((business) => business.businessId === activeBusinessId) ?? null
         : null;
     const selectedHouseholdAccount = activeHouseholdAccountId
-        ? overviewQuery.householdAccounts.find((account) => account.householdAccountId === selectedHouseholdAccountId) ?? null
+        ? overviewQuery.householdAccounts.find((account) => account.householdAccountId === activeHouseholdAccountId) ?? null
         : null;
     const isWorkspaceInitialLoading =
         overviewQuery.isLoading &&
@@ -479,6 +484,58 @@ export function CityEconomyCard({
         !overviewQuery.budgetPressure &&
         overviewQuery.businesses.length === 0 &&
         overviewQuery.householdAccounts.length === 0;
+
+    useEffect(() => {
+        const normalizedEconomyView =
+            activeEconomyView === "all" ||
+            (activeEconomyView === "budget" && !canReadBudget) ||
+            (activeEconomyView === "businesses" && !canReadBusinesses) ||
+            (activeEconomyView === "households" && !canReadHouseholds)
+                ? null
+                : activeEconomyView;
+        const nextSearchParams = buildEconomySearchParams(searchParams, {
+            economyView: normalizedEconomyView,
+            businessId: canReadBusinesses ? activeBusinessId : null,
+            householdAccountId: canReadHouseholds ? activeHouseholdAccountId : null,
+        });
+
+        if (nextSearchParams.toString() !== searchParamsKey) {
+            setSearchParams(nextSearchParams, {replace: true});
+        }
+    }, [
+        activeBusinessId,
+        activeEconomyView,
+        activeHouseholdAccountId,
+        canReadBudget,
+        canReadBusinesses,
+        canReadHouseholds,
+        searchParams,
+        searchParamsKey,
+        setSearchParams,
+    ]);
+
+    function handleEconomyViewChange(nextView: EconomyWorkspaceView) {
+        const nextSearchParams = buildEconomySearchParams(searchParams, {
+            economyView: nextView === "all" ? null : nextView,
+        });
+        setSearchParams(nextSearchParams, {replace: false});
+    }
+
+    function handleSelectBusiness(businessId: string) {
+        const nextSearchParams = buildEconomySearchParams(searchParams, {
+            businessId,
+            economyView: activeEconomyView === "households" ? "businesses" : activeEconomyView === "all" ? null : activeEconomyView,
+        });
+        setSearchParams(nextSearchParams, {replace: false});
+    }
+
+    function handleSelectHouseholdAccount(householdAccountId: string) {
+        const nextSearchParams = buildEconomySearchParams(searchParams, {
+            householdAccountId,
+            economyView: activeEconomyView === "businesses" ? "households" : activeEconomyView === "all" ? null : activeEconomyView,
+        });
+        setSearchParams(nextSearchParams, {replace: false});
+    }
 
     function refreshWorkspace() {
         overviewQuery.refetch();
@@ -571,6 +628,50 @@ export function CityEconomyCard({
                         </div>
                     </section>
                 ) : null}
+
+                <section className="city-economy__focus-strip" aria-label="Economy focus filters">
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant={activeEconomyView === "all" ? "primary" : "default"}
+                        onClick={() => handleEconomyViewChange("all")}
+                    >
+                        All surfaces
+                    </Button>
+
+                    {canReadBudget ? (
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant={activeEconomyView === "budget" ? "primary" : "default"}
+                            onClick={() => handleEconomyViewChange("budget")}
+                        >
+                            Budget ledger
+                        </Button>
+                    ) : null}
+
+                    {canReadBusinesses ? (
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant={activeEconomyView === "businesses" ? "primary" : "default"}
+                            onClick={() => handleEconomyViewChange("businesses")}
+                        >
+                            Businesses ({overviewQuery.businesses.length})
+                        </Button>
+                    ) : null}
+
+                    {canReadHouseholds ? (
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant={activeEconomyView === "households" ? "primary" : "default"}
+                            onClick={() => handleEconomyViewChange("households")}
+                        >
+                            Households ({overviewQuery.householdAccounts.length})
+                        </Button>
+                    ) : null}
+                </section>
 
                 <section className="city-economy__metric-grid">
                     {canReadBudget && overviewQuery.budgetSummary ? (
@@ -681,7 +782,7 @@ export function CityEconomyCard({
                 </section>
             </Card>
 
-            {canReadBudget ? (
+            {showBudget ? (
                 <LedgerFeedPanel
                     title="City budget ledger"
                     subtitle="Latest municipal budget movements in stable cursor order."
@@ -705,7 +806,7 @@ export function CityEconomyCard({
             ) : null}
 
             <div className="city-economy__workspace-grid">
-                {canReadBusinesses ? (
+                {showBusinesses ? (
                     <Card
                         title="Businesses"
                         subtitle="Registered city businesses available for cursor-based ledger inspection."
@@ -731,8 +832,8 @@ export function CityEconomyCard({
                         {overviewQuery.businesses.length > 0 ? (
                             <BusinessRoster
                                 businesses={overviewQuery.businesses}
-                                selectedBusinessId={selectedBusinessId}
-                                onSelect={setSelectedBusinessId}
+                                selectedBusinessId={activeBusinessId}
+                                onSelect={handleSelectBusiness}
                             />
                         ) : !overviewQuery.isLoading ? (
                             <div className="city-economy__empty" role="status">
@@ -743,7 +844,7 @@ export function CityEconomyCard({
                     </Card>
                 ) : null}
 
-                {canReadBusinesses ? (
+                {showBusinesses ? (
                     <LedgerFeedPanel
                         title={selectedBusiness ? `${selectedBusiness.name} ledger` : "Business ledger"}
                         subtitle={selectedBusiness
@@ -770,7 +871,7 @@ export function CityEconomyCard({
                     />
                 ) : null}
 
-                {canReadHouseholds ? (
+                {showHouseholds ? (
                     <Card
                         title="Household accounts"
                         subtitle="Household money surfaces available for direct ledger inspection."
@@ -796,8 +897,8 @@ export function CityEconomyCard({
                         {overviewQuery.householdAccounts.length > 0 ? (
                             <HouseholdRoster
                                 householdAccounts={overviewQuery.householdAccounts}
-                                selectedHouseholdAccountId={selectedHouseholdAccountId}
-                                onSelect={setSelectedHouseholdAccountId}
+                                selectedHouseholdAccountId={activeHouseholdAccountId}
+                                onSelect={handleSelectHouseholdAccount}
                             />
                         ) : !overviewQuery.isLoading ? (
                             <div className="city-economy__empty" role="status">
@@ -808,7 +909,7 @@ export function CityEconomyCard({
                     </Card>
                 ) : null}
 
-                {canReadHouseholds ? (
+                {showHouseholds ? (
                     <LedgerFeedPanel
                         title={selectedHouseholdAccount ? `${selectedHouseholdAccount.name} ledger` : "Household ledger"}
                         subtitle={selectedHouseholdAccount
