@@ -1,29 +1,72 @@
 # TheMatrix
 
-## English
+## Overview
 
-### Overview
+TheMatrix is a simulation platform for running interconnected digital worlds.
 
-TheMatrix is a simulation platform designed to model living digital worlds.  
-It brings together cities, transport scenarios, populations, and service layers inside one evolving environment.  
-Each simulation is expected to run with its own time, rules, state transitions, and observable operational context.  
+It combines:
 
-### Long-Term Direction
+- cities and scenario setup
+- time progression and simulation orchestration
+- population, economy, resources, and supporting services
+- gateway and frontend surfaces for operating those systems
 
-The platform is intended to support autonomous societies in which people can study, work, form families, get sick, recover, spend resources, and respond to changing conditions.  
-Different scenarios should keep their own domain depth while reusing shared foundations such as time, permissions, messaging, population, and economy.  
-In its final form, TheMatrix is meant to operate as an engine for believable, interconnected artificial systems.  
+## Repository Shape
+
+- `TheMatrix.sln` contains the backend services, shared building blocks, and tools
+- `frontend/matrix-web` contains the Vite + React frontend
+- `docker-compose.yml` starts the local infrastructure dependencies
+- `docs/` contains development, deployment, and security guides
+
+## Quick Links
+
+- Local environment: `docs/development/local-environment.md`
+- User secrets: `docs/development/user-secrets.md`
+- Database migrations: `docs/deployment/database-migrations.md`
+- Trusted client IP forwarding: `docs/security/trusted-client-ip-forwarding.md`
+- Internal JWT rotation: `docs/security/internal-jwt-key-rotation.md`
+
+## Local Development
+
+The normal local flow is:
+
+1. Copy `.env.example` to `.env`
+2. Start Postgres, Redis, and RabbitMQ with `docker compose up -d`
+3. Configure local secrets for the supported entrypoint projects
+4. Start the backend services from the solution
+5. Start the frontend with `npm run dev` in `frontend/matrix-web`
+
+The detailed setup guide lives in `docs/development/local-environment.md`.
 
 ## Русский
 
 ### Обзор
 
-TheMatrix - это платформа симуляций, предназначенная для моделирования живых цифровых миров.  
-Она объединяет города, транспортные сценарии, население и сервисные слои внутри одной развивающейся среды.  
-Каждая симуляция должна существовать со своим временем, правилами, переходами состояний и наблюдаемым операционным контекстом.  
+TheMatrix — это платформа симуляций для запуска взаимосвязанных цифровых миров.
 
-### Долгосрочное направление
+Она объединяет:
 
-Платформа должна поддерживать автономные общества, в которых люди могут учиться, работать, создавать семьи, болеть, выздоравливать, тратить ресурсы и реагировать на изменения среды.  
-Разные сценарии должны сохранять собственную предметную глубину, но при этом опираться на общие foundation-слои: time, permissions, messaging, population и economy.  
-В конечной форме TheMatrix должен выступать как движок правдоподобных и взаимосвязанных искусственных систем.  
+- города и сценарии
+- течение времени и orchestration симуляции
+- население, экономику, ресурсы и supporting services
+- gateway и frontend для управления системой
+
+### Быстрые ссылки
+
+- Локальное окружение: `docs/development/local-environment.md`
+- User secrets: `docs/development/user-secrets.md`
+- Миграции базы данных: `docs/deployment/database-migrations.md`
+- Trusted client IP forwarding: `docs/security/trusted-client-ip-forwarding.md`
+- Ротация internal JWT: `docs/security/internal-jwt-key-rotation.md`
+
+### Локальная разработка
+
+Базовый сценарий локального старта такой:
+
+1. Скопировать `.env.example` в `.env`
+2. Поднять Postgres, Redis и RabbitMQ через `docker compose up -d`
+3. Настроить локальные секреты
+4. Запустить backend-сервисы из solution
+5. Запустить frontend через `npm run dev` в `frontend/matrix-web`
+
+Подробности — в `docs/development/local-environment.md`.
