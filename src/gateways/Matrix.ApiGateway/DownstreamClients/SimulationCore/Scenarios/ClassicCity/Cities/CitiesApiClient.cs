@@ -140,6 +140,22 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCi
                 requestUrl: url);
         }
 
+        public async Task<CityMapTopologyView> GetMapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            string url = $"{CitiesEndpoint}/{cityId}/map";
+
+            using HttpResponseMessage response = await _client.GetAsync(
+                requestUri: url,
+                cancellationToken: cancellationToken);
+
+            return await response.ReadJsonOrThrowDownstreamAsync<CityMapTopologyView>(
+                serviceName: DownstreamServiceNames.SimulationCore,
+                cancellationToken: cancellationToken,
+                requestUrl: url);
+        }
+
         public async Task<IReadOnlyList<ResidentialBuildingView>> GetResidentialBuildingsAsync(
             Guid cityId,
             Guid? districtId = null,

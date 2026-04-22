@@ -37,6 +37,10 @@ namespace Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCi
             Guid cityId,
             CancellationToken cancellationToken = default);
 
+        Task<CityMapTopologyView> GetMapAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<ResidentialBuildingView>> GetResidentialBuildingsAsync(
             Guid cityId,
             Guid? districtId = null,

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
 using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
 using Matrix.ApiGateway.DownstreamClients.Economy;
@@ -15,6 +16,8 @@ using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
 using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Weather.Views;
 using Matrix.SimulationCore.Contracts.Simulation.Views;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
@@ -35,6 +38,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
     [Route("api/cities")]
     public sealed class CitiesController(
         ICitiesApiClient citiesClient,
+        ITripsApiClient tripsClient,
         ISimulationApiClient simulationClient,
         IEconomyApiClient economyClient,
         IPopulationApiClient populationClient,
@@ -51,6 +55,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ISimulationApiClient _simulationClient = simulationClient;
         private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
+        private readonly ITripsApiClient _tripsClient = tripsClient;
 
         [HttpPost]
         public async Task<ActionResult<CityProvisioningView>> Create(
@@ -120,6 +125,30 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
                 cancellationToken: cancellationToken);
 
             return Ok(summary);
+        }
+
+        [HttpGet("{cityId:guid}/map")]
+        public async Task<ActionResult<CityMapTopologyView>> GetMap(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityMapTopologyView map = await _citiesClient.GetMapAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(map);
+        }
+
+        [HttpGet("{cityId:guid}/trips/active")]
+        public async Task<ActionResult<IReadOnlyList<CityActiveTripView>>> GetActiveTrips(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyList<CityActiveTripView> trips = await _tripsClient.GetActiveTripsAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+
+            return Ok(trips);
         }
 
         [HttpGet("{cityId:guid}/dashboard")]
