@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Events;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Topology;
@@ -77,16 +78,15 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                         await clockRepository.AddAsync(
                             clock: clock,
                             cancellationToken: ct);
-                        await outboxWriter.AddCityEventsAsync(
-                            domainEvents: city.DomainEvents,
+                        await DomainEventDispatchHelper.PublishAndClearAsync(
+                            source: city,
+                            publish: outboxWriter.AddCityEventsAsync,
                             cancellationToken: ct);
                         if (bootstrapPlan.Weather is not null)
-                            await outboxWriter.AddWeatherEventsAsync(
-                                domainEvents: bootstrapPlan.Weather.DomainEvents,
+                            await DomainEventDispatchHelper.PublishAndClearAsync(
+                                source: bootstrapPlan.Weather,
+                                publish: outboxWriter.AddWeatherEventsAsync,
                                 cancellationToken: ct);
-
-                        city.ClearDomainEvents();
-                        bootstrapPlan.Weather?.ClearDomainEvents();
                         await unitOfWork.SaveChangesAsync(ct);
                     },
                     cancellationToken: cancellationToken);

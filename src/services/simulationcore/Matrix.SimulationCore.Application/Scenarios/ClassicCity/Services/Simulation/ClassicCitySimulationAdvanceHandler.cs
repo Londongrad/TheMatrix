@@ -1,3 +1,4 @@
+using Matrix.BuildingBlocks.Application.Events;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
@@ -48,10 +49,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simul
 
             if (cityWeather is not null && cityWeather.DomainEvents.Count > 0)
             {
-                await outboxWriter.AddWeatherEventsAsync(
-                    domainEvents: cityWeather.DomainEvents,
+                await DomainEventDispatchHelper.PublishAndClearAsync(
+                    source: cityWeather,
+                    publish: outboxWriter.AddWeatherEventsAsync,
                     cancellationToken: cancellationToken);
-                cityWeather.ClearDomainEvents();
             }
 
             foreach (CityTickPhase phase in GetClassicCityPhaseWatermarks())

@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.Events;
 using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
@@ -42,10 +43,10 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                 return city is not null;
 
             city.Archive(DateTimeOffset.UtcNow);
-            await outboxWriter.AddCityEventsAsync(
-                domainEvents: city.DomainEvents,
+            await DomainEventDispatchHelper.PublishAndClearAsync(
+                source: city,
+                publish: outboxWriter.AddCityEventsAsync,
                 cancellationToken: cancellationToken);
-            city.ClearDomainEvents();
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
         }

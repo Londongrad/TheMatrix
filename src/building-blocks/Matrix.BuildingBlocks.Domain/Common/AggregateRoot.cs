@@ -6,7 +6,7 @@ namespace Matrix.BuildingBlocks.Domain.Common
     ///     Base type for aggregate roots with domain events support.
     /// </summary>
     public abstract class AggregateRoot<TId>(TId id)
-        : Entity<TId>(id)
+        : Entity<TId>(id), IHasDomainEvents
         where TId : notnull
     {
         private readonly List<IDomainEvent> _domainEvents = new();
