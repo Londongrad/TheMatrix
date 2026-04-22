@@ -145,6 +145,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         currentDate: request.CurrentDate,
                         persons: result.Persons,
                         householdPlacements: result.HouseholdPlacements,
+                        includeCommuteMetrics: false,
                         cancellationToken: ct);
 
                     await cityPopulationActivityJournalService.RecordAsync(

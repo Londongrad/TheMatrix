@@ -32,6 +32,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityId cityId,
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
+            bool includeCommuteMetrics = true,
             CancellationToken cancellationToken = default)
         {
             return UpsertAsync(
@@ -39,6 +40,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 persons: persons,
                 householdPlacements: null,
+                includeCommuteMetrics: includeCommuteMetrics,
                 cancellationToken: cancellationToken);
         }
 
@@ -47,6 +49,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
+            bool includeCommuteMetrics = true,
             CancellationToken cancellationToken = default)
         {
             return UpsertAsync(
@@ -54,12 +57,14 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 persons: persons,
                 householdPlacements: householdPlacements,
+                includeCommuteMetrics: includeCommuteMetrics,
                 cancellationToken: cancellationToken);
         }
 
         public async Task RebuildAsync(
             CityId cityId,
             DateOnly currentDate,
+            bool includeCommuteMetrics = true,
             CancellationToken cancellationToken = default)
         {
             List<Person> persons = await _dbContext.Persons
@@ -77,6 +82,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 currentDate: currentDate,
                 persons: persons,
                 householdPlacements: null,
+                includeCommuteMetrics: includeCommuteMetrics,
                 cancellationToken: cancellationToken);
         }
 
@@ -105,6 +111,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 currentDate: await ResolveCurrentDateAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken),
+                includeCommuteMetrics: true,
                 cancellationToken: cancellationToken);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -135,6 +142,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement>? householdPlacements,
+            bool includeCommuteMetrics,
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<ClassicCityHouseholdPlacement> resolvedPlacements = householdPlacements ??
@@ -171,6 +179,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 healthcarePressurePolicy: _healthcarePressurePolicy,
                 timeProvider: _timeProvider,
                 commuteRoutingService: _commuteRoutingService,
+                includeCommuteMetrics: includeCommuteMetrics,
                 cancellationToken: cancellationToken);
 
             await UpsertSummaryProjectionAsync(
@@ -197,6 +206,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
             TimeProvider timeProvider,
             ICityPopulationCommuteRoutingService commuteRoutingService,
+            bool includeCommuteMetrics,
             CancellationToken cancellationToken)
         {
             DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
@@ -231,91 +241,94 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             List<decimal> workforceAttendanceSamples = [];
             List<decimal> workforceProductivitySamples = [];
             List<decimal> workforceCommuteAccessibilitySamples = [];
-            foreach (Person resident in employedResidents)
-            {
-                HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
-                    key: resident.HouseholdId,
-                    value: out HousingStatus resolvedHousingStatus)
-                    ? resolvedHousingStatus
-                    : null;
-                DistrictId? districtId = districtByHouseholdId.TryGetValue(
-                    key: resident.HouseholdId,
-                    value: out DistrictId? resolvedDistrictId)
-                    ? resolvedDistrictId
-                    : null;
-                ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
-                    key: resident.HouseholdId,
-                    value: out ResidentialBuildingId? resolvedResidentialBuildingId)
-                    ? resolvedResidentialBuildingId
-                    : null;
-                CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
-                    districtId: districtId,
-                    livingConditionsState: livingConditionsState);
-                CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
-                    districtId: districtId,
-                    essentialsState: essentialsState);
-                CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEmploymentCommuteAsync(
-                    cityId: cityId.Value,
-                    residentialBuildingId: residentialBuildingId,
-                    resident: resident,
-                    cancellationToken: cancellationToken);
-                CityPopulationParticipationProfile profile = participationPolicy.ResolveEmploymentProfile(
-                    person: resident,
-                    currentDate: currentDate,
-                    housingStatus: residentHousingStatus,
-                    livingConditions: districtLivingConditions,
-                    essentials: districtEssentials,
-                    commute: commute);
-                workforceAttendanceSamples.Add(profile.AttendanceIndex);
-                workforceProductivitySamples.Add(profile.ProductivityIndex);
-                workforceCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
-            }
-
-            decimal? workforceAttendanceIndex = AverageMetric(workforceAttendanceSamples);
-            decimal? workforceProductivityIndex = AverageMetric(workforceProductivitySamples);
-            decimal? workforceCommuteAccessibilityIndex = AverageMetric(workforceCommuteAccessibilitySamples);
-
             List<decimal> studentAttendanceSamples = [];
             List<decimal> studentCommuteAccessibilitySamples = [];
-            foreach (Person resident in studentResidents)
+
+            if (includeCommuteMetrics)
             {
-                HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
-                    key: resident.HouseholdId,
-                    value: out HousingStatus resolvedHousingStatus)
-                    ? resolvedHousingStatus
-                    : null;
-                DistrictId? districtId = districtByHouseholdId.TryGetValue(
-                    key: resident.HouseholdId,
-                    value: out DistrictId? resolvedDistrictId)
-                    ? resolvedDistrictId
-                    : null;
-                ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
-                    key: resident.HouseholdId,
-                    value: out ResidentialBuildingId? resolvedResidentialBuildingId)
-                    ? resolvedResidentialBuildingId
-                    : null;
-                CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
-                    districtId: districtId,
-                    livingConditionsState: livingConditionsState);
-                CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
-                    districtId: districtId,
-                    essentialsState: essentialsState);
-                CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEducationCommuteAsync(
-                    cityId: cityId.Value,
-                    residentialBuildingId: residentialBuildingId,
-                    resident: resident,
-                    cancellationToken: cancellationToken);
-                studentAttendanceSamples.Add(
-                    participationPolicy.ResolveStudentAttendanceIndex(
+                foreach (Person resident in employedResidents)
+                {
+                    HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
+                        key: resident.HouseholdId,
+                        value: out HousingStatus resolvedHousingStatus)
+                        ? resolvedHousingStatus
+                        : null;
+                    DistrictId? districtId = districtByHouseholdId.TryGetValue(
+                        key: resident.HouseholdId,
+                        value: out DistrictId? resolvedDistrictId)
+                        ? resolvedDistrictId
+                        : null;
+                    ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
+                        key: resident.HouseholdId,
+                        value: out ResidentialBuildingId? resolvedResidentialBuildingId)
+                        ? resolvedResidentialBuildingId
+                        : null;
+                    CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
+                        districtId: districtId,
+                        livingConditionsState: livingConditionsState);
+                    CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
+                        districtId: districtId,
+                        essentialsState: essentialsState);
+                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEmploymentCommuteAsync(
+                        cityId: cityId.Value,
+                        residentialBuildingId: residentialBuildingId,
+                        resident: resident,
+                        cancellationToken: cancellationToken);
+                    CityPopulationParticipationProfile profile = participationPolicy.ResolveEmploymentProfile(
                         person: resident,
                         currentDate: currentDate,
                         housingStatus: residentHousingStatus,
                         livingConditions: districtLivingConditions,
                         essentials: districtEssentials,
-                        commute: commute));
-                studentCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
+                        commute: commute);
+                    workforceAttendanceSamples.Add(profile.AttendanceIndex);
+                    workforceProductivitySamples.Add(profile.ProductivityIndex);
+                    workforceCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
+                }
+
+                foreach (Person resident in studentResidents)
+                {
+                    HousingStatus? residentHousingStatus = housingByHouseholdId.TryGetValue(
+                        key: resident.HouseholdId,
+                        value: out HousingStatus resolvedHousingStatus)
+                        ? resolvedHousingStatus
+                        : null;
+                    DistrictId? districtId = districtByHouseholdId.TryGetValue(
+                        key: resident.HouseholdId,
+                        value: out DistrictId? resolvedDistrictId)
+                        ? resolvedDistrictId
+                        : null;
+                    ResidentialBuildingId? residentialBuildingId = residentialBuildingByHouseholdId.TryGetValue(
+                        key: resident.HouseholdId,
+                        value: out ResidentialBuildingId? resolvedResidentialBuildingId)
+                        ? resolvedResidentialBuildingId
+                        : null;
+                    CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
+                        districtId: districtId,
+                        livingConditionsState: livingConditionsState);
+                    CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
+                        districtId: districtId,
+                        essentialsState: essentialsState);
+                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveEducationCommuteAsync(
+                        cityId: cityId.Value,
+                        residentialBuildingId: residentialBuildingId,
+                        resident: resident,
+                        cancellationToken: cancellationToken);
+                    studentAttendanceSamples.Add(
+                        participationPolicy.ResolveStudentAttendanceIndex(
+                            person: resident,
+                            currentDate: currentDate,
+                            housingStatus: residentHousingStatus,
+                            livingConditions: districtLivingConditions,
+                            essentials: districtEssentials,
+                            commute: commute));
+                    studentCommuteAccessibilitySamples.Add(commute.AccessibilityIndex);
+                }
             }
 
+            decimal? workforceAttendanceIndex = AverageMetric(workforceAttendanceSamples);
+            decimal? workforceProductivityIndex = AverageMetric(workforceProductivitySamples);
+            decimal? workforceCommuteAccessibilityIndex = AverageMetric(workforceCommuteAccessibilitySamples);
             decimal? studentAttendanceIndex = AverageMetric(studentAttendanceSamples);
             decimal? studentCommuteAccessibilityIndex = AverageMetric(studentCommuteAccessibilitySamples);
 

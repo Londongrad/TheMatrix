@@ -11,17 +11,20 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Abstractions
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
             IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
+            bool includeCommuteMetrics = true,
             CancellationToken cancellationToken = default);
 
         Task UpdateAsync(
             CityId cityId,
             DateOnly currentDate,
             IReadOnlyCollection<Person> persons,
+            bool includeCommuteMetrics = true,
             CancellationToken cancellationToken = default);
 
         Task RebuildAsync(
             CityId cityId,
             DateOnly currentDate,
+            bool includeCommuteMetrics = true,
             CancellationToken cancellationToken = default);
 
         Task EnsureExistsAsync(
