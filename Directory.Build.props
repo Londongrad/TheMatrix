@@ -1,4 +1,10 @@
 <Project>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
     <Content Include="$(MSBuildThisFileDirectory)appsettings.logging.json" Link="appsettings.logging.json" CopyToOutputDirectory="PreserveNewest"/>
     <Content Include="$(MSBuildThisFileDirectory)appsettings.logging.Development.json" Link="appsettings.logging.Development.json" CopyToOutputDirectory="PreserveNewest"/>
