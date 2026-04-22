@@ -9,6 +9,10 @@ namespace Matrix.SimulationSystems.Application.Abstractions
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken);
 
+        Task<CityEnvironmentalConditionState?> GetFreshBySimulationHostIdAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken);
+
         Task<CityEnvironmentalConditionState?> GetBySimulationHostIdNoTrackingAsync(
             SimulationHostId simulationHostId,
             CancellationToken cancellationToken);

@@ -12,65 +12,39 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         IUnitOfWork unitOfWork)
         : IRequestHandler<SyncCityOperationalBudgetPressureCommand, SyncCityOperationalBudgetPressureResult>
     {
+        private const int MaxSaveAttempts = 3;
+
         public async Task<SyncCityOperationalBudgetPressureResult> Handle(
             SyncCityOperationalBudgetPressureCommand request,
             CancellationToken cancellationToken)
         {
             SimulationHostId simulationHostId = new(request.CityId);
+            CityOperationalBudgetPressureSnapshot snapshot = new(
+                Balance: request.Balance,
+                MunicipalOperationsExpenses: request.MunicipalOperationsExpenses,
+                GeneralAvailableAmount: request.GeneralAvailableAmount,
+                OperationsAvailableAmount: request.OperationsAvailableAmount,
+                InfrastructureAvailableAmount: request.InfrastructureAvailableAmount,
+                HealthcareAvailableAmount: request.HealthcareAvailableAmount,
+                GeneralAuthorizationLevel: request.GeneralAuthorizationLevel,
+                OperationsAuthorizationLevel: request.OperationsAuthorizationLevel,
+                InfrastructureAuthorizationLevel: request.InfrastructureAuthorizationLevel,
+                HealthcareAuthorizationLevel: request.HealthcareAuthorizationLevel,
+                PressureIndex: request.PressureIndex,
+                EffectiveTickId: request.EffectiveTickId,
+                EffectiveAtUtc: request.EffectiveAtUtc);
 
-            CityEnvironmentalConditionState? state = await repository.GetBySimulationHostIdAsync(
-                simulationHostId: simulationHostId,
-                cancellationToken: cancellationToken);
-
-            if (state is null)
+            for (int attempt = 0; attempt < MaxSaveAttempts; attempt++)
             {
-                return new SyncCityOperationalBudgetPressureResult(
-                    Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
-                    PressureIndex: 0m,
-                    EffectiveTickId: request.EffectiveTickId,
-                    EffectiveAtUtc: request.EffectiveAtUtc);
-            }
+                CityEnvironmentalConditionState? state = attempt == 0
+                    ? await repository.GetBySimulationHostIdAsync(
+                        simulationHostId: simulationHostId,
+                        cancellationToken: cancellationToken)
+                    : await repository.GetFreshBySimulationHostIdAsync(
+                        simulationHostId: simulationHostId,
+                        cancellationToken: cancellationToken);
 
-            if (IsIncomingSnapshotStale(
-                    effectiveTickId: request.EffectiveTickId,
-                    effectiveAtUtc: request.EffectiveAtUtc,
-                    currentEffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
-                    currentEffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc))
-            {
-                return new SyncCityOperationalBudgetPressureResult(
-                    Status: SyncCityOperationalBudgetPressureStatus.Stale,
-                    PressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                    EffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
-                    EffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc);
-            }
-
-            state.ApplyOperationalBudgetPressure(
-                snapshot: new CityOperationalBudgetPressureSnapshot(
-                    Balance: request.Balance,
-                    MunicipalOperationsExpenses: request.MunicipalOperationsExpenses,
-                    GeneralAvailableAmount: request.GeneralAvailableAmount,
-                    OperationsAvailableAmount: request.OperationsAvailableAmount,
-                    InfrastructureAvailableAmount: request.InfrastructureAvailableAmount,
-                    HealthcareAvailableAmount: request.HealthcareAvailableAmount,
-                    GeneralAuthorizationLevel: request.GeneralAuthorizationLevel,
-                    OperationsAuthorizationLevel: request.OperationsAuthorizationLevel,
-                    InfrastructureAuthorizationLevel: request.InfrastructureAuthorizationLevel,
-                    HealthcareAuthorizationLevel: request.HealthcareAuthorizationLevel,
-                    PressureIndex: request.PressureIndex,
-                    EffectiveTickId: request.EffectiveTickId,
-                    EffectiveAtUtc: request.EffectiveAtUtc));
-
-            try
-            {
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception) when (IsConcurrencyException(exception))
-            {
-                CityEnvironmentalConditionState? persistedState = await repository.GetBySimulationHostIdNoTrackingAsync(
-                    simulationHostId: simulationHostId,
-                    cancellationToken: cancellationToken);
-
-                if (persistedState is null)
+                if (state is null)
                 {
                     return new SyncCityOperationalBudgetPressureResult(
                         Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
@@ -82,35 +56,81 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 if (IsIncomingSnapshotStale(
                         effectiveTickId: request.EffectiveTickId,
                         effectiveAtUtc: request.EffectiveAtUtc,
-                        currentEffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
-                        currentEffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc))
+                        currentEffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
+                        currentEffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc))
                 {
-                    return new SyncCityOperationalBudgetPressureResult(
-                        Status: SyncCityOperationalBudgetPressureStatus.Stale,
-                        PressureIndex: persistedState.OperationalBudgetPressure.PressureIndex,
-                        EffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
-                        EffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc);
+                    return ToResult(
+                        status: SyncCityOperationalBudgetPressureStatus.Stale,
+                        state: state.OperationalBudgetPressure);
                 }
 
-                if (MatchesSnapshot(
+                state.ApplyOperationalBudgetPressure(snapshot: snapshot);
+
+                try
+                {
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    return ToResult(
+                        status: SyncCityOperationalBudgetPressureStatus.Applied,
+                        state: state.OperationalBudgetPressure);
+                }
+                catch (Exception exception) when (IsConcurrencyException(exception))
+                {
+                    SyncCityOperationalBudgetPressureResult? resolved = await ResolveConcurrencyAsync(
                         request: request,
-                        state: persistedState.OperationalBudgetPressure))
-                {
-                    return new SyncCityOperationalBudgetPressureResult(
-                        Status: SyncCityOperationalBudgetPressureStatus.Concurrent,
-                        PressureIndex: persistedState.OperationalBudgetPressure.PressureIndex,
-                        EffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
-                        EffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc);
-                }
+                        simulationHostId: simulationHostId,
+                        cancellationToken: cancellationToken);
 
-                throw;
+                    if (resolved is not null)
+                        return resolved;
+
+                    if (attempt == MaxSaveAttempts - 1)
+                        throw;
+                }
             }
 
-            return new SyncCityOperationalBudgetPressureResult(
-                Status: SyncCityOperationalBudgetPressureStatus.Applied,
-                PressureIndex: state.OperationalBudgetPressure.PressureIndex,
-                EffectiveTickId: state.OperationalBudgetPressure.EffectiveTickId,
-                EffectiveAtUtc: state.OperationalBudgetPressure.EffectiveAtUtc);
+            throw new InvalidOperationException("Operational budget pressure synchronization exhausted its save retry budget.");
+        }
+
+        private async Task<SyncCityOperationalBudgetPressureResult?> ResolveConcurrencyAsync(
+            SyncCityOperationalBudgetPressureCommand request,
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken)
+        {
+            CityEnvironmentalConditionState? persistedState = await repository.GetBySimulationHostIdNoTrackingAsync(
+                simulationHostId: simulationHostId,
+                cancellationToken: cancellationToken);
+
+            if (persistedState is null)
+            {
+                return new SyncCityOperationalBudgetPressureResult(
+                    Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
+                    PressureIndex: 0m,
+                    EffectiveTickId: request.EffectiveTickId,
+                    EffectiveAtUtc: request.EffectiveAtUtc);
+            }
+
+            if (IsIncomingSnapshotStale(
+                    effectiveTickId: request.EffectiveTickId,
+                    effectiveAtUtc: request.EffectiveAtUtc,
+                    currentEffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
+                    currentEffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc))
+            {
+                return ToResult(
+                    status: SyncCityOperationalBudgetPressureStatus.Stale,
+                    state: persistedState.OperationalBudgetPressure);
+            }
+
+            if (MatchesSnapshot(
+                    request: request,
+                    state: persistedState.OperationalBudgetPressure))
+            {
+                return ToResult(
+                    status: SyncCityOperationalBudgetPressureStatus.Concurrent,
+                    state: persistedState.OperationalBudgetPressure);
+            }
+
+            return null;
         }
 
         private static bool IsIncomingSnapshotStale(
@@ -150,6 +170,17 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         private static bool IsConcurrencyException(Exception exception)
         {
             return exception.GetType().Name == "DbUpdateConcurrencyException";
+        }
+
+        private static SyncCityOperationalBudgetPressureResult ToResult(
+            SyncCityOperationalBudgetPressureStatus status,
+            CityOperationalBudgetPressureState state)
+        {
+            return new SyncCityOperationalBudgetPressureResult(
+                Status: status,
+                PressureIndex: state.PressureIndex,
+                EffectiveTickId: state.EffectiveTickId,
+                EffectiveAtUtc: state.EffectiveAtUtc);
         }
     }
 }
