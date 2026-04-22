@@ -25,6 +25,7 @@ It combines:
 - Database migrations: `docs/deployment/database-migrations.md`
 - Trusted client IP forwarding: `docs/security/trusted-client-ip-forwarding.md`
 - Internal JWT rotation: `docs/security/internal-jwt-key-rotation.md`
+- Solution filters: `TheMatrix.Identity.slnf`, `TheMatrix.ClassicCity.slnf`, `TheMatrix.Platform.slnf`
 
 ## Local Development
 

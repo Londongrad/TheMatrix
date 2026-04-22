@@ -1,0 +1,20 @@
+{
+  "solution": {
+    "path": "TheMatrix.sln",
+    "projects": [
+      "src\\building-blocks\\Matrix.BuildingBlocks.Api\\Matrix.BuildingBlocks.Api.csproj",
+      "src\\building-blocks\\Matrix.BuildingBlocks.Application\\Matrix.BuildingBlocks.Application.csproj",
+      "src\\building-blocks\\Matrix.BuildingBlocks.Domain\\Matrix.BuildingBlocks.Domain.csproj",
+      "src\\building-blocks\\Matrix.BuildingBlocks.Infrastructure\\Matrix.BuildingBlocks.Infrastructure.csproj",
+      "src\\gateways\\Matrix.ApiGateway\\Matrix.ApiGateway.csproj",
+      "src\\services\\economy\\Matrix.Economy.Contracts\\Matrix.Economy.Contracts.csproj",
+      "src\\services\\identity\\Matrix.Identity.Contracts\\Matrix.Identity.Contracts.csproj",
+      "src\\services\\population\\Matrix.Population.Contracts\\Matrix.Population.Contracts.csproj",
+      "src\\services\\resources\\Matrix.Resources.Contracts\\Matrix.Resources.Contracts.csproj",
+      "src\\services\\simulationcore\\Matrix.SimulationCore.Contracts\\Matrix.SimulationCore.Contracts.csproj",
+      "src\\services\\simulationsystems\\Matrix.SimulationSystems.Contracts\\Matrix.SimulationSystems.Contracts.csproj",
+      "src\\shared\\Matrix.PermissionCatalog.Abstractions\\Matrix.PermissionCatalog.Abstractions.csproj",
+      "src\\shared\\Matrix.PermissionCatalog\\Matrix.PermissionCatalog.csproj"
+    ]
+  }
+}

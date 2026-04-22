@@ -1,0 +1,40 @@
+{
+  "solution": {
+    "path": "TheMatrix.sln",
+    "projects": [
+      "src\\building-blocks\\Matrix.BuildingBlocks.Api\\Matrix.BuildingBlocks.Api.csproj",
+      "src\\building-blocks\\Matrix.BuildingBlocks.Application\\Matrix.BuildingBlocks.Application.csproj",
+      "src\\building-blocks\\Matrix.BuildingBlocks.Domain\\Matrix.BuildingBlocks.Domain.csproj",
+      "src\\building-blocks\\Matrix.BuildingBlocks.Infrastructure\\Matrix.BuildingBlocks.Infrastructure.csproj",
+      "src\\gateways\\Matrix.ApiGateway\\Matrix.ApiGateway.csproj",
+      "src\\services\\economy\\Matrix.Economy.Api\\Matrix.Economy.Api.csproj",
+      "src\\services\\economy\\Matrix.Economy.Application\\Matrix.Economy.Application.csproj",
+      "src\\services\\economy\\Matrix.Economy.Contracts\\Matrix.Economy.Contracts.csproj",
+      "src\\services\\economy\\Matrix.Economy.Domain\\Matrix.Economy.Domain.csproj",
+      "src\\services\\economy\\Matrix.Economy.Infrastructure\\Matrix.Economy.Infrastructure.csproj",
+      "src\\services\\identity\\Matrix.Identity.Contracts\\Matrix.Identity.Contracts.csproj",
+      "src\\services\\population\\Matrix.Population.Api\\Matrix.Population.Api.csproj",
+      "src\\services\\population\\Matrix.Population.Application\\Matrix.Population.Application.csproj",
+      "src\\services\\population\\Matrix.Population.Contracts\\Matrix.Population.Contracts.csproj",
+      "src\\services\\population\\Matrix.Population.Domain\\Matrix.Population.Domain.csproj",
+      "src\\services\\population\\Matrix.Population.Infrastructure\\Matrix.Population.Infrastructure.csproj",
+      "src\\services\\resources\\Matrix.Resources.Api\\Matrix.Resources.Api.csproj",
+      "src\\services\\resources\\Matrix.Resources.Application\\Matrix.Resources.Application.csproj",
+      "src\\services\\resources\\Matrix.Resources.Contracts\\Matrix.Resources.Contracts.csproj",
+      "src\\services\\resources\\Matrix.Resources.Domain\\Matrix.Resources.Domain.csproj",
+      "src\\services\\resources\\Matrix.Resources.Infrastructure\\Matrix.Resources.Infrastructure.csproj",
+      "src\\services\\simulationcore\\Matrix.SimulationCore.Api\\Matrix.SimulationCore.Api.csproj",
+      "src\\services\\simulationcore\\Matrix.SimulationCore.Application\\Matrix.SimulationCore.Application.csproj",
+      "src\\services\\simulationcore\\Matrix.SimulationCore.Contracts\\Matrix.SimulationCore.Contracts.csproj",
+      "src\\services\\simulationcore\\Matrix.SimulationCore.Domain\\Matrix.SimulationCore.Domain.csproj",
+      "src\\services\\simulationcore\\Matrix.SimulationCore.Infrastructure\\Matrix.SimulationCore.Infrastructure.csproj",
+      "src\\services\\simulationsystems\\Matrix.SimulationSystems.Api\\Matrix.SimulationSystems.Api.csproj",
+      "src\\services\\simulationsystems\\Matrix.SimulationSystems.Application\\Matrix.SimulationSystems.Application.csproj",
+      "src\\services\\simulationsystems\\Matrix.SimulationSystems.Contracts\\Matrix.SimulationSystems.Contracts.csproj",
+      "src\\services\\simulationsystems\\Matrix.SimulationSystems.Domain\\Matrix.SimulationSystems.Domain.csproj",
+      "src\\services\\simulationsystems\\Matrix.SimulationSystems.Infrastructure\\Matrix.SimulationSystems.Infrastructure.csproj",
+      "src\\shared\\Matrix.PermissionCatalog.Abstractions\\Matrix.PermissionCatalog.Abstractions.csproj",
+      "src\\shared\\Matrix.PermissionCatalog\\Matrix.PermissionCatalog.csproj"
+    ]
+  }
+}
