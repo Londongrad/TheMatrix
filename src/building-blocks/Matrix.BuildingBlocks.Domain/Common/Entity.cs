@@ -10,15 +10,26 @@ namespace Matrix.BuildingBlocks.Domain.Common
 
         public override bool Equals(object? obj)
         {
-            return obj is Entity<TId> other &&
-                   EqualityComparer<TId>.Default.Equals(
-                       x: Id,
-                       y: other.Id);
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj is not Entity<TId> other || other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return EqualityComparer<TId>.Default.Equals(
+                x: Id,
+                y: other.Id);
         }
 
         public override int GetHashCode()
         {
-            return Id.GetHashCode();
+            return HashCode.Combine(
+                GetType(),
+                Id);
         }
     }
 }
