@@ -60,7 +60,51 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                     EffectiveTickId: request.EffectiveTickId,
                     EffectiveAtUtc: request.EffectiveAtUtc));
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception) when (IsConcurrencyException(exception))
+            {
+                CityEnvironmentalConditionState? persistedState = await repository.GetBySimulationHostIdNoTrackingAsync(
+                    simulationHostId: simulationHostId,
+                    cancellationToken: cancellationToken);
+
+                if (persistedState is null)
+                {
+                    return new SyncCityOperationalBudgetPressureResult(
+                        Status: SyncCityOperationalBudgetPressureStatus.NotInitialized,
+                        PressureIndex: 0m,
+                        EffectiveTickId: request.EffectiveTickId,
+                        EffectiveAtUtc: request.EffectiveAtUtc);
+                }
+
+                if (IsIncomingSnapshotStale(
+                        effectiveTickId: request.EffectiveTickId,
+                        effectiveAtUtc: request.EffectiveAtUtc,
+                        currentEffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
+                        currentEffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc))
+                {
+                    return new SyncCityOperationalBudgetPressureResult(
+                        Status: SyncCityOperationalBudgetPressureStatus.Stale,
+                        PressureIndex: persistedState.OperationalBudgetPressure.PressureIndex,
+                        EffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
+                        EffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc);
+                }
+
+                if (MatchesSnapshot(
+                        request: request,
+                        state: persistedState.OperationalBudgetPressure))
+                {
+                    return new SyncCityOperationalBudgetPressureResult(
+                        Status: SyncCityOperationalBudgetPressureStatus.Concurrent,
+                        PressureIndex: persistedState.OperationalBudgetPressure.PressureIndex,
+                        EffectiveTickId: persistedState.OperationalBudgetPressure.EffectiveTickId,
+                        EffectiveAtUtc: persistedState.OperationalBudgetPressure.EffectiveAtUtc);
+                }
+
+                throw;
+            }
 
             return new SyncCityOperationalBudgetPressureResult(
                 Status: SyncCityOperationalBudgetPressureStatus.Applied,
@@ -82,6 +126,30 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 return false;
 
             return effectiveAtUtc < currentEffectiveAtUtc;
+        }
+
+        private static bool MatchesSnapshot(
+            SyncCityOperationalBudgetPressureCommand request,
+            CityOperationalBudgetPressureState state)
+        {
+            return state.EffectiveTickId == request.EffectiveTickId &&
+                   state.EffectiveAtUtc == request.EffectiveAtUtc &&
+                   state.Balance == request.Balance &&
+                   state.MunicipalOperationsExpenses == request.MunicipalOperationsExpenses &&
+                   state.GeneralAvailableAmount == request.GeneralAvailableAmount &&
+                   state.OperationsAvailableAmount == request.OperationsAvailableAmount &&
+                   state.InfrastructureAvailableAmount == request.InfrastructureAvailableAmount &&
+                   state.HealthcareAvailableAmount == request.HealthcareAvailableAmount &&
+                   string.Equals(state.GeneralAuthorizationLevel, request.GeneralAuthorizationLevel, StringComparison.Ordinal) &&
+                   string.Equals(state.OperationsAuthorizationLevel, request.OperationsAuthorizationLevel, StringComparison.Ordinal) &&
+                   string.Equals(state.InfrastructureAuthorizationLevel, request.InfrastructureAuthorizationLevel, StringComparison.Ordinal) &&
+                   string.Equals(state.HealthcareAuthorizationLevel, request.HealthcareAuthorizationLevel, StringComparison.Ordinal) &&
+                   state.PressureIndex == request.PressureIndex;
+        }
+
+        private static bool IsConcurrencyException(Exception exception)
+        {
+            return exception.GetType().Name == "DbUpdateConcurrencyException";
         }
     }
 }

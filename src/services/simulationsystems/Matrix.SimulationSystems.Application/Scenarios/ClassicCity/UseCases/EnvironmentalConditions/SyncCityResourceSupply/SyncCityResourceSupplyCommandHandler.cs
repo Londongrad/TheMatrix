@@ -88,7 +88,51 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 status = SyncCityResourceSupplyStatus.Applied;
             }
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception) when (IsConcurrencyException(exception))
+            {
+                CityEnvironmentalConditionState? persistedState = await repository.GetBySimulationHostIdNoTrackingAsync(
+                    simulationHostId: simulationHostId,
+                    cancellationToken: cancellationToken);
+
+                if (persistedState is null)
+                {
+                    return new SyncCityResourceSupplyResult(
+                        Status: SyncCityResourceSupplyStatus.NotInitialized,
+                        SupplyStressIndex: 0m,
+                        EffectiveTickId: request.EffectiveTickId,
+                        EffectiveAtUtc: request.EffectiveAtUtc);
+                }
+
+                if (IsIncomingSnapshotStale(
+                        effectiveTickId: request.EffectiveTickId,
+                        effectiveAtUtc: request.EffectiveAtUtc,
+                        currentEffectiveTickId: persistedState.ResourceSupply.EffectiveTickId,
+                        currentEffectiveAtUtc: persistedState.ResourceSupply.EffectiveAtUtc))
+                {
+                    return new SyncCityResourceSupplyResult(
+                        Status: SyncCityResourceSupplyStatus.Stale,
+                        SupplyStressIndex: persistedState.ResourceSupply.SupplyStressIndex,
+                        EffectiveTickId: persistedState.ResourceSupply.EffectiveTickId,
+                        EffectiveAtUtc: persistedState.ResourceSupply.EffectiveAtUtc);
+                }
+
+                if (MatchesSnapshot(
+                        request: request,
+                        state: persistedState.ResourceSupply))
+                {
+                    return new SyncCityResourceSupplyResult(
+                        Status: SyncCityResourceSupplyStatus.Concurrent,
+                        SupplyStressIndex: persistedState.ResourceSupply.SupplyStressIndex,
+                        EffectiveTickId: persistedState.ResourceSupply.EffectiveTickId,
+                        EffectiveAtUtc: persistedState.ResourceSupply.EffectiveAtUtc);
+                }
+
+                throw;
+            }
 
             return new SyncCityResourceSupplyResult(
                 Status: status,
@@ -125,6 +169,32 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
                 return false;
 
             return effectiveAtUtc <= lastEvaluatedAtUtc;
+        }
+
+        private static bool MatchesSnapshot(
+            SyncCityResourceSupplyCommand request,
+            CityResourceSupplyState state)
+        {
+            return state.EffectiveTickId == request.EffectiveTickId &&
+                   state.EffectiveAtUtc == request.EffectiveAtUtc &&
+                   state.SupplyStressIndex == request.SupplyStressIndex &&
+                   state.FuelStockLevelIndex == request.FuelStockLevelIndex &&
+                   state.FuelResupplyReadinessIndex == request.FuelResupplyReadinessIndex &&
+                   state.FuelShortageRiskIndex == request.FuelShortageRiskIndex &&
+                   state.SparePartsStockLevelIndex == request.SparePartsStockLevelIndex &&
+                   state.SparePartsResupplyReadinessIndex == request.SparePartsResupplyReadinessIndex &&
+                   state.SparePartsShortageRiskIndex == request.SparePartsShortageRiskIndex &&
+                   state.FiltersStockLevelIndex == request.FiltersStockLevelIndex &&
+                   state.FiltersResupplyReadinessIndex == request.FiltersResupplyReadinessIndex &&
+                   state.FiltersShortageRiskIndex == request.FiltersShortageRiskIndex &&
+                   state.EmergencyWaterStockLevelIndex == request.EmergencyWaterStockLevelIndex &&
+                   state.EmergencyWaterResupplyReadinessIndex == request.EmergencyWaterResupplyReadinessIndex &&
+                   state.EmergencyWaterShortageRiskIndex == request.EmergencyWaterShortageRiskIndex;
+        }
+
+        private static bool IsConcurrencyException(Exception exception)
+        {
+            return exception.GetType().Name == "DbUpdateConcurrencyException";
         }
     }
 }

@@ -60,6 +60,15 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                         "Skipped classic city operational budget pressure for cityId={CityId} because environmental state is not initialized yet.",
                         message.CityId);
                     break;
+
+                case SyncCityOperationalBudgetPressureStatus.Concurrent:
+                    logger.LogDebug(
+                        message:
+                        "Skipped classic city operational budget pressure for cityId={CityId} after a concurrent update won the persistence race. Current effectiveTickId={EffectiveTickId}, effectiveAtUtc={EffectiveAtUtc}.",
+                        message.CityId,
+                        result.EffectiveTickId,
+                        result.EffectiveAtUtc);
+                    break;
             }
         }
     }

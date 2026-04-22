@@ -17,6 +17,17 @@ namespace Matrix.SimulationSystems.Infrastructure.Persistence.Repositories
                 cancellationToken: cancellationToken);
         }
 
+        public Task<CityEnvironmentalConditionState?> GetBySimulationHostIdNoTrackingAsync(
+            SimulationHostId simulationHostId,
+            CancellationToken cancellationToken)
+        {
+            return dbContext.CityEnvironmentalConditions
+               .AsNoTracking()
+               .SingleOrDefaultAsync(
+                    predicate: x => x.Id == simulationHostId,
+                    cancellationToken: cancellationToken);
+        }
+
         public Task AddAsync(
             CityEnvironmentalConditionState state,
             CancellationToken cancellationToken)

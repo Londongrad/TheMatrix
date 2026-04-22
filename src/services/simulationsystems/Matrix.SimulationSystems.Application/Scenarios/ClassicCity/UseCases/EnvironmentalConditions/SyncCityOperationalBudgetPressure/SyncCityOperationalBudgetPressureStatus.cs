@@ -4,6 +4,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
     {
         Applied = 0,
         Stale = 1,
-        NotInitialized = 2
+        NotInitialized = 2,
+        Concurrent = 3
     }
 }
