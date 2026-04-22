@@ -46,6 +46,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.Ignore(x => x.DomainEvents);
 
             builder.HasIndex(x => x.CityId);
+            builder.HasIndex(x => new { x.CityId, x.Name });
 
             builder
                .HasOne<City>()

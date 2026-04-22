@@ -2,6 +2,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Domain.Entities;
+using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
@@ -157,7 +158,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             Person[] persons = await _dbContext.Persons
                .AsNoTracking()
-               .Where(x => x.IsAlive && householdIds.Contains(x.HouseholdId))
+               .Where(x => x.Life.Status == LifeStatus.Alive && householdIds.Contains(x.HouseholdId))
                .ToArrayAsync(cancellationToken);
 
             var residentsByHousehold = persons

@@ -68,6 +68,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => x.DistrictId);
             builder.HasIndex(x => x.AccessRoadNodeId);
             builder.HasIndex(x => new { x.CityId, x.Type });
+            builder.HasIndex(x => new { x.CityId, x.Type, x.Name });
 
             builder
                .HasOne<City>()
