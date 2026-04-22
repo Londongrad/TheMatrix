@@ -25,6 +25,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.7" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
   </ItemGroup>
 </Project>

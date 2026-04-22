@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens"/>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
     <PackageReference Include="SixLabors.ImageSharp"/>
+    <PackageReference Include="System.Security.Cryptography.Xml"/>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
   </ItemGroup>
 
