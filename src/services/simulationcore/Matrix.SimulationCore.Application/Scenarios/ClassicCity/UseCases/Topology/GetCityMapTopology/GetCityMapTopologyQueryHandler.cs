@@ -19,40 +19,29 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         {
             var cityId = new CityId(request.CityId);
 
-            Task<IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.District>> districtsTask =
-                districtRepository.ListByCityIdAsync(
+            // These repositories share the same scoped DbContext, so EF queries must
+            // stay sequential inside a single request to avoid concurrency detector failures.
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.District> districts =
+                await districtRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            Task<IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.ResidentialBuilding>> buildingsTask =
-                residentialBuildingRepository.ListByCityIdAsync(
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.ResidentialBuilding> buildings =
+                await residentialBuildingRepository.ListByCityIdAsync(
                     cityId: cityId,
                     districtId: null,
                     cancellationToken: cancellationToken);
-            Task<IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.CityAnchor>> anchorsTask =
-                cityAnchorRepository.ListByCityIdAsync(
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.CityAnchor> anchors =
+                await cityAnchorRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            Task<IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadNode>> roadNodesTask =
-                roadNodeRepository.ListByCityIdAsync(
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadNode> roadNodes =
+                await roadNodeRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-            Task<IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadSegment>> roadSegmentsTask =
-                roadSegmentRepository.ListByCityIdAsync(
+            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadSegment> roadSegments =
+                await roadSegmentRepository.ListByCityIdAsync(
                     cityId: cityId,
                     cancellationToken: cancellationToken);
-
-            await Task.WhenAll(
-                districtsTask,
-                buildingsTask,
-                anchorsTask,
-                roadNodesTask,
-                roadSegmentsTask);
-
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.District> districts = await districtsTask;
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.ResidentialBuilding> buildings = await buildingsTask;
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.CityAnchor> anchors = await anchorsTask;
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadNode> roadNodes = await roadNodesTask;
-            IReadOnlyList<Domain.Scenarios.ClassicCity.Topology.RoadSegment> roadSegments = await roadSegmentsTask;
 
             return new CityMapTopologyDto(
                 CityId: request.CityId,

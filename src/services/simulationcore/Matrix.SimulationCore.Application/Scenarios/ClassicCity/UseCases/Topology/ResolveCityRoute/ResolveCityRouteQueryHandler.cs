@@ -20,35 +20,26 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
         {
             var cityId = new CityId(request.CityId);
 
-            Task<IReadOnlyList<RoadNode>> roadNodesTask = roadNodeRepository.ListByCityIdAsync(
-                cityId: cityId,
-                cancellationToken: cancellationToken);
-            Task<IReadOnlyList<RoadSegment>> roadSegmentsTask = roadSegmentRepository.ListByCityIdAsync(
-                cityId: cityId,
-                cancellationToken: cancellationToken);
-            Task<IReadOnlyList<ResidentialBuilding>> buildingsTask = residentialBuildingRepository.ListByCityIdAsync(
-                cityId: cityId,
-                districtId: null,
-                cancellationToken: cancellationToken);
-            Task<IReadOnlyList<CityAnchor>> anchorsTask = cityAnchorRepository.ListByCityIdAsync(
-                cityId: cityId,
-                cancellationToken: cancellationToken);
             Task<Services.Routing.CityRoadSegmentConditionsSnapshot?> conditionsTask =
                 roadSegmentConditionsClient.GetByCityIdAsync(
                     cityId: request.CityId,
                     cancellationToken: cancellationToken);
 
-            await Task.WhenAll(
-                roadNodesTask,
-                roadSegmentsTask,
-                buildingsTask,
-                anchorsTask,
-                conditionsTask);
-
-            IReadOnlyList<RoadNode> roadNodes = await roadNodesTask;
-            IReadOnlyList<RoadSegment> roadSegments = await roadSegmentsTask;
-            IReadOnlyList<ResidentialBuilding> buildings = await buildingsTask;
-            IReadOnlyList<CityAnchor> anchors = await anchorsTask;
+            // The repositories below share one scoped DbContext, so keep the EF reads
+            // sequential. The downstream HTTP call can still run in parallel safely.
+            IReadOnlyList<RoadNode> roadNodes = await roadNodeRepository.ListByCityIdAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<RoadSegment> roadSegments = await roadSegmentRepository.ListByCityIdAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<ResidentialBuilding> buildings = await residentialBuildingRepository.ListByCityIdAsync(
+                cityId: cityId,
+                districtId: null,
+                cancellationToken: cancellationToken);
+            IReadOnlyList<CityAnchor> anchors = await cityAnchorRepository.ListByCityIdAsync(
+                cityId: cityId,
+                cancellationToken: cancellationToken);
             Services.Routing.CityRoadSegmentConditionsSnapshot? conditions = await conditionsTask;
 
             Dictionary<Guid, RoadNode> roadNodeById = roadNodes.ToDictionary(
