@@ -13,11 +13,11 @@ namespace Matrix.BuildingBlocks.Application.Security.InternalApiKey
             if (options is null)
                 throw new ArgumentNullException(nameof(options));
 
-            bool hasConfiguredKeyRing =
-                !string.IsNullOrWhiteSpace(options.CurrentKeyId) ||
-                (options.Keys is { Count: > 0 });
+            Dictionary<string, string> normalizedKeys = NormalizeConfiguredKeys(
+                keys: options.Keys,
+                optionsPath: optionsPath);
 
-            if (!hasConfiguredKeyRing)
+            if (normalizedKeys.Count == 0)
             {
                 InternalJwtSigningKeyPolicy.EnsureStrong(
                     signingKey: options.ApiKey,
@@ -35,25 +35,6 @@ namespace Matrix.BuildingBlocks.Application.Security.InternalApiKey
             if (string.IsNullOrWhiteSpace(options.CurrentKeyId))
                 throw new InvalidOperationException($"{optionsPath}:CurrentKeyId is required when Keys are configured.");
 
-            if (options.Keys is not { Count: > 0 })
-                throw new InvalidOperationException($"{optionsPath}:Keys must contain at least one API key.");
-
-            var normalizedKeys = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach ((string keyId, string apiKey) in options.Keys)
-            {
-                if (string.IsNullOrWhiteSpace(keyId))
-                    throw new InvalidOperationException($"{optionsPath}:Keys contains an empty key id.");
-
-                if (string.IsNullOrWhiteSpace(apiKey))
-                    throw new InvalidOperationException($"{optionsPath}:Keys:{keyId} is required.");
-
-                InternalJwtSigningKeyPolicy.EnsureStrong(
-                    signingKey: apiKey,
-                    optionsPath: $"{optionsPath}:Keys:{keyId}");
-
-                normalizedKeys[keyId] = apiKey;
-            }
-
             if (!normalizedKeys.TryGetValue(
                     key: options.CurrentKeyId,
                     value: out string? currentApiKey))
@@ -64,6 +45,32 @@ namespace Matrix.BuildingBlocks.Application.Security.InternalApiKey
                 currentKeyId: options.CurrentKeyId,
                 currentApiKey: currentApiKey,
                 keys: normalizedKeys);
+        }
+
+        private static Dictionary<string, string> NormalizeConfiguredKeys(
+            IDictionary<string, string>? keys,
+            string optionsPath)
+        {
+            var normalizedKeys = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (keys is null)
+                return normalizedKeys;
+
+            foreach ((string keyId, string apiKey) in keys)
+            {
+                if (string.IsNullOrWhiteSpace(keyId) ||
+                    string.IsNullOrWhiteSpace(apiKey))
+                {
+                    continue;
+                }
+
+                InternalJwtSigningKeyPolicy.EnsureStrong(
+                    signingKey: apiKey,
+                    optionsPath: $"{optionsPath}:Keys:{keyId}");
+
+                normalizedKeys[keyId] = apiKey;
+            }
+
+            return normalizedKeys;
         }
     }
 }

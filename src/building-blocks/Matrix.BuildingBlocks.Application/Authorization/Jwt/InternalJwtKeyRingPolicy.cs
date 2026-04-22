@@ -11,11 +11,11 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
             if (options is null)
                 throw new ArgumentNullException(nameof(options));
 
-            bool hasConfiguredKeyRing =
-                !string.IsNullOrWhiteSpace(options.CurrentKeyId) ||
-                (options.Keys is { Count: > 0 });
+            Dictionary<string, string> normalizedKeys = NormalizeConfiguredKeys(
+                keys: options.Keys,
+                optionsPath: optionsPath);
 
-            if (!hasConfiguredKeyRing)
+            if (normalizedKeys.Count == 0)
             {
                 InternalJwtSigningKeyPolicy.EnsureStrong(
                     signingKey: options.SigningKey,
@@ -33,25 +33,6 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
             if (string.IsNullOrWhiteSpace(options.CurrentKeyId))
                 throw new InvalidOperationException($"{optionsPath}:CurrentKeyId is required when Keys are configured.");
 
-            if (options.Keys is not { Count: > 0 })
-                throw new InvalidOperationException($"{optionsPath}:Keys must contain at least one signing key.");
-
-            var normalizedKeys = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach ((string keyId, string signingKey) in options.Keys)
-            {
-                if (string.IsNullOrWhiteSpace(keyId))
-                    throw new InvalidOperationException($"{optionsPath}:Keys contains an empty key id.");
-
-                if (string.IsNullOrWhiteSpace(signingKey))
-                    throw new InvalidOperationException($"{optionsPath}:Keys:{keyId} is required.");
-
-                InternalJwtSigningKeyPolicy.EnsureStrong(
-                    signingKey: signingKey,
-                    optionsPath: $"{optionsPath}:Keys:{keyId}");
-
-                normalizedKeys[keyId] = signingKey;
-            }
-
             if (!normalizedKeys.TryGetValue(
                     key: options.CurrentKeyId,
                     value: out string? currentSigningKey))
@@ -62,6 +43,42 @@ namespace Matrix.BuildingBlocks.Application.Authorization.Jwt
                 currentKeyId: options.CurrentKeyId,
                 currentSigningKey: currentSigningKey,
                 keys: normalizedKeys);
+        }
+
+        public static bool HasConfiguredKeyRing(IInternalJwtKeyRingOptions options)
+        {
+            if (options is null)
+                throw new ArgumentNullException(nameof(options));
+
+            return NormalizeConfiguredKeys(
+                keys: options.Keys,
+                optionsPath: null).Count > 0;
+        }
+
+        private static Dictionary<string, string> NormalizeConfiguredKeys(
+            IDictionary<string, string>? keys,
+            string? optionsPath)
+        {
+            var normalizedKeys = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (keys is null)
+                return normalizedKeys;
+
+            foreach ((string keyId, string signingKey) in keys)
+            {
+                if (string.IsNullOrWhiteSpace(keyId) ||
+                    string.IsNullOrWhiteSpace(signingKey))
+                {
+                    continue;
+                }
+
+                InternalJwtSigningKeyPolicy.EnsureStrong(
+                    signingKey: signingKey,
+                    optionsPath: $"{optionsPath ?? "Keys"}:{keyId}");
+
+                normalizedKeys[keyId] = signingKey;
+            }
+
+            return normalizedKeys;
         }
     }
 }

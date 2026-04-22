@@ -255,10 +255,8 @@ namespace Matrix.BuildingBlocks.Api.Authorization
             if (!string.IsNullOrWhiteSpace(options.SigningKey))
                 return true;
 
-            return options is IInternalJwtKeyRingOptions
-            {
-                Keys.Count: > 0
-            };
+            return options is IInternalJwtKeyRingOptions keyRingOptions &&
+                   InternalJwtKeyRingPolicy.HasConfiguredKeyRing(keyRingOptions);
         }
 
         private static bool TryValidateInternalKeyMaterial<TJwtOptions>(
