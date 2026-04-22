@@ -157,17 +157,10 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
 
             Person[] persons = await _dbContext.Persons
                .AsNoTracking()
-               .Join(
-                    inner: _dbContext.ClassicCityHouseholdPlacements.Where(x => x.CityId == cityId),
-                    outerKeySelector: person => person.HouseholdId,
-                    innerKeySelector: placement => placement.HouseholdId,
-                    resultSelector: (
-                        person,
-                        _) => person)
+               .Where(x => x.IsAlive && householdIds.Contains(x.HouseholdId))
                .ToArrayAsync(cancellationToken);
 
             var residentsByHousehold = persons
-               .Where(x => x.IsAlive)
                .GroupBy(x => x.HouseholdId)
                .ToDictionary(
                     keySelector: x => x.Key,
