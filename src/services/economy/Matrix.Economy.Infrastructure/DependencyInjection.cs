@@ -7,7 +7,6 @@ using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Domain.Services;
 using Matrix.Economy.Infrastructure.Consumers;
-using Matrix.Economy.Infrastructure.Messaging;
 using Matrix.Economy.Infrastructure.Outbox;
 using Matrix.Economy.Infrastructure.Outbox.RabbitMq;
 using Matrix.Economy.Infrastructure.Persistence;
@@ -57,18 +56,7 @@ namespace Matrix.Economy.Infrastructure
                     options.EnableDetailedErrors();
             });
 
-            services.AddOptions<RabbitMqOptions>()
-               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
-                    failureMessage: "RabbitMq:Host is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
-                    failureMessage: "RabbitMq:Username is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
-                    failureMessage: "RabbitMq:Password is required.")
-               .ValidateOnStart();
+            services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
 
             services.AddScoped<ICityBudgetRepository, CityBudgetRepository>();

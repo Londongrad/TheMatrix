@@ -1,4 +1,4 @@
-namespace Matrix.Economy.Infrastructure.Messaging
+namespace Matrix.BuildingBlocks.Infrastructure.Messaging
 {
     public sealed class RabbitMqOptions
     {

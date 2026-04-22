@@ -10,6 +10,7 @@ using Matrix.ApiGateway.DownstreamClients.Common;
 using Matrix.ApiGateway.DownstreamClients.Identity;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Application.Security.InternalApiKey;
+using Matrix.BuildingBlocks.Api.OptionsValidation;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -55,11 +56,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .Validate(
                     validation: o => o.RequestTimeoutSeconds > 0,
                     failureMessage: "IdentityInternal:RequestTimeoutSeconds must be greater than 0.")
-               .Validate(
-                    validation: o => TryValidateInternalApiKeyRing(
-                        options: o,
-                        validationError: out _),
-                    failureMessage: $"{IdentityInternalOptions.SectionName}: invalid key rotation configuration.")
+               .ValidateInternalApiKeyRing(IdentityInternalOptions.SectionName)
                .ValidateOnStart();
 
             services.AddOptions<PermissionsVersionOptions>()
@@ -120,26 +117,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             return services;
         }
 
-        private static IServiceCollection AddRabbitMqOptions(
-            this IServiceCollection services,
-            IConfiguration configuration)
-        {
-            services.AddOptions<RabbitMqOptions>()
-               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
-                    failureMessage: "RabbitMq:Host is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
-                    failureMessage: "RabbitMq:Username is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
-                    failureMessage: "RabbitMq:Password is required.")
-               .ValidateOnStart();
-
-            return services;
-        }
-
         private static IServiceCollection AddGatewayRedisCache(
             this IServiceCollection services,
             IConfiguration configuration)
@@ -187,25 +164,6 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .AddHttpMessageHandler<InternalIdentityApiKeyAuthenticationHandler>();
 
             return services;
-        }
-
-        private static bool TryValidateInternalApiKeyRing(
-            IdentityInternalOptions options,
-            out string? validationError)
-        {
-            try
-            {
-                _ = InternalApiKeyRingPolicy.Resolve(
-                    options: options,
-                    optionsPath: IdentityInternalOptions.SectionName);
-                validationError = null;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                validationError = ex.Message;
-                return false;
-            }
         }
 
         private static IServiceCollection AddGatewayMessaging(this IServiceCollection services)

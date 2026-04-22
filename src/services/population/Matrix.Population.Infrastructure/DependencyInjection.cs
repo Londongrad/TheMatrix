@@ -35,8 +35,6 @@ namespace Matrix.Population.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            Guid populationServicePrincipalId = Guid.Parse("33333333-3333-3333-3333-333333333333");
-
             string? connectionString = configuration.GetConnectionString("PopulationDb");
 
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -59,18 +57,7 @@ namespace Matrix.Population.Infrastructure
                         errorCodesToAdd: null));
             });
 
-            services.AddOptions<RabbitMqOptions>()
-               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
-                    failureMessage: "RabbitMq:Host is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
-                    failureMessage: "RabbitMq:Username is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
-                    failureMessage: "RabbitMq:Password is required.")
-               .ValidateOnStart();
+            services.AddRabbitMqOptions(configuration);
             services.AddOptions<DownstreamServicesOptions>()
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
@@ -104,14 +91,9 @@ namespace Matrix.Population.Infrastructure
                         uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
-                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
-                    subjectId: populationServicePrincipalId,
-                    serviceName: "population",
-                    permissions:
-                    [
-                        SimulationCorePermissionKeys.SimulationCoreClassicCityRead
-                    ]));
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.Population,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead);
             services.AddHttpClient<ICityPopulationActiveTripClient, CityActiveTripClient>((sp, client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
@@ -124,15 +106,10 @@ namespace Matrix.Population.Infrastructure
                         uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
-                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
-                    subjectId: populationServicePrincipalId,
-                    serviceName: "population",
-                    permissions:
-                    [
-                        SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
-                        SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate
-                    ]));
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.Population,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate);
             services.AddHttpClient<ICityDistrictUtilityConditionsClient, CityDistrictUtilityConditionsClient>((sp, client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
@@ -145,11 +122,7 @@ namespace Matrix.Population.Infrastructure
                         uriString: options.SimulationSystems,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
-                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
-                    subjectId: populationServicePrincipalId,
-                    serviceName: "population",
-                    permissions: []));
+               .AddInternalServiceAuthentication(identity: InternalServicePrincipals.Population);
 
             services.AddMassTransit(x =>
             {

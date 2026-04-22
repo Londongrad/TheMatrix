@@ -5,7 +5,6 @@ using Matrix.BuildingBlocks.Infrastructure.Authorization.InternalServices;
 using Matrix.BuildingBlocks.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Abstractions;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.DependencyInjection;
-using Matrix.Resources.Infrastructure.Messaging;
 using Matrix.BuildingBlocks.Infrastructure.Persistence;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
@@ -36,8 +35,6 @@ namespace Matrix.Resources.Infrastructure
             IConfiguration configuration,
             IHostEnvironment environment)
         {
-            Guid resourcesServicePrincipalId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-
             string connectionString = configuration.GetConnectionString("ResourcesDb") ??
                                       throw new InvalidOperationException(
                                           "Connection string 'ResourcesDb' is not configured.");
@@ -66,18 +63,7 @@ namespace Matrix.Resources.Infrastructure
                     options.EnableDetailedErrors();
             });
 
-            services.AddOptions<RabbitMqOptions>()
-               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
-                    failureMessage: "RabbitMq:Host is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
-                    failureMessage: "RabbitMq:Username is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
-                    failureMessage: "RabbitMq:Password is required.")
-               .ValidateOnStart();
+            services.AddRabbitMqOptions(configuration);
             services.AddOptions<DownstreamServicesOptions>()
                .Bind(configuration.GetSection(DownstreamServicesOptions.SectionName));
             services.AddMassTransitEndpointHygieneOptions(configuration);
@@ -103,14 +89,9 @@ namespace Matrix.Resources.Infrastructure
                         uriString: options.Economy,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
-                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
-                    subjectId: resourcesServicePrincipalId,
-                    serviceName: "resources",
-                    permissions:
-                    [
-                        EconomyPermissionKeys.EconomyBudgetAuthorize
-                    ]));
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.Resources,
+                    EconomyPermissionKeys.EconomyBudgetAuthorize);
             services.AddHttpClient<ICityResupplyTripDispatcher, CityResupplyTripDispatcher>((sp, client) =>
                 {
                     DownstreamServicesOptions options = sp.GetRequiredService<IOptions<DownstreamServicesOptions>>()
@@ -123,15 +104,10 @@ namespace Matrix.Resources.Infrastructure
                         uriString: options.SimulationCore,
                         uriKind: UriKind.Absolute);
                 })
-               .AddHttpMessageHandler(sp => new InternalScopedServiceAuthenticationHandler(
-                    jwtIssuer: sp.GetRequiredService<IInternalServiceJwtIssuer>(),
-                    subjectId: resourcesServicePrincipalId,
-                    serviceName: "resources",
-                    permissions:
-                    [
-                        SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
-                        SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate
-                    ]));
+               .AddInternalServiceAuthentication(
+                    identity: InternalServicePrincipals.Resources,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityRead,
+                    SimulationCorePermissionKeys.SimulationCoreClassicCityUpdate);
 
             services.AddMassTransit(x =>
             {

@@ -113,18 +113,7 @@ namespace Matrix.Identity.Infrastructure
             // Outbox pattern
             services.AddOutbox<IdentityDbContext>(configuration);
             // Validate options on start
-            services.AddOptions<RabbitMqOptions>()
-               .Bind(configuration.GetSection(RabbitMqOptions.SectionName))
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Host),
-                    failureMessage: "RabbitMq:Host is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Username),
-                    failureMessage: "RabbitMq:Username is required.")
-               .Validate(
-                    validation: o => !string.IsNullOrWhiteSpace(o.Password),
-                    failureMessage: "RabbitMq:Password is required.")
-               .ValidateOnStart();
+            services.AddRabbitMqOptions(configuration);
             services.AddMassTransitEndpointHygieneOptions(configuration);
             services.AddScoped<IOutboxMessagePublisher, MassTransitOutboxMessagePublisher>();
 
