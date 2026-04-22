@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Middleware;
+using Matrix.BuildingBlocks.Api.Defaults;
 
 namespace Matrix.SimulationSystems.Api.Configurations
 {
@@ -7,22 +8,7 @@ namespace Matrix.SimulationSystems.Api.Configurations
     {
         public static void ConfigureApplicationMiddleware(this WebApplication app)
         {
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
-            app.UseSecurityPipeline();
-            app.ConfigureControllers();
-        }
-
-        private static void UseSecurityPipeline(this WebApplication app)
-        {
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
-        }
-
-        private static void ConfigureControllers(this WebApplication app)
-        {
-            app.MapOperationalHealthChecks();
-            app.MapControllers();
+            app.UseMatrixApi();
         }
     }
 }

@@ -1,4 +1,5 @@
 using Matrix.BuildingBlocks.Api.Authorization;
+using Matrix.BuildingBlocks.Api.Defaults;
 using Matrix.BuildingBlocks.Api.HealthChecks;
 using Matrix.BuildingBlocks.Api.Logging;
 using Matrix.BuildingBlocks.Application.Abstractions;
@@ -16,17 +17,9 @@ namespace Matrix.Economy.Api.Configurations
             IServiceCollection services = builder.Services;
             ConfigurationManager configuration = builder.Configuration;
 
-            builder.AddSerilogLogging();
-
-            builder.Services.AddControllers();
-            builder.Services.AddOperationalHealthChecks(configuration);
+            builder.AddMatrixServiceDefaults();
             builder.Services.AddDatabaseStartup(configuration);
-
-            services.AddInternalJwtAuthentication(configuration);
-
-            services.AddAuthorization();
-            services.AddHttpContextAccessor();
-            services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
+            services.AddMatrixInternalApi(configuration);
 
             services.AddApplication();
             services.AddInfrastructure(
