@@ -110,7 +110,7 @@ export const ResetPasswordPage = () => {
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="вЂўвЂўвЂўвЂўвЂўвЂўвЂўвЂў"
+                            placeholder="••••••••"
                             required
                             disabled={isSubmitting || !isLinkValid}
                         />
@@ -125,7 +125,7 @@ export const ResetPasswordPage = () => {
                             type="password"
                             value={confirmNewPassword}
                             onChange={(e) => setConfirmNewPassword(e.target.value)}
-                            placeholder="вЂўвЂўвЂўвЂўвЂўвЂўвЂўвЂў"
+                            placeholder="••••••••"
                             required
                             disabled={isSubmitting || !isLinkValid}
                         />

@@ -105,7 +105,7 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
         }
     }, []);
 
-    // рџ”Ѓ РћР±РЅРѕРІР»РµРЅРёРµ access-С‚РѕРєРµРЅР° РїРѕ refresh-РєСѓРєРµ (РўРћР›Р¬РљРћ С‚РѕРєРµРЅ)
+    // 🔁 Обновление access-токена по refresh-куке (ТОЛЬКО токен)
     const reloadProfileOnce = useCallback(async () => {
         if (profileRefreshInFlight.current) return;
         profileRefreshInFlight.current = true;
@@ -205,16 +205,16 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
 
     const logout = async () => {
         try {
-            await logoutAuth(); // Р±СЌРє СЃР°Рј СѓРґР°Р»РёС‚ refresh-РєСѓРєСѓ
+            await logoutAuth(); // бэк сам удалит refresh-куку
         } catch {
-            // РґР°Р¶Рµ РµСЃР»Рё РѕС€РёР±РєР°, РІСЃС‘ СЂР°РІРЅРѕ С‡РёСЃС‚РёРј Р»РѕРєР°Р»СЊРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ
+            // даже если ошибка, всё равно чистим локальное состояние
         } finally {
             setAccessToken(null);
             setUser(null);
         }
     };
 
-    // РџСЂРё РјРѕРЅС‚РёСЂРѕРІР°РЅРёРё: РѕРґРёРЅ СЂР°Р· РїСЂРѕР±СѓРµРј РІРѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРµСЃСЃРёСЋ РїРѕ refresh-РєСѓРєРµ
+    // При монтировании: один раз пробуем восстановить сессию по refresh-куке
     useEffect(() => {
         if (hasTriedRefresh.current) return;
         hasTriedRefresh.current = true;
@@ -242,7 +242,7 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
         })();
     }, [refreshSession, reloadMe]);
 
-    // рџ”Ґ configure РѕРґРёРЅ СЂР°Р· (refreshSession СЃС‚Р°Р±РёР»РµРЅ С‡РµСЂРµР· useCallback)
+    // 🔥 configure один раз (refreshSession стабилен через useCallback)
     useEffect(() => {
         configureHttpAuth({
             refreshToken: refreshSession,
@@ -253,7 +253,7 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
             getAccessToken: () => tokenRef.current,
             onForbidden: ({url}) => {
                 void reloadProfileOnce();
-                // С‡С‚РѕР±С‹ РЅРµ Р·Р°С†РёРєР»РёС‚СЊСЃСЏ, РµСЃР»Рё СѓР¶Рµ РЅР° forbidden
+                // чтобы не зациклиться, если уже на forbidden
                 if (location.pathname !== "/forbidden") {
                     navigate("/forbidden", {
                         replace: true,

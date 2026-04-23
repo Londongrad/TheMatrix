@@ -41,7 +41,7 @@ const App = () => {
             <AuthProvider>
                 <ConfirmProvider>
                     <Routes>
-                        {/* РїСѓР±Р»РёС‡РЅС‹Рµ СЃС‚СЂР°РЅРёС†С‹ */}
+                        {/* публичные страницы */}
                         <Route path="/login" element={<LoginPage/>}/>
                         <Route path="/register" element={<RegisterPage/>}/>
                         <Route path="/confirm-email" element={<ConfirmEmailPage/>}/>
@@ -52,7 +52,7 @@ const App = () => {
                         <Route path="/reset-password" element={<ResetPasswordPage/>}/>
                         <Route path="/forbidden" element={<ForbiddenPage/>}/>
 
-                        {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ СЃС‚СЂР°РЅРёС†С‹ вЂ” СЃ MainLayout */}
+                        {/* защищённые страницы — с MainLayout */}
                         <Route
                             element={
                                 <RequireAuth>
@@ -74,7 +74,7 @@ const App = () => {
                             {classicCityRoutes}
                         </Route>
 
-                        {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ user settings СЃС‚СЂР°РЅРёС†С‹ - СЃ UserSettingsLayout */}
+                        {/* защищённые user settings страницы - с UserSettingsLayout */}
                         <Route
                             path="/userSettings"
                             element={
@@ -97,7 +97,7 @@ const App = () => {
                             <Route path="danger" element={<UserSettingsDangerPage/>}/>
                         </Route>
 
-                        {/* Р·Р°С‰РёС‰С‘РЅРЅС‹Рµ admin СЃС‚СЂР°РЅРёС†С‹ - СЃ AdminLayout */}
+                        {/* защищённые admin страницы - с AdminLayout */}
                         <Route
                             path="/admin"
                             element={
