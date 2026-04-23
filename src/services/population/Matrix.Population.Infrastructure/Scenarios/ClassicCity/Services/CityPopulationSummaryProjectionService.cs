@@ -7,8 +7,10 @@ using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
+using Matrix.Population.Domain.ValueObjects;
 using Matrix.Population.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
 {
@@ -18,7 +20,8 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         CityPopulationParticipationPolicy participationPolicy,
         CityPopulationHealthcarePressurePolicy healthcarePressurePolicy,
         TimeProvider timeProvider,
-        ICityPopulationCommuteRoutingService commuteRoutingService)
+        ICityPopulationCommuteRoutingService commuteRoutingService,
+        ILogger<CityPopulationSummaryProjectionService> logger)
         : ICityPopulationSummaryProjectionService
     {
         private readonly PopulationDbContext _dbContext = dbContext;
@@ -27,6 +30,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
         private readonly CityPopulationHealthcarePressurePolicy _healthcarePressurePolicy = healthcarePressurePolicy;
         private readonly TimeProvider _timeProvider = timeProvider;
         private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
+        private readonly ILogger<CityPopulationSummaryProjectionService> _logger = logger;
 
         public Task UpdateAsync(
             CityId cityId,
@@ -90,14 +94,45 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityId cityId,
             CancellationToken cancellationToken = default)
         {
-            bool exists = await _dbContext.CityPopulationSummaryProjections
+            var projectionPresence = await _dbContext.CityPopulationSummaryProjections
                .AsNoTracking()
-               .AnyAsync(
-                    predicate: x => x.CityId == cityId,
+               .Where(x => x.CityId == cityId)
+               .Select(x => new
+                {
+                    x.ResidentCount,
+                    x.HouseholdCount
+                })
+               .SingleOrDefaultAsync(cancellationToken);
+
+            if (projectionPresence is not null)
+            {
+                if (projectionPresence.ResidentCount > 0 || projectionPresence.HouseholdCount > 0)
+                    return;
+
+                (int actualResidentCount, int actualHouseholdCount) = await GetPersistedPopulationCountsAsync(
+                    cityId: cityId,
                     cancellationToken: cancellationToken);
 
-            if (exists)
+                if (actualResidentCount == 0 && actualHouseholdCount == 0)
+                    return;
+
+                _logger.LogWarning(
+                    "Repairing zeroed city population summary projection for cityId={CityId}. Actual residents={ResidentCount}, households={HouseholdCount}.",
+                    cityId.Value,
+                    actualResidentCount,
+                    actualHouseholdCount);
+
+                await RebuildAsync(
+                    cityId: cityId,
+                    currentDate: await ResolveCurrentDateAsync(
+                        cityId: cityId,
+                        cancellationToken: cancellationToken),
+                    includeCommuteMetrics: true,
+                    cancellationToken: cancellationToken);
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
                 return;
+            }
 
             bool hasPopulationState = await HasAnyPopulationStateAsync(
                 cityId: cityId,
@@ -145,11 +180,27 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             bool includeCommuteMetrics,
             CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<ClassicCityHouseholdPlacement> resolvedPlacements = householdPlacements ??
-                await _dbContext.ClassicCityHouseholdPlacements
-                   .AsNoTracking()
-                   .Where(x => x.CityId == cityId)
-                   .ToListAsync(cancellationToken);
+            IReadOnlyCollection<ClassicCityHouseholdPlacement> resolvedPlacements =
+                await ResolvePlacementsAsync(
+                    cityId: cityId,
+                    householdPlacements: householdPlacements,
+                    cancellationToken: cancellationToken);
+            IReadOnlyCollection<Person> resolvedPersons = await ResolvePersonsAsync(
+                cityId: cityId,
+                persons: persons,
+                householdPlacements: resolvedPlacements,
+                cancellationToken: cancellationToken);
+
+            if ((persons.Count == 0 || householdPlacements?.Count == 0) &&
+                (resolvedPersons.Count > 0 || resolvedPlacements.Count > 0))
+                _logger.LogWarning(
+                    "Recovered missing city population summary inputs for cityId={CityId}. Incoming residents={IncomingResidentCount}, incoming households={IncomingHouseholdCount}, resolved residents={ResolvedResidentCount}, resolved households={ResolvedHouseholdCount}.",
+                    cityId.Value,
+                    persons.Count,
+                    householdPlacements?.Count ?? 0,
+                    resolvedPersons.Count,
+                    resolvedPlacements.Count);
+
             CityPopulationLivingConditionsState? livingConditionsState = await _dbContext.CityPopulationLivingConditionsStates
                .AsNoTracking()
                .SingleOrDefaultAsync(
@@ -169,7 +220,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
             CityPopulationSummarySnapshotValues snapshotValues = await BuildSnapshotValuesAsync(
                 cityId: cityId,
                 currentDate: currentDate,
-                persons: persons,
+                persons: resolvedPersons,
                 householdPlacements: resolvedPlacements,
                 livingConditionsState: livingConditionsState,
                 serviceQualityState: serviceQualityState,
@@ -191,6 +242,67 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                 cityId: cityId,
                 snapshot: snapshotValues,
                 cancellationToken: cancellationToken);
+        }
+
+        private async Task<IReadOnlyCollection<ClassicCityHouseholdPlacement>> ResolvePlacementsAsync(
+            CityId cityId,
+            IReadOnlyCollection<ClassicCityHouseholdPlacement>? householdPlacements,
+            CancellationToken cancellationToken)
+        {
+            if (householdPlacements is { Count: > 0 })
+                return householdPlacements;
+
+            ClassicCityHouseholdPlacement[] trackedPlacements = _dbContext.ChangeTracker
+               .Entries<ClassicCityHouseholdPlacement>()
+               .Where(x => x.State != EntityState.Deleted && x.Entity.CityId == cityId)
+               .Select(x => x.Entity)
+               .DistinctBy(x => x.HouseholdId)
+               .ToArray();
+
+            if (trackedPlacements.Length > 0)
+                return trackedPlacements;
+
+            return await _dbContext.ClassicCityHouseholdPlacements
+               .AsNoTracking()
+               .Where(x => x.CityId == cityId)
+               .ToListAsync(cancellationToken);
+        }
+
+        private async Task<IReadOnlyCollection<Person>> ResolvePersonsAsync(
+            CityId cityId,
+            IReadOnlyCollection<Person> persons,
+            IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
+            CancellationToken cancellationToken)
+        {
+            if (persons.Count > 0)
+                return persons;
+
+            if (householdPlacements.Count == 0)
+                return persons;
+
+            HashSet<HouseholdId> householdIds = householdPlacements
+               .Select(x => x.HouseholdId)
+               .ToHashSet();
+            Person[] trackedPersons = _dbContext.ChangeTracker
+               .Entries<Person>()
+               .Where(x => x.State != EntityState.Deleted && householdIds.Contains(x.Entity.HouseholdId))
+               .Select(x => x.Entity)
+               .DistinctBy(x => x.Id)
+               .ToArray();
+
+            if (trackedPersons.Length > 0)
+                return trackedPersons;
+
+            return await _dbContext.Persons
+               .AsNoTracking()
+               .Join(
+                    inner: _dbContext.ClassicCityHouseholdPlacements
+                       .AsNoTracking()
+                       .Where(x => x.CityId == cityId),
+                    outerKeySelector: person => person.HouseholdId,
+                    innerKeySelector: placement => placement.HouseholdId,
+                    resultSelector: (person, _) => person)
+               .ToListAsync(cancellationToken);
         }
 
         private static async Task<CityPopulationSummarySnapshotValues> BuildSnapshotValuesAsync(
@@ -510,6 +622,33 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Services
                       .AnyAsync(
                            predicate: x => x.CityId == cityId,
                            cancellationToken: cancellationToken);
+        }
+
+        private async Task<(int ResidentCount, int HouseholdCount)> GetPersistedPopulationCountsAsync(
+            CityId cityId,
+            CancellationToken cancellationToken)
+        {
+            int householdCount = await _dbContext.ClassicCityHouseholdPlacements
+               .AsNoTracking()
+               .CountAsync(
+                    predicate: x => x.CityId == cityId,
+                    cancellationToken: cancellationToken);
+
+            if (householdCount == 0)
+                return (0, 0);
+
+            int residentCount = await _dbContext.Persons
+               .AsNoTracking()
+               .Join(
+                    inner: _dbContext.ClassicCityHouseholdPlacements
+                       .AsNoTracking()
+                       .Where(x => x.CityId == cityId),
+                    outerKeySelector: person => person.HouseholdId,
+                    innerKeySelector: placement => placement.HouseholdId,
+                    resultSelector: (person, _) => person)
+               .CountAsync(cancellationToken);
+
+            return (residentCount, householdCount);
         }
 
         private async Task<DateOnly> ResolveCurrentDateAsync(
