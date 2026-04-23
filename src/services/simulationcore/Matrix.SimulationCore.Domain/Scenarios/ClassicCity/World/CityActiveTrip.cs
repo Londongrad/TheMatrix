@@ -324,7 +324,9 @@ namespace Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World
                 return;
 
             decimal nextProgress = NormalizeProgress(
-                value: ProgressIndex + (deltaMinutes / AdjustedTravelTimeMinutes),
+                value: Math.Min(
+                    1m,
+                    ProgressIndex + (deltaMinutes / AdjustedTravelTimeMinutes)),
                 propertyName: nameof(ProgressIndex));
 
             ProgressIndex = nextProgress;
