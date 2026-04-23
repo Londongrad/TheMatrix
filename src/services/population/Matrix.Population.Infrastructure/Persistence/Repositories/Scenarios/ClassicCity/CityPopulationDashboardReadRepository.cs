@@ -1,5 +1,4 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
-using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
@@ -17,8 +16,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
         CityHouseholdEconomyPolicy householdEconomyPolicy,
         CityHouseholdCashflowPolicy householdCashflowPolicy,
         CityPopulationDistrictImpactPolicy districtImpactPolicy,
-        CityPopulationParticipationPolicy participationPolicy,
-        ICityPopulationCommuteRoutingService commuteRoutingService)
+        CityPopulationParticipationPolicy participationPolicy)
         : ICityPopulationDashboardReadRepository
     {
         private readonly PopulationDbContext _dbContext = dbContext;
@@ -26,7 +24,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
         private readonly CityHouseholdCashflowPolicy _householdCashflowPolicy = householdCashflowPolicy;
         private readonly CityPopulationDistrictImpactPolicy _districtImpactPolicy = districtImpactPolicy;
         private readonly CityPopulationParticipationPolicy _participationPolicy = participationPolicy;
-        private readonly ICityPopulationCommuteRoutingService _commuteRoutingService = commuteRoutingService;
 
         public async Task<CityPopulationDashboardSnapshotReadModel?> GetCurrentSnapshotAsync(
             CityId cityId,
@@ -181,10 +178,6 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                .SingleOrDefaultAsync(
                     predicate: x => x.CityId == cityId,
                     cancellationToken: cancellationToken);
-            var residentialBuildingByHouseholdId = placements
-               .ToDictionary(
-                    keySelector: x => x.HouseholdId,
-                    elementSelector: x => x.ResidentialBuildingId);
 
             int stableHouseholdCount = 0;
             int strainedHouseholdCount = 0;
@@ -223,6 +216,8 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                     CityPopulationEssentialsContext districtEssentials = _districtImpactPolicy.ResolveEssentials(
                         districtId: districtId,
                         essentialsState: essentialsState);
+                    // The dashboard economy snapshot is a lightweight read model. Keep it
+                    // deterministic and cheap by avoiding live route resolution per resident.
                     decimal incomeMultiplier = resident.Employment.Status == Domain.Enums.EmploymentStatus.Employed
                         ? _participationPolicy.ResolveEmploymentProfile(
                             person: resident,
@@ -230,15 +225,7 @@ namespace Matrix.Population.Infrastructure.Persistence.Repositories.Scenarios.Cl
                             housingStatus: placement.HousingStatus,
                             livingConditions: districtLivingConditions,
                             essentials: districtEssentials,
-                            commute: await _commuteRoutingService.ResolveEmploymentCommuteAsync(
-                                cityId: cityId.Value,
-                                residentialBuildingId: residentialBuildingByHouseholdId.TryGetValue(
-                                    key: resident.HouseholdId,
-                                    value: out ResidentialBuildingId? residentialBuildingId)
-                                    ? residentialBuildingId
-                                    : null,
-                                resident: resident,
-                                cancellationToken: cancellationToken)).PayrollMultiplier
+                            commute: CityPopulationCommuteContext.Neutral).PayrollMultiplier
                         : 1m;
 
                     adjustedNetDailyIncomeAmount += _householdCashflowPolicy.BuildResidentIncome(
