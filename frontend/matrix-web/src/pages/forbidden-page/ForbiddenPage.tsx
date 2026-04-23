@@ -1,8 +1,8 @@
 // src/pages/forbidden-page/ForbiddenPage.tsx
 import {useLocation, useNavigate} from "react-router-dom";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import MatrixBackdrop from "@shared/ui/backgrounds/BackgroundRain/MatrixRainBackground";
-import {useWorkspacePreferences} from "@shared/theme/workspacePreferences";
+import {useWorkspacePreferences} from "@shared/theme/workspacePreferencesContext";
 import "./forbidden-page.css";
 
 type ForbiddenState = {

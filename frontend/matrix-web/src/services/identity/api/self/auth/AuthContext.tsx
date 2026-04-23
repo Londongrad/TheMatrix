@@ -1,30 +1,12 @@
 // src/services/identity/api/auth/AuthContext.tsx
-import {createContext, type PropsWithChildren, useCallback, useContext, useEffect, useRef, useState,} from "react";
+import {type PropsWithChildren, useCallback, useEffect, useRef, useState,} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
-import type {LoginRequest} from "./authTypes";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
+import type {LoginRequest} from "./authTypes";
 import {fetchProfile} from "@services/identity/api/self/account/accountApi";
 import {loginUser, logoutAuth, refreshAuth, registerUser, sendEmailConfirmationEmail,} from "./authApi";
 import {type AuthRefreshResult, configureHttpAuth, HttpError} from "@shared/api/http";
-
-interface AuthContextValue {
-    user: ProfileResponse | null;
-    token: string | null;
-    isLoading: boolean;
-    login: (data: LoginRequest) => Promise<void>;
-    register: (data: {
-        email: string;
-        username: string;
-        password: string;
-        confirmPassword: string;
-    }) => Promise<void>;
-    logout: () => Promise<void>;
-    refreshSession: () => Promise<AuthRefreshResult>;
-    reloadMe: () => Promise<ProfileResponse | null>;
-    patchUser: (patch: Partial<ProfileResponse>) => void;
-}
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+import {AuthContext, type AuthContextValue} from "./authContextShared";
 
 function shouldInvalidateSessionOnRefreshFailure(error: unknown): boolean {
     return error instanceof HttpError && (error.status === 401 || error.status === 403);
@@ -283,10 +265,4 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = (): AuthContextValue => {
-    const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-    return ctx;
 };

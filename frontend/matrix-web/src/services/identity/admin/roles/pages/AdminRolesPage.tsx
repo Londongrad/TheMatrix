@@ -2,11 +2,12 @@ import {useState} from "react";
 import Card from "@shared/ui/controls/Card/Card";
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
-import {useConfirm} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
+import {useConfirm} from "@shared/ui/components/ConfirmDialog/confirmDialogContext";
 import {deleteRole} from "@services/identity/api/admin/adminApi";
 import type {RoleResponse} from "@services/identity/api/admin/adminTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import {useAdminRoles} from "../hooks/useAdminRoles";
 import RoleCard from "../components/RoleCard";
 import CreateRoleModal from "../components/CreateRoleModal";
@@ -48,8 +49,8 @@ export default function AdminRolesPage() {
         try {
             await deleteRole(role.id);
             await load();
-        } catch (error: any) {
-            setError(error?.message ?? "Failed to delete role");
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, "Failed to delete role"));
         } finally {
             setDeletingRoleId(null);
             setLoading(false);

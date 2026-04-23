@@ -1089,6 +1089,7 @@ const DashboardPage = () => {
     const {can} = usePermissions();
     const canCreateCity = can(PermissionKeys.SimulationCoreClassicCityCreate);
     const dashboardQuery = useCityOperationsDashboardQuery();
+    const {refetch: refetchDashboard} = dashboardQuery;
 
     useEffect(() => {
         const intervalId = window.setInterval(() => {
@@ -1096,13 +1097,13 @@ const DashboardPage = () => {
                 return;
             }
 
-            void dashboardQuery.refetch();
+            void refetchDashboard();
         }, DASHBOARD_AUTO_REFRESH_MS);
 
         return () => {
             window.clearInterval(intervalId);
         };
-    }, [dashboardQuery.refetch]);
+    }, [refetchDashboard]);
 
     const openCity = (city: CityListItemView) => {
         navigate(openCityPath(city.cityId, city.status, city.archivedAtUtc));

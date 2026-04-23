@@ -7,13 +7,14 @@ import {getPageRange} from "@shared/lib/paging/pageRange";
 import {usePagedQuery} from "@shared/lib/paging/usePagedQuery";
 import Pagination from "@shared/ui/components/Pagination/Pagination";
 import {formatIpAddress} from "@services/identity/self/shared/utils/formatIpAddress";
+import type {ConfirmOptions} from "@shared/ui/components/ConfirmDialog/confirmDialogContext";
 import {useSessions} from "../hooks/useSessions";
 import "@services/identity/self/sessions/styles/sessions-card.css";
 
 type Props = {
     token: string | null;
     logout?: () => Promise<void>;
-    confirm: (options: any) => Promise<boolean>;
+    confirm: (options: ConfirmOptions) => Promise<boolean>;
 };
 
 const ENDED_HISTORY_PAGE_SIZE = 50;

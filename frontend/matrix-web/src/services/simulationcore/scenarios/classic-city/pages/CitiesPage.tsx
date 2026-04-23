@@ -21,7 +21,7 @@ import {
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
-import {useConfirm} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
+import {useConfirm} from "@shared/ui/components/ConfirmDialog/confirmDialogContext";
 import Button from "@shared/ui/controls/Button/Button";
 import "@services/simulationcore/scenarios/classic-city/styles/cities.css";
 

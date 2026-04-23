@@ -1,10 +1,10 @@
 import {useEffect, useState} from "react";
+import {ChevronRight} from "lucide-react";
 import MatrixBackdrop from "@shared/ui/backgrounds/BackgroundRain/MatrixRainBackground";
 import Sidebar from "@shared/navigation/Sidebar/Sidebar";
 import Topbar from "@shared/navigation/Topbar/Topbar";
 import type {NavItem} from "@shared/navigation/Sidebar/types";
-import {ChevronRight} from "lucide-react";
-import {useWorkspacePreferences} from "@shared/theme/workspacePreferences";
+import {useWorkspacePreferences} from "@shared/theme/workspacePreferencesContext";
 import "./shell-layout.css";
 
 export default function MatrixShellLayout({
@@ -34,20 +34,23 @@ export default function MatrixShellLayout({
             return false;
         }
     });
-
     const [mobileOpen, setMobileOpen] = useState(false);
 
     useEffect(() => {
         try {
             localStorage.setItem(storageKey, collapsed ? "1" : "0");
         } catch {
+            // Intentionally ignored: layout preference persistence is best-effort only.
         }
     }, [collapsed, storageKey]);
 
     useEffect(() => {
         const onResize = () => {
-            if (window.innerWidth >= 980) setMobileOpen(false);
+            if (window.innerWidth >= 980) {
+                setMobileOpen(false);
+            }
         };
+
         window.addEventListener("resize", onResize);
         return () => window.removeEventListener("resize", onResize);
     }, []);
@@ -62,9 +65,7 @@ export default function MatrixShellLayout({
                 mobileOpen ? " is-mobile-open" : ""
             }`}
         >
-            {showBackdrop ? (
-                <MatrixBackdrop rainOpacity={0.4}/>
-            ) : null}
+            {showBackdrop ? <MatrixBackdrop rainOpacity={0.4}/> : null}
             <div className="mx-shell__overlay" onClick={() => setMobileOpen(false)}/>
 
             <aside className="mx-shell__sidebar">
@@ -79,7 +80,7 @@ export default function MatrixShellLayout({
                     />
                 </div>
 
-                {collapsed && (
+                {collapsed ? (
                     <button
                         type="button"
                         className="mx-shell__handle"
@@ -89,7 +90,7 @@ export default function MatrixShellLayout({
                     >
                         <ChevronRight size={18}/>
                     </button>
-                )}
+                ) : null}
             </aside>
 
             <div className="mx-shell__main">

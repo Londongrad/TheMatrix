@@ -96,12 +96,10 @@ export function useCursorFeed<T>(
                 });
                 setError(errorMessage);
             } finally {
-                if (!isActual) {
-                    return;
+                if (isActual) {
+                    setIsLoadingInitial(false);
+                    setIsLoadingMore(false);
                 }
-
-                setIsLoadingInitial(false);
-                setIsLoadingMore(false);
             }
         })();
 

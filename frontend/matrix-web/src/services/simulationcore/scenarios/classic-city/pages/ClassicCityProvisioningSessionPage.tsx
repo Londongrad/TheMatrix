@@ -357,14 +357,12 @@ export default function ClassicCityProvisioningSessionPage() {
                 : fallbackMessage;
             setPageError(message);
         } finally {
-            if (options?.signal?.aborted) {
-                return;
-            }
-
-            if (showLoading) {
-                setIsLoading(false);
-            } else {
-                setIsRefreshing(false);
+            if (!options?.signal?.aborted) {
+                if (showLoading) {
+                    setIsLoading(false);
+                } else {
+                    setIsRefreshing(false);
+                }
             }
         }
     }, [canInspectLiveCity, sessionId]);

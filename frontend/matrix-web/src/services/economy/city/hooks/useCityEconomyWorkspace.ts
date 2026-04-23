@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {
     getCityBudgetSummary,
     getCityBusinesses,
@@ -11,6 +11,7 @@ import type {
     CityOperationalBudgetPressureDto,
     EconomySummaryDto,
 } from "@services/economy/city/api/cityEconomyContracts";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 interface UseCityEconomyWorkspaceOptions {
     includeBudget?: boolean;
@@ -38,12 +39,6 @@ const EMPTY_STATE: CityEconomyWorkspaceState = {
     householdAccountsError: null,
 };
 
-function getErrorMessage(error: unknown, fallback: string) {
-    return error instanceof Error && error.message.trim().length > 0
-        ? error.message
-        : fallback;
-}
-
 export function useCityEconomyWorkspace(
     cityId: string,
     options: UseCityEconomyWorkspaceOptions = {},
@@ -58,34 +53,40 @@ export function useCityEconomyWorkspace(
     const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [reloadToken, setReloadToken] = useState(0);
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+    const [loadedKey, setLoadedKey] = useState<string | null>(null);
+    const loadedKeyRef = useRef<string | null>(null);
+
+    const shouldLoad =
+        cityId.length > 0 && (includeBudget || includeBusinesses || includeHouseholds);
+    const requestKey = JSON.stringify({
+        cityId,
+        includeBudget,
+        includeBusinesses,
+        includeHouseholds,
+    });
 
     useEffect(() => {
-        setState(EMPTY_STATE);
-        setIsLoading(false);
-        setIsRefreshing(false);
-        setHasLoadedOnce(false);
-    }, [cityId, includeBudget, includeBusinesses, includeHouseholds]);
-
-    useEffect(() => {
-        if (!cityId || (!includeBudget && !includeBusinesses && !includeHouseholds)) {
-            setState(EMPTY_STATE);
-            setIsLoading(false);
-            setIsRefreshing(false);
-            setHasLoadedOnce(false);
+        if (!shouldLoad) {
+            void (async () => {
+                loadedKeyRef.current = null;
+                setLoadedKey(null);
+                setState(EMPTY_STATE);
+                setIsLoading(false);
+                setIsRefreshing(false);
+            })();
             return;
         }
 
         const abortController = new AbortController();
-        const background = hasLoadedOnce;
-
-        if (background) {
-            setIsRefreshing(true);
-        } else {
-            setIsLoading(true);
-        }
+        const isBackgroundRefresh = loadedKeyRef.current === requestKey;
 
         async function load() {
+            if (isBackgroundRefresh) {
+                setIsRefreshing(true);
+            } else {
+                setIsLoading(true);
+            }
+
             const [
                 summaryResult,
                 pressureResult,
@@ -150,7 +151,8 @@ export function useCityEconomyWorkspace(
                         )
                         : null,
             });
-            setHasLoadedOnce(true);
+            loadedKeyRef.current = requestKey;
+            setLoadedKey(requestKey);
             setIsLoading(false);
             setIsRefreshing(false);
         }
@@ -166,16 +168,20 @@ export function useCityEconomyWorkspace(
         includeBusinesses,
         includeHouseholds,
         reloadToken,
+        requestKey,
+        shouldLoad,
     ]);
 
     const refetch = () => {
         setReloadToken((value) => value + 1);
     };
 
+    const visibleState = shouldLoad && loadedKey === requestKey ? state : EMPTY_STATE;
+
     return {
-        ...state,
-        isLoading,
-        isRefreshing,
+        ...visibleState,
+        isLoading: shouldLoad ? isLoading : false,
+        isRefreshing: shouldLoad && loadedKey === requestKey ? isRefreshing : false,
         refetch,
     };
 }

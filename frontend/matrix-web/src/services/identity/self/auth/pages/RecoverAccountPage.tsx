@@ -4,6 +4,7 @@ import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
 import {requestAccountRecovery} from "@services/identity/api/self/auth/authApi";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export const RecoverAccountPage = () => {
     const [searchParams] = useSearchParams();
@@ -24,11 +25,8 @@ export const RecoverAccountPage = () => {
             setNotice(
                 "If a deleted account exists for this email, a recovery link will arrive shortly.",
             );
-        } catch (submitError: any) {
-            setError(
-                submitError?.message ||
-                "Failed to start account recovery. Please try again.",
-            );
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, "Failed to start account recovery. Please try again."));
         } finally {
             setIsSubmitting(false);
         }

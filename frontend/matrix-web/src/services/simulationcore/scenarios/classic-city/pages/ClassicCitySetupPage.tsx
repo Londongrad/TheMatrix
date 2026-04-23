@@ -637,6 +637,9 @@ export default function ClassicCitySetupPage() {
     const setupRootRef = useRef<HTMLElement | null>(null);
     const lastSyncedSignatureRef = useRef<string | null>(null);
     const previousStepIdRef = useRef<ClassicCitySetupStepId>("scenario");
+    const persistDraftNowRef = useRef<(force?: boolean) => Promise<ClassicCitySetupSessionView | null>>(
+        async () => null,
+    );
     const latestSnapshotRef = useRef<SessionSnapshot>({
         currentStepId: "scenario",
         draft: createDefaultDraft(),
@@ -754,6 +757,8 @@ export default function ClassicCitySetupPage() {
             }
         }
     }
+
+    persistDraftNowRef.current = persistDraftNow;
 
     function updateDraft<K extends keyof SetupDraft>(key: K, value: SetupDraft[K]) {
         setDraft((current) => {
@@ -965,7 +970,7 @@ export default function ClassicCitySetupPage() {
 
         clearPendingAutosave();
         saveTimeoutRef.current = window.setTimeout(() => {
-            void persistDraftNow();
+            void persistDraftNowRef.current();
         }, 700);
 
         return () => {

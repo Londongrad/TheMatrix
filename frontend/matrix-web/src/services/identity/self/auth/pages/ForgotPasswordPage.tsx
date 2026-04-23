@@ -4,6 +4,7 @@ import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
 import {forgotPassword} from "@services/identity/api/self/auth/authApi";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export const ForgotPasswordPage = () => {
     const [email, setEmail] = useState("");
@@ -22,8 +23,8 @@ export const ForgotPasswordPage = () => {
             setNotice(
                 "If an account exists for this email, use the latest reset link that appears in your inbox shortly.",
             );
-        } catch (err: any) {
-            setError(err?.message || "Failed to send reset email. Please try again.");
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, "Failed to send reset email. Please try again."));
         } finally {
             setIsSubmitting(false);
         }

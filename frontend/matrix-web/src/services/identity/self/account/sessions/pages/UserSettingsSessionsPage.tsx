@@ -1,5 +1,5 @@
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
-import {useConfirm} from "@shared/ui/components/ConfirmDialog/ConfirmDialog";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
+import {useConfirm} from "@shared/ui/components/ConfirmDialog/confirmDialogContext";
 import UserSettingsSection from "../../shared/components/UserSettingsSection";
 import UserSettingsSessionsCard from "../components/UserSettingsSessionsCard";
 import "../styles/user-settings-sessions.css";

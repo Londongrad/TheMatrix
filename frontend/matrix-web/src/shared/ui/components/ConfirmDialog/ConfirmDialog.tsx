@@ -1,21 +1,12 @@
 // src/shared/components/ConfirmDialog.tsx
-import React, {createContext, type ReactNode, useCallback, useContext, useRef, useState,} from "react";
+import React, {type ReactNode, useCallback, useRef, useState,} from "react";
 import ReactDOM from "react-dom";
+import {
+    ConfirmContext,
+    type ConfirmFn,
+    type ConfirmOptions,
+} from "./confirmDialogContext";
 import "./confirm-dialog.css";
-
-type ConfirmTone = "default" | "danger";
-
-export interface ConfirmOptions {
-    title?: string;
-    description?: string;
-    confirmText?: string;
-    cancelText?: string;
-    tone?: ConfirmTone;
-}
-
-type ConfirmFn = (options: ConfirmOptions) => Promise<boolean>;
-
-const ConfirmContext = createContext<ConfirmFn | null>(null);
 
 interface DialogState extends ConfirmOptions {
     open: boolean;
@@ -135,27 +126,4 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({
             />
         </ConfirmContext.Provider>
     );
-};
-
-export const useConfirm = (): ConfirmFn => {
-    const ctx = useContext(ConfirmContext);
-    if (!ctx) {
-        return async ({
-            title = "Are you sure?",
-            description,
-            confirmText,
-        }: ConfirmOptions) => {
-            const message = [title, description, confirmText ? `Action: ${confirmText}` : null]
-                .filter(Boolean)
-                .join("\n\n");
-
-            if (typeof window !== "undefined" && typeof window.confirm === "function") {
-                console.warn("useConfirm was used outside ConfirmProvider. Falling back to window.confirm().");
-                return window.confirm(message);
-            }
-
-            return false;
-        };
-    }
-    return ctx;
 };

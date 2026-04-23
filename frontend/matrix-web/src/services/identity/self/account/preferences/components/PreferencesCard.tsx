@@ -6,7 +6,7 @@ import {
     type WorkspaceLanguage as Language,
     type WorkspacePreferences as PreferencesState,
     type WorkspaceTheme as Theme,
-} from "@shared/theme/workspacePreferences";
+} from "@shared/theme/workspacePreferencesContext";
 
 const languageOptions: Array<{ value: Language; label: string }> = [
     {value: "en", label: "English (EN)"},

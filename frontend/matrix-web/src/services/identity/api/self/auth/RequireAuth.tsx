@@ -1,6 +1,6 @@
 // src/services/identity/api/auth/RequireAuth.tsx
 import {Navigate, useLocation} from "react-router-dom";
-import {useAuth} from "./AuthContext";
+import {useAuth} from "./useAuth";
 import {LoadingScreen} from "@services/identity/self/auth/components/LoadingScreen";
 
 interface Props {

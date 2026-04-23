@@ -9,6 +9,7 @@ import {
 } from "@services/identity/api/admin/adminApi";
 import type {PermissionCatalogItemResponse, RoleResponse,} from "@services/identity/api/admin/adminTypes";
 import {filterVisibleAdminRoles} from "@services/identity/admin/shared/utils/roleVisibility";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export type PermissionGroup = {
     title: string;
@@ -66,8 +67,8 @@ export function useAdminPermissions() {
                     ? prev
                     : DEFAULT_USER_ACCESS_SCOPE_ID
             );
-        } catch (error: any) {
-            setError(error?.message ?? "Failed to load catalog");
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, "Failed to load catalog"));
         } finally {
             setLoading(false);
         }

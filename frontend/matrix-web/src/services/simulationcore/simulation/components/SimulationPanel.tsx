@@ -64,7 +64,6 @@ const SimulationPanel = ({
 
     useEffect(() => {
         if (!clock) {
-            setLocalSimMs(null);
             localClockBaseRef.current = null;
             return;
         }
@@ -87,7 +86,6 @@ const SimulationPanel = ({
         };
 
         localClockBaseRef.current = nextBase;
-        setLocalSimMs(readClockValue(nextBase, receivedAtMs));
     }, [clock, isRunning, simulationQuery.syncMeta]);
 
     useEffect(() => {
@@ -140,8 +138,8 @@ const SimulationPanel = ({
     }, []);
 
     const localDate = useMemo(() => {
-        return localSimMs === null ? null : new Date(localSimMs);
-    }, [localSimMs]);
+        return !clock || localSimMs === null ? null : new Date(localSimMs);
+    }, [clock, localSimMs]);
 
     const runCommand = async (action: () => Promise<boolean>) => {
         simulationMutations.clearError();

@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useMemo, useState} from "react";
 import type {PermissionCatalogItemResponse, PermissionEffect} from "@services/identity/api/admin/adminTypes";
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
@@ -47,24 +47,25 @@ export default function UserAccessModal({
         isAccessReadOnly,
         readOnlyReason,
     } = useUserAccess(userId);
-    const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-
-    useEffect(() => {
-        setOpenSections(
-            Object.fromEntries(groupedPermissions.map((section) => [section.title, true]))
-        );
-        setOpenGroups(
-            Object.fromEntries(
-                groupedPermissions.flatMap((section) =>
-                    section.groups.map((group) => [
-                        `${section.title}::${group.title}`,
-                        true,
-                    ])
-                )
-            )
-        );
-    }, [groupedPermissions]);
+    const [sectionExpansionState, setSectionExpansionState] = useState<Record<string, boolean>>({});
+    const [groupExpansionState, setGroupExpansionState] = useState<Record<string, boolean>>({});
+    const openSections = useMemo(
+        () => Object.fromEntries(
+            groupedPermissions.map((section) => [section.title, sectionExpansionState[section.title] ?? true]),
+        ),
+        [groupedPermissions, sectionExpansionState],
+    );
+    const openGroups = useMemo(
+        () => Object.fromEntries(
+            groupedPermissions.flatMap((section) =>
+                section.groups.map((group) => {
+                    const key = `${section.title}::${group.title}`;
+                    return [key, groupExpansionState[key] ?? true];
+                }),
+            ),
+        ),
+        [groupExpansionState, groupedPermissions],
+    );
 
     const anyPermissionsExpanded =
         Object.values(openSections).some(Boolean) ||
@@ -73,12 +74,12 @@ export default function UserAccessModal({
     const toggleAllPermissionSections = () => {
         const nextOpen = !anyPermissionsExpanded;
 
-        setOpenSections(
+        setSectionExpansionState(
             Object.fromEntries(
                 groupedPermissions.map((section) => [section.title, nextOpen])
             )
         );
-        setOpenGroups(
+        setGroupExpansionState(
             Object.fromEntries(
                 groupedPermissions.flatMap((section) =>
                     section.groups.map((group) => [
@@ -377,7 +378,7 @@ export default function UserAccessModal({
                                         className="mx-admin-users__permissionSectionTitle"
                                         onClick={(event) => {
                                             event.preventDefault();
-                                            setOpenSections((prev) => ({
+                                            setSectionExpansionState((prev) => ({
                                                 ...prev,
                                                 [section.title]: !(prev[section.title] ?? true),
                                             }));
@@ -414,7 +415,7 @@ export default function UserAccessModal({
                                                         className="mx-admin-users__permissionGroupTitle"
                                                         onClick={(event) => {
                                                             event.preventDefault();
-                                                            setOpenGroups((prev) => ({
+                                                            setGroupExpansionState((prev) => ({
                                                                 ...prev,
                                                                 [groupKey]: !(prev[groupKey] ?? true),
                                                             }));

@@ -17,7 +17,7 @@ import type {
     UserPermissionResponse,
     UserRoleResponse,
 } from "@services/identity/api/admin/adminTypes";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import {canAll as canAllPermissions} from "@shared/permissions/can";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {filterVisibleAdminRoles, isHiddenAdminRole,} from "@services/identity/admin/shared/utils/roleVisibility";
@@ -169,8 +169,9 @@ export function useUserAccess(userId: string) {
                 if (!active) return;
                 setError("Failed to load user access data");
             } finally {
-                if (!active) return;
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
 

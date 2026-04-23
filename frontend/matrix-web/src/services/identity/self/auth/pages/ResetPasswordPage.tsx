@@ -1,11 +1,22 @@
 import React, {useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
-import {resetPassword} from "@services/identity/api/self/auth/authApi";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import {HttpError} from "@shared/api/http";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
+import {resetPassword} from "@services/identity/api/self/auth/authApi";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
+
+function getHttpErrorCode(error: unknown): string | null {
+    if (!(error instanceof HttpError) || !error.payload || typeof error.payload !== "object") {
+        return null;
+    }
+
+    return "code" in error.payload
+        ? String((error.payload as { code?: unknown }).code)
+        : null;
+}
 
 export const ResetPasswordPage = () => {
     const [searchParams] = useSearchParams();
@@ -21,8 +32,8 @@ export const ResetPasswordPage = () => {
     const [isDeletedAccountError, setIsDeletedAccountError] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
         setError(null);
         setSuccess(null);
         setIsDeletedAccountError(false);
@@ -59,17 +70,11 @@ export const ResetPasswordPage = () => {
             setSuccess("Password reset completed. You can sign in with the new password.");
             setNewPassword("");
             setConfirmNewPassword("");
-        } catch (err: any) {
-            const errorCode =
-                err instanceof HttpError &&
-                err.payload &&
-                typeof err.payload === "object" &&
-                "code" in err.payload
-                    ? String((err.payload as { code?: unknown }).code)
-                    : null;
+        } catch (error: unknown) {
+            const errorCode = getHttpErrorCode(error);
 
             setIsDeletedAccountError(errorCode === "Identity.AccountDeleted");
-            setError(err?.message || "Failed to reset password.");
+            setError(getErrorMessage(error, "Failed to reset password."));
         } finally {
             setIsSubmitting(false);
         }
@@ -109,7 +114,7 @@ export const ResetPasswordPage = () => {
                             className="auth-input"
                             type="password"
                             value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
+                            onChange={(event) => setNewPassword(event.target.value)}
                             placeholder="••••••••"
                             required
                             disabled={isSubmitting || !isLinkValid}
@@ -124,14 +129,14 @@ export const ResetPasswordPage = () => {
                             className="auth-input"
                             type="password"
                             value={confirmNewPassword}
-                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            onChange={(event) => setConfirmNewPassword(event.target.value)}
                             placeholder="••••••••"
                             required
                             disabled={isSubmitting || !isLinkValid}
                         />
                     </div>
 
-                    {error && (
+                    {error ? (
                         <div className="auth-error">
                             <div>{error}</div>
                             {isDeletedAccountError ? (
@@ -140,20 +145,18 @@ export const ResetPasswordPage = () => {
                                 </div>
                             ) : null}
                         </div>
-                    )}
-                    {success && <div className="auth-success">{success}</div>}
+                    ) : null}
+                    {success ? <div className="auth-success">{success}</div> : null}
 
                     <button
                         className="auth-button"
                         type="submit"
                         disabled={isSubmitting || !isLinkValid}
                     >
-                        {isSubmitting && (
+                        {isSubmitting ? (
                             <span className="auth-spinner" aria-hidden="true"/>
-                        )}
-                        <span>
-                            {isSubmitting ? "Resetting..." : "Save new password"}
-                        </span>
+                        ) : null}
+                        <span>{isSubmitting ? "Resetting..." : "Save new password"}</span>
                     </button>
                 </form>
 

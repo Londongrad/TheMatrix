@@ -1,6 +1,6 @@
 import {Navigate, useLocation} from "react-router-dom";
 import type {ReactElement} from "react";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import {LoadingScreen} from "@services/identity/self/auth/components/LoadingScreen";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import type {PermissionMatchMode} from "@shared/permissions/permissionMatchMode";

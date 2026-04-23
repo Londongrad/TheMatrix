@@ -3,6 +3,7 @@ import Button from "@shared/ui/controls/Button/Button";
 import Modal from "@shared/ui/components/Modal/Modal";
 import {renameRole} from "@services/identity/api/admin/adminApi";
 import type {RenameRoleRequest, RoleResponse,} from "@services/identity/api/admin/adminTypes";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export default function RenameRoleModal({
                                             role,
@@ -29,9 +30,9 @@ export default function RenameRoleModal({
             await renameRole(role.id, payload);
             await onUpdated();
             onClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            setError(error?.message ?? "Failed to rename role");
+            setError(getErrorMessage(error, "Failed to rename role"));
         } finally {
             setSaving(false);
         }

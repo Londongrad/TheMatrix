@@ -10,6 +10,7 @@ import type {ProfileResponse} from "@services/identity/api/self/account/accountT
 import {usePasswordChange} from "../hooks/usePasswordChange";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import "@services/identity/self/account/security/styles/security-card.css";
 
 type Props = {
@@ -102,10 +103,8 @@ const SecurityCard = ({
             setConfirmationNotice(
                 "If this email can receive a confirmation link, use the latest message in your inbox or spam folder.",
             );
-        } catch (err: any) {
-            setConfirmationError(
-                err?.message || "Failed to send verification email. Please try again.",
-            );
+        } catch (error: unknown) {
+            setConfirmationError(getErrorMessage(error, "Failed to send verification email. Please try again."));
         } finally {
             setIsSendingConfirmation(false);
         }
@@ -135,10 +134,8 @@ const SecurityCard = ({
             setEmailChangeNotice(
                 `Confirmation was sent to ${result.pendingEmail}. The current email will stay active until confirmation.`,
             );
-        } catch (err: any) {
-            setEmailChangeError(
-                err?.message || "Failed to start the email change flow. Please try again.",
-            );
+        } catch (error: unknown) {
+            setEmailChangeError(getErrorMessage(error, "Failed to start the email change flow. Please try again."));
         } finally {
             setIsSavingEmailChange(false);
         }
@@ -158,10 +155,8 @@ const SecurityCard = ({
             setEmailChangeNotice(
                 `A fresh confirmation link was sent to ${pendingEmail}. Your current email stays active until confirmation.`,
             );
-        } catch (err: any) {
-            setEmailChangeError(
-                err?.message || "Failed to resend the pending email confirmation.",
-            );
+        } catch (error: unknown) {
+            setEmailChangeError(getErrorMessage(error, "Failed to resend the pending email confirmation."));
         } finally {
             setIsResendingPendingEmailChange(false);
         }
@@ -184,10 +179,8 @@ const SecurityCard = ({
             setEmailChangeNotice(
                 "Pending email change was cancelled. Your current email remains active.",
             );
-        } catch (err: any) {
-            setEmailChangeError(
-                err?.message || "Failed to cancel the pending email change.",
-            );
+        } catch (error: unknown) {
+            setEmailChangeError(getErrorMessage(error, "Failed to cancel the pending email change."));
         } finally {
             setIsCancellingPendingEmailChange(false);
         }

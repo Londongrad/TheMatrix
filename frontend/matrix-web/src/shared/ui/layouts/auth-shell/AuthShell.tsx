@@ -1,6 +1,6 @@
 import type {ReactNode} from "react";
 import MatrixBackground from "@shared/ui/backgrounds/BackgroundRain/MatrixRainBackground";
-import {useWorkspacePreferences} from "@shared/theme/workspacePreferences";
+import {useWorkspacePreferences} from "@shared/theme/workspacePreferencesContext";
 import "./auth-shell.css";
 
 type AuthShellProps = {

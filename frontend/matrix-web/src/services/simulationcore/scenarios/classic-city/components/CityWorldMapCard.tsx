@@ -224,17 +224,13 @@ function MapCanvas({
         () => focusedDistrictId ? districtMap.get(focusedDistrictId) ?? null : null,
         [districtMap, focusedDistrictId],
     );
-    const focusedRoutePoints = useMemo(() => {
-        if (!focusedTrip) {
-            return null;
-        }
-
-        return {
+    const focusedRoutePoints = focusedTrip
+        ? {
             from: projector.project({x: focusedTrip.from.positionX, y: focusedTrip.from.positionY}),
             current: projector.project({x: focusedTrip.current.positionX, y: focusedTrip.current.positionY}),
             to: projector.project({x: focusedTrip.to.positionX, y: focusedTrip.to.positionY}),
-        };
-    }, [focusedTrip, projector]);
+        }
+        : null;
     const focusedDistrictPoint = useMemo(
         () => focusedDistrict
             ? projector.project({x: focusedDistrict.anchorX, y: focusedDistrict.anchorY})

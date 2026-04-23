@@ -3,6 +3,7 @@ import {changeUsername} from "@services/identity/api/self/account/accountApi";
 import type {ProfileResponse} from "@services/identity/api/self/account/accountTypes";
 import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import "@services/identity/self/account/account/styles/account-card.css";
 
 type Props = {
@@ -106,10 +107,8 @@ const AccountCard = ({
             setDraftUsername(result.username);
             setCurrentPassword("");
             setSaved(true);
-        } catch (error: any) {
-            setSaveError(
-                error?.message || "Failed to update username. Please try again.",
-            );
+        } catch (error: unknown) {
+            setSaveError(getErrorMessage(error, "Failed to update username. Please try again."));
         } finally {
             setIsSaving(false);
         }

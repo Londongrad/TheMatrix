@@ -63,6 +63,7 @@ function clearResidentsReturnSnapshot(cityId: string) {
     try {
         window.sessionStorage.removeItem(getResidentsReturnStorageKey(cityId));
     } catch {
+        // Intentionally ignored: session return-state cleanup is best-effort only.
     }
 }
 
@@ -77,6 +78,7 @@ function saveResidentsReturnSnapshot(cityId: string, snapshot: ResidentsReturnSn
             JSON.stringify(snapshot),
         );
     } catch {
+        // Intentionally ignored: session return-state persistence is best-effort only.
     }
 }
 
@@ -101,10 +103,6 @@ const CityResidentsPage = () => {
 
     const isArchived = isArchivedCity(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
     const statusTone = getCityStatusTone(cityQuery.data?.status, cityQuery.data?.archivedAtUtc);
-    if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
-        return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
-    }
-
     const residents = residentsQuery.data?.items ?? [];
     const total = residentsQuery.data?.totalCount ?? 0;
     const totalPages = residentsQuery.data?.totalPages ?? 1;
@@ -140,6 +138,10 @@ const CityResidentsPage = () => {
             window.cancelAnimationFrame(frameId);
         };
     }, [cityId, residentsQuery.isLoading, residentsReturnSnapshot]);
+
+    if (cityQuery.data && (statusTone === "provisioning" || statusTone === "failed")) {
+        return <Navigate to={getClassicCityProvisioningPath(cityQuery.data.cityId)} replace/>;
+    }
 
     return (
         <div className="cities-page city-residents-page">

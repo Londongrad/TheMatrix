@@ -1,4 +1,4 @@
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import {useLocation} from "react-router-dom";
 import UserSettingsSection from "../../shared/components/UserSettingsSection";
 import SecurityCard from "../components/SecurityCard";

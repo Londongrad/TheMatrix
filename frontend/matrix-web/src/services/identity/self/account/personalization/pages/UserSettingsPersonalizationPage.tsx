@@ -1,4 +1,4 @@
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import UserSettingsSection from "../../shared/components/UserSettingsSection";
 import PersonalizationCard from "../components/PersonalizationCard";
 

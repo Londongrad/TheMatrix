@@ -5,6 +5,7 @@ import {RequirePermission} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
 import {usePermissions} from "@shared/permissions/usePermissions";
 import Modal from "@shared/ui/components/Modal/Modal";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import "@services/identity/self/account/personalization/styles/personalization-card.css";
 
 type Props = {
@@ -174,11 +175,9 @@ const PersonalizationCard = ({
             patchUser({avatarUrl: result.avatarUrl});
             clearPendingSelection();
             setAvatarNotice("Avatar updated. The new image is now active across the application.");
-        } catch (uploadError: any) {
+        } catch (uploadError: unknown) {
             console.error(uploadError);
-            setAvatarError(
-                uploadError?.message || "Failed to upload avatar. Please try again.",
-            );
+            setAvatarError(getErrorMessage(uploadError, "Failed to upload avatar. Please try again."));
         } finally {
             setIsUploadingAvatar(false);
         }
@@ -197,11 +196,9 @@ const PersonalizationCard = ({
             patchUser({avatarUrl: result.avatarUrl});
             clearPendingSelection();
             setAvatarNotice("Avatar cleared. Your fallback initial is active again.");
-        } catch (clearError: any) {
+        } catch (clearError: unknown) {
             console.error(clearError);
-            setAvatarError(
-                clearError?.message || "Failed to clear avatar. Please try again.",
-            );
+            setAvatarError(getErrorMessage(clearError, "Failed to clear avatar. Please try again."));
         } finally {
             setIsClearingAvatar(false);
         }
@@ -228,10 +225,8 @@ const PersonalizationCard = ({
             patchUser({displayName: result.displayName});
             setDraftDisplayName(result.displayName ?? "");
             setDisplayNameSaved(true);
-        } catch (error: any) {
-            setDisplayNameError(
-                error?.message || "Failed to update display name. Please try again.",
-            );
+        } catch (error: unknown) {
+            setDisplayNameError(getErrorMessage(error, "Failed to update display name. Please try again."));
         } finally {
             setIsSavingDisplayName(false);
         }
@@ -254,10 +249,8 @@ const PersonalizationCard = ({
             patchUser({displayName: result.displayName});
             setDraftDisplayName("");
             setDisplayNameSaved(true);
-        } catch (error: any) {
-            setDisplayNameError(
-                error?.message || "Failed to clear display name. Please try again.",
-            );
+        } catch (error: unknown) {
+            setDisplayNameError(getErrorMessage(error, "Failed to clear display name. Please try again."));
         } finally {
             setIsSavingDisplayName(false);
         }

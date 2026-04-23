@@ -1,6 +1,7 @@
 // src/services/identity/self/account/security/hooks/usePasswordChange.ts
 import {useState} from "react";
 import {changePassword} from "@services/identity/api/self/account/accountApi";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export function usePasswordChange(token: string | null) {
     const [securityError, setSecurityError] = useState<string | null>(null);
@@ -46,11 +47,9 @@ export function usePasswordChange(token: string | null) {
             setConfirmNewPassword("");
 
             setTimeout(() => setSecuritySaved(false), 2000);
-        } catch (err: any) {
-            console.error(err);
-            setSecurityError(
-                err?.message || "Failed to change password. Please try again."
-            );
+        } catch (error: unknown) {
+            console.error(error);
+            setSecurityError(getErrorMessage(error, "Failed to change password. Please try again."));
         } finally {
             setIsSavingSecurity(false);
         }

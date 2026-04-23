@@ -1,14 +1,14 @@
-import {useMemo} from "react";
+import {type CSSProperties, useMemo} from "react";
 import "./matrix-rain-background.css";
 
 type MatrixBackdropProps = {
     className?: string;
 
     /** 0..1 */
-    rainOpacity?: number; // default 0.45
-    /** количество колонок, если хочешь зафиксировать */
+    rainOpacity?: number;
+    /** Number of rain columns when you want to pin the layout. */
     columns?: number;
-    /** включить/выключить слои */
+    /** Toggle individual visual layers. */
     showGrid?: boolean;
     showVignette?: boolean;
     showScanline?: boolean;
@@ -24,33 +24,41 @@ type RainColumn = {
     text: string;
 };
 
-function randomInt(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+type MatrixBackdropStyle = CSSProperties & Record<`--${string}`, string | number>;
+
+function clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, value));
 }
 
-function pick<T>(arr: T[]) {
-    return arr[Math.floor(Math.random() * arr.length)];
+function randomUnit(seed: number) {
+    const value = Math.sin(seed * 12.9898) * 43758.5453123;
+    return value - Math.floor(value);
 }
 
-function clamp(n: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, n));
+function randomInt(seed: number, min: number, max: number) {
+    return Math.floor(randomUnit(seed) * (max - min + 1)) + min;
 }
 
-function makeColumnText(length: number) {
-    // Важно: символы СРАЗУ с \n -> получаем готовую вертикальную “строку”
+function pick<T>(arr: readonly T[], seed: number) {
+    return arr[Math.floor(randomUnit(seed) * arr.length)];
+}
+
+function makeColumnText(length: number, seedBase: number) {
     const glyphs = [
         ..."01",
         ..."1010011010",
-        ..."アイウエオカキクケコサシスセソ",
-        ..."ﾊﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ",
-        ..."∆⌁⌂⌐⌑⌒⍟⎔⎓⎖⎗",
-    ].flat();
+        ..."ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿ",
+        ..."ﾊﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛ",
+        ..."∆⌃⌂⌐⌑⌒⌟⎔⎓⎖⎗",
+    ];
 
-    let s = "";
-    for (let i = 0; i < length; i++) {
-        s += pick(glyphs) + (i === length - 1 ? "" : "\n");
+    let value = "";
+
+    for (let index = 0; index < length; index += 1) {
+        value += pick(glyphs, seedBase + index * 1.618) + (index === length - 1 ? "" : "\n");
     }
-    return s;
+
+    return value;
 }
 
 export default function MatrixBackdrop({
@@ -63,56 +71,47 @@ export default function MatrixBackdrop({
                                            showRain = true,
                                        }: MatrixBackdropProps) {
     const cols = useMemo(() => {
-        const fallback = 34; // как в ForbiddenPage
-        if (typeof window === "undefined") return columns ?? fallback;
+        const fallback = 34;
+        if (typeof window === "undefined") {
+            return columns ?? fallback;
+        }
 
-        // Чем шире экран — тем больше колонок (без фанатизма)
         const auto = Math.floor(window.innerWidth / 34);
         return columns ?? clamp(auto, 28, 60);
     }, [columns]);
 
     const rain = useMemo<RainColumn[]>(() => {
-        if (!showRain) return [];
+        if (!showRain) {
+            return [];
+        }
 
-        const res: RainColumn[] = [];
-
-        for (let i = 0; i < cols; i++) {
-            // равномерно + небольшой рандомный “дрейф”
+        return Array.from({length: cols}, (_, index) => {
+            const baseSeed = cols * 101 + index * 17;
             const leftPct = clamp(
-                (i / cols) * 100 + (Math.random() * 2 - 1.0),
+                (index / cols) * 100 + (randomUnit(baseSeed + 1) * 2 - 1),
                 0,
-                100
+                100,
             );
+            const delaySec = -randomUnit(baseSeed + 2) * 18;
+            const durationSec = randomInt(baseSeed + 3, 10, 22) + randomUnit(baseSeed + 4);
+            const driftPx = Math.round((randomUnit(baseSeed + 5) * 2 - 1) * 18);
+            const textLength = randomInt(baseSeed + 6, 26, 54);
 
-            // отрицательный delay — чтобы при заходе на страницу дождь уже “шёл”
-            const delaySec = -Math.random() * 18;
-
-            // скорости разные, плавные
-            const durationSec = randomInt(10, 22) + Math.random();
-
-            // микроскопический диагональный дрейф (делает “живее”)
-            const driftPx = Math.round((Math.random() * 2 - 1) * 18); // -18..18
-
-            // длина строки (чем больше — тем “киношнее”)
-            const textLen = randomInt(26, 54);
-
-            res.push({
-                id: i,
+            return {
+                id: index,
                 leftPct,
                 delaySec,
                 durationSec,
                 driftPx,
-                text: makeColumnText(textLen),
-            });
-        }
-
-        return res;
+                text: makeColumnText(textLength, baseSeed + 7),
+            };
+        });
     }, [cols, showRain]);
 
     return (
         <div
             className={`matrix-backdrop${className ? ` ${className}` : ""}`}
-            style={{["--rain-opacity" as any]: rainOpacity} as React.CSSProperties}
+            style={{"--rain-opacity": rainOpacity} as MatrixBackdropStyle}
             aria-hidden="true"
         >
             {showGrid ? <div className="matrix-backdrop__grid"/> : null}
@@ -121,21 +120,19 @@ export default function MatrixBackdrop({
 
             {showRain ? (
                 <div className="matrix-backdrop__rain">
-                    {rain.map((c) => (
+                    {rain.map((column) => (
                         <span
-                            key={c.id}
+                            key={column.id}
                             className="matrix-backdrop__rainColumn"
-                            style={
-                                {
-                                    ["--left" as any]: `${c.leftPct}%`,
-                                    ["--delay" as any]: `${c.delaySec}s`,
-                                    ["--duration" as any]: `${c.durationSec}s`,
-                                    ["--drift" as any]: `${c.driftPx}px`,
-                                } as React.CSSProperties
-                            }
+                            style={{
+                                "--left": `${column.leftPct}%`,
+                                "--delay": `${column.delaySec}s`,
+                                "--duration": `${column.durationSec}s`,
+                                "--drift": `${column.driftPx}px`,
+                            } as MatrixBackdropStyle}
                         >
-              {c.text}
-            </span>
+                            {column.text}
+                        </span>
                     ))}
                 </div>
             ) : null}

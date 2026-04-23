@@ -1,5 +1,5 @@
 // src/services/identity/account/components/DeleteAccountDialog.tsx
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import ReactDOM from "react-dom";
 import "@shared/ui/components/ConfirmDialog/ConfirmDialog";
 
@@ -20,24 +20,27 @@ const DeleteAccountDialog = ({
                              }: DeleteAccountDialogProps) => {
     const [password, setPassword] = useState("");
 
-    // при закрытии очищаем пароль
-    useEffect(() => {
-        if (!open) {
-            setPassword("");
+    if (!open) {
+        return null;
+    }
+
+    const handleClose = () => {
+        setPassword("");
+        onClose();
+    };
+
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!password || isSubmitting) {
+            return;
         }
-    }, [open]);
 
-    if (!open) return null;
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!password || isSubmitting) return;
         onConfirm(password);
     };
 
     const dialog = (
         <div className="confirm-dialog-overlay">
-            <div className="confirm-dialog-backdrop" onClick={onClose}/>
+            <div className="confirm-dialog-backdrop" onClick={handleClose}/>
             <form
                 className="confirm-dialog"
                 role="dialog"
@@ -68,18 +71,18 @@ const DeleteAccountDialog = ({
                         className="confirm-dialog-input"
                         autoComplete="current-password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(event) => setPassword(event.target.value)}
                         placeholder="••••••••"
                     />
                 </div>
 
-                {error && <p className="confirm-dialog-error">{error}</p>}
+                {error ? <p className="confirm-dialog-error">{error}</p> : null}
 
                 <div className="confirm-dialog-actions">
                     <button
                         type="button"
                         className="confirm-dialog-button confirm-dialog-button--ghost"
-                        onClick={onClose}
+                        onClick={handleClose}
                         disabled={isSubmitting}
                     >
                         Cancel

@@ -2,7 +2,7 @@ import {NavLink, useLocation, useResolvedPath} from "react-router-dom";
 import type {NavItem} from "./types";
 import {ArrowLeft, ChevronLeft} from "lucide-react";
 import {IconLock} from "@shared/ui/icons/icons";
-import {useWorkspacePreferences} from "@shared/theme/workspacePreferences";
+import {useWorkspacePreferences} from "@shared/theme/workspacePreferencesContext";
 import "./sidebar.css";
 
 function SidebarNavLink({

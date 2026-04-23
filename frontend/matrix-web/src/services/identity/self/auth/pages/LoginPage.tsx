@@ -1,18 +1,34 @@
 // src/services/identity/auth/pages/LoginPage.tsx
 import React, {useState} from "react";
 import {Link, useLocation, useNavigate} from "react-router-dom";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
 import {HttpError} from "@shared/api/http";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
 
+type RedirectLocationState = {
+    from?: {
+        pathname?: string;
+    };
+};
+
+function getHttpErrorCode(error: unknown): string | null {
+    if (!(error instanceof HttpError) || !error.payload || typeof error.payload !== "object") {
+        return null;
+    }
+
+    return "code" in error.payload
+        ? String((error.payload as { code?: unknown }).code)
+        : null;
+}
+
 export const LoginPage = () => {
     const {login: loginUser} = useAuth();
     const navigate = useNavigate();
-    const location = useLocation() as { state?: { from?: Location } };
-
-    const from = (location.state?.from as any)?.pathname || "/";
+    const location = useLocation();
+    const from = (location.state as RedirectLocationState | null)?.from?.pathname || "/";
 
     const [login, setLogin] = useState("");
     const [password, setPassword] = useState("");
@@ -21,8 +37,8 @@ export const LoginPage = () => {
     const [isDeletedAccountError, setIsDeletedAccountError] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
         setError(null);
         setIsDeletedAccountError(false);
         setIsSubmitting(true);
@@ -30,17 +46,11 @@ export const LoginPage = () => {
         try {
             await loginUser({login, password, rememberMe});
             navigate(from, {replace: true});
-        } catch (err: any) {
-            const errorCode =
-                err instanceof HttpError &&
-                err.payload &&
-                typeof err.payload === "object" &&
-                "code" in err.payload
-                    ? String((err.payload as { code?: unknown }).code)
-                    : null;
+        } catch (error: unknown) {
+            const errorCode = getHttpErrorCode(error);
 
             setIsDeletedAccountError(errorCode === "Identity.AccountDeleted");
-            setError(err.message || "Login failed");
+            setError(getErrorMessage(error, "Login failed"));
         } finally {
             setIsSubmitting(false);
         }
@@ -61,7 +71,7 @@ export const LoginPage = () => {
                         </h2>
                         <p className="auth-text">
                             Sign in to resume orchestrating your city simulation. Monitor
-                            population, incidents and systems – all from a single control
+                            population, incidents and systems - all from a single control
                             panel.
                         </p>
                         <div className="auth-feature-list">
@@ -87,8 +97,10 @@ export const LoginPage = () => {
                     <Link
                         to="/register"
                         className={isSubmitting ? "auth-link--disabled" : ""}
-                        onClick={(e) => {
-                            if (isSubmitting) e.preventDefault();
+                        onClick={(event) => {
+                            if (isSubmitting) {
+                                event.preventDefault();
+                            }
                         }}
                     >
                         Create an account
@@ -106,7 +118,7 @@ export const LoginPage = () => {
                             className="auth-input"
                             type="text"
                             value={login}
-                            onChange={(e) => setLogin(e.target.value)}
+                            onChange={(event) => setLogin(event.target.value)}
                             placeholder="you@example.com or matrix_god"
                             required
                             disabled={isSubmitting}
@@ -120,7 +132,7 @@ export const LoginPage = () => {
                             className="auth-input"
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(event) => setPassword(event.target.value)}
                             placeholder="••••••••"
                             required
                             disabled={isSubmitting}
@@ -131,25 +143,25 @@ export const LoginPage = () => {
                             <input
                                 type="checkbox"
                                 checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
+                                onChange={(event) => setRememberMe(event.target.checked)}
                                 disabled={isSubmitting}
                             />
                             <span>Remember this device</span>
                         </label>
                         <Link
                             to="/forgot-password"
-                            className={`auth-forgot ${
-                                isSubmitting ? "auth-link--disabled" : ""
-                            }`}
-                            onClick={(e) => {
-                                if (isSubmitting) e.preventDefault();
+                            className={`auth-forgot ${isSubmitting ? "auth-link--disabled" : ""}`}
+                            onClick={(event) => {
+                                if (isSubmitting) {
+                                    event.preventDefault();
+                                }
                             }}
                         >
                             Forgot password?
                         </Link>
                     </div>
 
-                    {error && (
+                    {error ? (
                         <div className="auth-error">
                             <div>{error}</div>
                             {isDeletedAccountError ? (
@@ -158,12 +170,12 @@ export const LoginPage = () => {
                                 </div>
                             ) : null}
                         </div>
-                    )}
+                    ) : null}
 
                     <button className="auth-button" type="submit" disabled={isSubmitting}>
-                        {isSubmitting && (
+                        {isSubmitting ? (
                             <span className="auth-spinner" aria-hidden="true"/>
-                        )}
+                        ) : null}
                         <span>{isSubmitting ? "Logging in..." : "Login"}</span>
                     </button>
                 </form>
@@ -173,8 +185,10 @@ export const LoginPage = () => {
                     <Link
                         to="/register"
                         className={isSubmitting ? "auth-link--disabled" : ""}
-                        onClick={(e) => {
-                            if (isSubmitting) e.preventDefault();
+                        onClick={(event) => {
+                            if (isSubmitting) {
+                                event.preventDefault();
+                            }
                         }}
                     >
                         Register

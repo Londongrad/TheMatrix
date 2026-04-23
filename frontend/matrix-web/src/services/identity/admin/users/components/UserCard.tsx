@@ -4,7 +4,7 @@ import {IconLock, IconOpen, IconUnlock} from "@shared/ui/icons/icons";
 import type {UserListItemResponse} from "@services/identity/api/admin/adminTypes";
 import {RequirePermission, RequirePermissions} from "@shared/permissions/RequirePermission";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import {
     formatAdminRelativeVisit,
     formatAdminUtc,

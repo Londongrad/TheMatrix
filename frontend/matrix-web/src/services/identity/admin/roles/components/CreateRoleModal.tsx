@@ -2,6 +2,7 @@ import {useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
 import Modal from "@shared/ui/components/Modal/Modal";
 import {createRole} from "@services/identity/api/admin/adminApi";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export default function CreateRoleModal({
                                             onClose,
@@ -26,9 +27,9 @@ export default function CreateRoleModal({
             await createRole({name: trimmedName});
             await onCreated();
             onClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            setError(error?.message ?? "Failed to create role");
+            setError(getErrorMessage(error, "Failed to create role"));
         } finally {
             setSaving(false);
         }

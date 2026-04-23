@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 import {confirmAccountRecovery} from "@services/identity/api/self/auth/authApi";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
@@ -9,16 +10,16 @@ type ConfirmStatus = "pending" | "success" | "error";
 
 export const ConfirmAccountRecoveryPage = () => {
     const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState<ConfirmStatus>("pending");
-    const [message, setMessage] = useState("Restoring your account...");
+    const userId = searchParams.get("userId");
+    const token = searchParams.get("token");
+    const hasValidLink = Boolean(userId && token);
+    const [status, setStatus] = useState<ConfirmStatus>(hasValidLink ? "pending" : "error");
+    const [message, setMessage] = useState(
+        hasValidLink ? "Restoring your account..." : "This recovery link is incomplete or invalid.",
+    );
 
     useEffect(() => {
-        const userId = searchParams.get("userId");
-        const token = searchParams.get("token");
-
         if (!userId || !token) {
-            setStatus("error");
-            setMessage("This recovery link is incomplete or invalid.");
             return;
         }
 
@@ -27,22 +28,26 @@ export const ConfirmAccountRecoveryPage = () => {
         void (async () => {
             try {
                 await confirmAccountRecovery({userId, token});
-                if (cancelled) return;
+                if (cancelled) {
+                    return;
+                }
 
                 setStatus("success");
                 setMessage("Your account was restored. You can sign in again.");
-            } catch (error: any) {
-                if (cancelled) return;
+            } catch (error: unknown) {
+                if (cancelled) {
+                    return;
+                }
 
                 setStatus("error");
-                setMessage(error?.message || "Failed to restore account.");
+                setMessage(getErrorMessage(error, "Failed to restore account."));
             }
         })();
 
         return () => {
             cancelled = true;
         };
-    }, [searchParams]);
+    }, [token, userId]);
 
     return (
         <AuthShell>
@@ -61,23 +66,25 @@ export const ConfirmAccountRecoveryPage = () => {
                 }
             >
                 <h1 className="auth-title">Account recovery</h1>
-                <p className="auth-subtitle">{message}</p>
+                <p className="auth-subtitle">
+                    {hasValidLink ? message : "This recovery link is incomplete or invalid."}
+                </p>
 
-                {status === "pending" && (
+                {status === "pending" ? (
                     <button className="auth-button" type="button" disabled>
                         <span className="auth-spinner" aria-hidden="true"/>
                         <span>Restoring...</span>
                     </button>
-                )}
+                ) : null}
 
-                {status !== "pending" && (
+                {status !== "pending" ? (
                     <div className="auth-switch">
                         <Link to="/login">Back to login</Link>
                         {" · "}
                         <Link to="/recover-account">Request another recovery link</Link>
                     </div>
-                )}
+                ) : null}
             </AuthCard>
         </AuthShell>
     );
-}
+};

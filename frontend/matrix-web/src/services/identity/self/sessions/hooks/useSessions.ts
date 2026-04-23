@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import type {SessionInfo} from "@services/identity/api/self/sessions/sessionsTypes.ts";
 import {
     getSessions,
@@ -7,8 +7,11 @@ import {
     revokeSession,
 } from "@services/identity/api/self/sessions/sessionsApi";
 import {getOrCreateDeviceId} from "@services/identity/api/self/auth/deviceInfo";
-
-type ConfirmFn = (options: any) => Promise<boolean>;
+import {
+    type ConfirmFn,
+    type ConfirmOptions,
+} from "@shared/ui/components/ConfirmDialog/confirmDialogContext";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
 
 export function useSessions(options: {
     token: string | null;
@@ -28,13 +31,11 @@ export function useSessions(options: {
     const [isRevokingAll, setIsRevokingAll] = useState(false);
     const [isRevokingOther, setIsRevokingOther] = useState(false);
 
-    const safeConfirm = async (cfg: any): Promise<boolean> => {
+    const safeConfirm = async (cfg: ConfirmOptions): Promise<boolean> => {
         try {
             return await confirm(cfg);
         } catch {
-            const text =
-                typeof cfg === "string" ? cfg : cfg?.description || "Are you sure?";
-            return window.confirm(text);
+            return window.confirm(cfg.description || cfg.title || "Are you sure?");
         }
     };
 
@@ -52,9 +53,9 @@ export function useSessions(options: {
             const list = await getSessions();
             setSessions(list ?? []);
             setSessionsVersion((value) => value + 1);
-        } catch (err: any) {
-            console.error(err);
-            setSessionsError(err?.message || "Failed to load sessions.");
+        } catch (error: unknown) {
+            console.error(error);
+            setSessionsError(getErrorMessage(error, "Failed to load sessions."));
         } finally {
             setIsLoadingSessions(false);
         }
@@ -87,8 +88,11 @@ export function useSessions(options: {
         return sameDevice[0].id;
     }, [sessions, currentDeviceId]);
 
-    const isCurrentSession = (session: SessionInfo) =>
-        session.isCurrent || (currentSessionId !== null && session.id === currentSessionId);
+    const isCurrentSession = useCallback(
+        (session: SessionInfo) =>
+            session.isCurrent || (currentSessionId !== null && session.id === currentSessionId),
+        [currentSessionId],
+    );
 
     const sortedSessions = useMemo(() => {
         const copy = [...sessions];
@@ -109,7 +113,7 @@ export function useSessions(options: {
         });
 
         return copy;
-    }, [sessions, currentSessionId]);
+    }, [isCurrentSession, sessions]);
 
     const doLogoutAndRedirect = async () => {
         try {
@@ -166,9 +170,9 @@ export function useSessions(options: {
             }
 
             await loadSessions();
-        } catch (err: any) {
-            console.error(err);
-            setSessionsError(err?.message || "Failed to revoke session.");
+        } catch (error: unknown) {
+            console.error(error);
+            setSessionsError(getErrorMessage(error, "Failed to revoke session."));
         } finally {
             setRevokingSessionId(null);
         }
@@ -197,9 +201,9 @@ export function useSessions(options: {
 
             await revokeAllSessions();
             await doLogoutAndRedirect();
-        } catch (err: any) {
-            console.error(err);
-            setSessionsError(err?.message || "Failed to revoke all sessions.");
+        } catch (error: unknown) {
+            console.error(error);
+            setSessionsError(getErrorMessage(error, "Failed to revoke all sessions."));
         } finally {
             setIsRevokingAll(false);
         }
@@ -228,9 +232,9 @@ export function useSessions(options: {
 
             await revokeOtherSessions();
             await loadSessions();
-        } catch (err: any) {
-            console.error(err);
-            setSessionsError(err?.message || "Failed to revoke other sessions.");
+        } catch (error: unknown) {
+            console.error(error);
+            setSessionsError(getErrorMessage(error, "Failed to revoke other sessions."));
         } finally {
             setIsRevokingOther(false);
         }

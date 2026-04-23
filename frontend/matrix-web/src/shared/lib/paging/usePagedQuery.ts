@@ -64,8 +64,9 @@ export function usePagedQuery<T>(
 
                 if (!keepPreviousData) setData(null);
             } finally {
-                if (!isActual) return;
-                setIsLoading(false);
+                if (isActual) {
+                    setIsLoading(false);
+                }
             }
         })();
 

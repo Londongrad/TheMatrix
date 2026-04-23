@@ -1,7 +1,8 @@
 // src/services/identity/auth/pages/RegisterPage.tsx
 import React, {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {getErrorMessage} from "@shared/lib/errors/getErrorMessage";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import AuthShell from "@shared/ui/layouts/auth-shell/AuthShell";
 import AuthCard from "@services/identity/self/auth/components/AuthCard";
 import AuthLogo from "@services/identity/self/auth/components/AuthLogo";
@@ -17,8 +18,8 @@ export const RegisterPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
         setError(null);
 
         if (password !== confirmPassword) {
@@ -34,8 +35,8 @@ export const RegisterPage = () => {
                 replace: true,
                 state: {emailConfirmationRequested: true},
             });
-        } catch (err: any) {
-            setError(err.message || "Registration failed");
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, "Registration failed"));
         } finally {
             setIsSubmitting(false);
         }
@@ -77,8 +78,10 @@ export const RegisterPage = () => {
                     <Link
                         to="/login"
                         className={isSubmitting ? "auth-link--disabled" : ""}
-                        onClick={(e) => {
-                            if (isSubmitting) e.preventDefault();
+                        onClick={(event) => {
+                            if (isSubmitting) {
+                                event.preventDefault();
+                            }
                         }}
                     >
                         Sign in
@@ -95,7 +98,7 @@ export const RegisterPage = () => {
                             className="auth-input"
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(event) => setEmail(event.target.value)}
                             placeholder="you@example.com"
                             required
                             disabled={isSubmitting}
@@ -110,7 +113,7 @@ export const RegisterPage = () => {
                             className="auth-input"
                             type="text"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={(event) => setUsername(event.target.value)}
                             placeholder="matrix_god"
                             required
                             disabled={isSubmitting}
@@ -124,7 +127,7 @@ export const RegisterPage = () => {
                             className="auth-input"
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(event) => setPassword(event.target.value)}
                             placeholder="••••••••"
                             required
                             disabled={isSubmitting}
@@ -138,19 +141,19 @@ export const RegisterPage = () => {
                             className="auth-input"
                             type="password"
                             value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onChange={(event) => setConfirmPassword(event.target.value)}
                             placeholder="••••••••"
                             required
                             disabled={isSubmitting}
                         />
                     </div>
 
-                    {error && <div className="auth-error">{error}</div>}
+                    {error ? <div className="auth-error">{error}</div> : null}
 
                     <button className="auth-button" type="submit" disabled={isSubmitting}>
-                        {isSubmitting && (
+                        {isSubmitting ? (
                             <span className="auth-spinner" aria-hidden="true"/>
-                        )}
+                        ) : null}
                         <span>{isSubmitting ? "Registering..." : "Register"}</span>
                     </button>
                 </form>
@@ -160,8 +163,10 @@ export const RegisterPage = () => {
                     <Link
                         to="/login"
                         className={isSubmitting ? "auth-link--disabled" : ""}
-                        onClick={(e) => {
-                            if (isSubmitting) e.preventDefault();
+                        onClick={(event) => {
+                            if (isSubmitting) {
+                                event.preventDefault();
+                            }
                         }}
                     >
                         Login

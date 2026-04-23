@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useMemo, useState} from "react";
 import Button from "@shared/ui/controls/Button/Button";
 import LoadingIndicator from "@shared/ui/components/LoadingIndicator/LoadingIndicator";
 import {usePermissions} from "@shared/permissions/usePermissions";
@@ -31,24 +31,25 @@ export default function PermissionsMatrix({
 }) {
     const {can} = usePermissions();
     const canUpdate = can(PermissionKeys.IdentityRolePermissionsUpdate) && !!activeScope?.editable;
-    const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-
-    useEffect(() => {
-        setOpenSections(
-            Object.fromEntries(grouped.map((section) => [section.title, true]))
-        );
-        setOpenGroups(
-            Object.fromEntries(
-                grouped.flatMap((section) =>
-                    section.groups.map((group) => [
-                        `${section.title}::${group.title}`,
-                        true,
-                    ])
-                )
-            )
-        );
-    }, [grouped]);
+    const [sectionExpansionState, setSectionExpansionState] = useState<Record<string, boolean>>({});
+    const [groupExpansionState, setGroupExpansionState] = useState<Record<string, boolean>>({});
+    const openSections = useMemo(
+        () => Object.fromEntries(
+            grouped.map((section) => [section.title, sectionExpansionState[section.title] ?? true]),
+        ),
+        [grouped, sectionExpansionState],
+    );
+    const openGroups = useMemo(
+        () => Object.fromEntries(
+            grouped.flatMap((section) =>
+                section.groups.map((group) => {
+                    const key = `${section.title}::${group.title}`;
+                    return [key, groupExpansionState[key] ?? true];
+                }),
+            ),
+        ),
+        [groupExpansionState, grouped],
+    );
 
     const anyExpanded =
         Object.values(openSections).some(Boolean) ||
@@ -57,10 +58,10 @@ export default function PermissionsMatrix({
     const toggleAll = () => {
         const nextOpen = !anyExpanded;
 
-        setOpenSections(
+        setSectionExpansionState(
             Object.fromEntries(grouped.map((section) => [section.title, nextOpen]))
         );
-        setOpenGroups(
+        setGroupExpansionState(
             Object.fromEntries(
                 grouped.flatMap((section) =>
                     section.groups.map((group) => [
@@ -246,7 +247,7 @@ export default function PermissionsMatrix({
                             className="mx-admin-perm__sectionTitle"
                             onClick={(event) => {
                                 event.preventDefault();
-                                setOpenSections((prev) => ({
+                                setSectionExpansionState((prev) => ({
                                     ...prev,
                                     [section.title]: !(prev[section.title] ?? true),
                                 }));
@@ -280,7 +281,7 @@ export default function PermissionsMatrix({
                                             className="mx-admin-perm__groupTitle"
                                             onClick={(event) => {
                                                 event.preventDefault();
-                                                setOpenGroups((prev) => ({
+                                                setGroupExpansionState((prev) => ({
                                                     ...prev,
                                                     [groupKey]: !(prev[groupKey] ?? true),
                                                 }));

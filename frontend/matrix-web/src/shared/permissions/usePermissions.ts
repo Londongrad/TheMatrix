@@ -1,5 +1,5 @@
 import {useCallback, useMemo} from "react";
-import {useAuth} from "@services/identity/api/self/auth/AuthContext";
+import {useAuth} from "@services/identity/api/self/auth/useAuth";
 import {can as canPermission, canAll as canAllPermissions, canAny as canAnyPermissions,} from "./can";
 
 export const usePermissions = () => {

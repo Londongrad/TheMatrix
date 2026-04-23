@@ -24,33 +24,35 @@ export default function RolePermissionsModal({
 
     useEffect(() => {
         let active = true;
-        setLoading(true);
-        setError(null);
+        void (async () => {
+            setLoading(true);
+            setError(null);
 
-        Promise.all([getPermissionsCatalog(), getRolePermissions(role.id)])
-            .then(([permissions, rolePerms]) => {
+            try {
+                const [permissions, rolePerms] = await Promise.all([
+                    getPermissionsCatalog(),
+                    getRolePermissions(role.id),
+                ]);
+
                 if (!active) {
                     return;
                 }
 
                 setCatalog(permissions.filter((permission) => !permission.isDeprecated));
                 setRolePermissions(rolePerms);
-            })
-            .catch((loadError) => {
+            } catch (loadError) {
                 console.error(loadError);
                 if (!active) {
                     return;
                 }
 
                 setError("Failed to load role permissions");
-            })
-            .finally(() => {
-                if (!active) {
-                    return;
+            } finally {
+                if (active) {
+                    setLoading(false);
                 }
-
-                setLoading(false);
-            });
+            }
+        })();
 
         return () => {
             active = false;

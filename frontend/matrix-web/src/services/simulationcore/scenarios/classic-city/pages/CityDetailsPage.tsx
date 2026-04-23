@@ -1,4 +1,4 @@
-import {useEffect, useMemo} from "react";
+import {useEffect} from "react";
 import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {CityDashboardCard} from "@services/simulationcore/scenarios/classic-city/components/CityDashboardCard";
 import {CityEconomyCard} from "@services/simulationcore/scenarios/classic-city/components/CityEconomyCard";
@@ -94,17 +94,13 @@ const CityDetailsPage = () => {
     const focusTripSubject = searchParams.get("focusTripSubject") ?? "";
     const focusDistrictId = searchParams.get("focusDistrictId") ?? "";
     const focusDistrictName = searchParams.get("focusDistrictName") ?? "";
-    const focusAnchorIds = useMemo(() => {
-        const rawValue = searchParams.get("focusAnchorIds");
-        if (!rawValue) {
-            return [];
-        }
-
-        return rawValue
+    const rawFocusAnchorIds = searchParams.get("focusAnchorIds");
+    const focusAnchorIds = rawFocusAnchorIds
+        ? rawFocusAnchorIds
             .split(",")
             .map((value) => value.trim())
-            .filter((value) => value.length > 0);
-    }, [searchParams]);
+            .filter((value) => value.length > 0)
+        : [];
     const activeTab: CityDetailsTabId = isCityDetailsTab(rawTab)
         ? rawTab
         : "overview";

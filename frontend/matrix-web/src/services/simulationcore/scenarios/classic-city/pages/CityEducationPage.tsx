@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {Link, Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {
     enrollCityResident,
@@ -296,10 +296,16 @@ const CityEducationPage = () => {
     const pageSize = residentsQuery.data?.pageSize ?? PAGE_SIZE;
     const range = getPageRange(currentPage, pageSize, total);
     const selectedResident = residentQuery.data;
-    const nextLevels = selectedResident
-        ? NEXT_EDUCATION_LEVELS[selectedResident.educationLevel] ?? []
-        : [];
-    const currentInstitutions = catalog?.currentInstitutions ?? [];
+    const nextLevels = useMemo(
+        () => selectedResident
+            ? NEXT_EDUCATION_LEVELS[selectedResident.educationLevel] ?? []
+            : [],
+        [selectedResident],
+    );
+    const currentInstitutions = useMemo(
+        () => catalog?.currentInstitutions ?? [],
+        [catalog?.currentInstitutions],
+    );
     const relevantEducationLevel = selectedResident
         ? selectedResident.employmentStatus === "Student"
             ? selectedTargetEducationLevel || nextLevels[0] || ""
