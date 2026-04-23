@@ -5,7 +5,6 @@ using Matrix.Economy.Application.UseCases.BudgetLedger;
 using Matrix.Economy.Application.UseCases.BudgetOperations.Common;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
 using Matrix.Economy.Domain.Enums;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
@@ -13,8 +12,9 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
     public sealed class ClassicCityOperationalExpenseConsumer(
         CityBudgetOperationalExpenseSupport operationalExpenseSupport,
         IEconomyUnitOfWork unitOfWork,
-        ISender sender,
+        ICityOperationalBudgetPressureProjectionService operationalBudgetPressureProjectionService,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
+        TimeProvider timeProvider,
         ILogger<ClassicCityOperationalExpenseConsumer> logger)
         : IConsumer<ClassicCityOperationalExpenseIncurredV1>
     {
@@ -73,8 +73,8 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
                     message.OperationKind);
             }
 
-            CityOperationalBudgetPressureDto pressure = await sender.Send(
-                request: new GetCityOperationalBudgetPressureQuery(message.CityId),
+            CityOperationalBudgetPressureDto pressure = await operationalBudgetPressureProjectionService.GetAsync(
+                cityId: message.CityId,
                 cancellationToken: context.CancellationToken);
 
             DateTimeOffset effectiveAtUtc = pressure.LastMunicipalExpenseAtUtc is null
@@ -83,7 +83,7 @@ namespace Matrix.Economy.Infrastructure.Scenarios.ClassicCity.Consumers
             await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
                 snapshot: pressure,
                 effectiveAtUtc: effectiveAtUtc,
-                occurredAtUtc: DateTimeOffset.UtcNow,
+                occurredAtUtc: timeProvider.GetUtcNow(),
                 cancellationToken: context.CancellationToken);
         }
     }

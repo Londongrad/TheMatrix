@@ -92,24 +92,30 @@ namespace Matrix.Economy.Infrastructure.Persistence.Repositories
                                entry.Kind == CityBudgetLedgerEntryKind.Expense &&
                                entry.Source == CityBudgetLedgerEntrySource.MunicipalOperations);
 
-            CityBudgetOperationalExpenseSnapshot? snapshot = await query
-               .GroupBy(_ => 1)
-               .Select(group => new CityBudgetOperationalExpenseSnapshot(
-                    group.Sum(entry => entry.Amount.Amount),
-                    group
-                       .Where(entry => entry.Category == CityBudgetCategory.Infrastructure)
-                       .Sum(entry => entry.Amount.Amount),
-                    group
-                       .Where(entry => entry.Category == CityBudgetCategory.Operations)
-                       .Sum(entry => entry.Amount.Amount),
-                    group.Max(entry => (DateTimeOffset?)entry.OccurredAtUtc)))
-               .SingleOrDefaultAsync(cancellationToken);
+            // Amount is stored via a value converter as a single decimal column.
+            // Query the provider column directly instead of traversing Money.Amount,
+            // which Npgsql cannot translate in aggregate expressions.
+            decimal totalMunicipalOperationsExpenses = await query
+                .Select(entry => (decimal?)EF.Property<decimal>(entry, nameof(CityBudgetLedgerEntry.Amount)))
+                .SumAsync(cancellationToken) ?? 0m;
+            decimal infrastructureOperationsExpenses = await query
+                .Where(entry => entry.Category == CityBudgetCategory.Infrastructure)
+                .Select(entry => (decimal?)EF.Property<decimal>(entry, nameof(CityBudgetLedgerEntry.Amount)))
+                .SumAsync(cancellationToken) ?? 0m;
+            decimal emergencyOperationsExpenses = await query
+                .Where(entry => entry.Category == CityBudgetCategory.Operations)
+                .Select(entry => (decimal?)EF.Property<decimal>(entry, nameof(CityBudgetLedgerEntry.Amount)))
+                .SumAsync(cancellationToken) ?? 0m;
+            DateTimeOffset? lastMunicipalExpenseAtUtc = await query
+                .MaxAsync(
+                    selector: entry => (DateTimeOffset?)entry.OccurredAtUtc,
+                    cancellationToken: cancellationToken);
 
-            return snapshot ?? new CityBudgetOperationalExpenseSnapshot(
-                TotalMunicipalOperationsExpenses: 0m,
-                InfrastructureOperationsExpenses: 0m,
-                EmergencyOperationsExpenses: 0m,
-                LastMunicipalExpenseAtUtc: null);
+            return new CityBudgetOperationalExpenseSnapshot(
+                TotalMunicipalOperationsExpenses: totalMunicipalOperationsExpenses,
+                InfrastructureOperationsExpenses: infrastructureOperationsExpenses,
+                EmergencyOperationsExpenses: emergencyOperationsExpenses,
+                LastMunicipalExpenseAtUtc: lastMunicipalExpenseAtUtc);
         }
     }
 }
