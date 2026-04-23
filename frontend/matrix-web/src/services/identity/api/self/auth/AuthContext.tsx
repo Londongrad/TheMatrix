@@ -30,6 +30,21 @@ function shouldInvalidateSessionOnRefreshFailure(error: unknown): boolean {
     return error instanceof HttpError && (error.status === 401 || error.status === 403);
 }
 
+function isTransientRefreshFailure(error: unknown): boolean {
+    return error instanceof HttpError && (
+        error.status === 0 ||
+        error.status === 502 ||
+        error.status === 503 ||
+        error.status === 504
+    );
+}
+
+function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        window.setTimeout(resolve, ms);
+    });
+}
+
 export const AuthProvider = ({children}: PropsWithChildren) => {
     const [user, setUser] = useState<ProfileResponse | null>(null);
     const [token, setToken] = useState<string | null>(null);
@@ -90,7 +105,7 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
         }
     }, []);
 
-    // 🔁 Обновление access-токена по refresh-куке (ТОЛЬКО токен)
+    // рџ”Ѓ РћР±РЅРѕРІР»РµРЅРёРµ access-С‚РѕРєРµРЅР° РїРѕ refresh-РєСѓРєРµ (РўРћР›Р¬РљРћ С‚РѕРєРµРЅ)
     const reloadProfileOnce = useCallback(async () => {
         if (profileRefreshInFlight.current) return;
         profileRefreshInFlight.current = true;
@@ -190,30 +205,44 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
 
     const logout = async () => {
         try {
-            await logoutAuth(); // бэк сам удалит refresh-куку
+            await logoutAuth(); // Р±СЌРє СЃР°Рј СѓРґР°Р»РёС‚ refresh-РєСѓРєСѓ
         } catch {
-            // даже если ошибка, всё равно чистим локальное состояние
+            // РґР°Р¶Рµ РµСЃР»Рё РѕС€РёР±РєР°, РІСЃС‘ СЂР°РІРЅРѕ С‡РёСЃС‚РёРј Р»РѕРєР°Р»СЊРЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ
         } finally {
             setAccessToken(null);
             setUser(null);
         }
     };
 
-    // При монтировании: один раз пробуем восстановить сессию по refresh-куке
+    // РџСЂРё РјРѕРЅС‚РёСЂРѕРІР°РЅРёРё: РѕРґРёРЅ СЂР°Р· РїСЂРѕР±СѓРµРј РІРѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРµСЃСЃРёСЋ РїРѕ refresh-РєСѓРєРµ
     useEffect(() => {
         if (hasTriedRefresh.current) return;
         hasTriedRefresh.current = true;
 
         (async () => {
-            const refreshResult = await refreshSession();
-            if (refreshResult.accessToken) {
-                await reloadMe(); // отдельный вызов профиля ОДИН РАЗ на старте
+            const retryDelaysMs = [0, 500, 1000, 2000];
+
+            for (let attempt = 0; attempt < retryDelaysMs.length; attempt++) {
+                if (attempt > 0) {
+                    await delay(retryDelaysMs[attempt]);
+                }
+
+                const refreshResult = await refreshSession();
+                if (refreshResult.accessToken) {
+                    await reloadMe();
+                    break;
+                }
+
+                if (refreshResult.shouldLogout || !isTransientRefreshFailure(refreshResult.error)) {
+                    break;
+                }
             }
+
             setIsLoading(false);
         })();
     }, [refreshSession, reloadMe]);
 
-    // 🔥 configure один раз (refreshSession стабилен через useCallback)
+    // рџ”Ґ configure РѕРґРёРЅ СЂР°Р· (refreshSession СЃС‚Р°Р±РёР»РµРЅ С‡РµСЂРµР· useCallback)
     useEffect(() => {
         configureHttpAuth({
             refreshToken: refreshSession,
@@ -224,7 +253,7 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
             getAccessToken: () => tokenRef.current,
             onForbidden: ({url}) => {
                 void reloadProfileOnce();
-                // чтобы не зациклиться, если уже на forbidden
+                // С‡С‚РѕР±С‹ РЅРµ Р·Р°С†РёРєР»РёС‚СЊСЃСЏ, РµСЃР»Рё СѓР¶Рµ РЅР° forbidden
                 if (location.pathname !== "/forbidden") {
                     navigate("/forbidden", {
                         replace: true,
