@@ -4,6 +4,11 @@ import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath, URL} from "node:url";
 
+const localhostKeyPath = path.resolve(__dirname, "certs/localhost-key.pem");
+const localhostCertPath = path.resolve(__dirname, "certs/localhost.pem");
+const hasLocalHttpsCertificates =
+    fs.existsSync(localhostKeyPath) && fs.existsSync(localhostCertPath);
+
 export default defineConfig({
     plugins: [react()],
 
@@ -17,10 +22,12 @@ export default defineConfig({
     },
 
     server: {
-        https: {
-            key: fs.readFileSync(path.resolve(__dirname, "certs/localhost-key.pem")),
-            cert: fs.readFileSync(path.resolve(__dirname, "certs/localhost.pem")),
-        },
+        https: hasLocalHttpsCertificates
+            ? {
+                  key: fs.readFileSync(localhostKeyPath),
+                  cert: fs.readFileSync(localhostCertPath),
+              }
+            : false,
         host: "localhost",
         port: 5173,
     },
