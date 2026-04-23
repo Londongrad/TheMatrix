@@ -33,37 +33,56 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
             IReadOnlyList<RoadSegment> roadSegments = await roadSegmentRepository.ListByCityIdAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
-            IReadOnlyList<ResidentialBuilding> buildings = await residentialBuildingRepository.ListByCityIdAsync(
-                cityId: cityId,
-                districtId: null,
-                cancellationToken: cancellationToken);
-            IReadOnlyList<CityAnchor> anchors = await cityAnchorRepository.ListByCityIdAsync(
-                cityId: cityId,
-                cancellationToken: cancellationToken);
             Services.Routing.CityRoadSegmentConditionsSnapshot? conditions = await conditionsTask;
 
             Dictionary<Guid, RoadNode> roadNodeById = roadNodes.ToDictionary(
                 keySelector: x => x.Id.Value,
                 elementSelector: x => x);
-            Dictionary<Guid, ResidentialBuilding> buildingById = buildings.ToDictionary(
-                keySelector: x => x.Id.Value,
-                elementSelector: x => x);
-            Dictionary<Guid, CityAnchor> anchorById = anchors.ToDictionary(
-                keySelector: x => x.Id.Value,
-                elementSelector: x => x);
+            ResidentialBuilding? sourceBuilding = string.Equals(
+                a: CityRouteMapPointKinds.Normalize(request.FromKind),
+                b: CityRouteMapPointKinds.ResidentialBuilding,
+                comparisonType: StringComparison.OrdinalIgnoreCase)
+                ? await residentialBuildingRepository.GetByIdAsync(
+                    buildingId: new ResidentialBuildingId(request.FromId),
+                    cancellationToken: cancellationToken)
+                : null;
+            ResidentialBuilding? targetBuilding = string.Equals(
+                a: CityRouteMapPointKinds.Normalize(request.ToKind),
+                b: CityRouteMapPointKinds.ResidentialBuilding,
+                comparisonType: StringComparison.OrdinalIgnoreCase)
+                ? await residentialBuildingRepository.GetByIdAsync(
+                    buildingId: new ResidentialBuildingId(request.ToId),
+                    cancellationToken: cancellationToken)
+                : null;
+            CityAnchor? sourceAnchor = string.Equals(
+                a: CityRouteMapPointKinds.Normalize(request.FromKind),
+                b: CityRouteMapPointKinds.CityAnchor,
+                comparisonType: StringComparison.OrdinalIgnoreCase)
+                ? await cityAnchorRepository.GetByIdAsync(
+                    anchorId: new CityAnchorId(request.FromId),
+                    cancellationToken: cancellationToken)
+                : null;
+            CityAnchor? targetAnchor = string.Equals(
+                a: CityRouteMapPointKinds.Normalize(request.ToKind),
+                b: CityRouteMapPointKinds.CityAnchor,
+                comparisonType: StringComparison.OrdinalIgnoreCase)
+                ? await cityAnchorRepository.GetByIdAsync(
+                    anchorId: new CityAnchorId(request.ToId),
+                    cancellationToken: cancellationToken)
+                : null;
 
             CityRoutePointDto? from = ResolvePoint(
                 kind: CityRouteMapPointKinds.Normalize(request.FromKind),
                 entityId: request.FromId,
                 roadNodeById: roadNodeById,
-                buildingById: buildingById,
-                anchorById: anchorById);
+                building: sourceBuilding,
+                anchor: sourceAnchor);
             CityRoutePointDto? to = ResolvePoint(
                 kind: CityRouteMapPointKinds.Normalize(request.ToKind),
                 entityId: request.ToId,
                 roadNodeById: roadNodeById,
-                buildingById: buildingById,
-                anchorById: anchorById);
+                building: targetBuilding,
+                anchor: targetAnchor);
 
             if (from is null || to is null)
                 return null;
@@ -82,8 +101,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
             string kind,
             Guid entityId,
             IReadOnlyDictionary<Guid, RoadNode> roadNodeById,
-            IReadOnlyDictionary<Guid, ResidentialBuilding> buildingById,
-            IReadOnlyDictionary<Guid, CityAnchor> anchorById)
+            ResidentialBuilding? building,
+            CityAnchor? anchor)
         {
             if (string.Equals(
                 a: kind,
@@ -107,7 +126,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                 b: CityRouteMapPointKinds.ResidentialBuilding,
                 comparisonType: StringComparison.OrdinalIgnoreCase))
             {
-                if (!buildingById.TryGetValue(entityId, out ResidentialBuilding? building)
+                if (building is null
+                 || building.Id.Value != entityId
                  || !roadNodeById.ContainsKey(building.AccessRoadNodeId.Value))
                 {
                     return null;
@@ -128,7 +148,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topol
                 b: CityRouteMapPointKinds.CityAnchor,
                 comparisonType: StringComparison.OrdinalIgnoreCase))
             {
-                if (!anchorById.TryGetValue(entityId, out CityAnchor? anchor)
+                if (anchor is null
+                 || anchor.Id.Value != entityId
                  || !roadNodeById.ContainsKey(anchor.AccessRoadNodeId.Value))
                 {
                     return null;

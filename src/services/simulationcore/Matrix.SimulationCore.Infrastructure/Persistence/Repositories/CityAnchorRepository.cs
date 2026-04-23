@@ -7,6 +7,17 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
 {
     public sealed class CityAnchorRepository(SimulationCoreDbContext dbContext) : ICityAnchorRepository
     {
+        public Task<CityAnchor?> GetByIdAsync(
+            CityAnchorId anchorId,
+            CancellationToken cancellationToken)
+        {
+            return dbContext.CityAnchors
+               .AsNoTracking()
+               .SingleOrDefaultAsync(
+                    predicate: x => x.Id == anchorId,
+                    cancellationToken: cancellationToken);
+        }
+
         public async Task<IReadOnlyList<CityAnchor>> ListByCityIdAsync(
             CityId cityId,
             CancellationToken cancellationToken)
@@ -14,8 +25,6 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
             return await dbContext.CityAnchors
                .AsNoTracking()
                .Where(x => x.CityId == cityId)
-               .OrderBy(x => x.Type)
-               .ThenBy(x => x.Name)
                .ToListAsync(cancellationToken);
         }
 

@@ -13,8 +13,8 @@ namespace Matrix.SimulationSystems.Infrastructure.SimulationCore
             Guid cityId,
             CancellationToken cancellationToken)
         {
-            CityMapTopologyView? payload = await _client.GetFromJsonAsync<CityMapTopologyView>(
-                requestUri: $"/api/cities/{cityId}/map",
+            CityRoadGraphView? payload = await _client.GetFromJsonAsync<CityRoadGraphView>(
+                requestUri: $"/api/cities/{cityId}/road-graph",
                 cancellationToken: cancellationToken);
 
             if (payload is null)

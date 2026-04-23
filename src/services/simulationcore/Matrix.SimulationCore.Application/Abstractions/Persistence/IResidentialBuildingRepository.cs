@@ -5,6 +5,10 @@ namespace Matrix.SimulationCore.Application.Abstractions.Persistence
 {
     public interface IResidentialBuildingRepository
     {
+        Task<ResidentialBuilding?> GetByIdAsync(
+            ResidentialBuildingId buildingId,
+            CancellationToken cancellationToken);
+
         Task<IReadOnlyList<ResidentialBuilding>> ListByCityIdAsync(
             CityId cityId,
             DistrictId? districtId,

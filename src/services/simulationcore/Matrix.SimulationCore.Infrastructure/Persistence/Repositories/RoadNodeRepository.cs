@@ -14,8 +14,6 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
             return await dbContext.RoadNodes
                .AsNoTracking()
                .Where(x => x.CityId == cityId)
-               .OrderBy(x => x.Type)
-               .ThenBy(x => x.Name)
                .ToListAsync(cancellationToken);
         }
 

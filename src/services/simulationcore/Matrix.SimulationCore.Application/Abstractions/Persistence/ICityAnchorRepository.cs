@@ -5,6 +5,10 @@ namespace Matrix.SimulationCore.Application.Abstractions.Persistence
 {
     public interface ICityAnchorRepository
     {
+        Task<CityAnchor?> GetByIdAsync(
+            CityAnchorId anchorId,
+            CancellationToken cancellationToken);
+
         Task<IReadOnlyList<CityAnchor>> ListByCityIdAsync(
             CityId cityId,
             CancellationToken cancellationToken);

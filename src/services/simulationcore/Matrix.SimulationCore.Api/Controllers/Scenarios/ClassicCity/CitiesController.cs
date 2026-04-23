@@ -21,6 +21,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.Up
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityDistricts;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityAnchors;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityMapTopology;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityRoadGraph;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.GetCityResidentialBuildings;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Weather.GetWeather;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
@@ -298,6 +299,26 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
                        .Select(MapToRoadNodeView)
                        .ToArray(),
                     RoadSegments: map.RoadSegments
+                       .Select(MapToRoadSegmentView)
+                       .ToArray()));
+        }
+
+        [HttpGet("{cityId:guid}/road-graph")]
+        public async Task<IResult> GetRoadGraph(
+            [FromRoute] Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            CityRoadGraphDto graph = await mediator.Send(
+                request: new GetCityRoadGraphQuery(CityId: cityId),
+                cancellationToken: cancellationToken);
+
+            return Results.Ok(
+                new CityRoadGraphView(
+                    CityId: graph.CityId,
+                    Districts: graph.Districts
+                       .Select(MapToDistrictView)
+                       .ToArray(),
+                    RoadSegments: graph.RoadSegments
                        .Select(MapToRoadSegmentView)
                        .ToArray()));
         }

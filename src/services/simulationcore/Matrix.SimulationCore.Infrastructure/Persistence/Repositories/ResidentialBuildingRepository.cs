@@ -7,6 +7,17 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
 {
     public sealed class ResidentialBuildingRepository(SimulationCoreDbContext dbContext) : IResidentialBuildingRepository
     {
+        public Task<ResidentialBuilding?> GetByIdAsync(
+            ResidentialBuildingId buildingId,
+            CancellationToken cancellationToken)
+        {
+            return dbContext.ResidentialBuildings
+               .AsNoTracking()
+               .SingleOrDefaultAsync(
+                    predicate: x => x.Id == buildingId,
+                    cancellationToken: cancellationToken);
+        }
+
         public async Task<IReadOnlyList<ResidentialBuilding>> ListByCityIdAsync(
             CityId cityId,
             DistrictId? districtId,
@@ -19,9 +30,7 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Repositories
             if (districtId.HasValue)
                 query = query.Where(x => x.DistrictId == districtId.Value);
 
-            return await query
-               .OrderBy(x => x.Name)
-               .ToListAsync(cancellationToken);
+            return await query.ToListAsync(cancellationToken);
         }
 
         public Task AddRangeAsync(
