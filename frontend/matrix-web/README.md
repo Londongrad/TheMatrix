@@ -1,5 +1,29 @@
 # React + TypeScript + Vite
 
+## Local Development
+
+`frontend/matrix-web/.env.development` should keep `VITE_API_BASE_URL=https://localhost:7155`.
+
+The frontend supports two local dev modes:
+
+- Recommended full local mode: `https://localhost:5173`
+- requires local HTTPS certificates at `frontend/matrix-web/certs/localhost-key.pem` and `frontend/matrix-web/certs/localhost.pem`
+- supports the gateway secure refresh-cookie flow
+
+- Fallback clean-checkout mode: `http://localhost:5173`
+- starts automatically when the certificate files are missing
+- useful for build and basic frontend startup, but full authenticated cookie refresh/logout flow is expected to use HTTPS because the gateway refresh cookie is `Secure` and `SameSite=Strict`
+
+One common local setup is `mkcert`:
+
+```powershell
+Set-Location frontend/matrix-web
+New-Item -ItemType Directory -Force certs | Out-Null
+mkcert -key-file certs/localhost-key.pem -cert-file certs/localhost.pem localhost 127.0.0.1 ::1
+```
+
+Do not commit generated certificates.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

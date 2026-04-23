@@ -105,15 +105,41 @@ npm ci
 npm run dev
 ```
 
-The frontend dev server runs on:
+`frontend/matrix-web/.env.development` should continue to point the frontend at the local HTTPS gateway:
 
-- `http://localhost:5173`
+- `VITE_API_BASE_URL=https://localhost:7155`
+
+The frontend supports two local modes:
+
+- Recommended full local mode: `https://localhost:5173`
+- requires local HTTPS certificates in `frontend/matrix-web/certs`
+- supports the gateway secure refresh-cookie flow against `https://localhost:7155`
+
+- Fallback clean-checkout mode: `http://localhost:5173`
+- starts automatically when the certificate files are missing
+- useful for `npm run build` and basic frontend startup on a clean checkout
+- full auth refresh/logout cookie flow is expected to use HTTPS because the gateway refresh cookie is `Secure` and `SameSite=Strict`
+
+Expected local certificate files:
+
+- `frontend/matrix-web/certs/localhost-key.pem`
+- `frontend/matrix-web/certs/localhost.pem`
+
+If you want the recommended HTTPS mode locally, generate the certificates on your machine and keep them untracked. A typical `mkcert` flow is:
+
+```powershell
+Set-Location frontend/matrix-web
+New-Item -ItemType Directory -Force certs | Out-Null
+mkcert -key-file certs/localhost-key.pem -cert-file certs/localhost.pem localhost 127.0.0.1 ::1
+```
+
+Do not commit generated certificate files.
 
 ## 7. Quick sanity check
 
 After the stack is up:
 
-- the frontend should load on `http://localhost:5173`
+- the frontend should load on `https://localhost:5173` in the recommended full local mode, or on `http://localhost:5173` when local Vite certificates are absent
 - the gateway should be able to reach downstream services
 - RabbitMQ management should be available on `http://localhost:15672`
 - Postgres and Redis containers should report healthy/running in `docker compose ps`

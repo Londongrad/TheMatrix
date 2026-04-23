@@ -14,7 +14,7 @@ namespace Matrix.ApiGateway.Configurations
             builder.Services
                .AddOperationalHealthChecks(builder.Configuration)
                .AddTrustedForwardedHeaders(builder.Configuration)
-               .AddGatewayCore(builder.Configuration)
+               .AddGatewayCore(builder.Configuration, builder.Environment)
                .AddGatewayAuth(builder.Configuration)
                .AddDownstreamServices(builder.Configuration)
                .AddBffFeatures(builder.Configuration);

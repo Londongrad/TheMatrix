@@ -12,7 +12,8 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
     {
         public static IServiceCollection AddGatewayCore(
             this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IHostEnvironment environment)
         {
             services.AddOptions<CityOperationsDashboardOptions>()
                .Bind(configuration.GetSection(CityOperationsDashboardOptions.SectionName))
@@ -29,6 +30,12 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
             services.AddOptions<FrontendSecurityOptions>()
                .Bind(configuration.GetSection(FrontendSecurityOptions.SectionName))
+               .PostConfigure(options =>
+                {
+                    options.AllowedOrigins = GetAllowedOrigins(
+                        configuredOrigins: options.AllowedOrigins,
+                        environment: environment);
+                })
                .Validate(
                     validation: options => !options.EnforceCookieOriginProtection ||
                                            options.AllowedOrigins.Any(x => !string.IsNullOrWhiteSpace(x)),
@@ -42,7 +49,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .AddScoped<IClassicCitySetupSessionService, ClassicCitySetupSessionService>()
                .AddHostedService<ClassicCitySetupSessionRecoveryHostedService>()
                .AddGatewayControllers()
-               .AddGatewayCors(configuration);
+               .AddGatewayCors(configuration, environment);
 
             return services;
         }
@@ -76,12 +83,15 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
         private static IServiceCollection AddGatewayCors(
             this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IHostEnvironment environment)
         {
-            string[] allowedOrigins = configuration
+            string[] allowedOrigins = GetAllowedOrigins(
+                configuredOrigins: configuration
                .GetSection(FrontendSecurityOptions.SectionName)
                .GetSection(nameof(FrontendSecurityOptions.AllowedOrigins))
-               .Get<string[]>() ?? [];
+               .Get<string[]>() ?? [],
+                environment: environment);
 
             services.AddCors(options =>
             {
@@ -98,6 +108,23 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
             });
 
             return services;
+        }
+
+        private static string[] GetAllowedOrigins(
+            IEnumerable<string> configuredOrigins,
+            IHostEnvironment environment)
+        {
+            IEnumerable<string> allowedOrigins = configuredOrigins;
+            if (environment.IsDevelopment())
+            {
+                allowedOrigins = allowedOrigins.Concat(FrontendSecurityOptions.DevelopmentLocalAllowedOrigins);
+            }
+
+            return allowedOrigins
+               .Where(x => !string.IsNullOrWhiteSpace(x))
+               .Select(x => x.Trim())
+               .Distinct(StringComparer.OrdinalIgnoreCase)
+               .ToArray();
         }
     }
 }
