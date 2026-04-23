@@ -14,7 +14,7 @@ export type WorkspacePreferencesContextValue = {
     savePreferences: (nextPreferences: WorkspacePreferences) => void;
 };
 
-const STORAGE_KEY = "matrix.identity.preferences";
+export const WORKSPACE_PREFERENCES_STORAGE_KEY = "matrix.identity.preferences";
 
 export const defaultWorkspacePreferences: WorkspacePreferences = {
     language: "en",
@@ -31,7 +31,7 @@ export function readStoredWorkspacePreferences(): WorkspacePreferences {
     }
 
     try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
+        const raw = window.localStorage.getItem(WORKSPACE_PREFERENCES_STORAGE_KEY);
 
         if (!raw) {
             return defaultWorkspacePreferences;
@@ -62,7 +62,10 @@ export function persistWorkspacePreferences(preferences: WorkspacePreferences) {
         return;
     }
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+    window.localStorage.setItem(
+        WORKSPACE_PREFERENCES_STORAGE_KEY,
+        JSON.stringify(preferences),
+    );
 }
 
 export function applyDocumentPreferences(preferences: WorkspacePreferences) {

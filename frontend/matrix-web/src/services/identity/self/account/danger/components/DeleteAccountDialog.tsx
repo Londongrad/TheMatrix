@@ -11,6 +11,8 @@ interface DeleteAccountDialogProps {
     onConfirm: (password: string) => void;
 }
 
+type DeleteAccountDialogContentProps = Omit<DeleteAccountDialogProps, "open">;
+
 const DeleteAccountDialog = ({
                                  open,
                                  isSubmitting,
@@ -18,11 +20,27 @@ const DeleteAccountDialog = ({
                                  onClose,
                                  onConfirm,
                              }: DeleteAccountDialogProps) => {
-    const [password, setPassword] = useState("");
-
     if (!open) {
         return null;
     }
+
+    return (
+        <DeleteAccountDialogContent
+            isSubmitting={isSubmitting}
+            error={error}
+            onClose={onClose}
+            onConfirm={onConfirm}
+        />
+    );
+};
+
+const DeleteAccountDialogContent = ({
+                                        isSubmitting,
+                                        error,
+                                        onClose,
+                                        onConfirm,
+                                    }: DeleteAccountDialogContentProps) => {
+    const [password, setPassword] = useState("");
 
     const handleClose = () => {
         setPassword("");

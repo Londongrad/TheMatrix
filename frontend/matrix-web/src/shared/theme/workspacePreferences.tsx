@@ -5,10 +5,9 @@ import {
     readStoredWorkspacePreferences,
     type WorkspacePreferences,
     type WorkspacePreferencesContextValue,
+    WORKSPACE_PREFERENCES_STORAGE_KEY,
     WorkspacePreferencesContext,
 } from "./workspacePreferencesContext";
-
-const STORAGE_KEY = "matrix.identity.preferences";
 
 export function WorkspacePreferencesProvider({
                                                  children,
@@ -29,7 +28,7 @@ export function WorkspacePreferencesProvider({
         }
 
         const syncPreferences = (event: StorageEvent) => {
-            if (event.key !== STORAGE_KEY) {
+            if (event.key !== WORKSPACE_PREFERENCES_STORAGE_KEY) {
                 return;
             }
 
