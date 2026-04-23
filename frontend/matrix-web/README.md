@@ -24,6 +24,22 @@ mkcert -key-file certs/localhost-key.pem -cert-file certs/localhost.pem localhos
 
 Do not commit generated certificates.
 
+## Verification
+
+Run the frontend quality gate locally with:
+
+```powershell
+Set-Location frontend/matrix-web
+npm run check
+```
+
+`npm run check` runs:
+
+- `npm run lint`
+- `npm run build`
+
+The build must pass even when `frontend/matrix-web/certs` is missing because Vite falls back to `http://localhost:5173` when the local certificate files are absent.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

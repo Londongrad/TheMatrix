@@ -135,6 +135,22 @@ mkcert -key-file certs/localhost-key.pem -cert-file certs/localhost.pem localhos
 
 Do not commit generated certificate files.
 
+## Frontend quality check
+
+Run the frontend quality gate locally with:
+
+```powershell
+Set-Location frontend/matrix-web
+npm run check
+```
+
+`npm run check` runs:
+
+- `npm run lint`
+- `npm run build`
+
+The build is expected to pass even without local Vite certificates because the frontend falls back to `http://localhost:5173` when `frontend/matrix-web/certs` is absent.
+
 ## 7. Quick sanity check
 
 After the stack is up:
