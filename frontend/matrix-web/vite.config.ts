@@ -4,8 +4,9 @@ import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath, URL} from "node:url";
 
-const localhostKeyPath = path.resolve(__dirname, "certs/localhost-key.pem");
-const localhostCertPath = path.resolve(__dirname, "certs/localhost.pem");
+const configDirectory = path.dirname(fileURLToPath(import.meta.url));
+const localhostKeyPath = path.resolve(configDirectory, "certs/localhost-key.pem");
+const localhostCertPath = path.resolve(configDirectory, "certs/localhost.pem");
 const hasLocalHttpsCertificates =
     fs.existsSync(localhostKeyPath) && fs.existsSync(localhostCertPath);
 
