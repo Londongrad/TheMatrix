@@ -13,6 +13,7 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
     public sealed class SimulationClockMutationExecutor(
         SimulationCoreDbContext dbContext,
         ISimulationHostReadRepository simulationHostRepository,
+        SimulationOperationGate operationGate,
         ILogger<SimulationClockMutationExecutor> logger) : ISimulationClockMutationExecutor
     {
         private const int MaxAttempts = 3;
@@ -23,80 +24,86 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
             CancellationToken cancellationToken,
             bool allowArchivedHost = false)
         {
-            DbUpdateConcurrencyException? lastException = null;
-
-            for (int attempt = 1; attempt <= MaxAttempts; attempt++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                try
+            return await operationGate.ExecuteAsync(
+                simulationId: simulationId,
+                action: async ct =>
                 {
-                    SimulationHost? host = await simulationHostRepository.GetBySimulationIdAsync(
-                        simulationId: simulationId,
-                        cancellationToken: cancellationToken);
+                    DbUpdateConcurrencyException? lastException = null;
 
-                    if (host is null)
-                        return false;
+                    for (int attempt = 1; attempt <= MaxAttempts; attempt++)
+                    {
+                        ct.ThrowIfCancellationRequested();
 
-                    if (host.IsArchived && !allowArchivedHost)
-                        throw new MatrixApplicationException(
-                            code: "SimulationCore.Simulation.ArchivedHost",
-                            message: "Archived simulation hosts are read-only. Simulation controls are unavailable.",
-                            errorType: ApplicationErrorType.Conflict);
+                        try
+                        {
+                            SimulationHost? host = await simulationHostRepository.GetBySimulationIdAsync(
+                                simulationId: simulationId,
+                                cancellationToken: ct);
 
-                    CityId cityId = new(host.HostId.Value);
+                            if (host is null)
+                                return false;
 
-                    SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
-                        predicate: x => x.Id == cityId,
-                        cancellationToken: cancellationToken);
+                            if (host.IsArchived && !allowArchivedHost)
+                                throw new MatrixApplicationException(
+                                    code: "SimulationCore.Simulation.ArchivedHost",
+                                    message: "Archived simulation hosts are read-only. Simulation controls are unavailable.",
+                                    errorType: ApplicationErrorType.Conflict);
 
-                    if (clock is null)
-                        return false;
+                            CityId cityId = new(host.HostId.Value);
 
-                    mutate(clock);
-                    await dbContext.SaveChangesAsync(cancellationToken);
-                    return true;
-                }
-                catch (DbUpdateConcurrencyException ex) when (attempt < MaxAttempts)
-                {
-                    lastException = ex;
+                            SimulationClock? clock = await dbContext.SimulationClocks.SingleOrDefaultAsync(
+                                predicate: x => x.Id == cityId,
+                                cancellationToken: ct);
+
+                            if (clock is null)
+                                return false;
+
+                            mutate(clock);
+                            await dbContext.SaveChangesAsync(ct);
+                            return true;
+                        }
+                        catch (DbUpdateConcurrencyException ex) when (attempt < MaxAttempts)
+                        {
+                            lastException = ex;
+
+                            logger.LogWarning(
+                                exception: ex,
+                                message:
+                                "Concurrent update detected for simulation clock {SimulationId}. Retrying attempt {Attempt} of {MaxAttempts}.",
+                                args:
+                                [
+                                    simulationId.Value,
+                                    attempt + 1,
+                                    MaxAttempts
+                                ]);
+
+                            dbContext.ChangeTracker.Clear();
+                        }
+                        catch (DbUpdateConcurrencyException ex)
+                        {
+                            lastException = ex;
+                            dbContext.ChangeTracker.Clear();
+                            break;
+                        }
+                    }
 
                     logger.LogWarning(
-                        exception: ex,
+                        exception: lastException,
                         message:
-                        "Concurrent update detected for simulation clock {SimulationId}. Retrying attempt {Attempt} of {MaxAttempts}.",
+                        "Simulation clock {SimulationId} could not be updated after {MaxAttempts} attempts because it kept changing concurrently.",
                         args:
                         [
                             simulationId.Value,
-                            attempt + 1,
                             MaxAttempts
                         ]);
 
-                    dbContext.ChangeTracker.Clear();
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    lastException = ex;
-                    dbContext.ChangeTracker.Clear();
-                    break;
-                }
-            }
-
-            logger.LogWarning(
-                exception: lastException,
-                message:
-                "Simulation clock {SimulationId} could not be updated after {MaxAttempts} attempts because it kept changing concurrently.",
-                args:
-                [
-                    simulationId.Value,
-                    MaxAttempts
-                ]);
-
-            throw new MatrixApplicationException(
-                code: "SimulationCore.SimulationClockConflict",
-                message: "Simulation clock was updated concurrently. Please retry the action.",
-                errorType: ApplicationErrorType.Conflict,
-                innerException: lastException);
+                    throw new MatrixApplicationException(
+                        code: "SimulationCore.SimulationClockConflict",
+                        message: "Simulation clock was updated concurrently. Please retry the action.",
+                        errorType: ApplicationErrorType.Conflict,
+                        innerException: lastException);
+                },
+                cancellationToken: cancellationToken);
         }
     }
 }

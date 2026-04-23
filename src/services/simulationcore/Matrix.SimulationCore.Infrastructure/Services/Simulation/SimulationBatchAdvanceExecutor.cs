@@ -10,6 +10,7 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
 {
     public sealed class SimulationBatchAdvanceExecutor(
         IServiceScopeFactory scopeFactory,
+        SimulationOperationGate operationGate,
         ILogger<SimulationBatchAdvanceExecutor> logger) : ISimulationBatchAdvanceExecutor
     {
         private const int MaxAttempts = 3;
@@ -69,65 +70,71 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
             TimeSpan realDelta,
             CancellationToken cancellationToken)
         {
-            for (int attempt = 1; attempt <= MaxAttempts; attempt++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                try
+            return await operationGate.ExecuteAsync(
+                simulationId: simulationId,
+                action: async ct =>
                 {
-                    await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+                    for (int attempt = 1; attempt <= MaxAttempts; attempt++)
+                    {
+                        ct.ThrowIfCancellationRequested();
 
-                    ISimulationAdvanceExecutor executor =
-                        scope.ServiceProvider.GetRequiredService<ISimulationAdvanceExecutor>();
+                        try
+                        {
+                            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
 
-                    SimulationAdvanceExecutionResult result = await executor.ExecuteAsync(
-                        simulationId: simulationId,
-                        realDelta: realDelta,
-                        cancellationToken: cancellationToken);
+                            ISimulationAdvanceExecutor executor =
+                                scope.ServiceProvider.GetRequiredService<ISimulationAdvanceExecutor>();
 
-                    return result.Status == SimulationAdvanceExecutionStatus.Advanced
-                        ? SimulationAdvanceOutcome.Advanced
-                        : SimulationAdvanceOutcome.Skipped;
-                }
-                catch (DbUpdateConcurrencyException ex) when (attempt < MaxAttempts)
-                {
-                    logger.LogWarning(
-                        exception: ex,
-                        message:
-                        "Concurrent update detected while advancing simulation {SimulationId}. Retrying attempt {Attempt} of {MaxAttempts}.",
-                        args:
-                        [
-                            simulationId.Value,
-                            attempt + 1,
-                            MaxAttempts
-                        ]);
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    logger.LogWarning(
-                        exception: ex,
-                        message:
-                        "Simulation {SimulationId} kept changing during background tick after {MaxAttempts} attempts. Skipping until the next tick.",
-                        args:
-                        [
-                            simulationId.Value,
-                            MaxAttempts
-                        ]);
+                            SimulationAdvanceExecutionResult result = await executor.ExecuteAsync(
+                                simulationId: simulationId,
+                                realDelta: realDelta,
+                                cancellationToken: ct);
+
+                            return result.Status == SimulationAdvanceExecutionStatus.Advanced
+                                ? SimulationAdvanceOutcome.Advanced
+                                : SimulationAdvanceOutcome.Skipped;
+                        }
+                        catch (DbUpdateConcurrencyException ex) when (attempt < MaxAttempts)
+                        {
+                            logger.LogWarning(
+                                exception: ex,
+                                message:
+                                "Concurrent update detected while advancing simulation {SimulationId}. Retrying attempt {Attempt} of {MaxAttempts}.",
+                                args:
+                                [
+                                    simulationId.Value,
+                                    attempt + 1,
+                                    MaxAttempts
+                                ]);
+                        }
+                        catch (DbUpdateConcurrencyException ex)
+                        {
+                            logger.LogWarning(
+                                exception: ex,
+                                message:
+                                "Simulation {SimulationId} kept changing during background tick after {MaxAttempts} attempts. Skipping until the next tick.",
+                                args:
+                                [
+                                    simulationId.Value,
+                                    MaxAttempts
+                                ]);
+
+                            return SimulationAdvanceOutcome.Skipped;
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(
+                                exception: ex,
+                                message: "Failed to advance simulation {SimulationId}.",
+                                args: simulationId.Value);
+
+                            return SimulationAdvanceOutcome.Failed;
+                        }
+                    }
 
                     return SimulationAdvanceOutcome.Skipped;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(
-                        exception: ex,
-                        message: "Failed to advance simulation {SimulationId}.",
-                        args: simulationId.Value);
-
-                    return SimulationAdvanceOutcome.Failed;
-                }
-            }
-
-            return SimulationAdvanceOutcome.Skipped;
+                },
+                cancellationToken: cancellationToken);
         }
 
         private enum SimulationAdvanceOutcome
