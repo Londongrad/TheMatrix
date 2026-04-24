@@ -1,6 +1,7 @@
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Topology;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.World.Enums;
 
 namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.World;
 
@@ -54,5 +55,51 @@ internal static class WorldTestData
             fromPositionY: 40.4444m,
             toPositionX: 70.7777m,
             toPositionY: 80.8888m);
+    }
+
+    internal static IReadOnlyCollection<CityActiveTripSegment> CreateSegments()
+    {
+        return
+        [
+            CreateFirstSegment(),
+            CreateSecondSegment()
+        ];
+    }
+
+    internal static CityActiveTrip CreateTrip(
+        IReadOnlyCollection<CityActiveTripSegment>? segments = null,
+        decimal movementCapabilityIndex = 1m,
+        decimal totalDistanceMeters = 200m,
+        decimal plannedTravelTimeMinutes = 12m,
+        DateTimeOffset? startedAtSimTimeUtc = null)
+    {
+        return CityActiveTrip.Create(
+            cityId: CityId,
+            travellerEntityId: TravellerEntityId,
+            subject: "  Resident commute  ",
+            purpose: CityTripPurpose.WorkCommute,
+            profile: "  pedestrian  ",
+            movementCapabilityIndex: movementCapabilityIndex,
+            usedDynamicRoadConditions: true,
+            plannedAtTickId: 42,
+            conditionsEffectiveTickId: 40,
+            startedAtSimTimeUtc: startedAtSimTimeUtc ?? StartedAtUtc,
+            fromKind: "  district  ",
+            fromEntityId: FromEntityId,
+            fromDistrictId: FromDistrictId,
+            fromRoadNodeId: FromRoadNodeId,
+            fromName: "  Downtown  ",
+            fromPositionX: 10.1111m,
+            fromPositionY: 20.2222m,
+            toKind: "  anchor  ",
+            toEntityId: ToEntityId,
+            toDistrictId: ToDistrictId,
+            toRoadNodeId: ToRoadNodeId,
+            toName: "  Office Campus  ",
+            toPositionX: 70.7777m,
+            toPositionY: 80.8888m,
+            totalDistanceMeters: totalDistanceMeters,
+            plannedTravelTimeMinutes: plannedTravelTimeMinutes,
+            segments: segments ?? CreateSegments());
     }
 }
