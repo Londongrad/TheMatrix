@@ -106,6 +106,174 @@ public sealed class CityActiveTripTests
     }
 
     [Fact]
+    public void Create_WithInvalidPurpose_ThrowsDomainException()
+    {
+        var exception = Assert.Throws<DomainException>(() => CityActiveTrip.Create(
+            cityId: WorldTestData.CityId,
+            travellerEntityId: WorldTestData.TravellerEntityId,
+            subject: "Resident commute",
+            purpose: (CityTripPurpose)999,
+            profile: "pedestrian",
+            movementCapabilityIndex: 1m,
+            usedDynamicRoadConditions: true,
+            plannedAtTickId: 42,
+            conditionsEffectiveTickId: 40,
+            startedAtSimTimeUtc: WorldTestData.StartedAtUtc,
+            fromKind: "district",
+            fromEntityId: WorldTestData.FromEntityId,
+            fromDistrictId: WorldTestData.FromDistrictId,
+            fromRoadNodeId: WorldTestData.FromRoadNodeId,
+            fromName: "Downtown",
+            fromPositionX: 10m,
+            fromPositionY: 20m,
+            toKind: "anchor",
+            toEntityId: WorldTestData.ToEntityId,
+            toDistrictId: WorldTestData.ToDistrictId,
+            toRoadNodeId: WorldTestData.ToRoadNodeId,
+            toName: "Office Campus",
+            toPositionX: 70m,
+            toPositionY: 80m,
+            totalDistanceMeters: 200m,
+            plannedTravelTimeMinutes: 12m,
+            segments: WorldTestData.CreateSegments()));
+
+        Assert.Equal("Domain.Guard.InvalidEnum", exception.Code);
+        Assert.Equal("Purpose", exception.PropertyName);
+    }
+
+    [Fact]
+    public void Create_WithTooLongSubject_ThrowsDomainException()
+    {
+        var tooLong = new string('s', CityActiveTrip.MaxSubjectLength + 1);
+
+        var exception = Assert.Throws<DomainException>(() => CityActiveTrip.Create(
+            cityId: WorldTestData.CityId,
+            travellerEntityId: WorldTestData.TravellerEntityId,
+            subject: tooLong,
+            purpose: CityTripPurpose.WorkCommute,
+            profile: "pedestrian",
+            movementCapabilityIndex: 1m,
+            usedDynamicRoadConditions: true,
+            plannedAtTickId: 42,
+            conditionsEffectiveTickId: 40,
+            startedAtSimTimeUtc: WorldTestData.StartedAtUtc,
+            fromKind: "district",
+            fromEntityId: WorldTestData.FromEntityId,
+            fromDistrictId: WorldTestData.FromDistrictId,
+            fromRoadNodeId: WorldTestData.FromRoadNodeId,
+            fromName: "Downtown",
+            fromPositionX: 10m,
+            fromPositionY: 20m,
+            toKind: "anchor",
+            toEntityId: WorldTestData.ToEntityId,
+            toDistrictId: WorldTestData.ToDistrictId,
+            toRoadNodeId: WorldTestData.ToRoadNodeId,
+            toName: "Office Campus",
+            toPositionX: 70m,
+            toPositionY: 80m,
+            totalDistanceMeters: 200m,
+            plannedTravelTimeMinutes: 12m,
+            segments: WorldTestData.CreateSegments()));
+
+        Assert.Equal("SimulationCore.World.ActiveTrip.Subject.TooLong", exception.Code);
+        Assert.Equal("Subject", exception.PropertyName);
+    }
+
+    [Fact]
+    public void Create_WithWhitespaceProfile_ThrowsDomainException()
+    {
+        var exception = Assert.Throws<DomainException>(() => CityActiveTrip.Create(
+            cityId: WorldTestData.CityId,
+            travellerEntityId: WorldTestData.TravellerEntityId,
+            subject: "Resident commute",
+            purpose: CityTripPurpose.WorkCommute,
+            profile: "   ",
+            movementCapabilityIndex: 1m,
+            usedDynamicRoadConditions: true,
+            plannedAtTickId: 42,
+            conditionsEffectiveTickId: 40,
+            startedAtSimTimeUtc: WorldTestData.StartedAtUtc,
+            fromKind: "district",
+            fromEntityId: WorldTestData.FromEntityId,
+            fromDistrictId: WorldTestData.FromDistrictId,
+            fromRoadNodeId: WorldTestData.FromRoadNodeId,
+            fromName: "Downtown",
+            fromPositionX: 10m,
+            fromPositionY: 20m,
+            toKind: "anchor",
+            toEntityId: WorldTestData.ToEntityId,
+            toDistrictId: WorldTestData.ToDistrictId,
+            toRoadNodeId: WorldTestData.ToRoadNodeId,
+            toName: "Office Campus",
+            toPositionX: 70m,
+            toPositionY: 80m,
+            totalDistanceMeters: 200m,
+            plannedTravelTimeMinutes: 12m,
+            segments: WorldTestData.CreateSegments()));
+
+        Assert.Equal("SimulationCore.World.ActiveTrip.Profile.NullOrEmpty", exception.Code);
+        Assert.Equal("Profile", exception.PropertyName);
+    }
+
+    [Fact]
+    public void Create_WithZeroDistance_ArrivesImmediatelyEvenWithSegments()
+    {
+        var trip = WorldTestData.CreateTrip(
+            totalDistanceMeters: 0m,
+            plannedTravelTimeMinutes: 12m);
+
+        Assert.Equal(CityActiveTripStatus.Arrived, trip.Status);
+        Assert.False(trip.IsActive);
+        Assert.Equal(WorldTestData.StartedAtUtc, trip.ArrivedAtSimTimeUtc);
+        Assert.Equal(1m, trip.ProgressIndex);
+        Assert.Equal(0m, trip.DistanceTravelledMeters);
+        Assert.Equal(0m, trip.RemainingDistanceMeters);
+        Assert.Equal(WorldTestData.ToDistrictId, trip.CurrentDistrictId);
+        Assert.Null(trip.CurrentRoadSegmentId);
+        Assert.Equal(70.778m, trip.CurrentPositionX);
+        Assert.Equal(80.889m, trip.CurrentPositionY);
+    }
+
+    [Fact]
+    public void Create_WithNullTravellerEntityId_AllowsAnonymousTrip()
+    {
+        var trip = CityActiveTrip.Create(
+            cityId: WorldTestData.CityId,
+            travellerEntityId: null,
+            subject: "Visitor route",
+            purpose: CityTripPurpose.LeisureWalk,
+            profile: "visitor",
+            movementCapabilityIndex: 0.9m,
+            usedDynamicRoadConditions: false,
+            plannedAtTickId: 50,
+            conditionsEffectiveTickId: null,
+            startedAtSimTimeUtc: WorldTestData.StartedAtUtc,
+            fromKind: "district",
+            fromEntityId: WorldTestData.FromEntityId,
+            fromDistrictId: WorldTestData.FromDistrictId,
+            fromRoadNodeId: WorldTestData.FromRoadNodeId,
+            fromName: "Downtown",
+            fromPositionX: 10m,
+            fromPositionY: 20m,
+            toKind: "anchor",
+            toEntityId: WorldTestData.ToEntityId,
+            toDistrictId: WorldTestData.ToDistrictId,
+            toRoadNodeId: WorldTestData.ToRoadNodeId,
+            toName: "Park",
+            toPositionX: 70m,
+            toPositionY: 80m,
+            totalDistanceMeters: 200m,
+            plannedTravelTimeMinutes: 15m,
+            segments: WorldTestData.CreateSegments());
+
+        Assert.Null(trip.TravellerEntityId);
+        Assert.Equal("Visitor route", trip.Subject);
+        Assert.Equal(CityTripPurpose.LeisureWalk, trip.Purpose);
+        Assert.Equal("visitor", trip.Profile);
+        Assert.Null(trip.ConditionsEffectiveTickId);
+    }
+
+    [Fact]
     public void AdvanceTo_WhenTimeMovesForward_UpdatesProgressDistance_AndCurrentSegmentState()
     {
         var trip = WorldTestData.CreateTrip();
@@ -151,6 +319,24 @@ public sealed class CityActiveTripTests
     }
 
     [Fact]
+    public void AdvanceTo_WhenTripMovesIntoSecondSegment_SwitchesSegmentContext()
+    {
+        var trip = WorldTestData.CreateTrip();
+
+        trip.AdvanceTo(
+            toSimTimeUtc: WorldTestData.StartedAtUtc.AddMinutes(8),
+            tickId: 44);
+
+        Assert.Equal(WorldTestData.ToDistrictId, trip.CurrentDistrictId);
+        Assert.Equal(WorldTestData.SecondRoadSegmentId, trip.CurrentRoadSegmentId);
+        Assert.InRange(trip.CurrentSegmentProgressIndex, 0.2667m, 0.2668m);
+        Assert.InRange(trip.CurrentPositionX, 30.3333m, 70.7777m);
+        Assert.InRange(trip.CurrentPositionY, 40.4444m, 80.8888m);
+        Assert.Equal(CityActiveTripStatus.Active, trip.Status);
+        Assert.Null(trip.ArrivedAtSimTimeUtc);
+    }
+
+    [Fact]
     public void AdvanceTo_WhenTimeDoesNotMoveForward_IsNoOp()
     {
         var trip = WorldTestData.CreateTrip();
@@ -165,6 +351,19 @@ public sealed class CityActiveTripTests
         Assert.Equal(0m, trip.DistanceTravelledMeters);
         Assert.Equal(WorldTestData.FirstRoadSegmentId, trip.CurrentRoadSegmentId);
         Assert.Equal(CityActiveTripStatus.Active, trip.Status);
+    }
+
+    [Fact]
+    public void AdvanceTo_WithNonUtcTimestamp_ThrowsDomainException()
+    {
+        var trip = WorldTestData.CreateTrip();
+
+        var exception = Assert.Throws<DomainException>(() => trip.AdvanceTo(
+            toSimTimeUtc: WorldTestData.NonUtcStartedAt,
+            tickId: 43));
+
+        Assert.Equal("SimulationCore.World.ActiveTrip.Timestamp.NotUtc", exception.Code);
+        Assert.Equal("value", exception.PropertyName);
     }
 
     [Fact]
