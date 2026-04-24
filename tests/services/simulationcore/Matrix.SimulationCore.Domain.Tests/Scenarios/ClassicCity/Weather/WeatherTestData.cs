@@ -1,3 +1,4 @@
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
@@ -9,11 +10,14 @@ namespace Matrix.SimulationCore.Domain.Tests.Scenarios.ClassicCity.Weather;
 
 internal static class WeatherTestData
 {
+    internal static readonly CityId CityId = new(
+        Guid.Parse("11111111-2222-3333-4444-555555555555"));
     internal static readonly SimTime StartedAt = SimTime.FromUtc(
         new DateTimeOffset(2042, 3, 1, 6, 0, 0, TimeSpan.Zero));
     internal static readonly SimTime ExpectedUntil = StartedAt.Add(TimeSpan.FromHours(3));
     internal static readonly SimTime Midpoint = StartedAt.Add(TimeSpan.FromHours(1));
     internal static readonly SimTime AfterEnd = ExpectedUntil.Add(TimeSpan.FromMinutes(1));
+    internal static readonly SimTime NearEnd = ExpectedUntil.Add(TimeSpan.FromMinutes(-1));
 
     internal static WeatherState CreateWeatherState(
         WeatherType type = WeatherType.Clear,
@@ -92,5 +96,51 @@ internal static class WeatherTestData
             windProfile: CreateWindProfile(),
             volatility: WeatherVolatility.From(0.25m),
             extremeWeatherProfile: CreateExtremeWeatherProfile());
+    }
+
+    internal static WeatherClimateProfile CreateAlternativeClimateProfile()
+    {
+        return WeatherClimateProfile.Create(
+            climateZone: ClimateZone.Continental,
+            temperatureProfile: SeasonalTemperatureProfile.Create(
+                springAverage: TemperatureC.From(9m),
+                summerAverage: TemperatureC.From(28m),
+                autumnAverage: TemperatureC.From(7m),
+                winterAverage: TemperatureC.From(-14m),
+                dailySwing: TemperatureC.From(11m)),
+            precipitationProfile: SeasonalPrecipitationProfile.Create(
+                springHumidity: HumidityPercent.From(52m),
+                summerHumidity: HumidityPercent.From(55m),
+                autumnHumidity: HumidityPercent.From(63m),
+                winterHumidity: HumidityPercent.From(71m),
+                springDominantKind: PrecipitationKind.Rain,
+                summerDominantKind: PrecipitationKind.None,
+                autumnDominantKind: PrecipitationKind.Drizzle,
+                winterDominantKind: PrecipitationKind.Snow),
+            windProfile: SeasonalWindProfile.Create(
+                springAverage: WindSpeedKph.From(14m),
+                summerAverage: WindSpeedKph.From(10m),
+                autumnAverage: WindSpeedKph.From(18m),
+                winterAverage: WindSpeedKph.From(24m),
+                gustHeadroom: WindSpeedKph.From(35m)),
+            volatility: WeatherVolatility.From(0.4m),
+            extremeWeatherProfile: ExtremeWeatherProfile.Create(
+                maxOverallSeverity: WeatherSeverity.Severe,
+                supportsThunderstorms: true,
+                supportsSnowstorms: true,
+                supportsFog: false,
+                supportsHeatwaves: false));
+    }
+
+    internal static CityWeather CreateCityWeather(
+        WeatherState? currentState = null,
+        WeatherClimateProfile? climateProfile = null,
+        SimTime? createdAt = null)
+    {
+        return CityWeather.Create(
+            cityId: CityId,
+            climateProfile: climateProfile ?? CreateClimateProfile(),
+            currentState: currentState ?? CreateWeatherState(startedAt: StartedAt, expectedUntil: ExpectedUntil),
+            createdAt: createdAt ?? Midpoint);
     }
 }
