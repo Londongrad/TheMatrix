@@ -175,6 +175,32 @@ internal static class SelfServiceHandlerTestSupport
             UserAgent: userAgent);
     }
 
+    internal static Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword.ResetPasswordCommand CreateResetPasswordCommand(
+        Guid userId,
+        string token = "raw-reset-token",
+        string newPassword = "NewPa$$w0rd",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword.ResetPasswordCommand(
+            UserId: userId,
+            Token: token,
+            NewPassword: newPassword,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset.SendPasswordResetCommand CreateSendPasswordResetCommand(
+        string email = "neo@matrix.local",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Auth.SendPasswordReset.SendPasswordResetCommand(
+            Email: email,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
     internal static Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken.RefreshTokenCommandHandler CreateRefreshHandler(
         FakeUserRepository userRepository,
         FakeUserSessionRepository userSessionRepository,
@@ -208,6 +234,26 @@ internal static class SelfServiceHandlerTestSupport
             refreshTokenProvider,
             unitOfWork,
             new TestClock(),
+            securityAuditService);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword.ResetPasswordCommandHandler CreateResetPasswordHandler(
+        FakeUserRepository userRepository,
+        FakeUserSessionRepository userSessionRepository,
+        FakeOneTimeTokenRepository oneTimeTokenRepository,
+        FakeOneTimeTokenService oneTimeTokenService,
+        FakePasswordHasher passwordHasher,
+        FakeUnitOfWork unitOfWork,
+        FakeSecurityAuditService securityAuditService)
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword.ResetPasswordCommandHandler(
+            userRepository,
+            userSessionRepository,
+            oneTimeTokenRepository,
+            oneTimeTokenService,
+            passwordHasher,
+            new TestClock(),
+            unitOfWork,
             securityAuditService);
     }
 
@@ -257,6 +303,20 @@ internal static class SelfServiceHandlerTestSupport
             new TestClock(),
             currentUser,
             securityAuditService);
+    }
+
+    internal static OneTimeToken CreateOneTimeToken(
+        Guid userId,
+        OneTimeTokenPurpose purpose = OneTimeTokenPurpose.PasswordReset,
+        string tokenHash = "raw-reset-token-hash",
+        DateTime? expiresAtUtc = null)
+    {
+        return OneTimeToken.Create(
+            userId: userId,
+            purpose: purpose,
+            tokenHash: tokenHash,
+            expiresAtUtc: expiresAtUtc ?? UtcNow.AddHours(1),
+            createdAtUtc: UtcNow.AddMinutes(-10));
     }
 
     internal sealed class FakeUserRepository : IUserRepository
@@ -473,6 +533,54 @@ internal static class SelfServiceHandlerTestSupport
         public Task SendPasswordReset(string toEmail, string resetLink, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendUsernameChanged(string toEmail, string previousUsername, string newUsername, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendAccountRestored(string toEmail, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeOneTimeTokenRepository : IOneTimeTokenRepository
+    {
+        public OneTimeToken? FoundToken { get; set; }
+        public (Guid UserId, OneTimeTokenPurpose Purpose, string TokenHash)? FindRequest { get; private set; }
+
+        public Task<OneTimeToken?> Find(Guid userId, OneTimeTokenPurpose purpose, string tokenHash, CancellationToken cancellationToken)
+        {
+            FindRequest = (userId, purpose, tokenHash);
+            return Task.FromResult(FoundToken);
+        }
+
+        public Task Add(OneTimeToken token, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<int> CountCreatedSinceUtc(Guid userId, OneTimeTokenPurpose purpose, DateTime sinceUtc, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<IReadOnlyList<OneTimeToken>> GetActive(Guid userId, OneTimeTokenPurpose purpose, DateTime nowUtc, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<DateTime?> GetLatestCreatedAtUtc(Guid userId, OneTimeTokenPurpose purpose, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeOneTimeTokenService : IOneTimeTokenService
+    {
+        public string HashedToken { get; set; } = "raw-reset-token-hash";
+        public List<string> HashTokenInputs { get; } = new();
+
+        public string HashToken(string rawToken)
+        {
+            HashTokenInputs.Add(rawToken);
+            return HashedToken;
+        }
+
+        public string GenerateRawToken() => throw new NotSupportedException();
+        public TimeSpan GetDeliveryCooldown(OneTimeTokenPurpose purpose) => throw new NotSupportedException();
+        public int GetMaxDeliveryAttemptsPerHour(OneTimeTokenPurpose purpose) => throw new NotSupportedException();
+        public TimeSpan GetTtl(OneTimeTokenPurpose purpose) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeOneTimeTokenDeliveryService : IOneTimeTokenDeliveryService
+    {
+        public List<(string Email, string? IpAddress, string? UserAgent)> PasswordResetRequests { get; } = new();
+
+        public Task SendPasswordResetAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken)
+        {
+            PasswordResetRequests.Add((email, ipAddress, userAgent));
+            return Task.CompletedTask;
+        }
+
+        public Task SendAccountRecoveryAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendEmailConfirmationAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     internal sealed class FakeUnitOfWork : IUnitOfWork
