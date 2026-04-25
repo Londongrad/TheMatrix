@@ -179,6 +179,24 @@ internal static class SelfServiceHandlerTestSupport
             CurrentPassword: currentPassword);
     }
 
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile.ChangeAvatarFromFileCommand CreateChangeAvatarFromFileCommand(
+        Stream? fileStream = null,
+        string fileName = "avatar.png",
+        string contentType = "image/png",
+        long fileSize = 128)
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ChangeAvatarFromFile.ChangeAvatarFromFileCommand(
+            FileStream: fileStream ?? new MemoryStream(new byte[] { 1, 2, 3, 4 }),
+            FileName: fileName,
+            ContentType: contentType,
+            FileSize: fileSize);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar.ClearAvatarCommand CreateClearAvatarCommand()
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ClearAvatar.ClearAvatarCommand();
+    }
+
     internal static Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommand CreateDeleteMyAccountCommand(
         string currentPassword = "CurrentPa$$w0rd",
         string? ipAddress = "127.0.0.1",
@@ -756,6 +774,27 @@ internal static class SelfServiceHandlerTestSupport
             EmailConfirmationRequests.Add((email, ipAddress, userAgent));
             return Task.CompletedTask;
         }
+    }
+
+    internal sealed class FakeAvatarStorage : IAvatarStorage
+    {
+        public string SaveResult { get; set; } = "avatars/new-avatar.png";
+        public List<(Stream Content, string FileName, string ContentType)> SaveRequests { get; } = new();
+        public List<string> DeletedPaths { get; } = new();
+
+        public Task<string> SaveAsync(Stream content, string fileName, string contentType, CancellationToken cancellationToken = default)
+        {
+            SaveRequests.Add((content, fileName, contentType));
+            return Task.FromResult(SaveResult);
+        }
+
+        public Task DeleteAsync(string path, CancellationToken cancellationToken = default)
+        {
+            DeletedPaths.Add(path);
+            return Task.CompletedTask;
+        }
+
+        public Task<AvatarFileReadResult?> OpenReadAsync(string path, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     internal sealed class FakeUnitOfWork : IUnitOfWork
