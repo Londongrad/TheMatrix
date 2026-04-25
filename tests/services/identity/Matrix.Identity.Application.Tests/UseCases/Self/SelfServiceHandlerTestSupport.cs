@@ -7,6 +7,7 @@ using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.UseCases.Self.Auth;
 using Matrix.Identity.Domain.Entities;
+using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.ValueObjects;
 
 namespace Matrix.Identity.Application.Tests.UseCases.Self;
@@ -152,6 +153,26 @@ internal static class SelfServiceHandlerTestSupport
     internal static Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions.RevokeAllMySessionsCommand CreateRevokeAllMySessionsCommand()
     {
         return new Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions.RevokeAllMySessionsCommand();
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ChangePassword.ChangePasswordCommand CreateChangePasswordCommand(
+        string currentPassword = "CurrentPa$$w0rd",
+        string newPassword = "NewPa$$w0rd")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ChangePassword.ChangePasswordCommand(
+            CurrentPassword: currentPassword,
+            NewPassword: newPassword);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommand CreateDeleteMyAccountCommand(
+        string currentPassword = "CurrentPa$$w0rd",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommand(
+            CurrentPassword: currentPassword,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
     }
 
     internal static Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken.RefreshTokenCommandHandler CreateRefreshHandler(
@@ -345,6 +366,25 @@ internal static class SelfServiceHandlerTestSupport
         }
     }
 
+    internal sealed class FakePasswordHasher : IPasswordHasher
+    {
+        public PasswordVerificationOutcome VerifyOutcome { get; set; } = PasswordVerificationOutcome.Success;
+        public List<string> HashedPasswords { get; } = new();
+        public List<(Guid UserId, string PasswordHash, string ProvidedPassword)> VerifyCalls { get; } = new();
+
+        public string Hash(string password)
+        {
+            HashedPasswords.Add(password);
+            return $"hash::{password}";
+        }
+
+        public PasswordVerificationOutcome Verify(User user, string passwordHash, string providedPassword)
+        {
+            VerifyCalls.Add((user.Id, passwordHash, providedPassword));
+            return VerifyOutcome;
+        }
+    }
+
     internal sealed class FakeRefreshTokenProvider : IRefreshTokenProvider
     {
         public string ComputedHash { get; set; } = "incoming-refresh-token-hash";
@@ -410,6 +450,29 @@ internal static class SelfServiceHandlerTestSupport
         public Task<bool> IsEmailChangeRequestAllowedAsync(string normalizedEmail, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<bool> IsEmailConfirmationRequestAllowedAsync(string normalizedEmail, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<bool> IsPasswordResetRequestAllowedAsync(string normalizedEmail, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeEmailSender : IEmailSender
+    {
+        public List<string> AccountDeletedEmails { get; } = new();
+        public Exception? SendAccountDeletedException { get; set; }
+
+        public Task SendAccountDeleted(string toEmail, CancellationToken cancellationToken)
+        {
+            AccountDeletedEmails.Add(toEmail);
+
+            if (SendAccountDeletedException is not null)
+                throw SendAccountDeletedException;
+
+            return Task.CompletedTask;
+        }
+
+        public Task SendAccountRecovery(string toEmail, string recoveryLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendEmailChangeConfirmation(string toEmail, string currentEmail, string confirmationLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendEmailConfirmation(string toEmail, string confirmationLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendPasswordReset(string toEmail, string resetLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendUsernameChanged(string toEmail, string previousUsername, string newUsername, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendAccountRestored(string toEmail, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     internal sealed class FakeUnitOfWork : IUnitOfWork
