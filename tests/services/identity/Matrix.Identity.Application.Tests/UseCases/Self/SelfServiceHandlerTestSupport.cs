@@ -164,6 +164,21 @@ internal static class SelfServiceHandlerTestSupport
             NewPassword: newPassword);
     }
 
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ChangeDisplayName.ChangeDisplayNameCommand CreateChangeDisplayNameCommand(
+        string? displayName = "Thomas Anderson")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ChangeDisplayName.ChangeDisplayNameCommand(displayName);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommand CreateChangeUsernameCommand(
+        string username = "neo-prime",
+        string currentPassword = "CurrentPa$$w0rd")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommand(
+            Username: username,
+            CurrentPassword: currentPassword);
+    }
+
     internal static Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommand CreateDeleteMyAccountCommand(
         string currentPassword = "CurrentPa$$w0rd",
         string? ipAddress = "127.0.0.1",
@@ -418,10 +433,12 @@ internal static class SelfServiceHandlerTestSupport
         public User? UserByRefreshTokenHash { get; set; }
         public User? UserByEmail { get; set; }
         public User? UserByPendingEmail { get; set; }
+        public bool IsUsernameTakenAsyncResult { get; set; }
         public string? RequestedRefreshTokenHash { get; private set; }
         public Guid? RequestedUserId { get; private set; }
         public string? RequestedEmail { get; private set; }
         public string? RequestedPendingEmail { get; private set; }
+        public string? RequestedUsername { get; private set; }
 
         public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
@@ -453,6 +470,12 @@ internal static class SelfServiceHandlerTestSupport
             return Task.FromResult(UserByPendingEmail);
         }
 
+        public Task<bool> IsUsernameTakenAsync(string normalizedUsername, CancellationToken cancellationToken = default)
+        {
+            RequestedUsername = normalizedUsername;
+            return Task.FromResult(IsUsernameTakenAsyncResult);
+        }
+
         public Task AddAsync(User user, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<bool> AnyAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<bool> BumpPermissionsVersionAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
@@ -463,7 +486,6 @@ internal static class SelfServiceHandlerTestSupport
         public Task<User?> GetByUsernameAsync(string login, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<bool> IsEmailTakenAsync(string normalizedEmail, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<bool> IsUsernameTakenAsync(string normalizedUsername, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     internal sealed class FakeUserSessionRepository : IUserSessionRepository
@@ -621,7 +643,9 @@ internal static class SelfServiceHandlerTestSupport
     internal sealed class FakeEmailSender : IEmailSender
     {
         public List<string> AccountDeletedEmails { get; } = new();
+        public List<(string ToEmail, string PreviousUsername, string NewUsername)> UsernameChangedEmails { get; } = new();
         public Exception? SendAccountDeletedException { get; set; }
+        public Exception? SendUsernameChangedException { get; set; }
 
         public Task SendAccountDeleted(string toEmail, CancellationToken cancellationToken)
         {
@@ -633,11 +657,20 @@ internal static class SelfServiceHandlerTestSupport
             return Task.CompletedTask;
         }
 
+        public Task SendUsernameChanged(string toEmail, string previousUsername, string newUsername, CancellationToken cancellationToken)
+        {
+            UsernameChangedEmails.Add((toEmail, previousUsername, newUsername));
+
+            if (SendUsernameChangedException is not null)
+                throw SendUsernameChangedException;
+
+            return Task.CompletedTask;
+        }
+
         public Task SendAccountRecovery(string toEmail, string recoveryLink, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendEmailChangeConfirmation(string toEmail, string currentEmail, string confirmationLink, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendEmailConfirmation(string toEmail, string confirmationLink, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendPasswordReset(string toEmail, string resetLink, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task SendUsernameChanged(string toEmail, string previousUsername, string newUsername, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendAccountRestored(string toEmail, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
