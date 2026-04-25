@@ -452,6 +452,7 @@ internal static class SelfServiceHandlerTestSupport
         public User? UserByEmail { get; set; }
         public User? UserByPendingEmail { get; set; }
         public bool IsUsernameTakenAsyncResult { get; set; }
+        public bool ExistsAsyncResult { get; set; }
         public string? RequestedRefreshTokenHash { get; private set; }
         public Guid? RequestedUserId { get; private set; }
         public string? RequestedEmail { get; private set; }
@@ -499,7 +500,11 @@ internal static class SelfServiceHandlerTestSupport
         public Task<bool> BumpPermissionsVersionAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<int> BumpPermissionsVersionByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DeleteAsync(User user, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            RequestedUserId = userId;
+            return Task.FromResult(ExistsAsyncResult);
+        }
         public Task<int?> GetPermissionsVersionAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<User?> GetByUsernameAsync(string login, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
@@ -512,6 +517,7 @@ internal static class SelfServiceHandlerTestSupport
         public Guid? RequestedSessionId { get; private set; }
         public Guid? RequestedUserId { get; private set; }
         public string? RequestedDeviceId { get; private set; }
+        public Pagination? RequestedPagination { get; private set; }
 
         public Task<UserSession?> GetByIdAsync(Guid sessionId, CancellationToken cancellationToken = default)
         {
@@ -539,6 +545,28 @@ internal static class SelfServiceHandlerTestSupport
             return Task.FromResult(items);
         }
 
+        public Task<IReadOnlyCollection<UserSession>> ListActiveByUserIdAsync(Guid userId, DateTime utcNow, CancellationToken cancellationToken = default)
+        {
+            RequestedUserId = userId;
+            IReadOnlyCollection<UserSession> items = Sessions
+                .Where(x => x.UserId == userId && x.IsActive(utcNow))
+                .ToArray();
+            return Task.FromResult(items);
+        }
+
+        public Task<(IReadOnlyCollection<UserSession> Items, int TotalCount)> GetEndedPageByUserIdAsync(Guid userId, DateTime utcNow, Pagination pagination, CancellationToken cancellationToken = default)
+        {
+            RequestedUserId = userId;
+            RequestedPagination = pagination;
+            UserSession[] items = Sessions
+                .Where(x => x.UserId == userId && !x.IsActive(utcNow))
+                .Skip(pagination.Skip)
+                .Take(pagination.PageSize)
+                .ToArray();
+            int totalCount = Sessions.Count(x => x.UserId == userId && !x.IsActive(utcNow));
+            return Task.FromResult(((IReadOnlyCollection<UserSession>)items, totalCount));
+        }
+
         public Task AddAsync(UserSession session, CancellationToken cancellationToken = default)
         {
             Sessions.Add(session);
@@ -546,9 +574,7 @@ internal static class SelfServiceHandlerTestSupport
         }
 
         public Task<UserSession?> GetActiveByUserIdAndDeviceIdAsync(Guid userId, string deviceId, DateTime utcNow, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<(IReadOnlyCollection<UserSession> Items, int TotalCount)> GetEndedPageByUserIdAsync(Guid userId, DateTime utcNow, Pagination pagination, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<DateTime?> GetLastVisitedAtUtcAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<IReadOnlyCollection<UserSession>> ListActiveByUserIdAsync(Guid userId, DateTime utcNow, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     internal sealed class FakeAccessTokenService : IAccessTokenService
@@ -795,6 +821,25 @@ internal static class SelfServiceHandlerTestSupport
         }
 
         public Task<AvatarFileReadResult?> OpenReadAsync(string path, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeSecurityAuditReadRepository : ISecurityAuditReadRepository
+    {
+        public CursorPagedResult<Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity.SecurityActivityItemResult>? Result { get; set; }
+        public (Guid UserId, Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity.SecurityActivityCursor? Cursor, int PageSize)? Request { get; private set; }
+
+        public Task<CursorPagedResult<Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity.SecurityActivityItemResult>> GetSliceByUserIdAsync(
+            Guid userId,
+            Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity.SecurityActivityCursor? cursor,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            Request = (userId, cursor, pageSize);
+            return Task.FromResult(Result ?? new CursorPagedResult<Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity.SecurityActivityItemResult>(
+                items: Array.Empty<Matrix.Identity.Application.UseCases.Self.Account.GetMySecurityActivity.SecurityActivityItemResult>(),
+                pageSize: pageSize,
+                nextCursor: null));
+        }
     }
 
     internal sealed class FakeUnitOfWork : IUnitOfWork
