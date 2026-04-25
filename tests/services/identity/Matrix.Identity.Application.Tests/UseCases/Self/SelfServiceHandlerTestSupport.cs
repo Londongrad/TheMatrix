@@ -201,6 +201,32 @@ internal static class SelfServiceHandlerTestSupport
             UserAgent: userAgent);
     }
 
+    internal static Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange.RequestEmailChangeCommand CreateRequestEmailChangeCommand(
+        string newEmail = "new.neo@matrix.local",
+        string currentPassword = "CurrentPa$$w0rd",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange.RequestEmailChangeCommand(
+            NewEmail: newEmail,
+            CurrentPassword: currentPassword,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange.ConfirmEmailChangeCommand CreateConfirmEmailChangeCommand(
+        Guid userId,
+        string token = "raw-email-change-token",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange.ConfirmEmailChangeCommand(
+            UserId: userId,
+            Token: token,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
     internal static Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken.RefreshTokenCommandHandler CreateRefreshHandler(
         FakeUserRepository userRepository,
         FakeUserSessionRepository userSessionRepository,
@@ -324,8 +350,12 @@ internal static class SelfServiceHandlerTestSupport
         public User? UserById { get; set; }
         public User? UserByIdWithRefreshTokens { get; set; }
         public User? UserByRefreshTokenHash { get; set; }
+        public User? UserByEmail { get; set; }
+        public User? UserByPendingEmail { get; set; }
         public string? RequestedRefreshTokenHash { get; private set; }
         public Guid? RequestedUserId { get; private set; }
+        public string? RequestedEmail { get; private set; }
+        public string? RequestedPendingEmail { get; private set; }
 
         public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
@@ -345,14 +375,24 @@ internal static class SelfServiceHandlerTestSupport
             return Task.FromResult(UserByRefreshTokenHash);
         }
 
+        public Task<User?> GetByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+        {
+            RequestedEmail = normalizedEmail;
+            return Task.FromResult(UserByEmail);
+        }
+
+        public Task<User?> GetByPendingEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+        {
+            RequestedPendingEmail = normalizedEmail;
+            return Task.FromResult(UserByPendingEmail);
+        }
+
         public Task AddAsync(User user, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<bool> AnyAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<bool> BumpPermissionsVersionAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<int> BumpPermissionsVersionByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DeleteAsync(User user, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<User?> GetByPendingEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<int?> GetPermissionsVersionAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<User?> GetByUsernameAsync(string login, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
@@ -533,6 +573,23 @@ internal static class SelfServiceHandlerTestSupport
         public Task SendPasswordReset(string toEmail, string resetLink, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendUsernameChanged(string toEmail, string previousUsername, string newUsername, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SendAccountRestored(string toEmail, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakePendingEmailChangeDeliveryService : IPendingEmailChangeDeliveryService
+    {
+        public List<(Guid UserId, string PendingEmail, string? IpAddress, string? UserAgent, SecurityAuditEventType EventType)> Requests { get; } = new();
+
+        public Task SendConfirmationAsync(
+            User user,
+            string pendingEmail,
+            string? ipAddress,
+            string? userAgent,
+            SecurityAuditEventType eventType,
+            CancellationToken cancellationToken)
+        {
+            Requests.Add((user.Id, pendingEmail, ipAddress, userAgent, eventType));
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeOneTimeTokenRepository : IOneTimeTokenRepository
