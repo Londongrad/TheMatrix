@@ -227,6 +227,59 @@ internal static class SelfServiceHandlerTestSupport
             UserAgent: userAgent);
     }
 
+    internal static Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailChange.CancelPendingEmailChangeCommand CreateCancelPendingEmailChangeCommand(
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailChange.CancelPendingEmailChangeCommand(
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ResendPendingEmailChange.ResendPendingEmailChangeCommand CreateResendPendingEmailChangeCommand(
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ResendPendingEmailChange.ResendPendingEmailChangeCommand(
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmation.SendEmailConfirmationCommand CreateSendEmailConfirmationCommand(
+        string email = "neo@matrix.local",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.SendEmailConfirmation.SendEmailConfirmationCommand(
+            Email: email,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Auth.RequestAccountRecovery.RequestAccountRecoveryCommand CreateRequestAccountRecoveryCommand(
+        string email = "neo@matrix.local",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Auth.RequestAccountRecovery.RequestAccountRecoveryCommand(
+            Email: email,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
+    internal static Matrix.Identity.Application.UseCases.Self.Auth.ConfirmAccountRecovery.ConfirmAccountRecoveryCommand CreateConfirmAccountRecoveryCommand(
+        Guid userId,
+        string token = "raw-account-recovery-token",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Auth.ConfirmAccountRecovery.ConfirmAccountRecoveryCommand(
+            UserId: userId,
+            Token: token,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
     internal static Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken.RefreshTokenCommandHandler CreateRefreshHandler(
         FakeUserRepository userRepository,
         FakeUserSessionRepository userSessionRepository,
@@ -596,6 +649,8 @@ internal static class SelfServiceHandlerTestSupport
     {
         public OneTimeToken? FoundToken { get; set; }
         public (Guid UserId, OneTimeTokenPurpose Purpose, string TokenHash)? FindRequest { get; private set; }
+        public IReadOnlyList<OneTimeToken> ActiveTokens { get; set; } = Array.Empty<OneTimeToken>();
+        public (Guid UserId, OneTimeTokenPurpose Purpose, DateTime NowUtc)? GetActiveRequest { get; private set; }
 
         public Task<OneTimeToken?> Find(Guid userId, OneTimeTokenPurpose purpose, string tokenHash, CancellationToken cancellationToken)
         {
@@ -605,7 +660,13 @@ internal static class SelfServiceHandlerTestSupport
 
         public Task Add(OneTimeToken token, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<int> CountCreatedSinceUtc(Guid userId, OneTimeTokenPurpose purpose, DateTime sinceUtc, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyList<OneTimeToken>> GetActive(Guid userId, OneTimeTokenPurpose purpose, DateTime nowUtc, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<OneTimeToken>> GetActive(Guid userId, OneTimeTokenPurpose purpose, DateTime nowUtc, CancellationToken cancellationToken)
+        {
+            GetActiveRequest = (userId, purpose, nowUtc);
+            return Task.FromResult(ActiveTokens);
+        }
+
         public Task<DateTime?> GetLatestCreatedAtUtc(Guid userId, OneTimeTokenPurpose purpose, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
@@ -629,6 +690,8 @@ internal static class SelfServiceHandlerTestSupport
     internal sealed class FakeOneTimeTokenDeliveryService : IOneTimeTokenDeliveryService
     {
         public List<(string Email, string? IpAddress, string? UserAgent)> PasswordResetRequests { get; } = new();
+        public List<(string Email, string? IpAddress, string? UserAgent)> EmailConfirmationRequests { get; } = new();
+        public List<(string Email, string? IpAddress, string? UserAgent)> AccountRecoveryRequests { get; } = new();
 
         public Task SendPasswordResetAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken)
         {
@@ -636,8 +699,17 @@ internal static class SelfServiceHandlerTestSupport
             return Task.CompletedTask;
         }
 
-        public Task SendAccountRecoveryAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task SendEmailConfirmationAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendAccountRecoveryAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken)
+        {
+            AccountRecoveryRequests.Add((email, ipAddress, userAgent));
+            return Task.CompletedTask;
+        }
+
+        public Task SendEmailConfirmationAsync(string email, string? ipAddress, string? userAgent, CancellationToken cancellationToken)
+        {
+            EmailConfirmationRequests.Add((email, ipAddress, userAgent));
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeUnitOfWork : IUnitOfWork
