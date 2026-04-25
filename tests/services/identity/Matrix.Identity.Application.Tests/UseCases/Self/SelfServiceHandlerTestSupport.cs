@@ -256,6 +256,19 @@ internal static class SelfServiceHandlerTestSupport
             UserAgent: userAgent);
     }
 
+    internal static Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail.ConfirmEmailCommand CreateConfirmEmailCommand(
+        Guid userId,
+        string token = "raw-email-confirmation-token",
+        string? ipAddress = "127.0.0.1",
+        string? userAgent = "Mozilla/5.0")
+    {
+        return new Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail.ConfirmEmailCommand(
+            UserId: userId,
+            Token: token,
+            IpAddress: ipAddress,
+            UserAgent: userAgent);
+    }
+
     internal static Matrix.Identity.Application.UseCases.Self.Auth.RequestAccountRecovery.RequestAccountRecoveryCommand CreateRequestAccountRecoveryCommand(
         string email = "neo@matrix.local",
         string? ipAddress = "127.0.0.1",
