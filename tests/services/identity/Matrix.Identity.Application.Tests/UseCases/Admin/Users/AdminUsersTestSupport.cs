@@ -1,6 +1,8 @@
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
+using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Administration;
+using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.UseCases.Admin.Permissions.GetPermissionsCatalog;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserPermissions;
 using Matrix.Identity.Application.UseCases.Admin.Users.GetUserRoles;
@@ -310,5 +312,55 @@ internal static class AdminUsersTestSupport
             ReplacedOverrides = new Dictionary<string, PermissionEffect>(overrides, StringComparer.Ordinal);
             return Task.FromResult(ReplaceResult);
         }
+    }
+
+    internal sealed class TestClock : IClock
+    {
+        public DateTime UtcNow => AdminUsersTestSupport.UtcNow;
+    }
+
+    internal sealed class FakeSecurityAuditService : ISecurityAuditService
+    {
+        public List<SecurityAuditEntry> Entries { get; } = new();
+
+        public Task WriteAsync(SecurityAuditEntry entry, CancellationToken cancellationToken)
+        {
+            Entries.Add(entry);
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> IsLoginAllowedAsync(string loginSubject, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<bool> IsEmailConfirmationRequestAllowedAsync(string normalizedEmail, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<bool> IsEmailChangeRequestAllowedAsync(string normalizedEmail, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<bool> IsPasswordResetRequestAllowedAsync(string normalizedEmail, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<bool> IsAccountRecoveryRequestAllowedAsync(string normalizedEmail, string? ipAddress, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeEmailSender : IEmailSender
+    {
+        public List<string> AccountRestoredEmails { get; } = new();
+        public Exception? SendAccountRestoredException { get; set; }
+
+        public Task SendAccountRestored(string toEmail, CancellationToken cancellationToken)
+        {
+            AccountRestoredEmails.Add(toEmail);
+            if (SendAccountRestoredException is not null)
+                throw SendAccountRestoredException;
+            return Task.CompletedTask;
+        }
+
+        public Task SendEmailConfirmation(string toEmail, string confirmationLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendPasswordReset(string toEmail, string resetLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendUsernameChanged(string toEmail, string previousUsername, string newUsername, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendEmailChangeConfirmation(string toEmail, string currentEmail, string confirmationLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendAccountDeleted(string toEmail, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SendAccountRecovery(string toEmail, string recoveryLink, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeCurrentUserContext : Matrix.BuildingBlocks.Application.Abstractions.ICurrentUserContext
+    {
+        public bool IsAuthenticated { get; set; } = true;
+        public Guid? UserId { get; set; }
+        public Guid? SessionId { get; set; }
     }
 }
