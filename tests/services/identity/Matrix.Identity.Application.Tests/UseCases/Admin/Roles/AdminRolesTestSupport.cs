@@ -208,12 +208,15 @@ internal static class AdminRolesTestSupport
     internal sealed class FakePermissionKeysValidator : IPermissionKeysValidator
     {
         public IReadOnlyCollection<string>? ValidatedKeys { get; private set; }
+        public Exception? ValidateException { get; set; }
 
         public Task ValidateAsync(
             IReadOnlyCollection<string> permissionKeys,
             CancellationToken cancellationToken)
         {
             ValidatedKeys = permissionKeys.ToArray();
+            if (ValidateException is not null)
+                throw ValidateException;
             return Task.CompletedTask;
         }
     }
