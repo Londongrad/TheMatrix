@@ -248,16 +248,22 @@ internal static class AdminUsersTestSupport
     {
         public Guid? RequestedTargetUserId { get; private set; }
         public IReadOnlyCollection<Guid>? RequestedDesiredRoleIds { get; private set; }
+        public Exception? ManageException { get; set; }
+        public Exception? RoleAssignmentException { get; set; }
 
         public Task EnsureUserCanBeManagedAsync(Guid targetUserId, CancellationToken cancellationToken)
         {
             RequestedTargetUserId = targetUserId;
+            if (ManageException is not null)
+                throw ManageException;
             return Task.CompletedTask;
         }
 
         public Task EnsureRoleAssignmentIsAllowedAsync(IReadOnlyCollection<Guid> desiredRoleIds, CancellationToken cancellationToken)
         {
             RequestedDesiredRoleIds = desiredRoleIds.ToArray();
+            if (RoleAssignmentException is not null)
+                throw RoleAssignmentException;
             return Task.CompletedTask;
         }
     }
@@ -265,10 +271,13 @@ internal static class AdminUsersTestSupport
     internal sealed class FakeRoleIdsValidator : Matrix.Identity.Application.Abstractions.Services.Validation.IRoleIdsValidator
     {
         public IReadOnlyCollection<Guid>? ValidatedRoleIds { get; private set; }
+        public Exception? ValidateException { get; set; }
 
         public Task ValidateExistAsync(IReadOnlyCollection<Guid> roleIds, CancellationToken cancellationToken)
         {
             ValidatedRoleIds = roleIds.ToArray();
+            if (ValidateException is not null)
+                throw ValidateException;
             return Task.CompletedTask;
         }
     }
