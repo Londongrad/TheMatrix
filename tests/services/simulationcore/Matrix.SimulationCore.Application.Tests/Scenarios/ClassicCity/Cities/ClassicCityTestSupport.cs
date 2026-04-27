@@ -52,6 +52,7 @@ internal static class ClassicCityTestSupport
         public IReadOnlyList<City> ProvisioningCities { get; set; } = Array.Empty<City>();
         public CityId? RequestedCityId { get; private set; }
         public bool? RequestedIncludeArchived { get; private set; }
+        public bool ListProvisioningRequested { get; private set; }
 
         public Task<City?> GetByIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
@@ -67,6 +68,7 @@ internal static class ClassicCityTestSupport
 
         public Task<IReadOnlyList<City>> ListProvisioningAsync(CancellationToken cancellationToken)
         {
+            ListProvisioningRequested = true;
             return Task.FromResult(ProvisioningCities);
         }
 
