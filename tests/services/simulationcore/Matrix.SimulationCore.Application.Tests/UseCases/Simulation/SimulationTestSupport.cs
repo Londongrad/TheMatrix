@@ -1,4 +1,6 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Services.Simulation;
+using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
 
@@ -65,6 +67,63 @@ internal static class SimulationTestSupport
         {
             RequestedSimulationId = simulationId;
             return Task.FromResult(HostBySimulationId);
+        }
+    }
+
+    internal sealed class FakeSimulationClockMutationExecutor : ISimulationClockMutationExecutor
+    {
+        public SimulationId? RequestedSimulationId { get; private set; }
+        public bool RequestedAllowArchivedHost { get; private set; }
+        public SimulationClock? Clock { get; set; }
+        public bool Result { get; set; } = true;
+
+        public Task<bool> ExecuteAsync(
+            SimulationId simulationId,
+            Action<SimulationClock> mutate,
+            CancellationToken cancellationToken,
+            bool allowArchivedHost = false)
+        {
+            RequestedSimulationId = simulationId;
+            RequestedAllowArchivedHost = allowArchivedHost;
+
+            if (Clock is not null)
+            {
+                mutate(Clock);
+            }
+
+            return Task.FromResult(Result);
+        }
+    }
+
+    internal sealed class FakeSimulationAdvanceExecutor : ISimulationAdvanceExecutor
+    {
+        public SimulationId? RequestedSimulationId { get; private set; }
+        public TimeSpan? RequestedRealDelta { get; private set; }
+        public SimulationAdvanceExecutionResult Result { get; set; } =
+            new(new SimulationId(Guid.NewGuid()), SimulationAdvanceExecutionStatus.Advanced);
+
+        public Task<SimulationAdvanceExecutionResult> ExecuteAsync(
+            SimulationId simulationId,
+            TimeSpan realDelta,
+            CancellationToken cancellationToken)
+        {
+            RequestedSimulationId = simulationId;
+            RequestedRealDelta = realDelta;
+            return Task.FromResult(Result);
+        }
+    }
+
+    internal sealed class FakeSimulationBatchAdvanceExecutor : ISimulationBatchAdvanceExecutor
+    {
+        public TimeSpan? RequestedRealDelta { get; private set; }
+        public SimulationBatchAdvanceResult Result { get; set; } = new(0, 0, 0, 0);
+
+        public Task<SimulationBatchAdvanceResult> ExecuteAsync(
+            TimeSpan realDelta,
+            CancellationToken cancellationToken)
+        {
+            RequestedRealDelta = realDelta;
+            return Task.FromResult(Result);
         }
     }
 }
