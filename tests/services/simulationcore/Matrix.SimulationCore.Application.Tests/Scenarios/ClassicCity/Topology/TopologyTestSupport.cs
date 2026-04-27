@@ -55,6 +55,39 @@ internal static class TopologyTestSupport
             createdAtUtc: CreatedAtUtc);
     }
 
+    internal static RoadNode CreateRoadNode(
+        CityId? cityId = null,
+        DistrictId? districtId = null,
+        string name = "Central Junction")
+    {
+        return RoadNode.Create(
+            cityId ?? new CityId(Guid.NewGuid()),
+            districtId ?? new DistrictId(Guid.NewGuid()),
+            name,
+            RoadNodeType.Junction,
+            positionX: 22.5m,
+            positionY: 44.5m,
+            createdAtUtc: CreatedAtUtc);
+    }
+
+    internal static RoadSegment CreateRoadSegment(
+        CityId? cityId = null,
+        DistrictId? districtId = null,
+        RoadNodeId? fromRoadNodeId = null,
+        RoadNodeId? toRoadNodeId = null,
+        string name = "Main Connector")
+    {
+        return RoadSegment.Create(
+            cityId ?? new CityId(Guid.NewGuid()),
+            districtId ?? new DistrictId(Guid.NewGuid()),
+            fromRoadNodeId ?? RoadNodeId.New(),
+            toRoadNodeId ?? RoadNodeId.New(),
+            name,
+            RoadSegmentType.Collector,
+            lengthMeters: 180m,
+            createdAtUtc: CreatedAtUtc);
+    }
+
     internal sealed class FakeCityAnchorRepository : ICityAnchorRepository
     {
         public IReadOnlyList<CityAnchor> Anchors { get; set; } = Array.Empty<CityAnchor>();
@@ -101,6 +134,34 @@ internal static class TopologyTestSupport
             RequestedCityId = cityId;
             RequestedDistrictId = districtId;
             return Task.FromResult(Buildings);
+        }
+    }
+
+    internal sealed class FakeRoadNodeRepository : IRoadNodeRepository
+    {
+        public IReadOnlyList<RoadNode> RoadNodes { get; set; } = Array.Empty<RoadNode>();
+        public CityId? RequestedCityId { get; private set; }
+
+        public Task AddRangeAsync(IReadOnlyCollection<RoadNode> roadNodes, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<RoadNode>> ListByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(RoadNodes);
+        }
+    }
+
+    internal sealed class FakeRoadSegmentRepository : IRoadSegmentRepository
+    {
+        public IReadOnlyList<RoadSegment> RoadSegments { get; set; } = Array.Empty<RoadSegment>();
+        public CityId? RequestedCityId { get; private set; }
+
+        public Task AddRangeAsync(IReadOnlyCollection<RoadSegment> roadSegments, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<RoadSegment>> ListByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(RoadSegments);
         }
     }
 }
