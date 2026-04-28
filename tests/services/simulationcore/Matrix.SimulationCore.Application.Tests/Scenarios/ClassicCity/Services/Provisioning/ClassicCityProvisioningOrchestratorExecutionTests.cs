@@ -2,6 +2,7 @@ using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisionin
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Topology;
@@ -225,6 +226,121 @@ public sealed class ClassicCityProvisioningOrchestratorExecutionTests
         Assert.Equal("Failed", result.PopulationBootstrap.Status);
         Assert.Equal("POPULATION_CONFLICT", result.PopulationBootstrap.FailureCode);
         Assert.Equal(20_000, result.PopulationBootstrap.PlannedPeopleCount);
+    }
+
+    [Fact]
+    public async Task ProvisionAsync_WhenResidentialCapacityIsMissing_FailsPopulationBootstrapWithoutCallingPopulationClient()
+    {
+        DateTimeOffset completedAtUtc = DateTimeOffset.Parse("2048-10-01T12:00:00+00:00");
+        var city = ClassicCityTestSupport.CreateCity(
+            name: "No Capacity City",
+            requiresPopulationBootstrap: true,
+            requiresEconomyBootstrap: true);
+        Assert.True(city.TryCompleteEconomyBootstrap(city.EconomyBootstrapOperationId, completedAtUtc));
+        var mediator = new ProvisioningTestSupport.FakeMediator
+        {
+            SendHandler = request => request is FailCityPopulationBootstrapCommand ? true : null
+        };
+        var populationClient = new ProvisioningTestSupport.FakeCityPopulationBootstrapClient();
+        var orchestrator = new ClassicCityProvisioningOrchestrator(
+            mediator,
+            new ClassicCityTestSupport.FakeCityRepository { CityById = city },
+            new TopologyTestSupport.FakeCityAnchorRepository(),
+            new TopologyTestSupport.FakeResidentialBuildingRepository(),
+            new SimulationTestSupport.FakeSimulationClockRepository
+            {
+                ClockBySimulationId = SimulationTestSupport.CreateClock(city.Id.Value)
+            },
+            [
+                new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                {
+                    Descriptor = new SimulationKindDescriptor(
+                        Kind: SimulationKind.ClassicCity,
+                        DisplayName: "Classic City",
+                        Description: "Classic city simulation.",
+                        SupportsAutomaticPopulationBootstrap: true)
+                }
+            ],
+            new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
+            populationClient,
+            NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
+
+        var result = await orchestrator.ProvisionAsync(
+            cityId: city.Id.Value,
+            simulationKind: "ClassicCity",
+            populationBootstrapOperationId: city.PopulationBootstrapOperationId,
+            economyBootstrapOperationId: city.EconomyBootstrapOperationId,
+            plannedPeopleCountOverride: 12_345,
+            heartbeatAsync: null,
+            cancellationToken: CancellationToken.None);
+
+        var sentCommand = Assert.Single(mediator.SentRequests);
+        var failCommand = Assert.IsType<FailCityPopulationBootstrapCommand>(sentCommand);
+        Assert.Equal(city.Id.Value, failCommand.CityId);
+        Assert.Equal(city.PopulationBootstrapOperationId, failCommand.OperationId);
+        Assert.Equal(PopulationBootstrapFailureCodes.PopulationResidentialCapacityMissing, failCommand.FailureCode);
+        Assert.Null(populationClient.RequestedRequest);
+        Assert.Equal("Completed", result.EconomyBootstrap.Status);
+        Assert.Equal("Failed", result.PopulationBootstrap.Status);
+        Assert.Equal(12_345, result.PopulationBootstrap.PlannedPeopleCount);
+        Assert.Equal(0, result.PopulationBootstrap.ResidentialCapacity);
+        Assert.Equal(PopulationBootstrapFailureCodes.PopulationResidentialCapacityMissing, result.PopulationBootstrap.FailureCode);
+    }
+
+    [Fact]
+    public async Task ProvisionAsync_WhenSimulationClockIsMissing_FailsPopulationBootstrapWithInvalidResponseCode()
+    {
+        DateTimeOffset completedAtUtc = DateTimeOffset.Parse("2048-10-01T12:00:00+00:00");
+        var city = ClassicCityTestSupport.CreateCity(
+            name: "Clockless City",
+            requiresPopulationBootstrap: true,
+            requiresEconomyBootstrap: true);
+        Assert.True(city.TryCompleteEconomyBootstrap(city.EconomyBootstrapOperationId, completedAtUtc));
+        var district = TopologyTestSupport.CreateDistrict(city.Id, "Downtown");
+        var building = TopologyTestSupport.CreateResidentialBuilding(city.Id, district.Id, "River Tower");
+        var mediator = new ProvisioningTestSupport.FakeMediator
+        {
+            SendHandler = request => request is FailCityPopulationBootstrapCommand ? true : null
+        };
+        var populationClient = new ProvisioningTestSupport.FakeCityPopulationBootstrapClient();
+        var orchestrator = new ClassicCityProvisioningOrchestrator(
+            mediator,
+            new ClassicCityTestSupport.FakeCityRepository { CityById = city },
+            new TopologyTestSupport.FakeCityAnchorRepository(),
+            new TopologyTestSupport.FakeResidentialBuildingRepository
+            {
+                Buildings = [building]
+            },
+            new SimulationTestSupport.FakeSimulationClockRepository(),
+            [
+                new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                {
+                    Descriptor = new SimulationKindDescriptor(
+                        Kind: SimulationKind.ClassicCity,
+                        DisplayName: "Classic City",
+                        Description: "Classic city simulation.",
+                        SupportsAutomaticPopulationBootstrap: true)
+                }
+            ],
+            new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
+            populationClient,
+            NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
+
+        var result = await orchestrator.ProvisionAsync(
+            cityId: city.Id.Value,
+            simulationKind: "ClassicCity",
+            populationBootstrapOperationId: city.PopulationBootstrapOperationId,
+            economyBootstrapOperationId: city.EconomyBootstrapOperationId,
+            plannedPeopleCountOverride: null,
+            heartbeatAsync: null,
+            cancellationToken: CancellationToken.None);
+
+        var sentCommand = Assert.Single(mediator.SentRequests);
+        var failCommand = Assert.IsType<FailCityPopulationBootstrapCommand>(sentCommand);
+        Assert.Equal(PopulationBootstrapFailureCodes.PopulationResponseInvalid, failCommand.FailureCode);
+        Assert.Null(populationClient.RequestedRequest);
+        Assert.Equal("Failed", result.PopulationBootstrap.Status);
+        Assert.Equal(PopulationBootstrapFailureCodes.PopulationResponseInvalid, result.PopulationBootstrap.FailureCode);
     }
 
     private static ClassicCityProvisioningOrchestrator CreateOrchestrator(
