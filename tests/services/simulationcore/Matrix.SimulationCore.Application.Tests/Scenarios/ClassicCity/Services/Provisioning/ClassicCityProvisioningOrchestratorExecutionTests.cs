@@ -653,6 +653,89 @@ public sealed class ClassicCityProvisioningOrchestratorExecutionTests
         Assert.Equal(PopulationBootstrapFailureCodes.PopulationValidationFailed, result.PopulationBootstrap.FailureCode);
     }
 
+    [Fact]
+    public async Task ProvisionAsync_WhenEconomyBootstrapTimesOut_MapsEconomyTimeout()
+    {
+        var city = ClassicCityTestSupport.CreateCity(
+            name: "Timeout Economy City",
+            requiresPopulationBootstrap: true,
+            requiresEconomyBootstrap: true);
+        var mediator = new ProvisioningTestSupport.FakeMediator
+        {
+            SendHandler = request => request is FailCityEconomyBootstrapCommand ? true : null
+        };
+        var economyClient = new ProvisioningTestSupport.FakeCityEconomyBootstrapClient
+        {
+            ExceptionToThrow = new OperationCanceledException("economy timed out")
+        };
+        var populationClient = new ProvisioningTestSupport.FakeCityPopulationBootstrapClient();
+        var orchestrator = CreateOrchestrator(
+            mediator: mediator,
+            cityRepository: new ClassicCityTestSupport.FakeCityRepository { CityById = city },
+            economyClient: economyClient,
+            populationClient: populationClient,
+            supportsAutomaticPopulationBootstrap: true);
+
+        var result = await orchestrator.ProvisionAsync(
+            cityId: city.Id.Value,
+            simulationKind: "ClassicCity",
+            populationBootstrapOperationId: city.PopulationBootstrapOperationId,
+            economyBootstrapOperationId: city.EconomyBootstrapOperationId,
+            plannedPeopleCountOverride: 25_000,
+            heartbeatAsync: null,
+            cancellationToken: CancellationToken.None);
+
+        var sentCommand = Assert.Single(mediator.SentRequests);
+        var failCommand = Assert.IsType<FailCityEconomyBootstrapCommand>(sentCommand);
+        Assert.Equal(EconomyBootstrapFailureCodes.EconomyTimeout, failCommand.FailureCode);
+        Assert.Null(populationClient.RequestedRequest);
+        Assert.Equal("Failed", result.EconomyBootstrap.Status);
+        Assert.Equal(EconomyBootstrapFailureCodes.EconomyTimeout, result.EconomyBootstrap.FailureCode);
+    }
+
+    [Fact]
+    public async Task ProvisionAsync_WhenEconomyBootstrapReturnsValidationError_MapsEconomyValidationFailure()
+    {
+        var city = ClassicCityTestSupport.CreateCity(
+            name: "Validation Economy City",
+            requiresPopulationBootstrap: true,
+            requiresEconomyBootstrap: true);
+        var mediator = new ProvisioningTestSupport.FakeMediator
+        {
+            SendHandler = request => request is FailCityEconomyBootstrapCommand ? true : null
+        };
+        var economyClient = new ProvisioningTestSupport.FakeCityEconomyBootstrapClient
+        {
+            ExceptionToThrow = new HttpRequestException(
+                message: "economy validation failed",
+                inner: null,
+                statusCode: HttpStatusCode.BadRequest)
+        };
+        var populationClient = new ProvisioningTestSupport.FakeCityPopulationBootstrapClient();
+        var orchestrator = CreateOrchestrator(
+            mediator: mediator,
+            cityRepository: new ClassicCityTestSupport.FakeCityRepository { CityById = city },
+            economyClient: economyClient,
+            populationClient: populationClient,
+            supportsAutomaticPopulationBootstrap: true);
+
+        var result = await orchestrator.ProvisionAsync(
+            cityId: city.Id.Value,
+            simulationKind: "ClassicCity",
+            populationBootstrapOperationId: city.PopulationBootstrapOperationId,
+            economyBootstrapOperationId: city.EconomyBootstrapOperationId,
+            plannedPeopleCountOverride: 25_000,
+            heartbeatAsync: null,
+            cancellationToken: CancellationToken.None);
+
+        var sentCommand = Assert.Single(mediator.SentRequests);
+        var failCommand = Assert.IsType<FailCityEconomyBootstrapCommand>(sentCommand);
+        Assert.Equal(EconomyBootstrapFailureCodes.EconomyValidationFailed, failCommand.FailureCode);
+        Assert.Null(populationClient.RequestedRequest);
+        Assert.Equal("Failed", result.EconomyBootstrap.Status);
+        Assert.Equal(EconomyBootstrapFailureCodes.EconomyValidationFailed, result.EconomyBootstrap.FailureCode);
+    }
+
     private static ClassicCityProvisioningOrchestrator CreateOrchestrator(
         ProvisioningTestSupport.FakeMediator mediator,
         ClassicCityTestSupport.FakeCityRepository cityRepository,
