@@ -17,6 +17,27 @@ namespace Matrix.SimulationCore.Application.Tests.Scenarios.ClassicCity.Services
 public sealed class ClassicCityProvisioningOrchestratorExecutionTests
 {
     [Fact]
+    public async Task ProvisionAsync_WhenCityDoesNotExist_ThrowsInvalidOperationException()
+    {
+        var orchestrator = CreateOrchestrator(
+            mediator: new ProvisioningTestSupport.FakeMediator(),
+            cityRepository: new ClassicCityTestSupport.FakeCityRepository(),
+            economyClient: new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
+            populationClient: new ProvisioningTestSupport.FakeCityPopulationBootstrapClient(),
+            supportsAutomaticPopulationBootstrap: true);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            orchestrator.ProvisionAsync(
+                cityId: Guid.NewGuid(),
+                simulationKind: "ClassicCity",
+                populationBootstrapOperationId: Guid.NewGuid(),
+                economyBootstrapOperationId: Guid.NewGuid(),
+                plannedPeopleCountOverride: 25_000,
+                heartbeatAsync: null,
+                cancellationToken: CancellationToken.None));
+    }
+
+    [Fact]
     public async Task ProvisionAsync_WhenEconomyCompletesAndPopulationBootstrapIsUnsupported_CompletesEconomyAndSkipsPopulation()
     {
         int heartbeatCallCount = 0;

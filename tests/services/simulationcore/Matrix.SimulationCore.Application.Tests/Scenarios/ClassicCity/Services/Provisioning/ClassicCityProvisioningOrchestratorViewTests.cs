@@ -108,6 +108,49 @@ public sealed class ClassicCityProvisioningOrchestratorViewTests
         Assert.Equal("Pending", result.EconomyBootstrap.Status);
     }
 
+    [Fact]
+    public async Task CreateAsync_WhenCreatedCityCannotBeLoaded_ThrowsInvalidOperationException()
+    {
+        var mediator = new ProvisioningTestSupport.FakeMediator
+        {
+            SendHandler = request => request is CreateCityCommand
+                ? new CityCreatedDto(
+                    CityId: Guid.NewGuid(),
+                    PopulationBootstrapOperationId: Guid.NewGuid(),
+                    EconomyBootstrapOperationId: Guid.NewGuid(),
+                    SimulationKind: "ClassicCity")
+                : null
+        };
+        var orchestrator = CreateOrchestrator(
+            mediator: mediator,
+            cityRepository: new ClassicCityTestSupport.FakeCityRepository(),
+            supportsAutomaticPopulationBootstrap: true);
+        var command = new CreateCityCommand(
+            Name: "Ghost City",
+            SimulationKind: "ClassicCity",
+            ClimateZone: "Temperate",
+            Hemisphere: "Northern",
+            UtcOffsetMinutes: 180,
+            GenerationSeed: "ghost-seed",
+            SizeTier: "Medium",
+            UrbanDensity: "Balanced",
+            DevelopmentLevel: "Balanced",
+            EconomyProfile: "Balanced",
+            PopulationOccupancyProfile: "Balanced",
+            InitialWeatherMode: "Manual",
+            InitialWeatherType: "Clear",
+            InitialWeatherSeverity: "Calm",
+            InitialWeatherTemperatureC: 18m,
+            StartSimTimeUtc: DateTimeOffset.Parse("2048-09-01T10:00:00+00:00"),
+            SpeedMultiplier: 60m,
+            PlannedPeopleCount: 25_000,
+            ProvisioningCorrelationId: Guid.NewGuid(),
+            ScenarioModelSetVersion: "classic-city-v3");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            orchestrator.CreateAsync(command, CancellationToken.None));
+    }
+
     private static ClassicCityProvisioningOrchestrator CreateOrchestrator(
         ProvisioningTestSupport.FakeMediator? mediator = null,
         ClassicCityTestSupport.FakeCityRepository? cityRepository = null,
