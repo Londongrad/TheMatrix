@@ -1,7 +1,10 @@
+using Matrix.BuildingBlocks.Domain.Events;
+using Matrix.SimulationCore.Application.Abstractions.Outbox;
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
 using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
@@ -53,6 +56,10 @@ internal static class ClassicCityTestSupport
         public CityId? RequestedCityId { get; private set; }
         public bool? RequestedIncludeArchived { get; private set; }
         public bool ListProvisioningRequested { get; private set; }
+        public Guid? RequestedProvisioningCorrelationId { get; private set; }
+        public City? CityByProvisioningCorrelationId { get; set; }
+        public City? AddedCity { get; private set; }
+        public City? DeletedCity { get; private set; }
 
         public Task<City?> GetByIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
@@ -72,10 +79,24 @@ internal static class ClassicCityTestSupport
             return Task.FromResult(ProvisioningCities);
         }
 
-        public Task<City?> GetByProvisioningCorrelationIdAsync(Guid provisioningCorrelationId, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<City?> GetByProvisioningCorrelationIdAsync(Guid provisioningCorrelationId, CancellationToken cancellationToken)
+        {
+            RequestedProvisioningCorrelationId = provisioningCorrelationId;
+            return Task.FromResult(CityByProvisioningCorrelationId);
+        }
         public Task<IReadOnlyList<City>> ListRecoverableProvisioningAsync(DateTimeOffset asOfUtc, int limit, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task AddAsync(City city, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task DeleteAsync(City city, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task AddAsync(City city, CancellationToken cancellationToken)
+        {
+            AddedCity = city;
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(City city, CancellationToken cancellationToken)
+        {
+            DeletedCity = city;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityNameSuggestionService : ICityNameSuggestionService
@@ -106,5 +127,45 @@ internal static class ClassicCityTestSupport
 
         public CitySimulationBootstrapPlan CreatePlan(Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity.CreateCityCommand request)
             => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeSimulationCoreOutboxWriter : ISimulationCoreOutboxWriter
+    {
+        public IReadOnlyList<IDomainEvent> CityEvents { get; private set; } = Array.Empty<IDomainEvent>();
+        public IReadOnlyList<IDomainEvent> WeatherEvents { get; private set; } = Array.Empty<IDomainEvent>();
+
+        public Task AddCityEventsAsync(IReadOnlyCollection<IDomainEvent> domainEvents, CancellationToken cancellationToken)
+        {
+            CityEvents = domainEvents.ToArray();
+            return Task.CompletedTask;
+        }
+
+        public Task AddWeatherEventsAsync(IReadOnlyCollection<IDomainEvent> domainEvents, CancellationToken cancellationToken)
+        {
+            WeatherEvents = domainEvents.ToArray();
+            return Task.CompletedTask;
+        }
+
+        public Task AddCityTimeAdvancedAsync(
+            CityId cityId,
+            SimulationId simulationId,
+            SimulationKind simulationKind,
+            SimTime from,
+            SimTime to,
+            TickId tickId,
+            SimSpeed speed,
+            CityTickPhase phase,
+            CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task AddCityTickPhaseReachedAsync(
+            CityId cityId,
+            SimulationId simulationId,
+            SimulationKind simulationKind,
+            SimTime from,
+            SimTime to,
+            TickId tickId,
+            SimSpeed speed,
+            CityTickPhase phase,
+            CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 }
