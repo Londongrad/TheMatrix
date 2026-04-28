@@ -5,6 +5,7 @@ using Matrix.SimulationCore.Application.Services.Bootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap.Abstractions;
 using Matrix.SimulationCore.Application.Services.Generation.Abstractions;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Simulation;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
@@ -20,7 +21,8 @@ internal static class ClassicCityTestSupport
     internal static City CreateCity(
         string name = "Alpha City",
         bool requiresPopulationBootstrap = false,
-        bool requiresEconomyBootstrap = false)
+        bool requiresEconomyBootstrap = false,
+        Guid? provisioningCorrelationId = null)
     {
         return City.Create(
             name: new CityName(name),
@@ -42,7 +44,7 @@ internal static class ClassicCityTestSupport
                 manualType: WeatherType.Clear,
                 manualSeverity: WeatherSeverity.Calm,
                 manualTemperature: TemperatureC.From(18m)),
-            provisioningCorrelationId: null,
+            provisioningCorrelationId: provisioningCorrelationId,
             requiresPopulationBootstrap: requiresPopulationBootstrap,
             requiresEconomyBootstrap: requiresEconomyBootstrap,
             createdAtUtc: CreatedAtUtc);
@@ -126,9 +128,14 @@ internal static class ClassicCityTestSupport
     {
         public SimulationKind Kind => Descriptor.Kind;
         public required SimulationKindDescriptor Descriptor { get; init; }
+        public CreateCityCommand? RequestedCommand { get; private set; }
+        public CitySimulationBootstrapPlan? Plan { get; init; }
 
-        public CitySimulationBootstrapPlan CreatePlan(Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CreateCity.CreateCityCommand request)
-            => throw new NotSupportedException();
+        public CitySimulationBootstrapPlan CreatePlan(CreateCityCommand request)
+        {
+            RequestedCommand = request;
+            return Plan ?? throw new NotSupportedException();
+        }
     }
 
     internal sealed class FakeSimulationCoreOutboxWriter : ISimulationCoreOutboxWriter

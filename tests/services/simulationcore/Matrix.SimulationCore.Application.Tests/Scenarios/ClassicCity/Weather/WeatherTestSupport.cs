@@ -77,8 +77,13 @@ internal static class WeatherTestSupport
     {
         public CityWeather? WeatherByCityId { get; set; }
         public CityId? RequestedCityId { get; private set; }
+        public CityWeather? AddedWeather { get; private set; }
 
-        public Task AddAsync(CityWeather cityWeather, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddAsync(CityWeather cityWeather, CancellationToken cancellationToken)
+        {
+            AddedWeather = cityWeather;
+            return Task.CompletedTask;
+        }
 
         public Task<CityWeather?> GetByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
         {

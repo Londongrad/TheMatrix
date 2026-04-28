@@ -99,13 +99,18 @@ internal static class TopologyTestSupport
         public CityId? RequestedCityId { get; private set; }
         public CityAnchorId? RequestedAnchorId { get; private set; }
         public CityAnchor? AnchorById { get; set; }
+        public IReadOnlyList<CityAnchor> AddedAnchors { get; private set; } = Array.Empty<CityAnchor>();
 
         public Task<CityAnchor?> GetByIdAsync(CityAnchorId anchorId, CancellationToken cancellationToken)
         {
             RequestedAnchorId = anchorId;
             return Task.FromResult(AnchorById);
         }
-        public Task AddRangeAsync(IReadOnlyCollection<CityAnchor> anchors, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddRangeAsync(IReadOnlyCollection<CityAnchor> anchors, CancellationToken cancellationToken)
+        {
+            AddedAnchors = anchors.ToArray();
+            return Task.CompletedTask;
+        }
 
         public Task<IReadOnlyList<CityAnchor>> ListByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
@@ -118,8 +123,13 @@ internal static class TopologyTestSupport
     {
         public IReadOnlyList<District> Districts { get; set; } = Array.Empty<District>();
         public CityId? RequestedCityId { get; private set; }
+        public IReadOnlyList<District> AddedDistricts { get; private set; } = Array.Empty<District>();
 
-        public Task AddRangeAsync(IReadOnlyCollection<District> districts, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddRangeAsync(IReadOnlyCollection<District> districts, CancellationToken cancellationToken)
+        {
+            AddedDistricts = districts.ToArray();
+            return Task.CompletedTask;
+        }
 
         public Task<IReadOnlyList<District>> ListByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
@@ -135,13 +145,18 @@ internal static class TopologyTestSupport
         public DistrictId? RequestedDistrictId { get; private set; }
         public ResidentialBuildingId? RequestedBuildingId { get; private set; }
         public ResidentialBuilding? BuildingById { get; set; }
+        public IReadOnlyList<ResidentialBuilding> AddedBuildings { get; private set; } = Array.Empty<ResidentialBuilding>();
 
         public Task<ResidentialBuilding?> GetByIdAsync(ResidentialBuildingId buildingId, CancellationToken cancellationToken)
         {
             RequestedBuildingId = buildingId;
             return Task.FromResult(BuildingById);
         }
-        public Task AddRangeAsync(IReadOnlyCollection<ResidentialBuilding> buildings, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddRangeAsync(IReadOnlyCollection<ResidentialBuilding> buildings, CancellationToken cancellationToken)
+        {
+            AddedBuildings = buildings.ToArray();
+            return Task.CompletedTask;
+        }
 
         public Task<IReadOnlyList<ResidentialBuilding>> ListByCityIdAsync(
             CityId cityId,
@@ -158,8 +173,13 @@ internal static class TopologyTestSupport
     {
         public IReadOnlyList<RoadNode> RoadNodes { get; set; } = Array.Empty<RoadNode>();
         public CityId? RequestedCityId { get; private set; }
+        public IReadOnlyList<RoadNode> AddedRoadNodes { get; private set; } = Array.Empty<RoadNode>();
 
-        public Task AddRangeAsync(IReadOnlyCollection<RoadNode> roadNodes, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddRangeAsync(IReadOnlyCollection<RoadNode> roadNodes, CancellationToken cancellationToken)
+        {
+            AddedRoadNodes = roadNodes.ToArray();
+            return Task.CompletedTask;
+        }
 
         public Task<IReadOnlyList<RoadNode>> ListByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
@@ -172,8 +192,13 @@ internal static class TopologyTestSupport
     {
         public IReadOnlyList<RoadSegment> RoadSegments { get; set; } = Array.Empty<RoadSegment>();
         public CityId? RequestedCityId { get; private set; }
+        public IReadOnlyList<RoadSegment> AddedRoadSegments { get; private set; } = Array.Empty<RoadSegment>();
 
-        public Task AddRangeAsync(IReadOnlyCollection<RoadSegment> roadSegments, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddRangeAsync(IReadOnlyCollection<RoadSegment> roadSegments, CancellationToken cancellationToken)
+        {
+            AddedRoadSegments = roadSegments.ToArray();
+            return Task.CompletedTask;
+        }
 
         public Task<IReadOnlyList<RoadSegment>> ListByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
