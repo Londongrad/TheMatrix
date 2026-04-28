@@ -13,7 +13,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         ICityRepository cityRepository,
         ISimulationClockMutationExecutor simulationClockMutationExecutor,
         ISimulationCoreOutboxWriter outboxWriter,
-        IUnitOfWork unitOfWork) : IRequestHandler<ArchiveCityCommand, bool>
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider) : IRequestHandler<ArchiveCityCommand, bool>
     {
         public async Task<bool> Handle(
             ArchiveCityCommand request,
@@ -42,7 +43,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             if (city is null || city.IsArchived)
                 return city is not null;
 
-            city.Archive(DateTimeOffset.UtcNow);
+            city.Archive(timeProvider.GetUtcNow());
             await DomainEventDispatchHelper.PublishAndClearAsync(
                 source: city,
                 publish: outboxWriter.AddCityEventsAsync,

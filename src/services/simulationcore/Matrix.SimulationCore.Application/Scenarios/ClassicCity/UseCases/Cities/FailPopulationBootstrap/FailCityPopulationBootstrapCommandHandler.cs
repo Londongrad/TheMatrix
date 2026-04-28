@@ -7,7 +7,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public sealed class FailCityPopulationBootstrapCommandHandler(
         ICityRepository cityRepository,
-        IUnitOfWork unitOfWork) : IRequestHandler<FailCityPopulationBootstrapCommand, bool>
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider) : IRequestHandler<FailCityPopulationBootstrapCommand, bool>
     {
         public async Task<bool> Handle(
             FailCityPopulationBootstrapCommand request,
@@ -23,7 +24,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             bool updated = city.TryFailPopulationBootstrap(
                 operationId: request.OperationId,
                 failureCode: request.FailureCode,
-                failedAtUtc: DateTimeOffset.UtcNow);
+                failedAtUtc: timeProvider.GetUtcNow());
 
             if (updated)
                 await unitOfWork.SaveChangesAsync(cancellationToken);

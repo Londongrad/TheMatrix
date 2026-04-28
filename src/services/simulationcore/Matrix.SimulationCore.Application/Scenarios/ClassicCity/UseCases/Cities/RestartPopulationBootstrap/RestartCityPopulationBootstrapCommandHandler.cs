@@ -7,7 +7,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public sealed class RestartCityPopulationBootstrapCommandHandler(
         ICityRepository cityRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RestartCityPopulationBootstrapCommand, RestartCityPopulationBootstrapResult>
     {
         public async Task<RestartCityPopulationBootstrapResult> Handle(
@@ -25,7 +26,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
                 return RestartCityPopulationBootstrapResult.NotAllowed();
 
             bool restarted = city.TryRestartPopulationBootstrap(
-                restartedAtUtc: DateTimeOffset.UtcNow,
+                restartedAtUtc: timeProvider.GetUtcNow(),
                 plannedPeopleCountOverride: request.PlannedPeopleCountOverride,
                 populationOperationId: out Guid populationOperationId,
                 economyOperationId: out Guid economyOperationId);

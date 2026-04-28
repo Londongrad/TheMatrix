@@ -16,7 +16,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
 {
     public sealed class ClassicCitySimulationBootstrapStrategy(
         ICityTopologyBootstrapFactory cityTopologyBootstrapFactory,
-        ICityWeatherBootstrapFactory cityWeatherBootstrapFactory) : ICitySimulationBootstrapStrategy
+        ICityWeatherBootstrapFactory cityWeatherBootstrapFactory,
+        TimeProvider timeProvider) : ICitySimulationBootstrapStrategy
     {
         private static readonly SimulationKindDescriptor KindDescriptor = new(
             Kind: SimulationKind.ClassicCity,
@@ -102,7 +103,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Boots
                 provisioningCorrelationId: request.ProvisioningCorrelationId,
                 requiresPopulationBootstrap: true,
                 requiresEconomyBootstrap: true,
-                createdAtUtc: DateTimeOffset.UtcNow);
+                createdAtUtc: timeProvider.GetUtcNow());
 
             CityTopologySeed topology = cityTopologyBootstrapFactory.CreateInitial(city);
 

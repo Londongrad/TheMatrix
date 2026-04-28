@@ -12,7 +12,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
         ICityRepository cityRepository,
         ISimulationClockRepository clockRepository,
         ISimulationCoreOutboxWriter outboxWriter,
-        IUnitOfWork unitOfWork) : IRequestHandler<DeleteCityCommand, DeleteCityResult>
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider) : IRequestHandler<DeleteCityCommand, DeleteCityResult>
     {
         public async Task<DeleteCityResult> Handle(
             DeleteCityCommand request,
@@ -28,7 +29,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
             if (!city.IsArchived)
                 return DeleteCityResult.NotAllowed;
 
-            DateTimeOffset deletedAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset deletedAtUtc = timeProvider.GetUtcNow();
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>

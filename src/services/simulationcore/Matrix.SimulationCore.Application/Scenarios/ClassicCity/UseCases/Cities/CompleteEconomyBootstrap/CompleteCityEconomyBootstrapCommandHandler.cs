@@ -7,7 +7,8 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 {
     public sealed class CompleteCityEconomyBootstrapCommandHandler(
         ICityRepository cityRepository,
-        IUnitOfWork unitOfWork) : IRequestHandler<CompleteCityEconomyBootstrapCommand, bool>
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider) : IRequestHandler<CompleteCityEconomyBootstrapCommand, bool>
     {
         public async Task<bool> Handle(
             CompleteCityEconomyBootstrapCommand request,
@@ -22,7 +23,7 @@ namespace Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Citie
 
             bool updated = city.TryCompleteEconomyBootstrap(
                 operationId: request.OperationId,
-                completedAtUtc: DateTimeOffset.UtcNow);
+                completedAtUtc: timeProvider.GetUtcNow());
 
             if (updated)
                 await unitOfWork.SaveChangesAsync(cancellationToken);
