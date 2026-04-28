@@ -1,6 +1,7 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Models.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompleteEconomyBootstrap;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.CompletePopulationBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailEconomyBootstrap;
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Cities.FailPopulationBootstrap;
 using Matrix.SimulationCore.Application.Services.Bootstrap;
@@ -422,6 +423,99 @@ public sealed class ClassicCityProvisioningOrchestratorExecutionTests
         Assert.Equal(240, result.PopulationBootstrap.PlannedPeopleCount);
         Assert.Equal(building.ResidentCapacity.Value, result.PopulationBootstrap.ResidentialCapacity);
         Assert.Equal(PopulationBootstrapFailureCodes.PopulationSummaryInconsistent, result.PopulationBootstrap.FailureCode);
+    }
+
+    [Fact]
+    public async Task ProvisionAsync_WhenPopulationBootstrapSucceeds_CompletesPopulationAndMapsSummary()
+    {
+        int heartbeatCallCount = 0;
+        DateTimeOffset completedAtUtc = DateTimeOffset.Parse("2048-10-01T12:00:00+00:00");
+        var city = ClassicCityTestSupport.CreateCity(
+            name: "Successful Population City",
+            requiresPopulationBootstrap: true,
+            requiresEconomyBootstrap: true);
+        Assert.True(city.TryCompleteEconomyBootstrap(city.EconomyBootstrapOperationId, completedAtUtc));
+        var district = TopologyTestSupport.CreateDistrict(city.Id, "Downtown");
+        var node = TopologyTestSupport.CreateRoadNode(city.Id, district.Id, "North Junction");
+        var anchor = TopologyTestSupport.CreateCityAnchor(city.Id, district.Id, "Central Hospital", node.Id);
+        var building = TopologyTestSupport.CreateResidentialBuilding(city.Id, district.Id, "River Tower", node.Id);
+        var clock = SimulationTestSupport.CreateClock(city.Id.Value);
+        var mediator = new ProvisioningTestSupport.FakeMediator
+        {
+            SendHandler = request => request is CompleteCityPopulationBootstrapCommand ? true : null
+        };
+        var populationClient = new ProvisioningTestSupport.FakeCityPopulationBootstrapClient
+        {
+            Result = new Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Provisioning.Abstractions.CityPopulationBootstrapSummary(
+                CityId: city.Id.Value,
+                RequestedPeopleCount: 200,
+                GeneratedPeopleCount: 200,
+                HouseholdCount: 70,
+                HousedHouseholdCount: 70,
+                HomelessHouseholdCount: 0,
+                HousedPeopleCount: 200,
+                HomelessPeopleCount: 0)
+        };
+        var orchestrator = new ClassicCityProvisioningOrchestrator(
+            mediator,
+            new ClassicCityTestSupport.FakeCityRepository { CityById = city },
+            new TopologyTestSupport.FakeCityAnchorRepository
+            {
+                Anchors = [anchor]
+            },
+            new TopologyTestSupport.FakeResidentialBuildingRepository
+            {
+                Buildings = [building]
+            },
+            new SimulationTestSupport.FakeSimulationClockRepository
+            {
+                ClockBySimulationId = clock
+            },
+            [
+                new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+                {
+                    Descriptor = new SimulationKindDescriptor(
+                        Kind: SimulationKind.ClassicCity,
+                        DisplayName: "Classic City",
+                        Description: "Classic city simulation.",
+                        SupportsAutomaticPopulationBootstrap: true)
+                }
+            ],
+            new ProvisioningTestSupport.FakeCityEconomyBootstrapClient(),
+            populationClient,
+            NullLogger<ClassicCityProvisioningOrchestrator>.Instance);
+
+        var result = await orchestrator.ProvisionAsync(
+            cityId: city.Id.Value,
+            simulationKind: "ClassicCity",
+            populationBootstrapOperationId: city.PopulationBootstrapOperationId,
+            economyBootstrapOperationId: city.EconomyBootstrapOperationId,
+            plannedPeopleCountOverride: 200,
+            heartbeatAsync: _ =>
+            {
+                heartbeatCallCount++;
+                return Task.CompletedTask;
+            },
+            cancellationToken: CancellationToken.None);
+
+        var sentCommand = Assert.Single(mediator.SentRequests);
+        var completeCommand = Assert.IsType<CompleteCityPopulationBootstrapCommand>(sentCommand);
+        Assert.Equal(city.Id.Value, completeCommand.CityId);
+        Assert.Equal(city.PopulationBootstrapOperationId, completeCommand.OperationId);
+        Assert.Equal(2, heartbeatCallCount);
+        Assert.NotNull(populationClient.RequestedRequest);
+        Assert.Equal(city.Id.Value, populationClient.RequestedRequest!.CityId);
+        Assert.Equal(DateOnly.FromDateTime(clock.CurrentTime.ValueUtc.UtcDateTime), populationClient.RequestedRequest.CurrentDate);
+        Assert.Equal(clock.CurrentTime.ValueUtc, populationClient.RequestedRequest.CreatedAtUtc);
+        Assert.Equal(200, populationClient.RequestedRequest.PeopleCount);
+        Assert.Single(populationClient.RequestedRequest.CityAnchors);
+        Assert.Single(populationClient.RequestedRequest.ResidentialBuildings);
+        Assert.Equal("Completed", result.PopulationBootstrap.Status);
+        Assert.Equal(200, result.PopulationBootstrap.PlannedPeopleCount);
+        Assert.Equal(building.ResidentCapacity.Value, result.PopulationBootstrap.ResidentialCapacity);
+        Assert.NotNull(result.PopulationBootstrap.Summary);
+        Assert.Equal(200, result.PopulationBootstrap.Summary!.GeneratedPeopleCount);
+        Assert.Equal("Completed", result.EconomyBootstrap.Status);
     }
 
     private static ClassicCityProvisioningOrchestrator CreateOrchestrator(
