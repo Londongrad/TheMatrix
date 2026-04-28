@@ -8,6 +8,8 @@ internal static class ApplicationTestSupport
     internal sealed class FakeUnitOfWork : IUnitOfWork
     {
         public int SaveChangesCallCount { get; private set; }
+        public int ExecuteInTransactionCallCount { get; private set; }
+        public IsolationLevel? LastIsolationLevel { get; private set; }
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {
@@ -18,12 +20,22 @@ internal static class ApplicationTestSupport
         public Task ExecuteInTransactionAsync(
             Func<CancellationToken, Task> action,
             CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted) => throw new NotSupportedException();
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            ExecuteInTransactionCallCount++;
+            LastIsolationLevel = isolationLevel;
+            return action(cancellationToken);
+        }
 
         public Task<T> ExecuteInTransactionAsync<T>(
             Func<CancellationToken, Task<T>> action,
             CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted) => throw new NotSupportedException();
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            ExecuteInTransactionCallCount++;
+            LastIsolationLevel = isolationLevel;
+            return action(cancellationToken);
+        }
     }
 
     internal sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider

@@ -60,9 +60,11 @@ internal static class ClassicCityTestSupport
         public City? CityByProvisioningCorrelationId { get; set; }
         public City? AddedCity { get; private set; }
         public City? DeletedCity { get; private set; }
+        public int GetByIdCallCount { get; private set; }
 
         public Task<City?> GetByIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
+            GetByIdCallCount++;
             RequestedCityId = cityId;
             return Task.FromResult(CityById);
         }

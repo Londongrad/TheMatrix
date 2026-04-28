@@ -42,6 +42,7 @@ internal static class SimulationTestSupport
     {
         public SimulationClock? ClockBySimulationId { get; set; }
         public SimulationId? RequestedSimulationId { get; private set; }
+        public SimulationId? DeletedSimulationId { get; private set; }
 
         public Task<SimulationClock?> GetBySimulationIdAsync(
             SimulationId simulationId,
@@ -52,7 +53,13 @@ internal static class SimulationTestSupport
         }
 
         public Task AddAsync(SimulationClock clock, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task DeleteBySimulationIdAsync(SimulationId simulationId, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task DeleteBySimulationIdAsync(SimulationId simulationId, CancellationToken cancellationToken)
+        {
+            DeletedSimulationId = simulationId;
+            return Task.CompletedTask;
+        }
+
         public Task<IReadOnlyList<SimulationId>> ListActiveRunningSimulationIdsAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
