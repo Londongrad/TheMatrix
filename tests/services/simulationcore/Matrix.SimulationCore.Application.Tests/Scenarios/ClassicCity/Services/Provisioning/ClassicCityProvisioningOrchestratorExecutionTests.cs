@@ -126,6 +126,86 @@ public sealed class ClassicCityProvisioningOrchestratorExecutionTests
         Assert.Equal(25_000, result.PopulationBootstrap.PlannedPeopleCount);
     }
 
+    [Fact]
+    public async Task ProvisionAsync_WhenCityIsAlreadyActive_ReturnsCompletedPopulationWithoutCallingPopulationBootstrapClient()
+    {
+        var city = ClassicCityTestSupport.CreateCity("Active City");
+        var mediator = new ProvisioningTestSupport.FakeMediator();
+        var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+        {
+            CityById = city
+        };
+        var economyClient = new ProvisioningTestSupport.FakeCityEconomyBootstrapClient();
+        var populationClient = new ProvisioningTestSupport.FakeCityPopulationBootstrapClient();
+        var orchestrator = CreateOrchestrator(
+            mediator: mediator,
+            cityRepository: cityRepository,
+            economyClient: economyClient,
+            populationClient: populationClient,
+            supportsAutomaticPopulationBootstrap: true);
+
+        var result = await orchestrator.ProvisionAsync(
+            cityId: city.Id.Value,
+            simulationKind: "ClassicCity",
+            populationBootstrapOperationId: city.PopulationBootstrapOperationId,
+            economyBootstrapOperationId: city.EconomyBootstrapOperationId,
+            plannedPeopleCountOverride: null,
+            heartbeatAsync: null,
+            cancellationToken: CancellationToken.None);
+
+        Assert.Empty(mediator.SentRequests);
+        Assert.Null(economyClient.RequestedCityId);
+        Assert.Null(populationClient.RequestedRequest);
+        Assert.Equal("Completed", result.EconomyBootstrap.Status);
+        Assert.Equal("Completed", result.PopulationBootstrap.Status);
+        Assert.Equal(city.GenerationProfile.PlannedPeopleCount, result.PopulationBootstrap.PlannedPeopleCount);
+    }
+
+    [Fact]
+    public async Task ProvisionAsync_WhenPopulationBootstrapAlreadyFailed_ReturnsFailedPopulationStateWithoutCallingPopulationClient()
+    {
+        DateTimeOffset failedAtUtc = DateTimeOffset.Parse("2048-10-01T12:00:00+00:00");
+        var city = ClassicCityTestSupport.CreateCity(
+            name: "Population Failure City",
+            requiresPopulationBootstrap: true,
+            requiresEconomyBootstrap: true);
+        Assert.True(city.TryCompleteEconomyBootstrap(city.EconomyBootstrapOperationId, failedAtUtc.AddMinutes(-5)));
+        Assert.True(city.TryFailPopulationBootstrap(
+            operationId: city.PopulationBootstrapOperationId,
+            failureCode: "population_conflict",
+            failedAtUtc: failedAtUtc));
+        var mediator = new ProvisioningTestSupport.FakeMediator();
+        var cityRepository = new ClassicCityTestSupport.FakeCityRepository
+        {
+            CityById = city
+        };
+        var economyClient = new ProvisioningTestSupport.FakeCityEconomyBootstrapClient();
+        var populationClient = new ProvisioningTestSupport.FakeCityPopulationBootstrapClient();
+        var orchestrator = CreateOrchestrator(
+            mediator: mediator,
+            cityRepository: cityRepository,
+            economyClient: economyClient,
+            populationClient: populationClient,
+            supportsAutomaticPopulationBootstrap: true);
+
+        var result = await orchestrator.ProvisionAsync(
+            cityId: city.Id.Value,
+            simulationKind: "ClassicCity",
+            populationBootstrapOperationId: city.PopulationBootstrapOperationId,
+            economyBootstrapOperationId: city.EconomyBootstrapOperationId,
+            plannedPeopleCountOverride: 20_000,
+            heartbeatAsync: null,
+            cancellationToken: CancellationToken.None);
+
+        Assert.Empty(mediator.SentRequests);
+        Assert.Null(economyClient.RequestedCityId);
+        Assert.Null(populationClient.RequestedRequest);
+        Assert.Equal("Completed", result.EconomyBootstrap.Status);
+        Assert.Equal("Failed", result.PopulationBootstrap.Status);
+        Assert.Equal("POPULATION_CONFLICT", result.PopulationBootstrap.FailureCode);
+        Assert.Equal(20_000, result.PopulationBootstrap.PlannedPeopleCount);
+    }
+
     private static ClassicCityProvisioningOrchestrator CreateOrchestrator(
         ProvisioningTestSupport.FakeMediator mediator,
         ClassicCityTestSupport.FakeCityRepository cityRepository,
