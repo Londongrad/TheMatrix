@@ -59,7 +59,9 @@ internal static class ClassicCityTestSupport
         public bool? RequestedIncludeArchived { get; private set; }
         public bool ListProvisioningRequested { get; private set; }
         public Guid? RequestedProvisioningCorrelationId { get; private set; }
+        public int GetByProvisioningCorrelationCallCount { get; private set; }
         public City? CityByProvisioningCorrelationId { get; set; }
+        public Queue<City?> CityByProvisioningCorrelationSequence { get; } = [];
         public City? AddedCity { get; private set; }
         public City? DeletedCity { get; private set; }
         public int GetByIdCallCount { get; private set; }
@@ -85,8 +87,12 @@ internal static class ClassicCityTestSupport
 
         public Task<City?> GetByProvisioningCorrelationIdAsync(Guid provisioningCorrelationId, CancellationToken cancellationToken)
         {
+            GetByProvisioningCorrelationCallCount++;
             RequestedProvisioningCorrelationId = provisioningCorrelationId;
-            return Task.FromResult(CityByProvisioningCorrelationId);
+            City? city = CityByProvisioningCorrelationSequence.Count > 0
+                ? CityByProvisioningCorrelationSequence.Dequeue()
+                : CityByProvisioningCorrelationId;
+            return Task.FromResult(city);
         }
         public Task<IReadOnlyList<City>> ListRecoverableProvisioningAsync(DateTimeOffset asOfUtc, int limit, CancellationToken cancellationToken) => throw new NotSupportedException();
 

@@ -177,6 +177,68 @@ public sealed class CreateCityCommandHandlerTests
         Assert.Equal("ClassicCity", result.SimulationKind);
     }
 
+    [Fact]
+    public async Task Handle_WhenTransactionFailsButProvisionedCityAppears_ReturnsExistingCity()
+    {
+        Guid provisioningCorrelationId = Guid.NewGuid();
+        var createdCity = ClassicCityTestSupport.CreateCity(
+            name: "Neo Tokyo",
+            provisioningCorrelationId: provisioningCorrelationId);
+        var existingCity = ClassicCityTestSupport.CreateCity(
+            name: "Recovered City",
+            provisioningCorrelationId: provisioningCorrelationId);
+        var topology = new CityTopologySeed(
+            Districts: [],
+            ResidentialBuildings: [],
+            Anchors: [],
+            RoadNodes: [],
+            RoadSegments: []);
+        var clock = SimulationTestSupport.CreateClock(createdCity.Id.Value);
+        var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
+        cityRepository.CityByProvisioningCorrelationSequence.Enqueue(null);
+        cityRepository.CityByProvisioningCorrelationSequence.Enqueue(existingCity);
+        var strategy = new ClassicCityTestSupport.FakeCitySimulationBootstrapStrategy
+        {
+            Descriptor = new SimulationKindDescriptor(
+                Kind: SimulationKind.ClassicCity,
+                DisplayName: "Classic City",
+                Description: "Classic city simulation.",
+                SupportsAutomaticPopulationBootstrap: true),
+            Plan = new CitySimulationBootstrapPlan(
+                City: createdCity,
+                Clock: clock,
+                Topology: topology,
+                Weather: null,
+                SupportsAutomaticPopulationBootstrap: true)
+        };
+        var unitOfWork = new ApplicationTestSupport.FakeUnitOfWork
+        {
+            ExceptionToThrowAfterAction = new InvalidOperationException("duplicate provisioning race")
+        };
+        var handler = new CreateCityCommandHandler(
+            cityRepository,
+            new TopologyTestSupport.FakeDistrictRepository(),
+            new TopologyTestSupport.FakeResidentialBuildingRepository(),
+            new TopologyTestSupport.FakeCityAnchorRepository(),
+            new TopologyTestSupport.FakeRoadNodeRepository(),
+            new TopologyTestSupport.FakeRoadSegmentRepository(),
+            new WeatherTestSupport.FakeCityWeatherRepository(),
+            new SimulationTestSupport.FakeSimulationClockRepository(),
+            [strategy],
+            new ClassicCityTestSupport.FakeSimulationCoreOutboxWriter(),
+            unitOfWork);
+
+        var result = await handler.Handle(CreateCommand(provisioningCorrelationId), CancellationToken.None);
+
+        Assert.Equal(existingCity.Id.Value, result.CityId);
+        Assert.Equal(existingCity.PopulationBootstrapOperationId, result.PopulationBootstrapOperationId);
+        Assert.Equal(existingCity.EconomyBootstrapOperationId, result.EconomyBootstrapOperationId);
+        Assert.Equal(existingCity.SimulationKind.ToString(), result.SimulationKind);
+        Assert.Equal(2, cityRepository.GetByProvisioningCorrelationCallCount);
+        Assert.Equal(1, unitOfWork.ExecuteInTransactionCallCount);
+        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
+    }
+
     private static CreateCityCommand CreateCommand(Guid provisioningCorrelationId)
     {
         return new CreateCityCommand(

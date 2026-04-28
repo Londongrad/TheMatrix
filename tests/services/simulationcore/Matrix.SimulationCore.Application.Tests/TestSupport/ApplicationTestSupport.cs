@@ -10,6 +10,7 @@ internal static class ApplicationTestSupport
         public int SaveChangesCallCount { get; private set; }
         public int ExecuteInTransactionCallCount { get; private set; }
         public IsolationLevel? LastIsolationLevel { get; private set; }
+        public Exception? ExceptionToThrowAfterAction { get; set; }
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {
@@ -24,7 +25,7 @@ internal static class ApplicationTestSupport
         {
             ExecuteInTransactionCallCount++;
             LastIsolationLevel = isolationLevel;
-            return action(cancellationToken);
+            return ExecuteAsync(action, cancellationToken);
         }
 
         public Task<T> ExecuteInTransactionAsync<T>(
@@ -34,7 +35,29 @@ internal static class ApplicationTestSupport
         {
             ExecuteInTransactionCallCount++;
             LastIsolationLevel = isolationLevel;
-            return action(cancellationToken);
+            return ExecuteAsync(action, cancellationToken);
+        }
+
+        private async Task ExecuteAsync(
+            Func<CancellationToken, Task> action,
+            CancellationToken cancellationToken)
+        {
+            await action(cancellationToken);
+
+            if (ExceptionToThrowAfterAction is not null)
+                throw ExceptionToThrowAfterAction;
+        }
+
+        private async Task<T> ExecuteAsync<T>(
+            Func<CancellationToken, Task<T>> action,
+            CancellationToken cancellationToken)
+        {
+            T result = await action(cancellationToken);
+
+            if (ExceptionToThrowAfterAction is not null)
+                throw ExceptionToThrowAfterAction;
+
+            return result;
         }
     }
 
