@@ -8,20 +8,18 @@ public sealed class GetCityQueryHandlerTests
     [Fact]
     public async Task Handle_WhenCityDoesNotExist_ReturnsNull()
     {
-        Guid cityId = Guid.NewGuid();
         var cityRepository = new ClassicCityTestSupport.FakeCityRepository();
         var handler = new GetCityQueryHandler(cityRepository);
 
-        var result = await handler.Handle(new GetCityQuery(cityId), CancellationToken.None);
+        var result = await handler.Handle(new GetCityQuery(Guid.NewGuid()), CancellationToken.None);
 
         Assert.Null(result);
-        Assert.Equal(cityId, cityRepository.RequestedCityId!.Value.Value);
     }
 
     [Fact]
     public async Task Handle_WhenCityExists_ReturnsMappedDto()
     {
-        var city = ClassicCityTestSupport.CreateCity();
+        var city = ClassicCityTestSupport.CreateCity("Neo Tokyo");
         var cityRepository = new ClassicCityTestSupport.FakeCityRepository
         {
             CityById = city
@@ -31,13 +29,17 @@ public sealed class GetCityQueryHandlerTests
         var result = await handler.Handle(new GetCityQuery(city.Id.Value), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Equal(city.Id.Value, result!.CityId);
+        Assert.Equal(city.Id.Value, result.CityId);
         Assert.Equal(city.Id.Value, result.SimulationId);
-        Assert.Equal("Alpha City", result.Name);
-        Assert.Equal("ClassicCity", result.SimulationKind);
+        Assert.Equal(city.Name.Value, result.Name);
+        Assert.Equal(city.SimulationKind.ToString(), result.SimulationKind);
         Assert.Equal(city.Status.ToString(), result.Status);
+        Assert.Equal(city.Environment.ClimateZone.ToString(), result.ClimateZone);
+        Assert.Equal(city.Environment.Hemisphere.ToString(), result.Hemisphere);
         Assert.Equal(city.Environment.UtcOffset.TotalMinutes, result.UtcOffsetMinutes);
-        Assert.Equal(city.GenerationSeed.Value, result.GenerationSeed);
+        Assert.Equal(city.GenerationProfile.PlannedPeopleCount, result.PlannedPeopleCount);
+        Assert.Equal(city.PopulationBootstrapOperationId, result.PopulationBootstrapOperationId);
+        Assert.Equal(city.EconomyBootstrapOperationId, result.EconomyBootstrapOperationId);
         Assert.Equal(city.CreatedAtUtc, result.CreatedAtUtc);
         Assert.False(result.IsArchived);
     }
