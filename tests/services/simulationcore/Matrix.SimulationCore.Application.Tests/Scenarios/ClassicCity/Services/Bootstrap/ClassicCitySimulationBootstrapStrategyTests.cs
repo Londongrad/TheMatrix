@@ -84,4 +84,70 @@ public sealed class ClassicCitySimulationBootstrapStrategyTests
         Assert.Equal(plan.City.Id.Value, plan.Clock.SimulationId.Value);
         Assert.True(plan.SupportsAutomaticPopulationBootstrap);
     }
+
+    [Fact]
+    public void CreatePlan_WithExplicitValues_UsesProvidedSeedVersionManualWeatherAndSpeed()
+    {
+        DateTimeOffset createdAtUtc = DateTimeOffset.Parse("2048-11-01T12:34:56+00:00");
+        var topology = new CityTopologySeed([], [], [], [], []);
+        var topologyFactory = new BootstrapTestSupport.FakeCityTopologyBootstrapFactory
+        {
+            Result = topology
+        };
+        var weatherFactory = new BootstrapTestSupport.FakeCityWeatherBootstrapFactory
+        {
+            Factory = (city, _) => WeatherTestSupport.CreateCityWeather(city.Id)
+        };
+        var strategy = new ClassicCitySimulationBootstrapStrategy(
+            topologyFactory,
+            weatherFactory,
+            new ApplicationTestSupport.FixedTimeProvider(createdAtUtc));
+        Guid provisioningCorrelationId = Guid.NewGuid();
+        var command = new CreateCityCommand(
+            Name: "Andes City",
+            SimulationKind: "ClassicCity",
+            ClimateZone: "Mountain",
+            Hemisphere: "Southern",
+            UtcOffsetMinutes: -180,
+            GenerationSeed: "andes-seed",
+            SizeTier: "Large",
+            UrbanDensity: "Dense",
+            DevelopmentLevel: "Advanced",
+            EconomyProfile: "Affluent",
+            PopulationOccupancyProfile: "High",
+            InitialWeatherMode: "Manual",
+            InitialWeatherType: "Storm",
+            InitialWeatherSeverity: "Extreme",
+            InitialWeatherTemperatureC: -3.5m,
+            StartSimTimeUtc: DateTimeOffset.Parse("2048-12-03T01:15:00+00:00"),
+            SpeedMultiplier: 60m,
+            PlannedPeopleCount: 88_000,
+            ProvisioningCorrelationId: provisioningCorrelationId,
+            ScenarioModelSetVersion: "classic-city-v9");
+
+        CitySimulationBootstrapPlan plan = strategy.CreatePlan(command);
+
+        Assert.Same(plan.City, topologyFactory.RequestedCity);
+        Assert.Same(plan.City, weatherFactory.RequestedCity);
+        Assert.Equal(SimTime.FromUtc(command.StartSimTimeUtc), weatherFactory.RequestedInitialTime);
+        Assert.Equal("andes-seed", plan.City.GenerationSeed.Value);
+        Assert.Equal("classic-city-v9", plan.City.ScenarioModelSetVersion.Value);
+        Assert.Equal(ClimateZone.Mountain, plan.City.Environment.ClimateZone);
+        Assert.Equal(Hemisphere.Southern, plan.City.Environment.Hemisphere);
+        Assert.Equal(-180, plan.City.Environment.UtcOffset.TotalMinutes);
+        Assert.Equal(CitySizeTier.Large, plan.City.GenerationProfile.SizeTier);
+        Assert.Equal(UrbanDensity.Dense, plan.City.GenerationProfile.UrbanDensity);
+        Assert.Equal(CityDevelopmentLevel.Advanced, plan.City.GenerationProfile.DevelopmentLevel);
+        Assert.Equal(CityEconomyProfile.Affluent, plan.City.GenerationProfile.EconomyProfile);
+        Assert.Equal(PopulationOccupancyProfile.High, plan.City.GenerationProfile.PopulationOccupancyProfile);
+        Assert.Equal(88_000, plan.City.GenerationProfile.PlannedPeopleCount);
+        Assert.Equal(InitialWeatherMode.Manual, plan.City.InitialWeatherProfile.Mode);
+        Assert.Equal(Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums.WeatherType.Storm, plan.City.InitialWeatherProfile.ManualType);
+        Assert.Equal(Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums.WeatherSeverity.Extreme, plan.City.InitialWeatherProfile.ManualSeverity);
+        Assert.Equal(-3.5m, plan.City.InitialWeatherProfile.ManualTemperature!.Value.Value);
+        Assert.Equal(provisioningCorrelationId, plan.City.ProvisioningCorrelationId);
+        Assert.Equal(createdAtUtc, plan.City.CreatedAtUtc);
+        Assert.Equal(SimSpeed.From(60m), plan.Clock.Speed);
+        Assert.Equal(command.StartSimTimeUtc, plan.Clock.CurrentTime.ValueUtc);
+    }
 }
