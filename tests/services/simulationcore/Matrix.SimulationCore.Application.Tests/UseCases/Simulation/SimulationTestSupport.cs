@@ -1,8 +1,11 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
+using Matrix.SimulationCore.Domain.Events.Simulation;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Simulation;
+using System.Data;
 
 namespace Matrix.SimulationCore.Application.Tests.UseCases.Simulation;
 
@@ -136,6 +139,53 @@ internal static class SimulationTestSupport
         {
             RequestedRealDelta = realDelta;
             return Task.FromResult(Result);
+        }
+    }
+
+    internal sealed class FakeUnitOfWork : IUnitOfWork
+    {
+        public int SaveChangesCallCount { get; private set; }
+        public int ExecuteInTransactionCallCount { get; private set; }
+        public IsolationLevel? RequestedIsolationLevel { get; private set; }
+
+        public Task SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            SaveChangesCallCount++;
+            return Task.CompletedTask;
+        }
+
+        public async Task ExecuteInTransactionAsync(
+            Func<CancellationToken, Task> action,
+            CancellationToken cancellationToken,
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            ExecuteInTransactionCallCount++;
+            RequestedIsolationLevel = isolationLevel;
+            await action(cancellationToken);
+        }
+
+        public Task<T> ExecuteInTransactionAsync<T>(
+            Func<CancellationToken, Task<T>> action,
+            CancellationToken cancellationToken,
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeSimulationScenarioAdvanceHandler : ISimulationScenarioAdvanceHandler
+    {
+        public SimulationHostKind HostKind { get; init; } = SimulationHostKind.City;
+        public SimulationHost? RequestedHost { get; private set; }
+        public SimulationTimeAdvancedDomainEvent? RequestedAdvancedEvent { get; private set; }
+        public int HandleCallCount { get; private set; }
+
+        public Task HandleAdvancedAsync(
+            SimulationHost host,
+            SimulationTimeAdvancedDomainEvent advancedEvent,
+            CancellationToken cancellationToken)
+        {
+            HandleCallCount++;
+            RequestedHost = host;
+            RequestedAdvancedEvent = advancedEvent;
+            return Task.CompletedTask;
         }
     }
 }
