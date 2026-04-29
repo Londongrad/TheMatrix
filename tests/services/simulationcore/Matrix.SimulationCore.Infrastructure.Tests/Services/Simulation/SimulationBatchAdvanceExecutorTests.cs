@@ -1,6 +1,7 @@
 using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.Services.Simulation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -61,6 +62,57 @@ public sealed class SimulationBatchAdvanceExecutorTests
         Assert.Equal(0, result.SkippedCount);
         Assert.Equal(0, result.FailedCount);
         Assert.Empty(executor.Requests);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenConcurrencyConflictResolvesOnRetry_AdvancesSimulation()
+    {
+        SimulationId simulationId = new(Guid.NewGuid());
+        var repository = new SimulationInfrastructureTestSupport.FakeSimulationClockRepository
+        {
+            ActiveSimulationIds = [simulationId]
+        };
+        var executor = new SimulationInfrastructureTestSupport.FakeSimulationAdvanceExecutor();
+        executor.OutcomesBySimulationId[simulationId.Value] = new Queue<object>(
+        [
+            new DbUpdateConcurrencyException("conflict"),
+            new SimulationAdvanceExecutionResult(simulationId, SimulationAdvanceExecutionStatus.Advanced)
+        ]);
+        var batchExecutor = CreateExecutor(repository, executor);
+
+        SimulationBatchAdvanceResult result = await batchExecutor.ExecuteAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
+
+        Assert.Equal(1, result.ProcessedCount);
+        Assert.Equal(1, result.AdvancedCount);
+        Assert.Equal(0, result.SkippedCount);
+        Assert.Equal(0, result.FailedCount);
+        Assert.Equal(2, executor.Requests.Count);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenConcurrencyConflictPersistsAcrossAllRetries_SkipsSimulation()
+    {
+        SimulationId simulationId = new(Guid.NewGuid());
+        var repository = new SimulationInfrastructureTestSupport.FakeSimulationClockRepository
+        {
+            ActiveSimulationIds = [simulationId]
+        };
+        var executor = new SimulationInfrastructureTestSupport.FakeSimulationAdvanceExecutor();
+        executor.OutcomesBySimulationId[simulationId.Value] = new Queue<object>(
+        [
+            new DbUpdateConcurrencyException("conflict-1"),
+            new DbUpdateConcurrencyException("conflict-2"),
+            new DbUpdateConcurrencyException("conflict-3")
+        ]);
+        var batchExecutor = CreateExecutor(repository, executor);
+
+        SimulationBatchAdvanceResult result = await batchExecutor.ExecuteAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
+
+        Assert.Equal(1, result.ProcessedCount);
+        Assert.Equal(0, result.AdvancedCount);
+        Assert.Equal(1, result.SkippedCount);
+        Assert.Equal(0, result.FailedCount);
+        Assert.Equal(3, executor.Requests.Count);
     }
 
     private static SimulationBatchAdvanceExecutor CreateExecutor(
