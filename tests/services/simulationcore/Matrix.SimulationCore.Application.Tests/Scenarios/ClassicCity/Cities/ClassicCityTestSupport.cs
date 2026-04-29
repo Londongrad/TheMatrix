@@ -148,6 +148,8 @@ internal static class ClassicCityTestSupport
     {
         public IReadOnlyList<IDomainEvent> CityEvents { get; private set; } = Array.Empty<IDomainEvent>();
         public IReadOnlyList<IDomainEvent> WeatherEvents { get; private set; } = Array.Empty<IDomainEvent>();
+        public List<CityTimeAdvancedCall> CityTimeAdvancedCalls { get; } = [];
+        public List<CityTickPhaseReachedCall> CityTickPhaseReachedCalls { get; } = [];
 
         public Task AddCityEventsAsync(IReadOnlyCollection<IDomainEvent> domainEvents, CancellationToken cancellationToken)
         {
@@ -170,7 +172,19 @@ internal static class ClassicCityTestSupport
             TickId tickId,
             SimSpeed speed,
             CityTickPhase phase,
-            CancellationToken cancellationToken) => throw new NotSupportedException();
+            CancellationToken cancellationToken)
+        {
+            CityTimeAdvancedCalls.Add(new CityTimeAdvancedCall(
+                cityId,
+                simulationId,
+                simulationKind,
+                from,
+                to,
+                tickId,
+                speed,
+                phase));
+            return Task.CompletedTask;
+        }
 
         public Task AddCityTickPhaseReachedAsync(
             CityId cityId,
@@ -181,6 +195,38 @@ internal static class ClassicCityTestSupport
             TickId tickId,
             SimSpeed speed,
             CityTickPhase phase,
-            CancellationToken cancellationToken) => throw new NotSupportedException();
+            CancellationToken cancellationToken)
+        {
+            CityTickPhaseReachedCalls.Add(new CityTickPhaseReachedCall(
+                cityId,
+                simulationId,
+                simulationKind,
+                from,
+                to,
+                tickId,
+                speed,
+                phase));
+            return Task.CompletedTask;
+        }
+
+        public sealed record CityTimeAdvancedCall(
+            CityId CityId,
+            SimulationId SimulationId,
+            SimulationKind SimulationKind,
+            SimTime From,
+            SimTime To,
+            TickId TickId,
+            SimSpeed Speed,
+            CityTickPhase Phase);
+
+        public sealed record CityTickPhaseReachedCall(
+            CityId CityId,
+            SimulationId SimulationId,
+            SimulationKind SimulationKind,
+            SimTime From,
+            SimTime To,
+            TickId TickId,
+            SimSpeed Speed,
+            CityTickPhase Phase);
     }
 }
