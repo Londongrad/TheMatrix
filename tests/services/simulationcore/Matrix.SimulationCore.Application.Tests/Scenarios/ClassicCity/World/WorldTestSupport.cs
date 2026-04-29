@@ -74,6 +74,7 @@ internal static class WorldTestSupport
     {
         public IReadOnlyList<CityActiveTrip> Trips { get; set; } = Array.Empty<CityActiveTrip>();
         public CityId? RequestedCityId { get; private set; }
+        public CityId? RequestedUpdateCityId { get; private set; }
         public CityActiveTrip? AddedTrip { get; private set; }
 
         public Task AddAsync(CityActiveTrip trip, CancellationToken cancellationToken)
@@ -81,7 +82,11 @@ internal static class WorldTestSupport
             AddedTrip = trip;
             return Task.CompletedTask;
         }
-        public Task<IReadOnlyList<CityActiveTrip>> ListActiveForUpdateByCityIdAsync(CityId cityId, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<IReadOnlyList<CityActiveTrip>> ListActiveForUpdateByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
+        {
+            RequestedUpdateCityId = cityId;
+            return Task.FromResult(Trips);
+        }
 
         public Task<IReadOnlyList<CityActiveTrip>> ListActiveByCityIdAsync(CityId cityId, CancellationToken cancellationToken)
         {
