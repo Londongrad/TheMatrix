@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Application.Abstractions.Persistence;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.Services.Weather.Abstractions;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
@@ -89,6 +90,31 @@ internal static class WeatherTestSupport
         {
             RequestedCityId = cityId;
             return Task.FromResult(WeatherByCityId);
+        }
+    }
+
+    internal sealed class FakeWeatherStatePlanner : IWeatherStatePlanner
+    {
+        public CityEnvironment? RequestedEnvironment { get; private set; }
+        public WeatherClimateProfile? RequestedClimateProfile { get; private set; }
+        public CityGenerationSeed? RequestedGenerationSeed { get; private set; }
+        public SimTime? RequestedEvaluatedAt { get; private set; }
+        public WeatherState? RequestedPreviousState { get; private set; }
+        public required Func<CityEnvironment, WeatherClimateProfile, CityGenerationSeed, SimTime, WeatherState?, WeatherState> Planner { get; init; }
+
+        public WeatherState PlanNaturalState(
+            CityEnvironment environment,
+            WeatherClimateProfile climateProfile,
+            CityGenerationSeed generationSeed,
+            SimTime evaluatedAt,
+            WeatherState? previousState = null)
+        {
+            RequestedEnvironment = environment;
+            RequestedClimateProfile = climateProfile;
+            RequestedGenerationSeed = generationSeed;
+            RequestedEvaluatedAt = evaluatedAt;
+            RequestedPreviousState = previousState;
+            return Planner(environment, climateProfile, generationSeed, evaluatedAt, previousState);
         }
     }
 }
