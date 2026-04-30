@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Xunit;
@@ -34,5 +35,18 @@ public sealed class MassTransitOutboxMessagePublisherTests
                 cancellationToken: CancellationToken.None));
 
         Assert.Contains("Failed to deserialize outbox payload", exception.Message);
+    }
+
+    [Fact]
+    public async Task PublishAsync_WhenPayloadJsonIsMalformed_ThrowsJsonException()
+    {
+        var publisher = new MassTransitOutboxMessagePublisher(null!);
+
+        await Assert.ThrowsAsync<JsonException>(
+            () => publisher.PublishAsync(
+                messageId: Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+                type: IntegrationEventTypes.CityCreatedV1,
+                payloadJson: "{",
+                cancellationToken: CancellationToken.None));
     }
 }
