@@ -141,6 +141,91 @@ public sealed class SimulationClockMutationExecutorTests
         Assert.Equal(1L, persistedClock.TickId.Value);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WhenConcurrencyConflictResolves_RetriesAndPersistsMutation()
+    {
+        string databaseName = nameof(ExecuteAsync_WhenConcurrencyConflictResolves_RetriesAndPersistsMutation);
+        DateTimeOffset createdAtUtc = new(2048, 2, 3, 4, 5, 6, TimeSpan.Zero);
+        City city = SimulationInfrastructureTestSupport.CreateCity(createdAtUtc);
+        SimulationClock clock = SimulationInfrastructureTestSupport.CreateClock(
+            city.Id,
+            createdAtUtc.AddMinutes(20));
+        var interceptor = new SimulationInfrastructureTestSupport.ConcurrencySaveChangesInterceptor(0);
+
+        using (SimulationCoreDbContext dbContext = SimulationInfrastructureTestSupport.CreateDbContext(databaseName, interceptor))
+        {
+            await dbContext.Cities.AddAsync(city);
+            await dbContext.SimulationClocks.AddAsync(clock);
+            await dbContext.SaveChangesAsync();
+
+            interceptor.ArmFailures(2);
+            int attemptsBeforeMutation = interceptor.SaveChangesAttemptCount;
+
+            var hostRepository = new SimulationInfrastructureTestSupport.FakeSimulationHostReadRepository();
+            hostRepository.HostsBySimulationId[clock.SimulationId.Value] =
+                SimulationInfrastructureTestSupport.CreateHost(clock.SimulationId);
+            var executor = CreateExecutor(dbContext, hostRepository);
+
+            bool result = await executor.ExecuteAsync(
+                clock.SimulationId,
+                currentClock => currentClock.SetSpeed(SimSpeed.From(24m)),
+                CancellationToken.None);
+
+            SimulationClock persistedClock = await dbContext.SimulationClocks
+               .AsNoTracking()
+               .SingleAsync(x => x.Id == city.Id);
+
+            Assert.True(result);
+            Assert.Equal(24m, persistedClock.Speed.Multiplier);
+            Assert.Equal(1L, persistedClock.TickId.Value);
+            Assert.Equal(3, interceptor.SaveChangesAttemptCount - attemptsBeforeMutation);
+            Assert.Equal(3, hostRepository.RequestedSimulationIds.Count);
+        }
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenConcurrencyConflictPersists_ThrowsClockConflict()
+    {
+        string databaseName = nameof(ExecuteAsync_WhenConcurrencyConflictPersists_ThrowsClockConflict);
+        DateTimeOffset createdAtUtc = new(2048, 2, 3, 4, 5, 6, TimeSpan.Zero);
+        City city = SimulationInfrastructureTestSupport.CreateCity(createdAtUtc);
+        SimulationClock clock = SimulationInfrastructureTestSupport.CreateClock(
+            city.Id,
+            createdAtUtc.AddMinutes(25));
+        var interceptor = new SimulationInfrastructureTestSupport.ConcurrencySaveChangesInterceptor(0);
+
+        using (SimulationCoreDbContext dbContext = SimulationInfrastructureTestSupport.CreateDbContext(databaseName, interceptor))
+        {
+            await dbContext.Cities.AddAsync(city);
+            await dbContext.SimulationClocks.AddAsync(clock);
+            await dbContext.SaveChangesAsync();
+
+            interceptor.ArmFailures(3);
+            int attemptsBeforeMutation = interceptor.SaveChangesAttemptCount;
+
+            var hostRepository = new SimulationInfrastructureTestSupport.FakeSimulationHostReadRepository();
+            hostRepository.HostsBySimulationId[clock.SimulationId.Value] =
+                SimulationInfrastructureTestSupport.CreateHost(clock.SimulationId);
+            var executor = CreateExecutor(dbContext, hostRepository);
+
+            MatrixApplicationException exception = await Assert.ThrowsAsync<MatrixApplicationException>(() =>
+                executor.ExecuteAsync(
+                    clock.SimulationId,
+                    currentClock => currentClock.Pause(),
+                    CancellationToken.None));
+
+            SimulationClock persistedClock = await dbContext.SimulationClocks
+               .AsNoTracking()
+               .SingleAsync(x => x.Id == city.Id);
+
+            Assert.Equal("SimulationCore.SimulationClockConflict", exception.Code);
+            Assert.Equal(ClockState.Running, persistedClock.State);
+            Assert.Equal(0L, persistedClock.TickId.Value);
+            Assert.Equal(3, interceptor.SaveChangesAttemptCount - attemptsBeforeMutation);
+            Assert.Equal(3, hostRepository.RequestedSimulationIds.Count);
+        }
+    }
+
     private static SimulationClockMutationExecutor CreateExecutor(
         SimulationCoreDbContext dbContext,
         SimulationInfrastructureTestSupport.FakeSimulationHostReadRepository hostRepository)

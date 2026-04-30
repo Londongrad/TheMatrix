@@ -79,6 +79,11 @@ internal static class SimulationInfrastructureTestSupport
         public int SaveChangesAttemptCount { get; private set; }
         public int RemainingFailures { get; private set; } = failuresBeforeSuccess;
 
+        public void ArmFailures(int failuresBeforeSuccess)
+        {
+            RemainingFailures = failuresBeforeSuccess;
+        }
+
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
             InterceptionResult<int> result,
