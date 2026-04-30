@@ -13,6 +13,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
     public sealed class CityProvisioningHostedService(
         IServiceScopeFactory scopeFactory,
         IOptions<ProvisioningRecoveryOptions> options,
+        TimeProvider timeProvider,
         ILogger<CityProvisioningHostedService> logger) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -87,7 +88,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
             ICityRepository cityRepository = scope.ServiceProvider.GetRequiredService<ICityRepository>();
 
             IReadOnlyList<City> cities = await cityRepository.ListRecoverableProvisioningAsync(
-                asOfUtc: DateTimeOffset.UtcNow,
+                asOfUtc: timeProvider.GetUtcNow(),
                 limit: recoveryOptions.MaxBatchSize,
                 cancellationToken: cancellationToken);
 
@@ -115,7 +116,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
                 return;
 
             TimeSpan leaseDuration = TimeSpan.FromSeconds(recoveryOptions.LeaseDurationSeconds);
-            DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset nowUtc = timeProvider.GetUtcNow();
 
             if (!city.TryAcquireProvisioningLease(
                     acquiredAtUtc: nowUtc,
@@ -127,7 +128,7 @@ namespace Matrix.SimulationCore.Infrastructure.HostedServices
             async Task HeartbeatAsync(CancellationToken heartbeatCancellationToken)
             {
                 if (!city.TryRefreshProvisioningLease(
-                        heartbeatAtUtc: DateTimeOffset.UtcNow,
+                        heartbeatAtUtc: timeProvider.GetUtcNow(),
                         leaseDuration: leaseDuration))
                     return;
 
