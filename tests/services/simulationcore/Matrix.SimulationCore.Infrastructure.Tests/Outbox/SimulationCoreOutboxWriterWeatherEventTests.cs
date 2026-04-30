@@ -1,8 +1,13 @@
+using Matrix.BuildingBlocks.Domain.Events;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
 using Matrix.SimulationCore.Contracts.Events;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities.Enums;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Cities;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Events.Weather;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather;
 using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Enums;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.Profiles;
+using Matrix.SimulationCore.Domain.Scenarios.ClassicCity.Weather.ValueObjects;
 using Matrix.SimulationCore.Domain.Simulation;
 using Matrix.SimulationCore.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
@@ -101,4 +106,124 @@ public sealed class SimulationCoreOutboxWriterWeatherEventTests
         Assert.Equal(changedEvent.CurrentState.PrecipitationKind.ToString(), changedPayload.CurrentState.PrecipitationKind);
         Assert.Equal(changedEvent.CurrentState.Temperature.Value, changedPayload.CurrentState.TemperatureC);
     }
+
+    [Fact]
+    public async Task AddWeatherEventsAsync_WhenOverrideAndClimateEventsAreAdded_WritesMatchingMessages()
+    {
+        using var dbContext = OutboxTestSupport.CreateDbContext(
+            nameof(AddWeatherEventsAsync_WhenOverrideAndClimateEventsAreAdded_WritesMatchingMessages));
+        DateTimeOffset occurredOnUtc = OutboxTestSupport.BaseUtc.AddMinutes(65);
+        var writer = new SimulationCoreOutboxWriter(
+            dbContext,
+            OutboxTestSupport.CreateTimeProvider(occurredOnUtc));
+        var cityId = new CityId(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+        SimTime startsAt = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(5));
+        SimTime endsAt = SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(7));
+        WeatherState forcedState = OutboxTestSupport.CreateWeatherState(
+            startedAt: startsAt,
+            expectedUntil: endsAt,
+            type: WeatherType.Storm,
+            precipitationKind: PrecipitationKind.Rain,
+            severity: WeatherSeverity.Severe);
+        WeatherClimateProfile previousProfile = OutboxTestSupport.CreateClimateProfile();
+        WeatherClimateProfile currentProfile = WeatherClimateProfile.Create(
+            climateZone: ClimateZone.Arid,
+            temperatureProfile: previousProfile.TemperatureProfile,
+            precipitationProfile: previousProfile.PrecipitationProfile,
+            windProfile: previousProfile.WindProfile,
+            volatility: WeatherVolatility.From(0.4m),
+            extremeWeatherProfile: ExtremeWeatherProfile.Create(
+                maxOverallSeverity: WeatherSeverity.Extreme,
+                supportsThunderstorms: false,
+                supportsSnowstorms: false,
+                supportsFog: true,
+                supportsHeatwaves: true));
+        var startedEvent = new WeatherOverrideStartedDomainEvent(
+            CityId: cityId,
+            ForcedState: forcedState,
+            Source: WeatherOverrideSource.System,
+            StartsAt: startsAt,
+            EndsAt: endsAt,
+            Reason: "storm-front");
+        var cancelledEvent = new WeatherOverrideCancelledDomainEvent(
+            CityId: cityId,
+            ForcedState: forcedState,
+            Source: WeatherOverrideSource.Debug,
+            CancelledAt: SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(6)));
+        var expiredEvent = new WeatherOverrideExpiredDomainEvent(
+            CityId: cityId,
+            ForcedState: forcedState,
+            Source: WeatherOverrideSource.Scenario,
+            ExpiredAt: endsAt);
+        var profileChangedEvent = new ClimateProfileChangedDomainEvent(
+            CityId: cityId,
+            PreviousProfile: previousProfile,
+            CurrentProfile: currentProfile,
+            AtSimTime: SimTime.FromUtc(OutboxTestSupport.BaseUtc.AddHours(8)));
+
+        await writer.AddWeatherEventsAsync(
+            [startedEvent, cancelledEvent, expiredEvent, profileChangedEvent],
+            CancellationToken.None);
+        await dbContext.SaveChangesAsync();
+
+        List<OutboxMessage> messages = await dbContext.OutboxMessages
+           .AsNoTracking()
+           .OrderBy(x => x.Type)
+           .ToListAsync();
+
+        Assert.Equal(4, messages.Count);
+
+        WeatherOverrideStartedV1 startedPayload = OutboxTestSupport.DeserializePayload<WeatherOverrideStartedV1>(
+            Assert.Single(messages, x => x.Type == IntegrationEventTypes.WeatherOverrideStartedV1));
+        Assert.Equal(cityId.Value, startedPayload.CityId);
+        Assert.Equal(occurredOnUtc.UtcDateTime, startedPayload.OccurredOnUtc);
+        Assert.Equal(forcedState.Type.ToString(), startedPayload.ForcedState.Type);
+        Assert.Equal(WeatherOverrideSource.System.ToString(), startedPayload.Source);
+        Assert.Equal(startsAt.ValueUtc, startedPayload.StartsAtUtc);
+        Assert.Equal(endsAt.ValueUtc, startedPayload.EndsAtUtc);
+        Assert.Equal("storm-front", startedPayload.Reason);
+
+        WeatherOverrideCancelledV1 cancelledPayload = OutboxTestSupport.DeserializePayload<WeatherOverrideCancelledV1>(
+            Assert.Single(messages, x => x.Type == IntegrationEventTypes.WeatherOverrideCancelledV1));
+        Assert.Equal(cityId.Value, cancelledPayload.CityId);
+        Assert.Equal(occurredOnUtc.UtcDateTime, cancelledPayload.OccurredOnUtc);
+        Assert.Equal(WeatherOverrideSource.Debug.ToString(), cancelledPayload.Source);
+        Assert.Equal(cancelledEvent.CancelledAt.ValueUtc, cancelledPayload.CancelledAtUtc);
+
+        WeatherOverrideExpiredV1 expiredPayload = OutboxTestSupport.DeserializePayload<WeatherOverrideExpiredV1>(
+            Assert.Single(messages, x => x.Type == IntegrationEventTypes.WeatherOverrideExpiredV1));
+        Assert.Equal(cityId.Value, expiredPayload.CityId);
+        Assert.Equal(occurredOnUtc.UtcDateTime, expiredPayload.OccurredOnUtc);
+        Assert.Equal(WeatherOverrideSource.Scenario.ToString(), expiredPayload.Source);
+        Assert.Equal(expiredEvent.ExpiredAt.ValueUtc, expiredPayload.ExpiredAtUtc);
+
+        ClimateProfileChangedV1 profileChangedPayload = OutboxTestSupport.DeserializePayload<ClimateProfileChangedV1>(
+            Assert.Single(messages, x => x.Type == IntegrationEventTypes.ClimateProfileChangedV1));
+        Assert.Equal(cityId.Value, profileChangedPayload.CityId);
+        Assert.Equal(occurredOnUtc.UtcDateTime, profileChangedPayload.OccurredOnUtc);
+        Assert.Equal(profileChangedEvent.AtSimTime.ValueUtc, profileChangedPayload.AtSimTimeUtc);
+        Assert.Equal(previousProfile.ClimateZone.ToString(), profileChangedPayload.PreviousProfile.ClimateZone);
+        Assert.Equal(previousProfile.Volatility.Value, profileChangedPayload.PreviousProfile.Volatility);
+        Assert.Equal(currentProfile.ClimateZone.ToString(), profileChangedPayload.CurrentProfile.ClimateZone);
+        Assert.Equal(currentProfile.Volatility.Value, profileChangedPayload.CurrentProfile.Volatility);
+        Assert.Equal(currentProfile.ExtremeWeatherProfile.SupportsHeatwaves, profileChangedPayload.CurrentProfile.SupportsHeatwaves);
+    }
+
+    [Fact]
+    public async Task AddWeatherEventsAsync_WhenWeatherDomainEventIsUnsupported_ThrowsInvalidOperationException()
+    {
+        using var dbContext = OutboxTestSupport.CreateDbContext(
+            nameof(AddWeatherEventsAsync_WhenWeatherDomainEventIsUnsupported_ThrowsInvalidOperationException));
+        var writer = new SimulationCoreOutboxWriter(
+            dbContext,
+            OutboxTestSupport.CreateTimeProvider(OutboxTestSupport.BaseUtc));
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => writer.AddWeatherEventsAsync([new UnsupportedWeatherDomainEvent()], CancellationToken.None));
+
+        Assert.Contains("Unsupported weather domain event type", exception.Message);
+        Assert.Empty(dbContext.OutboxMessages.Local);
+    }
+
+    private sealed record UnsupportedWeatherDomainEvent : DomainEventBase;
 }
