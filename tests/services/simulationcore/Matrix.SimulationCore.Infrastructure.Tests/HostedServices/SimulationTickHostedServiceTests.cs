@@ -47,6 +47,32 @@ public sealed class SimulationTickHostedServiceTests
         Assert.True(command.RealDelta > TimeSpan.Zero);
     }
 
+    [Fact]
+    public async Task StartAsync_WhenMediatorThrows_LogsErrorAndStopsOnCancellation()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        var mediator = new TestMediator
+        {
+            OnSend = _ => cancellationTokenSource.Cancel(),
+            ExceptionToThrow = new InvalidOperationException("boom")
+        };
+        var logger = new TestLogger<SimulationTickHostedService>();
+        var service = CreateService(
+            periodMilliseconds: 20,
+            mediator: mediator,
+            logger: logger);
+
+        await service.StartAsync(cancellationTokenSource.Token);
+
+        await mediator.CommandReceived.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        await service.StopAsync(CancellationToken.None);
+
+        Assert.Single(mediator.Commands);
+        TestLogEntry errorEntry = Assert.Single(logger.Entries, x => x.LogLevel == LogLevel.Error);
+        Assert.Contains("SimulationCore tick loop iteration failed.", errorEntry.Message);
+        Assert.IsType<InvalidOperationException>(errorEntry.Exception);
+    }
+
     private static SimulationTickHostedService CreateService(
         int periodMilliseconds,
         IMediator mediator,
@@ -71,6 +97,7 @@ public sealed class SimulationTickHostedServiceTests
         public TaskCompletionSource<AdvanceRunningSimulationsCommand> CommandReceived { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Action<AdvanceRunningSimulationsCommand>? OnSend { get; set; }
+        public Exception? ExceptionToThrow { get; set; }
 
         public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
         {
@@ -78,6 +105,9 @@ public sealed class SimulationTickHostedServiceTests
             Commands.Add(command);
             OnSend?.Invoke(command);
             CommandReceived.TrySetResult(command);
+
+            if (ExceptionToThrow is not null)
+                throw ExceptionToThrow;
 
             object response = new AdvanceRunningSimulationsResult(
                 ProcessedCount: 1,
@@ -127,6 +157,8 @@ public sealed class SimulationTickHostedServiceTests
 
     private sealed class TestLogger<T> : ILogger<T>
     {
+        public List<TestLogEntry> Entries { get; } = [];
+
         public IDisposable BeginScope<TState>(TState state)
             where TState : notnull
         {
@@ -142,8 +174,11 @@ public sealed class SimulationTickHostedServiceTests
             Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
+            Entries.Add(new TestLogEntry(logLevel, formatter(state, exception), exception));
         }
     }
+
+    private sealed record TestLogEntry(LogLevel LogLevel, string Message, Exception? Exception);
 
     private sealed class NullScope : IDisposable
     {
