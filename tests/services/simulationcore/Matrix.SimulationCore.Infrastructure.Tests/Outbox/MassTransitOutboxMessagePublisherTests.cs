@@ -1,3 +1,4 @@
+using Matrix.SimulationCore.Infrastructure.Outbox;
 using Matrix.SimulationCore.Infrastructure.Outbox.RabbitMq;
 using Xunit;
 
@@ -18,5 +19,20 @@ public sealed class MassTransitOutboxMessagePublisherTests
                 cancellationToken: CancellationToken.None));
 
         Assert.Contains("not supported", exception.Message);
+    }
+
+    [Fact]
+    public async Task PublishAsync_WhenPayloadDeserializesToNull_ThrowsInvalidOperationException()
+    {
+        var publisher = new MassTransitOutboxMessagePublisher(null!);
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => publisher.PublishAsync(
+                messageId: Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+                type: IntegrationEventTypes.CityCreatedV1,
+                payloadJson: "null",
+                cancellationToken: CancellationToken.None));
+
+        Assert.Contains("Failed to deserialize outbox payload", exception.Message);
     }
 }
