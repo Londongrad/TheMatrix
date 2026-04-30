@@ -125,10 +125,14 @@ internal static class SimulationInfrastructureTestSupport
         return new SimulationCoreDbContext(optionsBuilder.Options);
     }
 
-    internal static City CreateCity(DateTimeOffset createdAtUtc)
+    internal static City CreateCity(
+        DateTimeOffset createdAtUtc,
+        bool requiresPopulationBootstrap = false,
+        bool requiresEconomyBootstrap = false,
+        string name = "Clock City")
     {
         return City.Create(
-            name: new CityName("Clock City"),
+            name: new CityName(name),
             simulationKind: SimulationKind.ClassicCity,
             environment: CityEnvironment.Create(
                 climateZone: ClimateZone.Temperate,
@@ -148,8 +152,8 @@ internal static class SimulationInfrastructureTestSupport
                 manualSeverity: WeatherSeverity.Calm,
                 manualTemperature: TemperatureC.From(18m)),
             provisioningCorrelationId: null,
-            requiresPopulationBootstrap: false,
-            requiresEconomyBootstrap: false,
+            requiresPopulationBootstrap: requiresPopulationBootstrap,
+            requiresEconomyBootstrap: requiresEconomyBootstrap,
             createdAtUtc: createdAtUtc);
     }
 
