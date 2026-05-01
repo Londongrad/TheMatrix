@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Matrix.SimulationCore.Infrastructure.Tests.Http;
 using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.RoadAccess.Views;
 using Xunit;
@@ -89,5 +90,20 @@ public sealed class CityRoadSegmentConditionsClientTests
         var result = await client.GetByCityIdAsync(Guid.NewGuid(), CancellationToken.None);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetByCityIdAsync_WhenResponseBodyIsMalformed_ThrowsJsonException()
+    {
+        var handler = new HttpClientTestSupport.RecordingHttpMessageHandler
+        {
+            OnSendAsync = (_, _) => Task.FromResult(
+                HttpClientTestSupport.CreateStringResponse(HttpStatusCode.OK, "{"))
+        };
+        using var httpClient = HttpClientTestSupport.CreateHttpClient(handler);
+        var client = HttpClientTestSupport.CreateRoadSegmentConditionsClient(httpClient);
+
+        await Assert.ThrowsAsync<JsonException>(
+            () => client.GetByCityIdAsync(Guid.NewGuid(), CancellationToken.None));
     }
 }

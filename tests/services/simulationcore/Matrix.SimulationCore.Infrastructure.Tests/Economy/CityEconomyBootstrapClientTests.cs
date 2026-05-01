@@ -96,4 +96,24 @@ public sealed class CityEconomyBootstrapClientTests
 
         Assert.Equal("Economy bootstrap response was empty.", exception.Message);
     }
+
+    [Fact]
+    public async Task InitializeAsync_WhenResponseBodyIsMalformed_ThrowsJsonException()
+    {
+        var handler = new HttpClientTestSupport.RecordingHttpMessageHandler
+        {
+            OnSendAsync = (_, _) => Task.FromResult(
+                HttpClientTestSupport.CreateStringResponse(HttpStatusCode.OK, "{"))
+        };
+        using var httpClient = HttpClientTestSupport.CreateHttpClient(handler);
+        var client = HttpClientTestSupport.CreateEconomyBootstrapClient(httpClient);
+
+        await Assert.ThrowsAsync<JsonException>(
+            () => client.InitializeAsync(
+                cityId: Guid.NewGuid(),
+                simulationKind: "ClassicCity",
+                economyProfile: "Balanced",
+                createdAtUtc: DateTimeOffset.UtcNow,
+                cancellationToken: CancellationToken.None));
+    }
 }
