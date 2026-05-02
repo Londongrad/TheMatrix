@@ -9,19 +9,27 @@ namespace Matrix.Population.Domain.Tests.TestSupport;
 internal static class PopulationTestData
 {
     internal static Person CreateAdultPerson(
+        string firstName = "Ivan",
+        string lastName = "Ivanov",
+        Sex sex = Sex.Male,
+        Guid? personId = null,
+        Guid? householdId = null,
+        DateOnly? birthDate = null,
         DateOnly? currentDate = null,
-        HappinessLevel? happiness = null)
+        HappinessLevel? happiness = null,
+        MaritalStatus maritalStatus = MaritalStatus.Single,
+        PersonId? spouseId = null)
     {
         DateOnly resolvedCurrentDate = currentDate ?? new DateOnly(2048, 5, 1);
 
         return Person.CreatePerson(
-            id: PersonId.From(Guid.Parse("11111111-1111-1111-1111-111111111111")),
-            householdId: HouseholdId.From(Guid.Parse("22222222-2222-2222-2222-222222222222")),
-            name: new PersonName("Ivan", "Ivanov"),
-            sex: Sex.Male,
+            id: PersonId.From(personId ?? Guid.Parse("11111111-1111-1111-1111-111111111111")),
+            householdId: HouseholdId.From(householdId ?? Guid.Parse("22222222-2222-2222-2222-222222222222")),
+            name: new PersonName(firstName, lastName),
+            sex: sex,
             lifeStatus: LifeStatus.Alive,
-            maritalStatus: MaritalStatus.Single,
-            spouseId: null,
+            maritalStatus: maritalStatus,
+            spouseId: spouseId,
             educationLevel: EducationLevel.UpperSecondary,
             educationInstitutionId: null,
             educationInstitutionAnchorId: null,
@@ -31,7 +39,7 @@ internal static class PopulationTestData
             stressLevel: StressLevel.From(25),
             socialNeedLevel: SocialNeedLevel.From(35),
             personality: Personality.Neutral(),
-            birthDate: new DateOnly(2030, 4, 2),
+            birthDate: birthDate ?? new DateOnly(2030, 4, 2),
             healthLevel: HealthLevel.From(80),
             weight: BodyWeight.FromKilograms(72m),
             job: null,
