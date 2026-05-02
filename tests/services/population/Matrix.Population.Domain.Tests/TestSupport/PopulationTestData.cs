@@ -1,6 +1,7 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -74,5 +75,25 @@ internal static class PopulationTestData
             workplaceId: WorkplaceId.From(Guid.Parse("66666666-6666-6666-6666-666666666666")),
             title: title,
             workplaceAnchorId: CreateCityAnchorId());
+    }
+
+    internal static CityPopulationCostOfLivingState CreateCostOfLivingState(
+        decimal wageMultiplier = 1m,
+        decimal retailPriceMultiplier = 1m,
+        decimal housingCostMultiplier = 1m,
+        decimal utilityCostMultiplier = 1m,
+        decimal costOfLivingIndex = 1m,
+        decimal affordabilityIndex = 1m)
+    {
+        return CityPopulationCostOfLivingState.Create(
+            cityId: CityId.From(Guid.Parse("77777777-7777-7777-7777-777777777777")),
+            wageMultiplier: wageMultiplier,
+            retailPriceMultiplier: retailPriceMultiplier,
+            housingCostMultiplier: housingCostMultiplier,
+            utilityCostMultiplier: utilityCostMultiplier,
+            costOfLivingIndex: costOfLivingIndex,
+            affordabilityIndex: affordabilityIndex,
+            lastEvaluatedAtUtc: new DateTimeOffset(2048, 5, 1, 0, 0, 0, TimeSpan.Zero),
+            updatedAtUtc: new DateTimeOffset(2048, 5, 1, 0, 0, 0, TimeSpan.Zero));
     }
 }
