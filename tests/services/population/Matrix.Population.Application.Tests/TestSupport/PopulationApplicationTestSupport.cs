@@ -145,11 +145,19 @@ internal static class PopulationApplicationTestSupport
     internal sealed class FakePersonWriteRepository : IPersonWriteRepository
     {
         public List<Matrix.Population.Domain.Entities.Person> UpdatedPersons { get; } = [];
+        public List<IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>> AddedRanges { get; } = [];
 
         public Task DeleteAllAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DeleteAsync(Matrix.Population.Domain.Entities.Person person, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task AddRangeAsync(IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> persons, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task AddAsync(Matrix.Population.Domain.Entities.Person person, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task AddRangeAsync(
+            IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> persons,
+            CancellationToken cancellationToken = default)
+        {
+            AddedRanges.Add(persons);
+            return Task.CompletedTask;
+        }
 
         public Task UpdateAsync(Matrix.Population.Domain.Entities.Person person, CancellationToken cancellationToken = default)
         {
