@@ -161,12 +161,18 @@ internal static class PopulationApplicationTestSupport
     internal sealed class FakeCityPopulationPersonReadRepository : ICityPopulationPersonReadRepository
     {
         public CityId? CityIdByPersonId { get; set; }
+        public IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> ListByCityResult { get; set; } =
+            Array.Empty<Matrix.Population.Domain.Entities.Person>();
         public (IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> Items, int TotalCount) PageByCityResult { get; set; } =
             (Array.Empty<Matrix.Population.Domain.Entities.Person>(), 0);
         public CityId? RequestedCityId { get; private set; }
         public Pagination? RequestedPagination { get; private set; }
 
-        public Task<IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>> ListByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>> ListByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(ListByCityResult);
+        }
 
         public Task<(IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> Items, int TotalCount)> GetPageByCityAsync(
             CityId cityId,
@@ -226,9 +232,19 @@ internal static class PopulationApplicationTestSupport
     {
         public List<(CityId CityId, DateOnly CurrentDate)> RebuildCalls { get; } = [];
         public List<CityId> EnsuredCityIds { get; } = [];
+        public List<(CityId CityId, DateOnly CurrentDate, int PersonCount, int PlacementCount, bool IncludeCommuteMetrics)> UpdateCalls { get; } = [];
 
-        public Task UpdateAsync(CityId cityId, DateOnly currentDate, IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> persons, IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements, bool includeCommuteMetrics = true, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task UpdateAsync(CityId cityId, DateOnly currentDate, IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> persons, bool includeCommuteMetrics = true, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task UpdateAsync(CityId cityId, DateOnly currentDate, IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> persons, IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements, bool includeCommuteMetrics = true, CancellationToken cancellationToken = default)
+        {
+            UpdateCalls.Add((cityId, currentDate, persons.Count, householdPlacements.Count, includeCommuteMetrics));
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateAsync(CityId cityId, DateOnly currentDate, IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> persons, bool includeCommuteMetrics = true, CancellationToken cancellationToken = default)
+        {
+            UpdateCalls.Add((cityId, currentDate, persons.Count, 0, includeCommuteMetrics));
+            return Task.CompletedTask;
+        }
 
         public Task RebuildAsync(CityId cityId, DateOnly currentDate, bool includeCommuteMetrics = true, CancellationToken cancellationToken = default)
         {
@@ -403,6 +419,52 @@ internal static class PopulationApplicationTestSupport
         {
             WorkplaceBatches.Add(batch);
             return Task.CompletedTask;
+        }
+    }
+
+    internal sealed class FakeCityPopulationWeatherImpactStateRepository : ICityPopulationWeatherImpactStateRepository
+    {
+        public CityPopulationWeatherImpactState? State { get; set; }
+        public CityId? RequestedCityId { get; private set; }
+        public List<CityPopulationWeatherImpactState> AddedStates { get; } = [];
+
+        public Task<CityPopulationWeatherImpactState?> GetByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(State);
+        }
+
+        public Task AddAsync(
+            CityPopulationWeatherImpactState state,
+            CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            State = state;
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeProcessedIntegrationMessageRepository : IProcessedIntegrationMessageRepository
+    {
+        public bool TryMarkProcessedResult { get; set; } = true;
+        public string? RequestedConsumer { get; private set; }
+        public Guid? RequestedMessageId { get; private set; }
+        public DateTimeOffset? RequestedProcessedAtUtc { get; private set; }
+
+        public Task<bool> TryMarkProcessedAsync(
+            string consumer,
+            Guid messageId,
+            DateTimeOffset processedAtUtc,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedConsumer = consumer;
+            RequestedMessageId = messageId;
+            RequestedProcessedAtUtc = processedAtUtc;
+            return Task.FromResult(TryMarkProcessedResult);
         }
     }
 }
