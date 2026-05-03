@@ -294,17 +294,31 @@ internal static class PopulationApplicationTestSupport
 
     internal sealed class FakeCityPopulationEnvironmentRepository : ICityPopulationEnvironmentRepository
     {
+        public CityPopulationEnvironment? State { get; set; }
+        public CityId? RequestedCityId { get; private set; }
+        public int DeleteByCityCalls { get; private set; }
         public List<CityPopulationEnvironment> UpsertedEnvironments { get; } = [];
 
-        public Task<CityPopulationEnvironment?> GetByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CityPopulationEnvironment?> GetByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(State);
+        }
+
         public Task AddAsync(CityPopulationEnvironment environment, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            return Task.CompletedTask;
+        }
 
         public Task<bool> UpsertAsync(
             CityPopulationEnvironment environment,
             CancellationToken cancellationToken = default)
         {
             UpsertedEnvironments.Add(environment);
+            State = environment;
             return Task.FromResult(true);
         }
     }
