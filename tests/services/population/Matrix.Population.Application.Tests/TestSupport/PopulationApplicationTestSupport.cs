@@ -569,4 +569,30 @@ internal static class PopulationApplicationTestSupport
 
         public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
+
+    internal sealed class FakeCityPopulationLivingConditionsStateRepository : ICityPopulationLivingConditionsStateRepository
+    {
+        public CityPopulationLivingConditionsState? State { get; set; }
+        public CityId? RequestedCityId { get; private set; }
+        public List<CityPopulationLivingConditionsState> AddedStates { get; } = [];
+
+        public Task<CityPopulationLivingConditionsState?> GetByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(State);
+        }
+
+        public Task AddAsync(
+            CityPopulationLivingConditionsState state,
+            CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            State = state;
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
 }
