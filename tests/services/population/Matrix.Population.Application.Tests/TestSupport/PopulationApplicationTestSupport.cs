@@ -171,6 +171,10 @@ internal static class PopulationApplicationTestSupport
         public CityId? CityIdByPersonId { get; set; }
         public IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> ListByCityResult { get; set; } =
             Array.Empty<Matrix.Population.Domain.Entities.Person>();
+        public IReadOnlyCollection<CityEmploymentWorkplaceSnapshot> EmploymentWorkplaces { get; set; } =
+            Array.Empty<CityEmploymentWorkplaceSnapshot>();
+        public IReadOnlyCollection<CityEducationInstitutionSnapshot> EducationInstitutions { get; set; } =
+            Array.Empty<CityEducationInstitutionSnapshot>();
         public (IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> Items, int TotalCount) PageByCityResult { get; set; } =
             (Array.Empty<Matrix.Population.Domain.Entities.Person>(), 0);
         public CityId? RequestedCityId { get; private set; }
@@ -202,9 +206,21 @@ internal static class PopulationApplicationTestSupport
 
         public Task<CityResidentHousingSnapshot?> FindHousingSnapshotByPersonIdAsync(CityId cityId, PersonId personId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyDictionary<HouseholdId, HousingStatus>> ListHousingStatusesByHouseholdAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<IReadOnlyCollection<CityEmploymentWorkplaceSnapshot>> ListEmploymentWorkplacesAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<IReadOnlyCollection<CityEmploymentWorkplaceSnapshot>> ListEmploymentWorkplacesAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(EmploymentWorkplaces);
+        }
+
         public Task<CityEmploymentWorkplaceSnapshot?> FindEmploymentWorkplaceByIdAsync(CityId cityId, WorkplaceId workplaceId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<IReadOnlyCollection<CityEducationInstitutionSnapshot>> ListEducationInstitutionsAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<IReadOnlyCollection<CityEducationInstitutionSnapshot>> ListEducationInstitutionsAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(EducationInstitutions);
+        }
+
         public Task<CityEducationInstitutionSnapshot?> FindEducationInstitutionByIdAsync(CityId cityId, EducationInstitutionId institutionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
