@@ -491,4 +491,30 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(TryMarkProcessedResult);
         }
     }
+
+    internal sealed class FakeCityPopulationWeatherExposureStateRepository : ICityPopulationWeatherExposureStateRepository
+    {
+        public CityPopulationWeatherExposureState? State { get; set; }
+        public CityId? RequestedCityId { get; private set; }
+        public List<CityPopulationWeatherExposureState> AddedStates { get; } = [];
+
+        public Task<CityPopulationWeatherExposureState?> GetByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(State);
+        }
+
+        public Task AddAsync(
+            CityPopulationWeatherExposureState state,
+            CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            State = state;
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
 }
