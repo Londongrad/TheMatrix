@@ -171,12 +171,14 @@ internal static class PopulationApplicationTestSupport
     internal sealed class FakeCityPopulationPersonReadRepository : ICityPopulationPersonReadRepository
     {
         public CityId? CityIdByPersonId { get; set; }
+        public Dictionary<PersonId, CityId?> CityIdByPersonIds { get; } = [];
         public IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> ListByCityResult { get; set; } =
             Array.Empty<Matrix.Population.Domain.Entities.Person>();
         public IReadOnlyCollection<CityEmploymentWorkplaceSnapshot> EmploymentWorkplaces { get; set; } =
             Array.Empty<CityEmploymentWorkplaceSnapshot>();
         public IReadOnlyCollection<CityEducationInstitutionSnapshot> EducationInstitutions { get; set; } =
             Array.Empty<CityEducationInstitutionSnapshot>();
+        public Dictionary<PersonId, CityResidentHousingSnapshot?> HousingSnapshotsByPersonId { get; } = [];
         public (IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> Items, int TotalCount) PageByCityResult { get; set; } =
             (Array.Empty<Matrix.Population.Domain.Entities.Person>(), 0);
         public CityId? RequestedCityId { get; private set; }
@@ -203,10 +205,21 @@ internal static class PopulationApplicationTestSupport
 
         public Task<CityId?> FindCityIdByPersonIdAsync(PersonId personId, CancellationToken cancellationToken = default)
         {
+            if (CityIdByPersonIds.TryGetValue(personId, out CityId? cityId))
+                return Task.FromResult(cityId);
+
             return Task.FromResult(CityIdByPersonId);
         }
 
-        public Task<CityResidentHousingSnapshot?> FindHousingSnapshotByPersonIdAsync(CityId cityId, PersonId personId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CityResidentHousingSnapshot?> FindHousingSnapshotByPersonIdAsync(CityId cityId, PersonId personId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(
+                HousingSnapshotsByPersonId.TryGetValue(personId, out CityResidentHousingSnapshot? snapshot)
+                    ? snapshot
+                    : null);
+        }
+
         public Task<IReadOnlyDictionary<HouseholdId, HousingStatus>> ListHousingStatusesByHouseholdAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
         public Task<IReadOnlyCollection<CityEmploymentWorkplaceSnapshot>> ListEmploymentWorkplacesAsync(CityId cityId, CancellationToken cancellationToken = default)
@@ -431,9 +444,29 @@ internal static class PopulationApplicationTestSupport
         public List<(IReadOnlyCollection<Household> Households, IReadOnlyCollection<ClassicCityHouseholdPlacement> Placements)> AddedRanges { get; } = [];
         public IReadOnlyCollection<ClassicCityHouseholdPlacement> PlacementsByCityResult { get; set; } = Array.Empty<ClassicCityHouseholdPlacement>();
         public CityId? RequestedCityId { get; private set; }
+        public Dictionary<HouseholdId, Household> HouseholdsById { get; } = [];
+        public Dictionary<HouseholdId, ClassicCityHouseholdPlacement> PlacementsByHouseholdId { get; } = [];
+        public Dictionary<HouseholdId, int> ResidentCountByHouseholdId { get; } = [];
+        public List<Household> UpdatedHouseholds { get; } = [];
+        public List<Household> DeletedHouseholds { get; } = [];
+        public List<(Household Household, ClassicCityHouseholdPlacement Placement)> AddedHouseholds { get; } = [];
 
-        public Task<Household?> FindByIdAsync(HouseholdId householdId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<ClassicCityHouseholdPlacement?> FindPlacementByHouseholdIdAsync(HouseholdId householdId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<Household?> FindByIdAsync(HouseholdId householdId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                HouseholdsById.TryGetValue(householdId, out Household? household)
+                    ? household
+                    : null);
+        }
+
+        public Task<ClassicCityHouseholdPlacement?> FindPlacementByHouseholdIdAsync(HouseholdId householdId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                PlacementsByHouseholdId.TryGetValue(householdId, out ClassicCityHouseholdPlacement? placement)
+                    ? placement
+                    : null);
+        }
+
         public Task<IReadOnlyCollection<ClassicCityHouseholdPlacement>> ListPlacementsByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
         {
             RequestedCityId = cityId;
@@ -441,11 +474,41 @@ internal static class PopulationApplicationTestSupport
         }
 
         public Task<IReadOnlyCollection<Household>> ListByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<int> CountResidentsAsync(HouseholdId householdId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<int> CountResidentsAsync(HouseholdId householdId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                ResidentCountByHouseholdId.TryGetValue(householdId, out int count)
+                    ? count
+                    : 0);
+        }
+
         public Task DeleteAllAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task DeleteAsync(Household household, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task AddAsync(Household household, ClassicCityHouseholdPlacement householdPlacement, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task UpdateAsync(Household household, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task DeleteAsync(Household household, CancellationToken cancellationToken = default)
+        {
+            DeletedHouseholds.Add(household);
+            HouseholdsById.Remove(household.Id);
+            PlacementsByHouseholdId.Remove(household.Id);
+            ResidentCountByHouseholdId.Remove(household.Id);
+            return Task.CompletedTask;
+        }
+
+        public Task AddAsync(Household household, ClassicCityHouseholdPlacement householdPlacement, CancellationToken cancellationToken = default)
+        {
+            AddedHouseholds.Add((household, householdPlacement));
+            HouseholdsById[household.Id] = household;
+            PlacementsByHouseholdId[household.Id] = householdPlacement;
+            ResidentCountByHouseholdId[household.Id] = household.Size.Value;
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateAsync(Household household, CancellationToken cancellationToken = default)
+        {
+            UpdatedHouseholds.Add(household);
+            HouseholdsById[household.Id] = household;
+            ResidentCountByHouseholdId[household.Id] = household.Size.Value;
+            return Task.CompletedTask;
+        }
 
         public Task DeleteByCityAsync(
             CityId cityId,
