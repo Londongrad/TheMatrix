@@ -228,6 +228,7 @@ internal static class PopulationApplicationTestSupport
     {
         public CityPopulationProgressionState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationProgressionState?> GetByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
         {
@@ -236,12 +237,19 @@ internal static class PopulationApplicationTestSupport
         }
 
         public Task AddAsync(CityPopulationProgressionState state, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationActivityJournalService : ICityPopulationActivityJournalService
     {
         public List<CityPopulationActivityWriteModel> Entries { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task RecordAsync(CityPopulationActivityWriteModel entry, CancellationToken cancellationToken = default)
         {
@@ -249,7 +257,11 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationSummaryProjectionService : ICityPopulationSummaryProjectionService
@@ -257,6 +269,7 @@ internal static class PopulationApplicationTestSupport
         public List<(CityId CityId, DateOnly CurrentDate)> RebuildCalls { get; } = [];
         public List<CityId> EnsuredCityIds { get; } = [];
         public List<(CityId CityId, DateOnly CurrentDate, int PersonCount, int PlacementCount, bool IncludeCommuteMetrics)> UpdateCalls { get; } = [];
+        public List<CityId> DeletedCityIds { get; } = [];
 
         public Task UpdateAsync(CityId cityId, DateOnly currentDate, IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> persons, IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements, bool includeCommuteMetrics = true, CancellationToken cancellationToken = default)
         {
@@ -282,7 +295,11 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeletedCityIds.Add(cityId);
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationSummaryReadRepository : ICityPopulationSummaryReadRepository
@@ -303,6 +320,8 @@ internal static class PopulationApplicationTestSupport
     {
         public CityPopulationArchiveState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
+        public List<CityPopulationArchiveState> AddedStates { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationArchiveState?> GetByCityAsync(
             CityId cityId,
@@ -312,14 +331,26 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(State);
         }
 
-        public Task AddAsync(CityPopulationArchiveState state, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task AddAsync(CityPopulationArchiveState state, CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            State = state;
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationDeletionStateRepository : ICityPopulationDeletionStateRepository
     {
         public CityPopulationDeletionState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
+        public List<CityPopulationDeletionState> AddedStates { get; } = [];
 
         public Task<CityPopulationDeletionState?> GetByCityAsync(
             CityId cityId,
@@ -329,7 +360,12 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(State);
         }
 
-        public Task AddAsync(CityPopulationDeletionState state, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task AddAsync(CityPopulationDeletionState state, CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            State = state;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationEnvironmentRepository : ICityPopulationEnvironmentRepository
@@ -451,6 +487,7 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationWeatherImpactState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
         public List<CityPopulationWeatherImpactState> AddedStates { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationWeatherImpactState?> GetByCityAsync(
             CityId cityId,
@@ -469,7 +506,12 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeProcessedIntegrationMessageRepository : IProcessedIntegrationMessageRepository
@@ -497,6 +539,7 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationWeatherExposureState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
         public List<CityPopulationWeatherExposureState> AddedStates { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationWeatherExposureState?> GetByCityAsync(
             CityId cityId,
@@ -515,7 +558,12 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationCostOfLivingStateRepository : ICityPopulationCostOfLivingStateRepository
@@ -523,6 +571,7 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationCostOfLivingState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
         public List<CityPopulationCostOfLivingState> AddedStates { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationCostOfLivingState?> GetByCityAsync(
             CityId cityId,
@@ -541,7 +590,12 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationEssentialsStateRepository : ICityPopulationEssentialsStateRepository
@@ -549,6 +603,7 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationEssentialsState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
         public List<CityPopulationEssentialsState> AddedStates { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationEssentialsState?> GetByCityAsync(
             CityId cityId,
@@ -567,7 +622,12 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationLivingConditionsStateRepository : ICityPopulationLivingConditionsStateRepository
@@ -575,6 +635,7 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationLivingConditionsState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
         public List<CityPopulationLivingConditionsState> AddedStates { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationLivingConditionsState?> GetByCityAsync(
             CityId cityId,
@@ -593,7 +654,12 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationServiceQualityStateRepository : ICityPopulationServiceQualityStateRepository
@@ -601,6 +667,7 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationServiceQualityState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
         public List<CityPopulationServiceQualityState> AddedStates { get; } = [];
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationServiceQualityState?> GetByCityAsync(
             CityId cityId,
@@ -619,7 +686,12 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            State = null;
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationEmployerFinancialStressStateRepository : ICityPopulationEmployerFinancialStressStateRepository
@@ -628,6 +700,7 @@ internal static class PopulationApplicationTestSupport
         public List<CityPopulationEmployerFinancialStressState> AddedStates { get; } = [];
         public CityId? RequestedCityId { get; private set; }
         public WorkplaceId? RequestedWorkplaceId { get; private set; }
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationEmployerFinancialStressState?> GetByCityAndWorkplaceAsync(
             CityId cityId,
@@ -670,7 +743,12 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            States.RemoveAll(state => state.CityId == cityId);
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityPopulationHouseholdFinancialStressStateRepository : ICityPopulationHouseholdFinancialStressStateRepository
@@ -679,6 +757,7 @@ internal static class PopulationApplicationTestSupport
         public List<CityPopulationHouseholdFinancialStressState> AddedStates { get; } = [];
         public CityId? RequestedCityId { get; private set; }
         public HouseholdId? RequestedHouseholdId { get; private set; }
+        public int DeleteByCityCalls { get; private set; }
 
         public Task<CityPopulationHouseholdFinancialStressState?> GetByCityAndHouseholdAsync(
             CityId cityId,
@@ -721,6 +800,11 @@ internal static class PopulationApplicationTestSupport
             return Task.CompletedTask;
         }
 
-        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            DeleteByCityCalls++;
+            States.RemoveAll(state => state.CityId == cityId);
+            return Task.CompletedTask;
+        }
     }
 }
