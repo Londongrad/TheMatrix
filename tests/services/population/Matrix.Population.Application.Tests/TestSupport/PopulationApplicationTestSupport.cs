@@ -236,7 +236,18 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(EducationInstitutions);
         }
 
-        public Task<CityEducationInstitutionSnapshot?> FindEducationInstitutionByIdAsync(CityId cityId, EducationInstitutionId institutionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CityEducationInstitutionSnapshot?> FindEducationInstitutionByIdAsync(CityId cityId, EducationInstitutionId institutionId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+
+            foreach (CityEducationInstitutionSnapshot institution in EducationInstitutions)
+            {
+                if (institution.InstitutionId == institutionId)
+                    return Task.FromResult<CityEducationInstitutionSnapshot?>(institution);
+            }
+
+            return Task.FromResult<CityEducationInstitutionSnapshot?>(null);
+        }
     }
 
     internal sealed class FakeCityPopulationProgressionStateRepository : ICityPopulationProgressionStateRepository
