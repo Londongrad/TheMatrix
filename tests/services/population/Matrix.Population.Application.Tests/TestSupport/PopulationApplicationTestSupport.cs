@@ -228,7 +228,18 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(EmploymentWorkplaces);
         }
 
-        public Task<CityEmploymentWorkplaceSnapshot?> FindEmploymentWorkplaceByIdAsync(CityId cityId, WorkplaceId workplaceId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CityEmploymentWorkplaceSnapshot?> FindEmploymentWorkplaceByIdAsync(CityId cityId, WorkplaceId workplaceId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+
+            foreach (CityEmploymentWorkplaceSnapshot workplace in EmploymentWorkplaces)
+            {
+                if (workplace.WorkplaceId == workplaceId)
+                    return Task.FromResult<CityEmploymentWorkplaceSnapshot?>(workplace);
+            }
+
+            return Task.FromResult<CityEmploymentWorkplaceSnapshot?>(null);
+        }
 
         public Task<IReadOnlyCollection<CityEducationInstitutionSnapshot>> ListEducationInstitutionsAsync(CityId cityId, CancellationToken cancellationToken = default)
         {
@@ -429,8 +440,16 @@ internal static class PopulationApplicationTestSupport
     {
         public int DeleteByCityCalls { get; private set; }
         public List<IReadOnlyCollection<CityPopulationAnchorCatalogItem>> AddedRanges { get; } = [];
+        public IReadOnlyList<CityPopulationAnchorCatalogItem> Items { get; set; } = Array.Empty<CityPopulationAnchorCatalogItem>();
 
-        public Task<IReadOnlyList<CityPopulationAnchorCatalogItem>> ListByCityAsync(CityId cityId, CityAnchorType? type = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<CityPopulationAnchorCatalogItem>> ListByCityAsync(CityId cityId, CityAnchorType? type = null, CancellationToken cancellationToken = default)
+        {
+            IReadOnlyList<CityPopulationAnchorCatalogItem> items = Items
+                .Where(x => x.CityId == cityId && (!type.HasValue || x.Type == type.Value))
+                .ToArray();
+
+            return Task.FromResult(items);
+        }
 
         public Task AddRangeAsync(
             IReadOnlyCollection<CityPopulationAnchorCatalogItem> items,
