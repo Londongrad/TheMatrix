@@ -4,6 +4,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Contracts.Models;
 using Matrix.Population.Domain.Entities;
@@ -11,6 +12,7 @@ using Matrix.Population.Domain.Enums;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.Population.Domain.ValueObjects;
 
@@ -427,10 +429,17 @@ internal static class PopulationApplicationTestSupport
     {
         public int DeleteByCityCalls { get; private set; }
         public List<(IReadOnlyCollection<Household> Households, IReadOnlyCollection<ClassicCityHouseholdPlacement> Placements)> AddedRanges { get; } = [];
+        public IReadOnlyCollection<ClassicCityHouseholdPlacement> PlacementsByCityResult { get; set; } = Array.Empty<ClassicCityHouseholdPlacement>();
+        public CityId? RequestedCityId { get; private set; }
 
         public Task<Household?> FindByIdAsync(HouseholdId householdId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ClassicCityHouseholdPlacement?> FindPlacementByHouseholdIdAsync(HouseholdId householdId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<IReadOnlyCollection<ClassicCityHouseholdPlacement>> ListPlacementsByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyCollection<ClassicCityHouseholdPlacement>> ListPlacementsByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(PlacementsByCityResult);
+        }
+
         public Task<IReadOnlyCollection<Household>> ListByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<int> CountResidentsAsync(HouseholdId householdId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DeleteAllAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
@@ -805,6 +814,93 @@ internal static class PopulationApplicationTestSupport
             DeleteByCityCalls++;
             States.RemoveAll(state => state.CityId == cityId);
             return Task.CompletedTask;
+        }
+    }
+
+    internal sealed class FakeCityPopulationDashboardReadRepository : ICityPopulationDashboardReadRepository
+    {
+        public CityPopulationDashboardSnapshotReadModel? CurrentSnapshot { get; set; }
+        public Dictionary<DateOnly, CityPopulationDashboardSnapshotReadModel> SnapshotsByDate { get; } = [];
+        public CityPopulationDashboardEconomyReadModel EconomySnapshot { get; set; } = new(
+            StableHouseholdCount: 0,
+            StrainedHouseholdCount: 0,
+            DeficitHouseholdCount: 0,
+            AverageCashReserveAmount: 0m,
+            AverageDailyNetAmount: 0m);
+        public IReadOnlyList<CityPopulationActivityEventReadModel> ActivityEvents { get; set; } =
+            Array.Empty<CityPopulationActivityEventReadModel>();
+        public CityId? RequestedCityId { get; private set; }
+        public DateOnly? RequestedSnapshotDate { get; private set; }
+        public DateOnly? RequestedEconomyDate { get; private set; }
+        public int RequestedRecentTake { get; private set; }
+
+        public Task<CityPopulationDashboardSnapshotReadModel?> GetCurrentSnapshotAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(CurrentSnapshot);
+        }
+
+        public Task<CityPopulationDashboardSnapshotReadModel?> GetSnapshotOnOrBeforeAsync(
+            CityId cityId,
+            DateOnly snapshotDate,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            RequestedSnapshotDate = snapshotDate;
+
+            CityPopulationDashboardSnapshotReadModel? match = null;
+            foreach ((DateOnly date, CityPopulationDashboardSnapshotReadModel snapshot) in SnapshotsByDate)
+            {
+                if (date > snapshotDate)
+                    continue;
+
+                if (match is null || date > match.SnapshotDate)
+                    match = snapshot;
+            }
+
+            return Task.FromResult(match);
+        }
+
+        public Task<CityPopulationDashboardEconomyReadModel> GetCurrentEconomySnapshotAsync(
+            CityId cityId,
+            DateOnly currentDate,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            RequestedEconomyDate = currentDate;
+            return Task.FromResult(EconomySnapshot);
+        }
+
+        public Task<IReadOnlyList<CityPopulationActivityEventReadModel>> ListRecentActivityAsync(
+            CityId cityId,
+            int take,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            RequestedRecentTake = take;
+            return Task.FromResult(ActivityEvents);
+        }
+    }
+
+    internal sealed class FakeCityDistrictUtilityConditionsClient : ICityDistrictUtilityConditionsClient
+    {
+        public IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> SnapshotsByDistrictId { get; set; } =
+            new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>();
+        public Exception? ExceptionToThrow { get; set; }
+        public Guid? RequestedCityId { get; private set; }
+
+        public Task<IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>> GetByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            RequestedCityId = cityId;
+
+            if (ExceptionToThrow is not null)
+                throw ExceptionToThrow;
+
+            return Task.FromResult(SnapshotsByDistrictId);
         }
     }
 }
