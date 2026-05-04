@@ -595,4 +595,132 @@ internal static class PopulationApplicationTestSupport
 
         public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
+
+    internal sealed class FakeCityPopulationServiceQualityStateRepository : ICityPopulationServiceQualityStateRepository
+    {
+        public CityPopulationServiceQualityState? State { get; set; }
+        public CityId? RequestedCityId { get; private set; }
+        public List<CityPopulationServiceQualityState> AddedStates { get; } = [];
+
+        public Task<CityPopulationServiceQualityState?> GetByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(State);
+        }
+
+        public Task AddAsync(
+            CityPopulationServiceQualityState state,
+            CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            State = state;
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeCityPopulationEmployerFinancialStressStateRepository : ICityPopulationEmployerFinancialStressStateRepository
+    {
+        public List<CityPopulationEmployerFinancialStressState> States { get; } = [];
+        public List<CityPopulationEmployerFinancialStressState> AddedStates { get; } = [];
+        public CityId? RequestedCityId { get; private set; }
+        public WorkplaceId? RequestedWorkplaceId { get; private set; }
+
+        public Task<CityPopulationEmployerFinancialStressState?> GetByCityAndWorkplaceAsync(
+            CityId cityId,
+            WorkplaceId workplaceId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            RequestedWorkplaceId = workplaceId;
+
+            foreach (CityPopulationEmployerFinancialStressState state in States)
+            {
+                if (state.CityId == cityId && state.WorkplaceId == workplaceId)
+                    return Task.FromResult<CityPopulationEmployerFinancialStressState?>(state);
+            }
+
+            return Task.FromResult<CityPopulationEmployerFinancialStressState?>(null);
+        }
+
+        public Task<IReadOnlyList<CityPopulationEmployerFinancialStressState>> ListByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            List<CityPopulationEmployerFinancialStressState> states = [];
+            foreach (CityPopulationEmployerFinancialStressState state in States)
+            {
+                if (state.CityId == cityId)
+                    states.Add(state);
+            }
+
+            return Task.FromResult<IReadOnlyList<CityPopulationEmployerFinancialStressState>>(states);
+        }
+
+        public Task AddAsync(
+            CityPopulationEmployerFinancialStressState state,
+            CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            States.Add(state);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    internal sealed class FakeCityPopulationHouseholdFinancialStressStateRepository : ICityPopulationHouseholdFinancialStressStateRepository
+    {
+        public List<CityPopulationHouseholdFinancialStressState> States { get; } = [];
+        public List<CityPopulationHouseholdFinancialStressState> AddedStates { get; } = [];
+        public CityId? RequestedCityId { get; private set; }
+        public HouseholdId? RequestedHouseholdId { get; private set; }
+
+        public Task<CityPopulationHouseholdFinancialStressState?> GetByCityAndHouseholdAsync(
+            CityId cityId,
+            HouseholdId householdId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            RequestedHouseholdId = householdId;
+
+            foreach (CityPopulationHouseholdFinancialStressState state in States)
+            {
+                if (state.CityId == cityId && state.HouseholdId == householdId)
+                    return Task.FromResult<CityPopulationHouseholdFinancialStressState?>(state);
+            }
+
+            return Task.FromResult<CityPopulationHouseholdFinancialStressState?>(null);
+        }
+
+        public Task<IReadOnlyList<CityPopulationHouseholdFinancialStressState>> ListByCityAsync(
+            CityId cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            List<CityPopulationHouseholdFinancialStressState> states = [];
+            foreach (CityPopulationHouseholdFinancialStressState state in States)
+            {
+                if (state.CityId == cityId)
+                    states.Add(state);
+            }
+
+            return Task.FromResult<IReadOnlyList<CityPopulationHouseholdFinancialStressState>>(states);
+        }
+
+        public Task AddAsync(
+            CityPopulationHouseholdFinancialStressState state,
+            CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            States.Add(state);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
 }
