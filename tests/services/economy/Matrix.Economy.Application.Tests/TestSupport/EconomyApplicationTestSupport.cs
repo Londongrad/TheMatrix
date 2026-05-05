@@ -7,6 +7,7 @@ using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
 using Matrix.Economy.Domain.Models;
 using Matrix.Economy.Domain.ValueObjects;
+using System.Data;
 
 namespace Matrix.Economy.Application.Tests.TestSupport;
 
@@ -349,6 +350,49 @@ internal static class EconomyApplicationTestSupport
         {
             RequestedCityId = cityId;
             return Task.FromResult(Result);
+        }
+    }
+
+    internal sealed class FakeEconomyUnitOfWork : IEconomyUnitOfWork
+    {
+        public int SaveChangesCallCount { get; private set; }
+        public int TransactionCallCount { get; private set; }
+        public IsolationLevel? LastIsolationLevel { get; private set; }
+
+        public Task SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            SaveChangesCallCount++;
+            return Task.CompletedTask;
+        }
+
+        public async Task ExecuteInTransactionAsync(
+            Func<CancellationToken, Task> action,
+            CancellationToken cancellationToken,
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            TransactionCallCount++;
+            LastIsolationLevel = isolationLevel;
+            await action(cancellationToken);
+        }
+
+        public async Task<T> ExecuteInTransactionAsync<T>(
+            Func<CancellationToken, Task<T>> action,
+            CancellationToken cancellationToken,
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            TransactionCallCount++;
+            LastIsolationLevel = isolationLevel;
+            return await action(cancellationToken);
+        }
+    }
+
+    internal sealed class FrozenTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        public DateTimeOffset UtcNow { get; set; } = utcNow;
+
+        public override DateTimeOffset GetUtcNow()
+        {
+            return UtcNow;
         }
     }
 }
