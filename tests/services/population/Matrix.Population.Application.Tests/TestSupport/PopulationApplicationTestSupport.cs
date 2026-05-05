@@ -1122,6 +1122,7 @@ internal static class PopulationApplicationTestSupport
     internal sealed class FakeCityPopulationCommuteTripSyncService : ICityPopulationCommuteTripSyncService
     {
         public int SyncCalls { get; private set; }
+        public Exception? ExceptionToThrow { get; set; }
 
         public Task SyncAsync(
             Guid cityId,
@@ -1135,6 +1136,8 @@ internal static class PopulationApplicationTestSupport
             CancellationToken cancellationToken)
         {
             SyncCalls++;
+            if (ExceptionToThrow is not null)
+                throw ExceptionToThrow;
             return Task.CompletedTask;
         }
     }

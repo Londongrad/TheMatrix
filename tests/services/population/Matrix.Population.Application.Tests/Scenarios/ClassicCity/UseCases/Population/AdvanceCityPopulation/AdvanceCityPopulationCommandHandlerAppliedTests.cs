@@ -1,6 +1,7 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
@@ -119,6 +120,117 @@ public sealed class AdvanceCityPopulationCommandHandlerAppliedTests
         Assert.Equal(1, unitOfWork.SaveChangesCalls);
     }
 
+    [Fact]
+    public async Task Handle_WhenWeatherExposureCheckpointAdvances_MarksExposureProcessed()
+    {
+        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var personReadRepository = new FakeCityPopulationPersonReadRepository
+        {
+            ListByCityResult = Array.Empty<Matrix.Population.Domain.Entities.Person>()
+        };
+        var progressionStateRepository = new FakeCityPopulationProgressionStateRepository
+        {
+            State = CityPopulationProgressionState.Create(
+                cityId: CityId.From(cityId),
+                lastProcessedTickId: 13,
+                lastProcessedDate: new DateOnly(2048, 5, 6),
+                updatedAtUtc: UtcNow)
+        };
+        DateTimeOffset currentWeatherAt = new(2048, 5, 6, 8, 0, 0, TimeSpan.Zero);
+        var weatherExposureStateRepository = new FakeCityPopulationWeatherExposureStateRepository
+        {
+            State = CityPopulationWeatherExposureState.Create(
+                cityId: CityId.From(cityId),
+                currentWeather: new WeatherImpactProfile(
+                    Type: PopulationWeatherType.Clear,
+                    Severity: PopulationWeatherSeverity.Calm,
+                    PrecipitationKind: PopulationPrecipitationKind.None,
+                    TemperatureC: 14m,
+                    HumidityPercent: 52m,
+                    WindSpeedKph: 8m,
+                    CloudCoveragePercent: 10m,
+                    PressureHpa: 1009m),
+                currentWeatherEffectiveAtSimTimeUtc: currentWeatherAt,
+                occurredOnUtc: currentWeatherAt,
+                updatedAtUtc: currentWeatherAt)
+        };
+        var householdWriteRepository = new FakeHouseholdWriteRepository
+        {
+            HouseholdsByCityResult = Array.Empty<Matrix.Population.Domain.Entities.Household>(),
+            PlacementsByCityResult = Array.Empty<ClassicCityHouseholdPlacement>()
+        };
+        var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+        var commuteTripSyncService = new FakeCityPopulationCommuteTripSyncService();
+        var unitOfWork = new FakeUnitOfWork();
+        var handler = CreateHandler(
+            personReadRepository: personReadRepository,
+            progressionStateRepository: progressionStateRepository,
+            weatherExposureStateRepository: weatherExposureStateRepository,
+            householdWriteRepository: householdWriteRepository,
+            summaryProjectionService: summaryProjectionService,
+            commuteTripSyncService: commuteTripSyncService,
+            unitOfWork: unitOfWork);
+
+        AdvanceCityPopulationResult result = await handler.Handle(
+            new AdvanceCityPopulationCommand(
+                CityId: cityId,
+                FromSimTimeUtc: currentWeatherAt,
+                ToSimTimeUtc: new DateTimeOffset(2048, 5, 6, 12, 0, 0, TimeSpan.Zero),
+                TickId: 14),
+            CancellationToken.None);
+
+        Assert.Equal(AdvanceCityPopulationStatus.Applied, result.Status);
+        Assert.Equal(0, result.AffectedPeopleCount);
+        Assert.NotNull(weatherExposureStateRepository.State);
+        Assert.Equal(new DateTimeOffset(2048, 5, 6, 12, 0, 0, TimeSpan.Zero), weatherExposureStateRepository.State!.LastExposureProcessedAtSimTimeUtc);
+        Assert.Equal(14, progressionStateRepository.State!.LastProcessedTickId);
+        Assert.Equal(CityId.From(cityId), personReadRepository.RequestedCityId);
+        Assert.Single(summaryProjectionService.UpdateCalls);
+        Assert.Equal(1, commuteTripSyncService.SyncCalls);
+        Assert.Equal(1, unitOfWork.SaveChangesCalls);
+    }
+
+    [Fact]
+    public async Task Handle_WhenCommuteTripSyncFails_ReturnsApplied()
+    {
+        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var personReadRepository = new FakeCityPopulationPersonReadRepository
+        {
+            ListByCityResult = Array.Empty<Matrix.Population.Domain.Entities.Person>()
+        };
+        var progressionStateRepository = new FakeCityPopulationProgressionStateRepository();
+        var householdWriteRepository = new FakeHouseholdWriteRepository
+        {
+            HouseholdsByCityResult = Array.Empty<Matrix.Population.Domain.Entities.Household>(),
+            PlacementsByCityResult = Array.Empty<ClassicCityHouseholdPlacement>()
+        };
+        var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+        var commuteTripSyncService = new FakeCityPopulationCommuteTripSyncService
+        {
+            ExceptionToThrow = new InvalidOperationException("sync failed")
+        };
+        var unitOfWork = new FakeUnitOfWork();
+        var handler = CreateHandler(
+            personReadRepository: personReadRepository,
+            progressionStateRepository: progressionStateRepository,
+            householdWriteRepository: householdWriteRepository,
+            summaryProjectionService: summaryProjectionService,
+            commuteTripSyncService: commuteTripSyncService,
+            unitOfWork: unitOfWork);
+
+        AdvanceCityPopulationResult result = await handler.Handle(
+            CreateCommand(cityId: cityId, tickId: 15),
+            CancellationToken.None);
+
+        Assert.Equal(AdvanceCityPopulationStatus.Applied, result.Status);
+        Assert.Equal(0, result.AffectedPeopleCount);
+        Assert.Single(progressionStateRepository.AddedStates);
+        Assert.Single(summaryProjectionService.UpdateCalls);
+        Assert.Equal(1, commuteTripSyncService.SyncCalls);
+        Assert.Equal(1, unitOfWork.ExecuteTransactionCalls);
+        Assert.Equal(1, unitOfWork.SaveChangesCalls);
+    }
+
     private static AdvanceCityPopulationCommand CreateCommand(Guid cityId, long tickId)
     {
         return new AdvanceCityPopulationCommand(
@@ -131,6 +243,7 @@ public sealed class AdvanceCityPopulationCommandHandlerAppliedTests
     private static AdvanceCityPopulationCommandHandler CreateHandler(
         FakeCityPopulationPersonReadRepository? personReadRepository = null,
         FakeCityPopulationProgressionStateRepository? progressionStateRepository = null,
+        FakeCityPopulationWeatherExposureStateRepository? weatherExposureStateRepository = null,
         FakeHouseholdWriteRepository? householdWriteRepository = null,
         FakeCityPopulationSummaryProjectionService? summaryProjectionService = null,
         FakeCityPopulationActivityJournalService? activityJournalService = null,
@@ -164,7 +277,7 @@ public sealed class AdvanceCityPopulationCommandHandlerAppliedTests
             cityEconomySettlementOutboxWriter: outboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
             progressionStateRepository: progressionStateRepository ?? new FakeCityPopulationProgressionStateRepository(),
             cityPopulationSummaryProjectionService: summaryProjectionService ?? new FakeCityPopulationSummaryProjectionService(),
-            weatherExposureStateRepository: new FakeCityPopulationWeatherExposureStateRepository(),
+            weatherExposureStateRepository: weatherExposureStateRepository ?? new FakeCityPopulationWeatherExposureStateRepository(),
             householdWriteRepository: householdWriteRepository ?? new FakeHouseholdWriteRepository(),
             marriageDomainService: new MarriageDomainService(),
             populationBirthDomainService: new PopulationBirthDomainService(),
