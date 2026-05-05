@@ -1107,4 +1107,24 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(TryDispatchResult);
         }
     }
+
+    internal sealed class FakeCityPopulationCommuteTripSyncService : ICityPopulationCommuteTripSyncService
+    {
+        public int SyncCalls { get; private set; }
+
+        public Task SyncAsync(
+            Guid cityId,
+            long tickId,
+            DateOnly currentDate,
+            DateTimeOffset currentSimTimeUtc,
+            IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> residents,
+            IReadOnlyCollection<ClassicCityHouseholdPlacement> householdPlacements,
+            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
+            Matrix.Population.Domain.Scenarios.ClassicCity.Services.CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+            CancellationToken cancellationToken)
+        {
+            SyncCalls++;
+            return Task.CompletedTask;
+        }
+    }
 }
