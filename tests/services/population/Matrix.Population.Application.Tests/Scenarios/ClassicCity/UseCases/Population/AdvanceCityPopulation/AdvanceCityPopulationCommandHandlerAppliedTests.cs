@@ -1,5 +1,6 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.AdvanceCityPopulation;
 using Matrix.Population.Domain.Models;
+using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Services.Abstractions;
@@ -60,6 +61,60 @@ public sealed class AdvanceCityPopulationCommandHandlerAppliedTests
         Assert.Empty(outboxWriter.HouseholdBatches);
         Assert.Empty(outboxWriter.WorkplaceBatches);
         Assert.Equal(1, commuteTripSyncService.SyncCalls);
+        Assert.Equal(1, unitOfWork.ExecuteTransactionCalls);
+        Assert.Equal(1, unitOfWork.SaveChangesCalls);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSameDayTickAdvancesOnlyState_MarksProgressWithoutResidentWork()
+    {
+        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var personReadRepository = new FakeCityPopulationPersonReadRepository();
+        var progressionStateRepository = new FakeCityPopulationProgressionStateRepository
+        {
+            State = CityPopulationProgressionState.Create(
+                cityId: CityId.From(cityId),
+                lastProcessedTickId: 12,
+                lastProcessedDate: new DateOnly(2048, 5, 6),
+                updatedAtUtc: UtcNow)
+        };
+        var householdWriteRepository = new FakeHouseholdWriteRepository();
+        var summaryProjectionService = new FakeCityPopulationSummaryProjectionService();
+        var activityJournalService = new FakeCityPopulationActivityJournalService();
+        var outboxWriter = new FakeCityEconomySettlementOutboxWriter();
+        var commuteTripSyncService = new FakeCityPopulationCommuteTripSyncService();
+        var unitOfWork = new FakeUnitOfWork();
+        var handler = CreateHandler(
+            personReadRepository: personReadRepository,
+            progressionStateRepository: progressionStateRepository,
+            householdWriteRepository: householdWriteRepository,
+            summaryProjectionService: summaryProjectionService,
+            activityJournalService: activityJournalService,
+            outboxWriter: outboxWriter,
+            commuteTripSyncService: commuteTripSyncService,
+            unitOfWork: unitOfWork);
+
+        AdvanceCityPopulationResult result = await handler.Handle(
+            new AdvanceCityPopulationCommand(
+                CityId: cityId,
+                FromSimTimeUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero),
+                ToSimTimeUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero),
+                TickId: 13),
+            CancellationToken.None);
+
+        Assert.Equal(AdvanceCityPopulationStatus.Applied, result.Status);
+        Assert.Equal(0, result.AffectedPeopleCount);
+        Assert.Empty(progressionStateRepository.AddedStates);
+        Assert.NotNull(progressionStateRepository.State);
+        Assert.Equal(13, progressionStateRepository.State!.LastProcessedTickId);
+        Assert.Equal(new DateOnly(2048, 5, 6), progressionStateRepository.State.LastProcessedDate);
+        Assert.Null(personReadRepository.RequestedCityId);
+        Assert.Null(householdWriteRepository.RequestedCityId);
+        Assert.Empty(summaryProjectionService.UpdateCalls);
+        Assert.Empty(activityJournalService.Entries);
+        Assert.Empty(outboxWriter.HouseholdBatches);
+        Assert.Empty(outboxWriter.WorkplaceBatches);
+        Assert.Equal(0, commuteTripSyncService.SyncCalls);
         Assert.Equal(1, unitOfWork.ExecuteTransactionCalls);
         Assert.Equal(1, unitOfWork.SaveChangesCalls);
     }
