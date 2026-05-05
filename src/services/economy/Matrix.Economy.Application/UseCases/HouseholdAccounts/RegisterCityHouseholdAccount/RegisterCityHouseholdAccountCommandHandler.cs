@@ -9,7 +9,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHous
 {
     public sealed class RegisterCityHouseholdAccountCommandHandler(
         ICityHouseholdAccountRepository householdAccountRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RegisterCityHouseholdAccountCommand, CityHouseholdAccountDto>
     {
         public async Task<CityHouseholdAccountDto> Handle(
@@ -17,13 +18,14 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RegisterCityHous
             CancellationToken cancellationToken)
         {
             CityBudgetUnitProfile unitProfile = ResolveRequestedUnit(request);
+            DateTimeOffset createdAtUtc = timeProvider.GetUtcNow();
 
             var account = new CityHouseholdAccount(
                 id: Guid.NewGuid(),
                 cityId: request.CityId,
                 name: request.Name,
                 externalReferenceCode: request.ExternalReferenceCode,
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: createdAtUtc,
                 unitProfile: unitProfile,
                 openingBalance: Money.FromDecimal(request.OpeningBalance));
 

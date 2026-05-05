@@ -9,7 +9,8 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness
 {
     public sealed class RegisterCityBusinessCommandHandler(
         ICityBusinessRepository businessRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RegisterCityBusinessCommand, CityBusinessDto>
     {
         public async Task<CityBusinessDto> Handle(
@@ -17,6 +18,7 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness
             CancellationToken cancellationToken)
         {
             CityBudgetUnitProfile unitProfile = ResolveRequestedUnit(request);
+            DateTimeOffset createdAtUtc = timeProvider.GetUtcNow();
 
             var business = new CityBusiness(
                 id: Guid.NewGuid(),
@@ -25,7 +27,7 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RegisterCityBusiness
                 externalReferenceCode: null,
                 templateKey: null,
                 kind: request.Kind,
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: createdAtUtc,
                 unitProfile: unitProfile,
                 initialCapital: Money.FromDecimal(request.StartingCapital));
 

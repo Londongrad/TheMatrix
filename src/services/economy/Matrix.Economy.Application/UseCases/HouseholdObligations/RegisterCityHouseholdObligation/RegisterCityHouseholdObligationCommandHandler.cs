@@ -11,14 +11,15 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RegisterCityH
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityBusinessRepository businessRepository,
         ICityHouseholdObligationRepository obligationRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RegisterCityHouseholdObligationCommand, CityHouseholdObligationDto>
     {
         public async Task<CityHouseholdObligationDto> Handle(
             RegisterCityHouseholdObligationCommand request,
             CancellationToken cancellationToken)
         {
-            DateTimeOffset createdAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset createdAtUtc = timeProvider.GetUtcNow();
 
             CityHouseholdAccount householdAccount =
                 await householdAccountRepository.GetByIdAsync(
