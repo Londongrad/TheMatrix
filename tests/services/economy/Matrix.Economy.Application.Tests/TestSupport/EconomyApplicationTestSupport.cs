@@ -41,6 +41,28 @@ internal static class EconomyApplicationTestSupport
             referenceCode: null);
     }
 
+    internal static CityBudgetAllocation CreateAllocation(
+        Guid cityId,
+        CityBudgetCategory category,
+        decimal targetAmount,
+        decimal spentAmount = 0m)
+    {
+        var allocation = new CityBudgetAllocation(
+            id: Guid.NewGuid(),
+            cityId: cityId,
+            category: category,
+            createdAtUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero),
+            unitProfile: CityBudgetUnitProfile.DefaultMoney(),
+            targetAmount: Money.FromDecimal(targetAmount));
+
+        if (spentAmount > 0m)
+            allocation.RecordExpense(
+                amount: Money.FromDecimal(spentAmount),
+                updatedAtUtc: new DateTimeOffset(2048, 5, 6, 10, 0, 0, TimeSpan.Zero));
+
+        return allocation;
+    }
+
     internal sealed class FakeCityEconomyBootstrapService : ICityEconomyBootstrapService
     {
         public (Guid CityId, string SimulationKind, string? EconomyProfile, DateTimeOffset CreatedAtUtc)? Request { get; private set; }
@@ -87,6 +109,35 @@ internal static class EconomyApplicationTestSupport
         public void Add(CityBudget cityBudget)
         {
             AddedBudgets.Add(cityBudget);
+        }
+    }
+
+    internal sealed class FakeCityBudgetAllocationRepository : ICityBudgetAllocationRepository
+    {
+        public IReadOnlyList<CityBudgetAllocation> Allocations { get; set; } = Array.Empty<CityBudgetAllocation>();
+        public Guid? RequestedCityId { get; private set; }
+        public List<CityBudgetAllocation> AddedAllocations { get; } = [];
+
+        public Task<CityBudgetAllocation?> GetByCityAndCategoryAsync(
+            Guid cityId,
+            CityBudgetCategory category,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(Allocations.FirstOrDefault(x => x.CityId == cityId && x.Category == category));
+        }
+
+        public Task<IReadOnlyList<CityBudgetAllocation>> ListByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult<IReadOnlyList<CityBudgetAllocation>>(Allocations.Where(x => x.CityId == cityId).ToArray());
+        }
+
+        public void Add(CityBudgetAllocation allocation)
+        {
+            AddedAllocations.Add(allocation);
         }
     }
 
