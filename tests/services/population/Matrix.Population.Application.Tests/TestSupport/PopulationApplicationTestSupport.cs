@@ -293,6 +293,7 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationProgressionState? State { get; set; }
         public CityId? RequestedCityId { get; private set; }
         public int DeleteByCityCalls { get; private set; }
+        public List<CityPopulationProgressionState> AddedStates { get; } = [];
 
         public Task<CityPopulationProgressionState?> GetByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
         {
@@ -300,7 +301,12 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(State);
         }
 
-        public Task AddAsync(CityPopulationProgressionState state, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task AddAsync(CityPopulationProgressionState state, CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            State = state;
+            return Task.CompletedTask;
+        }
 
         public Task DeleteByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
         {
@@ -500,6 +506,7 @@ internal static class PopulationApplicationTestSupport
         public int DeleteByCityCalls { get; private set; }
         public List<(IReadOnlyCollection<Household> Households, IReadOnlyCollection<ClassicCityHouseholdPlacement> Placements)> AddedRanges { get; } = [];
         public IReadOnlyCollection<ClassicCityHouseholdPlacement> PlacementsByCityResult { get; set; } = Array.Empty<ClassicCityHouseholdPlacement>();
+        public IReadOnlyCollection<Household> HouseholdsByCityResult { get; set; } = Array.Empty<Household>();
         public CityId? RequestedCityId { get; private set; }
         public Dictionary<HouseholdId, Household> HouseholdsById { get; } = [];
         public Dictionary<HouseholdId, ClassicCityHouseholdPlacement> PlacementsByHouseholdId { get; } = [];
@@ -530,7 +537,11 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(PlacementsByCityResult);
         }
 
-        public Task<IReadOnlyCollection<Household>> ListByCityAsync(CityId cityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyCollection<Household>> ListByCityAsync(CityId cityId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(HouseholdsByCityResult);
+        }
         public Task<int> CountResidentsAsync(HouseholdId householdId, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(
