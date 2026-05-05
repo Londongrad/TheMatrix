@@ -4,6 +4,8 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityPopulationSummary;
 using Matrix.Population.Contracts.Models;
@@ -172,6 +174,8 @@ internal static class PopulationApplicationTestSupport
     {
         public CityId? CityIdByPersonId { get; set; }
         public Dictionary<PersonId, CityId?> CityIdByPersonIds { get; } = [];
+        public Dictionary<(CityId CityId, PersonId PersonId), Matrix.Population.Domain.Entities.Person> PersonsByCityAndId { get; } = [];
+        public Dictionary<PersonId, IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>> ChildrenByParentId { get; } = [];
         public IReadOnlyCollection<Matrix.Population.Domain.Entities.Person> ListByCityResult { get; set; } =
             Array.Empty<Matrix.Population.Domain.Entities.Person>();
         public IReadOnlyCollection<CityEmploymentWorkplaceSnapshot> EmploymentWorkplaces { get; set; } =
@@ -200,8 +204,31 @@ internal static class PopulationApplicationTestSupport
             return Task.FromResult(PageByCityResult);
         }
 
-        public Task<Matrix.Population.Domain.Entities.Person?> FindByCityAndPersonIdAsync(CityId cityId, PersonId personId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>> ListChildrenByParentIdAsync(CityId cityId, PersonId parentId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<Matrix.Population.Domain.Entities.Person?> FindByCityAndPersonIdAsync(CityId cityId, PersonId personId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+
+            if (PersonsByCityAndId.TryGetValue((cityId, personId), out Matrix.Population.Domain.Entities.Person? person))
+                return Task.FromResult<Matrix.Population.Domain.Entities.Person?>(person);
+
+            foreach (Matrix.Population.Domain.Entities.Person candidate in ListByCityResult)
+            {
+                if (candidate.Id == personId)
+                    return Task.FromResult<Matrix.Population.Domain.Entities.Person?>(candidate);
+            }
+
+            return Task.FromResult<Matrix.Population.Domain.Entities.Person?>(null);
+        }
+
+        public Task<IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>> ListChildrenByParentIdAsync(CityId cityId, PersonId parentId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+
+            if (ChildrenByParentId.TryGetValue(parentId, out IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>? children))
+                return Task.FromResult(children);
+
+            return Task.FromResult<IReadOnlyCollection<Matrix.Population.Domain.Entities.Person>>(Array.Empty<Matrix.Population.Domain.Entities.Person>());
+        }
 
         public Task<CityId?> FindCityIdByPersonIdAsync(PersonId personId, CancellationToken cancellationToken = default)
         {
@@ -994,6 +1021,90 @@ internal static class PopulationApplicationTestSupport
                 throw ExceptionToThrow;
 
             return Task.FromResult(SnapshotsByDistrictId);
+        }
+    }
+
+    internal sealed class FakeCityPopulationCommuteRoutingService : ICityPopulationCommuteRoutingService
+    {
+        public CityPopulationCommuteContext AnchorContext { get; set; } = CityPopulationCommuteContext.Neutral;
+        public CityPopulationCommuteContext EmploymentContext { get; set; } = CityPopulationCommuteContext.Neutral;
+        public CityPopulationCommuteContext EducationContext { get; set; } = CityPopulationCommuteContext.Neutral;
+        public CityPopulationCommuteContext HealthcareContext { get; set; } = CityPopulationCommuteContext.Neutral;
+
+        public Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            CityAnchorId? destinationAnchorId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(AnchorContext);
+        }
+
+        public Task<CityPopulationCommuteContext> ResolveEmploymentCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            Matrix.Population.Domain.Entities.Person resident,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(EmploymentContext);
+        }
+
+        public Task<CityPopulationCommuteContext> ResolveEducationCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            Matrix.Population.Domain.Entities.Person resident,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(EducationContext);
+        }
+
+        public Task<CityPopulationCommuteContext> ResolveHealthcareCommuteAsync(
+            Guid cityId,
+            ResidentialBuildingId? residentialBuildingId,
+            CityAnchorId? healthcareAnchorId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(HealthcareContext);
+        }
+    }
+
+    internal sealed class FakeCityPopulationActiveTripClient : ICityPopulationActiveTripClient
+    {
+        public Dictionary<Guid, CityPopulationActiveTripSnapshot> ActiveTripsByTravellerId { get; } = [];
+        public IReadOnlyCollection<CityPopulationActiveTripSnapshot> ActiveTripsByCity { get; set; } = Array.Empty<CityPopulationActiveTripSnapshot>();
+        public Guid? RequestedCityId { get; private set; }
+        public Guid? RequestedTravellerEntityId { get; private set; }
+        public bool TryDispatchResult { get; set; } = true;
+        public CityPopulationTripDispatchRequest? RequestedDispatch { get; private set; }
+
+        public Task<IReadOnlyCollection<CityPopulationActiveTripSnapshot>> ListActiveByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(ActiveTripsByCity);
+        }
+
+        public Task<CityPopulationActiveTripSnapshot?> FindActiveByTravellerAsync(
+            Guid cityId,
+            Guid travellerEntityId,
+            CancellationToken cancellationToken)
+        {
+            RequestedCityId = cityId;
+            RequestedTravellerEntityId = travellerEntityId;
+
+            return Task.FromResult(
+                ActiveTripsByTravellerId.TryGetValue(travellerEntityId, out CityPopulationActiveTripSnapshot? trip)
+                    ? trip
+                    : null);
+        }
+
+        public Task<bool> TryDispatchAsync(
+            CityPopulationTripDispatchRequest request,
+            CancellationToken cancellationToken)
+        {
+            RequestedDispatch = request;
+            return Task.FromResult(TryDispatchResult);
         }
     }
 }
