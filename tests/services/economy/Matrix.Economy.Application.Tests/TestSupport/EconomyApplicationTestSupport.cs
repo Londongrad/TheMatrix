@@ -63,6 +63,64 @@ internal static class EconomyApplicationTestSupport
         return allocation;
     }
 
+    internal static CityBusiness CreateBusiness(
+        Guid cityId,
+        string name,
+        CityBusinessKind kind,
+        decimal initialCapital = 0m)
+    {
+        return new CityBusiness(
+            id: Guid.NewGuid(),
+            cityId: cityId,
+            name: name,
+            externalReferenceCode: $"{name}-ext",
+            templateKey: $"{name}-tpl",
+            kind: kind,
+            createdAtUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero),
+            unitProfile: CityBudgetUnitProfile.DefaultMoney(),
+            initialCapital: Money.FromDecimal(initialCapital));
+    }
+
+    internal static CityHouseholdAccount CreateHouseholdAccount(
+        Guid cityId,
+        string name,
+        decimal openingBalance = 0m)
+    {
+        return new CityHouseholdAccount(
+            id: Guid.NewGuid(),
+            cityId: cityId,
+            name: name,
+            externalReferenceCode: $"{name}-ext",
+            createdAtUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero),
+            unitProfile: CityBudgetUnitProfile.DefaultMoney(),
+            openingBalance: Money.FromDecimal(openingBalance));
+    }
+
+    internal static CityHouseholdObligation CreateHouseholdObligation(
+        Guid cityId,
+        Guid householdAccountId,
+        Guid providerBusinessId,
+        string name,
+        CityHouseholdObligationKind kind,
+        CityHouseholdObligationBillingCadence cadence,
+        decimal chargeAmount,
+        decimal taxAmount)
+    {
+        return new CityHouseholdObligation(
+            id: Guid.NewGuid(),
+            cityId: cityId,
+            householdAccountId: householdAccountId,
+            providerBusinessId: providerBusinessId,
+            name: name,
+            kind: kind,
+            billingCadence: cadence,
+            createdAtUtc: new DateTimeOffset(2048, 5, 6, 9, 0, 0, TimeSpan.Zero),
+            firstChargeDueAtUtc: new DateTimeOffset(2048, 5, 7, 9, 0, 0, TimeSpan.Zero),
+            unitProfile: CityBudgetUnitProfile.DefaultMoney(),
+            chargeAmount: Money.FromDecimal(chargeAmount),
+            taxAmount: Money.FromDecimal(taxAmount));
+    }
+
     internal sealed class FakeCityEconomyBootstrapService : ICityEconomyBootstrapService
     {
         public (Guid CityId, string SimulationKind, string? EconomyProfile, DateTimeOffset CreatedAtUtc)? Request { get; private set; }
@@ -138,6 +196,122 @@ internal static class EconomyApplicationTestSupport
         public void Add(CityBudgetAllocation allocation)
         {
             AddedAllocations.Add(allocation);
+        }
+    }
+
+    internal sealed class FakeCityBusinessRepository : ICityBusinessRepository
+    {
+        public IReadOnlyList<CityBusiness> Businesses { get; set; } = Array.Empty<CityBusiness>();
+        public Guid? RequestedCityId { get; private set; }
+        public List<CityBusiness> AddedBusinesses { get; } = [];
+
+        public Task<CityBusiness?> GetByIdAsync(Guid businessId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Businesses.FirstOrDefault(x => x.Id == businessId));
+        }
+
+        public Task<CityBusiness?> GetByCityAndExternalReferenceCodeAsync(
+            Guid cityId,
+            string externalReferenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(Businesses.FirstOrDefault(x => x.CityId == cityId && x.ExternalReferenceCode == externalReferenceCode));
+        }
+
+        public Task<CityBusiness?> GetByCityAndTemplateKeyAsync(
+            Guid cityId,
+            string templateKey,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(Businesses.FirstOrDefault(x => x.CityId == cityId && x.TemplateKey == templateKey));
+        }
+
+        public Task<IReadOnlyList<CityBusiness>> ListByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult<IReadOnlyList<CityBusiness>>(Businesses.Where(x => x.CityId == cityId).ToArray());
+        }
+
+        public void Add(CityBusiness cityBusiness)
+        {
+            AddedBusinesses.Add(cityBusiness);
+        }
+    }
+
+    internal sealed class FakeCityHouseholdAccountRepository : ICityHouseholdAccountRepository
+    {
+        public IReadOnlyList<CityHouseholdAccount> Accounts { get; set; } = Array.Empty<CityHouseholdAccount>();
+        public Guid? RequestedCityId { get; private set; }
+        public List<CityHouseholdAccount> AddedAccounts { get; } = [];
+
+        public Task<CityHouseholdAccount?> GetByIdAsync(Guid householdAccountId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Accounts.FirstOrDefault(x => x.Id == householdAccountId));
+        }
+
+        public Task<CityHouseholdAccount?> GetByCityAndExternalReferenceCodeAsync(
+            Guid cityId,
+            string externalReferenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(Accounts.FirstOrDefault(x => x.CityId == cityId && x.ExternalReferenceCode == externalReferenceCode));
+        }
+
+        public Task<IReadOnlyList<CityHouseholdAccount>> ListByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult<IReadOnlyList<CityHouseholdAccount>>(Accounts.Where(x => x.CityId == cityId).ToArray());
+        }
+
+        public void Add(CityHouseholdAccount householdAccount)
+        {
+            AddedAccounts.Add(householdAccount);
+        }
+    }
+
+    internal sealed class FakeCityHouseholdObligationRepository : ICityHouseholdObligationRepository
+    {
+        public IReadOnlyList<CityHouseholdObligation> Obligations { get; set; } = Array.Empty<CityHouseholdObligation>();
+        public Guid? RequestedCityId { get; private set; }
+        public List<CityHouseholdObligation> AddedObligations { get; } = [];
+
+        public Task<CityHouseholdObligation?> GetByIdAsync(Guid obligationId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Obligations.FirstOrDefault(x => x.Id == obligationId));
+        }
+
+        public Task<IReadOnlyList<CityHouseholdObligation>> ListByCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult<IReadOnlyList<CityHouseholdObligation>>(Obligations.Where(x => x.CityId == cityId).ToArray());
+        }
+
+        public Task<IReadOnlyList<CityHouseholdObligation>> ListDueByCityAsync(Guid cityId, DateTimeOffset asOfUtc, CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult<IReadOnlyList<CityHouseholdObligation>>(Obligations.Where(x => x.CityId == cityId && x.IsDue(asOfUtc)).ToArray());
+        }
+
+        public Task<IReadOnlyList<CityHouseholdObligation>> ListByHouseholdAsync(Guid householdAccountId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyList<CityHouseholdObligation>>(Obligations.Where(x => x.HouseholdAccountId == householdAccountId).ToArray());
+        }
+
+        public Task<IReadOnlyList<CityHouseholdObligation>> ListByHouseholdsAsync(IReadOnlyCollection<Guid> householdAccountIds, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyList<CityHouseholdObligation>>(Obligations.Where(x => householdAccountIds.Contains(x.HouseholdAccountId)).ToArray());
+        }
+
+        public void Add(CityHouseholdObligation obligation)
+        {
+            AddedObligations.Add(obligation);
         }
     }
 
