@@ -13,7 +13,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseh
         ICityHouseholdAccountLedgerRepository householdLedgerRepository,
         ICityBusinessRepository businessRepository,
         ICityBusinessLedgerRepository businessLedgerRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RecordCityHouseholdPurchaseCommand, CityHouseholdAccountLedgerEntryDto>
     {
         public async Task<CityHouseholdAccountLedgerEntryDto> Handle(
@@ -46,7 +47,7 @@ namespace Matrix.Economy.Application.UseCases.HouseholdAccounts.RecordCityHouseh
                 grossAmount: grossAmount,
                 salesTaxAmount: salesTaxAmount);
 
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
 
             var householdEntry = new CityHouseholdAccountLedgerEntry(
                 id: Guid.NewGuid(),

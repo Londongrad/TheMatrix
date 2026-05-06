@@ -11,7 +11,8 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
         ICityHouseholdAccountRepository householdAccountRepository,
         ICityHouseholdAccountLedgerRepository householdLedgerRepository,
         ICityBusinessRepository businessRepository,
-        ICityBusinessLedgerRepository businessLedgerRepository)
+        ICityBusinessLedgerRepository businessLedgerRepository,
+        TimeProvider timeProvider)
     {
         public async Task<HouseholdObligationChargeAttemptResult> TryChargeAsync(
             CityHouseholdObligation obligation,
@@ -37,7 +38,7 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.Common
             householdAccount.EnsureCompatibleUnit(obligation.GetUnitProfile());
             providerBusiness.EnsureCompatibleUnit(obligation.GetUnitProfile());
 
-            DateTimeOffset effectiveOccurredAtUtc = occurredAtUtc?.ToUniversalTime() ?? DateTimeOffset.UtcNow;
+            DateTimeOffset effectiveOccurredAtUtc = occurredAtUtc?.ToUniversalTime() ?? timeProvider.GetUtcNow();
             Money currentDueAmount = obligation.ResolveCurrentDueAmount(effectiveOccurredAtUtc);
             Money currentDueTaxAmount = obligation.ResolveCurrentDueTaxAmount(effectiveOccurredAtUtc);
             int settledInstallmentCount = obligation.ResolveDueInstallmentCount(effectiveOccurredAtUtc);
