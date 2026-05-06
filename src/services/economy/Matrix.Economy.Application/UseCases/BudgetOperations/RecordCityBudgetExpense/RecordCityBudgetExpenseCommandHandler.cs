@@ -18,7 +18,8 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetE
         CityBudgetAllocationExpenseSupport allocationExpenseSupport,
         IEconomyUnitOfWork unitOfWork,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
-        ICityOperationalBudgetPressureProjectionService pressureProjectionService)
+        ICityOperationalBudgetPressureProjectionService pressureProjectionService,
+        TimeProvider timeProvider)
         : IRequestHandler<RecordCityBudgetExpenseCommand, BudgetLedgerEntryDto>
     {
         public async Task<BudgetLedgerEntryDto> Handle(
@@ -40,10 +41,12 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetE
                                         budgetRepository: budgetRepository);
                 budget.EnsureCompatibleUnit(requestedUnit);
 
+                DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
+
                 var entry = new CityBudgetLedgerEntry(
                     id: Guid.NewGuid(),
                     cityId: request.CityId,
-                    occurredAtUtc: DateTimeOffset.UtcNow,
+                    occurredAtUtc: occurredAtUtc,
                     kind: CityBudgetLedgerEntryKind.Expense,
                     category: request.Category,
                     amount: Money.FromDecimal(request.Amount),
@@ -70,7 +73,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RecordCityBudgetE
                 await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
                     snapshot: pressure,
                     effectiveAtUtc: entry.OccurredAtUtc,
-                    occurredAtUtc: DateTimeOffset.UtcNow,
+                    occurredAtUtc: timeProvider.GetUtcNow(),
                     cancellationToken: ct);
                 await unitOfWork.SaveChangesAsync(ct);
 

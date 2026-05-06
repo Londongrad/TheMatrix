@@ -6,7 +6,9 @@ using Matrix.Economy.Domain.Models;
 
 namespace Matrix.Economy.Application.UseCases.BudgetAllocations.Common
 {
-    public sealed class CityBudgetAllocationExpenseSupport(ICityBudgetAllocationRepository allocationRepository)
+    public sealed class CityBudgetAllocationExpenseSupport(
+        ICityBudgetAllocationRepository allocationRepository,
+        TimeProvider timeProvider)
     {
         public async Task RecordExpenseAsync(
             Guid cityId,
@@ -25,7 +27,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.Common
             allocation.EnsureCompatibleUnit(unitProfile);
             allocation.RecordExpense(
                 amount: amount,
-                updatedAtUtc: DateTimeOffset.UtcNow);
+                updatedAtUtc: timeProvider.GetUtcNow());
         }
     }
 }
