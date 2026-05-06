@@ -1,7 +1,9 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
+using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
+using Matrix.Economy.Application.UseCases.Ledger.Common;
 using Matrix.Economy.Domain.Aggregates;
 using Matrix.Economy.Domain.Entities;
 using Matrix.Economy.Domain.Enums;
@@ -327,7 +329,7 @@ internal static class EconomyApplicationTestSupport
             UnitKind: "Currency",
             UnitCode: "MNY",
             UnitDisplayName: "Money",
-            UnitSymbol: "В¤",
+            UnitSymbol: "¤",
             Balance: 1800m,
             TotalCityExpenses: 420m,
             MunicipalOperationsExpenses: 120m,
@@ -350,6 +352,111 @@ internal static class EconomyApplicationTestSupport
         {
             RequestedCityId = cityId;
             return Task.FromResult(Result);
+        }
+    }
+
+    internal sealed class FakeCityBusinessLedgerRepository : ICityBusinessLedgerRepository
+    {
+        public List<CityBusinessLedgerEntry> AddedEntries { get; } = [];
+
+        public Task AddAsync(
+            CityBusinessLedgerEntry entry,
+            CancellationToken cancellationToken = default)
+        {
+            AddedEntries.Add(entry);
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> ExistsAsync(
+            Guid businessId,
+            CityBusinessLedgerEntryKind kind,
+            string referenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<CursorPagedResult<CityBusinessLedgerEntry>> GetSliceByBusinessAsync(
+            Guid businessId,
+            LedgerCursor? cursor,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new CursorPagedResult<CityBusinessLedgerEntry>([], pageSize, null));
+        }
+    }
+
+    internal sealed class FakeCityHouseholdAccountLedgerRepository : ICityHouseholdAccountLedgerRepository
+    {
+        public List<CityHouseholdAccountLedgerEntry> AddedEntries { get; } = [];
+
+        public Task AddAsync(
+            CityHouseholdAccountLedgerEntry entry,
+            CancellationToken cancellationToken = default)
+        {
+            AddedEntries.Add(entry);
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> ExistsAsync(
+            Guid householdAccountId,
+            CityHouseholdAccountLedgerEntryKind kind,
+            string referenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<CursorPagedResult<CityHouseholdAccountLedgerEntry>> GetSliceByHouseholdAccountAsync(
+            Guid householdAccountId,
+            LedgerCursor? cursor,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new CursorPagedResult<CityHouseholdAccountLedgerEntry>([], pageSize, null));
+        }
+    }
+
+    internal sealed class FakeCityBudgetLedgerRepository : ICityBudgetLedgerRepository
+    {
+        public List<CityBudgetLedgerEntry> AddedEntries { get; } = [];
+        public CityBudgetOperationalExpenseSnapshot Snapshot { get; set; } = new(
+            TotalMunicipalOperationsExpenses: 0m,
+            InfrastructureOperationsExpenses: 0m,
+            EmergencyOperationsExpenses: 0m,
+            LastMunicipalExpenseAtUtc: null);
+
+        public Task AddAsync(
+            CityBudgetLedgerEntry entry,
+            CancellationToken cancellationToken = default)
+        {
+            AddedEntries.Add(entry);
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> ExistsAsync(
+            Guid cityId,
+            CityBudgetLedgerEntryKind kind,
+            string referenceCode,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<CursorPagedResult<CityBudgetLedgerEntry>> GetSliceByCityAsync(
+            Guid cityId,
+            LedgerCursor? cursor,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new CursorPagedResult<CityBudgetLedgerEntry>([], pageSize, null));
+        }
+
+        public Task<CityBudgetOperationalExpenseSnapshot> GetOperationalExpenseSnapshotAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Snapshot);
         }
     }
 
@@ -396,3 +503,4 @@ internal static class EconomyApplicationTestSupport
         }
     }
 }
+
