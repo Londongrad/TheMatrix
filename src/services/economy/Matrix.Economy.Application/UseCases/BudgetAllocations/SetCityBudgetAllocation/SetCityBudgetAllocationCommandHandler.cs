@@ -16,7 +16,8 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
         ICityBudgetAllocationRepository allocationRepository,
         IEconomyUnitOfWork unitOfWork,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
-        ICityOperationalBudgetPressureProjectionService pressureProjectionService)
+        ICityOperationalBudgetPressureProjectionService pressureProjectionService,
+        TimeProvider timeProvider)
         : IRequestHandler<SetCityBudgetAllocationCommand, CityBudgetAllocationDto>
     {
         public async Task<CityBudgetAllocationDto> Handle(
@@ -38,7 +39,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
                                         budgetRepository: budgetRepository);
                 budget.EnsureCompatibleUnit(requestedUnit);
 
-                DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
                 CityBudgetAllocation? allocation = await allocationRepository.GetByCityAndCategoryAsync(
                     cityId: request.CityId,
                     category: request.Category,
@@ -72,7 +73,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetAllocations.SetCityBudgetAll
                 await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
                     snapshot: pressure,
                     effectiveAtUtc: updatedAtUtc,
-                    occurredAtUtc: DateTimeOffset.UtcNow,
+                    occurredAtUtc: timeProvider.GetUtcNow(),
                     cancellationToken: ct);
                 await unitOfWork.SaveChangesAsync(ct);
 
