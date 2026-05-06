@@ -10,7 +10,8 @@ namespace Matrix.Economy.Application.UseCases.Businesses.Common
     public sealed class CityBusinessTaxRemittanceSupport(
         ICityBusinessLedgerRepository businessLedgerRepository,
         ICityBudgetRepository budgetRepository,
-        ICityBudgetLedgerRepository budgetLedgerRepository)
+        ICityBudgetLedgerRepository budgetLedgerRepository,
+        TimeProvider timeProvider)
     {
         public async Task<CityBusinessLedgerEntryDto> RemitAsync(
             CityBusiness business,
@@ -30,7 +31,7 @@ namespace Matrix.Economy.Application.UseCases.Businesses.Common
                                     budgetRepository: budgetRepository);
             budget.EnsureCompatibleUnit(business.GetUnitProfile());
 
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
 
             var businessEntry = new CityBusinessLedgerEntry(
                 id: Guid.NewGuid(),

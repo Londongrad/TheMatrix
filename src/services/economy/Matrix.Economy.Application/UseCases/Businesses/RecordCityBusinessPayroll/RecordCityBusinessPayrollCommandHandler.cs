@@ -16,7 +16,8 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayro
         ICityHouseholdAccountLedgerRepository householdLedgerRepository,
         ICityBudgetRepository budgetRepository,
         ICityBudgetLedgerRepository budgetLedgerRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RecordCityBusinessPayrollCommand, CityBusinessLedgerEntryDto>
     {
         public async Task<CityBusinessLedgerEntryDto> Handle(
@@ -60,7 +61,7 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessPayro
                                     budgetRepository: budgetRepository);
             budget.EnsureCompatibleUnit(business.GetUnitProfile());
 
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
 
             var businessEntry = new CityBusinessLedgerEntry(
                 id: Guid.NewGuid(),

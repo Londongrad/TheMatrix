@@ -11,7 +11,8 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpen
     public sealed class RecordCityBusinessExpenseCommandHandler(
         ICityBusinessRepository businessRepository,
         ICityBusinessLedgerRepository ledgerRepository,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RecordCityBusinessExpenseCommand, CityBusinessLedgerEntryDto>
     {
         public async Task<CityBusinessLedgerEntryDto> Handle(
@@ -31,7 +32,7 @@ namespace Matrix.Economy.Application.UseCases.Businesses.RecordCityBusinessExpen
                 id: Guid.NewGuid(),
                 businessId: business.Id,
                 cityId: business.CityId,
-                occurredAtUtc: DateTimeOffset.UtcNow,
+                occurredAtUtc: timeProvider.GetUtcNow(),
                 kind: CityBusinessLedgerEntryKind.OperatingExpense,
                 amount: amount,
                 taxAmount: Money.Zero,
