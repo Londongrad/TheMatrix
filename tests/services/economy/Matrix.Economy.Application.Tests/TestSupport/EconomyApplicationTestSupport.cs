@@ -355,6 +355,30 @@ internal static class EconomyApplicationTestSupport
         }
     }
 
+    internal sealed class FakeCityOperationalBudgetSignalPublisher
+        : ICityOperationalBudgetSignalPublisher
+    {
+        public List<PublishedSignal> PublishedSignals { get; } = [];
+
+        public Task PublishClassicCityOperationalBudgetPressureSnapshotAsync(
+            CityOperationalBudgetPressureDto snapshot,
+            DateTimeOffset effectiveAtUtc,
+            DateTimeOffset occurredAtUtc,
+            CancellationToken cancellationToken = default)
+        {
+            PublishedSignals.Add(new PublishedSignal(
+                Snapshot: snapshot,
+                EffectiveAtUtc: effectiveAtUtc,
+                OccurredAtUtc: occurredAtUtc));
+            return Task.CompletedTask;
+        }
+
+        internal sealed record PublishedSignal(
+            CityOperationalBudgetPressureDto Snapshot,
+            DateTimeOffset EffectiveAtUtc,
+            DateTimeOffset OccurredAtUtc);
+    }
+
     internal sealed class FakeCityBusinessLedgerRepository : ICityBusinessLedgerRepository
     {
         public List<CityBusinessLedgerEntry> AddedEntries { get; } = [];
