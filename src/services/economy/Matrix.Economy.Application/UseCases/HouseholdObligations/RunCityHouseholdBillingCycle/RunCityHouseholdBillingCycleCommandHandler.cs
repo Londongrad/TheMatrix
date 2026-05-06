@@ -8,14 +8,15 @@ namespace Matrix.Economy.Application.UseCases.HouseholdObligations.RunCityHouseh
     public sealed class RunCityHouseholdBillingCycleCommandHandler(
         ICityPopulationSignalPublisher cityPopulationSignalPublisher,
         CityEconomyRecurringCycleExecutionService recurringCycleExecutionService,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<RunCityHouseholdBillingCycleCommand, RunCityHouseholdBillingCycleResultDto>
     {
         public async Task<RunCityHouseholdBillingCycleResultDto> Handle(
             RunCityHouseholdBillingCycleCommand request,
             CancellationToken cancellationToken)
         {
-            DateTimeOffset asOfUtc = request.AsOfUtc ?? DateTimeOffset.UtcNow;
+            DateTimeOffset asOfUtc = request.AsOfUtc ?? timeProvider.GetUtcNow();
             RunCityHouseholdBillingCycleResultDto result = default!;
 
             await unitOfWork.ExecuteInTransactionAsync(async ct =>
