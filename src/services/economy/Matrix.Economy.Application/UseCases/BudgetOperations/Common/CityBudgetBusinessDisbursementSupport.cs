@@ -14,7 +14,8 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
         ICityBudgetRepository budgetRepository,
         ICityBudgetLedgerRepository budgetLedgerRepository,
         ICityBusinessLedgerRepository businessLedgerRepository,
-        CityBudgetAllocationExpenseSupport allocationExpenseSupport)
+        CityBudgetAllocationExpenseSupport allocationExpenseSupport,
+        TimeProvider timeProvider)
     {
         public async Task<BudgetLedgerEntryDto> DisburseAsync(
             CityBusiness business,
@@ -36,7 +37,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.Common
             var moneyAmount = Money.FromDecimal(amount);
             business.RecordMunicipalRevenue(moneyAmount);
 
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
 
             var budgetEntry = new CityBudgetLedgerEntry(
                 id: Guid.NewGuid(),

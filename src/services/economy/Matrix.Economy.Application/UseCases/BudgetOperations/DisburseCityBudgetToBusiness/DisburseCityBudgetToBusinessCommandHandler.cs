@@ -12,7 +12,8 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
         CityBudgetBusinessDisbursementSupport disbursementSupport,
         IEconomyUnitOfWork unitOfWork,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
-        ICityOperationalBudgetPressureProjectionService pressureProjectionService)
+        ICityOperationalBudgetPressureProjectionService pressureProjectionService,
+        TimeProvider timeProvider)
         : IRequestHandler<DisburseCityBudgetToBusinessCommand, BudgetLedgerEntryDto>
     {
         public async Task<BudgetLedgerEntryDto> Handle(
@@ -47,7 +48,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.DisburseCityBudge
                 await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
                     snapshot: pressure,
                     effectiveAtUtc: DateTimeOffset.Parse(result.OccurredAtUtc),
-                    occurredAtUtc: DateTimeOffset.UtcNow,
+                    occurredAtUtc: timeProvider.GetUtcNow(),
                     cancellationToken: ct);
                 await unitOfWork.SaveChangesAsync(ct);
             }, cancellationToken);
