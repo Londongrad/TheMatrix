@@ -121,4 +121,29 @@ public sealed class RunCityBusinessTaxCycleCommandHandlerTests
         Assert.Equal(CityBudgetLedgerEntrySource.BusinessRemittance, budgetEntry.Source);
     }
 
+    [Fact]
+    public async Task Handle_SkipsBusinessesWithoutTaxReserve()
+    {
+        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        CityBusiness business = CreateBusiness(cityId, "Workshop", CityBusinessKind.Service, 180m);
+        var sut = CreateSut(
+            businesses: [business],
+            utcNow: new DateTimeOffset(2048, 5, 8, 21, 41, 0, TimeSpan.Zero));
+
+        RunCityBusinessTaxCycleResultDto result = await sut.Handler.Handle(
+            new RunCityBusinessTaxCycleCommand(
+                CityId: cityId,
+                BudgetCategory: CityBudgetCategory.General),
+            CancellationToken.None);
+
+        Assert.Empty(sut.BusinessLedgerRepository.AddedEntries);
+        Assert.Empty(sut.BudgetLedgerRepository.AddedEntries);
+        Assert.Empty(sut.BudgetRepository.AddedBudgets);
+        Assert.Equal(1, sut.UnitOfWork.SaveChangesCallCount);
+        Assert.Equal(0, result.RemittedBusinesses);
+        Assert.Equal(0m, result.TotalRemittedAmount);
+        Assert.Equal(180m, business.Balance.Amount);
+        Assert.Equal(0m, business.TaxReserve.Amount);
+    }
+
 }
