@@ -1,5 +1,6 @@
 using Matrix.BuildingBlocks.Domain.ValueObjects;
 using Matrix.BuildingBlocks.Application.Models;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.Economy.Application.Abstractions;
 using Matrix.Economy.Application.UseCases.Bootstrap.InitializeCityEconomy;
 using Matrix.Economy.Application.UseCases.GetCityOperationalBudgetPressure;
@@ -401,6 +402,47 @@ internal static class EconomyApplicationTestSupport
             CityOperationalBudgetPressureDto Snapshot,
             DateTimeOffset EffectiveAtUtc,
             DateTimeOffset OccurredAtUtc);
+    }
+
+    internal sealed class FakeCityPopulationSignalPublisher
+        : ICityPopulationSignalPublisher
+    {
+        public List<ClassicCityCostOfLivingSnapshotV1> CostOfLivingSnapshots { get; } = [];
+        public List<ClassicCityServiceQualitySnapshotV1> ServiceQualitySnapshots { get; } = [];
+        public List<ClassicCityEmployerFinancialStressBatchV1> EmployerFinancialStressBatches { get; } = [];
+        public List<ClassicCityHouseholdFinancialStressBatchV1> HouseholdFinancialStressBatches { get; } = [];
+
+        public Task PublishClassicCityCostOfLivingSnapshotAsync(
+            ClassicCityCostOfLivingSnapshotV1 snapshot,
+            CancellationToken cancellationToken = default)
+        {
+            CostOfLivingSnapshots.Add(snapshot);
+            return Task.CompletedTask;
+        }
+
+        public Task PublishClassicCityServiceQualitySnapshotAsync(
+            ClassicCityServiceQualitySnapshotV1 snapshot,
+            CancellationToken cancellationToken = default)
+        {
+            ServiceQualitySnapshots.Add(snapshot);
+            return Task.CompletedTask;
+        }
+
+        public Task PublishClassicCityEmployerFinancialStressBatchAsync(
+            ClassicCityEmployerFinancialStressBatchV1 batch,
+            CancellationToken cancellationToken = default)
+        {
+            EmployerFinancialStressBatches.Add(batch);
+            return Task.CompletedTask;
+        }
+
+        public Task PublishClassicCityHouseholdFinancialStressBatchAsync(
+            ClassicCityHouseholdFinancialStressBatchV1 batch,
+            CancellationToken cancellationToken = default)
+        {
+            HouseholdFinancialStressBatches.Add(batch);
+            return Task.CompletedTask;
+        }
     }
 
     internal sealed class FakeCityBusinessLedgerRepository : ICityBusinessLedgerRepository
