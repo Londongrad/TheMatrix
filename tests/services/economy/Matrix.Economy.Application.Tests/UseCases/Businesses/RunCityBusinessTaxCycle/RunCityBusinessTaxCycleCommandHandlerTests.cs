@@ -87,4 +87,38 @@ public sealed class RunCityBusinessTaxCycleCommandHandlerTests
             timeProvider);
     }
 
+    [Fact]
+    public async Task Handle_RemitsTaxReserveForEligibleBusiness()
+    {
+        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        CityBusiness business = CreateBusiness(cityId, "Corner Store", CityBusinessKind.RetailStore, 200m);
+        business.RecordRetailSale(
+            grossAmount: Money.FromDecimal(50m),
+            salesTaxAmount: Money.FromDecimal(5m));
+        var sut = CreateSut(
+            businesses: [business],
+            utcNow: new DateTimeOffset(2048, 5, 8, 20, 34, 0, TimeSpan.Zero));
+
+        RunCityBusinessTaxCycleResultDto result = await sut.Handler.Handle(
+            new RunCityBusinessTaxCycleCommand(
+                CityId: cityId,
+                BudgetCategory: CityBudgetCategory.Taxation),
+            CancellationToken.None);
+
+        CityBusinessLedgerEntry businessEntry = Assert.Single(sut.BusinessLedgerRepository.AddedEntries);
+        CityBudgetLedgerEntry budgetEntry = Assert.Single(sut.BudgetLedgerRepository.AddedEntries);
+        CityBudget budget = Assert.Single(sut.BudgetRepository.AddedBudgets);
+        Assert.Equal(sut.TimeProvider.UtcNow, businessEntry.OccurredAtUtc);
+        Assert.Equal(sut.TimeProvider.UtcNow, budgetEntry.OccurredAtUtc);
+        Assert.Equal(1, sut.UnitOfWork.SaveChangesCallCount);
+        Assert.Equal(1, result.RemittedBusinesses);
+        Assert.Equal(5m, result.TotalRemittedAmount);
+        Assert.Equal("Taxation", result.BudgetCategory);
+        Assert.Equal(245m, business.Balance.Amount);
+        Assert.Equal(0m, business.TaxReserve.Amount);
+        Assert.Equal(5m, business.TotalTaxRemitted.Amount);
+        Assert.Equal(5m, budget.Balance.Amount);
+        Assert.Equal(CityBudgetLedgerEntrySource.BusinessRemittance, budgetEntry.Source);
+    }
+
 }
