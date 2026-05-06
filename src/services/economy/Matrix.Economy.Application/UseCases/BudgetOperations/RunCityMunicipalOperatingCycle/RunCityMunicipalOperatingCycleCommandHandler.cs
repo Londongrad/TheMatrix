@@ -9,7 +9,8 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalO
         CityEconomyRecurringCycleExecutionService recurringCycleExecutionService,
         IEconomyUnitOfWork unitOfWork,
         ICityOperationalBudgetSignalPublisher operationalBudgetSignalPublisher,
-        ICityOperationalBudgetPressureProjectionService pressureProjectionService)
+        ICityOperationalBudgetPressureProjectionService pressureProjectionService,
+        TimeProvider timeProvider)
         : IRequestHandler<RunCityMunicipalOperatingCycleCommand, RunCityMunicipalOperatingCycleResultDto>
     {
         public async Task<RunCityMunicipalOperatingCycleResultDto> Handle(
@@ -29,7 +30,7 @@ namespace Matrix.Economy.Application.UseCases.BudgetOperations.RunCityMunicipalO
                 CityOperationalBudgetPressureDto pressure = await pressureProjectionService.GetAsync(
                     cityId: request.CityId,
                     cancellationToken: ct);
-                DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+                DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
                 await operationalBudgetSignalPublisher.PublishClassicCityOperationalBudgetPressureSnapshotAsync(
                     snapshot: pressure,
                     effectiveAtUtc: occurredAtUtc,
