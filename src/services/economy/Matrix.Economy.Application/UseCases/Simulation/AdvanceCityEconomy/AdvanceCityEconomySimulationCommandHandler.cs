@@ -12,7 +12,8 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
         ICityEconomyProgressionStateRepository progressionStateRepository,
         ICityPopulationSignalPublisher cityPopulationSignalPublisher,
         CityEconomyRecurringCycleExecutionService recurringCycleExecutionService,
-        IEconomyUnitOfWork unitOfWork)
+        IEconomyUnitOfWork unitOfWork,
+        TimeProvider timeProvider)
         : IRequestHandler<AdvanceCityEconomySimulationCommand, AdvanceCityEconomySimulationResult>
     {
         public async Task<AdvanceCityEconomySimulationResult> Handle(
@@ -41,7 +42,7 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
                     cityId: request.CityId,
                     lastCompletedTickId: 0,
                     lastProcessedDate: previousDate,
-                    updatedAtUtc: DateTimeOffset.UtcNow);
+                    updatedAtUtc: timeProvider.GetUtcNow());
                 await progressionStateRepository.AddAsync(
                     state: state,
                     cancellationToken: cancellationToken);
@@ -98,7 +99,7 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
 
                     state.AdvanceProcessedDate(
                         processedDate: cycleDate,
-                        updatedAtUtc: DateTimeOffset.UtcNow);
+                        updatedAtUtc: timeProvider.GetUtcNow());
                     await unitOfWork.SaveChangesAsync(ct);
 
                     if (costOfLivingSnapshot is not null)
@@ -124,10 +125,10 @@ namespace Matrix.Economy.Application.UseCases.Simulation.AdvanceCityEconomy
             {
                 state.AdvanceProcessedDate(
                     processedDate: toDate,
-                    updatedAtUtc: DateTimeOffset.UtcNow);
+                    updatedAtUtc: timeProvider.GetUtcNow());
                 state.MarkTickCompleted(
                     tickId: request.TickId,
-                    updatedAtUtc: DateTimeOffset.UtcNow);
+                    updatedAtUtc: timeProvider.GetUtcNow());
                 await unitOfWork.SaveChangesAsync(ct);
             }, cancellationToken);
 
