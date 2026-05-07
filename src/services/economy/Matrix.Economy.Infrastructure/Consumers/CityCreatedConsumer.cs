@@ -13,13 +13,19 @@ namespace Matrix.Economy.Infrastructure.Consumers
     {
         public async Task Consume(ConsumeContext<CityCreatedV1> context)
         {
-            CityCreatedV1 message = context.Message;
+            await ConsumeAsync(context.Message, context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            CityCreatedV1 message,
+            CancellationToken cancellationToken)
+        {
             CityEconomyBootstrapResultDto result = await cityEconomyBootstrapService.BootstrapAsync(
                 cityId: message.CityId,
                 simulationKind: message.SimulationKind,
                 economyProfile: message.EconomyProfile,
                 createdAtUtc: message.CreatedAtUtc,
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             if (!result.BudgetCreated && result.CreatedAllocations == 0 && result.CreatedBusinesses == 0)
             {

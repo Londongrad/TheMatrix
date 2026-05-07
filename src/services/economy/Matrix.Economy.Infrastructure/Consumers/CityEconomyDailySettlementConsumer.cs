@@ -17,17 +17,24 @@ namespace Matrix.Economy.Infrastructure.Consumers
         ICityBudgetSettlementRepository settlementRepository,
         IEconomyUnitOfWork unitOfWork,
         CityBudgetOperatingExpensePolicy operatingExpensePolicy,
+        TimeProvider timeProvider,
         ILogger<CityEconomyDailySettlementConsumer> logger)
         : IConsumer<CityEconomyDailySettlementV1>
     {
         public async Task Consume(ConsumeContext<CityEconomyDailySettlementV1> context)
         {
-            CityEconomyDailySettlementV1 message = context.Message;
+            await ConsumeAsync(context.Message, context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            CityEconomyDailySettlementV1 message,
+            CancellationToken cancellationToken)
+        {
 
             if (await settlementRepository.ExistsAsync(
                     cityId: message.CityId,
                     tickId: message.TickId,
-                    cancellationToken: context.CancellationToken))
+                    cancellationToken: cancellationToken))
             {
                 logger.LogDebug(
                     message: "Skipped duplicate city economy settlement for cityId={CityId}, tickId={TickId}.",
@@ -40,7 +47,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 cityId: message.CityId,
                 budgetRepository: budgetRepository,
                 unitOfWork: unitOfWork,
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             var settlement = new CityBudgetSettlement(
                 id: Guid.NewGuid(),
@@ -73,7 +80,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 title: "Income tax settlement",
                 description: "Resident payroll income tax transferred into the city budget.",
                 referenceCode: $"{message.CorrelationId}:income-tax",
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
             await AddLedgerEntryIfPositiveAsync(
                 ledgerRepository: ledgerRepository,
                 cityId: message.CityId,
@@ -83,7 +90,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 title: "Retail tax settlement",
                 description: "Household retail turnover tax transferred into the city budget.",
                 referenceCode: $"{message.CorrelationId}:retail-tax",
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
             await AddLedgerEntryIfPositiveAsync(
                 ledgerRepository: ledgerRepository,
                 cityId: message.CityId,
@@ -93,11 +100,11 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 title: "Municipal operating expense",
                 description: "Budget allocation for baseline city upkeep and operating services.",
                 referenceCode: $"{message.CorrelationId}:operations",
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
             await settlementRepository.AddAsync(
                 settlement: settlement,
-                cancellationToken: context.CancellationToken);
-            await unitOfWork.SaveChangesAsync(context.CancellationToken);
+                cancellationToken: cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
                 message:
@@ -109,7 +116,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 operatingExpense.TotalExpense.Amount);
         }
 
-        private static CityBudgetLedgerEntry CreateLedgerEntry(
+        private CityBudgetLedgerEntry CreateLedgerEntry(
             Guid cityId,
             CityBudgetLedgerEntryKind kind,
             CityBudgetCategory category,
@@ -121,7 +128,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
             return new CityBudgetLedgerEntry(
                 id: Guid.NewGuid(),
                 cityId: cityId,
-                occurredAtUtc: DateTimeOffset.UtcNow,
+                occurredAtUtc: timeProvider.GetUtcNow(),
                 kind: kind,
                 category: category,
                 amount: amount,
@@ -131,7 +138,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                 referenceCode: referenceCode);
         }
 
-        private static Task AddLedgerEntryIfPositiveAsync(
+        private Task AddLedgerEntryIfPositiveAsync(
             ICityBudgetLedgerRepository ledgerRepository,
             Guid cityId,
             CityBudgetLedgerEntryKind kind,

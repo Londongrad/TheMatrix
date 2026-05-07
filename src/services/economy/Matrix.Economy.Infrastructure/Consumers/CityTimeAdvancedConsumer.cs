@@ -12,7 +12,13 @@ namespace Matrix.Economy.Infrastructure.Consumers
     {
         public async Task Consume(ConsumeContext<CityTickPhaseReachedV1> context)
         {
-            CityTickPhaseReachedV1 message = context.Message;
+            await ConsumeAsync(context.Message, context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            CityTickPhaseReachedV1 message,
+            CancellationToken cancellationToken)
+        {
 
             if (message.TickContext.Phase != CityTickPhaseV1.BudgetSettlement)
                 return;
@@ -23,7 +29,7 @@ namespace Matrix.Economy.Infrastructure.Consumers
                     FromSimTimeUtc: message.FromSimTimeUtc,
                     ToSimTimeUtc: message.ToSimTimeUtc,
                     TickId: message.TickId),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
