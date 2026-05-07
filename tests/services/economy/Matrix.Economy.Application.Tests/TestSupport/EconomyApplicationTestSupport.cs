@@ -380,6 +380,31 @@ internal static class EconomyApplicationTestSupport
         }
     }
 
+    internal sealed class FakeCityEconomyProgressionStateRepository
+        : ICityEconomyProgressionStateRepository
+    {
+        public CityEconomyProgressionState? StateByCity { get; set; }
+        public Guid? RequestedCityId { get; private set; }
+        public List<CityEconomyProgressionState> AddedStates { get; } = [];
+
+        public Task<CityEconomyProgressionState?> GetByCityAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedCityId = cityId;
+            return Task.FromResult(StateByCity);
+        }
+
+        public Task AddAsync(
+            CityEconomyProgressionState state,
+            CancellationToken cancellationToken = default)
+        {
+            AddedStates.Add(state);
+            StateByCity = state;
+            return Task.CompletedTask;
+        }
+    }
+
     internal sealed class FakeCityOperationalBudgetSignalPublisher
         : ICityOperationalBudgetSignalPublisher
     {
