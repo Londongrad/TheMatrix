@@ -12,6 +12,23 @@ namespace Matrix.Population.Infrastructure.Messaging.Cleanup
             int batchSize,
             CancellationToken cancellationToken)
         {
+            if (string.Equals(
+                    _dbContext.Database.ProviderName,
+                    "Microsoft.EntityFrameworkCore.Sqlite",
+                    StringComparison.Ordinal))
+                return _dbContext.Database.ExecuteSqlInterpolatedAsync(
+                    sql: $"""
+                          DELETE FROM "ProcessedIntegrationMessages"
+                          WHERE rowid IN (
+                              SELECT rowid
+                              FROM "ProcessedIntegrationMessages"
+                              WHERE "ProcessedAtUtc" <= {processedBeforeUtc}
+                              ORDER BY "ProcessedAtUtc"
+                              LIMIT {batchSize}
+                          )
+                          """,
+                    cancellationToken: cancellationToken);
+
             return _dbContext.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
                       WITH cte AS (
