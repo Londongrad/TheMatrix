@@ -154,4 +154,68 @@ public sealed class AdvanceCityEconomySimulationCommandHandlerTests
         Assert.Empty(sut.PopulationSignalPublisher.ServiceQualitySnapshots);
     }
 
+    [Fact]
+    public async Task Handle_AppliesSameDayTickWithoutRunningDailyCycles()
+    {
+        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var sut = CreateSut(
+            cityId: cityId,
+            utcNow: new DateTimeOffset(2048, 5, 11, 10, 31, 0, TimeSpan.Zero));
+
+        AdvanceCityEconomySimulationResult result = await sut.Handler.Handle(
+            new AdvanceCityEconomySimulationCommand(
+                CityId: cityId,
+                FromSimTimeUtc: new DateTimeOffset(2048, 5, 11, 8, 0, 0, TimeSpan.Zero),
+                ToSimTimeUtc: new DateTimeOffset(2048, 5, 11, 18, 0, 0, TimeSpan.Zero),
+                TickId: 2),
+            CancellationToken.None);
+
+        CityEconomyProgressionState state = Assert.Single(sut.ProgressionStateRepository.AddedStates);
+        Assert.Equal(AdvanceCityEconomySimulationStatus.Applied, result.Status);
+        Assert.Equal(0, result.ProcessedDays);
+        Assert.Equal(0, result.ChargedObligations);
+        Assert.Equal(0, result.RemittedBusinesses);
+        Assert.Equal(0, result.MunicipalProviderPayments);
+        Assert.Equal(new DateOnly(2048, 5, 11), state.LastProcessedDate);
+        Assert.Equal(2, state.LastCompletedTickId);
+        Assert.Equal(sut.TimeProvider.UtcNow, state.UpdatedAtUtc);
+        Assert.Equal(1, sut.UnitOfWork.SaveChangesCallCount);
+        Assert.Empty(sut.PopulationSignalPublisher.CostOfLivingSnapshots);
+        Assert.Empty(sut.PopulationSignalPublisher.ServiceQualitySnapshots);
+        Assert.Empty(sut.PopulationSignalPublisher.HouseholdFinancialStressBatches);
+    }
+
+    [Fact]
+    public async Task Handle_AppliesDailyCycleAndPublishesServiceQualitySnapshot()
+    {
+        Guid cityId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var sut = CreateSut(
+            cityId: cityId,
+            utcNow: new DateTimeOffset(2048, 5, 12, 11, 13, 0, TimeSpan.Zero));
+
+        AdvanceCityEconomySimulationResult result = await sut.Handler.Handle(
+            new AdvanceCityEconomySimulationCommand(
+                CityId: cityId,
+                FromSimTimeUtc: new DateTimeOffset(2048, 5, 11, 8, 0, 0, TimeSpan.Zero),
+                ToSimTimeUtc: new DateTimeOffset(2048, 5, 12, 17, 30, 0, TimeSpan.Zero),
+                TickId: 5),
+            CancellationToken.None);
+
+        CityEconomyProgressionState state = Assert.Single(sut.ProgressionStateRepository.AddedStates);
+        ClassicCityServiceQualitySnapshotV1 snapshot = Assert.Single(sut.PopulationSignalPublisher.ServiceQualitySnapshots);
+        Assert.Equal(AdvanceCityEconomySimulationStatus.Applied, result.Status);
+        Assert.Equal(1, result.ProcessedDays);
+        Assert.Equal(0, result.ChargedObligations);
+        Assert.Equal(0, result.RemittedBusinesses);
+        Assert.Equal(0, result.MunicipalProviderPayments);
+        Assert.Equal(new DateOnly(2048, 5, 12), state.LastProcessedDate);
+        Assert.Equal(5, state.LastCompletedTickId);
+        Assert.Equal(sut.TimeProvider.UtcNow, state.UpdatedAtUtc);
+        Assert.Equal(3, sut.UnitOfWork.SaveChangesCallCount);
+        Assert.Equal(cityId, snapshot.CityId);
+        Assert.Equal(new DateTimeOffset(2048, 5, 12, 17, 30, 0, TimeSpan.Zero), snapshot.OccurredAtUtc);
+        Assert.Empty(sut.PopulationSignalPublisher.CostOfLivingSnapshots);
+        Assert.Empty(sut.PopulationSignalPublisher.HouseholdFinancialStressBatches);
+    }
+
 }
