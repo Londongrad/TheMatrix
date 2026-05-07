@@ -284,6 +284,7 @@ internal static class EconomyApplicationTestSupport
     {
         public IReadOnlyList<CityHouseholdObligation> Obligations { get; set; } = Array.Empty<CityHouseholdObligation>();
         public Guid? RequestedCityId { get; private set; }
+        public Guid? RequestedHouseholdAccountId { get; private set; }
         public List<CityHouseholdObligation> AddedObligations { get; } = [];
 
         public Task<CityHouseholdObligation?> GetByIdAsync(Guid obligationId, CancellationToken cancellationToken = default)
@@ -305,6 +306,7 @@ internal static class EconomyApplicationTestSupport
 
         public Task<IReadOnlyList<CityHouseholdObligation>> ListByHouseholdAsync(Guid householdAccountId, CancellationToken cancellationToken = default)
         {
+            RequestedHouseholdAccountId = householdAccountId;
             return Task.FromResult<IReadOnlyList<CityHouseholdObligation>>(Obligations.Where(x => x.HouseholdAccountId == householdAccountId).ToArray());
         }
 
@@ -473,6 +475,11 @@ internal static class EconomyApplicationTestSupport
     internal sealed class FakeCityBusinessLedgerRepository : ICityBusinessLedgerRepository
     {
         public List<CityBusinessLedgerEntry> AddedEntries { get; } = [];
+        public Guid? RequestedBusinessId { get; private set; }
+        public LedgerCursor? RequestedCursor { get; private set; }
+        public int? RequestedPageSize { get; private set; }
+        public CursorPagedResult<CityBusinessLedgerEntry> SliceResult { get; set; } =
+            new(Array.Empty<CityBusinessLedgerEntry>(), 50, null);
 
         public Task AddAsync(
             CityBusinessLedgerEntry entry,
@@ -497,13 +504,21 @@ internal static class EconomyApplicationTestSupport
             int pageSize,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(new CursorPagedResult<CityBusinessLedgerEntry>([], pageSize, null));
+            RequestedBusinessId = businessId;
+            RequestedCursor = cursor;
+            RequestedPageSize = pageSize;
+            return Task.FromResult(SliceResult);
         }
     }
 
     internal sealed class FakeCityHouseholdAccountLedgerRepository : ICityHouseholdAccountLedgerRepository
     {
         public List<CityHouseholdAccountLedgerEntry> AddedEntries { get; } = [];
+        public Guid? RequestedHouseholdAccountId { get; private set; }
+        public LedgerCursor? RequestedCursor { get; private set; }
+        public int? RequestedPageSize { get; private set; }
+        public CursorPagedResult<CityHouseholdAccountLedgerEntry> SliceResult { get; set; } =
+            new(Array.Empty<CityHouseholdAccountLedgerEntry>(), 50, null);
 
         public Task AddAsync(
             CityHouseholdAccountLedgerEntry entry,
@@ -528,13 +543,21 @@ internal static class EconomyApplicationTestSupport
             int pageSize,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(new CursorPagedResult<CityHouseholdAccountLedgerEntry>([], pageSize, null));
+            RequestedHouseholdAccountId = householdAccountId;
+            RequestedCursor = cursor;
+            RequestedPageSize = pageSize;
+            return Task.FromResult(SliceResult);
         }
     }
 
     internal sealed class FakeCityBudgetLedgerRepository : ICityBudgetLedgerRepository
     {
         public List<CityBudgetLedgerEntry> AddedEntries { get; } = [];
+        public Guid? RequestedCityId { get; private set; }
+        public LedgerCursor? RequestedCursor { get; private set; }
+        public int? RequestedPageSize { get; private set; }
+        public CursorPagedResult<CityBudgetLedgerEntry> SliceResult { get; set; } =
+            new(Array.Empty<CityBudgetLedgerEntry>(), 50, null);
         public CityBudgetOperationalExpenseSnapshot Snapshot { get; set; } = new(
             TotalMunicipalOperationsExpenses: 0m,
             InfrastructureOperationsExpenses: 0m,
@@ -564,7 +587,10 @@ internal static class EconomyApplicationTestSupport
             int pageSize,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(new CursorPagedResult<CityBudgetLedgerEntry>([], pageSize, null));
+            RequestedCityId = cityId;
+            RequestedCursor = cursor;
+            RequestedPageSize = pageSize;
+            return Task.FromResult(SliceResult);
         }
 
         public Task<CityBudgetOperationalExpenseSnapshot> GetOperationalExpenseSnapshotAsync(
