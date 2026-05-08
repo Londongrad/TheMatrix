@@ -11,18 +11,27 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         ILogger<ClassicCityEmployerFinancialStressConsumer> logger)
         : IConsumer<ClassicCityEmployerFinancialStressBatchV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityEmployerFinancialStressBatchV1> context)
+        public Task Consume(ConsumeContext<ClassicCityEmployerFinancialStressBatchV1> context)
         {
-            if (context.MessageId is null)
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            ClassicCityEmployerFinancialStressBatchV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
                 throw new InvalidOperationException(
                     "ClassicCityEmployerFinancialStress message must have a MessageId.");
-
-            ClassicCityEmployerFinancialStressBatchV1 message = context.Message;
 
             ApplyCityEmployerFinancialStressResult result = await mediator.Send(
                 request: new ApplyCityEmployerFinancialStressCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityEmployerFinancialStressConsumerDefinition.EndpointNameValue,
                     OccurredAtUtc: message.OccurredAtUtc,
                     Employers: message.Employers
@@ -39,7 +48,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                             x.HasHiringFreeze,
                             x.HasLayoffPressure))
                        .ToArray()),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
@@ -48,7 +57,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Applied classic city employer financial stress batch for cityId={CityId}, messageId={MessageId}, employers={Employers}, batch={BatchNumber}/{TotalBatches}.",
                         message.CityId,
-                        context.MessageId,
+                        messageId,
                         result.AppliedEmployerCount,
                         message.BatchNumber,
                         message.TotalBatches);
@@ -59,7 +68,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped duplicate classic city employer financial stress batch for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityEmployerFinancialStressStatus.CityDeleted:
@@ -67,7 +76,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city employer financial stress batch for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityEmployerFinancialStressStatus.CityArchived:
@@ -75,7 +84,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city employer financial stress batch for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
         }

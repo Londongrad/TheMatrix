@@ -11,24 +11,33 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         ILogger<ClassicCityServiceQualitySnapshotConsumer> logger)
         : IConsumer<ClassicCityServiceQualitySnapshotV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityServiceQualitySnapshotV1> context)
+        public Task Consume(ConsumeContext<ClassicCityServiceQualitySnapshotV1> context)
         {
-            if (context.MessageId is null)
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            ClassicCityServiceQualitySnapshotV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
                 throw new InvalidOperationException(
                     "ClassicCityServiceQualitySnapshot message must have a MessageId.");
-
-            ClassicCityServiceQualitySnapshotV1 message = context.Message;
 
             ApplyCityServiceQualitySnapshotResult result = await mediator.Send(
                 request: new ApplyCityServiceQualitySnapshotCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityServiceQualitySnapshotConsumerDefinition.EndpointNameValue,
                     HealthcareQualityIndex: message.HealthcareQualityIndex,
                     EducationQualityIndex: message.EducationQualityIndex,
                     HousingSupportIndex: message.HousingSupportIndex,
                     OccurredAtUtc: message.OccurredAtUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
@@ -37,7 +46,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Applied classic city service-quality snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityServiceQualitySnapshotStatus.Duplicate:
@@ -45,7 +54,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped duplicate classic city service-quality snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityServiceQualitySnapshotStatus.CityDeleted:
@@ -53,7 +62,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city service-quality snapshot for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityServiceQualitySnapshotStatus.CityArchived:
@@ -61,7 +70,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city service-quality snapshot for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityServiceQualitySnapshotStatus.Stale:
@@ -69,7 +78,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped stale classic city service-quality snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
         }

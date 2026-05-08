@@ -11,18 +11,27 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         ILogger<ClassicCityLivingConditionsSnapshotConsumer> logger)
         : IConsumer<ClassicCityLivingConditionsSnapshotV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityLivingConditionsSnapshotV1> context)
+        public Task Consume(ConsumeContext<ClassicCityLivingConditionsSnapshotV1> context)
         {
-            if (context.MessageId is null)
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            ClassicCityLivingConditionsSnapshotV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
                 throw new InvalidOperationException(
                     "ClassicCityLivingConditionsSnapshot message must have a MessageId.");
-
-            ClassicCityLivingConditionsSnapshotV1 message = context.Message;
 
             ApplyCityLivingConditionsSnapshotResult result = await mediator.Send(
                 new ApplyCityLivingConditionsSnapshotCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityLivingConditionsSnapshotConsumerDefinition.EndpointNameValue,
                     FloodingIndex: message.FloodingIndex,
                     RoadAccessibilityIndex: message.RoadAccessibilityIndex,
@@ -33,7 +42,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     SanitationCoverageIndex: message.SanitationCoverageIndex,
                     EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
-                context.CancellationToken);
+                cancellationToken);
 
             switch (result.Status)
             {
@@ -41,31 +50,31 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     logger.LogInformation(
                         "Applied classic city living-conditions snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.Duplicate:
                     logger.LogDebug(
                         "Skipped duplicate classic city living-conditions snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.CityDeleted:
                     logger.LogDebug(
                         "Skipped classic city living-conditions snapshot for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.CityArchived:
                     logger.LogDebug(
                         "Skipped classic city living-conditions snapshot for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityLivingConditionsSnapshotStatus.Stale:
                     logger.LogDebug(
                         "Skipped stale classic city living-conditions snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
         }

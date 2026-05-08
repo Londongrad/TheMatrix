@@ -11,18 +11,27 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         ILogger<ClassicCityCostOfLivingSnapshotConsumer> logger)
         : IConsumer<ClassicCityCostOfLivingSnapshotV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityCostOfLivingSnapshotV1> context)
+        public Task Consume(ConsumeContext<ClassicCityCostOfLivingSnapshotV1> context)
         {
-            if (context.MessageId is null)
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            ClassicCityCostOfLivingSnapshotV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
                 throw new InvalidOperationException(
                     "ClassicCityCostOfLivingSnapshot message must have a MessageId.");
-
-            ClassicCityCostOfLivingSnapshotV1 message = context.Message;
 
             ApplyCityCostOfLivingSnapshotResult result = await mediator.Send(
                 request: new ApplyCityCostOfLivingSnapshotCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityCostOfLivingSnapshotConsumerDefinition.EndpointNameValue,
                     WageMultiplier: message.WageMultiplier,
                     RetailPriceMultiplier: message.RetailPriceMultiplier,
@@ -31,7 +40,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     CostOfLivingIndex: message.CostOfLivingIndex,
                     AffordabilityIndex: message.AffordabilityIndex,
                     OccurredAtUtc: message.OccurredAtUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
@@ -40,7 +49,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Applied classic city cost-of-living snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityCostOfLivingSnapshotStatus.Duplicate:
@@ -48,7 +57,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped duplicate classic city cost-of-living snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityCostOfLivingSnapshotStatus.CityDeleted:
@@ -56,7 +65,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city cost-of-living snapshot for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityCostOfLivingSnapshotStatus.CityArchived:
@@ -64,7 +73,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city cost-of-living snapshot for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityCostOfLivingSnapshotStatus.Stale:
@@ -72,7 +81,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped stale classic city cost-of-living snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
         }

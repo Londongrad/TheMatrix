@@ -11,18 +11,27 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         ILogger<ClassicCityStockpileSnapshotConsumer> logger)
         : IConsumer<ClassicCityStockpileSnapshotV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityStockpileSnapshotV1> context)
+        public Task Consume(ConsumeContext<ClassicCityStockpileSnapshotV1> context)
         {
-            if (context.MessageId is null)
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            ClassicCityStockpileSnapshotV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
                 throw new InvalidOperationException(
                     "ClassicCityStockpileSnapshot message must have a MessageId.");
-
-            ClassicCityStockpileSnapshotV1 message = context.Message;
 
             ApplyCityEssentialsSnapshotResult result = await mediator.Send(
                 new ApplyCityEssentialsSnapshotCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityStockpileSnapshotConsumerDefinition.EndpointNameValue,
                     SupplyStressIndex: message.SupplyStressIndex,
                     EmergencyRationingEnabled: message.EmergencyRationingEnabled,
@@ -34,7 +43,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     EmergencyWaterShortageRiskIndex: message.EmergencyWater.ShortageRiskIndex,
                     EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
-                context.CancellationToken);
+                cancellationToken);
 
             switch (result.Status)
             {
@@ -42,31 +51,31 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     logger.LogInformation(
                         "Applied classic city essentials snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.Duplicate:
                     logger.LogDebug(
                         "Skipped duplicate classic city essentials snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.CityDeleted:
                     logger.LogDebug(
                         "Skipped classic city essentials snapshot for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.CityArchived:
                     logger.LogDebug(
                         "Skipped classic city essentials snapshot for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
                 case ApplyCityEssentialsSnapshotStatus.Stale:
                     logger.LogDebug(
                         "Skipped stale classic city essentials snapshot for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
         }

@@ -11,18 +11,27 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         ILogger<ClassicCityHouseholdFinancialStressConsumer> logger)
         : IConsumer<ClassicCityHouseholdFinancialStressBatchV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityHouseholdFinancialStressBatchV1> context)
+        public Task Consume(ConsumeContext<ClassicCityHouseholdFinancialStressBatchV1> context)
         {
-            if (context.MessageId is null)
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            ClassicCityHouseholdFinancialStressBatchV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
                 throw new InvalidOperationException(
                     "ClassicCityHouseholdFinancialStress message must have a MessageId.");
-
-            ClassicCityHouseholdFinancialStressBatchV1 message = context.Message;
 
             ApplyCityHouseholdFinancialStressResult result = await mediator.Send(
                 request: new ApplyCityHouseholdFinancialStressCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: ClassicCityHouseholdFinancialStressConsumerDefinition.EndpointNameValue,
                     OccurredAtUtc: message.OccurredAtUtc,
                     Households: message.Households
@@ -39,7 +48,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                             TotalOverdueAmount: x.TotalOverdueAmount,
                             DistressScore: x.DistressScore))
                        .ToArray()),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
@@ -48,7 +57,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Applied classic city household financial stress batch for cityId={CityId}, messageId={MessageId}, households={Households}, batch={BatchNumber}/{TotalBatches}.",
                         message.CityId,
-                        context.MessageId,
+                        messageId,
                         result.AppliedHouseholdCount,
                         message.BatchNumber,
                         message.TotalBatches);
@@ -59,7 +68,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped duplicate classic city household financial stress batch for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityHouseholdFinancialStressStatus.CityDeleted:
@@ -67,7 +76,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city household financial stress batch for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityHouseholdFinancialStressStatus.CityArchived:
@@ -75,7 +84,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped classic city household financial stress batch for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
         }
