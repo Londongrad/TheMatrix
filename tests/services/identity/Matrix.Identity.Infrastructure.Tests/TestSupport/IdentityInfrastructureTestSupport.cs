@@ -4,6 +4,7 @@ using System.Text.Json;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
+using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Matrix.Identity.Domain.ValueObjects;
@@ -399,6 +400,74 @@ internal sealed class FakeSecurityAuditBulkRepository : ISecurityAuditBulkReposi
         LastOccurredBeforeUtc = occurredBeforeUtc;
         LastBatchSize = batchSize;
         return Task.FromResult(DeleteBatchResult);
+    }
+}
+
+internal sealed class FakeDefaultUserAccessPolicyRepository : IDefaultUserAccessPolicyRepository
+{
+    public int Version { get; set; } = 1;
+    public DefaultUserAccessPolicy Policy { get; set; } = DefaultUserAccessPolicy.CreateDefault(IdentityInfrastructureTestSupport.CreatedAtUtc);
+
+    public Task<DefaultUserAccessPolicy> GetForUpdateAsync(CancellationToken cancellationToken)
+    {
+        return Task.FromResult(Policy);
+    }
+
+    public Task<int> GetVersionAsync(CancellationToken cancellationToken)
+    {
+        return Task.FromResult(Version);
+    }
+
+    public Task<IReadOnlyDictionary<string, PermissionEffect>> GetOverridesAsync(CancellationToken cancellationToken)
+    {
+        return Task.FromResult<IReadOnlyDictionary<string, PermissionEffect>>(
+            new Dictionary<string, PermissionEffect>(StringComparer.Ordinal));
+    }
+
+    public Task<bool> ReplaceOverridesAsync(IReadOnlyDictionary<string, PermissionEffect> overrides, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(false);
+    }
+}
+
+internal sealed class FakeSecurityStateChangeCollector : ISecurityStateChangeCollector
+{
+    private readonly HashSet<Guid> _userIds = [];
+    private bool _defaultChanged;
+
+    public void MarkUserChanged(Guid userId)
+    {
+        _userIds.Add(userId);
+    }
+
+    public void MarkDefaultUserAccessChanged()
+    {
+        _defaultChanged = true;
+    }
+
+    public IReadOnlyCollection<Guid> DrainUsers()
+    {
+        Guid[] items = _userIds.ToArray();
+        _userIds.Clear();
+        return items;
+    }
+
+    public bool DrainDefaultUserAccessChanged()
+    {
+        bool value = _defaultChanged;
+        _defaultChanged = false;
+        return value;
+    }
+}
+
+internal sealed class FakeSecurityStateChangeProcessor : ISecurityStateChangeProcessor
+{
+    public int CallCount { get; private set; }
+
+    public Task ProcessAsync(CancellationToken cancellationToken)
+    {
+        CallCount++;
+        return Task.CompletedTask;
     }
 }
 
