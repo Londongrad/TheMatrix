@@ -11,17 +11,26 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         IMediator mediator,
         ILogger<CityWeatherChangedConsumer> logger) : IConsumer<CityWeatherChangedV1>
     {
-        public async Task Consume(ConsumeContext<CityWeatherChangedV1> context)
+        public Task Consume(ConsumeContext<CityWeatherChangedV1> context)
         {
-            if (context.MessageId is null)
-                throw new InvalidOperationException("CityWeatherChanged message must have a MessageId.");
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
 
-            CityWeatherChangedV1 message = context.Message;
+        internal async Task ConsumeAsync(
+            CityWeatherChangedV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
+                throw new InvalidOperationException("CityWeatherChanged message must have a MessageId.");
 
             ApplyCityWeatherImpactResult result = await mediator.Send(
                 request: new ApplyCityWeatherImpactCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: CityWeatherChangedConsumerDefinition.EndpointNameValue,
                     AtSimTimeUtc: message.AtSimTimeUtc,
                     OccurredOnUtc: message.OccurredOnUtc,
@@ -43,12 +52,12 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         WindSpeedKph: message.CurrentState.WindSpeedKph,
                         CloudCoveragePercent: message.CurrentState.CloudCoveragePercent,
                         PressureHpa: message.CurrentState.PressureHpa)),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             SyncCityWeatherExposureStateResult syncResult = await mediator.Send(
                 request: new SyncCityWeatherExposureStateCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: $"{CityWeatherChangedConsumerDefinition.EndpointNameValue}-sync",
                     AtSimTimeUtc: message.AtSimTimeUtc,
                     OccurredOnUtc: message.OccurredOnUtc,
@@ -70,7 +79,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         WindSpeedKph: message.CurrentState.WindSpeedKph,
                         CloudCoveragePercent: message.CurrentState.CloudCoveragePercent,
                         PressureHpa: message.CurrentState.PressureHpa)),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
@@ -79,7 +88,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Applied city weather impact for cityId={CityId}, messageId={MessageId}, affectedPeople={AffectedPeople}.",
                         message.CityId,
-                        context.MessageId,
+                        messageId,
                         result.AffectedPeopleCount);
                     break;
 
@@ -87,28 +96,28 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     logger.LogDebug(
                         message: "Skipped duplicate city weather impact for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityWeatherImpactStatus.OutOfOrder:
                     logger.LogDebug(
                         message: "Skipped out-of-order city weather impact for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityWeatherImpactStatus.CityDeleted:
                     logger.LogDebug(
                         message: "Skipped city weather impact for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case ApplyCityWeatherImpactStatus.CityArchived:
                     logger.LogDebug(
                         message: "Skipped city weather impact for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
 
@@ -119,7 +128,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped out-of-order city weather exposure sync for cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case SyncCityWeatherExposureStateStatus.CityDeleted:
@@ -127,7 +136,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped city weather exposure sync for deleted cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
 
                 case SyncCityWeatherExposureStateStatus.CityArchived:
@@ -135,7 +144,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                         message:
                         "Skipped city weather exposure sync for archived cityId={CityId}, messageId={MessageId}.",
                         message.CityId,
-                        context.MessageId);
+                        messageId);
                     break;
             }
         }

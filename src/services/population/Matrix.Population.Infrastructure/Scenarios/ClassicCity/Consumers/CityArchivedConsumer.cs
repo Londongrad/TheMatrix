@@ -10,20 +10,29 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         IMediator mediator,
         ILogger<CityArchivedConsumer> logger) : IConsumer<CityArchivedV1>
     {
-        public async Task Consume(ConsumeContext<CityArchivedV1> context)
+        public Task Consume(ConsumeContext<CityArchivedV1> context)
         {
-            if (context.MessageId is null)
-                throw new InvalidOperationException("CityArchived message must have a MessageId.");
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
 
-            CityArchivedV1 message = context.Message;
+        internal async Task ConsumeAsync(
+            CityArchivedV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
+                throw new InvalidOperationException("CityArchived message must have a MessageId.");
 
             ArchiveCityPopulationDataResult result = await mediator.Send(
                 request: new ArchiveCityPopulationDataCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: CityArchivedConsumerDefinition.EndpointNameValue,
                     ArchivedAtUtc: message.ArchivedAtUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {

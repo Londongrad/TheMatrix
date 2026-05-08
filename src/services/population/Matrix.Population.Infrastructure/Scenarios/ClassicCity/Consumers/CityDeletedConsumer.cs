@@ -10,20 +10,29 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         IMediator mediator,
         ILogger<CityDeletedConsumer> logger) : IConsumer<CityDeletedV1>
     {
-        public async Task Consume(ConsumeContext<CityDeletedV1> context)
+        public Task Consume(ConsumeContext<CityDeletedV1> context)
         {
-            if (context.MessageId is null)
-                throw new InvalidOperationException("CityDeleted message must have a MessageId.");
+            return ConsumeAsync(
+                message: context.Message,
+                messageId: context.MessageId,
+                cancellationToken: context.CancellationToken);
+        }
 
-            CityDeletedV1 message = context.Message;
+        internal async Task ConsumeAsync(
+            CityDeletedV1 message,
+            Guid? messageId,
+            CancellationToken cancellationToken)
+        {
+            if (messageId is null)
+                throw new InvalidOperationException("CityDeleted message must have a MessageId.");
 
             DeleteCityPopulationDataResult result = await mediator.Send(
                 request: new DeleteCityPopulationDataCommand(
                     CityId: message.CityId,
-                    IntegrationMessageId: context.MessageId.Value,
+                    IntegrationMessageId: messageId.Value,
                     ConsumerName: CityDeletedConsumerDefinition.EndpointNameValue,
                     DeletedAtUtc: message.DeletedAtUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {

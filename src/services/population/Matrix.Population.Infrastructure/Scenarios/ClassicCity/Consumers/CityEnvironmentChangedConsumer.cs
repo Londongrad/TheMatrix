@@ -10,10 +10,17 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
         IMediator mediator,
         ILogger<CityEnvironmentChangedConsumer> logger) : IConsumer<CityEnvironmentChangedV1>
     {
-        public async Task Consume(ConsumeContext<CityEnvironmentChangedV1> context)
+        public Task Consume(ConsumeContext<CityEnvironmentChangedV1> context)
         {
-            CityEnvironmentChangedV1 message = context.Message;
+            return ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
 
+        internal async Task ConsumeAsync(
+            CityEnvironmentChangedV1 message,
+            CancellationToken cancellationToken)
+        {
             SyncCityEnvironmentResult result = await mediator.Send(
                 request: new ApplyCityEnvironmentSyncCommand(
                     CityId: message.CityId,
@@ -21,7 +28,7 @@ namespace Matrix.Population.Infrastructure.Scenarios.ClassicCity.Consumers
                     Hemisphere: message.CurrentEnvironment.Hemisphere,
                     UtcOffsetMinutes: message.CurrentEnvironment.UtcOffsetMinutes,
                     SyncedAtUtc: message.OccurredOnUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
