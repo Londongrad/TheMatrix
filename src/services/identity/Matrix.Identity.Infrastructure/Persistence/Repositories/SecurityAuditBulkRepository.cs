@@ -10,6 +10,22 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             int batchSize,
             CancellationToken cancellationToken)
         {
+            if (db.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                return db.Database.ExecuteSqlInterpolatedAsync(
+                    sql: $"""
+                          DELETE FROM "SecurityAuditEvents"
+                          WHERE rowid IN (
+                              SELECT rowid
+                              FROM "SecurityAuditEvents"
+                              WHERE "OccurredAtUtc" <= {occurredBeforeUtc}
+                              ORDER BY "OccurredAtUtc"
+                              LIMIT {batchSize}
+                          )
+                          """,
+                    cancellationToken: cancellationToken);
+            }
+
             return db.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
                       WITH cte AS (

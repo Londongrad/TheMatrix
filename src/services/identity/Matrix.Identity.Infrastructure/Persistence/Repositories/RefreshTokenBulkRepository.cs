@@ -12,6 +12,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
     {
         private readonly IdentityDbContext _db = db;
         private readonly IClock _clock = clock;
+        private IQueryable<RefreshToken> RefreshTokens => _db.Users.SelectMany(x => x.RefreshTokens);
 
         public Task<int> RevokeAllByUserIdAsync(
             Guid userId,
@@ -19,22 +20,18 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             DateTime now = _clock.UtcNow;
+            string reasonValue = reason.ToString();
 
-            return _db.Set<RefreshToken>()
-               .Where(t => t.UserId == userId)
-               .Where(t => !t.IsRevoked)
-               .ExecuteUpdateAsync(
-                    setPropertyCalls: s => s
-                       .SetProperty(
-                            x => x.IsRevoked,
-                            _ => true)
-                       .SetProperty(
-                            x => x.RevokedAtUtc,
-                            _ => now)
-                       .SetProperty(
-                            x => x.RevokedReason,
-                            _ => reason),
-                    cancellationToken: cancellationToken);
+            return _db.Database.ExecuteSqlInterpolatedAsync(
+                sql: $"""
+                      UPDATE "UserRefreshTokens"
+                      SET "IsRevoked" = TRUE,
+                          "RevokedAtUtc" = {now},
+                          "RevokedReason" = {reasonValue}
+                      WHERE "UserId" = {userId}
+                        AND "IsRevoked" = FALSE
+                      """,
+                cancellationToken: cancellationToken);
         }
 
         public Task<int> RevokeByIdAsync(
@@ -44,30 +41,26 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             DateTime now = _clock.UtcNow;
+            string reasonValue = reason.ToString();
 
-            return _db.Set<RefreshToken>()
-               .Where(t => t.UserId == userId)
-               .Where(t => t.Id == refreshTokenId)
-               .Where(t => !t.IsRevoked)
-               .ExecuteUpdateAsync(
-                    setPropertyCalls: s => s
-                       .SetProperty(
-                            x => x.IsRevoked,
-                            _ => true)
-                       .SetProperty(
-                            x => x.RevokedAtUtc,
-                            _ => now)
-                       .SetProperty(
-                            x => x.RevokedReason,
-                            _ => reason),
-                    cancellationToken: cancellationToken);
+            return _db.Database.ExecuteSqlInterpolatedAsync(
+                sql: $"""
+                      UPDATE "UserRefreshTokens"
+                      SET "IsRevoked" = TRUE,
+                          "RevokedAtUtc" = {now},
+                          "RevokedReason" = {reasonValue}
+                      WHERE "UserId" = {userId}
+                        AND "Id" = {refreshTokenId}
+                        AND "IsRevoked" = FALSE
+                      """,
+                cancellationToken: cancellationToken);
         }
 
         public Task<int> DeleteExpiredAsync(
             DateTime utcNow,
             CancellationToken cancellationToken)
         {
-            return _db.Set<RefreshToken>()
+            return RefreshTokens
                .Where(t => t.ExpiresAtUtc <= utcNow)
                .ExecuteDeleteAsync(cancellationToken);
         }
@@ -76,7 +69,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             DateTime utcNow,
             CancellationToken cancellationToken)
         {
-            return _db.Set<RefreshToken>()
+            return RefreshTokens
                .Where(t => t.IsRevoked && t.ExpiresAtUtc <= utcNow)
                .ExecuteDeleteAsync(cancellationToken);
         }
@@ -86,6 +79,22 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             int batchSize,
             CancellationToken cancellationToken)
         {
+            if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                return _db.Database.ExecuteSqlInterpolatedAsync(
+                    sql: $"""
+                          DELETE FROM "UserRefreshTokens"
+                          WHERE rowid IN (
+                              SELECT rowid
+                              FROM "UserRefreshTokens"
+                              WHERE "ExpiresAtUtc" <= {expiredBeforeUtc}
+                              ORDER BY "ExpiresAtUtc"
+                              LIMIT {batchSize}
+                          )
+                          """,
+                    cancellationToken: cancellationToken);
+            }
+
             return _db.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
                       WITH cte AS (
@@ -107,6 +116,24 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             int batchSize,
             CancellationToken cancellationToken)
         {
+            if (_db.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                return _db.Database.ExecuteSqlInterpolatedAsync(
+                    sql: $"""
+                          DELETE FROM "UserRefreshTokens"
+                          WHERE rowid IN (
+                              SELECT rowid
+                              FROM "UserRefreshTokens"
+                              WHERE "IsRevoked" = TRUE
+                                AND "RevokedAtUtc" IS NOT NULL
+                                AND "RevokedAtUtc" <= {revokedBeforeUtc}
+                              ORDER BY "RevokedAtUtc"
+                              LIMIT {batchSize}
+                          )
+                          """,
+                    cancellationToken: cancellationToken);
+            }
+
             return _db.Database.ExecuteSqlInterpolatedAsync(
                 sql: $"""
                       WITH cte AS (
