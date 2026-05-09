@@ -15,7 +15,8 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
         ICityOperationalExpenseOutboxWriter expenseOutboxWriter,
         ICityBudgetAuthorizationClient budgetAuthorizationClient,
         CityStockpileBudgetGuard budgetGuard,
-        ICityResupplyTripDispatcher resupplyTripDispatcher)
+        ICityResupplyTripDispatcher resupplyTripDispatcher,
+        TimeProvider timeProvider)
         : IRequestHandler<DispatchCityResupplyCommand, DispatchCityResupplyResult>
     {
         public async Task<DispatchCityResupplyResult> Handle(
@@ -135,7 +136,7 @@ namespace Matrix.Resources.Application.Scenarios.ClassicCity.UseCases.Stockpiles
                 focusDistrictId: request.FocusDistrictId,
                 readyAtTickId: readyAtTickId);
 
-            DateTimeOffset occurredAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
             await expenseOutboxWriter.AddClassicCityOperationalExpenseAsync(
                 expense: CityResupplyOperationalExpenseFactory.CreateDispatchExpense(
                     cityId: request.CityId,
