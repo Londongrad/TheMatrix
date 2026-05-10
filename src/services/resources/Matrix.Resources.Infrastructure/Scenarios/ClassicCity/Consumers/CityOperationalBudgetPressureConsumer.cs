@@ -11,10 +11,17 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
         ILogger<CityOperationalBudgetPressureConsumer> logger)
         : IConsumer<ClassicCityOperationalBudgetPressureSnapshotV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityOperationalBudgetPressureSnapshotV1> context)
+        public Task Consume(ConsumeContext<ClassicCityOperationalBudgetPressureSnapshotV1> context)
         {
-            ClassicCityOperationalBudgetPressureSnapshotV1 message = context.Message;
+            return ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
 
+        internal async Task ConsumeAsync(
+            ClassicCityOperationalBudgetPressureSnapshotV1 message,
+            CancellationToken cancellationToken)
+        {
             SyncCityOperationalBudgetPressureResult result = await mediator.Send(
                 request: new SyncCityOperationalBudgetPressureCommand(
                     CityId: message.CityId,
@@ -31,7 +38,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                     PressureIndex: message.PressureIndex,
                     EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {

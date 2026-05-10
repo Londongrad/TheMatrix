@@ -10,10 +10,17 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
         IMediator mediator,
         ILogger<CitySystemsResourceDemandConsumer> logger) : IConsumer<ClassicCitySystemsResourceDemandSnapshotV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCitySystemsResourceDemandSnapshotV1> context)
+        public Task Consume(ConsumeContext<ClassicCitySystemsResourceDemandSnapshotV1> context)
         {
-            ClassicCitySystemsResourceDemandSnapshotV1 message = context.Message;
+            return ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
 
+        internal async Task ConsumeAsync(
+            ClassicCitySystemsResourceDemandSnapshotV1 message,
+            CancellationToken cancellationToken)
+        {
             SyncCitySystemsDemandResult result = await mediator.Send(
                 request: new SyncCitySystemsDemandCommand(
                     CityId: message.CityId,
@@ -24,7 +31,7 @@ namespace Matrix.Resources.Infrastructure.Scenarios.ClassicCity.Consumers
                     OverallDemandPressureIndex: message.OverallDemandPressureIndex,
                     EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
