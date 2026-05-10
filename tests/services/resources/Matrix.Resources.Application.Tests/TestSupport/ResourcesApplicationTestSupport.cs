@@ -1,8 +1,10 @@
 using System.Data;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.Resources.Application.Abstractions;
 using Matrix.Resources.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.Resources.Application.Scenarios.ClassicCity.Services;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Resources.Domain.Scenarios.ClassicCity.Systems;
@@ -112,5 +114,60 @@ internal sealed class FakeCityStockpileSnapshotOutboxWriter : ICityStockpileSnap
     {
         Snapshots.Add(snapshot);
         return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeCityOperationalExpenseOutboxWriter : ICityOperationalExpenseOutboxWriter
+{
+    public List<ClassicCityOperationalExpenseIncurredV1> Expenses { get; } = [];
+
+    public Task AddClassicCityOperationalExpenseAsync(ClassicCityOperationalExpenseIncurredV1 expense, CancellationToken cancellationToken = default)
+    {
+        Expenses.Add(expense);
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeCityBudgetAuthorizationClient : ICityBudgetAuthorizationClient
+{
+    public CityBudgetAuthorizationDecision Response { get; set; } = CityBudgetAuthorizationDecision.NotRequired(
+        requestedIntensity: "Low",
+        pressureIndex: 0m,
+        authorizationLevel: "High",
+        availableAmount: 100_000m);
+
+    public CityBudgetAuthorizationRequest? Request { get; private set; }
+    public int CallCount { get; private set; }
+
+    public Task<CityBudgetAuthorizationDecision> AuthorizeAsync(CityBudgetAuthorizationRequest request, CancellationToken cancellationToken)
+    {
+        Request = request;
+        CallCount++;
+        return Task.FromResult(Response);
+    }
+}
+
+internal sealed class FakeCityResupplyTripDispatcher : ICityResupplyTripDispatcher
+{
+    public bool Result { get; set; } = true;
+    public int CallCount { get; private set; }
+    public Guid? CityId { get; private set; }
+    public Guid? FocusDistrictId { get; private set; }
+    public string? Focus { get; private set; }
+    public string? Intensity { get; private set; }
+
+    public Task<bool> TryDispatchDistrictResupplyAsync(
+        Guid cityId,
+        Guid focusDistrictId,
+        string focus,
+        string intensity,
+        CancellationToken cancellationToken)
+    {
+        CallCount++;
+        CityId = cityId;
+        FocusDistrictId = focusDistrictId;
+        Focus = focus;
+        Intensity = intensity;
+        return Task.FromResult(Result);
     }
 }
