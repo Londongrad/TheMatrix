@@ -5,6 +5,7 @@ using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 
@@ -38,6 +39,22 @@ internal static class SimulationSystemsApplicationTestSupport
     internal static FrozenTimeProvider CreateTimeProvider(DateTimeOffset? utcNow = null)
     {
         return new FrozenTimeProvider(utcNow ?? CreatedAtUtc.AddHours(5));
+    }
+
+    internal static CityWeatherSystemInput CreateWeather(
+        string type = "Storm",
+        string severity = "Severe",
+        string precipitationKind = "Rain")
+    {
+        return new CityWeatherSystemInput(
+            Type: type,
+            Severity: severity,
+            PrecipitationKind: precipitationKind,
+            TemperatureC: -8m,
+            HumidityPercent: 82m,
+            WindSpeedKph: 46m,
+            CloudCoveragePercent: 88m,
+            PressureHpa: 992m);
     }
 }
 
