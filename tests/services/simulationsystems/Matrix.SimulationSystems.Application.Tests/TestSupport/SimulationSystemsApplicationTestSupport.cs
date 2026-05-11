@@ -1,9 +1,11 @@
 using System.Data;
 using Matrix.BuildingBlocks.Application.Abstractions;
+using Matrix.BuildingBlocks.Application.IntegrationEvents.Economy;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Population;
 using Matrix.BuildingBlocks.Application.IntegrationEvents.Resources;
 using Matrix.SimulationSystems.Application.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
@@ -158,6 +160,41 @@ internal sealed class FakeCityPopulationLivingConditionsOutboxWriter : ICityPopu
     {
         Snapshots.Add(snapshot);
         return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeCityOperationalExpenseOutboxWriter : ICityOperationalExpenseOutboxWriter
+{
+    public List<ClassicCityOperationalExpenseIncurredV1> Expenses { get; } = [];
+
+    public Task AddClassicCityOperationalExpenseAsync(
+        ClassicCityOperationalExpenseIncurredV1 expense,
+        CancellationToken cancellationToken = default)
+    {
+        Expenses.Add(expense);
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeCityBudgetAuthorizationClient : ICityBudgetAuthorizationClient
+{
+    public CityBudgetAuthorizationDecision? Decision { get; set; }
+    public CityBudgetAuthorizationRequest? LastRequest { get; private set; }
+    public int AuthorizeCallCount { get; private set; }
+
+    public Task<CityBudgetAuthorizationDecision> AuthorizeAsync(
+        CityBudgetAuthorizationRequest request,
+        CancellationToken cancellationToken)
+    {
+        LastRequest = request;
+        AuthorizeCallCount++;
+
+        return Task.FromResult(
+            Decision ?? CityBudgetAuthorizationDecision.NotRequired(
+                requestedIntensity: request.RequestedIntensity,
+                pressureIndex: 0m,
+                authorizationLevel: "High",
+                availableAmount: 1_000_000m));
     }
 }
 
