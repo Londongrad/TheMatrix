@@ -10,13 +10,14 @@ using MediatR;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.DispatchCityHeatingMaintenance
 {
-    public sealed class DispatchCityHeatingMaintenanceCommandHandler(
+public sealed class DispatchCityHeatingMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
         CityMaintenanceBudgetGuard budgetGuard,
-        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService,
+        TimeProvider timeProvider)
         : IRequestHandler<DispatchCityHeatingMaintenanceCommand, CityHeatingStatusDto?>
     {
         public async Task<CityHeatingStatusDto?> Handle(
@@ -97,7 +98,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
                     operationKind: "HeatingMaintenanceDispatch",
                     focus: request.Focus,
                     intensity: budgetDecision.AppliedIntensity,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: timeProvider.GetUtcNow()),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -108,7 +109,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.He
                 state: state,
                 heatingSupportIndex: heatingSupport,
                 requestedIntensity: request.Intensity,
-                appliedIntensity: null,
+                appliedIntensity: appliedIntensity.ToString(),
                 budgetAuthorizationStatus: authorizationDecision.Status,
                 budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
                 budgetAvailableAmount: authorizationDecision.AvailableAmount,
