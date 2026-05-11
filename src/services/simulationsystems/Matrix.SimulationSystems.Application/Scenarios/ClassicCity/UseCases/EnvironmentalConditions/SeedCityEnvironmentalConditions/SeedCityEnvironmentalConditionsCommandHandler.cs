@@ -13,7 +13,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityPopulationLivingConditionsOutboxWriter populationLivingConditionsOutboxWriter,
-        CityEnvironmentalConditionPolicy policy)
+        CityEnvironmentalConditionPolicy policy,
+        TimeProvider timeProvider)
         : IRequestHandler<SeedCityEnvironmentalConditionsCommand, SeedCityEnvironmentalConditionsResult>
     {
         public async Task<SeedCityEnvironmentalConditionsResult> Handle(
@@ -54,7 +55,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.En
             await populationLivingConditionsOutboxWriter.AddClassicCityLivingConditionsSnapshotAsync(
                 snapshot: CityPopulationLivingConditionsIntegrationEventFactory.CreateSnapshot(
                     state: state,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: timeProvider.GetUtcNow()),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
