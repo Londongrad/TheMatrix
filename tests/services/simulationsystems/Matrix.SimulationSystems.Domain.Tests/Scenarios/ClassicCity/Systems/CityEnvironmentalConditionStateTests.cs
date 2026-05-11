@@ -1,4 +1,5 @@
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Models;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.ValueObjects;
 using Matrix.SimulationSystems.Domain.Tests.TestSupport;
 using Xunit;
@@ -96,5 +97,63 @@ public sealed class CityEnvironmentalConditionStateTests
         state.MarkTickApplied(7);
 
         Assert.Equal(7, state.LastAppliedTickId);
+    }
+
+    [Fact]
+    public void ApplyResourceSupplyAndBudgetPressure_UpdateEmbeddedStates()
+    {
+        var state = SimulationSystemsTestData.CreateState();
+        var supply = CityResourceSupplySnapshot.Neutral(
+            effectiveAtUtc: SimulationSystemsTestData.LaterUtc,
+            effectiveTickId: 9);
+        var pressure = CityOperationalBudgetPressureSnapshot.Neutral(
+            effectiveAtUtc: SimulationSystemsTestData.LaterUtc,
+            effectiveTickId: 11);
+
+        state.ApplyResourceSupply(supply);
+        state.ApplyOperationalBudgetPressure(pressure);
+
+        Assert.Equal(9, state.ResourceSupply.EffectiveTickId);
+        Assert.Equal(11, state.OperationalBudgetPressure.EffectiveTickId);
+        Assert.Equal(SimulationSystemsTestData.LaterUtc, state.ResourceSupply.EffectiveAtUtc);
+    }
+
+    [Fact]
+    public void ScheduleAndApplyDuePendingOperations_DispatchesAndClearsWork()
+    {
+        var state = SimulationSystemsTestData.CreateState();
+
+        state.ScheduleDrainageMaintenance(
+            focus: DrainageMaintenanceFocus.PumpRepairs,
+            intensity: DrainageMaintenanceIntensity.Heavy,
+            readyAtTickId: 4);
+        state.ScheduleUtilityIncidentResponse(
+            focus: UtilityIncidentResponseFocus.PowerOutages,
+            intensity: UtilityIncidentResponseIntensity.Standard,
+            focusDistrictId: Guid.Parse("73000000-0000-0000-0000-0000000000bb"),
+            readyAtTickId: 4);
+
+        bool applied = state.ApplyDuePendingOperations(4);
+
+        Assert.True(applied);
+        Assert.False(state.PendingDrainageMaintenance.IsScheduled);
+        Assert.False(state.PendingUtilityIncidentResponse.IsScheduled);
+        Assert.True(state.DrainageInfrastructure.PumpCapacityIndex > 0m);
+        Assert.True(state.UtilityIncidentInfrastructure.DispatchReadinessIndex > 0m);
+    }
+
+    [Fact]
+    public void ApplyDuePendingOperations_WhenNothingIsReady_ReturnsFalse()
+    {
+        var state = SimulationSystemsTestData.CreateState();
+        state.ScheduleSnowRemovalMaintenance(
+            focus: SnowRemovalMaintenanceFocus.RouteClearance,
+            intensity: SnowRemovalMaintenanceIntensity.Standard,
+            readyAtTickId: 8);
+
+        bool applied = state.ApplyDuePendingOperations(7);
+
+        Assert.False(applied);
+        Assert.True(state.PendingSnowRemovalMaintenance.IsScheduled);
     }
 }
