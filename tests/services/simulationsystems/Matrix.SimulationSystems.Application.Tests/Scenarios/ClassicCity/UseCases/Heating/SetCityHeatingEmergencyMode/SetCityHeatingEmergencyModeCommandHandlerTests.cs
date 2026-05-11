@@ -1,0 +1,56 @@
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Heating.SetCityHeatingEmergencyMode;
+using Matrix.SimulationSystems.Application.Tests.TestSupport;
+using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
+using Xunit;
+
+namespace Matrix.SimulationSystems.Application.Tests.Scenarios.ClassicCity.UseCases.Heating.SetCityHeatingEmergencyMode;
+
+public sealed class SetCityHeatingEmergencyModeCommandHandlerTests
+{
+    [Fact]
+    public async Task Handle_WhenStateDoesNotExist_ReturnsNull()
+    {
+        var repository = new FakeCityEnvironmentalConditionRepository();
+        var handler = new SetCityHeatingEmergencyModeCommandHandler(
+            repository,
+            new FakeUnitOfWork(),
+            new CityEnvironmentalConditionPolicy(),
+            new ClassicCityWeatherPressureProfileFactory());
+
+        var result = await handler.Handle(
+            new SetCityHeatingEmergencyModeCommand(
+                CityId: SimulationSystemsApplicationTestSupport.CityId,
+                Enabled: true),
+            CancellationToken.None);
+
+        Assert.Null(result);
+        Assert.Equal(SimulationSystemsApplicationTestSupport.CreateHostId(), repository.RequestedSimulationHostId);
+    }
+
+    [Fact]
+    public async Task Handle_WhenStateExists_TogglesEmergencyModeAndReturnsUpdatedDto()
+    {
+        var state = SimulationSystemsApplicationTestSupport.CreateState();
+        var repository = new FakeCityEnvironmentalConditionRepository { State = state };
+        var unitOfWork = new FakeUnitOfWork();
+        var handler = new SetCityHeatingEmergencyModeCommandHandler(
+            repository,
+            unitOfWork,
+            new CityEnvironmentalConditionPolicy(),
+            new ClassicCityWeatherPressureProfileFactory());
+
+        var result = await handler.Handle(
+            new SetCityHeatingEmergencyModeCommand(
+                CityId: SimulationSystemsApplicationTestSupport.CityId,
+                Enabled: true),
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.True(state.HeatingInfrastructure.EmergencyModeEnabled);
+        Assert.True(result!.EmergencyModeEnabled);
+        Assert.Equal(state.LastEvaluatedAtUtc, result.LastEvaluatedAtUtc);
+        Assert.Equal(state.HeatingInfrastructure.PlantCapacityIndex, result.PlantCapacityIndex);
+        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
+    }
+}
