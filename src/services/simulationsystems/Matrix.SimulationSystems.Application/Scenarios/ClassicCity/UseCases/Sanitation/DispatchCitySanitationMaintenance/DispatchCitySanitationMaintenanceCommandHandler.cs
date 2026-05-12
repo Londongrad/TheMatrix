@@ -10,13 +10,14 @@ using MediatR;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sanitation.DispatchCitySanitationMaintenance
 {
-    public sealed class DispatchCitySanitationMaintenanceCommandHandler(
+public sealed class DispatchCitySanitationMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
         CityMaintenanceBudgetGuard budgetGuard,
-        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService,
+        TimeProvider timeProvider)
         : IRequestHandler<DispatchCitySanitationMaintenanceCommand, CitySanitationStatusDto?>
     {
         public async Task<CitySanitationStatusDto?> Handle(
@@ -97,7 +98,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
                     operationKind: "SanitationMaintenanceDispatch",
                     focus: request.Focus,
                     intensity: budgetDecision.AppliedIntensity,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: timeProvider.GetUtcNow()),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -108,7 +109,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Sa
                 state: state,
                 sanitationSupportIndex: sanitationSupport,
                 requestedIntensity: request.Intensity,
-                appliedIntensity: null,
+                appliedIntensity: appliedIntensity.ToString(),
                 budgetAuthorizationStatus: authorizationDecision.Status,
                 budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
                 budgetAvailableAmount: authorizationDecision.AvailableAmount,
