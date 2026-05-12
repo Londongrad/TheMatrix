@@ -17,7 +17,8 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
         CityMaintenanceBudgetGuard budgetGuard,
         CityMaintenanceBudgetAuthorizationService budgetAuthorizationService,
-        ICityOperationalTripDispatcher operationalTripDispatcher)
+        ICityOperationalTripDispatcher operationalTripDispatcher,
+        TimeProvider timeProvider)
         : IRequestHandler<DispatchCityUtilityIncidentResponseCommand, CityUtilityIncidentStatusDto?>
     {
         public async Task<CityUtilityIncidentStatusDto?> Handle(
@@ -99,7 +100,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                     focus: request.Focus,
                     intensity: budgetDecision.AppliedIntensity,
                     districtFocused: request.FocusDistrictId.HasValue,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: timeProvider.GetUtcNow()),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -120,7 +121,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Ut
                 state: state,
                 utilityIncidentSupportIndex: utilityIncidentSupport,
                 requestedIntensity: request.Intensity,
-                appliedIntensity: null,
+                appliedIntensity: appliedIntensity.ToString(),
                 budgetAuthorizationStatus: authorizationDecision.Status,
                 budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
                 budgetAvailableAmount: authorizationDecision.AvailableAmount,
