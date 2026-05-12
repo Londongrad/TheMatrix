@@ -10,13 +10,14 @@ using MediatR;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.PowerDistribution.DispatchCityPowerDistributionMaintenance
 {
-    public sealed class DispatchCityPowerDistributionMaintenanceCommandHandler(
+public sealed class DispatchCityPowerDistributionMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
         CityMaintenanceBudgetGuard budgetGuard,
-        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService,
+        TimeProvider timeProvider)
         : IRequestHandler<DispatchCityPowerDistributionMaintenanceCommand, CityPowerDistributionStatusDto?>
     {
         public async Task<CityPowerDistributionStatusDto?> Handle(
@@ -97,7 +98,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
                     operationKind: "PowerDistributionMaintenanceDispatch",
                     focus: request.Focus,
                     intensity: budgetDecision.AppliedIntensity,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: timeProvider.GetUtcNow()),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -108,7 +109,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Po
                 state: state,
                 powerSupportIndex: powerSupport,
                 requestedIntensity: request.Intensity,
-                appliedIntensity: null,
+                appliedIntensity: appliedIntensity.ToString(),
                 budgetAuthorizationStatus: authorizationDecision.Status,
                 budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
                 budgetAvailableAmount: authorizationDecision.AvailableAmount,
