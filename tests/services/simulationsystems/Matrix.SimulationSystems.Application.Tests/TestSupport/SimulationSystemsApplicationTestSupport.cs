@@ -224,6 +224,31 @@ internal sealed class FakeCityMapTopologyClient : ICityMapTopologyClient
     }
 }
 
+internal sealed class FakeCityOperationalTripDispatcher : ICityOperationalTripDispatcher
+{
+    public int DispatchCallCount { get; private set; }
+    public Guid? CityId { get; private set; }
+    public Guid? FocusDistrictId { get; private set; }
+    public string? Focus { get; private set; }
+    public string? Intensity { get; private set; }
+    public bool Result { get; set; } = true;
+
+    public Task<bool> TryDispatchUtilityIncidentResponseAsync(
+        Guid cityId,
+        Guid focusDistrictId,
+        string focus,
+        string intensity,
+        CancellationToken cancellationToken)
+    {
+        DispatchCallCount++;
+        CityId = cityId;
+        FocusDistrictId = focusDistrictId;
+        Focus = focus;
+        Intensity = intensity;
+        return Task.FromResult(Result);
+    }
+}
+
 internal sealed class DbUpdateConcurrencyException : Exception
 {
     public DbUpdateConcurrencyException(string message)
