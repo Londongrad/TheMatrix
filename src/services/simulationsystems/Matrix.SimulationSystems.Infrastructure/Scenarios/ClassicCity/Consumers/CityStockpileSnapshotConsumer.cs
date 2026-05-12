@@ -10,10 +10,17 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         IMediator mediator,
         ILogger<CityStockpileSnapshotConsumer> logger) : IConsumer<ClassicCityStockpileSnapshotV1>
     {
-        public async Task Consume(ConsumeContext<ClassicCityStockpileSnapshotV1> context)
+        public Task Consume(ConsumeContext<ClassicCityStockpileSnapshotV1> context)
         {
-            ClassicCityStockpileSnapshotV1 message = context.Message;
+            return ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
 
+        internal async Task ConsumeAsync(
+            ClassicCityStockpileSnapshotV1 message,
+            CancellationToken cancellationToken)
+        {
             SyncCityResourceSupplyResult result = await mediator.Send(
                 request: new SyncCityResourceSupplyCommand(
                     CityId: message.CityId,
@@ -32,7 +39,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     EmergencyWaterShortageRiskIndex: message.EmergencyWater.ShortageRiskIndex,
                     EffectiveTickId: message.EffectiveTickId,
                     EffectiveAtUtc: message.EffectiveAtUtc),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {

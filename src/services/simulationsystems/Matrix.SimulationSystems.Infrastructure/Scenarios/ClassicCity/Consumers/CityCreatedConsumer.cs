@@ -11,10 +11,17 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         IMediator mediator,
         ILogger<CityCreatedConsumer> logger) : IConsumer<CityCreatedV1>
     {
-        public async Task Consume(ConsumeContext<CityCreatedV1> context)
+        public Task Consume(ConsumeContext<CityCreatedV1> context)
         {
-            CityCreatedV1 message = context.Message;
+            return ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
 
+        internal async Task ConsumeAsync(
+            CityCreatedV1 message,
+            CancellationToken cancellationToken)
+        {
             if (!ClassicCityScenario.IsMatch(message.SimulationKind))
             {
                 logger.LogDebug(
@@ -30,7 +37,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                     CreatedAtUtc: message.CreatedAtUtc,
                     SimulationKind: message.SimulationKind,
                     DevelopmentLevel: message.DevelopmentLevel),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {

@@ -10,10 +10,17 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
         IMediator mediator,
         ILogger<CityWeatherChangedConsumer> logger) : IConsumer<CityWeatherChangedV1>
     {
-        public async Task Consume(ConsumeContext<CityWeatherChangedV1> context)
+        public Task Consume(ConsumeContext<CityWeatherChangedV1> context)
         {
-            CityWeatherChangedV1 message = context.Message;
+            return ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
 
+        internal async Task ConsumeAsync(
+            CityWeatherChangedV1 message,
+            CancellationToken cancellationToken)
+        {
             RecalculateCityEnvironmentalConditionsResult result = await mediator.Send(
                 request: new RecalculateCityEnvironmentalConditionsCommand(
                     CityId: message.CityId,
@@ -27,7 +34,7 @@ namespace Matrix.SimulationSystems.Infrastructure.Scenarios.ClassicCity.Consumer
                         WindSpeedKph: message.CurrentState.WindSpeedKph,
                         CloudCoveragePercent: message.CurrentState.CloudCoveragePercent,
                         PressureHpa: message.CurrentState.PressureHpa)),
-                cancellationToken: context.CancellationToken);
+                cancellationToken: cancellationToken);
 
             switch (result.Status)
             {
