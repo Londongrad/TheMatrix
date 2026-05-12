@@ -10,13 +10,14 @@ using MediatR;
 
 namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.WaterDistribution.DispatchCityWaterDistributionMaintenance
 {
-    public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
+public sealed class DispatchCityWaterDistributionMaintenanceCommandHandler(
         ICityEnvironmentalConditionRepository repository,
         IUnitOfWork unitOfWork,
         ICityOperationalExpenseOutboxWriter operationalExpenseOutboxWriter,
         ClassicCityWeatherPressureProfileFactory pressureProfileFactory,
         CityMaintenanceBudgetGuard budgetGuard,
-        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService)
+        CityMaintenanceBudgetAuthorizationService budgetAuthorizationService,
+        TimeProvider timeProvider)
         : IRequestHandler<DispatchCityWaterDistributionMaintenanceCommand, CityWaterDistributionStatusDto?>
     {
         public async Task<CityWaterDistributionStatusDto?> Handle(
@@ -97,7 +98,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
                     operationKind: "WaterDistributionMaintenanceDispatch",
                     focus: request.Focus,
                     intensity: budgetDecision.AppliedIntensity,
-                    occurredAtUtc: DateTimeOffset.UtcNow),
+                    occurredAtUtc: timeProvider.GetUtcNow()),
                 cancellationToken: cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -108,7 +109,7 @@ namespace Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.Wa
                 state: state,
                 waterSupportIndex: waterSupport,
                 requestedIntensity: request.Intensity,
-                appliedIntensity: null,
+                appliedIntensity: appliedIntensity.ToString(),
                 budgetAuthorizationStatus: authorizationDecision.Status,
                 budgetAuthorizationLevel: authorizationDecision.AuthorizationLevel,
                 budgetAvailableAmount: authorizationDecision.AvailableAmount,
