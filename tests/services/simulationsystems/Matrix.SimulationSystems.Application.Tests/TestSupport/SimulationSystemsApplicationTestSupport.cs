@@ -8,6 +8,7 @@ using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Services;
 using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.EnvironmentalConditions.RecalculateCityEnvironmentalConditions;
+using Matrix.SimulationSystems.Application.Scenarios.ClassicCity.UseCases.RoadAccess.GetCityRoadSegmentConditions;
 using Matrix.SimulationSystems.Domain.Scenarios.ClassicCity.Systems;
 using Matrix.SimulationSystems.Domain.Simulation;
 
@@ -57,6 +58,15 @@ internal static class SimulationSystemsApplicationTestSupport
             WindSpeedKph: 46m,
             CloudCoveragePercent: 88m,
             PressureHpa: 992m);
+    }
+
+    internal static CityRoadGraphTopologyDto CreateTopology(
+        params CityDistrictTopologyDto[] districts)
+    {
+        return new CityRoadGraphTopologyDto(
+            CityId: CityId,
+            Districts: districts,
+            RoadSegments: []);
     }
 }
 
@@ -195,6 +205,22 @@ internal sealed class FakeCityBudgetAuthorizationClient : ICityBudgetAuthorizati
                 pressureIndex: 0m,
                 authorizationLevel: "High",
                 availableAmount: 1_000_000m));
+    }
+}
+
+internal sealed class FakeCityMapTopologyClient : ICityMapTopologyClient
+{
+    public CityRoadGraphTopologyDto? Topology { get; set; }
+    public Guid? RequestedCityId { get; private set; }
+    public int GetRoadGraphCallCount { get; private set; }
+
+    public Task<CityRoadGraphTopologyDto?> GetRoadGraphAsync(
+        Guid cityId,
+        CancellationToken cancellationToken)
+    {
+        RequestedCityId = cityId;
+        GetRoadGraphCallCount++;
+        return Task.FromResult(Topology);
     }
 }
 
