@@ -155,4 +155,60 @@ public sealed class ClassicCitySetupSessionDraftMutationTests
         Assert.Equal(1, sessionStore.DeleteCallCount);
         Assert.False(sessionStore.Sessions.ContainsKey(sessionId));
     }
+
+    [Fact]
+    public async Task DeleteAsync_WhenSessionIsBusy_ReturnsConflict()
+    {
+        Guid ownerUserId = Guid.Parse("8da52c08-56b4-4bfb-86b0-8e31a2940648");
+        Guid sessionId = Guid.Parse("4707d809-0de1-46b4-a612-c9b9f15438c9");
+        var sessionStore = new FakeClassicCitySetupSessionStore
+        {
+            LockToReturn = null
+        };
+        var publishEndpoint = new RecordingPublishEndpoint();
+        sessionStore.Sessions[sessionId] = CreateClassicCitySetupSessionState(
+            sessionId: sessionId,
+            ownerUserId: ownerUserId,
+            status: "Draft");
+        ClassicCitySetupSessionService service = CreateClassicCitySetupSessionService(
+            sessionStore: sessionStore,
+            publishEndpoint: publishEndpoint,
+            httpContextAccessor: CreateHttpContextAccessor(ownerUserId));
+
+        ClassicCitySetupSessionMutationResult result = await service.DeleteAsync(sessionId);
+
+        Assert.Equal(ClassicCitySetupSessionMutationStatus.Conflict, result.Status);
+        Assert.Equal("Gateway.ClassicCitySetup.SessionBusy", result.ErrorCode);
+        Assert.Equal(0, sessionStore.DeleteCallCount);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenLockAcquisitionThrows_ReturnsUnavailable()
+    {
+        Guid ownerUserId = Guid.Parse("56cf0b45-78d5-4861-a7ad-bfb96f4b362d");
+        Guid sessionId = Guid.Parse("f39a9d6d-c2c0-43bc-a7c7-4daab3226c6d");
+        var sessionStore = new FakeClassicCitySetupSessionStore
+        {
+            TryAcquireLockException = new InvalidOperationException("redis unavailable")
+        };
+        var publishEndpoint = new RecordingPublishEndpoint();
+        sessionStore.Sessions[sessionId] = CreateClassicCitySetupSessionState(
+            sessionId: sessionId,
+            ownerUserId: ownerUserId,
+            status: "Draft");
+        ClassicCitySetupSessionService service = CreateClassicCitySetupSessionService(
+            sessionStore: sessionStore,
+            publishEndpoint: publishEndpoint,
+            httpContextAccessor: CreateHttpContextAccessor(ownerUserId));
+
+        ClassicCitySetupSessionMutationResult result = await service.UpdateAsync(
+            sessionId: sessionId,
+            request: new UpdateClassicCitySetupSessionRequestDto(
+                CurrentStepId: "profile",
+                Draft: CreateClassicCitySetupDraft(name: "Updated City")));
+
+        Assert.Equal(ClassicCitySetupSessionMutationStatus.Unavailable, result.Status);
+        Assert.Equal("Gateway.ClassicCitySetup.SessionLockUnavailable", result.ErrorCode);
+        Assert.Equal(0, sessionStore.SaveCallCount);
+    }
 }
