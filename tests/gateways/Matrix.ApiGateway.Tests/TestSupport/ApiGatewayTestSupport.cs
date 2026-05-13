@@ -1,10 +1,13 @@
 using System.Text;
 using Matrix.ApiGateway.Authorization.AuthContext.Options;
+using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.Identity.Contracts.Internal.Responses;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Matrix.ApiGateway.Tests.TestSupport;
@@ -55,6 +58,18 @@ public static class ApiGatewayTestSupport
     public static TimeProvider CreateTimeProvider(DateTimeOffset utcNow)
     {
         return new FrozenTimeProvider(utcNow);
+    }
+
+    public static IServiceProvider CreateServiceProvider(
+        IPermissionsVersionStore? permissionsVersionStore = null)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+
+        if (permissionsVersionStore is not null)
+            services.AddSingleton(permissionsVersionStore);
+
+        return services.BuildServiceProvider();
     }
 
     public sealed class FrozenTimeProvider(DateTimeOffset utcNow) : TimeProvider
@@ -113,6 +128,25 @@ public static class ApiGatewayTestSupport
                 throw new KeyNotFoundException($"Auth context for user '{userId}' was not configured.");
 
             return Task.FromResult(context);
+        }
+    }
+
+    public sealed class FakePermissionsVersionStore : IPermissionsVersionStore
+    {
+        public int CurrentVersion { get; set; }
+        public Exception? Exception { get; set; }
+        public int GetCurrentCallCount { get; private set; }
+        public Guid? LastRequestedUserId { get; private set; }
+
+        public Task<int> GetCurrentAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            GetCurrentCallCount++;
+            LastRequestedUserId = userId;
+
+            if (Exception is not null)
+                throw Exception;
+
+            return Task.FromResult(CurrentVersion);
         }
     }
 
