@@ -8,12 +8,18 @@ using Matrix.ApiGateway.Authorization.InternalJwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
+using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
 using Matrix.Identity.Contracts.Internal.Responses;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Weather.Views;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,12 +74,16 @@ public static class ApiGatewayTestSupport
 
     public static IOptions<ClassicCitySetupSessionOptions> CreateClassicCitySetupSessionOptions(
         int recentDraftReuseWindowSeconds = 30,
-        int launchQueueRecoveryDelaySeconds = 20)
+        int launchQueueRecoveryDelaySeconds = 20,
+        bool reconciliationEnabled = true,
+        int reconciliationIntervalSeconds = 15)
     {
         return Options.Create(new ClassicCitySetupSessionOptions
         {
             RecentDraftReuseWindowSeconds = recentDraftReuseWindowSeconds,
-            LaunchQueueRecoveryDelaySeconds = launchQueueRecoveryDelaySeconds
+            LaunchQueueRecoveryDelaySeconds = launchQueueRecoveryDelaySeconds,
+            ReconciliationEnabled = reconciliationEnabled,
+            ReconciliationIntervalSeconds = reconciliationIntervalSeconds
         });
     }
 
@@ -162,23 +172,140 @@ public static class ApiGatewayTestSupport
         };
     }
 
+    public static ClassicCitySetupSessionLaunchAuthSnapshot CreateLaunchAuthSnapshot(
+        Guid userId,
+        string? jti = "launch-jti",
+        int permissionsVersion = 7,
+        DateTimeOffset? capturedAtUtc = null,
+        params string[] effectivePermissions)
+    {
+        return new ClassicCitySetupSessionLaunchAuthSnapshot
+        {
+            UserId = userId,
+            Jti = jti,
+            PermissionsVersion = permissionsVersion,
+            EffectivePermissions = effectivePermissions.Length == 0
+                ? ["city.launch"]
+                : effectivePermissions,
+            CapturedAtUtc = capturedAtUtc ?? new DateTimeOffset(2048, 6, 1, 10, 0, 0, TimeSpan.Zero)
+        };
+    }
+
+    public static CreateCityRequestDto CreateCityLaunchRequest(
+        string name = "Novy Mir",
+        Guid? provisioningCorrelationId = null,
+        int? plannedPeopleCount = 10000)
+    {
+        return new CreateCityRequestDto(
+            Name: name,
+            StartSimTimeUtc: new DateTimeOffset(2048, 6, 1, 8, 0, 0, TimeSpan.Zero),
+            SpeedMultiplier: 1.5m,
+            SimulationKind: "ClassicCity",
+            ClimateZone: "Temperate",
+            Hemisphere: "Northern",
+            UtcOffsetMinutes: 540,
+            GenerationSeed: "seed-001",
+            SizeTier: "Medium",
+            UrbanDensity: "Balanced",
+            DevelopmentLevel: "Balanced",
+            EconomyProfile: "Balanced",
+            PopulationOccupancyProfile: "Balanced",
+            InitialWeatherMode: "Random",
+            InitialWeatherType: null,
+            InitialWeatherSeverity: null,
+            InitialWeatherTemperatureC: null,
+            PlannedPeopleCount: plannedPeopleCount,
+            ProvisioningCorrelationId: provisioningCorrelationId);
+    }
+
+    public static CityProvisioningView CreateCityProvisioningView(
+        Guid cityId,
+        string populationStatus = "Completed",
+        string economyStatus = "Completed",
+        string? populationFailureCode = null,
+        string? economyFailureCode = null)
+    {
+        return new CityProvisioningView(
+            CityId: cityId,
+            SimulationKind: "ClassicCity",
+            PopulationBootstrap: new CityPopulationBootstrapView(
+                OperationId: Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                Status: populationStatus,
+                PlannedPeopleCount: 10000,
+                ResidentialCapacity: 12000,
+                Summary: new CityPopulationBootstrapSummaryView(
+                    CityId: cityId,
+                    RequestedPeopleCount: 10000,
+                    GeneratedPeopleCount: 10000,
+                    HouseholdCount: 3500,
+                    HousedHouseholdCount: 3400,
+                    HomelessHouseholdCount: 100,
+                    HousedPeopleCount: 9800,
+                    HomelessPeopleCount: 200),
+                FailureCode: populationFailureCode),
+            EconomyBootstrap: new CityEconomyBootstrapView(
+                OperationId: Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                Status: economyStatus,
+                FailureCode: economyFailureCode,
+                UnitKind: "Currency",
+                UnitCode: "CR",
+                UnitDisplayName: "Credits",
+                UnitSymbol: "C"));
+    }
+
+    public static CityProvisioningStatusView CreateCityProvisioningStatusView(
+        Guid cityId,
+        string status = "Active",
+        string? populationFailureCode = null,
+        string? economyFailureCode = null,
+        DateTimeOffset? populationCompletedAtUtc = null,
+        DateTimeOffset? economyCompletedAtUtc = null,
+        DateTimeOffset? populationFailedAtUtc = null,
+        DateTimeOffset? economyFailedAtUtc = null)
+    {
+        DateTimeOffset completedAtUtc = new DateTimeOffset(2048, 6, 1, 11, 0, 0, TimeSpan.Zero);
+
+        return new CityProvisioningStatusView(
+            CityId: cityId,
+            Status: status,
+            PopulationBootstrapOperationId: Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            EconomyBootstrapOperationId: Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            PopulationBootstrapFailureCode: populationFailureCode,
+            EconomyBootstrapFailureCode: economyFailureCode,
+            PopulationBootstrapCompletedAtUtc: populationCompletedAtUtc ?? (status == "Active" ? completedAtUtc : null),
+            EconomyBootstrapCompletedAtUtc: economyCompletedAtUtc ?? (status == "Active" ? completedAtUtc : null),
+            PopulationBootstrapFailedAtUtc: populationFailedAtUtc,
+            EconomyBootstrapFailedAtUtc: economyFailedAtUtc,
+            ProvisioningStartedAtUtc: completedAtUtc.AddMinutes(-10),
+            ProvisioningHeartbeatAtUtc: completedAtUtc.AddMinutes(-1),
+            ProvisioningLeaseExpiresAtUtc: completedAtUtc.AddMinutes(4),
+            ProvisioningAttemptCount: 2);
+    }
+
     public static ClassicCitySetupSessionService CreateClassicCitySetupSessionService(
         FakeClassicCitySetupSessionStore sessionStore,
         RecordingPublishEndpoint publishEndpoint,
         IHttpContextAccessor httpContextAccessor,
         FakePermissionsVersionStore? permissionsVersionStore = null,
-        FakeAuthContextStore? authContextStore = null)
+        FakeAuthContextStore? authContextStore = null,
+        RecordingCitiesApiClient? citiesApiClient = null,
+        RecordingProvisioningService? provisioningService = null,
+        IInternalJwtRequestContextAccessor? internalJwtRequestContextAccessor = null,
+        IOptions<ClassicCitySetupSessionOptions>? options = null)
     {
+        IInternalJwtRequestContextAccessor requestContextAccessor =
+            internalJwtRequestContextAccessor ?? new InternalJwtRequestContextAccessor();
+
         return new ClassicCitySetupSessionService(
             sessionStore: sessionStore,
-            citiesApiClient: null!,
-            provisioningService: new StubCityProvisioningService(),
+            citiesApiClient: citiesApiClient ?? new RecordingCitiesApiClient(requestContextAccessor),
+            provisioningService: provisioningService ?? new RecordingProvisioningService(requestContextAccessor),
             publishEndpoint: publishEndpoint,
             httpContextAccessor: httpContextAccessor,
             permissionsVersionStore: permissionsVersionStore ?? new FakePermissionsVersionStore(),
             authContextStore: authContextStore ?? new FakeAuthContextStore(),
-            internalJwtRequestContextAccessor: new InternalJwtRequestContextAccessor(),
-            options: CreateClassicCitySetupSessionOptions(),
+            internalJwtRequestContextAccessor: requestContextAccessor,
+            options: options ?? CreateClassicCitySetupSessionOptions(),
             logger: NullLogger<ClassicCitySetupSessionService>.Instance);
     }
 
@@ -292,6 +419,7 @@ public static class ApiGatewayTestSupport
     {
         public Dictionary<Guid, ClassicCitySetupSessionState> Sessions { get; } = new();
         public HashSet<Guid> TrackedSessionIds { get; } = [];
+        public List<Guid> UntrackedSessionIds { get; } = [];
         public ClassicCitySetupSessionLockHandle? LockToReturn { get; set; } = new("lock-token");
         public ClassicCitySetupSessionLockHandle? CreateLockToReturn { get; set; } = new("create-lock-token");
         public Exception? TryAcquireLockException { get; set; }
@@ -300,6 +428,7 @@ public static class ApiGatewayTestSupport
         public int DeleteCallCount { get; private set; }
         public int ReleaseLockCallCount { get; private set; }
         public int ReleaseCreateLockCallCount { get; private set; }
+        public int UntrackCallCount { get; private set; }
         public Guid? LastDeletedSessionId { get; private set; }
 
         public Task<IReadOnlyList<ClassicCitySetupSessionState>> ListOwnedAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
@@ -369,8 +498,178 @@ public static class ApiGatewayTestSupport
 
         public Task UntrackAsync(Guid sessionId, CancellationToken cancellationToken = default)
         {
+            UntrackCallCount++;
+            UntrackedSessionIds.Add(sessionId);
             TrackedSessionIds.Remove(sessionId);
             return Task.CompletedTask;
+        }
+    }
+
+    public sealed class RecordingProvisioningService(IInternalJwtRequestContextAccessor requestContextAccessor) : ICityProvisioningService
+    {
+        public CityProvisioningView? CreateCityResult { get; set; }
+        public Exception? CreateCityException { get; set; }
+        public int CreateCityCallCount { get; private set; }
+        public CreateCityRequestDto? LastCreateCityRequest { get; private set; }
+        public InternalJwtRequestContext? CapturedRequestContext { get; private set; }
+
+        public Task<CityProvisioningView> CreateCityAsync(
+            CreateCityRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            CreateCityCallCount++;
+            LastCreateCityRequest = request;
+            CapturedRequestContext = requestContextAccessor.Current;
+
+            if (CreateCityException is not null)
+                throw CreateCityException;
+
+            return Task.FromResult(CreateCityResult ?? CreateCityProvisioningView(Guid.NewGuid()));
+        }
+
+        public Task<CityProvisioningView> RetryPopulationBootstrapAsync(
+            Guid cityId,
+            int? plannedPeopleCountOverride = null,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("RetryPopulationBootstrapAsync is not used in these tests.");
+        }
+    }
+
+    public sealed class RecordingCitiesApiClient(IInternalJwtRequestContextAccessor requestContextAccessor) : ICitiesApiClient
+    {
+        public CityProvisioningStatusView? ProvisioningStatusResult { get; set; }
+        public Exception? ProvisioningStatusException { get; set; }
+        public int GetProvisioningStatusCallCount { get; private set; }
+        public Guid? LastProvisioningStatusCityId { get; private set; }
+        public InternalJwtRequestContext? CapturedRequestContext { get; private set; }
+
+        public Task<CityCreatedView> CreateCityAsync(CreateCityRequest request, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityProvisioningView> CreateProvisionedCityAsync(CreateCityRequest request, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyList<SimulationKindCatalogItemView>> GetSimulationKindsAsync(CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyList<CityListItemView>> ListCitiesAsync(bool includeArchived, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyList<CityListItemView>> ListProvisioningCitiesAsync(CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityView> GetCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityProvisioningStatusView> GetProvisioningStatusAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            GetProvisioningStatusCallCount++;
+            LastProvisioningStatusCityId = cityId;
+            CapturedRequestContext = requestContextAccessor.Current;
+
+            if (ProvisioningStatusException is not null)
+                throw ProvisioningStatusException;
+
+            return Task.FromResult(ProvisioningStatusResult ?? CreateCityProvisioningStatusView(cityId));
+        }
+
+        public Task<CityWeatherView> GetWeatherAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityMapTopologyView> GetMapAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyList<ResidentialBuildingView>> GetResidentialBuildingsAsync(
+            Guid cityId,
+            Guid? districtId = null,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityPopulationBootstrapRestartedView> RestartPopulationBootstrapAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityProvisioningView> RetryPopulationBootstrapProvisioningAsync(
+            Guid cityId,
+            RetryCityPopulationBootstrapProvisioningRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task CompletePopulationBootstrapAsync(
+            Guid cityId,
+            CompleteCityPopulationBootstrapRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task CompleteEconomyBootstrapAsync(
+            Guid cityId,
+            CompleteCityEconomyBootstrapRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task FailPopulationBootstrapAsync(
+            Guid cityId,
+            FailCityPopulationBootstrapRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task FailEconomyBootstrapAsync(
+            Guid cityId,
+            FailCityEconomyBootstrapRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task UpdateEnvironmentAsync(
+            Guid cityId,
+            UpdateCityEnvironmentRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task RenameCityAsync(Guid cityId, RenameCityRequest request, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task ArchiveCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task DeleteCityAsync(Guid cityId, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
         }
     }
 
@@ -453,24 +752,6 @@ public static class ApiGatewayTestSupport
             public void Disconnect()
             {
             }
-        }
-    }
-
-    private sealed class StubCityProvisioningService : ICityProvisioningService
-    {
-        public Task<Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views.CityProvisioningView> CreateCityAsync(
-            Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities.CreateCityRequestDto request,
-            CancellationToken cancellationToken = default)
-        {
-            throw new NotSupportedException("Provisioning service is not used in these tests.");
-        }
-
-        public Task<Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views.CityProvisioningView> RetryPopulationBootstrapAsync(
-            Guid cityId,
-            int? plannedPeopleCountOverride = null,
-            CancellationToken cancellationToken = default)
-        {
-            throw new NotSupportedException("Provisioning service is not used in these tests.");
         }
     }
 
