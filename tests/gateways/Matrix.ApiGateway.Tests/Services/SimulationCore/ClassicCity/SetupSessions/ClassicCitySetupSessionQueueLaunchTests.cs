@@ -106,4 +106,45 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
         Assert.Equal(sessionId, published.SessionId);
         Assert.Equal(1, sessionStore.SaveCallCount);
     }
+
+    [Fact]
+    public async Task QueueLaunchAsync_WhenPublishFails_ReturnsUnavailableAndMarksLaunchFailed()
+    {
+        Guid ownerUserId = Guid.Parse("8f07f4c5-9a6c-4952-b1be-21823689f447");
+        Guid sessionId = Guid.Parse("fd0ea4ce-67a4-42dd-ad71-56c3df560af3");
+        var sessionStore = new FakeClassicCitySetupSessionStore();
+        var publishEndpoint = new RecordingPublishEndpoint
+        {
+            Exception = new InvalidOperationException("broker is down")
+        };
+        var permissionsVersionStore = new FakePermissionsVersionStore
+        {
+            CurrentVersion = 5
+        };
+        var authContextStore = new FakeAuthContextStore();
+        authContextStore.Responses[(ownerUserId, 5)] = new UserAuthContextResponse(
+            PermissionsVersion: 5,
+            EffectivePermissions: ["city.launch"]);
+        sessionStore.Sessions[sessionId] = CreateClassicCitySetupSessionState(
+            sessionId: sessionId,
+            ownerUserId: ownerUserId,
+            draft: CreateClassicCitySetupDraft());
+        ClassicCitySetupSessionService service = CreateClassicCitySetupSessionService(
+            sessionStore: sessionStore,
+            publishEndpoint: publishEndpoint,
+            httpContextAccessor: CreateHttpContextAccessor(ownerUserId, "launch-jti"),
+            permissionsVersionStore: permissionsVersionStore,
+            authContextStore: authContextStore);
+
+        ClassicCitySetupSessionMutationResult result = await service.QueueLaunchAsync(sessionId);
+
+        ClassicCitySetupSessionState session = sessionStore.Sessions[sessionId];
+
+        Assert.Equal(ClassicCitySetupSessionMutationStatus.Unavailable, result.Status);
+        Assert.Equal("Gateway.ClassicCitySetup.LaunchQueueUnavailable", result.ErrorCode);
+        Assert.Equal("LaunchFailed", session.Status);
+        Assert.Equal("Gateway.ClassicCitySetup.LaunchQueueUnavailable", session.FailureCode);
+        Assert.Contains("broker is down", session.FailureMessage);
+        Assert.Equal(2, sessionStore.SaveCallCount);
+    }
 }
