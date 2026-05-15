@@ -1,25 +1,57 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using MassTransit;
 using System.Text;
+using System.Text.Json;
 using Matrix.ApiGateway.Authorization.AuthContext.Abstractions;
 using Matrix.ApiGateway.Authorization.AuthContext.Options;
 using Matrix.ApiGateway.Authorization.InternalJwt;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Abstractions;
 using Matrix.ApiGateway.Authorization.PermissionsVersion.Options;
 using Matrix.ApiGateway.Configurations.Options;
+using Matrix.ApiGateway.Controllers.SimulationCore.Dashboard;
+using Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.Contracts.Economy;
+using Matrix.ApiGateway.Contracts.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Contracts.SimulationCore.Scenarios.ClassicCity.SetupSessions;
+using Matrix.ApiGateway.DownstreamClients.Common.Exceptions;
+using Matrix.ApiGateway.DownstreamClients.Economy;
 using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
+using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
 using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Cities;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Simulation;
+using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
+using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.Cities;
 using Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupSessions;
 using Matrix.BuildingBlocks.Application.Authorization.Jwt;
+using Matrix.BuildingBlocks.Application.Models;
+using Matrix.Economy.Contracts.Budget.Requests;
+using Matrix.Economy.Contracts.Budget.Views;
 using Matrix.Identity.Contracts.Internal.Responses;
+using Matrix.Population.Contracts.Models;
+using Matrix.Population.Contracts.Scenarios.ClassicCity.Models;
+using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Requests;
+using Matrix.Resources.Contracts.Scenarios.ClassicCity.Stockpiles.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Cities.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Topology.Views;
+using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Trips.Views;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Weather.Views;
+using Matrix.SimulationCore.Contracts.Simulation.Requests;
+using Matrix.SimulationCore.Contracts.Simulation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.EnvironmentalConditions.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Common.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Heating.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.PowerDistribution.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.Sanitation.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Requests;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.UtilityIncidents.Views;
+using Matrix.SimulationSystems.Contracts.Scenarios.ClassicCity.WaterDistribution.Views;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -309,10 +341,447 @@ public static class ApiGatewayTestSupport
             logger: NullLogger<ClassicCitySetupSessionService>.Instance);
     }
 
+    public static Matrix.ApiGateway.Controllers.SimulationCore.Simulation.SimulationsController CreateSimulationsController(
+        RecordingSimulationApiClient? simulationClient = null)
+    {
+        return new Matrix.ApiGateway.Controllers.SimulationCore.Simulation.SimulationsController(
+            simulationClient ?? new RecordingSimulationApiClient());
+    }
+
+    public static Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Simulation.SimulationController
+        CreateCitySimulationController(
+            RecordingSimulationApiClient? simulationClient = null)
+    {
+        return new Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Simulation.SimulationController(
+            simulationClient ?? new RecordingSimulationApiClient());
+    }
+
+    public static CityOperationsDashboardController CreateCityOperationsDashboardController(
+        RecordingCityOperationsDashboardService? dashboardService = null)
+    {
+        return new CityOperationsDashboardController(
+            dashboardService ?? new RecordingCityOperationsDashboardService());
+    }
+
+    public static CitiesController CreateCitiesController(
+        RecordingCitiesApiClient? citiesClient = null,
+        RecordingTripsApiClient? tripsClient = null,
+        RecordingSimulationApiClient? simulationClient = null,
+        RecordingEconomyApiClient? economyClient = null,
+        RecordingPopulationApiClient? populationClient = null,
+        RecordingStockpilesApiClient? stockpilesClient = null,
+        RecordingEnvironmentalConditionsApiClient? environmentalConditionsClient = null,
+        RecordingProvisioningService? provisioningService = null)
+    {
+        IInternalJwtRequestContextAccessor requestContextAccessor = new InternalJwtRequestContextAccessor();
+
+        return new CitiesController(
+            citiesClient: citiesClient ?? new RecordingCitiesApiClient(requestContextAccessor),
+            tripsClient: tripsClient ?? new RecordingTripsApiClient(),
+            simulationClient: simulationClient ?? new RecordingSimulationApiClient(),
+            economyClient: economyClient ?? new RecordingEconomyApiClient(),
+            populationClient: populationClient ?? new RecordingPopulationApiClient(),
+            stockpilesClient: stockpilesClient ?? new RecordingStockpilesApiClient(),
+            environmentalConditionsClient: environmentalConditionsClient ?? new RecordingEnvironmentalConditionsApiClient(),
+            cityProvisioningService: provisioningService ?? new RecordingProvisioningService(requestContextAccessor),
+            logger: NullLogger<CitiesController>.Instance);
+    }
+
+    public static SimulationClockView CreateSimulationClockView(
+        Guid? simulationId = null,
+        DateTimeOffset? simTimeUtc = null,
+        decimal speed = 1.5m,
+        long tickId = 42,
+        string state = "Running")
+    {
+        Guid resolvedSimulationId = simulationId ?? Guid.Parse("54c198fd-7465-4e58-98a5-53572d474f3c");
+
+        return new SimulationClockView(
+            SimulationId: resolvedSimulationId,
+            HostId: resolvedSimulationId,
+            HostKind: "City",
+            SimulationKind: "ClassicCity",
+            SimTimeUtc: simTimeUtc ?? new DateTimeOffset(2048, 6, 3, 12, 30, 0, TimeSpan.Zero),
+            TickId: tickId,
+            Speed: speed,
+            State: state);
+    }
+
+    public static CityOperationsDashboardView CreateCityOperationsDashboardView(DateTimeOffset? generatedAtUtc = null)
+    {
+        DateTimeOffset timestamp = generatedAtUtc ?? new DateTimeOffset(2048, 6, 3, 13, 0, 0, TimeSpan.Zero);
+
+        return new CityOperationsDashboardView(
+            GeneratedAtUtc: timestamp,
+            TrackedHosts: CreateDashboardMetric(label: "Tracked hosts", current: 5),
+            ReadyHosts: CreateDashboardMetric(label: "Ready hosts", current: 4),
+            ArchivedRecords: CreateDashboardMetric(label: "Archived", current: 1),
+            AttentionQueue: CreateDashboardMetric(label: "Attention", current: 2),
+            EnvironmentalAlerts: CreateDashboardMetric(label: "Environmental", current: 1),
+            PopulationDistrictAlerts: CreateDashboardMetric(label: "Population", current: 1),
+            DistrictResponsePriorityAlerts: CreateDashboardMetric(label: "District response", current: 1),
+            MobilityAlerts: CreateDashboardMetric(label: "Mobility", current: 1),
+            OperationalBudgetAlerts: CreateDashboardMetric(label: "Budget", current: 1),
+            TickFreshnessAlerts: CreateDashboardMetric(label: "Tick freshness", current: 0),
+            PhaseProgressAlerts: CreateDashboardMetric(label: "Phase progress", current: 0),
+            NewCities: CreateDashboardPeriodRow(label: "New cities"),
+            ArchivedCities: CreateDashboardPeriodRow(label: "Archived cities"),
+            FailedBootstraps: CreateDashboardPeriodRow(label: "Failed bootstraps"),
+            ReadyHandOffs: CreateDashboardPeriodRow(label: "Ready handoffs"),
+            Services: [],
+            Events: [],
+            EnvironmentalCities: [],
+            PopulationDistrictCities: [],
+            DistrictResponsePriorities: [],
+            MobilityCities: [],
+            BudgetPressureCities: [],
+            TickFreshnessCities: [],
+            PhaseProgressCities: [],
+            AttentionCities: [],
+            ReadyCities: [],
+            ArchivedCitiesList: []);
+    }
+
+    public static CityPopulationDashboardDto CreateCityPopulationDashboardDto(Guid? cityId = null)
+    {
+        Guid resolvedCityId = cityId ?? Guid.Parse("4ca7f79d-8386-4d6c-b9fa-f4d0f6678d60");
+
+        return new CityPopulationDashboardDto(
+            CityId: resolvedCityId,
+            CurrentDate: "2048-06-03",
+            GeneratedAtUtc: "2048-06-03T13:00:00Z",
+            Metrics:
+            [
+                new CityPopulationDashboardMetricDto(
+                    Key: "populationAlive",
+                    Label: "Alive residents",
+                    Description: "Current resident count.",
+                    ValueKind: "count",
+                    CurrentValue: 10240,
+                    DeltaYesterday: 12,
+                    DeltaMonth: 150,
+                    DeltaYear: null)
+            ],
+            RecentEvents:
+            [
+                new CityPopulationActivityEventDto(
+                    ActivityEventId: Guid.Parse("b2ac2283-bf8b-4f4f-9890-0727c29f1316"),
+                    CurrentDate: "2048-06-03",
+                    OccurredAtUtc: "2048-06-03T12:50:00Z",
+                    EventType: "Migration",
+                    Source: "Population",
+                    Severity: "Info",
+                    Title: "New arrivals",
+                    Summary: "New residents arrived.",
+                    PrimaryResidentId: null,
+                    SecondaryResidentId: null)
+            ]);
+    }
+
+    public static EconomySummaryView CreateEconomySummaryView(
+        decimal balance = 120000m,
+        decimal totalGrossPayroll = 65000m,
+        decimal totalIncomeTaxIncome = 15000m,
+        decimal totalSalesTaxIncome = 9000m,
+        decimal totalRetailTurnover = 87000m,
+        decimal totalCityExpenses = 42000m)
+    {
+        return new EconomySummaryView(
+            UnitKind: "Currency",
+            UnitCode: "CR",
+            UnitDisplayName: "Credits",
+            UnitSymbol: "C",
+            Balance: balance,
+            TotalTaxIncome: totalIncomeTaxIncome + totalSalesTaxIncome,
+            TotalIncomeTaxIncome: totalIncomeTaxIncome,
+            TotalSalesTaxIncome: totalSalesTaxIncome,
+            TotalDirectRevenue: 11000m,
+            TotalCityExpenses: totalCityExpenses,
+            TotalRetailTurnover: totalRetailTurnover,
+            TotalGrossPayroll: totalGrossPayroll,
+            TotalNetPayroll: totalGrossPayroll - totalIncomeTaxIncome);
+    }
+
+    public static PagedResult<PersonDto> CreateResidentsPageResult(Guid? personId = null)
+    {
+        return new PagedResult<PersonDto>(
+            items:
+            [
+                new PersonDto(
+                    Id: personId ?? Guid.Parse("09413be1-3cb9-4738-b4b9-9f729afde852"),
+                    FullName: "Mira Sol",
+                    Sex: "Female",
+                    BirthDate: "2024-05-21",
+                    DeathDate: null,
+                    Age: 24,
+                    AgeGroup: "Adult",
+                    LifeStatus: "Alive",
+                    MaritalStatus: "Single",
+                    EducationLevel: "Higher",
+                    Health: 82,
+                    Happiness: 71,
+                    Energy: 66,
+                    Stress: 23,
+                    SocialNeed: 29,
+                    EmploymentStatus: "Employed",
+                    JobTitle: "Transit Planner")
+            ],
+            totalCount: 1,
+            pageNumber: 2,
+            pageSize: 25);
+    }
+
+    public static CityResidentDetailsDto CreateCityResidentDetailsDto(Guid? personId = null)
+    {
+        return new CityResidentDetailsDto(
+            Id: personId ?? Guid.Parse("52f20708-a8fc-4cf2-958d-c0bcfaec20a6"),
+            FullName: "Mira Sol",
+            Sex: "Female",
+            BirthDate: "2024-05-21",
+            DeathDate: null,
+            Age: 24,
+            AgeGroup: "Adult",
+            LifeStatus: "Alive",
+            MaritalStatus: "Single",
+            EducationLevel: "Higher",
+            Health: 82,
+            Happiness: 71,
+            Energy: 66,
+            Stress: 23,
+            SocialNeed: 29,
+            EmploymentStatus: "Employed",
+            JobTitle: "Transit Planner",
+            CurrentSpouse: null,
+            Mother: null,
+            Father: null,
+            Children: [],
+            LastChildbirthDate: null,
+            CurrentIllness: null,
+            LastIllnessRecoveredOn: null,
+            CurrentHousing: new CityResidentHousingDto(
+                HouseholdId: Guid.Parse("07f51d4d-391d-4ca9-a549-696654e67922"),
+                HousingStatus: "Housed",
+                ResidentialBuildingId: Guid.Parse("fa999262-fad0-4557-86a4-5ca21f3efeaa")),
+            CurrentWorkplace: null,
+            CurrentEducationInstitution: null,
+            PrimaryHealthcareProvider: null,
+            CurrentActiveTrip: null);
+    }
+
+    public static CityDistrictHeatingConditionsView CreateCityDistrictHeatingConditionsView(Guid cityId)
+    {
+        return new CityDistrictHeatingConditionsView(
+            CityId: cityId,
+            EffectiveTickId: 17,
+            LastEvaluatedAtUtc: new DateTimeOffset(2048, 6, 3, 13, 5, 0, TimeSpan.Zero),
+            HeatingSupportIndex: 0.81m,
+            Districts:
+            [
+                new CityDistrictHeatingConditionView(
+                    DistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+                    HeatingCoverageIndex: 0.84m,
+                    HeatingSupportIndex: 0.81m,
+                    OutageRiskIndex: 0.21m,
+                    ComfortStressIndex: 0.18m,
+                    MaintenancePriorityIndex: 0.33m)
+            ]);
+    }
+
+    public static CityDistrictWaterDistributionConditionsView CreateCityDistrictWaterDistributionConditionsView(Guid cityId)
+    {
+        return new CityDistrictWaterDistributionConditionsView(
+            CityId: cityId,
+            EffectiveTickId: 17,
+            LastEvaluatedAtUtc: new DateTimeOffset(2048, 6, 3, 13, 5, 0, TimeSpan.Zero),
+            WaterSupportIndex: 0.79m,
+            Districts:
+            [
+                new CityDistrictWaterDistributionConditionView(
+                    DistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+                    WaterCoverageIndex: 0.82m,
+                    WaterSupportIndex: 0.79m,
+                    DisruptionRiskIndex: 0.22m,
+                    QualityRiskIndex: 0.17m,
+                    MaintenancePriorityIndex: 0.35m)
+            ]);
+    }
+
+    public static CityDistrictPowerDistributionConditionsView CreateCityDistrictPowerDistributionConditionsView(Guid cityId)
+    {
+        return new CityDistrictPowerDistributionConditionsView(
+            CityId: cityId,
+            EffectiveTickId: 17,
+            LastEvaluatedAtUtc: new DateTimeOffset(2048, 6, 3, 13, 5, 0, TimeSpan.Zero),
+            PowerSupportIndex: 0.77m,
+            Districts:
+            [
+                new CityDistrictPowerDistributionConditionView(
+                    DistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+                    PowerCoverageIndex: 0.8m,
+                    PowerSupportIndex: 0.77m,
+                    OutageRiskIndex: 0.26m,
+                    RestorationStrainIndex: 0.19m,
+                    MaintenancePriorityIndex: 0.37m)
+            ]);
+    }
+
+    public static CityDistrictSanitationConditionsView CreateCityDistrictSanitationConditionsView(Guid cityId)
+    {
+        return new CityDistrictSanitationConditionsView(
+            CityId: cityId,
+            EffectiveTickId: 17,
+            LastEvaluatedAtUtc: new DateTimeOffset(2048, 6, 3, 13, 5, 0, TimeSpan.Zero),
+            SanitationSupportIndex: 0.74m,
+            Districts:
+            [
+                new CityDistrictSanitationConditionView(
+                    DistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+                    SanitationCoverageIndex: 0.78m,
+                    SanitationSupportIndex: 0.74m,
+                    OverflowRiskIndex: 0.29m,
+                    ContaminationRiskIndex: 0.2m,
+                    MaintenancePriorityIndex: 0.39m)
+            ]);
+    }
+
+    public static CityDistrictUtilityIncidentConditionsView CreateCityDistrictUtilityIncidentConditionsView(Guid cityId)
+    {
+        return new CityDistrictUtilityIncidentConditionsView(
+            CityId: cityId,
+            EffectiveTickId: 17,
+            LastEvaluatedAtUtc: new DateTimeOffset(2048, 6, 3, 13, 5, 0, TimeSpan.Zero),
+            UtilityIncidentSupportIndex: 0.72m,
+            Districts:
+            [
+                new CityDistrictUtilityIncidentConditionView(
+                    DistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+                    UtilityContinuityIndex: 0.76m,
+                    DispatchReadinessIndex: 0.73m,
+                    IncidentPressureIndex: 0.34m,
+                    CoordinationDifficultyIndex: 0.24m,
+                    RestorationPriorityIndex: 0.41m)
+            ]);
+    }
+
+    public static CityUtilityIncidentStatusView CreateCityUtilityIncidentStatusView(
+        Guid cityId,
+        string statusIntensity = "High")
+    {
+        return new CityUtilityIncidentStatusView(
+            CityId: cityId,
+            LastEvaluatedAtUtc: new DateTimeOffset(2048, 6, 3, 13, 15, 0, TimeSpan.Zero),
+            UtilityContinuityIndex: 0.68m,
+            UtilityIncidentSupportIndex: 0.72m,
+            BudgetPressureIndex: 0.33m,
+            EmergencyModeEnabled: false,
+            DispatchReadinessIndex: 0.71m,
+            RestorationCoverageIndex: 0.69m,
+            SpareCapacityIndex: 0.62m,
+            FieldCoordinationIndex: 0.73m,
+            IncidentQueuePressureIndex: 0.38m,
+            RequestedIntensity: statusIntensity,
+            AppliedIntensity: statusIntensity,
+            BudgetAuthorizationStatus: "Authorized",
+            BudgetAuthorizationLevel: "Standard",
+            BudgetAvailableAmount: 5400m,
+            BudgetAuthorizedByEmergencyOverride: false,
+            BudgetAuthorizedIntensity: statusIntensity,
+            BudgetAuthorizationSummary: "Approved.",
+            FocusDistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+            PendingOperation: new PendingCityOperationView(
+                Focus: "Balanced",
+                Intensity: statusIntensity,
+                ReadyAtTickId: 19),
+            System: new CityUtilityIncidentSystemStatusView(
+                Kind: "PowerDistribution",
+                LoadIndex: 0.48m,
+                ServiceQualityIndex: 0.74m,
+                BacklogIndex: 0.19m,
+                FailureRiskIndex: 0.23m));
+    }
+
+    public static DispatchCityResupplyView CreateDispatchCityResupplyView(
+        Guid cityId,
+        string requestedIntensity = "Medium",
+        string? appliedIntensity = "Medium")
+    {
+        return new DispatchCityResupplyView(
+            Status: "Applied",
+            CityId: cityId,
+            RequestedIntensity: requestedIntensity,
+            BudgetAuthorizedIntensity: appliedIntensity,
+            AppliedIntensity: appliedIntensity,
+            PendingResupply: new PendingResupplyView(
+                Focus: "All",
+                Intensity: appliedIntensity ?? requestedIntensity,
+                FocusDistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+                ReadyAtTickId: 21),
+            BudgetPressureIndex: 0.35m,
+            BudgetAuthorizationStatus: "Authorized",
+            BudgetAuthorizationLevel: "Standard",
+            BudgetAvailableAmount: 8300m,
+            BudgetAuthorizedByEmergencyOverride: false,
+            BudgetAuthorizationSummary: "Approved.",
+            SupplyStressIndex: 0.41m,
+            FuelStockLevelIndex: 0.62m,
+            FoodStockLevelIndex: 0.74m,
+            EmergencyWaterStockLevelIndex: 0.58m);
+    }
+
+    public static DownstreamServiceException CreateDownstreamServiceException(
+        HttpStatusCode statusCode,
+        string? body = null,
+        string serviceName = "test-service")
+    {
+        return new DownstreamServiceException(
+            serviceName: serviceName,
+            statusCode: statusCode,
+            body: body,
+            contentType: "application/json",
+            requestUrl: "https://downstream.example/api");
+    }
+
+    public static DownstreamServiceException CreateConflictException<T>(
+        T payload,
+        string serviceName = "test-service")
+        where T : class
+    {
+        return CreateDownstreamServiceException(
+            statusCode: HttpStatusCode.Conflict,
+            body: JsonSerializer.Serialize(payload, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
+            serviceName: serviceName);
+    }
+
     private static IEnumerable<Claim> CreateOptionalClaims(string? jti)
     {
         if (!string.IsNullOrWhiteSpace(jti))
             yield return new Claim(JwtRegisteredClaimNames.Jti, jti);
+    }
+
+    private static DashboardMetricView CreateDashboardMetric(string label, int current)
+    {
+        return new DashboardMetricView(
+            Label: label,
+            Current: current,
+            Description: $"{label} metric.",
+            DeltaYesterday: null,
+            DeltaMonth: null,
+            DeltaYear: null);
+    }
+
+    private static DashboardPeriodComparisonRowView CreateDashboardPeriodRow(string label)
+    {
+        DashboardWindowComparisonView window = new(
+            Current: 1,
+            Previous: 0,
+            Delta: 1);
+
+        return new DashboardPeriodComparisonRowView(
+            Label: label,
+            Description: $"{label} comparison.",
+            Yesterday: window,
+            Month: window,
+            Year: window);
     }
 
     public sealed class FrozenTimeProvider(DateTimeOffset utcNow) : TimeProvider
@@ -752,6 +1221,448 @@ public static class ApiGatewayTestSupport
             public void Disconnect()
             {
             }
+        }
+    }
+
+    public sealed class RecordingSimulationApiClient : ISimulationApiClient
+    {
+        public SimulationClockView? ClockResult { get; set; }
+        public int GetClockCallCount { get; private set; }
+        public Guid? LastClockSimulationId { get; private set; }
+        public Guid? LastPausedSimulationId { get; private set; }
+        public Guid? LastResumedSimulationId { get; private set; }
+        public Guid? LastSetSpeedSimulationId { get; private set; }
+        public SetSpeedRequest? LastSetSpeedRequest { get; private set; }
+        public Guid? LastJumpSimulationId { get; private set; }
+        public JumpClockRequest? LastJumpRequest { get; private set; }
+
+        public Task<SimulationClockView> GetClockAsync(Guid simulationId, CancellationToken cancellationToken = default)
+        {
+            GetClockCallCount++;
+            LastClockSimulationId = simulationId;
+
+            return Task.FromResult(ClockResult ?? CreateSimulationClockView(simulationId: simulationId));
+        }
+
+        public Task PauseClockAsync(Guid simulationId, CancellationToken cancellationToken = default)
+        {
+            LastPausedSimulationId = simulationId;
+            return Task.CompletedTask;
+        }
+
+        public Task ResumeClockAsync(Guid simulationId, CancellationToken cancellationToken = default)
+        {
+            LastResumedSimulationId = simulationId;
+            return Task.CompletedTask;
+        }
+
+        public Task SetClockSpeedAsync(
+            Guid simulationId,
+            SetSpeedRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            LastSetSpeedSimulationId = simulationId;
+            LastSetSpeedRequest = request;
+            return Task.CompletedTask;
+        }
+
+        public Task JumpClockAsync(
+            Guid simulationId,
+            JumpClockRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            LastJumpSimulationId = simulationId;
+            LastJumpRequest = request;
+            return Task.CompletedTask;
+        }
+    }
+
+    public sealed class RecordingCityOperationsDashboardService : ICityOperationsDashboardService
+    {
+        public CityOperationsDashboardView? View { get; set; }
+        public int GetCallCount { get; private set; }
+
+        public Task<CityOperationsDashboardView> GetAsync(CancellationToken cancellationToken)
+        {
+            GetCallCount++;
+            return Task.FromResult(View ?? CreateCityOperationsDashboardView());
+        }
+    }
+
+    public sealed class RecordingTripsApiClient : ITripsApiClient
+    {
+        public IReadOnlyList<CityActiveTripView> Result { get; set; } = [];
+        public Guid? LastCityId { get; private set; }
+
+        public Task<IReadOnlyList<CityActiveTripView>> GetActiveTripsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            LastCityId = cityId;
+            return Task.FromResult(Result);
+        }
+    }
+
+    public sealed class RecordingEconomyApiClient : IEconomyApiClient
+    {
+        public EconomySummaryView? CitySummaryResult { get; set; }
+        public Exception? GetCitySummaryException { get; set; }
+        public int GetCitySummaryCallCount { get; private set; }
+        public Guid? LastCitySummaryCityId { get; private set; }
+
+        public Task<EconomySummaryView?> GetSummaryAsync(CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<EconomySummaryView?> GetCitySummaryAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            GetCitySummaryCallCount++;
+            LastCitySummaryCityId = cityId;
+
+            if (GetCitySummaryException is not null)
+                throw GetCitySummaryException;
+
+            return Task.FromResult(CitySummaryResult);
+        }
+
+        public Task<CityOperationalBudgetPressureView?> GetCityOperationalBudgetPressureAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyList<CityBusinessView>> GetCityBusinessesAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyList<CityHouseholdAccountView>> GetCityHouseholdAccountsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CursorPagedResult<BudgetLedgerEntryView>> GetCityBudgetLedgerFeedAsync(
+            Guid cityId,
+            string? cursor = null,
+            int pageSize = 50,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CursorPagedResult<CityBusinessLedgerEntryView>> GetCityBusinessLedgerFeedAsync(
+            Guid businessId,
+            string? cursor = null,
+            int pageSize = 50,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CursorPagedResult<CityHouseholdAccountLedgerEntryView>> GetCityHouseholdAccountLedgerFeedAsync(
+            Guid householdAccountId,
+            string? cursor = null,
+            int pageSize = 50,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEconomyBootstrapResultView> InitializeCityEconomyAsync(
+            Guid cityId,
+            InitializeCityEconomyRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<bool> HealthAsync(CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    public sealed class RecordingPopulationApiClient : IPopulationApiClient
+    {
+        public CityPopulationDashboardDto? DashboardResult { get; set; }
+        public PagedResult<PersonDto>? ResidentsPageResult { get; set; }
+        public CityResidentDetailsDto? ResidentDetailsResult { get; set; }
+        public Guid? LastDashboardCityId { get; private set; }
+        public Guid? LastResidentsPageCityId { get; private set; }
+        public DateOnly? LastResidentsPageCurrentDate { get; private set; }
+        public int? LastResidentsPageNumber { get; private set; }
+        public int? LastResidentsPageSize { get; private set; }
+        public Guid? LastResidentDetailsCityId { get; private set; }
+        public Guid? LastResidentDetailsPersonId { get; private set; }
+        public DateOnly? LastResidentDetailsCurrentDate { get; private set; }
+
+        public Task<CityPopulationBootstrapSummaryDto> InitializeCityPopulationAsync(
+            InitializeCityPopulationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityPopulationSummaryDto> GetCityPopulationSummaryAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityPopulationDashboardDto> GetCityPopulationDashboardAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            LastDashboardCityId = cityId;
+            return Task.FromResult(DashboardResult ?? CreateCityPopulationDashboardDto(cityId));
+        }
+
+        public Task<CityPopulationDistrictPressureDto> GetCityDistrictPressureAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
+            Guid cityId,
+            DateOnly currentDate,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            LastResidentsPageCityId = cityId;
+            LastResidentsPageCurrentDate = currentDate;
+            LastResidentsPageNumber = pageNumber;
+            LastResidentsPageSize = pageSize;
+
+            return Task.FromResult(ResidentsPageResult ?? CreateResidentsPageResult());
+        }
+
+        public Task<CityResidentDetailsDto> GetCityResidentDetailsAsync(
+            Guid cityId,
+            Guid personId,
+            DateOnly currentDate,
+            CancellationToken cancellationToken = default)
+        {
+            LastResidentDetailsCityId = cityId;
+            LastResidentDetailsPersonId = personId;
+            LastResidentDetailsCurrentDate = currentDate;
+
+            return Task.FromResult(ResidentDetailsResult ?? CreateCityResidentDetailsDto(personId));
+        }
+
+        public Task<CityEmploymentCatalogDto> GetCityEmploymentCatalogAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEducationCatalogDto> GetCityEducationCatalogAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEmploymentOperationResultDto> HireCityResidentAsync(
+            Guid cityId,
+            CityEmploymentOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEmploymentOperationResultDto> FireCityResidentAsync(
+            Guid cityId,
+            CityEmploymentOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEmploymentOperationResultDto> RetireCityResidentAsync(
+            Guid cityId,
+            CityEmploymentOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEducationOperationResultDto> EnrollCityResidentAsync(
+            Guid cityId,
+            CityEducationOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEducationOperationResultDto> GraduateCityResidentAsync(
+            Guid cityId,
+            CityEducationOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityEducationOperationResultDto> WithdrawCityResidentFromStudyAsync(
+            Guid cityId,
+            CityEducationOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityCivilRegistryOperationResultDto> RegisterCityMarriageAsync(
+            Guid cityId,
+            CityCivilRegistryOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityCivilRegistryOperationResultDto> RegisterCityDivorceAsync(
+            Guid cityId,
+            CityCivilRegistryOperationRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<PagedResult<PersonDto>> GetCitizensPageAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    public sealed class RecordingStockpilesApiClient : IStockpilesApiClient
+    {
+        public DispatchCityResupplyView? DispatchResult { get; set; }
+        public Exception? DispatchException { get; set; }
+        public Guid? LastDispatchCityId { get; private set; }
+        public DispatchCityResupplyRequest? LastDispatchRequest { get; private set; }
+
+        public Task<CityStockpilesView?> GetCityStockpilesAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<DispatchCityResupplyView> DispatchCityResupplyAsync(
+            Guid cityId,
+            DispatchCityResupplyRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            LastDispatchCityId = cityId;
+            LastDispatchRequest = request;
+
+            if (DispatchException is not null)
+                throw DispatchException;
+
+            return Task.FromResult(DispatchResult ?? CreateDispatchCityResupplyView(cityId));
+        }
+    }
+
+    public sealed class RecordingEnvironmentalConditionsApiClient : IEnvironmentalConditionsApiClient
+    {
+        public bool ReturnHeatingNull { get; set; }
+        public bool ReturnWaterNull { get; set; }
+        public bool ReturnPowerNull { get; set; }
+        public bool ReturnSanitationNull { get; set; }
+        public bool ReturnUtilityIncidentNull { get; set; }
+        public CityDistrictHeatingConditionsView? HeatingResult { get; set; }
+        public CityDistrictWaterDistributionConditionsView? WaterResult { get; set; }
+        public CityDistrictPowerDistributionConditionsView? PowerResult { get; set; }
+        public CityDistrictSanitationConditionsView? SanitationResult { get; set; }
+        public CityDistrictUtilityIncidentConditionsView? UtilityIncidentResult { get; set; }
+        public CityUtilityIncidentStatusView? DispatchResult { get; set; }
+        public Exception? DispatchException { get; set; }
+        public Guid? LastDispatchCityId { get; private set; }
+        public DispatchCityUtilityIncidentResponseRequest? LastDispatchRequest { get; private set; }
+
+        public Task<CityEnvironmentalConditionsView?> GetCityEnvironmentalConditionsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<CityDistrictHeatingConditionsView?> GetCityDistrictHeatingConditionsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            if (ReturnHeatingNull)
+                return Task.FromResult<CityDistrictHeatingConditionsView?>(null);
+
+            return Task.FromResult<CityDistrictHeatingConditionsView?>(HeatingResult ?? CreateCityDistrictHeatingConditionsView(cityId));
+        }
+
+        public Task<CityDistrictWaterDistributionConditionsView?> GetCityDistrictWaterDistributionConditionsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            if (ReturnWaterNull)
+                return Task.FromResult<CityDistrictWaterDistributionConditionsView?>(null);
+
+            return Task.FromResult<CityDistrictWaterDistributionConditionsView?>(WaterResult ?? CreateCityDistrictWaterDistributionConditionsView(cityId));
+        }
+
+        public Task<CityDistrictPowerDistributionConditionsView?> GetCityDistrictPowerDistributionConditionsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            if (ReturnPowerNull)
+                return Task.FromResult<CityDistrictPowerDistributionConditionsView?>(null);
+
+            return Task.FromResult<CityDistrictPowerDistributionConditionsView?>(PowerResult ?? CreateCityDistrictPowerDistributionConditionsView(cityId));
+        }
+
+        public Task<CityDistrictSanitationConditionsView?> GetCityDistrictSanitationConditionsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            if (ReturnSanitationNull)
+                return Task.FromResult<CityDistrictSanitationConditionsView?>(null);
+
+            return Task.FromResult<CityDistrictSanitationConditionsView?>(SanitationResult ?? CreateCityDistrictSanitationConditionsView(cityId));
+        }
+
+        public Task<CityDistrictUtilityIncidentConditionsView?> GetCityDistrictUtilityIncidentConditionsAsync(
+            Guid cityId,
+            CancellationToken cancellationToken = default)
+        {
+            if (ReturnUtilityIncidentNull)
+                return Task.FromResult<CityDistrictUtilityIncidentConditionsView?>(null);
+
+            return Task.FromResult<CityDistrictUtilityIncidentConditionsView?>(UtilityIncidentResult ?? CreateCityDistrictUtilityIncidentConditionsView(cityId));
+        }
+
+        public Task<CityUtilityIncidentStatusView> DispatchCityUtilityIncidentResponseAsync(
+            Guid cityId,
+            DispatchCityUtilityIncidentResponseRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            LastDispatchCityId = cityId;
+            LastDispatchRequest = request;
+
+            if (DispatchException is not null)
+                throw DispatchException;
+
+            return Task.FromResult(DispatchResult ?? CreateCityUtilityIncidentStatusView(cityId));
         }
     }
 
