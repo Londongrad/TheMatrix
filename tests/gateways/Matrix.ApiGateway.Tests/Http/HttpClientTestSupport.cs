@@ -4,6 +4,14 @@ using System.Reflection;
 using System.Text;
 using Matrix.ApiGateway.Controllers.Economy;
 using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Permissions;
+using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Roles;
+using Matrix.ApiGateway.DownstreamClients.Identity.Admin.Users;
+using Matrix.ApiGateway.DownstreamClients.Identity.Internal.PermissionsVersion;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Account;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Assets;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Auth;
+using Matrix.ApiGateway.DownstreamClients.Identity.Self.Sessions;
 using Matrix.ApiGateway.DownstreamClients.Population.People;
 using Matrix.ApiGateway.DownstreamClients.Population.Person;
 using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
@@ -117,6 +125,46 @@ internal static class HttpClientTestSupport
     internal static IPersonApiClient CreatePersonApiClient(HttpClient httpClient)
     {
         return new PersonApiClient(httpClient);
+    }
+
+    internal static IIdentityAuthClient CreateIdentityAuthApiClient(HttpClient httpClient)
+    {
+        return new IdentityAuthApiClient(httpClient);
+    }
+
+    internal static IIdentitySessionsClient CreateIdentitySessionsApiClient(HttpClient httpClient)
+    {
+        return new IdentitySessionsApiClient(httpClient);
+    }
+
+    internal static IIdentityAccountClient CreateIdentityAccountApiClient(HttpClient httpClient)
+    {
+        return new IdentityAccountApiClient(httpClient);
+    }
+
+    internal static IIdentityAssetsClient CreateIdentityAssetsApiClient(HttpClient httpClient)
+    {
+        return new IdentityAssetsApiClient(httpClient);
+    }
+
+    internal static IIdentityAdminUsersClient CreateIdentityAdminUsersApiClient(HttpClient httpClient)
+    {
+        return new IdentityAdminUsersApiClient(httpClient);
+    }
+
+    internal static IIdentityAdminRolesClient CreateIdentityAdminRolesApiClient(HttpClient httpClient)
+    {
+        return new IdentityAdminRolesApiClient(httpClient);
+    }
+
+    internal static IIdentityAdminPermissionsClient CreateIdentityAdminPermissionsApiClient(HttpClient httpClient)
+    {
+        return new IdentityAdminPermissionsApiClient(httpClient);
+    }
+
+    internal static IIdentityInternalUsersClient CreateIdentityInternalUsersApiClient(HttpClient httpClient)
+    {
+        return new IdentityInternalUsersClient(httpClient);
     }
 
     internal static IEconomyApiClient CreateEconomyApiClient(HttpClient httpClient)
