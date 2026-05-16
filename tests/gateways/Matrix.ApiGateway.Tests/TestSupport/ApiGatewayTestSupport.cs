@@ -204,6 +204,44 @@ public static class ApiGatewayTestSupport
         };
     }
 
+    public static ClassicCitySetupSessionView CreateClassicCitySetupSessionView(
+        Guid? sessionId = null,
+        string status = "Draft",
+        string currentStepId = "scenario",
+        ClassicCitySetupDraftDto? draft = null,
+        Guid? cityId = null,
+        CityProvisioningView? provisioning = null,
+        string? failureCode = null,
+        string? failureMessage = null,
+        DateTimeOffset? createdAtUtc = null,
+        DateTimeOffset? updatedAtUtc = null,
+        DateTimeOffset? launchQueuedAtUtc = null,
+        DateTimeOffset? startedAtUtc = null,
+        DateTimeOffset? completedAtUtc = null)
+    {
+        DateTimeOffset effectiveCreatedAtUtc =
+            createdAtUtc ?? new DateTimeOffset(2048, 6, 1, 9, 0, 0, TimeSpan.Zero);
+        DateTimeOffset effectiveUpdatedAtUtc =
+            updatedAtUtc ?? effectiveCreatedAtUtc.AddMinutes(5);
+
+        return new ClassicCitySetupSessionView(
+            SessionId: sessionId ?? Guid.Parse("c289f553-c877-4ac4-b24a-f01be13ce25e"),
+            ScenarioKind: "ClassicCity",
+            Status: status,
+            CurrentStepId: currentStepId,
+            Draft: draft ?? CreateClassicCitySetupDraft(),
+            CityId: cityId,
+            SimulationKind: cityId is null ? null : "ClassicCity",
+            Provisioning: provisioning,
+            FailureCode: failureCode,
+            FailureMessage: failureMessage,
+            CreatedAtUtc: effectiveCreatedAtUtc,
+            UpdatedAtUtc: effectiveUpdatedAtUtc,
+            LaunchQueuedAtUtc: launchQueuedAtUtc,
+            StartedAtUtc: startedAtUtc,
+            CompletedAtUtc: completedAtUtc);
+    }
+
     public static ClassicCitySetupSessionLaunchAuthSnapshot CreateLaunchAuthSnapshot(
         Guid userId,
         string? jti = "launch-jti",
@@ -339,6 +377,15 @@ public static class ApiGatewayTestSupport
             internalJwtRequestContextAccessor: requestContextAccessor,
             options: options ?? CreateClassicCitySetupSessionOptions(),
             logger: NullLogger<ClassicCitySetupSessionService>.Instance);
+    }
+
+    public static Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.SetupSessions
+        .ClassicCitySetupSessionsController CreateClassicCitySetupSessionsController(
+            RecordingClassicCitySetupSessionService? setupSessionService = null)
+    {
+        return new Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.SetupSessions
+            .ClassicCitySetupSessionsController(
+                setupSessionService ?? new RecordingClassicCitySetupSessionService());
     }
 
     public static Matrix.ApiGateway.Controllers.SimulationCore.Simulation.SimulationsController CreateSimulationsController(
@@ -791,6 +838,110 @@ public static class ApiGatewayTestSupport
         public override DateTimeOffset GetUtcNow()
         {
             return _utcNow;
+        }
+    }
+
+    public sealed class RecordingClassicCitySetupSessionService : IClassicCitySetupSessionService
+    {
+        public IReadOnlyList<ClassicCitySetupSessionView> ListDraftsResult { get; set; } = [];
+        public ClassicCitySetupSessionView? CreateResult { get; set; }
+        public ClassicCitySetupSessionView? GetResult { get; set; }
+        public ClassicCitySetupSessionMutationResult? DeleteResult { get; set; }
+        public ClassicCitySetupSessionMutationResult? UpdateResult { get; set; }
+        public ClassicCitySetupSessionMutationResult? QueueLaunchResult { get; set; }
+        public CreateClassicCitySetupSessionRequestDto? LastCreateRequest { get; private set; }
+        public Guid? LastGetSessionId { get; private set; }
+        public Guid? LastDeleteSessionId { get; private set; }
+        public Guid? LastUpdateSessionId { get; private set; }
+        public UpdateClassicCitySetupSessionRequestDto? LastUpdateRequest { get; private set; }
+        public Guid? LastQueueLaunchSessionId { get; private set; }
+        public Guid? LastProcessLaunchSessionId { get; private set; }
+        public Guid? LastReconcileSessionId { get; private set; }
+
+        public Task<IReadOnlyList<ClassicCitySetupSessionView>> ListDraftsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(ListDraftsResult);
+        }
+
+        public Task<ClassicCitySetupSessionView> CreateAsync(
+            CreateClassicCitySetupSessionRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            LastCreateRequest = request;
+
+            return Task.FromResult(CreateResult ?? CreateClassicCitySetupSessionView());
+        }
+
+        public Task<ClassicCitySetupSessionView?> GetAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            LastGetSessionId = sessionId;
+            return Task.FromResult(GetResult);
+        }
+
+        public Task<ClassicCitySetupSessionMutationResult> DeleteAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            LastDeleteSessionId = sessionId;
+
+            return Task.FromResult(DeleteResult ?? new ClassicCitySetupSessionMutationResult(
+                Status: ClassicCitySetupSessionMutationStatus.Updated,
+                Session: null,
+                ErrorCode: null,
+                ErrorMessage: null));
+        }
+
+        public Task<ClassicCitySetupSessionMutationResult> UpdateAsync(
+            Guid sessionId,
+            UpdateClassicCitySetupSessionRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            LastUpdateSessionId = sessionId;
+            LastUpdateRequest = request;
+
+            return Task.FromResult(UpdateResult ?? new ClassicCitySetupSessionMutationResult(
+                Status: ClassicCitySetupSessionMutationStatus.Updated,
+                Session: CreateClassicCitySetupSessionView(
+                    sessionId: sessionId,
+                    currentStepId: request.CurrentStepId,
+                    draft: request.Draft),
+                ErrorCode: null,
+                ErrorMessage: null));
+        }
+
+        public Task<ClassicCitySetupSessionMutationResult> QueueLaunchAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            LastQueueLaunchSessionId = sessionId;
+
+            return Task.FromResult(QueueLaunchResult ?? new ClassicCitySetupSessionMutationResult(
+                Status: ClassicCitySetupSessionMutationStatus.Updated,
+                Session: CreateClassicCitySetupSessionView(
+                    sessionId: sessionId,
+                    status: "LaunchQueued",
+                    launchQueuedAtUtc: new DateTimeOffset(2048, 6, 1, 12, 0, 0, TimeSpan.Zero)),
+                ErrorCode: null,
+                ErrorMessage: null));
+        }
+
+        public Task ProcessLaunchAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            LastProcessLaunchSessionId = sessionId;
+            return Task.CompletedTask;
+        }
+
+        public Task ReconcileAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            LastReconcileSessionId = sessionId;
+            return Task.CompletedTask;
         }
     }
 
