@@ -8,9 +8,18 @@ namespace Matrix.ApiGateway.Consumers
     {
         public Task Consume(ConsumeContext<ClassicCitySetupLaunchRequested> context)
         {
-            return setupSessionService.ProcessLaunchAsync(
-                sessionId: context.Message.SessionId,
+            return ConsumeAsync(
+                message: context.Message,
                 cancellationToken: context.CancellationToken);
+        }
+
+        internal Task ConsumeAsync(
+            ClassicCitySetupLaunchRequested message,
+            CancellationToken cancellationToken)
+        {
+            return setupSessionService.ProcessLaunchAsync(
+                sessionId: message.SessionId,
+                cancellationToken: cancellationToken);
         }
     }
 }

@@ -17,7 +17,16 @@ namespace Matrix.ApiGateway.Consumers
     {
         public Task Consume(ConsumeContext<UserSecurityStateChangedV1> context)
         {
-            UserSecurityStateChangedV1 msg = context.Message;
+            return ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal Task ConsumeAsync(
+            UserSecurityStateChangedV1 message,
+            CancellationToken cancellationToken)
+        {
+            UserSecurityStateChangedV1 msg = message;
 
             string key = AuthorizationCacheKeys.PermissionsVersion(msg.UserId);
 
@@ -35,7 +44,7 @@ namespace Matrix.ApiGateway.Consumers
                 {
                     AbsoluteExpirationRelativeToNow = ttl
                 },
-                token: context.CancellationToken);
+                token: cancellationToken);
         }
     }
 }

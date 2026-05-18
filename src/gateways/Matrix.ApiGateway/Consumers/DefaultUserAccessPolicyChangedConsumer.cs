@@ -17,6 +17,15 @@ namespace Matrix.ApiGateway.Consumers
     {
         public async Task Consume(ConsumeContext<DefaultUserAccessPolicyChangedV1> context)
         {
+            await ConsumeAsync(
+                message: context.Message,
+                cancellationToken: context.CancellationToken);
+        }
+
+        internal async Task ConsumeAsync(
+            DefaultUserAccessPolicyChangedV1 message,
+            CancellationToken cancellationToken)
+        {
             string key = AuthorizationCacheKeys.DefaultUserAccessVersion();
             string staleKey = AuthorizationCacheKeys.DefaultUserAccessVersionStale();
 
@@ -34,7 +43,7 @@ namespace Matrix.ApiGateway.Consumers
                 cacheName: "DefaultUserAccessVersionStale",
                 logger: logger);
 
-            string value = context.Message.Version.ToString(CultureInfo.InvariantCulture);
+            string value = message.Version.ToString(CultureInfo.InvariantCulture);
 
             await cache.SetStringAsync(
                 key: key,
@@ -43,7 +52,7 @@ namespace Matrix.ApiGateway.Consumers
                 {
                     AbsoluteExpirationRelativeToNow = freshTtl
                 },
-                token: context.CancellationToken);
+                token: cancellationToken);
 
             await cache.SetStringAsync(
                 key: staleKey,
@@ -52,7 +61,7 @@ namespace Matrix.ApiGateway.Consumers
                 {
                     AbsoluteExpirationRelativeToNow = staleTtl
                 },
-                token: context.CancellationToken);
+                token: cancellationToken);
         }
     }
 }
