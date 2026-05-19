@@ -17,13 +17,15 @@ namespace Matrix.SimulationCore.Domain.Simulation
             SimTime currentTime,
             TickId tickId,
             SimSpeed speed,
-            ClockState state)
+            ClockState state,
+            long pendingSimulationTicks = 0)
             : base(cityId)
         {
             CurrentTime = currentTime;
             TickId = tickId;
             Speed = speed;
             State = state;
+            PendingSimulationTicks = pendingSimulationTicks;
         }
 
         private SimulationClock()
@@ -35,8 +37,10 @@ namespace Matrix.SimulationCore.Domain.Simulation
         public TickId TickId { get; private set; }
         public SimSpeed Speed { get; private set; }
         public ClockState State { get; private set; }
+        public long PendingSimulationTicks { get; private set; }
 
         public bool IsPaused => State == ClockState.Paused;
+        public TimeSpan PendingSimulationTime => TimeSpan.FromTicks(PendingSimulationTicks);
 
         public static SimulationClock Create(
             CityId cityId,
@@ -99,6 +103,60 @@ namespace Matrix.SimulationCore.Domain.Simulation
                     To: to,
                     TickId: TickId,
                     Speed: Speed));
+        }
+
+        public void AccumulatePendingSimulationTime(TimeSpan realDelta)
+        {
+            GuardHelper.Ensure(
+                condition: realDelta > TimeSpan.Zero,
+                value: realDelta,
+                errorFactory: DomainErrorsFactory.SimSpeedRealDeltaMustBePositive);
+
+            if (IsPaused)
+                return;
+
+            TimeSpan simDelta = Speed.Apply(realDelta);
+            PendingSimulationTicks = checked(PendingSimulationTicks + simDelta.Ticks);
+        }
+
+        public bool TryAdvanceFixedStep(TimeSpan fixedStep)
+        {
+            GuardHelper.Ensure(
+                condition: fixedStep > TimeSpan.Zero,
+                value: fixedStep,
+                errorFactory: DomainErrorsFactory.SimSpeedRealDeltaMustBePositive);
+
+            if (IsPaused)
+                return false;
+
+            long fixedStepTicks = fixedStep.Ticks;
+
+            if (PendingSimulationTicks < fixedStepTicks)
+                return false;
+
+            SimTime from = CurrentTime;
+            SimTime to = CurrentTime.Add(fixedStep);
+            SimulationId simulationId = SimulationId;
+
+            PendingSimulationTicks -= fixedStepTicks;
+            TickId = TickId.Next();
+            CurrentTime = to;
+
+            AddDomainEvent(
+                new SimulationTimeAdvancedDomainEvent(
+                    SimulationId: simulationId,
+                    CityId: Id,
+                    From: from,
+                    To: to,
+                    TickId: TickId,
+                    Speed: Speed));
+
+            return true;
+        }
+
+        public void ClearPendingSimulationTime()
+        {
+            PendingSimulationTicks = 0;
         }
 
         public void Pause()
@@ -168,6 +226,7 @@ namespace Matrix.SimulationCore.Domain.Simulation
 
             TickId = TickId.Next();
             CurrentTime = newTime;
+            ClearPendingSimulationTime();
             SimulationId simulationId = SimulationId;
 
             AddDomainEvent(
