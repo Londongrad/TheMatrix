@@ -899,7 +899,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
                 districtId: districtId,
                 livingConditionsState: livingConditionsState,
-                districtUtilityConditions: ResolveDistrictUtilityConditions(
+                districtUtilityConditions: ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
                     districtId: districtId,
                     districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
             CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
@@ -1032,7 +1032,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
                         districtId: districtId,
                         livingConditionsState: livingConditionsState,
-                        districtUtilityConditions: ResolveDistrictUtilityConditions(
+                        districtUtilityConditions: ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
                             districtId: districtId,
                             districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
                     CityPopulationEssentialsContext districtEssentials = districtImpactPolicy.ResolveEssentials(
@@ -1352,9 +1352,10 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IReadOnlyCollection<PersonEntity> householdResidents = residentsById.Values
                .Where(x => x.HouseholdId == person.HouseholdId)
                .ToArray();
-            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions = ResolveDistrictUtilityConditions(
-                districtId: districtId,
-                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId);
+            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions =
+                ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
+                    districtId: districtId,
+                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId);
             CityPopulationLivingConditionsContext districtLivingConditions = districtImpactPolicy.ResolveLivingConditions(
                 districtId: districtId,
                 livingConditionsState: livingConditionsState,
@@ -1488,20 +1489,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             }
 
             return affectedResidents;
-        }
-
-        private static CityDistrictUtilityConditionsSnapshot? ResolveDistrictUtilityConditions(
-            DistrictId? districtId,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId)
-        {
-            if (!districtId.HasValue)
-                return null;
-
-            return districtUtilityConditionsByDistrictId.TryGetValue(
-                key: districtId.Value,
-                value: out CityDistrictUtilityConditionsSnapshot? snapshot)
-                ? snapshot
-                : null;
         }
 
         private static async Task<int> ApplyHouseholdIndependenceAutonomyAsync(
@@ -1691,7 +1678,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                    .Select(x => new
                     {
                         x.HouseholdId,
-                        Snapshot = ResolveDistrictUtilityConditions(
+                        Snapshot = ClassicCityHousingOpportunityPlanner.ResolveDistrictUtilityConditions(
                             districtId: x.DistrictId,
                             districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId)
                     })
@@ -1747,7 +1734,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cancellationToken: cancellationToken);
 
             List<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> housingPool =
-                BuildHousingOpportunityPool(placements);
+                ClassicCityHousingOpportunityPlanner.BuildHousingOpportunityPool(placements);
 
             int affectedResidents = 0;
 
@@ -1762,7 +1749,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     householdResidents.Count == 0)
                     continue;
 
-                PersonEntity anchorResident = SelectHousingAnchorResident(
+                PersonEntity anchorResident = ClassicCityHousingOpportunityPlanner.SelectHousingAnchorResident(
                     householdResidents: householdResidents,
                     currentDate: currentDate);
 
@@ -1774,7 +1761,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             continue;
 
                         (DistrictId districtId, ResidentialBuildingId residentialBuildingId) opportunity =
-                            await SelectHousingOpportunityAsync(
+                            await ClassicCityHousingOpportunityPlanner.SelectHousingOpportunityAsync(
                                 cityId: cityId,
                                 householdId: placement.HouseholdId,
                                 currentDate: currentDate,
@@ -1868,241 +1855,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             }
 
             return pools;
-        }
-
-        private static List<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)>
-            BuildHousingOpportunityPool(IEnumerable<ClassicCityHouseholdPlacement> placements)
-        {
-            return placements
-               .Where(x => x.HousingStatus == HousingStatus.Housed &&
-                           x.DistrictId.HasValue &&
-                           x.ResidentialBuildingId.HasValue)
-               .Select(x => (x.DistrictId!.Value, x.ResidentialBuildingId!.Value))
-               .Distinct()
-               .ToList();
-        }
-
-        private static PersonEntity SelectHousingAnchorResident(
-            IReadOnlyCollection<PersonEntity> householdResidents,
-            DateOnly currentDate)
-        {
-            return householdResidents
-               .OrderByDescending(x => x.GetAgeGroup(currentDate) is AgeGroup.Adult or AgeGroup.Senior)
-               .ThenByDescending(x => x.GetAge(currentDate)
-                   .Years)
-               .ThenBy(x => x.Id.Value)
-               .First();
-        }
-
-        private static async Task<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> SelectHousingOpportunityAsync(
-            CityId cityId,
-            HouseholdId householdId,
-            DateOnly currentDate,
-            IReadOnlyList<(DistrictId districtId, ResidentialBuildingId residentialBuildingId)> housingPool,
-            IReadOnlyCollection<PersonEntity> householdResidents,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
-            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
-            ICityPopulationCommuteRoutingService commuteRoutingService,
-            CancellationToken cancellationToken)
-        {
-            int startIndex = GetStableInt(
-                householdId: householdId,
-                currentDate: currentDate,
-                salt: 1_123,
-                modulus: housingPool.Count);
-            int candidateCount = Math.Min(
-                val1: housingPool.Count,
-                val2: 12);
-            decimal bestScore = decimal.MinValue;
-            int bestIndex = startIndex;
-
-            for (int offset = 0; offset < candidateCount; offset++)
-            {
-                int candidateIndex = (startIndex + offset) % housingPool.Count;
-                (DistrictId districtId, ResidentialBuildingId residentialBuildingId) candidate = housingPool[candidateIndex];
-                decimal candidateScore = await EvaluateHousingOpportunityScoreAsync(
-                    cityId: cityId,
-                    districtId: candidate.districtId,
-                    residentialBuildingId: candidate.residentialBuildingId,
-                    currentDate: currentDate,
-                    householdResidents: householdResidents,
-                    hospitalAnchors: hospitalAnchors,
-                    districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId,
-                    anchorSelectionPolicy: anchorSelectionPolicy,
-                    commuteRoutingService: commuteRoutingService,
-                    cancellationToken: cancellationToken);
-
-                if (candidateScore > bestScore)
-                {
-                    bestScore = candidateScore;
-                    bestIndex = candidateIndex;
-                }
-            }
-
-            return housingPool[bestIndex];
-        }
-
-        private static async Task<decimal> EvaluateHousingOpportunityScoreAsync(
-            CityId cityId,
-            DistrictId districtId,
-            ResidentialBuildingId residentialBuildingId,
-            DateOnly currentDate,
-            IReadOnlyCollection<PersonEntity> householdResidents,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> hospitalAnchors,
-            IReadOnlyDictionary<DistrictId, CityDistrictUtilityConditionsSnapshot> districtUtilityConditionsByDistrictId,
-            CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
-            ICityPopulationCommuteRoutingService commuteRoutingService,
-            CancellationToken cancellationToken)
-        {
-            decimal weightedScoreTotal = 0m;
-            decimal totalWeight = 0m;
-
-            foreach (PersonEntity resident in householdResidents)
-            {
-                if (!resident.IsAlive)
-                    continue;
-
-                if (resident.Employment.Job?.WorkplaceAnchorId is { } workplaceAnchorId)
-                {
-                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
-                        cityId: cityId.Value,
-                        residentialBuildingId: residentialBuildingId,
-                        destinationAnchorId: workplaceAnchorId,
-                        cancellationToken: cancellationToken);
-                    weightedScoreTotal += ResolveHousingOpportunityContribution(
-                        commute: commute,
-                        weight: 1.20m);
-                    totalWeight += 1.20m;
-                }
-
-                if (resident.Education.CurrentInstitutionAnchorId is { } institutionAnchorId)
-                {
-                    CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
-                        cityId: cityId.Value,
-                        residentialBuildingId: residentialBuildingId,
-                        destinationAnchorId: institutionAnchorId,
-                        cancellationToken: cancellationToken);
-                    weightedScoreTotal += ResolveHousingOpportunityContribution(
-                        commute: commute,
-                        weight: 1.00m);
-                    totalWeight += 1.00m;
-                }
-
-                bool needsHealthcarePriority = resident.HasActiveIllness ||
-                                               resident.GetAgeGroup(currentDate) is AgeGroup.Child or AgeGroup.Senior;
-                if (!needsHealthcarePriority)
-                    continue;
-
-                CityPopulationAnchorCatalogItem? primaryCareAnchor = anchorSelectionPolicy.SelectHospitalAnchor(
-                    anchors: hospitalAnchors,
-                    preferredDistrictId: districtId,
-                    stableKey: resident.Id.Value);
-                if (primaryCareAnchor is null)
-                    continue;
-
-                CityPopulationCommuteContext healthcareCommute = await commuteRoutingService.ResolveAnchorCommuteAsync(
-                    cityId: cityId.Value,
-                    residentialBuildingId: residentialBuildingId,
-                    destinationAnchorId: primaryCareAnchor.CityAnchorId,
-                    cancellationToken: cancellationToken);
-                decimal healthcareWeight = resident.CurrentIllnessSeverity == IllnessSeverity.Severe
-                    ? 1.10m
-                    : resident.HasActiveIllness
-                        ? 0.80m
-                        : 0.45m;
-                weightedScoreTotal += ResolveHousingOpportunityContribution(
-                    commute: healthcareCommute,
-                    weight: healthcareWeight);
-                totalWeight += healthcareWeight;
-            }
-
-            if (totalWeight <= 0m)
-                return ResolveDistrictHousingStabilityContribution(
-                    districtUtilityConditions: ResolveDistrictUtilityConditions(
-                        districtId: districtId,
-                        districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId));
-
-            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions = ResolveDistrictUtilityConditions(
-                districtId: districtId,
-                districtUtilityConditionsByDistrictId: districtUtilityConditionsByDistrictId);
-            if (districtUtilityConditions is not null)
-            {
-                weightedScoreTotal += ResolveDistrictHousingStabilityContribution(districtUtilityConditions) * 0.90m;
-                totalWeight += 0.90m;
-            }
-
-            return decimal.Round(
-                d: weightedScoreTotal / totalWeight,
-                decimals: 4,
-                mode: MidpointRounding.AwayFromZero);
-        }
-
-        private static decimal ResolveDistrictHousingStabilityContribution(
-            CityDistrictUtilityConditionsSnapshot? districtUtilityConditions)
-        {
-            if (districtUtilityConditions is null)
-                return 0.55m;
-
-            decimal score = (districtUtilityConditions.UtilityIncidentDispatchReadinessIndex * 0.22m) +
-                            ((1m - districtUtilityConditions.UtilityIncidentPressureIndex) * 0.26m) +
-                            ((1m - districtUtilityConditions.UtilityIncidentCoordinationDifficultyIndex) * 0.14m) +
-                            ((1m - districtUtilityConditions.UtilityIncidentRestorationPriorityIndex) * 0.12m) +
-                            (districtUtilityConditions.HeatingCoverageIndex * 0.08m) +
-                            (districtUtilityConditions.WaterCoverageIndex * 0.08m) +
-                            (districtUtilityConditions.PowerCoverageIndex * 0.06m) +
-                            (districtUtilityConditions.SanitationCoverageIndex * 0.04m);
-
-            return decimal.Round(
-                d: Math.Clamp(
-                    value: score,
-                    min: 0m,
-                    max: 1m),
-                decimals: 4,
-                mode: MidpointRounding.AwayFromZero);
-        }
-
-        private static decimal ResolveHousingOpportunityContribution(
-            CityPopulationCommuteContext commute,
-            decimal weight)
-        {
-            decimal etaScore = commute.EstimatedTravelTimeMinutes.HasValue
-                ? decimal.Clamp(
-                    value: 1m - (commute.EstimatedTravelTimeMinutes.Value / 120m),
-                    min: 0m,
-                    max: 1m)
-                : 1m;
-            decimal rawScore = (commute.AccessibilityIndex * 0.65m) +
-                               (commute.PassabilityIndex * 0.20m) +
-                               (etaScore * 0.15m);
-
-            if (!commute.IsAccessible)
-                rawScore *= 0.30m;
-
-            return rawScore * weight;
-        }
-
-        private static int GetStableInt(
-            HouseholdId householdId,
-            DateOnly currentDate,
-            int salt,
-            int modulus)
-        {
-            if (modulus <= 0)
-                return 0;
-
-            unchecked
-            {
-                byte[] bytes = householdId.Value.ToByteArray();
-                int hash = 17;
-                for (int i = 0; i < bytes.Length; i++)
-                    hash = (hash * 31) + bytes[i];
-
-                hash = (hash * 31) + currentDate.DayNumber;
-                hash = (hash * 31) + salt;
-
-                return (int)(Math.Abs((long)hash) % modulus);
-            }
         }
 
         private static ResidentLifecycleSnapshot CreateResidentSnapshot(PersonEntity person)
