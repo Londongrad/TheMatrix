@@ -41,11 +41,78 @@ namespace Matrix.Population.Infrastructure.SimulationCore
             if (payload is null)
                 return null;
 
-            if (!payload.Accessible)
+            return MapRouteViewToCommuteContext(
+                route: payload,
+                profile: profile);
+        }
+
+        public async Task<IReadOnlyDictionary<CityRouteResolutionBatchRequestItem, CityPopulationCommuteContext?>>
+            ResolveResidentialToAnchorsAsync(
+                Guid cityId,
+                IReadOnlyCollection<CityRouteResolutionBatchRequestItem> requests,
+                CancellationToken cancellationToken)
+        {
+            if (requests.Count == 0)
+                return new Dictionary<CityRouteResolutionBatchRequestItem, CityPopulationCommuteContext?>();
+
+            CityRouteResolutionBatchRequestItem[] uniqueRequests = requests
+               .Distinct()
+               .ToArray();
+            var results = uniqueRequests.ToDictionary(
+                keySelector: x => x,
+                elementSelector: _ => (CityPopulationCommuteContext?)null);
+            string url = $"/api/cities/{cityId}/routes/resolve-batch";
+
+            using HttpResponseMessage response = await _client.PostAsJsonAsync(
+                requestUri: url,
+                value: new ResolveCityRoutesBatchRequest(
+                    Routes: uniqueRequests
+                       .Select(x => new ResolveCityRouteRequest(
+                            From: new CityRoutePointRequest(
+                                Kind: "ResidentialBuilding",
+                                Id: x.ResidentialBuildingId.Value),
+                            To: new CityRoutePointRequest(
+                                Kind: "CityAnchor",
+                                Id: x.CityAnchorId.Value),
+                            Profile: x.Profile))
+                       .ToArray()),
+                cancellationToken: cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                return results;
+
+            ResolveCityRoutesBatchView? payload =
+                await response.Content.ReadFromJsonAsync<ResolveCityRoutesBatchView>(
+                    cancellationToken: cancellationToken);
+
+            if (payload is null)
+                return results;
+
+            foreach (ResolvedCityRouteBatchItemView item in payload.Routes)
+            {
+                if (item.Index < 0 || item.Index >= uniqueRequests.Length)
+                    continue;
+
+                CityRouteResolutionBatchRequestItem request = uniqueRequests[item.Index];
+                results[request] = item.Route is null
+                    ? null
+                    : MapRouteViewToCommuteContext(
+                        route: item.Route,
+                        profile: request.Profile);
+            }
+
+            return results;
+        }
+
+        private static CityPopulationCommuteContext MapRouteViewToCommuteContext(
+            CityRouteView route,
+            string profile)
+        {
+            if (!route.Accessible)
                 return CityPopulationCommuteContext.Blocked;
 
-            decimal travelMinutes = payload.EstimatedTravelTimeMinutes;
-            decimal passabilityIndex = payload.OverallPassabilityIndex;
+            decimal travelMinutes = route.EstimatedTravelTimeMinutes;
+            decimal passabilityIndex = route.OverallPassabilityIndex;
             decimal timeComfortIndex = ResolveTimeComfortIndex(
                 profile: profile,
                 travelMinutes: travelMinutes);
