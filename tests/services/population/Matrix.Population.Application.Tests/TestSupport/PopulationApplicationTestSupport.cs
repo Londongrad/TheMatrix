@@ -4,6 +4,7 @@ using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.GetCityDashboard;
@@ -1041,6 +1042,16 @@ internal static class PopulationApplicationTestSupport
         public CityPopulationCommuteContext EmploymentContext { get; set; } = CityPopulationCommuteContext.Neutral;
         public CityPopulationCommuteContext EducationContext { get; set; } = CityPopulationCommuteContext.Neutral;
         public CityPopulationCommuteContext HealthcareContext { get; set; } = CityPopulationCommuteContext.Neutral;
+        public List<IReadOnlyCollection<CityPopulationCommuteRouteRequest>> PreloadRequests { get; } = [];
+
+        public Task PreloadAnchorCommutesAsync(
+            Guid cityId,
+            IReadOnlyCollection<CityPopulationCommuteRouteRequest> requests,
+            CancellationToken cancellationToken)
+        {
+            PreloadRequests.Add(requests);
+            return Task.CompletedTask;
+        }
 
         public Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
             Guid cityId,

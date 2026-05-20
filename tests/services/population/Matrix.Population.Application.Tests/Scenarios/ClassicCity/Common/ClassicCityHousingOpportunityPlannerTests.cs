@@ -1,4 +1,5 @@
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Enums;
@@ -358,6 +359,57 @@ public sealed class ClassicCityHousingOpportunityPlannerTests
     }
 
     [Fact]
+    public async Task SelectHousingOpportunityAsync_PreloadsCandidateWindowRoutesBeforeResolving()
+    {
+        HouseholdId householdId = CreateHouseholdId(1);
+        CityAnchorId workplaceAnchorId = CreateCityAnchorId(1);
+        List<(DistrictId DistrictId, ResidentialBuildingId ResidentialBuildingId)> housingPool =
+        [
+            (CreateDistrictId(1), CreateResidentialBuildingId(1)),
+            (CreateDistrictId(2), CreateResidentialBuildingId(2)),
+            (CreateDistrictId(3), CreateResidentialBuildingId(3))
+        ];
+        Person resident = CreateResident(
+            personId: CreatePersonId(1),
+            householdId: householdId,
+            birthDate: new DateOnly(1990, 1, 1),
+            job: CreateJob(workplaceAnchorId));
+        var routingService = new RecordingCommuteRoutingService
+        {
+            DefaultAnchorContext = new CityPopulationCommuteContext(
+                HasRouteData: true,
+                IsAccessible: true,
+                AccessibilityIndex: 0.60m,
+                PassabilityIndex: 0.60m,
+                EstimatedTravelTimeMinutes: 60m)
+        };
+
+        await ClassicCityHousingOpportunityPlanner.SelectHousingOpportunityAsync(
+            cityId: TestCityId,
+            householdId: householdId,
+            currentDate: CurrentDate,
+            housingPool: housingPool,
+            householdResidents: [resident],
+            hospitalAnchors: [],
+            districtUtilityConditionsByDistrictId: new Dictionary<DistrictId, CityDistrictUtilityConditionsSnapshot>(),
+            anchorSelectionPolicy: new CityPopulationAnchorSelectionPolicy(),
+            commuteRoutingService: routingService,
+            cancellationToken: CancellationToken.None);
+
+        IReadOnlyCollection<CityPopulationCommuteRouteRequest> preloadRequests =
+            Assert.Single(routingService.PreloadRequests);
+        Assert.Equal(3, preloadRequests.Count);
+        foreach ((DistrictId _, ResidentialBuildingId residentialBuildingId) in housingPool)
+        {
+            Assert.Contains(
+                preloadRequests,
+                request => request.ResidentialBuildingId == residentialBuildingId &&
+                           request.DestinationAnchorId == workplaceAnchorId &&
+                           request.Profile == CityPopulationCommuteRoutingProfiles.Pedestrian);
+        }
+    }
+
+    [Fact]
     public void SelectHousingAnchorResident_PrefersAdultOrSeniorThenOlderAgeThenLowerPersonId()
     {
         HouseholdId householdId = CreateHouseholdId(1);
@@ -517,7 +569,17 @@ public sealed class ClassicCityHousingOpportunityPlannerTests
     {
         public Dictionary<ResidentialBuildingId, CityPopulationCommuteContext> AnchorContextsByBuilding { get; } = [];
         public List<(ResidentialBuildingId? ResidentialBuildingId, CityAnchorId? DestinationAnchorId)> AnchorRequests { get; } = [];
+        public List<IReadOnlyCollection<CityPopulationCommuteRouteRequest>> PreloadRequests { get; } = [];
         public CityPopulationCommuteContext DefaultAnchorContext { get; set; } = CityPopulationCommuteContext.Neutral;
+
+        public Task PreloadAnchorCommutesAsync(
+            Guid cityId,
+            IReadOnlyCollection<CityPopulationCommuteRouteRequest> requests,
+            CancellationToken cancellationToken)
+        {
+            PreloadRequests.Add(requests);
+            return Task.CompletedTask;
+        }
 
         public Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
             Guid cityId,
