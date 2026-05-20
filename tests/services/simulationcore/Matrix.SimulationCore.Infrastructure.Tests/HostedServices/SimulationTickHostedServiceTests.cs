@@ -62,10 +62,11 @@ public sealed class SimulationTickHostedServiceTests
         {
             OnSend = _ => cancellationTokenSource.Cancel()
         };
+        var logger = new TestLogger<SimulationTickHostedService>();
         var service = CreateService(
             periodMilliseconds: 20,
             mediator: mediator,
-            logger: new TestLogger<SimulationTickHostedService>());
+            logger: logger);
 
         await service.StartAsync(cancellationTokenSource.Token);
 
@@ -75,6 +76,7 @@ public sealed class SimulationTickHostedServiceTests
 
         Assert.Single(mediator.Commands);
         Assert.True(command.RealDelta > TimeSpan.Zero);
+        Assert.Contains(logger.Entries, x => x.LogLevel == LogLevel.Debug && x.Message.Contains("real delta"));
     }
 
     [Fact]
@@ -101,6 +103,40 @@ public sealed class SimulationTickHostedServiceTests
         TestLogEntry errorEntry = Assert.Single(logger.Entries, x => x.LogLevel == LogLevel.Error);
         Assert.Contains("SimulationCore tick loop iteration failed.", errorEntry.Message);
         Assert.IsType<InvalidOperationException>(errorEntry.Exception);
+    }
+
+    [Fact]
+    public async Task StartAsync_WhenResultHasLaggingSimulations_LogsWarningWithCapAndStepSize()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        var mediator = new TestMediator
+        {
+            OnSend = _ => cancellationTokenSource.Cancel(),
+            Response = new AdvanceRunningSimulationsResult(
+                ProcessedCount: 3,
+                AdvancedCount: 2,
+                NoStepDueCount: 0,
+                LaggingCount: 2,
+                FailedCount: 1,
+                TotalStepsProcessed: 10)
+        };
+        var logger = new TestLogger<SimulationTickHostedService>();
+        var service = CreateService(
+            periodMilliseconds: 20,
+            mediator: mediator,
+            logger: logger);
+
+        await service.StartAsync(cancellationTokenSource.Token);
+
+        await mediator.CommandReceived.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        await service.StopAsync(CancellationToken.None);
+
+        TestLogEntry warningEntry = Assert.Single(logger.Entries, x => x.LogLevel == LogLevel.Warning);
+
+        Assert.Contains("2 simulations", warningEntry.Message);
+        Assert.Contains("10 fixed steps", warningEntry.Message);
+        Assert.Contains("10", warningEntry.Message);
+        Assert.Contains("00:01:00", warningEntry.Message);
     }
 
     private static SimulationTickHostedService CreateService(
@@ -135,6 +171,13 @@ public sealed class SimulationTickHostedServiceTests
             new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Action<AdvanceRunningSimulationsCommand>? OnSend { get; set; }
         public Exception? ExceptionToThrow { get; set; }
+        public AdvanceRunningSimulationsResult Response { get; set; } = new(
+            ProcessedCount: 1,
+            AdvancedCount: 1,
+            NoStepDueCount: 0,
+            LaggingCount: 0,
+            FailedCount: 0,
+            TotalStepsProcessed: 1);
 
         public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
         {
@@ -146,15 +189,7 @@ public sealed class SimulationTickHostedServiceTests
             if (ExceptionToThrow is not null)
                 throw ExceptionToThrow;
 
-            object response = new AdvanceRunningSimulationsResult(
-                ProcessedCount: 1,
-                AdvancedCount: 1,
-                NoStepDueCount: 0,
-                LaggingCount: 0,
-                FailedCount: 0,
-                TotalStepsProcessed: 1);
-
-            return Task.FromResult((TResponse)response);
+            return Task.FromResult((TResponse)(object)Response);
         }
 
         public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
