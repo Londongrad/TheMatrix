@@ -3,6 +3,8 @@ namespace Matrix.SimulationCore.Application.UseCases.Simulation.AdvanceRunningSi
     public sealed record AdvanceRunningSimulationsResult(
         int ProcessedCount,
         int AdvancedCount,
-        int SkippedCount,
-        int FailedCount);
+        int NoStepDueCount,
+        int LaggingCount,
+        int FailedCount,
+        int TotalStepsProcessed);
 }

@@ -18,8 +18,10 @@ namespace Matrix.SimulationCore.Application.UseCases.Simulation.AdvanceRunningSi
             return new AdvanceRunningSimulationsResult(
                 ProcessedCount: result.ProcessedCount,
                 AdvancedCount: result.AdvancedCount,
-                SkippedCount: result.SkippedCount,
-                FailedCount: result.FailedCount);
+                NoStepDueCount: result.NoStepDueCount,
+                LaggingCount: result.LaggingCount,
+                FailedCount: result.FailedCount,
+                TotalStepsProcessed: result.TotalStepsProcessed);
         }
     }
 }

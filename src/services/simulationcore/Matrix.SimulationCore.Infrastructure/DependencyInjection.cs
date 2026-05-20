@@ -60,6 +60,7 @@ namespace Matrix.SimulationCore.Infrastructure
 
             services.AddOptions<SimulationTickOptions>()
                .Bind(configuration.GetSection(SimulationTickOptions.SectionName));
+            services.Replace(ServiceDescriptor.Singleton<ISimulationFixedStepSettings, SimulationTickFixedStepSettings>());
             services.AddOptions<ProvisioningRecoveryOptions>()
                .Bind(configuration.GetSection(ProvisioningRecoveryOptions.SectionName));
             services.TryAddSingleton(TimeProvider.System);

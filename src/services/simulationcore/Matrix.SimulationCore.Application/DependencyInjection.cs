@@ -8,6 +8,7 @@ using Matrix.SimulationCore.Application.Services.Simulation;
 using Matrix.SimulationCore.Application.Services.Simulation.Abstractions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Matrix.SimulationCore.Application
 {
@@ -21,6 +22,7 @@ namespace Matrix.SimulationCore.Application
             services.AddValidatorsFromAssembly(assembly);
 
             services.AddScoped<ISimulationAdvanceExecutor, SimulationAdvanceExecutor>();
+            services.TryAddSingleton<ISimulationFixedStepSettings, DefaultSimulationFixedStepSettings>();
             services.AddScoped<IValidationExceptionFactory, SimulationCoreValidationErrorFactory>();
             services.AddClassicCityScenarioApplication();
             services.AddDefaultApplicationPipeline();

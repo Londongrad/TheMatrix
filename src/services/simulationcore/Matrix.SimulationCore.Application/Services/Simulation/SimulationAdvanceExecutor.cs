@@ -10,6 +10,7 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
         ISimulationClockRepository repository,
         ISimulationHostReadRepository simulationHostRepository,
         IEnumerable<ISimulationScenarioAdvanceHandler> scenarioAdvanceHandlers,
+        ISimulationFixedStepSettings fixedStepSettings,
         IUnitOfWork unitOfWork) : ISimulationAdvanceExecutor
     {
         public async Task<SimulationAdvanceExecutionResult> ExecuteAsync(
@@ -35,30 +36,39 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
                     SimulationId: simulationId,
                     Status: SimulationAdvanceExecutionStatus.NotFound);
 
-            bool advanced = false;
+            int stepsProcessed = 0;
+            long remainingPendingSimulationTicks = 0;
+            bool hasRemainingBacklog = false;
 
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async ct =>
                 {
-                    clock.Advance(realDelta);
+                    clock.AccumulatePendingSimulationTime(realDelta);
 
-                    SimulationTimeAdvancedDomainEvent? advancedEvent = clock.DomainEvents
-                       .OfType<SimulationTimeAdvancedDomainEvent>()
-                       .LastOrDefault();
+                    TimeSpan fixedStep = TimeSpan.FromSeconds(fixedStepSettings.FixedStepSeconds);
+                    ISimulationScenarioAdvanceHandler? handler = scenarioAdvanceHandlers
+                       .FirstOrDefault(x => x.HostKind == host.HostKind);
 
-                    if (advancedEvent is not null)
+                    while (stepsProcessed < fixedStepSettings.MaxStepsPerSimulationPerCycle
+                           && clock.TryAdvanceFixedStep(fixedStep))
                     {
-                        advanced = true;
-
-                        ISimulationScenarioAdvanceHandler? handler = scenarioAdvanceHandlers
-                           .FirstOrDefault(x => x.HostKind == host.HostKind);
+                        SimulationTimeAdvancedDomainEvent advancedEvent = clock.DomainEvents
+                           .OfType<SimulationTimeAdvancedDomainEvent>()
+                           .Last();
 
                         if (handler is not null)
                             await handler.HandleAdvancedAsync(
                                 host: host,
                                 advancedEvent: advancedEvent,
                                 cancellationToken: ct);
+
+                        stepsProcessed++;
+                        clock.ClearDomainEvents();
                     }
+
+                    remainingPendingSimulationTicks = clock.PendingSimulationTicks;
+                    hasRemainingBacklog = stepsProcessed == fixedStepSettings.MaxStepsPerSimulationPerCycle
+                                          && remainingPendingSimulationTicks >= fixedStep.Ticks;
 
                     clock.ClearDomainEvents();
                     await unitOfWork.SaveChangesAsync(ct);
@@ -67,9 +77,12 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
 
             return new SimulationAdvanceExecutionResult(
                 SimulationId: simulationId,
-                Status: advanced
+                Status: stepsProcessed > 0
                     ? SimulationAdvanceExecutionStatus.Advanced
-                    : SimulationAdvanceExecutionStatus.Skipped);
+                    : SimulationAdvanceExecutionStatus.NoStepDue,
+                StepsProcessed: stepsProcessed,
+                RemainingPendingSimulationTicks: remainingPendingSimulationTicks,
+                HasRemainingBacklog: hasRemainingBacklog);
         }
     }
 }

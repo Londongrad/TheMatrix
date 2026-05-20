@@ -22,8 +22,10 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
             IReadOnlyList<SimulationId> simulationIds = await ListSimulationIdsAsync(cancellationToken);
 
             int advancedCount = 0;
-            int skippedCount = 0;
+            int noStepDueCount = 0;
+            int laggingCount = 0;
             int failedCount = 0;
+            int totalStepsProcessed = 0;
 
             foreach (SimulationId simulationId in simulationIds)
             {
@@ -34,25 +36,36 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
 
                 switch (outcome)
                 {
-                    case SimulationAdvanceOutcome.Advanced:
+                    case { Failed: true }:
+                        failedCount++;
+                        break;
+
+                    case { Status: SimulationAdvanceExecutionStatus.Advanced }:
                         advancedCount++;
                         break;
 
-                    case SimulationAdvanceOutcome.Skipped:
-                        skippedCount++;
+                    case { Status: SimulationAdvanceExecutionStatus.NoStepDue }:
+                        noStepDueCount++;
                         break;
 
-                    case SimulationAdvanceOutcome.Failed:
+                    case { Status: SimulationAdvanceExecutionStatus.NotFound }:
                         failedCount++;
                         break;
                 }
+
+                if (outcome.HasRemainingBacklog)
+                    laggingCount++;
+
+                totalStepsProcessed += outcome.StepsProcessed;
             }
 
             return new SimulationBatchAdvanceResult(
                 ProcessedCount: simulationIds.Count,
                 AdvancedCount: advancedCount,
-                SkippedCount: skippedCount,
-                FailedCount: failedCount);
+                NoStepDueCount: noStepDueCount,
+                LaggingCount: laggingCount,
+                FailedCount: failedCount,
+                TotalStepsProcessed: totalStepsProcessed);
         }
 
         private async Task<IReadOnlyList<SimulationId>> ListSimulationIdsAsync(CancellationToken cancellationToken)
@@ -90,9 +103,7 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
                                 realDelta: realDelta,
                                 cancellationToken: ct);
 
-                            return result.Status == SimulationAdvanceExecutionStatus.Advanced
-                                ? SimulationAdvanceOutcome.Advanced
-                                : SimulationAdvanceOutcome.Skipped;
+                            return SimulationAdvanceOutcome.FromResult(result);
                         }
                         catch (DbUpdateConcurrencyException ex) when (attempt < MaxAttempts)
                         {
@@ -119,7 +130,7 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
                                     MaxAttempts
                                 ]);
 
-                            return SimulationAdvanceOutcome.Skipped;
+                            return SimulationAdvanceOutcome.FailedResult;
                         }
                         catch (Exception ex)
                         {
@@ -128,20 +139,34 @@ namespace Matrix.SimulationCore.Infrastructure.Services.Simulation
                                 message: "Failed to advance simulation {SimulationId}.",
                                 args: simulationId.Value);
 
-                            return SimulationAdvanceOutcome.Failed;
+                            return SimulationAdvanceOutcome.FailedResult;
                         }
                     }
 
-                    return SimulationAdvanceOutcome.Skipped;
+                    return SimulationAdvanceOutcome.FailedResult;
                 },
                 cancellationToken: cancellationToken);
         }
 
-        private enum SimulationAdvanceOutcome
+        private sealed record SimulationAdvanceOutcome(
+            SimulationAdvanceExecutionStatus Status,
+            int StepsProcessed,
+            bool HasRemainingBacklog,
+            bool Failed = false)
         {
-            Advanced = 1,
-            Skipped = 2,
-            Failed = 3
+            public static SimulationAdvanceOutcome FailedResult { get; } = new(
+                Status: SimulationAdvanceExecutionStatus.NotFound,
+                StepsProcessed: 0,
+                HasRemainingBacklog: false,
+                Failed: true);
+
+            public static SimulationAdvanceOutcome FromResult(SimulationAdvanceExecutionResult result)
+            {
+                return new SimulationAdvanceOutcome(
+                    Status: result.Status,
+                    StepsProcessed: result.StepsProcessed,
+                    HasRemainingBacklog: result.HasRemainingBacklog);
+            }
         }
     }
 }

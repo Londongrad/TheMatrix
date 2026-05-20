@@ -4,6 +4,6 @@ namespace Matrix.SimulationCore.Application.Services.Simulation
     {
         Advanced = 1,
         NotFound = 2,
-        Skipped = 3
+        NoStepDue = 3
     }
 }
