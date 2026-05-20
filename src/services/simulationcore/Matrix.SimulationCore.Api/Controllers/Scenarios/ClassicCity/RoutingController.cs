@@ -1,4 +1,5 @@
 using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.ResolveCityRoute;
+using Matrix.SimulationCore.Application.Scenarios.ClassicCity.UseCases.Topology.ResolveCityRoutesBatch;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Requests;
 using Matrix.SimulationCore.Contracts.Scenarios.ClassicCity.Routing.Views;
 using MediatR;
@@ -31,6 +32,40 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             return route is null
                 ? Results.NotFound()
                 : Results.Ok(MapToView(route));
+        }
+
+        [HttpPost("resolve-batch")]
+        public async Task<IResult> ResolveBatch(
+            [FromRoute] Guid cityId,
+            [FromBody] ResolveCityRoutesBatchRequest request,
+            CancellationToken cancellationToken)
+        {
+            ResolveCityRoutesBatchResult result = await mediator.Send(
+                request: new ResolveCityRoutesBatchQuery(
+                    CityId: cityId,
+                    Routes: (request.Routes ?? [])
+                       .Select((
+                            route,
+                            index) => new ResolveCityRoutesBatchQueryItem(
+                            Index: index,
+                            FromKind: route.From.Kind,
+                            FromId: route.From.Id,
+                            ToKind: route.To.Kind,
+                            ToId: route.To.Id,
+                            Profile: route.Profile))
+                       .ToArray()),
+                cancellationToken: cancellationToken);
+
+            return Results.Ok(
+                new ResolveCityRoutesBatchView(
+                    Routes: result.Routes
+                       .Select(x => new ResolvedCityRouteBatchItemView(
+                            Index: x.Index,
+                            Found: x.Route is not null,
+                            Route: x.Route is null
+                                ? null
+                                : MapToView(x.Route)))
+                       .ToArray()));
         }
 
         private static CityRouteView MapToView(CityRouteDto dto)
