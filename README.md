@@ -21,6 +21,7 @@ It combines:
 ## Quick Links
 
 - Local environment: `docs/development/local-environment.md`
+- SimulationCore fixed-step tick engine: `docs/development/local-environment.md#simulationcore-fixed-step-tick-engine`
 - User secrets: `docs/development/user-secrets.md`
 - Database migrations: `docs/deployment/database-migrations.md`
 - Trusted client IP forwarding: `docs/security/trusted-client-ip-forwarding.md`

@@ -97,6 +97,26 @@ Tracked local service URLs currently expect this downstream shape:
 - Resources: `https://localhost:7319`
 - SimulationSystems: `https://localhost:7318`
 
+## SimulationCore fixed-step tick engine
+
+SimulationCore runs its background clock with two separate time concepts:
+
+- `SimulationCore:Tick:PeriodMilliseconds` is the scheduler wake-up cadence. It controls how often the hosted service wakes up locally. It is not the simulation delta.
+- `SimulationCore:Tick:FixedStepSeconds` is the simulation step size consumed by the clock when enough pending simulation time exists.
+- `SimulationCore:Tick:MaxStepsPerSimulationPerCycle` caps how many fixed steps one simulation can process during one scheduler cycle.
+
+Default local values:
+
+- `PeriodMilliseconds = 1000`
+- `FixedStepSeconds = 60`
+- `MaxStepsPerSimulationPerCycle = 10`
+
+On each scheduler cycle, SimulationCore measures the real elapsed time since the previous cycle. For each running simulation, that real delta is scaled by the simulation speed and accumulated into persisted pending simulation time. Leftover pending time remains stored on the simulation clock and carries over to later cycles.
+
+Example: with speed `60x`, scheduler `realDelta = 1s`, and `FixedStepSeconds = 60`, exactly `60s` of simulation time becomes due, so one fixed simulation step is processed.
+
+Backlog example: if the scheduler stalls for `30` real seconds at speed `60x`, then `30` simulation minutes become due. With `FixedStepSeconds = 60` and `MaxStepsPerSimulationPerCycle = 10`, only `10` one-minute steps are processed in that cycle. The remaining `20` minutes stay pending and are processed by later cycles under the same cap.
+
 ## 6. Start the frontend
 
 ```powershell
