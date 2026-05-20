@@ -6,6 +6,7 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Weather;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
@@ -147,13 +148,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             int affectedPeopleCount = 0;
             bool requiresDateProgression = state is null || toDate > previousDate;
             bool requiresNeedsProgression = request.ToSimTimeUtc > request.FromSimTimeUtc;
-            bool shouldAdvanceWeatherExposureCheckpoint = ShouldAdvanceWeatherExposureCheckpoint(
+            bool shouldAdvanceWeatherExposureCheckpoint = CityPopulationWeatherExposurePlanner.ShouldAdvanceCheckpoint(
                 weatherExposureState: weatherExposureState,
                 fromSimTimeUtc: request.FromSimTimeUtc,
                 toSimTimeUtc: request.ToSimTimeUtc);
             List<CityWeatherExposureSegment> exposureSegments =
                 shouldAdvanceWeatherExposureCheckpoint && weatherExposureState is not null
-                    ? BuildExposureSegments(
+                    ? CityPopulationWeatherExposurePlanner.BuildSegments(
                         weatherExposureState: weatherExposureState,
                         fromSimTimeUtc: request.FromSimTimeUtc,
                         toSimTimeUtc: request.ToSimTimeUtc)
@@ -1889,106 +1890,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             }
 
             return affectedResidents;
-        }
-
-        private static bool ShouldAdvanceWeatherExposureCheckpoint(
-            CityPopulationWeatherExposureState? weatherExposureState,
-            DateTimeOffset fromSimTimeUtc,
-            DateTimeOffset toSimTimeUtc)
-        {
-            if (weatherExposureState is null)
-                return false;
-            DateTimeOffset effectiveFrom = Max(
-                left: fromSimTimeUtc,
-                right: weatherExposureState.LastExposureProcessedAtSimTimeUtc);
-            return toSimTimeUtc > effectiveFrom;
-        }
-
-        private static List<CityWeatherExposureSegment> BuildExposureSegments(
-            CityPopulationWeatherExposureState weatherExposureState,
-            DateTimeOffset fromSimTimeUtc,
-            DateTimeOffset toSimTimeUtc)
-        {
-            var segments = new List<CityWeatherExposureSegment>();
-            DateTimeOffset effectiveFrom = Max(
-                left: fromSimTimeUtc,
-                right: weatherExposureState.LastExposureProcessedAtSimTimeUtc);
-            if (toSimTimeUtc <= effectiveFrom)
-                return segments;
-
-            if (weatherExposureState.HasPreviousWeather &&
-                weatherExposureState.PreviousWeather is WeatherImpactProfile previousWeather &&
-                weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.HasValue &&
-                effectiveFrom < weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc)
-            {
-                DateTimeOffset previousStart = Max(
-                    left: effectiveFrom,
-                    right: weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.Value);
-                DateTimeOffset previousEnd = Min(
-                    left: toSimTimeUtc,
-                    right: weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
-                if (previousEnd > previousStart && CityWeatherExposureRules.IsAdverseExposureWeather(previousWeather))
-                    segments.Add(
-                        new CityWeatherExposureSegment(
-                            Kind: CityWeatherExposureKind.Adverse,
-                            Weather: previousWeather,
-                            EffectStartedAtSimTimeUtc: weatherExposureState.PreviousWeatherEffectiveAtSimTimeUtc.Value,
-                            IntervalStartSimTimeUtc: previousStart,
-                            IntervalEndSimTimeUtc: previousEnd));
-            }
-
-            DateTimeOffset currentStart = Max(
-                left: effectiveFrom,
-                right: weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc);
-            if (toSimTimeUtc > currentStart &&
-                CityWeatherExposureRules.IsAdverseExposureWeather(weatherExposureState.CurrentWeather))
-                segments.Add(
-                    new CityWeatherExposureSegment(
-                        Kind: CityWeatherExposureKind.Adverse,
-                        Weather: weatherExposureState.CurrentWeather,
-                        EffectStartedAtSimTimeUtc: weatherExposureState.CurrentWeatherEffectiveAtSimTimeUtc,
-                        IntervalStartSimTimeUtc: currentStart,
-                        IntervalEndSimTimeUtc: toSimTimeUtc));
-
-            if (toSimTimeUtc > currentStart &&
-                weatherExposureState.HasRecoverySource &&
-                weatherExposureState.RecoverySourceWeather is WeatherImpactProfile recoverySourceWeather &&
-                weatherExposureState.RecoveryStartedAtSimTimeUtc.HasValue &&
-                CityWeatherExposureRules.IsRecoveryWeather(weatherExposureState.CurrentWeather))
-            {
-                DateTimeOffset recoveryStart = Max(
-                    left: currentStart,
-                    right: weatherExposureState.RecoveryStartedAtSimTimeUtc.Value);
-                if (toSimTimeUtc > recoveryStart)
-                    segments.Add(
-                        new CityWeatherExposureSegment(
-                            Kind: CityWeatherExposureKind.Recovery,
-                            Weather: weatherExposureState.CurrentWeather,
-                            EffectStartedAtSimTimeUtc: weatherExposureState.RecoveryStartedAtSimTimeUtc.Value,
-                            IntervalStartSimTimeUtc: recoveryStart,
-                            IntervalEndSimTimeUtc: toSimTimeUtc,
-                            SourceWeather: recoverySourceWeather));
-            }
-
-            return segments;
-        }
-
-        private static DateTimeOffset Max(
-            DateTimeOffset left,
-            DateTimeOffset right)
-        {
-            return left >= right
-                ? left
-                : right;
-        }
-
-        private static DateTimeOffset Min(
-            DateTimeOffset left,
-            DateTimeOffset right)
-        {
-            return left <= right
-                ? left
-                : right;
         }
 
         private static Dictionary<EducationLevel, List<CityEducationInstitutionBinding>> BuildEducationInstitutionPools(
