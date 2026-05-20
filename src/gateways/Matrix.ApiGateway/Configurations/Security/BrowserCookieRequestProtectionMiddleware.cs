@@ -32,7 +32,10 @@ namespace Matrix.ApiGateway.Configurations.Security
                     context: context,
                     origin: out string? requestOrigin))
             {
-                await next(context);
+                await WriteRejectedResponseAsync(
+                    context,
+                    code: "Gateway.UnverifiableCookieRequestOrigin",
+                    message: "Cookie request origin could not be verified.");
                 return;
             }
 
@@ -75,16 +78,25 @@ namespace Matrix.ApiGateway.Configurations.Security
             HttpContext context,
             out string? origin)
         {
+            origin = null;
+
             string? requestOrigin = context.Request.Headers.Origin.FirstOrDefault();
-            if (TryNormalizeOrigin(
+            if (!string.IsNullOrWhiteSpace(requestOrigin))
+            {
+                return TryNormalizeOrigin(
                     candidate: requestOrigin,
-                    origin: out origin))
-                return true;
+                    origin: out origin);
+            }
 
             string? referer = context.Request.Headers.Referer.FirstOrDefault();
-            return TryNormalizeOrigin(
-                candidate: referer,
-                origin: out origin);
+            if (!string.IsNullOrWhiteSpace(referer))
+            {
+                return TryNormalizeOrigin(
+                    candidate: referer,
+                    origin: out origin);
+            }
+
+            return false;
         }
 
         private bool IsAllowedOrigin(

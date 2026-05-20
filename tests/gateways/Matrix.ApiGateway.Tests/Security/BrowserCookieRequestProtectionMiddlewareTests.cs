@@ -110,7 +110,7 @@ public sealed class BrowserCookieRequestProtectionMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_WhenOriginCannotBeResolved_CallsNext()
+    public async Task InvokeAsync_WhenOriginCannotBeResolved_ReturnsForbiddenProblem()
     {
         bool nextCalled = false;
         var middleware = CreateMiddleware(
@@ -125,7 +125,13 @@ public sealed class BrowserCookieRequestProtectionMiddlewareTests
 
         await middleware.InvokeAsync(httpContext);
 
-        Assert.True(nextCalled);
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status403Forbidden, httpContext.Response.StatusCode);
+
+        JsonDocument payload = await ReadJsonAsync(httpContext);
+        Assert.Equal(
+            "Gateway.UnverifiableCookieRequestOrigin",
+            payload.RootElement.GetProperty("code").GetString());
     }
 
     [Fact]
