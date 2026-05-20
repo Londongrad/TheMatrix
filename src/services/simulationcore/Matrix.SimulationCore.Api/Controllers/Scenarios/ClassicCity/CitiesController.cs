@@ -399,7 +399,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             CancellationToken cancellationToken)
         {
             bool updated = await mediator.Send(
-                request: new CompleteCityPopulationBootstrapCommand(
+                request: new CompleteCityPopulationBootstrapEndpointCommand(
                     CityId: cityId,
                     OperationId: request.OperationId),
                 cancellationToken: cancellationToken);
@@ -416,7 +416,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             CancellationToken cancellationToken)
         {
             bool updated = await mediator.Send(
-                request: new FailCityPopulationBootstrapCommand(
+                request: new FailCityPopulationBootstrapEndpointCommand(
                     CityId: cityId,
                     OperationId: request.OperationId,
                     FailureCode: request.FailureCode),
@@ -434,7 +434,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             CancellationToken cancellationToken)
         {
             bool updated = await mediator.Send(
-                request: new CompleteCityEconomyBootstrapCommand(
+                request: new CompleteCityEconomyBootstrapEndpointCommand(
                     CityId: cityId,
                     OperationId: request.OperationId),
                 cancellationToken: cancellationToken);
@@ -451,7 +451,7 @@ namespace Matrix.SimulationCore.Api.Controllers.Scenarios.ClassicCity
             CancellationToken cancellationToken)
         {
             bool updated = await mediator.Send(
-                request: new FailCityEconomyBootstrapCommand(
+                request: new FailCityEconomyBootstrapEndpointCommand(
                     CityId: cityId,
                     OperationId: request.OperationId,
                     FailureCode: request.FailureCode),

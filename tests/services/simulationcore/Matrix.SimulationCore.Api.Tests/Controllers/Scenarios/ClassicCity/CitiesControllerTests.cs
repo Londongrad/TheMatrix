@@ -195,18 +195,32 @@ public sealed class CitiesControllerTests
             Assert.Equal(144, command.PlannedPeopleCountOverride);
             return RetryCityPopulationBootstrapProvisioningResult.Accepted(provisioning);
         });
-        sender.Handle<CompleteCityPopulationBootstrapCommand, bool>(command =>
+        sender.Handle<CompleteCityPopulationBootstrapEndpointCommand, bool>(command =>
         {
+            Assert.Equal(cityId, command.CityId);
             Assert.Equal(populationOperationId, command.OperationId);
             return true;
         });
-        sender.Handle<FailCityPopulationBootstrapCommand, bool>(command =>
+        sender.Handle<FailCityPopulationBootstrapEndpointCommand, bool>(command =>
         {
+            Assert.Equal(cityId, command.CityId);
+            Assert.Equal(populationOperationId, command.OperationId);
             Assert.Equal("Population.SeedInvalid", command.FailureCode);
             return false;
         });
-        sender.Handle<CompleteCityEconomyBootstrapCommand, bool>(_ => true);
-        sender.Handle<FailCityEconomyBootstrapCommand, bool>(_ => true);
+        sender.Handle<CompleteCityEconomyBootstrapEndpointCommand, bool>(command =>
+        {
+            Assert.Equal(cityId, command.CityId);
+            Assert.Equal(economyOperationId, command.OperationId);
+            return true;
+        });
+        sender.Handle<FailCityEconomyBootstrapEndpointCommand, bool>(command =>
+        {
+            Assert.Equal(cityId, command.CityId);
+            Assert.Equal(economyOperationId, command.OperationId);
+            Assert.Equal("Economy.UnitInvalid", command.FailureCode);
+            return true;
+        });
         sender.Handle<RenameCityCommand, bool>(command =>
         {
             Assert.Equal("Neo City", command.Name);
