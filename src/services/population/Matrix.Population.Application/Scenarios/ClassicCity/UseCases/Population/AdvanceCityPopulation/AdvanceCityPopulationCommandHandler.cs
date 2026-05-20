@@ -5,6 +5,7 @@ using Matrix.Population.Application.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.Models;
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.Abstractions;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.Weather;
 using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstractions;
@@ -852,6 +853,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             if (!residentialBuildingId.HasValue || anchors.Count == 0)
                 return [];
 
+            await commuteRoutingService.PreloadAnchorCommutesAsync(
+                cityId: cityId.Value,
+                requests: anchors
+                   .Select(anchor => new CityPopulationCommuteRouteRequest(
+                        ResidentialBuildingId: residentialBuildingId.Value,
+                        DestinationAnchorId: anchor.CityAnchorId,
+                        Profile: CityPopulationCommuteRoutingProfiles.Pedestrian))
+                   .ToArray(),
+                cancellationToken: cancellationToken);
+
             var rankedAnchors = new List<(CityAnchorId AnchorId, CityPopulationCommuteContext Commute)>(anchors.Count);
             foreach (CityPopulationAnchorCatalogItem anchor in anchors)
             {
@@ -1261,6 +1272,23 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             int blockedRouteCount = 0;
             decimal accessibilityDeficitTotal = 0m;
             decimal travelFatigueTotal = 0m;
+
+            await commuteRoutingService.PreloadAnchorCommutesAsync(
+                cityId: cityId.Value,
+                requests: householdResidents
+                   .Where(x => x.IsAlive)
+                   .Select(x => x.Employment.Status == EmploymentStatus.Employed
+                        ? x.Employment.Job?.WorkplaceAnchorId
+                        : x.Employment.Status == EmploymentStatus.Student
+                            ? x.Education.CurrentInstitutionAnchorId
+                            : null)
+                   .Where(x => x.HasValue)
+                   .Select(x => new CityPopulationCommuteRouteRequest(
+                        ResidentialBuildingId: residentialBuildingId.Value,
+                        DestinationAnchorId: x!.Value,
+                        Profile: CityPopulationCommuteRoutingProfiles.Pedestrian))
+                   .ToArray(),
+                cancellationToken: cancellationToken);
 
             foreach (PersonEntity householdResident in householdResidents)
             {

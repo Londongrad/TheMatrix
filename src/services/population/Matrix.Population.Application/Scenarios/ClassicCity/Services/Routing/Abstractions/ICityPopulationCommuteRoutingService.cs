@@ -1,3 +1,4 @@
+using Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing;
 using Matrix.Population.Domain.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.ValueObjects;
@@ -6,6 +7,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing.A
 {
     public interface ICityPopulationCommuteRoutingService
     {
+        Task PreloadAnchorCommutesAsync(
+            Guid cityId,
+            IReadOnlyCollection<CityPopulationCommuteRouteRequest> requests,
+            CancellationToken cancellationToken);
+
         Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
             Guid cityId,
             ResidentialBuildingId? residentialBuildingId,

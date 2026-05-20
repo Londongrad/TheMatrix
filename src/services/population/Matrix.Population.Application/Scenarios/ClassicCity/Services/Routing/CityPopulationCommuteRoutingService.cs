@@ -12,6 +12,50 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
         private readonly ICityRouteResolutionClient _routeResolutionClient = routeResolutionClient;
         private readonly Dictionary<CommuteRouteCacheKey, CityPopulationCommuteContext> _cache = [];
 
+        public async Task PreloadAnchorCommutesAsync(
+            Guid cityId,
+            IReadOnlyCollection<CityPopulationCommuteRouteRequest> requests,
+            CancellationToken cancellationToken)
+        {
+            if (requests.Count == 0)
+                return;
+
+            var missingRoutesByCacheKey = new Dictionary<CommuteRouteCacheKey, CityRouteResolutionBatchRequestItem>();
+            foreach (CityPopulationCommuteRouteRequest request in requests.Distinct())
+            {
+                CommuteRouteCacheKey cacheKey = BuildCacheKey(
+                    cityId: cityId,
+                    residentialBuildingId: request.ResidentialBuildingId,
+                    destinationAnchorId: request.DestinationAnchorId,
+                    profile: request.Profile);
+                if (_cache.ContainsKey(cacheKey))
+                    continue;
+
+                missingRoutesByCacheKey[cacheKey] = new CityRouteResolutionBatchRequestItem(
+                    ResidentialBuildingId: request.ResidentialBuildingId,
+                    CityAnchorId: request.DestinationAnchorId,
+                    Profile: request.Profile);
+            }
+
+            if (missingRoutesByCacheKey.Count == 0)
+                return;
+
+            IReadOnlyDictionary<CityRouteResolutionBatchRequestItem, CityPopulationCommuteContext?> resolvedRoutes =
+                await _routeResolutionClient.ResolveResidentialToAnchorsAsync(
+                    cityId: cityId,
+                    requests: missingRoutesByCacheKey.Values.ToArray(),
+                    cancellationToken: cancellationToken);
+
+            foreach ((CommuteRouteCacheKey cacheKey, CityRouteResolutionBatchRequestItem request) in missingRoutesByCacheKey)
+            {
+                _cache[cacheKey] = resolvedRoutes.TryGetValue(
+                    key: request,
+                    value: out CityPopulationCommuteContext? routeContext)
+                    ? routeContext ?? CityPopulationCommuteContext.Neutral
+                    : CityPopulationCommuteContext.Neutral;
+            }
+        }
+
         public Task<CityPopulationCommuteContext> ResolveAnchorCommuteAsync(
             Guid cityId,
             ResidentialBuildingId? residentialBuildingId,
@@ -83,11 +127,11 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
             if (!residentialBuildingId.HasValue || !destinationAnchorId.HasValue)
                 return CityPopulationCommuteContext.Neutral;
 
-            var cacheKey = new CommuteRouteCacheKey(
-                CityId: cityId,
-                ResidentialBuildingId: residentialBuildingId.Value.Value,
-                DestinationAnchorId: destinationAnchorId.Value.Value,
-                Profile: profile);
+            CommuteRouteCacheKey cacheKey = BuildCacheKey(
+                cityId: cityId,
+                residentialBuildingId: residentialBuildingId.Value,
+                destinationAnchorId: destinationAnchorId.Value,
+                profile: profile);
 
             if (_cache.TryGetValue(
                     key: cacheKey,
@@ -107,6 +151,19 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Services.Routing
 
             _cache[cacheKey] = routeContext;
             return routeContext;
+        }
+
+        private static CommuteRouteCacheKey BuildCacheKey(
+            Guid cityId,
+            ResidentialBuildingId residentialBuildingId,
+            CityAnchorId destinationAnchorId,
+            string profile)
+        {
+            return new CommuteRouteCacheKey(
+                CityId: cityId,
+                ResidentialBuildingId: residentialBuildingId.Value,
+                DestinationAnchorId: destinationAnchorId.Value,
+                Profile: profile);
         }
 
         private readonly record struct CommuteRouteCacheKey(
