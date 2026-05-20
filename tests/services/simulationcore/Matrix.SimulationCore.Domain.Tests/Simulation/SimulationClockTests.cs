@@ -31,6 +31,8 @@ public sealed class SimulationClockTests
         Assert.Equal(speed, clock.Speed);
         Assert.Equal(ClockState.Running, clock.State);
         Assert.False(clock.IsPaused);
+        Assert.Equal(0, clock.PendingSimulationTicks);
+        Assert.Equal(TimeSpan.Zero, clock.PendingSimulationTime);
 
         var createdEvent = Assert.IsType<SimulationClockCreatedDomainEvent>(Assert.Single(clock.DomainEvents));
 
@@ -100,6 +102,187 @@ public sealed class SimulationClockTests
         var exception = Assert.Throws<DomainException>(() => clock.Advance(TimeSpan.FromSeconds(-1)));
 
         Assert.Equal(RealDeltaNotPositiveErrorCode, exception.Code);
+    }
+
+    [Fact]
+    public void AccumulatePendingSimulationTime_WhenRunning_AccumulatesScaledSimulationTimeWithoutAdvancingClock()
+    {
+        var speed = SimSpeed.From(60m);
+        var clock = CreateClock(speed: speed);
+
+        clock.ClearDomainEvents();
+
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+
+        Assert.Equal(TimeSpan.FromSeconds(60).Ticks, clock.PendingSimulationTicks);
+        Assert.Equal(TimeSpan.FromSeconds(60), clock.PendingSimulationTime);
+        Assert.Equal(TestStartTime, clock.CurrentTime);
+        Assert.Equal(TickId.Start(), clock.TickId);
+        Assert.Empty(clock.DomainEvents);
+    }
+
+    [Fact]
+    public void AccumulatePendingSimulationTime_WhenPaused_DoesNotChangeStateOrEmitEvents()
+    {
+        var clock = CreateClock(speed: SimSpeed.From(60m));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+        clock.Pause();
+        clock.ClearDomainEvents();
+
+        long pendingTicksBefore = clock.PendingSimulationTicks;
+        SimTime currentTimeBefore = clock.CurrentTime;
+        TickId tickIdBefore = clock.TickId;
+
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+
+        Assert.Equal(pendingTicksBefore, clock.PendingSimulationTicks);
+        Assert.Equal(currentTimeBefore, clock.CurrentTime);
+        Assert.Equal(tickIdBefore, clock.TickId);
+        Assert.Empty(clock.DomainEvents);
+    }
+
+    [Fact]
+    public void AccumulatePendingSimulationTime_WithZeroDelta_ThrowsDomainException()
+    {
+        var clock = CreateClock();
+
+        var exception = Assert.Throws<DomainException>(() => clock.AccumulatePendingSimulationTime(TimeSpan.Zero));
+
+        Assert.Equal(RealDeltaNotPositiveErrorCode, exception.Code);
+    }
+
+    [Fact]
+    public void TryAdvanceFixedStep_WithInsufficientBacklog_ReturnsFalseWithoutChangingState()
+    {
+        var clock = CreateClock(speed: SimSpeed.From(60m));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+        clock.ClearDomainEvents();
+
+        bool advanced = clock.TryAdvanceFixedStep(TimeSpan.FromSeconds(61));
+
+        Assert.False(advanced);
+        Assert.Equal(TimeSpan.FromSeconds(60).Ticks, clock.PendingSimulationTicks);
+        Assert.Equal(TestStartTime, clock.CurrentTime);
+        Assert.Equal(TickId.Start(), clock.TickId);
+        Assert.Empty(clock.DomainEvents);
+    }
+
+    [Fact]
+    public void TryAdvanceFixedStep_WithExactBacklog_AdvancesOneStepAndEmitsAdvancedEvent()
+    {
+        var speed = SimSpeed.From(60m);
+        var clock = CreateClock(speed: speed);
+        var expectedTime = TestStartTime.Add(TimeSpan.FromSeconds(60));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+        clock.ClearDomainEvents();
+
+        bool advanced = clock.TryAdvanceFixedStep(TimeSpan.FromSeconds(60));
+
+        Assert.True(advanced);
+        Assert.Equal(0, clock.PendingSimulationTicks);
+        Assert.Equal(TimeSpan.Zero, clock.PendingSimulationTime);
+        Assert.Equal(expectedTime, clock.CurrentTime);
+        Assert.Equal(new TickId(1), clock.TickId);
+
+        var advancedEvent = Assert.IsType<SimulationTimeAdvancedDomainEvent>(Assert.Single(clock.DomainEvents));
+
+        Assert.Equal(clock.SimulationId, advancedEvent.SimulationId);
+        Assert.Equal(TestCityId, advancedEvent.CityId);
+        Assert.Equal(TestStartTime, advancedEvent.From);
+        Assert.Equal(expectedTime, advancedEvent.To);
+        Assert.Equal(new TickId(1), advancedEvent.TickId);
+        Assert.Equal(speed, advancedEvent.Speed);
+    }
+
+    [Fact]
+    public void TryAdvanceFixedStep_WithBacklogRemainder_LeavesRemainingPendingSimulationTime()
+    {
+        var clock = CreateClock(speed: SimSpeed.From(130m));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+        clock.ClearDomainEvents();
+
+        bool advanced = clock.TryAdvanceFixedStep(TimeSpan.FromSeconds(60));
+
+        Assert.True(advanced);
+        Assert.Equal(TestStartTime.Add(TimeSpan.FromSeconds(60)), clock.CurrentTime);
+        Assert.Equal(TimeSpan.FromSeconds(70).Ticks, clock.PendingSimulationTicks);
+        Assert.Equal(TimeSpan.FromSeconds(70), clock.PendingSimulationTime);
+    }
+
+    [Fact]
+    public void TryAdvanceFixedStep_WhenPaused_ReturnsFalseWithoutChangingState()
+    {
+        var clock = CreateClock(speed: SimSpeed.From(60m));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+        clock.Pause();
+        clock.ClearDomainEvents();
+
+        long pendingTicksBefore = clock.PendingSimulationTicks;
+        SimTime currentTimeBefore = clock.CurrentTime;
+        TickId tickIdBefore = clock.TickId;
+
+        bool advanced = clock.TryAdvanceFixedStep(TimeSpan.FromSeconds(60));
+
+        Assert.False(advanced);
+        Assert.Equal(pendingTicksBefore, clock.PendingSimulationTicks);
+        Assert.Equal(currentTimeBefore, clock.CurrentTime);
+        Assert.Equal(tickIdBefore, clock.TickId);
+        Assert.Empty(clock.DomainEvents);
+    }
+
+    [Fact]
+    public void TryAdvanceFixedStep_WithZeroStep_ThrowsDomainException()
+    {
+        var clock = CreateClock();
+
+        var exception = Assert.Throws<DomainException>(() => clock.TryAdvanceFixedStep(TimeSpan.Zero));
+
+        Assert.Equal(RealDeltaNotPositiveErrorCode, exception.Code);
+    }
+
+    [Fact]
+    public void ClearPendingSimulationTime_ClearsBacklogWithoutAdvancingOrEmittingEvents()
+    {
+        var clock = CreateClock(speed: SimSpeed.From(60m));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+        clock.ClearDomainEvents();
+
+        clock.ClearPendingSimulationTime();
+
+        Assert.Equal(0, clock.PendingSimulationTicks);
+        Assert.Equal(TimeSpan.Zero, clock.PendingSimulationTime);
+        Assert.Equal(TestStartTime, clock.CurrentTime);
+        Assert.Equal(TickId.Start(), clock.TickId);
+        Assert.Empty(clock.DomainEvents);
+    }
+
+    [Fact]
+    public void PauseResumeAndSetSpeed_PreservePendingSimulationTime()
+    {
+        var clock = CreateClock(speed: SimSpeed.From(60m));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+        long pendingTicksBefore = clock.PendingSimulationTicks;
+
+        clock.Pause();
+        clock.Resume();
+        clock.SetSpeed(SimSpeed.From(120m));
+
+        Assert.Equal(pendingTicksBefore, clock.PendingSimulationTicks);
+        Assert.Equal(TimeSpan.FromSeconds(60), clock.PendingSimulationTime);
     }
 
     [Fact]
@@ -198,6 +381,33 @@ public sealed class SimulationClockTests
         clock.JumpTo(TestJumpTime);
 
         Assert.Equal(TestJumpTime, clock.CurrentTime);
+        Assert.Equal(new TickId(1), clock.TickId);
+
+        var jumpedEvent = Assert.IsType<SimulationTimeJumpedDomainEvent>(Assert.Single(clock.DomainEvents));
+
+        Assert.Equal(clock.SimulationId, jumpedEvent.SimulationId);
+        Assert.Equal(TestCityId, jumpedEvent.CityId);
+        Assert.Equal(new TickId(1), jumpedEvent.TickId);
+        Assert.Equal(TestStartTime, jumpedEvent.From);
+        Assert.Equal(TestJumpTime, jumpedEvent.To);
+    }
+
+    [Fact]
+    public void JumpTo_WhenTimeChanges_ClearsPendingSimulationTime()
+    {
+        var clock = CreateClock(speed: SimSpeed.From(60m));
+
+        clock.ClearDomainEvents();
+        clock.AccumulatePendingSimulationTime(TimeSpan.FromSeconds(1));
+
+        Assert.NotEqual(0, clock.PendingSimulationTicks);
+
+        clock.ClearDomainEvents();
+        clock.JumpTo(TestJumpTime);
+
+        Assert.Equal(TestJumpTime, clock.CurrentTime);
+        Assert.Equal(0, clock.PendingSimulationTicks);
+        Assert.Equal(TimeSpan.Zero, clock.PendingSimulationTime);
         Assert.Equal(new TickId(1), clock.TickId);
 
         var jumpedEvent = Assert.IsType<SimulationTimeJumpedDomainEvent>(Assert.Single(clock.DomainEvents));
