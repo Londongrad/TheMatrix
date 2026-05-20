@@ -44,6 +44,11 @@ namespace Matrix.SimulationCore.Infrastructure.Persistence.Configurations
                .HasConversion<int>()
                .IsRequired();
 
+            builder.Property(x => x.PendingSimulationTicks)
+               .HasColumnType("bigint")
+               .IsRequired();
+
+            builder.Ignore(x => x.PendingSimulationTime);
             builder.Ignore(x => x.DomainEvents);
 
             builder
