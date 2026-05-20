@@ -117,6 +117,33 @@ public sealed class ApplicationModelsAndBehaviorsTests
         Assert.Equal("Common.Unauthorized", exception.Code);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public async Task PermissionBehavior_WhenSinglePermissionKeyIsBlank_ThrowsInvalidOperationException(
+        string permissionKey)
+    {
+        bool nextCalled = false;
+        PermissionBehavior<ProtectedSinglePermissionRequest, string> behavior = new(
+            currentUser: new TestCurrentUserContext(),
+            permissionChecker: new TestPermissionChecker());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => behavior.Handle(
+                request: new ProtectedSinglePermissionRequest(permissionKey),
+                next: _ =>
+                {
+                    nextCalled = true;
+                    return Task.FromResult("ok");
+                },
+                cancellationToken: CancellationToken.None));
+
+        Assert.False(nextCalled);
+        Assert.Contains(nameof(ProtectedSinglePermissionRequest), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("permission", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public async Task PermissionBehavior_WhenSinglePermissionIsGranted_UsesHasAllAndInvokesNext()
     {
@@ -140,6 +167,139 @@ public sealed class ApplicationModelsAndBehaviorsTests
 
         Assert.Equal("ok", response);
         Assert.Equal(nameof(IPermissionChecker.HasAllAsync), checker.LastMethod);
+        Assert.Equal(userId, checker.LastUserId);
+        Assert.Equal(["users.read"], checker.LastPermissions);
+    }
+
+    [Fact]
+    public async Task PermissionBehavior_WhenMultiPermissionKeysAreNull_ThrowsInvalidOperationException()
+    {
+        bool nextCalled = false;
+        PermissionBehavior<ProtectedMultiPermissionRequest, string> behavior = new(
+            currentUser: new TestCurrentUserContext(),
+            permissionChecker: new TestPermissionChecker());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => behavior.Handle(
+                request: new ProtectedMultiPermissionRequest(
+                    PermissionKeys: null!,
+                    PermissionMatchMode: PermissionMatchMode.Any),
+                next: _ =>
+                {
+                    nextCalled = true;
+                    return Task.FromResult("ok");
+                },
+                cancellationToken: CancellationToken.None));
+
+        Assert.False(nextCalled);
+        Assert.Contains(nameof(ProtectedMultiPermissionRequest), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("permission", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PermissionBehavior_WhenMultiPermissionKeysAreEmpty_ThrowsInvalidOperationException()
+    {
+        bool nextCalled = false;
+        PermissionBehavior<ProtectedMultiPermissionRequest, string> behavior = new(
+            currentUser: new TestCurrentUserContext(),
+            permissionChecker: new TestPermissionChecker());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => behavior.Handle(
+                request: new ProtectedMultiPermissionRequest(
+                    PermissionKeys: [],
+                    PermissionMatchMode: PermissionMatchMode.Any),
+                next: _ =>
+                {
+                    nextCalled = true;
+                    return Task.FromResult("ok");
+                },
+                cancellationToken: CancellationToken.None));
+
+        Assert.False(nextCalled);
+        Assert.Contains(nameof(ProtectedMultiPermissionRequest), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("permission", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public async Task PermissionBehavior_WhenMultiPermissionKeysContainBlank_ThrowsInvalidOperationException(
+        string permissionKey)
+    {
+        bool nextCalled = false;
+        PermissionBehavior<ProtectedMultiPermissionRequest, string> behavior = new(
+            currentUser: new TestCurrentUserContext(),
+            permissionChecker: new TestPermissionChecker());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => behavior.Handle(
+                request: new ProtectedMultiPermissionRequest(
+                    PermissionKeys: ["users.read", permissionKey],
+                    PermissionMatchMode: PermissionMatchMode.Any),
+                next: _ =>
+                {
+                    nextCalled = true;
+                    return Task.FromResult("ok");
+                },
+                cancellationToken: CancellationToken.None));
+
+        Assert.False(nextCalled);
+        Assert.Contains(nameof(ProtectedMultiPermissionRequest), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("permission", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PermissionBehavior_WhenMultiPermissionKeysContainNull_ThrowsInvalidOperationException()
+    {
+        bool nextCalled = false;
+        PermissionBehavior<ProtectedMultiPermissionRequest, string> behavior = new(
+            currentUser: new TestCurrentUserContext(),
+            permissionChecker: new TestPermissionChecker());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => behavior.Handle(
+                request: new ProtectedMultiPermissionRequest(
+                    PermissionKeys: ["users.read", null!],
+                    PermissionMatchMode: PermissionMatchMode.Any),
+                next: _ =>
+                {
+                    nextCalled = true;
+                    return Task.FromResult("ok");
+                },
+                cancellationToken: CancellationToken.None));
+
+        Assert.False(nextCalled);
+        Assert.Contains(nameof(ProtectedMultiPermissionRequest), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("permission", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PermissionBehavior_WhenMultiPermissionKeysContainDuplicates_DeduplicatesAndChecksPermissions()
+    {
+        Guid userId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        TestPermissionChecker checker = new()
+        {
+            HasAnyResult = true
+        };
+        PermissionBehavior<ProtectedMultiPermissionRequest, string> behavior = new(
+            currentUser: new TestCurrentUserContext
+            {
+                IsAuthenticated = true,
+                UserId = userId
+            },
+            permissionChecker: checker);
+
+        string response = await behavior.Handle(
+            request: new ProtectedMultiPermissionRequest(
+                PermissionKeys: ["users.read", "users.read"],
+                PermissionMatchMode: PermissionMatchMode.Any),
+            next: _ => Task.FromResult("ok"),
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal("ok", response);
+        Assert.Equal(nameof(IPermissionChecker.HasAnyAsync), checker.LastMethod);
         Assert.Equal(userId, checker.LastUserId);
         Assert.Equal(["users.read"], checker.LastPermissions);
     }

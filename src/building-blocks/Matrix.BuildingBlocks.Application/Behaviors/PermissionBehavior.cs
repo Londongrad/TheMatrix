@@ -55,24 +55,47 @@ namespace Matrix.BuildingBlocks.Application.Behaviors
         {
             if (request is IRequirePermissions multi)
             {
-                string[] keys = multi.PermissionKeys
-                   .Where(key => !string.IsNullOrWhiteSpace(key))
+                if (multi.PermissionKeys is null)
+                    throw CreateInvalidPermissionConfigurationException(
+                        message: "PermissionKeys collection must not be null.");
+
+                string[] rawKeys = multi.PermissionKeys.ToArray();
+
+                if (rawKeys.Length == 0)
+                    throw CreateInvalidPermissionConfigurationException(
+                        message: "PermissionKeys collection must not be empty.");
+
+                if (rawKeys.Any(string.IsNullOrWhiteSpace))
+                    throw CreateInvalidPermissionConfigurationException(
+                        message: "PermissionKeys collection must not contain null, empty, or whitespace keys.");
+
+                string[] keys = rawKeys
                    .Distinct(StringComparer.Ordinal)
                    .ToArray();
 
-                return keys.Length == 0
-                    ? null
-                    : new PermissionRequirement(
-                        PermissionKeys: keys,
-                        MatchMode: multi.PermissionMatchMode);
+                return new PermissionRequirement(
+                    PermissionKeys: keys,
+                    MatchMode: multi.PermissionMatchMode);
             }
 
-            if (request is IRequirePermission single && !string.IsNullOrWhiteSpace(single.PermissionKey))
+            if (request is IRequirePermission single)
+            {
+                if (string.IsNullOrWhiteSpace(single.PermissionKey))
+                    throw CreateInvalidPermissionConfigurationException(
+                        message: "PermissionKey must not be null, empty, or whitespace.");
+
                 return new PermissionRequirement(
                     PermissionKeys: [single.PermissionKey],
                     MatchMode: PermissionMatchMode.All);
+            }
 
             return null;
+        }
+
+        private static InvalidOperationException CreateInvalidPermissionConfigurationException(string message)
+        {
+            return new InvalidOperationException(
+                $"Request '{typeof(TRequest).FullName}' declares a permission requirement, but it is invalid: {message}");
         }
 
         private static string BuildForbiddenMessage(PermissionRequirement requirement)
