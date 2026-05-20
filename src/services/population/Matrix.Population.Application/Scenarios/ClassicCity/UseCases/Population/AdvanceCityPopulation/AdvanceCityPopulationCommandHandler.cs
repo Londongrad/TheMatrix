@@ -78,9 +78,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         IUnitOfWork unitOfWork)
         : IRequestHandler<AdvanceCityPopulationCommand, AdvanceCityPopulationResult>
     {
-        private const int EconomyHouseholdCashflowBatchSize = 500;
+        private const int EconomyHouseholdSyncBatchSize = 500;
         private const int EconomyWorkplaceSyncBatchSize = 500;
-        private const int EconomyWorkplacePayrollBatchSize = 500;
 
         public async Task<AdvanceCityPopulationResult> Handle(
             AdvanceCityPopulationCommand request,
@@ -463,7 +462,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                      placements: placementsSnapshot,
                                      correlationId: $"classic-city:{cityId.Value:N}:tick:{request.TickId}:households",
                                      occurredAtUtc: updatedAtUtc,
-                                     batchSize: EconomyHouseholdCashflowBatchSize))
+                                     batchSize: EconomyHouseholdSyncBatchSize))
                             await cityEconomySettlementOutboxWriter.AddClassicCityHouseholdAccountSyncBatchAsync(
                                 batch: batch,
                                 cancellationToken: ct);
@@ -493,7 +492,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     }
 
                     foreach (ClassicCityHouseholdCashflowSettlementBatchV1 batch in
-                             BuildHouseholdCashflowSettlementBatches(
+                             ClassicCityEconomySettlementBatchFactory.BuildHouseholdCashflowSettlementBatches(
                                  cityId: cityId.Value,
                                  currentDate: toDate,
                                  settledDays: Math.Max(
@@ -508,7 +507,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             cancellationToken: ct);
 
                     foreach (ClassicCityWorkplacePayrollSettlementBatchV1 batch in
-                             BuildWorkplacePayrollSettlementBatches(
+                             ClassicCityEconomySettlementBatchFactory.BuildWorkplacePayrollSettlementBatches(
                                  cityId: cityId.Value,
                                  currentDate: toDate,
                                  settledDays: Math.Max(
@@ -1083,7 +1082,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         workplacePayrollItems.Add(
                             new ClassicCityWorkplacePayrollSettlementItemV1(
                                 HouseholdId: householdId.Value,
-                                HouseholdExternalReferenceCode: BuildHouseholdExternalReferenceCode(householdId),
+                                HouseholdExternalReferenceCode: ClassicCityEconomySettlementBatchFactory
+                                   .BuildHouseholdExternalReferenceCode(householdId),
                                 WorkplaceId: job.WorkplaceId.Value,
                                 WorkplaceExternalReferenceCode: ClassicCityWorkplaceBusinessSyncBatchFactory
                                    .BuildExternalReferenceCode(job.WorkplaceId),
@@ -1103,7 +1103,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cashflowItems.Add(
                         new ClassicCityHouseholdCashflowSettlementItemV1(
                             HouseholdId: householdId.Value,
-                            ExternalReferenceCode: BuildHouseholdExternalReferenceCode(householdId),
+                            ExternalReferenceCode: ClassicCityEconomySettlementBatchFactory
+                               .BuildHouseholdExternalReferenceCode(householdId),
                             GrossPayrollAmount: supportGrossIncomeForPeriod.Amount,
                             IncomeTaxAmount: supportIncomeTaxForPeriod.Amount,
                             NetPayrollAmount: supportNetIncomeForPeriod.Amount,
@@ -1141,81 +1142,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         private static decimal ResolveRetailTaxRate()
         {
             return 0.08m;
-        }
-
-        private static ClassicCityHouseholdCashflowSettlementBatchV1[] BuildHouseholdCashflowSettlementBatches(
-            Guid cityId,
-            DateOnly currentDate,
-            int settledDays,
-            IReadOnlyCollection<ClassicCityHouseholdCashflowSettlementItemV1> items,
-            string correlationId,
-            DateTimeOffset occurredAtUtc)
-        {
-            if (items.Count == 0 || settledDays <= 0)
-                return [];
-
-            ClassicCityHouseholdCashflowSettlementBatchV1[] batches = items
-               .Chunk(EconomyHouseholdCashflowBatchSize)
-               .Select((
-                    chunk,
-                    index) => new ClassicCityHouseholdCashflowSettlementBatchV1(
-                    CityId: cityId,
-                    CurrentDate: currentDate,
-                    SettledDays: settledDays,
-                    BatchNumber: index + 1,
-                    TotalBatches: 0,
-                    Households: chunk,
-                    CorrelationId: correlationId,
-                    OccurredAtUtc: occurredAtUtc))
-               .ToArray();
-
-            for (int i = 0; i < batches.Length; i++)
-                batches[i] = batches[i] with
-                {
-                    TotalBatches = batches.Length
-                };
-
-            return batches;
-        }
-
-        private static ClassicCityWorkplacePayrollSettlementBatchV1[] BuildWorkplacePayrollSettlementBatches(
-            Guid cityId,
-            DateOnly currentDate,
-            int settledDays,
-            IReadOnlyCollection<ClassicCityWorkplacePayrollSettlementItemV1> items,
-            string correlationId,
-            DateTimeOffset occurredAtUtc)
-        {
-            if (items.Count == 0 || settledDays <= 0)
-                return [];
-
-            ClassicCityWorkplacePayrollSettlementBatchV1[] batches = items
-               .Chunk(EconomyWorkplacePayrollBatchSize)
-               .Select((
-                    chunk,
-                    index) => new ClassicCityWorkplacePayrollSettlementBatchV1(
-                    CityId: cityId,
-                    CurrentDate: currentDate,
-                    SettledDays: settledDays,
-                    BatchNumber: index + 1,
-                    TotalBatches: 0,
-                    Payrolls: chunk,
-                    CorrelationId: correlationId,
-                    OccurredAtUtc: occurredAtUtc))
-               .ToArray();
-
-            for (int i = 0; i < batches.Length; i++)
-                batches[i] = batches[i] with
-                {
-                    TotalBatches = batches.Length
-                };
-
-            return batches;
-        }
-
-        private static string BuildHouseholdExternalReferenceCode(HouseholdId householdId)
-        {
-            return $"classic-city-household:{householdId.Value:N}";
         }
 
         private static bool ApplyWeatherExposure(
