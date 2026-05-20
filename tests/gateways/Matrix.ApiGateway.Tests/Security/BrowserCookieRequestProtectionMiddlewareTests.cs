@@ -135,6 +135,106 @@ public sealed class BrowserCookieRequestProtectionMiddlewareTests
     }
 
     [Fact]
+    public async Task InvokeAsync_WhenOriginIsMalformed_ReturnsForbiddenProblem()
+    {
+        bool nextCalled = false;
+        var middleware = CreateMiddleware(
+            next: _ =>
+            {
+                nextCalled = true;
+                return Task.CompletedTask;
+            });
+        DefaultHttpContext httpContext = CreateHttpContext(
+            method: HttpMethods.Post,
+            path: "/api/auth/refresh");
+        httpContext.Request.Headers.Origin = "not a uri";
+
+        await middleware.InvokeAsync(httpContext);
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status403Forbidden, httpContext.Response.StatusCode);
+
+        JsonDocument payload = await ReadJsonAsync(httpContext);
+        Assert.Equal(
+            "Gateway.UnverifiableCookieRequestOrigin",
+            payload.RootElement.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenRefererIsMalformed_ReturnsForbiddenProblem()
+    {
+        bool nextCalled = false;
+        var middleware = CreateMiddleware(
+            next: _ =>
+            {
+                nextCalled = true;
+                return Task.CompletedTask;
+            });
+        DefaultHttpContext httpContext = CreateHttpContext(
+            method: HttpMethods.Post,
+            path: "/api/auth/logout");
+        httpContext.Request.Headers.Referer = "not a uri";
+
+        await middleware.InvokeAsync(httpContext);
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status403Forbidden, httpContext.Response.StatusCode);
+
+        JsonDocument payload = await ReadJsonAsync(httpContext);
+        Assert.Equal(
+            "Gateway.UnverifiableCookieRequestOrigin",
+            payload.RootElement.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenOriginIsMalformedEvenWithAllowedReferer_ReturnsForbiddenProblem()
+    {
+        bool nextCalled = false;
+        var middleware = CreateMiddleware(
+            next: _ =>
+            {
+                nextCalled = true;
+                return Task.CompletedTask;
+            });
+        DefaultHttpContext httpContext = CreateHttpContext(
+            method: HttpMethods.Post,
+            path: "/api/auth/refresh");
+        httpContext.Request.Headers.Origin = "not a uri";
+        httpContext.Request.Headers.Referer = "https://gateway.test/some-page";
+
+        await middleware.InvokeAsync(httpContext);
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status403Forbidden, httpContext.Response.StatusCode);
+
+        JsonDocument payload = await ReadJsonAsync(httpContext);
+        Assert.Equal(
+            "Gateway.UnverifiableCookieRequestOrigin",
+            payload.RootElement.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenMethodIsNotPost_CallsNext()
+    {
+        bool nextCalled = false;
+        var middleware = CreateMiddleware(
+            next: _ =>
+            {
+                nextCalled = true;
+                return Task.CompletedTask;
+            });
+        DefaultHttpContext httpContext = CreateHttpContext(
+            method: HttpMethods.Get,
+            path: "/api/auth/refresh");
+        httpContext.Request.Headers.Origin = "https://evil.test";
+
+        await middleware.InvokeAsync(httpContext);
+
+        Assert.True(nextCalled);
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task InvokeAsync_WhenPathIsNotProtected_CallsNext()
     {
         bool nextCalled = false;
