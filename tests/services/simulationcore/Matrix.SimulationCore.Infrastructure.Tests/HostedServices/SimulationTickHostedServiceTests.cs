@@ -25,6 +25,36 @@ public sealed class SimulationTickHostedServiceTests
     }
 
     [Fact]
+    public async Task StartAsync_WhenFixedStepSecondsIsNonPositive_ThrowsInvalidOperationException()
+    {
+        var service = CreateService(
+            periodMilliseconds: 1000,
+            fixedStepSeconds: 0,
+            mediator: new TestMediator(),
+            logger: new TestLogger<SimulationTickHostedService>());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.StartAsync(CancellationToken.None));
+
+        Assert.Contains("FixedStepSeconds must be > 0", exception.Message);
+    }
+
+    [Fact]
+    public async Task StartAsync_WhenMaxStepsPerSimulationPerCycleIsNonPositive_ThrowsInvalidOperationException()
+    {
+        var service = CreateService(
+            periodMilliseconds: 1000,
+            maxStepsPerSimulationPerCycle: 0,
+            mediator: new TestMediator(),
+            logger: new TestLogger<SimulationTickHostedService>());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.StartAsync(CancellationToken.None));
+
+        Assert.Contains("MaxStepsPerSimulationPerCycle must be > 0", exception.Message);
+    }
+
+    [Fact]
     public async Task StartAsync_WhenTickOccurs_SendsAdvanceRunningSimulationsCommand()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
@@ -76,7 +106,9 @@ public sealed class SimulationTickHostedServiceTests
     private static SimulationTickHostedService CreateService(
         int periodMilliseconds,
         IMediator mediator,
-        ILogger<SimulationTickHostedService> logger)
+        ILogger<SimulationTickHostedService> logger,
+        int fixedStepSeconds = 60,
+        int maxStepsPerSimulationPerCycle = 10)
     {
         var serviceProvider = new HostedServicesTestSupport.DictionaryServiceProvider(
             new Dictionary<Type, object>
@@ -87,7 +119,12 @@ public sealed class SimulationTickHostedServiceTests
         return new SimulationTickHostedService(
             scopeFactory: new HostedServicesTestSupport.TestServiceScopeFactory(serviceProvider),
             options: Microsoft.Extensions.Options.Options.Create(
-                new SimulationTickOptions { PeriodMilliseconds = periodMilliseconds }),
+                new SimulationTickOptions
+                {
+                    PeriodMilliseconds = periodMilliseconds,
+                    FixedStepSeconds = fixedStepSeconds,
+                    MaxStepsPerSimulationPerCycle = maxStepsPerSimulationPerCycle
+                }),
             logger: logger);
     }
 
@@ -112,8 +149,10 @@ public sealed class SimulationTickHostedServiceTests
             object response = new AdvanceRunningSimulationsResult(
                 ProcessedCount: 1,
                 AdvancedCount: 1,
-                SkippedCount: 0,
-                FailedCount: 0);
+                NoStepDueCount: 0,
+                LaggingCount: 0,
+                FailedCount: 0,
+                TotalStepsProcessed: 1);
 
             return Task.FromResult((TResponse)response);
         }

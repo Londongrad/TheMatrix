@@ -48,7 +48,8 @@ internal static class SimulationInfrastructureTestSupport
                 return Task.FromResult(
                     new SimulationAdvanceExecutionResult(
                         simulationId,
-                        SimulationAdvanceExecutionStatus.Advanced));
+                        SimulationAdvanceExecutionStatus.Advanced,
+                        StepsProcessed: 1));
             }
 
             object next = outcomes.Dequeue();

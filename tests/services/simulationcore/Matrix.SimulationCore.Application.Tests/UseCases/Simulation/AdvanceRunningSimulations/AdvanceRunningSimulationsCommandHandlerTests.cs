@@ -15,8 +15,10 @@ public sealed class AdvanceRunningSimulationsCommandHandlerTests
             Result = new SimulationBatchAdvanceResult(
                 ProcessedCount: 7,
                 AdvancedCount: 5,
-                SkippedCount: 1,
-                FailedCount: 1)
+                NoStepDueCount: 1,
+                LaggingCount: 2,
+                FailedCount: 1,
+                TotalStepsProcessed: 12)
         };
         var handler = new AdvanceRunningSimulationsCommandHandler(executor);
 
@@ -25,7 +27,9 @@ public sealed class AdvanceRunningSimulationsCommandHandlerTests
         Assert.Equal(realDelta, executor.RequestedRealDelta);
         Assert.Equal(7, result.ProcessedCount);
         Assert.Equal(5, result.AdvancedCount);
-        Assert.Equal(1, result.SkippedCount);
+        Assert.Equal(1, result.NoStepDueCount);
+        Assert.Equal(2, result.LaggingCount);
         Assert.Equal(1, result.FailedCount);
+        Assert.Equal(12, result.TotalStepsProcessed);
     }
 }

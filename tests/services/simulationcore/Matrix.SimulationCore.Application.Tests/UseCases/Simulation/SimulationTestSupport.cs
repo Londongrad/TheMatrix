@@ -115,7 +115,10 @@ internal static class SimulationTestSupport
         public SimulationId? RequestedSimulationId { get; private set; }
         public TimeSpan? RequestedRealDelta { get; private set; }
         public SimulationAdvanceExecutionResult Result { get; set; } =
-            new(new SimulationId(Guid.NewGuid()), SimulationAdvanceExecutionStatus.Advanced);
+            new(
+                new SimulationId(Guid.NewGuid()),
+                SimulationAdvanceExecutionStatus.Advanced,
+                StepsProcessed: 1);
 
         public Task<SimulationAdvanceExecutionResult> ExecuteAsync(
             SimulationId simulationId,
@@ -131,7 +134,7 @@ internal static class SimulationTestSupport
     internal sealed class FakeSimulationBatchAdvanceExecutor : ISimulationBatchAdvanceExecutor
     {
         public TimeSpan? RequestedRealDelta { get; private set; }
-        public SimulationBatchAdvanceResult Result { get; set; } = new(0, 0, 0, 0);
+        public SimulationBatchAdvanceResult Result { get; set; } = new(0, 0, 0, 0, 0, 0);
 
         public Task<SimulationBatchAdvanceResult> ExecuteAsync(
             TimeSpan realDelta,
@@ -140,6 +143,12 @@ internal static class SimulationTestSupport
             RequestedRealDelta = realDelta;
             return Task.FromResult(Result);
         }
+    }
+
+    internal sealed class FakeSimulationFixedStepSettings : ISimulationFixedStepSettings
+    {
+        public int FixedStepSeconds { get; init; } = 60;
+        public int MaxStepsPerSimulationPerCycle { get; init; } = 10;
     }
 
     internal sealed class FakeUnitOfWork : IUnitOfWork
@@ -175,6 +184,7 @@ internal static class SimulationTestSupport
         public SimulationHostKind HostKind { get; init; } = SimulationHostKind.City;
         public SimulationHost? RequestedHost { get; private set; }
         public SimulationTimeAdvancedDomainEvent? RequestedAdvancedEvent { get; private set; }
+        public List<SimulationTimeAdvancedDomainEvent> RequestedAdvancedEvents { get; } = [];
         public int HandleCallCount { get; private set; }
 
         public Task HandleAdvancedAsync(
@@ -185,6 +195,7 @@ internal static class SimulationTestSupport
             HandleCallCount++;
             RequestedHost = host;
             RequestedAdvancedEvent = advancedEvent;
+            RequestedAdvancedEvents.Add(advancedEvent);
             return Task.CompletedTask;
         }
     }
