@@ -58,6 +58,7 @@ public sealed class ClassicCitySetupSessionReconciliationTests
         Guid ownerUserId = Guid.Parse("9eb87c61-06af-4138-b71f-f77ea15f621e");
         Guid sessionId = Guid.Parse("c9aa3a35-863a-4f2f-9209-9f29a891f8c9");
         Guid cityId = Guid.Parse("32f56e93-8871-47c4-bf77-86a1c362c78c");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint();
         var requestContextAccessor = new InternalJwtRequestContextAccessor();
@@ -69,8 +70,8 @@ public sealed class ClassicCitySetupSessionReconciliationTests
             sessionId: sessionId,
             ownerUserId: ownerUserId,
             status: "LaunchQueued",
-            updatedAtUtc: DateTimeOffset.UtcNow.AddMinutes(-1));
-        session.LaunchQueuedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-1);
+            updatedAtUtc: now.AddMinutes(-1));
+        session.LaunchQueuedAtUtc = now.AddMinutes(-1);
         session.LaunchRequest = CreateCityLaunchRequest(provisioningCorrelationId: sessionId);
         session.LaunchAuthContext = CreateLaunchAuthSnapshot(ownerUserId);
         sessionStore.TrackedSessionIds.Add(sessionId);
@@ -81,13 +82,17 @@ public sealed class ClassicCitySetupSessionReconciliationTests
             httpContextAccessor: CreateHttpContextAccessor(ownerUserId),
             provisioningService: provisioningService,
             internalJwtRequestContextAccessor: requestContextAccessor,
-            options: CreateClassicCitySetupSessionOptions(launchQueueRecoveryDelaySeconds: 1));
+            options: CreateClassicCitySetupSessionOptions(launchQueueRecoveryDelaySeconds: 1),
+            timeProvider: CreateTimeProvider(now));
 
         await service.ReconcileAsync(sessionId);
 
         Assert.Equal(1, provisioningService.CreateCityCallCount);
         Assert.Equal("Ready", session.Status);
         Assert.Equal(cityId, session.CityId);
+        Assert.Equal(now, session.StartedAtUtc);
+        Assert.Equal(now, session.CompletedAtUtc);
+        Assert.Equal(now, session.UpdatedAtUtc);
         Assert.Equal(0, sessionStore.UntrackCallCount);
     }
 
@@ -97,6 +102,7 @@ public sealed class ClassicCitySetupSessionReconciliationTests
         Guid ownerUserId = Guid.Parse("33dd4a4c-85e5-4d9e-a2e3-8b1a2632a4d4");
         Guid sessionId = Guid.Parse("f4642b80-847d-421b-91c8-845c4808690d");
         Guid cityId = Guid.Parse("0f8a6616-a3bd-4f6d-b636-d3617c26f613");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint();
         var requestContextAccessor = new InternalJwtRequestContextAccessor();
@@ -122,13 +128,15 @@ public sealed class ClassicCitySetupSessionReconciliationTests
             publishEndpoint: publishEndpoint,
             httpContextAccessor: CreateHttpContextAccessor(ownerUserId),
             citiesApiClient: citiesApiClient,
-            internalJwtRequestContextAccessor: requestContextAccessor);
+            internalJwtRequestContextAccessor: requestContextAccessor,
+            timeProvider: CreateTimeProvider(now));
 
         await service.ReconcileAsync(sessionId);
 
         Assert.Equal("ProvisioningFailed", session.Status);
         Assert.Equal("Gateway.ClassicCitySetup.ReconciliationCityNotFound", session.FailureCode);
-        Assert.NotNull(session.CompletedAtUtc);
+        Assert.Equal(now, session.CompletedAtUtc);
+        Assert.Equal(now, session.UpdatedAtUtc);
         Assert.Equal(1, sessionStore.SaveCallCount);
         Assert.Equal(0, sessionStore.UntrackCallCount);
     }
@@ -139,6 +147,7 @@ public sealed class ClassicCitySetupSessionReconciliationTests
         Guid ownerUserId = Guid.Parse("b2435d64-84d7-47bd-a50a-2d748462db7f");
         Guid sessionId = Guid.Parse("a702cd92-79a9-4a33-a1e7-b5909f1af6c6");
         Guid cityId = Guid.Parse("8bc5a737-fd0d-49f1-a8bd-4ceff5c2cc55");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint();
         var requestContextAccessor = new InternalJwtRequestContextAccessor();
@@ -161,7 +170,8 @@ public sealed class ClassicCitySetupSessionReconciliationTests
             publishEndpoint: publishEndpoint,
             httpContextAccessor: CreateHttpContextAccessor(ownerUserId),
             citiesApiClient: citiesApiClient,
-            internalJwtRequestContextAccessor: requestContextAccessor);
+            internalJwtRequestContextAccessor: requestContextAccessor,
+            timeProvider: CreateTimeProvider(now));
 
         await service.ReconcileAsync(sessionId);
 
@@ -170,6 +180,7 @@ public sealed class ClassicCitySetupSessionReconciliationTests
         Assert.NotNull(session.Provisioning);
         Assert.Equal("Completed", session.Provisioning!.PopulationBootstrap.Status);
         Assert.Equal("Completed", session.Provisioning.EconomyBootstrap.Status);
+        Assert.Equal(now, session.UpdatedAtUtc);
         Assert.Equal(ownerUserId, citiesApiClient.CapturedRequestContext!.UserId);
         Assert.Equal(1, sessionStore.UntrackCallCount);
         Assert.DoesNotContain(sessionId, sessionStore.TrackedSessionIds);

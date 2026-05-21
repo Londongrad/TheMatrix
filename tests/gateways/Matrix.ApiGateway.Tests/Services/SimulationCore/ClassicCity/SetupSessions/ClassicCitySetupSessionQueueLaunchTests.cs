@@ -13,6 +13,7 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
     {
         Guid ownerUserId = Guid.Parse("c2b71fa3-9c59-4516-9d03-968fbe06b30d");
         Guid sessionId = Guid.Parse("3203949c-a3fb-4a6b-b3a1-aadf030efaf0");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint();
         sessionStore.Sessions[sessionId] = CreateClassicCitySetupSessionState(
@@ -22,13 +23,15 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
         ClassicCitySetupSessionService service = CreateClassicCitySetupSessionService(
             sessionStore: sessionStore,
             publishEndpoint: publishEndpoint,
-            httpContextAccessor: CreateHttpContextAccessor(ownerUserId));
+            httpContextAccessor: CreateHttpContextAccessor(ownerUserId),
+            timeProvider: CreateTimeProvider(now));
 
         ClassicCitySetupSessionMutationResult result = await service.QueueLaunchAsync(sessionId);
 
         Assert.Equal(ClassicCitySetupSessionMutationStatus.Invalid, result.Status);
         Assert.Equal("Gateway.ClassicCitySetup.ValidationFailed", result.ErrorCode);
         Assert.StartsWith("cc-", sessionStore.Sessions[sessionId].Draft.GenerationSeed);
+        Assert.Equal(now, sessionStore.Sessions[sessionId].UpdatedAtUtc);
         Assert.Equal(1, sessionStore.SaveCallCount);
         Assert.Empty(publishEndpoint.PublishedMessages);
     }
@@ -67,6 +70,7 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
     {
         Guid ownerUserId = Guid.Parse("175515c1-d54f-4d8b-82e7-02f58dc17611");
         Guid sessionId = Guid.Parse("1b7807ff-4468-471c-942d-2ee40bbdb6fc");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint();
         var permissionsVersionStore = new FakePermissionsVersionStore
@@ -86,7 +90,8 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
             publishEndpoint: publishEndpoint,
             httpContextAccessor: CreateHttpContextAccessor(ownerUserId, "  launch-jti  "),
             permissionsVersionStore: permissionsVersionStore,
-            authContextStore: authContextStore);
+            authContextStore: authContextStore,
+            timeProvider: CreateTimeProvider(now));
 
         ClassicCitySetupSessionMutationResult result = await service.QueueLaunchAsync(sessionId);
 
@@ -95,13 +100,15 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
         Assert.Equal(ClassicCitySetupSessionMutationStatus.Updated, result.Status);
         Assert.Equal("LaunchQueued", session.Status);
         Assert.Equal("launch", session.CurrentStepId);
-        Assert.NotNull(session.LaunchQueuedAtUtc);
+        Assert.Equal(now, session.LaunchQueuedAtUtc);
+        Assert.Equal(now, session.UpdatedAtUtc);
         Assert.NotNull(session.LaunchRequest);
         Assert.Equal(sessionId, session.LaunchRequest!.ProvisioningCorrelationId);
         Assert.Equal(ownerUserId, session.LaunchAuthContext!.UserId);
         Assert.Equal("launch-jti", session.LaunchAuthContext.Jti);
         Assert.Equal(17, session.LaunchAuthContext.PermissionsVersion);
         Assert.Equal(["city.launch", "city.view"], session.LaunchAuthContext.EffectivePermissions);
+        Assert.Equal(now, session.LaunchAuthContext.CapturedAtUtc);
         ClassicCitySetupLaunchRequested published = Assert.IsType<ClassicCitySetupLaunchRequested>(Assert.Single(publishEndpoint.PublishedMessages));
         Assert.Equal(sessionId, published.SessionId);
         Assert.Equal(1, sessionStore.SaveCallCount);
@@ -112,6 +119,7 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
     {
         Guid ownerUserId = Guid.Parse("8f07f4c5-9a6c-4952-b1be-21823689f447");
         Guid sessionId = Guid.Parse("fd0ea4ce-67a4-42dd-ad71-56c3df560af3");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint
         {
@@ -134,7 +142,8 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
             publishEndpoint: publishEndpoint,
             httpContextAccessor: CreateHttpContextAccessor(ownerUserId, "launch-jti"),
             permissionsVersionStore: permissionsVersionStore,
-            authContextStore: authContextStore);
+            authContextStore: authContextStore,
+            timeProvider: CreateTimeProvider(now));
 
         ClassicCitySetupSessionMutationResult result = await service.QueueLaunchAsync(sessionId);
 
@@ -145,6 +154,10 @@ public sealed class ClassicCitySetupSessionQueueLaunchTests
         Assert.Equal("LaunchFailed", session.Status);
         Assert.Equal("Gateway.ClassicCitySetup.LaunchQueueUnavailable", session.FailureCode);
         Assert.Contains("broker is down", session.FailureMessage);
+        Assert.Equal(now, session.LaunchQueuedAtUtc);
+        Assert.Equal(now, session.LaunchAuthContext!.CapturedAtUtc);
+        Assert.Equal(now, session.CompletedAtUtc);
+        Assert.Equal(now, session.UpdatedAtUtc);
         Assert.Equal(2, sessionStore.SaveCallCount);
     }
 }

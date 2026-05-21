@@ -53,6 +53,7 @@ public sealed class ClassicCitySetupSessionDraftMutationTests
     {
         Guid ownerUserId = Guid.Parse("1fa1c722-5aad-43c1-a905-f56ef6e3dd81");
         Guid existingSessionId = Guid.Parse("6ed188fe-b437-4cd1-b1fa-5172b30d64fe");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint();
         sessionStore.Sessions[existingSessionId] = CreateClassicCitySetupSessionState(
@@ -62,11 +63,12 @@ public sealed class ClassicCitySetupSessionDraftMutationTests
             draft: CreateClassicCitySetupDraft(
                 generationSeed: "seed-old",
                 startSimTimeUtc: new DateTimeOffset(2048, 6, 2, 8, 0, 0, TimeSpan.Zero)),
-            updatedAtUtc: DateTimeOffset.UtcNow.AddSeconds(-5));
+            updatedAtUtc: now.AddSeconds(-5));
         ClassicCitySetupSessionService service = CreateClassicCitySetupSessionService(
             sessionStore: sessionStore,
             publishEndpoint: publishEndpoint,
-            httpContextAccessor: CreateHttpContextAccessor(ownerUserId));
+            httpContextAccessor: CreateHttpContextAccessor(ownerUserId),
+            timeProvider: CreateTimeProvider(now));
 
         ClassicCitySetupSessionView result = await service.CreateAsync(new CreateClassicCitySetupSessionRequestDto(
             CurrentStepId: "profile",
@@ -83,25 +85,27 @@ public sealed class ClassicCitySetupSessionDraftMutationTests
     public async Task CreateAsync_WhenNoReusableDraftExists_SavesNormalizedDraft()
     {
         Guid ownerUserId = Guid.Parse("a47a7248-7916-430c-a031-1dddab08f4f0");
+        DateTimeOffset now = new(2048, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var sessionStore = new FakeClassicCitySetupSessionStore();
         var publishEndpoint = new RecordingPublishEndpoint();
         ClassicCitySetupSessionService service = CreateClassicCitySetupSessionService(
             sessionStore: sessionStore,
             publishEndpoint: publishEndpoint,
-            httpContextAccessor: CreateHttpContextAccessor(ownerUserId));
+            httpContextAccessor: CreateHttpContextAccessor(ownerUserId),
+            timeProvider: CreateTimeProvider(now));
 
-        DateTimeOffset before = DateTimeOffset.UtcNow;
         ClassicCitySetupSessionView result = await service.CreateAsync(new CreateClassicCitySetupSessionRequestDto(
             CurrentStepId: "unknown-step",
             Draft: CreateClassicCitySetupDraft(generationSeed: " ")));
-        DateTimeOffset after = DateTimeOffset.UtcNow;
 
         Assert.Equal("scenario", result.CurrentStepId);
         Assert.Equal("Draft", result.Status);
         Assert.StartsWith("cc-", result.Draft.GenerationSeed);
-        Assert.True(result.CreatedAtUtc >= before);
-        Assert.True(result.CreatedAtUtc <= after);
+        Assert.Equal(now, result.CreatedAtUtc);
+        Assert.Equal(now, result.UpdatedAtUtc);
         Assert.Equal(ownerUserId, sessionStore.Sessions[result.SessionId].OwnerUserId);
+        Assert.Equal(now, sessionStore.Sessions[result.SessionId].CreatedAtUtc);
+        Assert.Equal(now, sessionStore.Sessions[result.SessionId].UpdatedAtUtc);
         Assert.Equal(1, sessionStore.SaveCallCount);
     }
 
