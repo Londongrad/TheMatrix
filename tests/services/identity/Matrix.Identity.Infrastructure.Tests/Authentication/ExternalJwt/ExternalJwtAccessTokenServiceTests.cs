@@ -11,10 +11,10 @@ public sealed class ExternalJwtAccessTokenServiceTests
     [Fact]
     public void Generate_EmitsSignedJwtWithExpectedClaimsAndLifetime()
     {
-        DateTime utcNow = new(2048, 5, 9, 8, 45, 0, DateTimeKind.Utc);
+        DateTimeOffset utcNow = new(2048, 5, 9, 8, 45, 0, TimeSpan.Zero);
         var service = new ExternalJwtAccessTokenService(
             options: CreateJwtOptions(),
-            clock: CreateClock(utcNow));
+            timeProvider: CreateTimeProvider(utcNow));
         Guid userId = Guid.Parse("73054653-d24d-4ee0-98c1-60b003f06495");
         Guid sessionId = Guid.Parse("8868cdae-c44c-4cb2-b8d7-9af85a10f665");
 
@@ -28,6 +28,6 @@ public sealed class ExternalJwtAccessTokenServiceTests
         Assert.Equal(userId.ToString(), token.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Sub).Value);
         Assert.Equal("7", token.Claims.Single(x => x.Type == JwtClaimNames.PermissionsVersion).Value);
         Assert.Equal(sessionId.ToString(), token.Claims.Single(x => x.Type == JwtClaimNames.SessionId).Value);
-        Assert.Equal(utcNow.AddMinutes(30), token.ValidTo);
+        Assert.Equal(utcNow.UtcDateTime.AddMinutes(30), token.ValidTo);
     }
 }

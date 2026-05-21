@@ -11,7 +11,7 @@ public sealed class RefreshTokenProviderTests
     {
         var provider = new RefreshTokenProvider(
             options: CreateJwtOptions(refreshTokenLifetimeDays: 14),
-            clock: CreateClock(CreatedAtUtc));
+            timeProvider: CreateTimeProvider(new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero)));
 
         var descriptor = provider.Generate(isPersistent: true);
 
@@ -24,7 +24,7 @@ public sealed class RefreshTokenProviderTests
     {
         var provider = new RefreshTokenProvider(
             options: CreateJwtOptions(shortRefreshTokenLifetimeHours: 6),
-            clock: CreateClock(CreatedAtUtc));
+            timeProvider: CreateTimeProvider(new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero)));
 
         var descriptor = provider.Generate(isPersistent: false);
 
@@ -37,7 +37,7 @@ public sealed class RefreshTokenProviderTests
     {
         var provider = new RefreshTokenProvider(
             options: CreateJwtOptions(),
-            clock: CreateClock(CreatedAtUtc));
+            timeProvider: CreateTimeProvider(new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero)));
 
         string first = provider.ComputeHash("token-value");
         string second = provider.ComputeHash("token-value");

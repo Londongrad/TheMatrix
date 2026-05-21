@@ -8,10 +8,10 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
 {
     public sealed class RefreshTokenProvider(
         IOptions<ExternalJwtOptions> options,
-        IClock clock) : IRefreshTokenProvider
+        TimeProvider timeProvider) : IRefreshTokenProvider
     {
         private readonly ExternalJwtOptions _options = options.Value;
-        private readonly IClock _clock = clock;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public RefreshTokenDescriptor Generate(bool isPersistent)
         {
@@ -22,9 +22,11 @@ namespace Matrix.Identity.Infrastructure.Security.Tokens
 
             string hash = ComputeHash(token);
 
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
             DateTime expiresAt = isPersistent
-                ? _clock.UtcNow.AddDays(_options.RefreshTokenLifetimeDays)
-                : _clock.UtcNow.AddHours(_options.ShortRefreshTokenLifetimeHours);
+                ? nowUtc.AddDays(_options.RefreshTokenLifetimeDays)
+                : nowUtc.AddHours(_options.ShortRefreshTokenLifetimeHours);
 
             return new RefreshTokenDescriptor(
                 Token: token,

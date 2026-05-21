@@ -12,10 +12,10 @@ namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
 {
     public sealed class ExternalJwtAccessTokenService(
         IOptions<ExternalJwtOptions> options,
-        IClock clock) : IAccessTokenService
+        TimeProvider timeProvider) : IAccessTokenService
     {
         private readonly ExternalJwtOptions _options = options.Value;
-        private readonly IClock _clock = clock;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public AccessTokenModel Generate(
             Guid userId,
@@ -44,7 +44,10 @@ namespace Matrix.Identity.Infrastructure.Authentication.ExternalJwt
                 key: key,
                 algorithm: SecurityAlgorithms.HmacSha256);
 
-            DateTime expiresAt = _clock.UtcNow.AddMinutes(_options.AccessTokenLifetimeMinutes);
+            DateTime expiresAt = _timeProvider
+               .GetUtcNow()
+               .UtcDateTime
+               .AddMinutes(_options.AccessTokenLifetimeMinutes);
 
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer,
