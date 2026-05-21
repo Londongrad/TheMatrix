@@ -24,7 +24,7 @@ public sealed class GetMySessionHistoryPageQueryHandlerTests
         var handler = new Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistoryPage.GetMySessionHistoryPageQueryHandler(
             userRepository,
             userSessionRepository,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             currentUser);
 
         var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
@@ -60,7 +60,7 @@ public sealed class GetMySessionHistoryPageQueryHandlerTests
         var handler = new Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistoryPage.GetMySessionHistoryPageQueryHandler(
             userRepository,
             userSessionRepository,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
         var result = await handler.Handle(

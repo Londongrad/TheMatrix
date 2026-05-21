@@ -22,7 +22,7 @@ public sealed class GetMySessionsQueryHandlerTests
         var handler = new Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions.GetUserSessionsQueryHandler(
             userRepository,
             userSessionRepository,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             currentUser);
 
         var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
@@ -63,7 +63,7 @@ public sealed class GetMySessionsQueryHandlerTests
         var handler = new Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions.GetUserSessionsQueryHandler(
             userRepository,
             userSessionRepository,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
         var result = await handler.Handle(

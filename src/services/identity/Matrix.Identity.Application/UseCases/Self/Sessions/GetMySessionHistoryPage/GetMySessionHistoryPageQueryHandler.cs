@@ -2,7 +2,6 @@ using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions;
 using Matrix.Identity.Domain.Entities;
@@ -13,10 +12,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistory
     public sealed class GetMySessionHistoryPageQueryHandler(
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
-        IClock clock,
+        TimeProvider timeProvider,
         ICurrentUserContext currentUser)
         : IRequestHandler<GetMySessionHistoryPageQuery, PagedResult<MySessionResult>>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task<PagedResult<MySessionResult>> Handle(
             GetMySessionHistoryPageQuery request,
             CancellationToken cancellationToken)
@@ -30,10 +31,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessionHistory
             if (!userExists)
                 throw ApplicationErrorsFactory.UserNotFound(userId);
 
+            DateTime utcNow = _timeProvider.GetUtcNow()
+               .UtcDateTime;
+
             (IReadOnlyCollection<UserSession> sessions, int totalCount) =
                 await userSessionRepository.GetEndedPageByUserIdAsync(
                     userId: userId,
-                    utcNow: clock.UtcNow,
+                    utcNow: utcNow,
                     pagination: request.Pagination,
                     cancellationToken: cancellationToken);
 

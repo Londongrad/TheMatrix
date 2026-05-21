@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
@@ -11,16 +10,19 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.GetMySessions
     public sealed class GetUserSessionsQueryHandler(
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
-        IClock clock,
+        TimeProvider timeProvider,
         ICurrentUserContext currentUser)
         : IRequestHandler<GetMySessionsQuery, IReadOnlyCollection<MySessionResult>>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task<IReadOnlyCollection<MySessionResult>> Handle(
             GetMySessionsQuery request,
             CancellationToken cancellationToken)
         {
             Guid userId = currentUser.GetUserIdOrThrow();
-            DateTime utcNow = clock.UtcNow;
+            DateTime utcNow = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             bool userExists = await userRepository.ExistsAsync(
                 userId: userId,
