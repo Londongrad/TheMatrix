@@ -8,6 +8,7 @@ import {ConfirmProvider} from "@shared/ui/components/ConfirmDialog/ConfirmDialog
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
 import {simulationCoreCatalogRoutes, classicCityRoutes} from "@app/router/SimulationCoreRoutes";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+import {RouteErrorBoundary} from "@app/errors/RouteErrorBoundary";
 
 import MainLayout from "./layouts/main/MainLayout";
 import AdminLayout from "./layouts/admin/AdminLayout";
@@ -88,118 +89,123 @@ const App = () => {
         <BrowserRouter>
             <AuthProvider>
                 <ConfirmProvider>
-                    <Suspense fallback={<LoadingScreen/>}>
-                        <Routes>
-                            {/* Public pages */}
-                            <Route path="/login" element={<LoginPage/>}/>
-                            <Route path="/register" element={<RegisterPage/>}/>
-                            <Route path="/confirm-email" element={<ConfirmEmailPage/>}/>
-                            <Route path="/confirm-email-change" element={<ConfirmEmailChangePage/>}/>
-                            <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
-                            <Route path="/recover-account" element={<RecoverAccountPage/>}/>
-                            <Route path="/confirm-account-recovery" element={<ConfirmAccountRecoveryPage/>}/>
-                            <Route path="/reset-password" element={<ResetPasswordPage/>}/>
-                            <Route path="/forbidden" element={<ForbiddenPage/>}/>
+                    <RouteErrorBoundary>
+                        <Suspense fallback={<LoadingScreen/>}>
+                            <Routes>
+                                {/* Public pages */}
+                                <Route path="/login" element={<LoginPage/>}/>
+                                <Route path="/register" element={<RegisterPage/>}/>
+                                <Route path="/confirm-email" element={<ConfirmEmailPage/>}/>
+                                <Route path="/confirm-email-change" element={<ConfirmEmailChangePage/>}/>
+                                <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+                                <Route path="/recover-account" element={<RecoverAccountPage/>}/>
+                                <Route path="/confirm-account-recovery" element={<ConfirmAccountRecoveryPage/>}/>
+                                <Route path="/reset-password" element={<ResetPasswordPage/>}/>
+                                <Route path="/forbidden" element={<ForbiddenPage/>}/>
 
-                            {/* Protected pages with MainLayout */}
-                            <Route
-                                element={
-                                    <RequireAuth>
-                                        <MainLayout/>
-                                    </RequireAuth>
-                                }
-                            >
-                                <Route path="/" element={<DashboardPage/>}/>
-                                {simulationCoreCatalogRoutes}
-                            </Route>
-
-                            <Route
-                                element={
-                                    <RequireAuth>
-                                        <ClassicCityLayout/>
-                                    </RequireAuth>
-                                }
-                            >
-                                {classicCityRoutes}
-                            </Route>
-
-                            {/* Protected user settings pages with UserSettingsLayout */}
-                            <Route
-                                path="/userSettings"
-                                element={
-                                    <RequireAuth>
-                                        <UserSettingsLayout/>
-                                    </RequireAuth>
-                                }
-                            >
-                                <Route index element={<Navigate to="account" replace/>}/>
-                                <Route path="profile" element={<Navigate to="/userSettings/account" replace/>}/>
-                                <Route path="preferences" element={<Navigate to="/userSettings/workspace" replace/>}/>
-                                <Route path="account" element={<UserSettingsAccountPage/>}/>
+                                {/* Protected pages with MainLayout */}
                                 <Route
-                                    path="personalization"
-                                    element={<UserSettingsPersonalizationPage/>}
-                                />
-                                <Route path="security" element={<UserSettingsSecurityPage/>}/>
-                                <Route path="sessions" element={<UserSettingsSessionsPage/>}/>
-                                <Route path="workspace" element={<UserSettingsWorkspacePage/>}/>
-                                <Route path="danger" element={<UserSettingsDangerPage/>}/>
-                            </Route>
-
-                            {/* Protected admin pages with AdminLayout */}
-                            <Route
-                                path="/admin"
-                                element={
-                                    <RequireAuth>
-                                        <RequireRoutePermission
-                                            permissions={[
-                                                PermissionKeys.IdentityUsersRead,
-                                                PermissionKeys.IdentityRolesList,
-                                                PermissionKeys.IdentityPermissionsCatalogRead,
-                                            ]}
-                                            permissionMatchMode="any"
-                                        >
-                                            <AdminLayout/>
-                                        </RequireRoutePermission>
-                                    </RequireAuth>
-                                }
-                            >
-                                <Route index element={<Navigate to="users" replace/>}/>
-                                <Route
-                                    path="users"
                                     element={
-                                        <RequireRoutePermission
-                                            permissions={[PermissionKeys.IdentityUsersRead]}
-                                        >
-                                            <AdminUsersPage/>
-                                        </RequireRoutePermission>
+                                        <RequireAuth>
+                                            <MainLayout/>
+                                        </RequireAuth>
                                     }
-                                />
+                                >
+                                    <Route path="/" element={<DashboardPage/>}/>
+                                    {simulationCoreCatalogRoutes}
+                                </Route>
+
                                 <Route
-                                    path="roles"
                                     element={
-                                        <RequireRoutePermission
-                                            permissions={[PermissionKeys.IdentityRolesList]}
-                                        >
-                                            <AdminRolesPage/>
-                                        </RequireRoutePermission>
+                                        <RequireAuth>
+                                            <ClassicCityLayout/>
+                                        </RequireAuth>
                                     }
-                                />
+                                >
+                                    {classicCityRoutes}
+                                </Route>
+
+                                {/* Protected user settings pages with UserSettingsLayout */}
                                 <Route
-                                    path="permissions"
+                                    path="/userSettings"
                                     element={
-                                        <RequireRoutePermission
-                                            permissions={[
-                                                PermissionKeys.IdentityPermissionsCatalogRead,
-                                            ]}
-                                        >
-                                            <AdminPermissionsPage/>
-                                        </RequireRoutePermission>
+                                        <RequireAuth>
+                                            <UserSettingsLayout/>
+                                        </RequireAuth>
                                     }
-                                />
-                            </Route>
-                        </Routes>
-                    </Suspense>
+                                >
+                                    <Route index element={<Navigate to="account" replace/>}/>
+                                    <Route path="profile" element={<Navigate to="/userSettings/account" replace/>}/>
+                                    <Route
+                                        path="preferences"
+                                        element={<Navigate to="/userSettings/workspace" replace/>}
+                                    />
+                                    <Route path="account" element={<UserSettingsAccountPage/>}/>
+                                    <Route
+                                        path="personalization"
+                                        element={<UserSettingsPersonalizationPage/>}
+                                    />
+                                    <Route path="security" element={<UserSettingsSecurityPage/>}/>
+                                    <Route path="sessions" element={<UserSettingsSessionsPage/>}/>
+                                    <Route path="workspace" element={<UserSettingsWorkspacePage/>}/>
+                                    <Route path="danger" element={<UserSettingsDangerPage/>}/>
+                                </Route>
+
+                                {/* Protected admin pages with AdminLayout */}
+                                <Route
+                                    path="/admin"
+                                    element={
+                                        <RequireAuth>
+                                            <RequireRoutePermission
+                                                permissions={[
+                                                    PermissionKeys.IdentityUsersRead,
+                                                    PermissionKeys.IdentityRolesList,
+                                                    PermissionKeys.IdentityPermissionsCatalogRead,
+                                                ]}
+                                                permissionMatchMode="any"
+                                            >
+                                                <AdminLayout/>
+                                            </RequireRoutePermission>
+                                        </RequireAuth>
+                                    }
+                                >
+                                    <Route index element={<Navigate to="users" replace/>}/>
+                                    <Route
+                                        path="users"
+                                        element={
+                                            <RequireRoutePermission
+                                                permissions={[PermissionKeys.IdentityUsersRead]}
+                                            >
+                                                <AdminUsersPage/>
+                                            </RequireRoutePermission>
+                                        }
+                                    />
+                                    <Route
+                                        path="roles"
+                                        element={
+                                            <RequireRoutePermission
+                                                permissions={[PermissionKeys.IdentityRolesList]}
+                                            >
+                                                <AdminRolesPage/>
+                                            </RequireRoutePermission>
+                                        }
+                                    />
+                                    <Route
+                                        path="permissions"
+                                        element={
+                                            <RequireRoutePermission
+                                                permissions={[
+                                                    PermissionKeys.IdentityPermissionsCatalogRead,
+                                                ]}
+                                            >
+                                                <AdminPermissionsPage/>
+                                            </RequireRoutePermission>
+                                        }
+                                    />
+                                </Route>
+                            </Routes>
+                        </Suspense>
+                    </RouteErrorBoundary>
                 </ConfirmProvider>
             </AuthProvider>
         </BrowserRouter>
