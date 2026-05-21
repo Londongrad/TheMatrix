@@ -1,18 +1,6 @@
-import {Fragment} from "react";
+import {Fragment, lazy} from "react";
 import {Navigate, Route} from "react-router-dom";
 import {RequireRoutePermission} from "@app/router/guards/RequireRoutePermission";
-import CitiesPage from "@services/simulationcore/scenarios/classic-city/pages/CitiesPage";
-import CityCivilRegistryPage from "@services/simulationcore/scenarios/classic-city/pages/CityCivilRegistryPage";
-import CityDetailsPage from "@services/simulationcore/scenarios/classic-city/pages/CityDetailsPage";
-import CityEducationPage from "@services/simulationcore/scenarios/classic-city/pages/CityEducationPage";
-import CityEmploymentPage from "@services/simulationcore/scenarios/classic-city/pages/CityEmploymentPage";
-import CityResidentDossierPage from "@services/simulationcore/scenarios/classic-city/pages/CityResidentDossierPage";
-import CityResidentsPage from "@services/simulationcore/scenarios/classic-city/pages/CityResidentsPage";
-import ClassicCityProvisioningPage from "@services/simulationcore/scenarios/classic-city/pages/ClassicCityProvisioningPage";
-import ClassicCityProvisioningSessionPage
-    from "@services/simulationcore/scenarios/classic-city/pages/ClassicCityProvisioningSessionPage";
-import ClassicCitySetupPage from "@services/simulationcore/scenarios/classic-city/pages/ClassicCitySetupPage";
-import ScenarioCatalogPage from "@services/simulationcore/scenarios/pages/ScenarioCatalogPage";
 import {
     SIMULATIONCORE_NEW_SIMULATION_PATH,
     SIMULATIONCORE_SCENARIO_CATALOG_PATH,
@@ -29,6 +17,40 @@ import {
     CLASSIC_CITY_SETUP_SESSION_PATH_PATTERN,
 } from "@services/simulationcore/scenarios/registry";
 import {PermissionKeys} from "@shared/permissions/permissionKeys";
+
+const ScenarioCatalogPage = lazy(
+    () => import("@services/simulationcore/scenarios/pages/ScenarioCatalogPage"),
+);
+const CitiesPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/CitiesPage"),
+);
+const CityCivilRegistryPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/CityCivilRegistryPage"),
+);
+const CityDetailsPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/CityDetailsPage"),
+);
+const CityEducationPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/CityEducationPage"),
+);
+const CityEmploymentPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/CityEmploymentPage"),
+);
+const CityResidentDossierPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/CityResidentDossierPage"),
+);
+const CityResidentsPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/CityResidentsPage"),
+);
+const ClassicCityProvisioningPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/ClassicCityProvisioningPage"),
+);
+const ClassicCityProvisioningSessionPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/ClassicCityProvisioningSessionPage"),
+);
+const ClassicCitySetupPage = lazy(
+    () => import("@services/simulationcore/scenarios/classic-city/pages/ClassicCitySetupPage"),
+);
 
 export const simulationCoreCatalogRoutes = (
     <Fragment>
