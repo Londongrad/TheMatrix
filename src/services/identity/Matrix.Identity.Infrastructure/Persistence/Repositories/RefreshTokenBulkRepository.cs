@@ -1,5 +1,4 @@
 using Matrix.Identity.Application.Abstractions.Persistence;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
 using Matrix.Identity.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -8,10 +7,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
 {
     public sealed class RefreshTokenBulkRepository(
         IdentityDbContext db,
-        IClock clock) : IRefreshTokenBulkRepository
+        TimeProvider timeProvider) : IRefreshTokenBulkRepository
     {
         private readonly IdentityDbContext _db = db;
-        private readonly IClock _clock = clock;
+        private readonly TimeProvider _timeProvider = timeProvider;
         private IQueryable<RefreshToken> RefreshTokens => _db.Users.SelectMany(x => x.RefreshTokens);
 
         public Task<int> RevokeAllByUserIdAsync(
@@ -19,7 +18,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             RefreshTokenRevocationReason reason,
             CancellationToken cancellationToken)
         {
-            DateTime now = _clock.UtcNow;
+            DateTime now = _timeProvider.GetUtcNow()
+               .UtcDateTime;
             string reasonValue = reason.ToString();
 
             return _db.Database.ExecuteSqlInterpolatedAsync(
@@ -40,7 +40,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
             RefreshTokenRevocationReason reason,
             CancellationToken cancellationToken)
         {
-            DateTime now = _clock.UtcNow;
+            DateTime now = _timeProvider.GetUtcNow()
+               .UtcDateTime;
             string reasonValue = reason.ToString();
 
             return _db.Database.ExecuteSqlInterpolatedAsync(

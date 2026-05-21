@@ -15,7 +15,9 @@ public sealed class RefreshTokenBulkRepositoryTests
     {
         await using IdentityTestDatabase database = CreateDbContext();
         DateTime nowUtc = LaterUtc;
-        var repository = new RefreshTokenBulkRepository(database.DbContext, CreateClock(nowUtc));
+        var repository = new RefreshTokenBulkRepository(
+            database.DbContext,
+            CreateTimeProvider(new DateTimeOffset(nowUtc, TimeSpan.Zero)));
         User targetUser = CreateUser("target@matrix.local", "target");
         User otherUser = CreateUser("other@matrix.local", "other");
         RefreshToken active = IssueRefreshToken(targetUser, tokenHash: "active", expiresAtUtc: nowUtc.AddHours(4));
@@ -50,7 +52,9 @@ public sealed class RefreshTokenBulkRepositoryTests
     {
         await using IdentityTestDatabase database = CreateDbContext();
         DateTime nowUtc = LaterUtc;
-        var repository = new RefreshTokenBulkRepository(database.DbContext, CreateClock(nowUtc));
+        var repository = new RefreshTokenBulkRepository(
+            database.DbContext,
+            CreateTimeProvider(new DateTimeOffset(nowUtc, TimeSpan.Zero)));
         User user = CreateUser();
         RefreshToken first = IssueRefreshToken(user, tokenHash: "first", expiresAtUtc: nowUtc.AddHours(4));
         RefreshToken second = IssueRefreshToken(user, tokenHash: "second", expiresAtUtc: nowUtc.AddHours(4));
@@ -79,7 +83,9 @@ public sealed class RefreshTokenBulkRepositoryTests
     public async Task DeleteExpiredAsync_AndDeleteRevokedAndExpiredAsync_RemoveExpectedRows()
     {
         await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new RefreshTokenBulkRepository(database.DbContext, CreateClock(LaterUtc));
+        var repository = new RefreshTokenBulkRepository(
+            database.DbContext,
+            CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)));
         User user = CreateUser();
         DateTime nowUtc = LaterUtc;
         RefreshToken expiredActive = IssueRefreshToken(user, tokenHash: "expired-active", createdAtUtc: CreatedAtUtc, expiresAtUtc: nowUtc.AddMinutes(-10));
@@ -121,7 +127,9 @@ public sealed class RefreshTokenBulkRepositoryTests
     public async Task BatchDeleteMethods_UseProviderAwareSqlAndDeleteOldestRowsFirst()
     {
         await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new RefreshTokenBulkRepository(database.DbContext, CreateClock(LaterUtc));
+        var repository = new RefreshTokenBulkRepository(
+            database.DbContext,
+            CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)));
         User user = CreateUser();
         RefreshToken expiredOldest = IssueRefreshToken(user, tokenHash: "expired-1", createdAtUtc: CreatedAtUtc, expiresAtUtc: CreatedAtUtc.AddMinutes(10));
         RefreshToken expiredNext = IssueRefreshToken(user, tokenHash: "expired-2", createdAtUtc: CreatedAtUtc, expiresAtUtc: CreatedAtUtc.AddMinutes(20));

@@ -13,7 +13,9 @@ public sealed class DefaultUserAccessPolicyRepositoryTests
     public async Task GetForUpdateAsync_WhenPolicyIsMissing_CreatesSingletonWithClockTimestamp()
     {
         await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new DefaultUserAccessPolicyRepository(database.DbContext, CreateClock(CreatedAtUtc));
+        var repository = new DefaultUserAccessPolicyRepository(
+            database.DbContext,
+            CreateTimeProvider(new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero)));
 
         DefaultUserAccessPolicy policy = await repository.GetForUpdateAsync(CancellationToken.None);
 
@@ -27,7 +29,9 @@ public sealed class DefaultUserAccessPolicyRepositoryTests
     public async Task ReplaceOverridesAsync_WhenDesiredStateChanges_AddsUpdatesAndRemovesEntries()
     {
         await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new DefaultUserAccessPolicyRepository(database.DbContext, CreateClock(CreatedAtUtc));
+        var repository = new DefaultUserAccessPolicyRepository(
+            database.DbContext,
+            CreateTimeProvider(new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero)));
         DefaultUserAccessPolicy policy = await repository.GetForUpdateAsync(CancellationToken.None);
 
         await database.DbContext.SaveChangesAsync();
@@ -62,7 +66,9 @@ public sealed class DefaultUserAccessPolicyRepositoryTests
     public async Task ReplaceOverridesAsync_WhenDesiredStateMatchesExisting_ReturnsFalse()
     {
         await using IdentityTestDatabase database = CreateDbContext();
-        var repository = new DefaultUserAccessPolicyRepository(database.DbContext, CreateClock(CreatedAtUtc));
+        var repository = new DefaultUserAccessPolicyRepository(
+            database.DbContext,
+            CreateTimeProvider(new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero)));
         DefaultUserAccessPolicy policy = await repository.GetForUpdateAsync(CancellationToken.None);
 
         await database.DbContext.SaveChangesAsync();
