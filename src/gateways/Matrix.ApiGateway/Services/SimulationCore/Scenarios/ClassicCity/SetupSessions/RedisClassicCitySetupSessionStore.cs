@@ -9,7 +9,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
     public sealed class RedisClassicCitySetupSessionStore(
         IDistributedCache distributedCache,
         IConnectionMultiplexer connectionMultiplexer,
-        IOptions<ClassicCitySetupSessionOptions> options)
+        IOptions<ClassicCitySetupSessionOptions> options,
+        TimeProvider timeProvider)
         : IClassicCitySetupSessionStore
     {
         private const string RecoveryIndexKey = "simulationcore:classic-city:setup-session:recovery";
@@ -17,6 +18,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         private readonly IConnectionMultiplexer _connectionMultiplexer = connectionMultiplexer;
         private readonly IDistributedCache _distributedCache = distributedCache;
         private readonly ClassicCitySetupSessionOptions _options = options.Value;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task<ClassicCitySetupSessionState?> GetAsync(
             Guid sessionId,
@@ -272,7 +274,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                .ToString("N");
             var lease = TimeSpan.FromSeconds(_options.MutationLockLeaseSeconds);
             DateTimeOffset deadline =
-                DateTimeOffset.UtcNow.AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
+                _timeProvider.GetUtcNow().AddMilliseconds(_options.MutationLockAcquireTimeoutMilliseconds);
 
             while (true)
             {
@@ -286,7 +288,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 if (acquired)
                     return new ClassicCitySetupSessionLockHandle(token);
 
-                if (DateTimeOffset.UtcNow >= deadline)
+                if (_timeProvider.GetUtcNow() >= deadline)
                     return null;
 
                 await Task.Delay(

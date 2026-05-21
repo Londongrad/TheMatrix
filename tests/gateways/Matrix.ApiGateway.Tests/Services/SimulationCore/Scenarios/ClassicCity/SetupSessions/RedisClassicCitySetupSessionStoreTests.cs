@@ -249,7 +249,8 @@ public sealed class RedisClassicCitySetupSessionStoreTests
     private static RedisClassicCitySetupSessionStore CreateStore(
         ApiGatewayTestSupport.RecordingDistributedCache? cache = null,
         FakeRedisDatabaseState? redis = null,
-        IOptions<ClassicCitySetupSessionOptions>? options = null)
+        IOptions<ClassicCitySetupSessionOptions>? options = null,
+        TimeProvider? timeProvider = null)
     {
         cache ??= new ApiGatewayTestSupport.RecordingDistributedCache();
         redis ??= new FakeRedisDatabaseState();
@@ -265,7 +266,8 @@ public sealed class RedisClassicCitySetupSessionStoreTests
         return new RedisClassicCitySetupSessionStore(
             distributedCache: cache,
             connectionMultiplexer: RedisTestDoubles.CreateConnectionMultiplexer(redis),
-            options: options);
+            options: options,
+            timeProvider: timeProvider ?? TimeProvider.System);
     }
 
     private static string BuildCacheKey(Guid sessionId) =>
