@@ -261,6 +261,10 @@ export async function apiRequest<T>(
                     const retryOptions = setAuthHeader(firstOptions, newToken);
                     return await request<T>(url, retryOptions);
                 } catch (refreshError) {
+                    if (refreshError === err) {
+                        throw err;
+                    }
+
                     if (refreshError instanceof HttpError &&
                         (refreshError.status === 401 || refreshError.status === 403)) {
                         logoutFn?.();
