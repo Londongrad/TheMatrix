@@ -17,6 +17,7 @@ import ClassicCityLayout from "./layouts/classic-city/ClassicCityLayout";
 
 const DashboardPage = lazy(() => import("@services/simulationcore/dashboard/pages/DashboardPage"));
 const ForbiddenPage = lazy(() => import("@pages/forbidden-page/ForbiddenPage"));
+const NotFoundPage = lazy(() => import("@pages/not-found-page/NotFoundPage"));
 
 const AdminUsersPage = lazy(() => import("@services/identity/admin/users/pages/AdminUsersPage"));
 const AdminRolesPage = lazy(() => import("@services/identity/admin/roles/pages/AdminRolesPage"));
@@ -203,6 +204,8 @@ const App = () => {
                                         }
                                     />
                                 </Route>
+
+                                <Route path="*" element={<NotFoundPage/>}/>
                             </Routes>
                         </Suspense>
                     </RouteErrorBoundary>
