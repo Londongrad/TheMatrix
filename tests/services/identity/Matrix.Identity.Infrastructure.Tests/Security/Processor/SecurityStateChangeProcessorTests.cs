@@ -29,7 +29,7 @@ public sealed class SecurityStateChangeProcessorTests
             dbContext: database.DbContext,
             defaultUserAccessPolicyRepository: new FakeDefaultUserAccessPolicyRepository(),
             collector: collector,
-            clock: CreateClock(LaterUtc),
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)),
             logger: new TestLogger<SecurityStateChangeProcessor>());
 
         await processor.ProcessAsync(CancellationToken.None);
@@ -66,7 +66,7 @@ public sealed class SecurityStateChangeProcessorTests
                 Version = 5
             },
             collector: collector,
-            clock: CreateClock(LaterUtc),
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)),
             logger: new TestLogger<SecurityStateChangeProcessor>());
 
         await processor.ProcessAsync(CancellationToken.None);
@@ -76,10 +76,14 @@ public sealed class SecurityStateChangeProcessorTests
             .Select(x => x.Type)
             .OrderBy(x => x)
             .ToArray();
+        DateTime[] occurredAtValues = database.DbContext.OutboxMessages
+            .Select(x => x.OccurredOnUtc)
+            .ToArray();
 
         Assert.Equal(
             [InternalEventTypes.DefaultUserAccessPolicyChangedV1, InternalEventTypes.UserSecurityStateChangedV1],
             outboxTypes);
+        Assert.All(occurredAtValues, occurredAtUtc => Assert.Equal(LaterUtc, occurredAtUtc));
     }
 
     [Fact]
@@ -98,7 +102,7 @@ public sealed class SecurityStateChangeProcessorTests
             dbContext: database.DbContext,
             defaultUserAccessPolicyRepository: new FakeDefaultUserAccessPolicyRepository(),
             collector: collector,
-            clock: CreateClock(LaterUtc),
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)),
             logger: logger);
 
         await processor.ProcessAsync(CancellationToken.None);

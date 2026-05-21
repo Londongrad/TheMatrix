@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Matrix.BuildingBlocks.Infrastructure.Outbox.Models;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Contracts.Internal.Events;
@@ -17,12 +16,13 @@ namespace Matrix.Identity.Infrastructure.Security.Processor
         IdentityDbContext dbContext,
         IDefaultUserAccessPolicyRepository defaultUserAccessPolicyRepository,
         ISecurityStateChangeCollector collector,
-        IClock clock,
+        TimeProvider timeProvider,
         ILogger<SecurityStateChangeProcessor> logger)
         : ISecurityStateChangeProcessor
     {
         private const int MaxMissingIdsToLog = 10;
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task ProcessAsync(CancellationToken cancellationToken)
         {
@@ -81,7 +81,8 @@ namespace Matrix.Identity.Infrastructure.Security.Processor
                     missing);
             }
 
-            DateTime occurredOnUtc = clock.UtcNow;
+            DateTime occurredOnUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             foreach (var version in versions)
             {
