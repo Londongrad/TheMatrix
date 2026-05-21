@@ -1,4 +1,3 @@
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,10 +5,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
 {
     public sealed class DefaultUserAccessPolicySeeder(
         IdentityDbContext db,
-        IClock clock)
+        TimeProvider timeProvider)
     {
         private readonly IdentityDbContext _db = db;
-        private readonly IClock _clock = clock;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task SeedAsync(CancellationToken cancellationToken)
         {
@@ -22,7 +21,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
             if (exists)
                 return;
 
-            DefaultUserAccessPolicy policy = DefaultUserAccessPolicy.CreateDefault(_clock.UtcNow);
+            DefaultUserAccessPolicy policy = DefaultUserAccessPolicy.CreateDefault(_timeProvider.GetUtcNow().UtcDateTime);
             await _db.DefaultUserAccessPolicies.AddAsync(
                 entity: policy,
                 cancellationToken: cancellationToken);

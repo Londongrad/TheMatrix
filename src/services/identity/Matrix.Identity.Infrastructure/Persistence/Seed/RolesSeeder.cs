@@ -1,5 +1,4 @@
 using Matrix.Identity.Contracts.Authorization.Permissions;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Domain.Authorization;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +9,10 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
 {
     public sealed class RolesSeeder(
         IdentityDbContext db,
-        IClock clock)
+        TimeProvider timeProvider)
     {
         private readonly IdentityDbContext _db = db;
-        private readonly IClock _clock = clock;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task SeedSystemRolesAsync(CancellationToken cancellationToken)
         {
@@ -79,6 +78,8 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                 comparer: StringComparer.Ordinal);
 
             bool rolesChanged = false;
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
 
             foreach (string roleName in systemRoleNames)
             {
@@ -89,7 +90,7 @@ namespace Matrix.Identity.Infrastructure.Persistence.Seed
                     role = Role.Create(
                         name: roleName,
                         isSystem: true,
-                        createdAtUtc: _clock.UtcNow);
+                        createdAtUtc: nowUtc);
 
                     _db.Roles.Add(role);
                     rolesByName.Add(
