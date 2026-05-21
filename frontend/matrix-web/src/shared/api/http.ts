@@ -29,6 +29,32 @@ function toSafeMessage(text: string): string {
     return short || "Server error. Please try again.";
 }
 
+function isJsonContentType(contentType: string | null): boolean {
+    if (!contentType) {
+        return false;
+    }
+
+    const normalized = contentType.toLowerCase();
+    return (
+        normalized.includes("application/json") ||
+        normalized.includes("+json")
+    );
+}
+
+async function readResponseBody(response: Response): Promise<unknown> {
+    const text = await response.text();
+
+    if (!text) {
+        return undefined;
+    }
+
+    if (isJsonContentType(response.headers.get("Content-Type"))) {
+        return JSON.parse(text);
+    }
+
+    return text;
+}
+
 export interface AuthRefreshResult {
     accessToken: string | null;
     shouldLogout: boolean;
@@ -126,12 +152,11 @@ export async function request<T>(
         let payload: unknown = undefined;
 
         try {
-            const contentType = response.headers.get("Content-Type") || "";
             const text = await response.text();
 
             if (text) {
                 // если пришёл JSON (ProblemDetails)
-                if (contentType.includes("application/json") || contentType.includes("application/problem+json")) {
+                if (isJsonContentType(response.headers.get("Content-Type"))) {
                     try {
                         const data = JSON.parse(text);
                         payload = data; // 👈 сохраняем JSON
@@ -186,8 +211,7 @@ export async function request<T>(
         return undefined as T;
     }
 
-    // предполагаем JSON-ответ
-    return (await response.json()) as T;
+    return (await readResponseBody(response)) as T;
 }
 
 // 🔥 Глобальный клиент с авто-token + авто-refresh на 401 + /forbidden на 403
