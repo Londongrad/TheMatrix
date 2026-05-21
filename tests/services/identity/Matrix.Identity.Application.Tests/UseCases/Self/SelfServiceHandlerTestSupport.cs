@@ -392,13 +392,14 @@ internal static class SelfServiceHandlerTestSupport
         FakeUserSessionRepository userSessionRepository,
         FakeUnitOfWork unitOfWork,
         FakeCurrentUserContext currentUser,
-        FakeSecurityAuditService securityAuditService)
+        FakeSecurityAuditService securityAuditService,
+        TimeProvider? timeProvider = null)
     {
         return new Matrix.Identity.Application.UseCases.Self.Sessions.RevokeMySession.RevokeMySessionCommandHandler(
             userRepository,
             userSessionRepository,
             unitOfWork,
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             currentUser,
             securityAuditService);
     }
@@ -408,13 +409,14 @@ internal static class SelfServiceHandlerTestSupport
         FakeUserSessionRepository userSessionRepository,
         FakeUnitOfWork unitOfWork,
         FakeCurrentUserContext currentUser,
-        FakeSecurityAuditService securityAuditService)
+        FakeSecurityAuditService securityAuditService,
+        TimeProvider? timeProvider = null)
     {
         return new Matrix.Identity.Application.UseCases.Self.Sessions.RevokeOtherMySessions.RevokeOtherMySessionsCommandHandler(
             userRepository,
             userSessionRepository,
             unitOfWork,
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             currentUser,
             securityAuditService);
     }
@@ -424,13 +426,14 @@ internal static class SelfServiceHandlerTestSupport
         FakeUserSessionRepository userSessionRepository,
         FakeUnitOfWork unitOfWork,
         FakeCurrentUserContext currentUser,
-        FakeSecurityAuditService securityAuditService)
+        FakeSecurityAuditService securityAuditService,
+        TimeProvider? timeProvider = null)
     {
         return new Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions.RevokeAllMySessionsCommandHandler(
             userRepository,
             userSessionRepository,
             unitOfWork,
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             currentUser,
             securityAuditService);
     }

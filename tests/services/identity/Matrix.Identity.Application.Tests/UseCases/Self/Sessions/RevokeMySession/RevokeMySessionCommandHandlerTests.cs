@@ -118,8 +118,10 @@ public sealed class RevokeMySessionCommandHandlerTests
             CancellationToken.None);
 
         Assert.True(targetSession.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, targetSession.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.UserRevoked, targetSession.RevokedReason);
         Assert.True(targetToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, targetToken.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.UserRevoked, targetToken.RevokedReason);
         Assert.False(otherSession.IsRevoked);
         Assert.False(otherToken.IsRevoked);

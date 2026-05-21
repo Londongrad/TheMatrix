@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
@@ -14,11 +13,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
         IUserRepository userRepository,
         IUserSessionRepository userSessionRepository,
         IUnitOfWork unitOfWork,
-        IClock clock,
+        TimeProvider timeProvider,
         ICurrentUserContext currentUser,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<RevokeAllMySessionsCommand>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task Handle(
             RevokeAllMySessionsCommand request,
             CancellationToken cancellationToken)
@@ -33,7 +34,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Sessions.RevokeAllMySessions
             IReadOnlyCollection<UserSession> sessions = await userSessionRepository.ListByUserIdAsync(
                 userId: userId,
                 cancellationToken: cancellationToken);
-            DateTime utcNow = clock.UtcNow;
+            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
 
             int revokedSessionsCount = 0;
 

@@ -80,12 +80,17 @@ public sealed class RevokeOtherMySessionsCommandHandlerTests
         Assert.False(currentToken.IsRevoked);
 
         Assert.True(otherActiveSession.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveSession.RevokedAtUtc);
         Assert.True(secondOtherActiveSession.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, secondOtherActiveSession.RevokedAtUtc);
         Assert.True(otherActiveToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveToken.RevokedAtUtc);
         Assert.True(secondOtherActiveToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, secondOtherActiveToken.RevokedAtUtc);
 
         Assert.True(inactiveSession.IsRevoked);
         Assert.True(inactiveSessionToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, inactiveSessionToken.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.UserRevoked, inactiveSessionToken.RevokedReason);
         Assert.Equal(1, unitOfWork.SaveChangesCalls);
 
