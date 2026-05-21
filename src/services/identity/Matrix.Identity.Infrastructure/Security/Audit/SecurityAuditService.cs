@@ -1,4 +1,3 @@
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Infrastructure.Persistence;
 using Matrix.Identity.Infrastructure.Persistence.Models;
@@ -11,19 +10,23 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
 {
     public sealed class SecurityAuditService(
         IdentityDbContext dbContext,
-        IClock clock,
+        TimeProvider timeProvider,
         IOptions<SecurityAuditOptions> options,
         ILogger<SecurityAuditService> logger) : ISecurityAuditService
     {
         private readonly SecurityAuditOptions _options = options.Value;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task WriteAsync(
             SecurityAuditEntry entry,
             CancellationToken cancellationToken)
         {
+            DateTime nowUtc = _timeProvider.GetUtcNow()
+               .UtcDateTime;
+
             var auditEvent = SecurityAuditEventRecord.Create(
                 entry: entry,
-                occurredAtUtc: clock.UtcNow);
+                occurredAtUtc: nowUtc);
 
             await dbContext.AddAsync(
                 entity: auditEvent,
@@ -35,7 +38,10 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             string? ipAddress,
             CancellationToken cancellationToken)
         {
-            DateTime sinceUtc = clock.UtcNow.AddMinutes(-_options.FailedLoginWindowMinutes);
+            DateTime sinceUtc = _timeProvider
+               .GetUtcNow()
+               .UtcDateTime
+               .AddMinutes(-_options.FailedLoginWindowMinutes);
 
             if (_options.FailedLoginMaxAttemptsPerLogin > 0)
             {
@@ -142,7 +148,10 @@ namespace Matrix.Identity.Infrastructure.Security.Audit
             int maxAttemptsPerIp,
             CancellationToken cancellationToken)
         {
-            DateTime sinceUtc = clock.UtcNow.AddMinutes(-windowMinutes);
+            DateTime sinceUtc = _timeProvider
+               .GetUtcNow()
+               .UtcDateTime
+               .AddMinutes(-windowMinutes);
 
             if (maxAttemptsPerSubject > 0)
             {

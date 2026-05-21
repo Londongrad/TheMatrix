@@ -16,7 +16,7 @@ public sealed class SecurityAuditServiceTests
         await using IdentityTestDatabase database = CreateDbContext();
         var service = new SecurityAuditService(
             dbContext: database.DbContext,
-            clock: CreateClock(LaterUtc),
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)),
             options: CreateSecurityAuditOptions(),
             logger: new TestLogger<SecurityAuditService>());
 
@@ -49,7 +49,7 @@ public sealed class SecurityAuditServiceTests
 
         var service = new SecurityAuditService(
             dbContext: database.DbContext,
-            clock: CreateClock(LaterUtc.AddMinutes(5)),
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc.AddMinutes(5), TimeSpan.Zero)),
             options: CreateSecurityAuditOptions(
                 failedLoginWindowMinutes: 60,
                 failedLoginMaxAttemptsPerLogin: 2),
@@ -84,7 +84,7 @@ public sealed class SecurityAuditServiceTests
 
         var service = new SecurityAuditService(
             dbContext: database.DbContext,
-            clock: CreateClock(LaterUtc.AddMinutes(1)),
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc.AddMinutes(1), TimeSpan.Zero)),
             options: CreateSecurityAuditOptions(
                 emailChangeRequestWindowMinutes: 60,
                 emailChangeRequestMaxAttemptsPerIp: 2),
