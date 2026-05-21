@@ -361,7 +361,8 @@ public static class ApiGatewayTestSupport
         RecordingCitiesApiClient? citiesApiClient = null,
         RecordingProvisioningService? provisioningService = null,
         IInternalJwtRequestContextAccessor? internalJwtRequestContextAccessor = null,
-        IOptions<ClassicCitySetupSessionOptions>? options = null)
+        IOptions<ClassicCitySetupSessionOptions>? options = null,
+        TimeProvider? timeProvider = null)
     {
         IInternalJwtRequestContextAccessor requestContextAccessor =
             internalJwtRequestContextAccessor ?? new InternalJwtRequestContextAccessor();
@@ -376,6 +377,7 @@ public static class ApiGatewayTestSupport
             authContextStore: authContextStore ?? new FakeAuthContextStore(),
             internalJwtRequestContextAccessor: requestContextAccessor,
             options: options ?? CreateClassicCitySetupSessionOptions(),
+            timeProvider: timeProvider ?? TimeProvider.System,
             logger: NullLogger<ClassicCitySetupSessionService>.Instance);
     }
 

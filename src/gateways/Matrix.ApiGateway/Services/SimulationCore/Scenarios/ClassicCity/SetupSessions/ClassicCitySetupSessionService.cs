@@ -30,6 +30,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         IAuthContextStore authContextStore,
         IInternalJwtRequestContextAccessor internalJwtRequestContextAccessor,
         IOptions<ClassicCitySetupSessionOptions> options,
+        TimeProvider timeProvider,
         ILogger<ClassicCitySetupSessionService> logger)
         : IClassicCitySetupSessionService
     {
@@ -64,6 +65,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         ];
 
         private readonly ClassicCitySetupSessionOptions _options = options.Value;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task<IReadOnlyList<ClassicCitySetupSessionView>> ListDraftsAsync(
             CancellationToken cancellationToken = default)
@@ -88,7 +90,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTimeOffset now = _timeProvider.GetUtcNow();
             Guid ownerUserId = GetCurrentUserIdOrThrow();
             string normalizedStepId = NormalizeStepId(request.CurrentStepId);
             string requestedReuseSignature = BuildDraftReuseSignature(
@@ -246,7 +248,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                     session.Draft = NormalizeDraft(
                         draft: request.Draft,
                         fallbackSeed: ResolveGenerationSeedFallback(session));
-                    session.UpdatedAtUtc = DateTimeOffset.UtcNow;
+                    session.UpdatedAtUtc = _timeProvider.GetUtcNow();
 
                     await sessionStore.SaveAsync(
                         session: session,
@@ -294,7 +296,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                             errorMessage: out string? errorMessage))
                     {
                         session.Draft = draft;
-                        session.UpdatedAtUtc = DateTimeOffset.UtcNow;
+                        session.UpdatedAtUtc = _timeProvider.GetUtcNow();
 
                         await sessionStore.SaveAsync(
                             session: session,
@@ -332,7 +334,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                             "Launch auth context could not be captured. Retry when gateway identity context is healthy.");
                     }
 
-                    DateTimeOffset now = DateTimeOffset.UtcNow;
+                    DateTimeOffset now = _timeProvider.GetUtcNow();
                     session.Status = ClassicCitySetupSessionStatuses.LaunchQueued;
                     session.CurrentStepId = ClassicCitySetupSteps.Launch;
                     session.Draft = draft;
@@ -870,7 +872,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 return;
             }
 
-            DateTimeOffset startedAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset startedAtUtc = _timeProvider.GetUtcNow();
             session.Status = ClassicCitySetupSessionStatuses.CreatingCity;
             session.StartedAtUtc ??= startedAtUtc;
             session.UpdatedAtUtc = startedAtUtc;
@@ -890,7 +892,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 
                 FinalizeFromProvisioning(
                     session: session,
-                    provisioning: provisioning);
+                    provisioning: provisioning,
+                    completedAtUtc: _timeProvider.GetUtcNow());
 
                 await sessionStore.SaveAsync(
                     session: session,
@@ -935,7 +938,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 session.FailureCode = ClassicCitySetupSessionFailureCodes.ReconciliationCityNotFound;
                 session.FailureMessage =
                     "Gateway could not find the city host during reconciliation. Operator review is required.";
-                session.CompletedAtUtc = DateTimeOffset.UtcNow;
+                session.CompletedAtUtc = _timeProvider.GetUtcNow();
                 session.UpdatedAtUtc = session.CompletedAtUtc.Value;
 
                 await sessionStore.SaveAsync(
@@ -946,7 +949,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 
             ApplyProvisioningStatus(
                 session: session,
-                provisioningStatus: provisioningStatus);
+                provisioningStatus: provisioningStatus,
+                updatedAtUtc: _timeProvider.GetUtcNow());
 
             await sessionStore.SaveAsync(
                 session: session,
@@ -963,13 +967,13 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 
         private static void ApplyProvisioningStatus(
             ClassicCitySetupSessionState session,
-            CityProvisioningStatusView provisioningStatus)
+            CityProvisioningStatusView provisioningStatus,
+            DateTimeOffset updatedAtUtc)
         {
             string populationBootstrapStatus = DeterminePopulationBootstrapStatus(provisioningStatus);
             string economyBootstrapStatus = DetermineEconomyBootstrapStatus(provisioningStatus);
             CityPopulationBootstrapView? existingBootstrap = session.Provisioning?.PopulationBootstrap;
             CityEconomyBootstrapView? existingEconomyBootstrap = session.Provisioning?.EconomyBootstrap;
-            DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
             string simulationKind = session.SimulationKind ??
                                     session.LaunchRequest?.SimulationKind ??
                                     "ClassicCity";
@@ -1126,7 +1130,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 return false;
 
             DateTimeOffset queuedAtUtc = session.LaunchQueuedAtUtc ?? session.UpdatedAtUtc;
-            TimeSpan age = DateTimeOffset.UtcNow - queuedAtUtc;
+            TimeSpan age = _timeProvider.GetUtcNow() - queuedAtUtc;
 
             return age >= TimeSpan.FromSeconds(_options.LaunchQueueRecoveryDelaySeconds);
         }
@@ -1141,7 +1145,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                 return false;
 
             DateTimeOffset referenceTimestamp = session.StartedAtUtc ?? session.UpdatedAtUtc;
-            TimeSpan age = DateTimeOffset.UtcNow - referenceTimestamp;
+            TimeSpan age = _timeProvider.GetUtcNow() - referenceTimestamp;
 
             return age >= TimeSpan.FromSeconds(_options.LaunchQueueRecoveryDelaySeconds);
         }
@@ -1161,7 +1165,8 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
 
         private static void FinalizeFromProvisioning(
             ClassicCitySetupSessionState session,
-            CityProvisioningView provisioning)
+            CityProvisioningView provisioning,
+            DateTimeOffset completedAtUtc)
         {
             string populationBootstrapStatus = provisioning.PopulationBootstrap.Status.Trim();
             string economyBootstrapStatus = provisioning.EconomyBootstrap.Status.Trim();
@@ -1187,7 +1192,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             session.Status = economyFailed || populationFailed
                 ? ClassicCitySetupSessionStatuses.ProvisioningFailed
                 : ClassicCitySetupSessionStatuses.Ready;
-            session.CompletedAtUtc = DateTimeOffset.UtcNow;
+            session.CompletedAtUtc = completedAtUtc;
             session.UpdatedAtUtc = session.CompletedAtUtc.Value;
         }
 
@@ -1197,7 +1202,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
             string failureMessage,
             CancellationToken cancellationToken)
         {
-            DateTimeOffset completedAtUtc = DateTimeOffset.UtcNow;
+            DateTimeOffset completedAtUtc = _timeProvider.GetUtcNow();
 
             session.Status = ClassicCitySetupSessionStatuses.LaunchFailed;
             session.FailureCode = failureCode;
@@ -1386,7 +1391,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Scenarios.ClassicCity.SetupS
                    .Where(permission => !string.IsNullOrWhiteSpace(permission))
                    .Distinct(StringComparer.Ordinal)
                    .ToArray(),
-                CapturedAtUtc = DateTimeOffset.UtcNow
+                CapturedAtUtc = _timeProvider.GetUtcNow()
             };
         }
 
