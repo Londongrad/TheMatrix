@@ -18,7 +18,7 @@ public sealed class LockUserCommandHandlerTests
             new AdminUsersTestSupport.FakeUserSessionRepository(),
             new AdminUsersTestSupport.FakeAdminUserGuard(),
             new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
-            new AdminUsersTestSupport.TestClock(),
+            AdminUsersTestSupport.CreateTimeProvider(),
             new AdminRolesTestSupport.FakeUnitOfWork());
 
         var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(
@@ -52,7 +52,7 @@ public sealed class LockUserCommandHandlerTests
             sessionRepository,
             adminUserGuard,
             securityStateChangeCollector,
-            new AdminUsersTestSupport.TestClock(),
+            AdminUsersTestSupport.CreateTimeProvider(),
             unitOfWork);
 
         await handler.Handle(new LockUserCommand(user.Id), CancellationToken.None);
@@ -62,11 +62,15 @@ public sealed class LockUserCommandHandlerTests
         Assert.Equal(user.Id, sessionRepository.RequestedUserId);
         Assert.True(activeToken.IsRevoked);
         Assert.Equal(RefreshTokenRevocationReason.UserLocked, activeToken.RevokedReason);
+        Assert.Equal(AdminUsersTestSupport.UtcNow, activeToken.RevokedAtUtc);
         Assert.True(revokedToken.IsRevoked);
         Assert.Equal(RefreshTokenRevocationReason.UserRevoked, revokedToken.RevokedReason);
+        Assert.Equal(AdminUsersTestSupport.UtcNow.AddMinutes(-15), revokedToken.RevokedAtUtc);
         Assert.True(activeSession.IsRevoked);
         Assert.Equal(RefreshTokenRevocationReason.UserLocked, activeSession.RevokedReason);
+        Assert.Equal(AdminUsersTestSupport.UtcNow, activeSession.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.UserRevoked, revokedSession.RevokedReason);
+        Assert.Equal(AdminUsersTestSupport.UtcNow.AddMinutes(-15), revokedSession.RevokedAtUtc);
         Assert.Equal([user.Id], securityStateChangeCollector.ChangedUsers);
         Assert.Equal(1, unitOfWork.TransactionCalls);
     }
@@ -85,7 +89,7 @@ public sealed class LockUserCommandHandlerTests
             new AdminUsersTestSupport.FakeUserSessionRepository(),
             new AdminUsersTestSupport.FakeAdminUserGuard(),
             securityStateChangeCollector,
-            new AdminUsersTestSupport.TestClock(),
+            AdminUsersTestSupport.CreateTimeProvider(),
             new AdminRolesTestSupport.FakeUnitOfWork());
 
         await handler.Handle(new LockUserCommand(user.Id), CancellationToken.None);

@@ -319,11 +319,6 @@ internal static class AdminUsersTestSupport
         }
     }
 
-    internal sealed class TestClock : IClock
-    {
-        public DateTime UtcNow => AdminUsersTestSupport.UtcNow;
-    }
-
     private sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow()
