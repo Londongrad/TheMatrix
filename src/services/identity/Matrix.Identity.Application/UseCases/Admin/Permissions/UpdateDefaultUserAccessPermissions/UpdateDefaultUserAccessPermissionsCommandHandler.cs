@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.SecurityState;
 using Matrix.Identity.Application.Abstractions.Services.Validation;
 using Matrix.Identity.Application.Errors;
@@ -16,7 +15,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Permissions.UpdateDefaultUs
         IRolePermissionsRepository rolePermissionsRepository,
         IDefaultUserAccessPolicyRepository defaultUserAccessPolicyRepository,
         IPermissionKeysValidator permissionKeysValidator,
-        IClock clock,
+        TimeProvider timeProvider,
         ISecurityStateChangeCollector securityStateChangeCollector,
         IUnitOfWork unitOfWork)
         : IRequestHandler<UpdateDefaultUserAccessPermissionsCommand>
@@ -67,7 +66,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Permissions.UpdateDefaultUs
                         return;
 
                     DefaultUserAccessPolicy policy = await defaultUserAccessPolicyRepository.GetForUpdateAsync(token);
-                    policy.Touch(clock.UtcNow);
+                    policy.Touch(timeProvider.GetUtcNow().UtcDateTime);
                     securityStateChangeCollector.MarkDefaultUserAccessChanged();
                 },
                 cancellationToken: cancellationToken);

@@ -19,7 +19,7 @@ public sealed class UpdateDefaultUserAccessPermissionsCommandHandlerTests
             new AdminRolesTestSupport.FakeRolePermissionsRepository(),
             new AdminUsersTestSupport.FakeDefaultUserAccessPolicyRepository(),
             new AdminRolesTestSupport.FakePermissionKeysValidator(),
-            new AdminUsersTestSupport.TestClock(),
+            AdminUsersTestSupport.CreateTimeProvider(),
             new AdminRolesTestSupport.FakeSecurityStateChangeCollector(),
             new AdminRolesTestSupport.FakeUnitOfWork());
 
@@ -55,7 +55,7 @@ public sealed class UpdateDefaultUserAccessPermissionsCommandHandlerTests
             rolePermissionsRepository,
             defaultPolicyRepository,
             permissionKeysValidator,
-            new AdminUsersTestSupport.TestClock(),
+            AdminUsersTestSupport.CreateTimeProvider(),
             securityStateChangeCollector,
             unitOfWork);
 
@@ -95,7 +95,7 @@ public sealed class UpdateDefaultUserAccessPermissionsCommandHandlerTests
             rolePermissionsRepository,
             defaultPolicyRepository,
             new AdminRolesTestSupport.FakePermissionKeysValidator(),
-            new AdminUsersTestSupport.TestClock(),
+            AdminUsersTestSupport.CreateTimeProvider(),
             securityStateChangeCollector,
             unitOfWork);
 

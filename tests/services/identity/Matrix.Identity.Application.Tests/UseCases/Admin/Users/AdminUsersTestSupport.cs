@@ -18,6 +18,11 @@ internal static class AdminUsersTestSupport
     internal static readonly DateTime UtcNow = new(2047, 7, 2, 8, 9, 10, DateTimeKind.Utc);
     internal static readonly DateTime RefreshTokenExpiresAtUtc = UtcNow.AddDays(7);
 
+    internal static TimeProvider CreateTimeProvider(DateTime? utcNow = null)
+    {
+        return new FrozenTimeProvider(utcNow ?? UtcNow);
+    }
+
     internal static User CreateUser(
         string email = "neo@matrix.local",
         string username = "neo",
@@ -317,6 +322,16 @@ internal static class AdminUsersTestSupport
     internal sealed class TestClock : IClock
     {
         public DateTime UtcNow => AdminUsersTestSupport.UtcNow;
+    }
+
+    private sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow()
+        {
+            return new DateTimeOffset(
+                DateTime.SpecifyKind(utcNow, DateTimeKind.Utc),
+                TimeSpan.Zero);
+        }
     }
 
     internal sealed class FakeSecurityAuditService : ISecurityAuditService
