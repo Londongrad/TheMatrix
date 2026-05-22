@@ -16,13 +16,14 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername
         IPasswordHasher passwordHasher,
         ISecurityAuditService securityAuditService,
         IEmailSender emailSender,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         ICurrentUserContext currentUser,
         ILogger<ChangeUsernameCommandHandler> logger)
         : IRequestHandler<ChangeUsernameCommand, string>
     {
         private static readonly TimeSpan UsernameChangeCooldown = TimeSpan.FromDays(30);
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task<string> Handle(
             ChangeUsernameCommand request,
@@ -60,7 +61,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername
                 throw ApplicationErrorsFactory.InvalidCurrentPassword();
             }
 
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
 
             if (user.LastUsernameChangedAtUtc is DateTime lastChangedAtUtc)
             {

@@ -28,7 +28,7 @@ public sealed class ChangeUsernameCommandHandlerTests
             passwordHasher,
             securityAuditService,
             emailSender,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             currentUser,
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
@@ -62,7 +62,7 @@ public sealed class ChangeUsernameCommandHandlerTests
             passwordHasher,
             securityAuditService,
             emailSender,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
@@ -96,7 +96,7 @@ public sealed class ChangeUsernameCommandHandlerTests
             passwordHasher,
             securityAuditService,
             new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
@@ -135,7 +135,7 @@ public sealed class ChangeUsernameCommandHandlerTests
             passwordHasher,
             securityAuditService,
             new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
@@ -151,7 +151,9 @@ public sealed class ChangeUsernameCommandHandlerTests
         SecurityAuditEntry audit = Assert.Single(securityAuditService.Entries);
         Assert.False(audit.IsSuccessful);
         Assert.Equal("neo-ultimate", audit.Subject);
-        Assert.StartsWith("CooldownUntil:", audit.Details, StringComparison.Ordinal);
+        Assert.Equal(
+            $"CooldownUntil:{SelfServiceHandlerTestSupport.UtcNow.AddDays(-1).AddDays(30):O}",
+            audit.Details);
     }
 
     [Fact]
@@ -171,7 +173,7 @@ public sealed class ChangeUsernameCommandHandlerTests
             passwordHasher,
             securityAuditService,
             new SelfServiceHandlerTestSupport.FakeEmailSender(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
@@ -207,7 +209,7 @@ public sealed class ChangeUsernameCommandHandlerTests
             passwordHasher,
             securityAuditService,
             emailSender,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.ChangeUsername.ChangeUsernameCommandHandler>.Instance);
