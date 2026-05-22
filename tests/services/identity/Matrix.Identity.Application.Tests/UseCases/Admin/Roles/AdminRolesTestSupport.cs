@@ -15,6 +15,11 @@ internal static class AdminRolesTestSupport
 {
     internal static readonly DateTime UtcNow = new(2047, 7, 1, 9, 10, 11, DateTimeKind.Utc);
 
+    internal static TimeProvider CreateTimeProvider(DateTime? utcNow = null)
+    {
+        return new FrozenTimeProvider(utcNow ?? UtcNow);
+    }
+
     internal static Role CreateRole(
         string name = "Operators",
         bool isSystem = false,
@@ -284,8 +289,13 @@ internal static class AdminRolesTestSupport
         }
     }
 
-    internal sealed class TestClock : IClock
+    private sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
     {
-        public DateTime UtcNow => AdminRolesTestSupport.UtcNow;
+        public override DateTimeOffset GetUtcNow()
+        {
+            return new DateTimeOffset(
+                DateTime.SpecifyKind(utcNow, DateTimeKind.Utc),
+                TimeSpan.Zero);
+        }
     }
 }

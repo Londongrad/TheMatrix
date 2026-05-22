@@ -16,7 +16,7 @@ public sealed class CreateRoleCommandHandlerTests
         var handler = new CreateRoleCommandHandler(
             roleReadRepository,
             roleWriteRepository,
-            new AdminRolesTestSupport.TestClock(),
+            AdminRolesTestSupport.CreateTimeProvider(),
             unitOfWork);
 
         var result = await handler.Handle(
@@ -45,7 +45,7 @@ public sealed class CreateRoleCommandHandlerTests
         var handler = new CreateRoleCommandHandler(
             roleReadRepository,
             roleWriteRepository,
-            new AdminRolesTestSupport.TestClock(),
+            AdminRolesTestSupport.CreateTimeProvider(),
             unitOfWork);
 
         var exception = await Assert.ThrowsAsync<MatrixApplicationException>(() => handler.Handle(

@@ -1,6 +1,5 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.Identity.Application.Abstractions.Persistence;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
 using MediatR;
@@ -10,7 +9,7 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.CreateRole
     public sealed class CreateRoleCommandHandler(
         IRoleReadRepository roleReadRepository,
         IRoleWriteRepository roleWriteRepository,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<CreateRoleCommand, RoleCreatedResult>
     {
@@ -18,10 +17,12 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.CreateRole
             CreateRoleCommand request,
             CancellationToken cancellationToken)
         {
+            DateTime createdAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+
             var role = Role.Create(
                 name: request.Name,
                 isSystem: false,
-                createdAtUtc: clock.UtcNow);
+                createdAtUtc: createdAtUtc);
 
             bool exists = await roleReadRepository.ExistsByNameAsync(
                 roleName: role.Name,
