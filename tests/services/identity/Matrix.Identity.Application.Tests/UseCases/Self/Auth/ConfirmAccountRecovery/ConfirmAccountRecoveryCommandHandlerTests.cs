@@ -20,7 +20,7 @@ public sealed class ConfirmAccountRecoveryCommandHandlerTests
             userRepository,
             oneTimeTokenRepository,
             oneTimeTokenService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
         Guid userId = Guid.Parse("70000000-0000-0000-0000-000000000001");
@@ -58,7 +58,7 @@ public sealed class ConfirmAccountRecoveryCommandHandlerTests
             },
             oneTimeTokenRepository,
             oneTimeTokenService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
 
@@ -104,7 +104,7 @@ public sealed class ConfirmAccountRecoveryCommandHandlerTests
                 FoundToken = token
             },
             new SelfServiceHandlerTestSupport.FakeOneTimeTokenService(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
 
@@ -151,7 +151,7 @@ public sealed class ConfirmAccountRecoveryCommandHandlerTests
                 FoundToken = token
             },
             new SelfServiceHandlerTestSupport.FakeOneTimeTokenService(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
 
@@ -188,7 +188,7 @@ public sealed class ConfirmAccountRecoveryCommandHandlerTests
                 FoundToken = token
             },
             new SelfServiceHandlerTestSupport.FakeOneTimeTokenService(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
 
