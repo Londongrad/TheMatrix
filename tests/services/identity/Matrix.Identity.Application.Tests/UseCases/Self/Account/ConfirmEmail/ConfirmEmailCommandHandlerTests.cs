@@ -20,7 +20,7 @@ public sealed class ConfirmEmailCommandHandlerTests
             userRepository,
             oneTimeTokenRepository,
             oneTimeTokenService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
         Guid userId = Guid.Parse("80000000-0000-0000-0000-000000000001");
@@ -57,7 +57,7 @@ public sealed class ConfirmEmailCommandHandlerTests
             },
             new SelfServiceHandlerTestSupport.FakeOneTimeTokenRepository(),
             new SelfServiceHandlerTestSupport.FakeOneTimeTokenService(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
 
@@ -92,7 +92,7 @@ public sealed class ConfirmEmailCommandHandlerTests
             },
             oneTimeTokenRepository,
             oneTimeTokenService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
 
@@ -135,7 +135,7 @@ public sealed class ConfirmEmailCommandHandlerTests
                 FoundToken = token
             },
             new SelfServiceHandlerTestSupport.FakeOneTimeTokenService(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
 

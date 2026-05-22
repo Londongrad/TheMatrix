@@ -13,11 +13,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail
         IUserRepository userRepository,
         IOneTimeTokenRepository oneTimeTokenRepository,
         IOneTimeTokenService oneTimeTokenService,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<ConfirmEmailCommand>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task Handle(
             ConfirmEmailCommand request,
             CancellationToken cancellationToken)
@@ -70,7 +72,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmail
                 throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(request.Token));
             }
 
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
 
             token.MarkUsed(nowUtc);
             user.ConfirmEmail(nowUtc);
