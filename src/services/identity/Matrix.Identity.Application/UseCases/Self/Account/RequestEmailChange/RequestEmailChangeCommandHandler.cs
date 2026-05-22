@@ -15,11 +15,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange
         IPasswordHasher passwordHasher,
         IPendingEmailChangeDeliveryService pendingEmailChangeDeliveryService,
         ISecurityAuditService securityAuditService,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         ICurrentUserContext currentUser)
         : IRequestHandler<RequestEmailChangeCommand, string>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task<string> Handle(
             RequestEmailChangeCommand request,
             CancellationToken cancellationToken)
@@ -105,7 +107,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.RequestEmailChange
                 throw ApplicationErrorsFactory.PendingEmailAlreadyInUse(newEmail.Value);
             }
 
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
 
             user.RequestEmailChange(
                 newEmail: newEmail,

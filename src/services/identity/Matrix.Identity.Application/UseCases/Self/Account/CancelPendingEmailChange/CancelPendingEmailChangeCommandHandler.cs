@@ -1,7 +1,6 @@
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Authorization.Extensions;
 using Matrix.Identity.Application.Abstractions.Persistence;
-using Matrix.Identity.Application.Abstractions.Services;
 using Matrix.Identity.Application.Abstractions.Services.Security;
 using Matrix.Identity.Application.Errors;
 using Matrix.Identity.Domain.Entities;
@@ -14,10 +13,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailCh
         IUserRepository userRepository,
         IOneTimeTokenRepository oneTimeTokenRepository,
         ISecurityAuditService securityAuditService,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         ICurrentUserContext currentUser) : IRequestHandler<CancelPendingEmailChangeCommand>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task Handle(
             CancelPendingEmailChangeCommand request,
             CancellationToken cancellationToken)
@@ -44,7 +45,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.CancelPendingEmailCh
             }
 
             string cancelledEmail = user.PendingEmail;
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
 
             IReadOnlyList<OneTimeToken> activeTokens = await oneTimeTokenRepository.GetActive(
                 userId: user.Id,

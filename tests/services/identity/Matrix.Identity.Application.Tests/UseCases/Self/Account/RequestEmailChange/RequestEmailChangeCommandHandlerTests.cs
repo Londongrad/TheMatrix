@@ -27,7 +27,7 @@ public sealed class RequestEmailChangeCommandHandlerTests
             passwordHasher,
             deliveryService,
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             currentUser);
 
@@ -58,7 +58,7 @@ public sealed class RequestEmailChangeCommandHandlerTests
             new SelfServiceHandlerTestSupport.FakePasswordHasher(),
             new SelfServiceHandlerTestSupport.FakePendingEmailChangeDeliveryService(),
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
@@ -100,7 +100,7 @@ public sealed class RequestEmailChangeCommandHandlerTests
             passwordHasher,
             new SelfServiceHandlerTestSupport.FakePendingEmailChangeDeliveryService(),
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
@@ -138,7 +138,7 @@ public sealed class RequestEmailChangeCommandHandlerTests
             new SelfServiceHandlerTestSupport.FakePasswordHasher(),
             new SelfServiceHandlerTestSupport.FakePendingEmailChangeDeliveryService(),
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
@@ -177,7 +177,7 @@ public sealed class RequestEmailChangeCommandHandlerTests
             new SelfServiceHandlerTestSupport.FakePasswordHasher(),
             new SelfServiceHandlerTestSupport.FakePendingEmailChangeDeliveryService(),
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
@@ -211,7 +211,7 @@ public sealed class RequestEmailChangeCommandHandlerTests
             passwordHasher,
             deliveryService,
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 

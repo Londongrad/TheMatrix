@@ -25,7 +25,7 @@ public sealed class CancelPendingEmailChangeCommandHandlerTests
             userRepository,
             oneTimeTokenRepository,
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             currentUser);
 
@@ -53,7 +53,7 @@ public sealed class CancelPendingEmailChangeCommandHandlerTests
             },
             new SelfServiceHandlerTestSupport.FakeOneTimeTokenRepository(),
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
@@ -102,7 +102,7 @@ public sealed class CancelPendingEmailChangeCommandHandlerTests
             },
             oneTimeTokenRepository,
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id });
 
