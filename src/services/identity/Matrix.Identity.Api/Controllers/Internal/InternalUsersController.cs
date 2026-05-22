@@ -1,3 +1,4 @@
+using Matrix.Identity.Api.Authorization.Internal;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Application.Abstractions.Services.Authorization;
 using Matrix.Identity.Contracts.Internal.Responses;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Identity.Api.Controllers.Internal
 {
+    [RequireInternalApiKey]
     [ApiController]
     [Route("api/internal/users/{userId:guid}")]
     public sealed class InternalUsersController(

@@ -97,4 +97,27 @@ public sealed class InternalApiKeyMiddlewareTests
         Assert.False(TrustedGatewayRequestContext.IsTrusted(context));
         Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
     }
+
+    [Fact]
+    public async Task InvokeAsync_WhenPublicPathHasValidKey_MarksTrustedAndCallsNext()
+    {
+        bool nextCalled = false;
+        RequestDelegate next = _ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        };
+        DefaultHttpContext context = CreateHttpContext(path: "/api/misplaced-internal");
+        context.Request.Headers[InternalApiKeyMiddleware.ApiKeyHeaderName] =
+            "A1b2C3d4E5f6G7h8I9j0K!m@N#p$Q%r^S&";
+        var middleware = new InternalApiKeyMiddleware(
+            next: next,
+            options: CreateInternalOptions());
+
+        await middleware.InvokeAsync(context);
+
+        Assert.True(nextCalled);
+        Assert.True(TrustedGatewayRequestContext.IsTrusted(context));
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+    }
 }

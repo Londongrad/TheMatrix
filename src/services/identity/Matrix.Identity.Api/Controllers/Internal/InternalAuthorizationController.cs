@@ -1,9 +1,11 @@
+using Matrix.Identity.Api.Authorization.Internal;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Contracts.Internal.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Matrix.Identity.Api.Controllers.Internal
 {
+    [RequireInternalApiKey]
     [ApiController]
     [Route("api/internal/authorization")]
     public sealed class InternalAuthorizationController(IDefaultUserAccessPolicyRepository defaultUserAccessPolicyRepository)
