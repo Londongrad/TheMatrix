@@ -28,7 +28,6 @@ using Matrix.Identity.Infrastructure.Security.Processor;
 using Matrix.Identity.Infrastructure.Security.Tokens;
 using Matrix.Identity.Infrastructure.Security.Tokens.Cleanup;
 using Matrix.Identity.Infrastructure.Storage;
-using Matrix.Identity.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -236,7 +235,6 @@ namespace Matrix.Identity.Infrastructure
             // Security state change processing
             services.AddScoped<ISecurityStateChangeProcessor, SecurityStateChangeProcessor>();
 
-            services.AddScoped<IClock, SystemClock>();
             services.AddOptions<EmailOptions>()
                .Bind(configuration.GetSection(EmailOptions.SectionName))
                .Validate(
