@@ -357,14 +357,15 @@ internal static class SelfServiceHandlerTestSupport
         FakeUserSessionRepository userSessionRepository,
         FakeRefreshTokenProvider refreshTokenProvider,
         FakeUnitOfWork unitOfWork,
-        FakeSecurityAuditService securityAuditService)
+        FakeSecurityAuditService securityAuditService,
+        TimeProvider? timeProvider = null)
     {
         return new Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken.RevokeRefreshTokenCommandHandler(
             userRepository,
             userSessionRepository,
             refreshTokenProvider,
             unitOfWork,
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             securityAuditService);
     }
 

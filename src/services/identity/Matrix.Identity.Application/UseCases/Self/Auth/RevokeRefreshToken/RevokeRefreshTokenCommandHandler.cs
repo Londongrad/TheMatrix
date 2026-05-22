@@ -13,16 +13,18 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RevokeRefreshToken
         IUserSessionRepository userSessionRepository,
         IRefreshTokenProvider refreshTokenProvider,
         IUnitOfWork unitOfWork,
-        IClock clock,
+        TimeProvider timeProvider,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<RevokeRefreshTokenCommand>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task Handle(
             RevokeRefreshTokenCommand request,
             CancellationToken cancellationToken)
         {
             string hash = refreshTokenProvider.ComputeHash(request.RefreshToken);
-            DateTime utcNow = clock.UtcNow;
+            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
 
             User? user = await userRepository.GetByRefreshTokenHashAsync(
                 tokenHash: hash,

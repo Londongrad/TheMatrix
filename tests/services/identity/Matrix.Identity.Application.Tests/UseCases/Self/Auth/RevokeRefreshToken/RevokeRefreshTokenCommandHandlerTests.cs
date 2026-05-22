@@ -105,8 +105,10 @@ public sealed class RevokeRefreshTokenCommandHandlerTests
             CancellationToken.None);
 
         Assert.True(token.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, token.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.UserRevoked, token.RevokedReason);
         Assert.True(session.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, session.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.UserRevoked, session.RevokedReason);
         Assert.Equal(1, unitOfWork.SaveChangesCalls);
 
