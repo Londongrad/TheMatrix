@@ -16,10 +16,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
         IOneTimeTokenRepository oneTimeTokenRepository,
         IOneTimeTokenService oneTimeTokenService,
         IPasswordHasher passwordHasher,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         ISecurityAuditService securityAuditService) : IRequestHandler<ResetPasswordCommand>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task Handle(
             ResetPasswordCommand request,
             CancellationToken cancellationToken)
@@ -72,7 +74,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword
                 throw DomainErrorsFactory.OneTimeTokenNotFound(nameof(request.Token));
             }
 
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
 
             token.MarkUsed(nowUtc);
 

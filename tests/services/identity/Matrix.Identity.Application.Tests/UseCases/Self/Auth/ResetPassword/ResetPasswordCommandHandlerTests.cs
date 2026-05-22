@@ -170,14 +170,20 @@ public sealed class ResetPasswordCommandHandlerTests
         Assert.Equal("hash::ResetPa$$w0rd", user.PasswordHash);
 
         Assert.True(activeSession.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, activeSession.RevokedAtUtc);
         Assert.True(otherActiveSession.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveSession.RevokedAtUtc);
         Assert.True(inactiveSession.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow.AddMinutes(-1), inactiveSession.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.PasswordChanged, activeSession.RevokedReason);
         Assert.Equal(RefreshTokenRevocationReason.PasswordChanged, otherActiveSession.RevokedReason);
 
         Assert.True(activeToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, activeToken.RevokedAtUtc);
         Assert.True(otherActiveToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveToken.RevokedAtUtc);
         Assert.True(inactiveRefreshToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow.AddMinutes(-1), inactiveRefreshToken.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.PasswordChanged, activeToken.RevokedReason);
         Assert.Equal(RefreshTokenRevocationReason.PasswordChanged, otherActiveToken.RevokedReason);
         Assert.Equal(1, unitOfWork.SaveChangesCalls);

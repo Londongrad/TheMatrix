@@ -376,7 +376,8 @@ internal static class SelfServiceHandlerTestSupport
         FakeOneTimeTokenService oneTimeTokenService,
         FakePasswordHasher passwordHasher,
         FakeUnitOfWork unitOfWork,
-        FakeSecurityAuditService securityAuditService)
+        FakeSecurityAuditService securityAuditService,
+        TimeProvider? timeProvider = null)
     {
         return new Matrix.Identity.Application.UseCases.Self.Auth.ResetPassword.ResetPasswordCommandHandler(
             userRepository,
@@ -384,7 +385,7 @@ internal static class SelfServiceHandlerTestSupport
             oneTimeTokenRepository,
             oneTimeTokenService,
             passwordHasher,
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             unitOfWork,
             securityAuditService);
     }
