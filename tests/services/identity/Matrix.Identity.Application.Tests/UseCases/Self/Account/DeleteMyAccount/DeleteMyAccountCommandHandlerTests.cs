@@ -30,7 +30,7 @@ public sealed class DeleteMyAccountCommandHandlerTests
             passwordHasher,
             emailSender,
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             currentUser,
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
@@ -60,7 +60,7 @@ public sealed class DeleteMyAccountCommandHandlerTests
             new SelfServiceHandlerTestSupport.FakePasswordHasher(),
             new SelfServiceHandlerTestSupport.FakeEmailSender(),
             new SelfServiceHandlerTestSupport.FakeSecurityAuditService(),
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             new SelfServiceHandlerTestSupport.FakeUnitOfWork(),
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
@@ -92,7 +92,7 @@ public sealed class DeleteMyAccountCommandHandlerTests
             passwordHasher,
             new SelfServiceHandlerTestSupport.FakeEmailSender(),
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
@@ -133,7 +133,7 @@ public sealed class DeleteMyAccountCommandHandlerTests
             new SelfServiceHandlerTestSupport.FakePasswordHasher(),
             emailSender,
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
@@ -175,7 +175,7 @@ public sealed class DeleteMyAccountCommandHandlerTests
             new SelfServiceHandlerTestSupport.FakePasswordHasher(),
             emailSender,
             securityAuditService,
-            new SelfServiceHandlerTestSupport.TestClock(),
+            SelfServiceHandlerTestSupport.CreateTimeProvider(),
             unitOfWork,
             new SelfServiceHandlerTestSupport.FakeCurrentUserContext { UserId = user.Id },
             NullLogger<Matrix.Identity.Application.UseCases.Self.Account.DeleteMyAccount.DeleteMyAccountCommandHandler>.Instance);
@@ -191,12 +191,16 @@ public sealed class DeleteMyAccountCommandHandlerTests
         Assert.True(inactiveSession.IsRevoked);
         Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, activeSession.RevokedReason);
         Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, otherActiveSession.RevokedReason);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, activeSession.RevokedAtUtc);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveSession.RevokedAtUtc);
 
         Assert.True(activeToken.IsRevoked);
         Assert.True(otherActiveToken.IsRevoked);
         Assert.True(inactiveToken.IsRevoked);
         Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, activeToken.RevokedReason);
         Assert.Equal(RefreshTokenRevocationReason.AccountDeleted, otherActiveToken.RevokedReason);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, activeToken.RevokedAtUtc);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, otherActiveToken.RevokedAtUtc);
 
         Assert.True(user.IsDeleted);
         Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, user.DeletedAtUtc);
@@ -211,6 +215,6 @@ public sealed class DeleteMyAccountCommandHandlerTests
         Assert.Equal(user.Email.Value, audit.Subject);
         Assert.Equal("203.0.113.31", audit.IpAddress);
         Assert.Equal("Mozilla/5.0 (delete-success)", audit.UserAgent);
-        Assert.StartsWith("DeletedAtUtc:", audit.Details, StringComparison.Ordinal);
+        Assert.Equal($"DeletedAtUtc:{SelfServiceHandlerTestSupport.UtcNow:O}", audit.Details);
     }
 }
