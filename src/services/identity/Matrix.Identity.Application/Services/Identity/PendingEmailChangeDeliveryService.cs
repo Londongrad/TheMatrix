@@ -16,10 +16,12 @@ namespace Matrix.Identity.Application.Services.Identity
         IEmailSender emailSender,
         IFrontendLinkBuilder frontendLinkBuilder,
         ISecurityAuditService securityAuditService,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         ILogger<PendingEmailChangeDeliveryService> logger) : IPendingEmailChangeDeliveryService
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task SendConfirmationAsync(
             User user,
             string pendingEmail,
@@ -51,7 +53,7 @@ namespace Matrix.Identity.Application.Services.Identity
                 throw ApplicationErrorsFactory.EmailChangeRequestThrottled();
             }
 
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
             TimeSpan cooldown = oneTimeTokenService.GetDeliveryCooldown(OneTimeTokenPurpose.EmailChange);
 
             if (cooldown > TimeSpan.Zero)
