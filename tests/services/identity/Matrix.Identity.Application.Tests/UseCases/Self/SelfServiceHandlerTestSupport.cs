@@ -887,11 +887,6 @@ internal static class SelfServiceHandlerTestSupport
         public Guid? SessionId { get; set; }
     }
 
-    internal sealed class TestClock : IClock
-    {
-        public DateTime UtcNow => SelfServiceHandlerTestSupport.UtcNow;
-    }
-
     internal sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow()

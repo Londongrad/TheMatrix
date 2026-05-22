@@ -43,11 +43,6 @@ internal static class IdentityInfrastructureTestSupport
         return new IdentityTestDatabase(dbContext, connection);
     }
 
-    internal static FrozenClock CreateClock(DateTime? utcNow = null)
-    {
-        return new FrozenClock(utcNow ?? CreatedAtUtc);
-    }
-
     internal static FrozenTimeProvider CreateTimeProvider(DateTimeOffset? utcNow = null)
     {
         return new FrozenTimeProvider(utcNow ?? new DateTimeOffset(CreatedAtUtc, TimeSpan.Zero));
@@ -309,11 +304,6 @@ internal sealed class IdentityTestDatabase(
         await DbContext.DisposeAsync();
         await connection.DisposeAsync();
     }
-}
-
-internal sealed class FrozenClock(DateTime utcNow) : IClock
-{
-    public DateTime UtcNow { get; } = DateTime.SpecifyKind(utcNow, DateTimeKind.Utc);
 }
 
 internal sealed class FrozenTimeProvider(DateTimeOffset utcNow) : TimeProvider
