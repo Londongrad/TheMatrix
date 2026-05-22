@@ -13,6 +13,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationCostOfLivingStateRepository cityPopulationCostOfLivingStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<ApplyCityCostOfLivingSnapshotCommand, ApplyCityCostOfLivingSnapshotResult>
     {
@@ -30,7 +31,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     bool markedAsProcessed = await processedIntegrationMessageRepository.TryMarkProcessedAsync(
                         consumer: consumerName,
                         messageId: request.IntegrationMessageId,
-                        processedAtUtc: DateTimeOffset.UtcNow,
+                        processedAtUtc: timeProvider.GetUtcNow(),
                         cancellationToken: ct);
 
                     if (!markedAsProcessed)
@@ -58,7 +59,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         return new ApplyCityCostOfLivingSnapshotResult(
                             ApplyCityCostOfLivingSnapshotStatus.Stale);
 
-                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                    DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
                     if (state is null)
                     {

@@ -35,6 +35,7 @@ public sealed class RetireCityResidentCommandHandlerTests
             activityJournalService,
             summaryProjectionService,
             personWriteRepository,
+            CreateTimeProvider(),
             unitOfWork);
 
         var result = await handler.Handle(
@@ -81,6 +82,7 @@ public sealed class RetireCityResidentCommandHandlerTests
             activityJournalService,
             summaryProjectionService,
             personWriteRepository,
+            CreateTimeProvider(),
             unitOfWork);
 
         DomainException exception = await Assert.ThrowsAsync<DomainException>(

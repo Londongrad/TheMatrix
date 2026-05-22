@@ -12,12 +12,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             DateOnly currentDate,
             int requestedPeopleCount,
             int generatedPeopleCount,
-            int householdCount)
+            int householdCount,
+            DateTimeOffset occurredAtUtc)
         {
             return new CityPopulationActivityWriteModel(
                 CityId: cityId,
                 CurrentDate: currentDate,
-                OccurredAtUtc: DateTimeOffset.UtcNow,
+                OccurredAtUtc: occurredAtUtc,
                 EventType: CityPopulationActivityEventType.PopulationInitialized,
                 Source: CityPopulationActivitySource.Bootstrap,
                 Severity: CityPopulationActivitySeverity.Success,
@@ -30,7 +31,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             string jobTitle = resident.Employment.Job?.Title ?? "worker";
 
@@ -42,7 +44,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Success,
                 eventType: CityPopulationActivityEventType.ResidentHired,
                 title: "Resident hired",
-                summary: $"{resident.Name} started working as {jobTitle}.");
+                summary: $"{resident.Name} started working as {jobTitle}.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentFired(
@@ -50,7 +53,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             DateOnly currentDate,
             Person resident,
             string? previousJobTitle,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             string jobTitle = string.IsNullOrWhiteSpace(previousJobTitle)
                 ? "their job"
@@ -64,14 +68,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Warning,
                 eventType: CityPopulationActivityEventType.ResidentFired,
                 title: "Resident left employment",
-                summary: $"{resident.Name} left {jobTitle} work and became unemployed.");
+                summary: $"{resident.Name} left {jobTitle} work and became unemployed.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentRetired(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -81,14 +87,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Warning,
                 eventType: CityPopulationActivityEventType.ResidentRetired,
                 title: "Resident retired",
-                summary: $"{resident.Name} retired from active employment.");
+                summary: $"{resident.Name} retired from active employment.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentEnrolled(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -99,14 +107,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 eventType: CityPopulationActivityEventType.ResidentEnrolled,
                 title: "Resident enrolled",
                 summary:
-                $"{resident.Name} started studying at {HumanizeEducationLevel(resident.EducationLevel)} level.");
+                $"{resident.Name} started studying at {HumanizeEducationLevel(resident.EducationLevel)} level.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentGraduated(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -116,14 +126,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Success,
                 eventType: CityPopulationActivityEventType.ResidentGraduated,
                 title: "Resident advanced in education",
-                summary: $"{resident.Name} advanced to {HumanizeEducationLevel(resident.EducationLevel)} education.");
+                summary: $"{resident.Name} advanced to {HumanizeEducationLevel(resident.EducationLevel)} education.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentWithdrewFromStudy(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -133,7 +145,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Warning,
                 eventType: CityPopulationActivityEventType.ResidentWithdrewFromStudy,
                 title: "Resident left study",
-                summary: $"{resident.Name} is no longer studying.");
+                summary: $"{resident.Name} is no longer studying.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentsMarried(
@@ -141,12 +154,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             DateOnly currentDate,
             Person firstResident,
             Person secondResident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return new CityPopulationActivityWriteModel(
                 CityId: cityId,
                 CurrentDate: currentDate,
-                OccurredAtUtc: DateTimeOffset.UtcNow,
+                OccurredAtUtc: occurredAtUtc,
                 EventType: CityPopulationActivityEventType.ResidentsMarried,
                 Source: source,
                 Severity: CityPopulationActivitySeverity.Success,
@@ -161,12 +175,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             DateOnly currentDate,
             Person firstResident,
             Person secondResident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return new CityPopulationActivityWriteModel(
                 CityId: cityId,
                 CurrentDate: currentDate,
-                OccurredAtUtc: DateTimeOffset.UtcNow,
+                OccurredAtUtc: occurredAtUtc,
                 EventType: CityPopulationActivityEventType.ResidentsDivorced,
                 Source: source,
                 Severity: CityPopulationActivitySeverity.Warning,
@@ -182,7 +197,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             DateOnly currentDate,
             Person resident,
             string deceasedName,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -192,14 +208,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Warning,
                 eventType: CityPopulationActivityEventType.ResidentBecameWidowed,
                 title: "Resident became widowed",
-                summary: $"{resident.Name} became widowed after {deceasedName} died.");
+                summary: $"{resident.Name} became widowed after {deceasedName} died.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentDied(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -209,14 +227,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Danger,
                 eventType: CityPopulationActivityEventType.ResidentDied,
                 title: "Resident died",
-                summary: $"{resident.Name} died.");
+                summary: $"{resident.Name} died.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentResurrected(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -226,7 +246,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Success,
                 eventType: CityPopulationActivityEventType.ResidentResurrected,
                 title: "Resident resurrected",
-                summary: $"{resident.Name} was restored to life.");
+                summary: $"{resident.Name} was restored to life.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentBorn(
@@ -235,7 +256,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             Person resident,
             Person mother,
             Person? father,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             string householdSummary = father is null
                 ? $"{resident.Name} was born into {mother.Name}'s household."
@@ -244,7 +266,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             return new CityPopulationActivityWriteModel(
                 CityId: cityId,
                 CurrentDate: currentDate,
-                OccurredAtUtc: DateTimeOffset.UtcNow,
+                OccurredAtUtc: occurredAtUtc,
                 EventType: CityPopulationActivityEventType.ResidentBorn,
                 Source: source,
                 Severity: CityPopulationActivitySeverity.Success,
@@ -258,7 +280,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             string illnessKind = resident.CurrentIllnessKind?.ToString() ?? "Illness";
             string severity = resident.CurrentIllnessSeverity?.ToString() ?? "Unknown";
@@ -272,7 +295,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 eventType: CityPopulationActivityEventType.ResidentBecameIll,
                 title: "Resident became ill",
                 summary:
-                $"{resident.Name} developed {HumanizeIllnessKind(illnessKind)} ({severity.ToLowerInvariant()}).");
+                $"{resident.Name} developed {HumanizeIllnessKind(illnessKind)} ({severity.ToLowerInvariant()}).",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentRecoveredFromIllness(
@@ -280,7 +304,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             DateOnly currentDate,
             Person resident,
             string previousIllnessKind,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -290,14 +315,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Success,
                 eventType: CityPopulationActivityEventType.ResidentRecoveredFromIllness,
                 title: "Resident recovered",
-                summary: $"{resident.Name} recovered from {HumanizeIllnessKind(previousIllnessKind)}.");
+                summary: $"{resident.Name} recovered from {HumanizeIllnessKind(previousIllnessKind)}.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel HouseholdFoundHousing(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -307,14 +334,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Success,
                 eventType: CityPopulationActivityEventType.HouseholdFoundHousing,
                 title: "Household found housing",
-                summary: $"{resident.Name}'s household secured housed placement inside the city.");
+                summary: $"{resident.Name}'s household secured housed placement inside the city.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel HouseholdLostHousing(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -324,14 +353,16 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Warning,
                 eventType: CityPopulationActivityEventType.HouseholdLostHousing,
                 title: "Household lost housing",
-                summary: $"{resident.Name}'s household lost housed placement and became homeless.");
+                summary: $"{resident.Name}'s household lost housed placement and became homeless.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         public static CityPopulationActivityWriteModel ResidentFormedIndependentHousehold(
             Guid cityId,
             DateOnly currentDate,
             Person resident,
-            CityPopulationActivitySource source)
+            CityPopulationActivitySource source,
+            DateTimeOffset occurredAtUtc)
         {
             return CreateResidentEvent(
                 cityId: cityId,
@@ -341,7 +372,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
                 severity: CityPopulationActivitySeverity.Success,
                 eventType: CityPopulationActivityEventType.ResidentFormedIndependentHousehold,
                 title: "Resident moved out",
-                summary: $"{resident.Name} formed an independent household and is now seeking separate housing.");
+                summary: $"{resident.Name} formed an independent household and is now seeking separate housing.",
+                occurredAtUtc: occurredAtUtc);
         }
 
         private static CityPopulationActivityWriteModel CreateResidentEvent(
@@ -352,12 +384,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.Common
             CityPopulationActivitySeverity severity,
             CityPopulationActivityEventType eventType,
             string title,
-            string summary)
+            string summary,
+            DateTimeOffset occurredAtUtc)
         {
             return new CityPopulationActivityWriteModel(
                 CityId: cityId,
                 CurrentDate: currentDate,
-                OccurredAtUtc: DateTimeOffset.UtcNow,
+                OccurredAtUtc: occurredAtUtc,
                 EventType: eventType,
                 Source: source,
                 Severity: severity,

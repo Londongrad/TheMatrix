@@ -227,6 +227,7 @@ public sealed class GetCityDashboardQueryHandlerTests
     {
         return new GetCityDashboardQueryHandler(
             summaryProjectionService ?? new FakeCityPopulationSummaryProjectionService(),
-            dashboardReadRepository ?? new FakeCityPopulationDashboardReadRepository());
+            dashboardReadRepository ?? new FakeCityPopulationDashboardReadRepository(),
+            CreateTimeProvider());
     }
 }

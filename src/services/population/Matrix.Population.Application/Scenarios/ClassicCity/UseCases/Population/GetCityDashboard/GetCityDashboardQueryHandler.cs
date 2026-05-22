@@ -8,7 +8,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 {
     public sealed class GetCityDashboardQueryHandler(
         ICityPopulationSummaryProjectionService summaryProjectionService,
-        ICityPopulationDashboardReadRepository dashboardReadRepository)
+        ICityPopulationDashboardReadRepository dashboardReadRepository,
+        TimeProvider timeProvider)
         : IRequestHandler<GetCityDashboardQuery, CityPopulationDashboardDto?>
     {
         public async Task<CityPopulationDashboardDto?> Handle(
@@ -63,7 +64,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             return new CityPopulationDashboardDto(
                 CityId: currentSnapshot.CityId,
                 CurrentDate: FormatDate(currentSnapshot.SnapshotDate),
-                GeneratedAtUtc: FormatTimestamp(DateTimeOffset.UtcNow)!,
+                GeneratedAtUtc: FormatTimestamp(timeProvider.GetUtcNow())!,
                 Metrics:
                 [
                     CreateCountMetric(

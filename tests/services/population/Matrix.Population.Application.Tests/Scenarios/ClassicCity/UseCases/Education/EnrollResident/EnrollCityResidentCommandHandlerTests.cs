@@ -87,6 +87,7 @@ public sealed class EnrollCityResidentCommandHandlerTests
             summaryProjectionService ?? new FakeCityPopulationSummaryProjectionService(),
             new Matrix.Population.Domain.Scenarios.ClassicCity.Services.CityPopulationAnchorSelectionPolicy(),
             personWriteRepository ?? new FakePersonWriteRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 }

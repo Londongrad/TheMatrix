@@ -24,6 +24,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationWeatherExposureStateRepository cityPopulationWeatherExposureStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<DeleteCityPopulationDataCommand, DeleteCityPopulationDataResult>
     {
@@ -41,7 +42,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     bool markedAsProcessed = await processedIntegrationMessageRepository.TryMarkProcessedAsync(
                         consumer: consumerName,
                         messageId: request.IntegrationMessageId,
-                        processedAtUtc: DateTimeOffset.UtcNow,
+                        processedAtUtc: timeProvider.GetUtcNow(),
                         cancellationToken: ct);
 
                     if (!markedAsProcessed)
@@ -98,7 +99,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId,
                         cancellationToken: ct);
 
-                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                    DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
                     if (deletionState is null)
                     {

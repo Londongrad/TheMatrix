@@ -113,6 +113,7 @@ public sealed class ApplyCityLivingConditionsSnapshotCommandHandlerTests
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             stateRepository ?? new FakeCityPopulationLivingConditionsStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

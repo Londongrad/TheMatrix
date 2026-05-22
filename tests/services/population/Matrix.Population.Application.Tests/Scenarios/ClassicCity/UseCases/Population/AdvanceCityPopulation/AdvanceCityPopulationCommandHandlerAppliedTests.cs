@@ -299,6 +299,7 @@ public sealed class AdvanceCityPopulationCommandHandlerAppliedTests
             participationPolicy: new CityPopulationParticipationPolicy(),
             personNeedsProgressionPolicy: new PersonNeedsProgressionPolicy(),
             weatherExposurePolicy: new CityPopulationWeatherExposurePolicy(new CityPopulationClimateAdaptationPolicy()),
+            timeProvider: CreateTimeProvider(),
             logger: NullLogger<AdvanceCityPopulationCommandHandler>.Instance,
             unitOfWork: unitOfWork ?? new FakeUnitOfWork());
     }

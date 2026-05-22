@@ -36,6 +36,7 @@ public sealed class FireCityResidentCommandHandlerTests
             activityJournalService,
             summaryProjectionService,
             personWriteRepository,
+            CreateTimeProvider(),
             unitOfWork);
 
         var result = await handler.Handle(

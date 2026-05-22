@@ -162,6 +162,7 @@ public sealed class RegisterCityMarriageCommandHandlerTests
             personWriteRepository ?? new FakePersonWriteRepository(),
             householdWriteRepository ?? new FakeHouseholdWriteRepository(),
             new MarriageDomainService(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

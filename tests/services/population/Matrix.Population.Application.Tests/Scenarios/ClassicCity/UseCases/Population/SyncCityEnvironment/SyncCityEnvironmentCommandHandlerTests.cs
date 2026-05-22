@@ -207,6 +207,7 @@ public sealed class SyncCityEnvironmentCommandHandlerTests
             archiveStateRepository ?? new FakeCityPopulationArchiveStateRepository(),
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             environmentRepository ?? new FakeCityPopulationEnvironmentRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

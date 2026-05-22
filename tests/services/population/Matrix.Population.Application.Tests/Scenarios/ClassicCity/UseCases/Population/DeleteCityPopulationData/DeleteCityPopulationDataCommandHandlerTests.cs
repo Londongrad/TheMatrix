@@ -233,6 +233,7 @@ public sealed class DeleteCityPopulationDataCommandHandlerTests
             weatherExposureStateRepository ?? new FakeCityPopulationWeatherExposureStateRepository(),
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

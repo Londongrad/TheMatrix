@@ -17,6 +17,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationPersonReadRepository personReadRepository,
         IHouseholdWriteRepository householdWriteRepository,
         ICityDistrictUtilityConditionsClient districtUtilityConditionsClient,
+        TimeProvider timeProvider,
         ILogger<GetCityDistrictPressureQueryHandler> logger)
         : IRequestHandler<GetCityDistrictPressureQuery, CityPopulationDistrictPressureDto?>
     {
@@ -87,7 +88,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
 
             return new CityPopulationDistrictPressureDto(
                 CityId: request.CityId,
-                GeneratedAtUtc: FormatTimestamp(DateTimeOffset.UtcNow)!,
+                GeneratedAtUtc: FormatTimestamp(timeProvider.GetUtcNow())!,
                 Districts: districts);
         }
 

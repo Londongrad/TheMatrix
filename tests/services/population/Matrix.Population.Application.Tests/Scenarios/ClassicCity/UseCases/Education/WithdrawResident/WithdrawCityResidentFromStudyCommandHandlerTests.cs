@@ -111,6 +111,7 @@ public sealed class WithdrawCityResidentFromStudyCommandHandlerTests
             activityJournalService ?? new FakeCityPopulationActivityJournalService(),
             summaryProjectionService ?? new FakeCityPopulationSummaryProjectionService(),
             personWriteRepository ?? new FakePersonWriteRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 }

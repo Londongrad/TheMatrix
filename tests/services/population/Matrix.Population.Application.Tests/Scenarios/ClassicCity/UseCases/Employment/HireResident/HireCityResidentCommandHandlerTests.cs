@@ -220,6 +220,7 @@ public sealed class HireCityResidentCommandHandlerTests
             cityEconomySettlementOutboxWriter ?? new FakeCityEconomySettlementOutboxWriter(),
             personWriteRepository ?? new FakePersonWriteRepository(),
             new CityPopulationAnchorSelectionPolicy(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 }

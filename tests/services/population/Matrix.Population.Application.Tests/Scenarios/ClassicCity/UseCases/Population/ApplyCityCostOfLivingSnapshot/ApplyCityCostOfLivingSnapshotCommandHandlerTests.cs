@@ -110,6 +110,7 @@ public sealed class ApplyCityCostOfLivingSnapshotCommandHandlerTests
             stateRepository ?? new FakeCityPopulationCostOfLivingStateRepository(),
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

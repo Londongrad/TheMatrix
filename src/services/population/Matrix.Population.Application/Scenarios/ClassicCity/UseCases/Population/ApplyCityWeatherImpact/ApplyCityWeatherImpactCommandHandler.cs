@@ -27,6 +27,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         MarriageDomainService marriageDomainService,
         CityPopulationWeatherImpactPolicy weatherImpactPolicy,
         ILogger<ApplyCityWeatherImpactCommandHandler> logger,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<ApplyCityWeatherImpactCommand, ApplyCityWeatherImpactResult>
     {
@@ -50,7 +51,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     bool markedAsProcessed = await processedIntegrationMessageRepository.TryMarkProcessedAsync(
                         consumer: consumerName,
                         messageId: request.IntegrationMessageId,
-                        processedAtUtc: DateTimeOffset.UtcNow,
+                        processedAtUtc: timeProvider.GetUtcNow(),
                         cancellationToken: ct);
 
                     if (!markedAsProcessed)
@@ -119,7 +120,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 weatherImpactPolicy: weatherImpactPolicy))
                             affectedPeopleCount++;
 
-                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                    DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
                     if (state is null)
                     {

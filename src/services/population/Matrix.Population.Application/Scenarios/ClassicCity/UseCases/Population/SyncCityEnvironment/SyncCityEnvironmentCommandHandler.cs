@@ -11,6 +11,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         ICityPopulationEnvironmentRepository cityPopulationEnvironmentRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<SyncCityEnvironmentCommand, SyncCityEnvironmentResult>,
             IRequestHandler<ApplyCityEnvironmentSyncCommand, SyncCityEnvironmentResult>
@@ -50,7 +51,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CancellationToken cancellationToken)
         {
             var cityId = CityId.From(cityIdValue);
-            DateTimeOffset syncedAtUtc = syncedAtUtcValue ?? DateTimeOffset.UtcNow;
+            DateTimeOffset syncedAtUtc = syncedAtUtcValue ?? timeProvider.GetUtcNow();
 
             var input = new CityPopulationEnvironmentInput(
                 ClimateZone: climateZone,

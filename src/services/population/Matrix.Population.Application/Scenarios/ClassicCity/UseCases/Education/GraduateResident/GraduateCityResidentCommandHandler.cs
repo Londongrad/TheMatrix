@@ -23,6 +23,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
         IPersonWriteRepository personWriteRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<GraduateCityResidentCommand, CityEducationOperationResultDto>
     {
@@ -69,6 +70,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                 newLevel: targetEducationLevel,
                 institutionId: institutionBinding.InstitutionId,
                 institutionAnchorId: institutionBinding.InstitutionAnchorId);
+            DateTimeOffset recordedAtUtc = timeProvider.GetUtcNow();
 
             await personWriteRepository.UpdateAsync(
                 person: resident,
@@ -84,14 +86,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Education
                     cityId: request.CityId,
                     currentDate: request.CurrentDate,
                     resident: resident,
-                    source: CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator,
+                    occurredAtUtc: recordedAtUtc),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return CityEducationOperationSupport.CreateResult(
                 action: "ResidentGraduated",
-                recordedAtUtc: DateTimeOffset.UtcNow,
+                recordedAtUtc: recordedAtUtc,
                 currentDate: request.CurrentDate,
                 resident: resident);
         }

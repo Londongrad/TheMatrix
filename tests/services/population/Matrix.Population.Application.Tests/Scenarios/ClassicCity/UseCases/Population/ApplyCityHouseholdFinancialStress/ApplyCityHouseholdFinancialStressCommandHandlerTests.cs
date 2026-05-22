@@ -199,6 +199,7 @@ public sealed class ApplyCityHouseholdFinancialStressCommandHandlerTests
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             stateRepository ?? new FakeCityPopulationHouseholdFinancialStressStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

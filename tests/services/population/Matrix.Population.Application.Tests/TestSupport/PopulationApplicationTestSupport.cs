@@ -25,6 +25,11 @@ internal static class PopulationApplicationTestSupport
 {
     internal static readonly DateTimeOffset UtcNow = new(2048, 5, 3, 9, 10, 11, TimeSpan.Zero);
 
+    internal static TimeProvider CreateTimeProvider(DateTimeOffset? utcNow = null)
+    {
+        return new FakeTimeProvider(utcNow ?? UtcNow);
+    }
+
     internal static Matrix.Population.Domain.Entities.Person CreatePerson(
         Guid? personId = null,
         Guid? householdId = null,

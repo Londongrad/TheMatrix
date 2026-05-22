@@ -11,6 +11,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         ICityPopulationArchiveStateRepository cityPopulationArchiveStateRepository,
         ICityPopulationDeletionStateRepository cityPopulationDeletionStateRepository,
         IProcessedIntegrationMessageRepository processedIntegrationMessageRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<ArchiveCityPopulationDataCommand, ArchiveCityPopulationDataResult>
     {
@@ -28,7 +29,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     bool markedAsProcessed = await processedIntegrationMessageRepository.TryMarkProcessedAsync(
                         consumer: consumerName,
                         messageId: request.IntegrationMessageId,
-                        processedAtUtc: DateTimeOffset.UtcNow,
+                        processedAtUtc: timeProvider.GetUtcNow(),
                         cancellationToken: ct);
 
                     if (!markedAsProcessed)
@@ -50,7 +51,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     if (archiveState is not null && request.ArchivedAtUtc < archiveState.ArchivedAtUtc)
                         return new ArchiveCityPopulationDataResult(ArchiveCityPopulationDataStatus.Stale);
 
-                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                    DateTimeOffset updatedAtUtc = timeProvider.GetUtcNow();
 
                     if (archiveState is null)
                     {

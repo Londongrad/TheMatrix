@@ -17,6 +17,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         IPersonWriteRepository personWriteRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<RetireCityResidentCommand, CityEmploymentOperationResultDto>
     {
@@ -35,6 +36,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                 resident: resident,
                 currentDate: request.CurrentDate);
             resident.Retire(request.CurrentDate);
+            DateTimeOffset recordedAtUtc = timeProvider.GetUtcNow();
 
             await personWriteRepository.UpdateAsync(
                 person: resident,
@@ -50,14 +52,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     cityId: request.CityId,
                     currentDate: request.CurrentDate,
                     resident: resident,
-                    source: CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator,
+                    occurredAtUtc: recordedAtUtc),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return CityEmploymentOperationSupport.CreateResult(
                 action: "ResidentRetired",
-                recordedAtUtc: DateTimeOffset.UtcNow,
+                recordedAtUtc: recordedAtUtc,
                 currentDate: request.CurrentDate,
                 resident: resident);
         }

@@ -87,6 +87,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             Person firstResident,
             Person secondResident,
             IHouseholdWriteRepository householdWriteRepository,
+            DateTimeOffset createdAtUtc,
             CancellationToken cancellationToken)
         {
             if (firstResident.HouseholdId != secondResident.HouseholdId)
@@ -113,7 +114,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
             var newHousehold = Household.Create(
                 id: newHouseholdId,
                 size: HouseholdSize.From(1),
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: createdAtUtc,
                 cashReserve: sharedHousehold.ReleasePositiveReserveShare(0.40m));
             ClassicCityHouseholdPlacement newPlacement = sharedPlacement.HousingStatus == HousingStatus.Housed &&
                                                          sharedPlacement.DistrictId.HasValue &&

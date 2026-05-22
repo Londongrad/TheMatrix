@@ -33,6 +33,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
                     cancellationToken: cancellationToken) ??
                 throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
+            DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
             person.Resurrect();
 
             CityId? cityId = await cityPopulationPersonReadRepository.FindCityIdByPersonIdAsync(
@@ -48,7 +49,7 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
                 DateOnly currentDate = (await cityPopulationProgressionStateRepository.GetByCityAsync(
                                            cityId: cityId.Value,
                                            cancellationToken: cancellationToken))?.LastProcessedDate ??
-                                       DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+                                       DateOnly.FromDateTime(occurredAtUtc.UtcDateTime);
 
                 await cityPopulationSummaryProjectionService.RebuildAsync(
                     cityId: cityId.Value,
@@ -60,7 +61,8 @@ namespace Matrix.Population.Application.UseCases.Person.ResurrectPerson
                         cityId: cityId.Value.Value,
                         currentDate: currentDate,
                         resident: person,
-                        source: CityPopulationActivitySource.Operator),
+                        source: CityPopulationActivitySource.Operator,
+                        occurredAtUtc: occurredAtUtc),
                     cancellationToken: cancellationToken);
             }
 

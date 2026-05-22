@@ -25,6 +25,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
         ICityEconomySettlementOutboxWriter cityEconomySettlementOutboxWriter,
         IPersonWriteRepository personWriteRepository,
         CityPopulationAnchorSelectionPolicy anchorSelectionPolicy,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<HireCityResidentCommand, CityEmploymentOperationResultDto>
     {
@@ -69,6 +70,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
             resident.AssignJob(
                 currentDate: request.CurrentDate,
                 job: job);
+            DateTimeOffset recordedAtUtc = timeProvider.GetUtcNow();
 
             await personWriteRepository.UpdateAsync(
                 person: resident,
@@ -84,7 +86,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     cityId: request.CityId,
                     currentDate: request.CurrentDate,
                     resident: resident,
-                    source: CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator,
+                    occurredAtUtc: recordedAtUtc),
                 cancellationToken: cancellationToken);
 
             string workplaceSyncCorrelationId =
@@ -94,7 +97,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                          cityId: request.CityId,
                          persons: [resident],
                          correlationId: workplaceSyncCorrelationId,
-                         occurredAtUtc: DateTimeOffset.UtcNow,
+                         occurredAtUtc: recordedAtUtc,
                          batchSize: 1))
                 await cityEconomySettlementOutboxWriter.AddClassicCityWorkplaceBusinessSyncBatchAsync(
                     batch: batch,
@@ -104,7 +107,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
 
             return CityEmploymentOperationSupport.CreateResult(
                 action: "EmploymentAssigned",
-                recordedAtUtc: DateTimeOffset.UtcNow,
+                recordedAtUtc: recordedAtUtc,
                 currentDate: request.CurrentDate,
                 resident: resident);
         }

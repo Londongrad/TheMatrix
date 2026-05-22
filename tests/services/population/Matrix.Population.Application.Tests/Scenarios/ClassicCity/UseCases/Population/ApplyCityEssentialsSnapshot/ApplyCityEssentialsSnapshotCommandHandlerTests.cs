@@ -114,6 +114,7 @@ public sealed class ApplyCityEssentialsSnapshotCommandHandlerTests
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             stateRepository ?? new FakeCityPopulationEssentialsStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

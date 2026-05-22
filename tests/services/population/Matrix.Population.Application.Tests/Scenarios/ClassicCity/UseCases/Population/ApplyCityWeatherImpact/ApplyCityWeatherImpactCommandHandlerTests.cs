@@ -145,6 +145,7 @@ public sealed class ApplyCityWeatherImpactCommandHandlerTests
             new MarriageDomainService(),
             new CityPopulationWeatherImpactPolicy(new CityPopulationClimateAdaptationPolicy()),
             NullLogger<ApplyCityWeatherImpactCommandHandler>.Instance,
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

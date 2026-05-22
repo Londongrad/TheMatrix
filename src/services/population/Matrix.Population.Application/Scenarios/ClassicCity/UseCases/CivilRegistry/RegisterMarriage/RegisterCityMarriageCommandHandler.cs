@@ -21,6 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
         IPersonWriteRepository personWriteRepository,
         IHouseholdWriteRepository householdWriteRepository,
         MarriageDomainService marriageDomainService,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<RegisterCityMarriageCommand, CityCivilRegistryOperationResultDto>
     {
@@ -47,6 +48,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                 spouse: secondResident,
                 currentDate: request.CurrentDate);
 
+            DateTimeOffset recordedAtUtc = timeProvider.GetUtcNow();
+
             await ClassicCityCivilRegistryHouseholdSupport.MergeSpousesIntoSharedHouseholdAsync(
                 cityId: CityId.From(request.CityId),
                 firstResident: firstResident,
@@ -72,7 +75,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                     currentDate: request.CurrentDate,
                     firstResident: firstResident,
                     secondResident: secondResident,
-                    source: CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator,
+                    occurredAtUtc: recordedAtUtc),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -90,7 +94,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
 
             return CityCivilRegistryOperationSupport.CreateResult(
                 action: "MarriageRegistered",
-                recordedAtUtc: DateTimeOffset.UtcNow,
+                recordedAtUtc: recordedAtUtc,
                 currentDate: request.CurrentDate,
                 firstResident: firstResident,
                 secondResident: secondResident,

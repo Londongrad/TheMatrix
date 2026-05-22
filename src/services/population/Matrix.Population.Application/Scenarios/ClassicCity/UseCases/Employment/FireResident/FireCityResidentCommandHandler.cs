@@ -17,6 +17,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
         ICityPopulationActivityJournalService cityPopulationActivityJournalService,
         ICityPopulationSummaryProjectionService cityPopulationSummaryProjectionService,
         IPersonWriteRepository personWriteRepository,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<FireCityResidentCommand, CityEmploymentOperationResultDto>
     {
@@ -34,6 +35,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
             CityEmploymentOperationSupport.EnsureResidentCanBeFired(resident);
             string? previousJobTitle = resident.Employment.Job?.Title;
             resident.Fire(request.CurrentDate);
+            DateTimeOffset recordedAtUtc = timeProvider.GetUtcNow();
 
             await personWriteRepository.UpdateAsync(
                 person: resident,
@@ -50,14 +52,15 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Employmen
                     currentDate: request.CurrentDate,
                     resident: resident,
                     previousJobTitle: previousJobTitle,
-                    source: CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator,
+                    occurredAtUtc: recordedAtUtc),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return CityEmploymentOperationSupport.CreateResult(
                 action: "ResidentFired",
-                recordedAtUtc: DateTimeOffset.UtcNow,
+                recordedAtUtc: recordedAtUtc,
                 currentDate: request.CurrentDate,
                 resident: resident);
         }

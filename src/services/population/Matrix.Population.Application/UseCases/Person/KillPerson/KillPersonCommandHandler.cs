@@ -36,7 +36,8 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                     cancellationToken: cancellationToken) ??
                 throw ApplicationErrorsFactory.PersonNotFound(request.Id);
 
-            DateOnly today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+            DateTimeOffset occurredAtUtc = timeProvider.GetUtcNow();
+            DateOnly today = DateOnly.FromDateTime(occurredAtUtc.UtcDateTime);
 
             person.Die(today);
 
@@ -75,7 +76,8 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                                 currentDate: currentDate,
                                 resident: spouse,
                                 deceasedName: person.Name.ToString(),
-                                source: CityPopulationActivitySource.Operator),
+                                source: CityPopulationActivitySource.Operator,
+                                occurredAtUtc: occurredAtUtc),
                             cancellationToken: cancellationToken);
                 }
 
@@ -101,7 +103,8 @@ namespace Matrix.Population.Application.UseCases.Person.KillPerson
                         cityId: cityId.Value.Value,
                         currentDate: currentDate,
                         resident: person,
-                        source: CityPopulationActivitySource.Operator),
+                        source: CityPopulationActivitySource.Operator,
+                        occurredAtUtc: occurredAtUtc),
                     cancellationToken: cancellationToken);
             }
 

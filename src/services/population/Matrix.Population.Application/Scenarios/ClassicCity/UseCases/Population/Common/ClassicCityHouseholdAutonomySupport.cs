@@ -13,6 +13,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             CityId cityId,
             Person resident,
             IHouseholdWriteRepository householdWriteRepository,
+            DateTimeOffset createdAtUtc,
             CancellationToken cancellationToken)
         {
             Household sourceHousehold = await LoadHouseholdAsync(
@@ -36,7 +37,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var newHousehold = Household.Create(
                 id: newHouseholdId,
                 size: HouseholdSize.From(1),
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: createdAtUtc,
                 cashReserve: sourceHousehold.ReleasePositiveReserveShare(0.32m));
 
             var newPlacement = ClassicCityHouseholdPlacement.CreateHomeless(

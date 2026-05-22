@@ -21,6 +21,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
         IPersonWriteRepository personWriteRepository,
         IHouseholdWriteRepository householdWriteRepository,
         MarriageDomainService marriageDomainService,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<RegisterCityDivorceCommand, CityCivilRegistryOperationResultDto>
     {
@@ -51,11 +52,14 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                 spouse: secondResident,
                 currentDate: request.CurrentDate);
 
+            DateTimeOffset recordedAtUtc = timeProvider.GetUtcNow();
+
             await ClassicCityCivilRegistryHouseholdSupport.SeparateDivorcedSpousesAsync(
                 cityId: CityId.From(request.CityId),
                 firstResident: firstResident,
                 secondResident: secondResident,
                 householdWriteRepository: householdWriteRepository,
+                createdAtUtc: recordedAtUtc,
                 cancellationToken: cancellationToken);
 
             await personWriteRepository.UpdateAsync(
@@ -76,7 +80,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
                     currentDate: request.CurrentDate,
                     firstResident: firstResident,
                     secondResident: secondResident,
-                    source: CityPopulationActivitySource.Operator),
+                    source: CityPopulationActivitySource.Operator,
+                    occurredAtUtc: recordedAtUtc),
                 cancellationToken: cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -94,7 +99,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegi
 
             return CityCivilRegistryOperationSupport.CreateResult(
                 action: "DivorceRegistered",
-                recordedAtUtc: DateTimeOffset.UtcNow,
+                recordedAtUtc: recordedAtUtc,
                 currentDate: request.CurrentDate,
                 firstResident: firstResident,
                 secondResident: secondResident,

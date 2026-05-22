@@ -75,6 +75,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         CityPopulationParticipationPolicy participationPolicy,
         PersonNeedsProgressionPolicy personNeedsProgressionPolicy,
         CityPopulationWeatherExposurePolicy weatherExposurePolicy,
+        TimeProvider timeProvider,
         ILogger<AdvanceCityPopulationCommandHandler> logger,
         IUnitOfWork unitOfWork)
         : IRequestHandler<AdvanceCityPopulationCommand, AdvanceCityPopulationResult>
@@ -89,6 +90,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             var cityId = CityId.From(request.CityId);
             var fromDate = DateOnly.FromDateTime(request.FromSimTimeUtc.UtcDateTime);
             var toDate = DateOnly.FromDateTime(request.ToSimTimeUtc.UtcDateTime);
+            DateTimeOffset handledAtUtc = timeProvider.GetUtcNow();
             CityPopulationProgressionState? state = await progressionStateRepository.GetByCityAsync(
                 cityId: cityId,
                 cancellationToken: cancellationToken);
@@ -323,7 +325,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                     before: beforeSnapshot,
                                     resident: person,
                                     residentsById: personsById,
-                                    activityEntries: pendingActivityEntries);
+                                    activityEntries: pendingActivityEntries,
+                                    occurredAtUtc: handledAtUtc);
                             }
                         }
 
@@ -368,6 +371,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 householdWriteRepository: householdWriteRepository,
                                 activityEntries: pendingActivityEntries,
                                 residents: residents,
+                                occurredAtUtc: handledAtUtc,
                                 cancellationToken: ct);
 
                             affectedPeopleCount += await ApplyCivilRegistryAutonomyAsync(
@@ -379,6 +383,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 marriageDomainService: marriageDomainService,
                                 civilRegistryAutonomyPolicy: civilRegistryAutonomyPolicy,
                                 activityEntries: pendingActivityEntries,
+                                occurredAtUtc: handledAtUtc,
                                 cancellationToken: ct);
 
                             affectedPeopleCount += await ApplyHouseholdIndependenceAutonomyAsync(
@@ -389,6 +394,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 householdWriteRepository: householdWriteRepository,
                                 householdIndependenceAutonomyPolicy: householdIndependenceAutonomyPolicy,
                                 activityEntries: pendingActivityEntries,
+                                occurredAtUtc: handledAtUtc,
                                 cancellationToken: ct);
 
                             affectedPeopleCount += await ApplyHousingAutonomyAsync(
@@ -406,11 +412,12 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityPopulationAnchorCatalogRepository: cityPopulationAnchorCatalogRepository,
                                 commuteRoutingService: commuteRoutingService,
                                 activityEntries: pendingActivityEntries,
+                                occurredAtUtc: handledAtUtc,
                                 cancellationToken: ct);
                         }
                     }
 
-                    DateTimeOffset updatedAtUtc = DateTimeOffset.UtcNow;
+                    DateTimeOffset updatedAtUtc = handledAtUtc;
                     if (state is null)
                     {
                         var newState = CityPopulationProgressionState.Create(
@@ -1455,6 +1462,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IHouseholdWriteRepository householdWriteRepository,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
             ICollection<PersonEntity> residents,
+            DateTimeOffset occurredAtUtc,
             CancellationToken cancellationToken)
         {
             IReadOnlyList<CityBirthAutonomyDecision> decisions = birthAutonomyPolicy.Plan(
@@ -1512,7 +1520,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         resident: newborn,
                         mother: mother,
                         father: father,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
                 affectedResidents++;
             }
 
@@ -1527,6 +1536,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             IHouseholdWriteRepository householdWriteRepository,
             CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
+            DateTimeOffset occurredAtUtc,
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
@@ -1565,6 +1575,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId,
                         resident: resident,
                         householdWriteRepository: householdWriteRepository,
+                        createdAtUtc: occurredAtUtc,
                         cancellationToken: cancellationToken))
                     continue;
 
@@ -1573,7 +1584,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         currentDate: currentDate,
                         resident: resident,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
                 affectedResidents++;
             }
 
@@ -1589,6 +1601,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             MarriageDomainService marriageDomainService,
             CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
+            DateTimeOffset occurredAtUtc,
             CancellationToken cancellationToken)
         {
             IReadOnlyList<CityCivilRegistryAutonomyDecision> decisions = civilRegistryAutonomyPolicy.Plan(
@@ -1626,7 +1639,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 currentDate: currentDate,
                                 firstResident: firstResident,
                                 secondResident: secondResident,
-                                source: CityPopulationActivitySource.Autonomy));
+                                source: CityPopulationActivitySource.Autonomy,
+                                occurredAtUtc: occurredAtUtc));
                         affectedResidents += 2;
                         break;
                     case CityCivilRegistryAutonomyDecisionType.Divorce:
@@ -1641,6 +1655,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             firstResident: firstResident,
                             secondResident: secondResident,
                             householdWriteRepository: householdWriteRepository,
+                            createdAtUtc: occurredAtUtc,
                             cancellationToken: cancellationToken);
                         activityEntries.Add(
                             ClassicCityActivityFactory.ResidentsDivorced(
@@ -1648,7 +1663,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 currentDate: currentDate,
                                 firstResident: firstResident,
                                 secondResident: secondResident,
-                                source: CityPopulationActivitySource.Autonomy));
+                                source: CityPopulationActivitySource.Autonomy,
+                                occurredAtUtc: occurredAtUtc));
                         affectedResidents += 2;
                         break;
                 }
@@ -1672,6 +1688,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ICityPopulationAnchorCatalogRepository cityPopulationAnchorCatalogRepository,
             ICityPopulationCommuteRoutingService commuteRoutingService,
             ICollection<CityPopulationActivityWriteModel> activityEntries,
+            DateTimeOffset occurredAtUtc,
             CancellationToken cancellationToken)
         {
             IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
@@ -1810,7 +1827,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityId: cityId.Value,
                                 currentDate: currentDate,
                                 resident: anchorResident,
-                                source: CityPopulationActivitySource.Autonomy));
+                                source: CityPopulationActivitySource.Autonomy,
+                                occurredAtUtc: occurredAtUtc));
                         affectedResidents += householdResidents.Count;
                         break;
 
@@ -1824,7 +1842,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityId: cityId.Value,
                                 currentDate: currentDate,
                                 resident: anchorResident,
-                                source: CityPopulationActivitySource.Autonomy));
+                                source: CityPopulationActivitySource.Autonomy,
+                                occurredAtUtc: occurredAtUtc));
                         affectedResidents += householdResidents.Count;
                         break;
                 }
@@ -1904,7 +1923,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
             ResidentLifecycleSnapshot before,
             PersonEntity resident,
             IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
-            ICollection<CityPopulationActivityWriteModel> activityEntries)
+            ICollection<CityPopulationActivityWriteModel> activityEntries,
+            DateTimeOffset occurredAtUtc)
         {
             if (before.IsAlive && !resident.IsAlive)
                 activityEntries.Add(
@@ -1912,7 +1932,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         currentDate: currentDate,
                         resident: resident,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
 
             if (before.MaritalStatus != MaritalStatus.Widowed && resident.MaritalStatus == MaritalStatus.Widowed)
             {
@@ -1929,7 +1950,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         currentDate: currentDate,
                         resident: resident,
                         deceasedName: deceasedName,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
             }
 
             if (before.EducationLevel != resident.EducationLevel && resident.EducationLevel > before.EducationLevel)
@@ -1938,7 +1960,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         currentDate: currentDate,
                         resident: resident,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
 
             if (before.IllnessKind is null && resident.CurrentIllnessKind is not null)
                 activityEntries.Add(
@@ -1946,7 +1969,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         currentDate: currentDate,
                         resident: resident,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
             else
                 if (before.IllnessKind is not null && resident.CurrentIllnessKind is null)
                     activityEntries.Add(
@@ -1955,7 +1979,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             currentDate: currentDate,
                             resident: resident,
                             previousIllnessKind: before.IllnessKind,
-                            source: CityPopulationActivitySource.Autonomy));
+                            source: CityPopulationActivitySource.Autonomy,
+                            occurredAtUtc: occurredAtUtc));
 
             if (before.EmploymentStatus != EmploymentStatus.Student &&
                 resident.Employment.Status == EmploymentStatus.Student)
@@ -1964,7 +1989,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         currentDate: currentDate,
                         resident: resident,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
             else
                 if (before.EmploymentStatus == EmploymentStatus.Student &&
                     resident.Employment.Status != EmploymentStatus.Student)
@@ -1973,7 +1999,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             cityId: cityId.Value,
                             currentDate: currentDate,
                             resident: resident,
-                            source: CityPopulationActivitySource.Autonomy));
+                            source: CityPopulationActivitySource.Autonomy,
+                            occurredAtUtc: occurredAtUtc));
 
             if (before.EmploymentStatus != EmploymentStatus.Employed &&
                 resident.Employment.Status == EmploymentStatus.Employed)
@@ -1982,7 +2009,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         cityId: cityId.Value,
                         currentDate: currentDate,
                         resident: resident,
-                        source: CityPopulationActivitySource.Autonomy));
+                        source: CityPopulationActivitySource.Autonomy,
+                        occurredAtUtc: occurredAtUtc));
             else
                 if (before.EmploymentStatus == EmploymentStatus.Employed &&
                     resident.Employment.Status == EmploymentStatus.Unemployed)
@@ -1992,7 +2020,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             currentDate: currentDate,
                             resident: resident,
                             previousJobTitle: before.JobTitle,
-                            source: CityPopulationActivitySource.Autonomy));
+                            source: CityPopulationActivitySource.Autonomy,
+                            occurredAtUtc: occurredAtUtc));
                 else
                     if (before.EmploymentStatus != EmploymentStatus.Retired &&
                         resident.Employment.Status == EmploymentStatus.Retired)
@@ -2001,7 +2030,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 cityId: cityId.Value,
                                 currentDate: currentDate,
                                 resident: resident,
-                                source: CityPopulationActivitySource.Autonomy));
+                                source: CityPopulationActivitySource.Autonomy,
+                                occurredAtUtc: occurredAtUtc));
         }
 
         private sealed record ResidentLifecycleSnapshot(

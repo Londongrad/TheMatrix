@@ -133,6 +133,7 @@ public sealed class ApplyCityServiceQualitySnapshotCommandHandlerTests
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             stateRepository ?? new FakeCityPopulationServiceQualityStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

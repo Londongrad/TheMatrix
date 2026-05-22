@@ -194,6 +194,7 @@ public sealed class GetCityDistrictPressureQueryHandlerTests
             personReadRepository ?? new FakeCityPopulationPersonReadRepository(),
             householdWriteRepository ?? new FakeHouseholdWriteRepository(),
             utilityClient ?? new FakeCityDistrictUtilityConditionsClient(),
+            CreateTimeProvider(),
             NullLogger<GetCityDistrictPressureQueryHandler>.Instance);
     }
 }

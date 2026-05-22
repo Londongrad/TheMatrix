@@ -106,6 +106,7 @@ public sealed class SyncCityWeatherExposureStateCommandHandlerTests
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             weatherExposureStateRepository ?? new FakeCityPopulationWeatherExposureStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

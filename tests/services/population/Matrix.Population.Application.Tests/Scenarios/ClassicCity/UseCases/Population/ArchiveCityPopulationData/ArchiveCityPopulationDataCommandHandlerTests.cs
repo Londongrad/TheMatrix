@@ -125,6 +125,7 @@ public sealed class ArchiveCityPopulationDataCommandHandlerTests
             archiveStateRepository ?? new FakeCityPopulationArchiveStateRepository(),
             deletionStateRepository ?? new FakeCityPopulationDeletionStateRepository(),
             processedRepository ?? new FakeProcessedIntegrationMessageRepository(),
+            CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
     }
 

@@ -154,7 +154,8 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                             currentDate: request.CurrentDate,
                             requestedPeopleCount: request.PeopleCount,
                             generatedPeopleCount: result.Persons.Count,
-                            householdCount: result.Households.Count),
+                            householdCount: result.Households.Count,
+                            occurredAtUtc: request.CreatedAtUtc),
                         cancellationToken: ct);
 
                     foreach (ClassicCityHouseholdAccountSyncBatchV1 batch in householdAccountBatches)

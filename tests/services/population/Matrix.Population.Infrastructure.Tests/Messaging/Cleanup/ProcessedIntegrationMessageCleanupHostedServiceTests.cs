@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Matrix.Population.Infrastructure.Messaging.Cleanup;
 using Matrix.Population.Infrastructure.Persistence;
 using Matrix.Population.Infrastructure.Persistence.Entities;
@@ -163,9 +164,9 @@ public sealed class ProcessedIntegrationMessageCleanupHostedServiceTests
 
     private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
     {
-        DateTimeOffset deadline = DateTimeOffset.UtcNow.Add(timeout);
+        long startedAt = Stopwatch.GetTimestamp();
 
-        while (DateTimeOffset.UtcNow < deadline)
+        while (Stopwatch.GetElapsedTime(startedAt) < timeout)
         {
             if (condition())
                 return;
