@@ -45,6 +45,7 @@ public sealed class LoginUserHandlerSuccessTests
         Assert.Equal("neo@matrix.local", userRepository.RequestedEmail);
         var session = Assert.Single(userSessionRepository.AddedSessions);
         Assert.Equal(user.Id, session.UserId);
+        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, session.CreatedAtUtc);
         Assert.Equal("device-1", session.DeviceInfo.DeviceId);
         Assert.Equal("Phone", session.DeviceInfo.DeviceName);
         Assert.Equal("Mozilla/5.0", session.DeviceInfo.UserAgent);
@@ -75,6 +76,7 @@ public sealed class LoginUserHandlerSuccessTests
         var refreshToken = Assert.Single(user.RefreshTokens);
         Assert.Equal(session.Id, refreshToken.SessionId);
         Assert.Equal(refreshTokenProvider.Result.TokenHash, refreshToken.TokenHash);
+        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, refreshToken.CreatedAtUtc);
         Assert.False(refreshToken.IsRevoked);
     }
 
@@ -149,6 +151,7 @@ public sealed class LoginUserHandlerSuccessTests
         Assert.Equal(refreshTokenProvider.Result.ExpiresAtUtc, currentSession.RefreshTokenExpiresAtUtc);
         Assert.False(currentSession.IsPersistent);
         Assert.True(replacedSession.IsRevoked);
+        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, replacedSession.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.SessionReplaced, replacedSession.RevokedReason);
         Assert.False(otherDeviceSession.IsRevoked);
         Assert.Equal("hash::Pa$$w0rd", user.PasswordHash);
@@ -165,9 +168,12 @@ public sealed class LoginUserHandlerSuccessTests
         var otherDeviceToken = Assert.Single(user.RefreshTokens, x => x.TokenHash == "other-device");
         var newToken = Assert.Single(user.RefreshTokens, x => x.TokenHash == refreshTokenProvider.Result.TokenHash);
         Assert.True(existingCurrentToken.IsRevoked);
+        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, existingCurrentToken.RevokedAtUtc);
         Assert.True(existingReplacedToken.IsRevoked);
+        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, existingReplacedToken.RevokedAtUtc);
         Assert.False(otherDeviceToken.IsRevoked);
         Assert.False(newToken.IsRevoked);
+        Assert.Equal(LoginUserHandlerTestSupport.UtcNow, newToken.CreatedAtUtc);
         Assert.Equal(currentSession.Id, newToken.SessionId);
 
         Assert.Equal(1, unitOfWork.SaveChangesCalls);

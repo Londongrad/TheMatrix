@@ -20,10 +20,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
         IGeoLocationService geoLocationService,
         IUnitOfWork unitOfWork,
         IEffectivePermissionsService permissionsService,
-        IClock clock,
+        TimeProvider timeProvider,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<LoginUserCommand, LoginUserResult>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task<LoginUserResult> Handle(
             LoginUserCommand request,
             CancellationToken cancellationToken)
@@ -135,7 +137,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.LoginUser
                     ipAddress: request.IpAddress,
                     cancellationToken: cancellationToken);
 
-            DateTime utcNow = clock.UtcNow;
+            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
 
             UserSession? session = await userSessionRepository.GetActiveByUserIdAndDeviceIdAsync(
                 userId: user.Id,

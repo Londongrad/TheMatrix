@@ -19,6 +19,11 @@ internal static class LoginUserHandlerTestSupport
     internal static readonly DateTime UtcNow = new(2047, 6, 8, 9, 10, 11, DateTimeKind.Utc);
     internal static readonly DateTime RefreshTokenExpiresAtUtc = UtcNow.AddDays(7);
 
+    internal static TimeProvider CreateTimeProvider(DateTime? utcNow = null)
+    {
+        return new FrozenTimeProvider(utcNow ?? UtcNow);
+    }
+
     internal static ProdLoginUser.LoginUserCommand CreateCommand(
         string login = "neo@matrix.local",
         string password = "Pa$$w0rd",
@@ -129,7 +134,8 @@ internal static class LoginUserHandlerTestSupport
         FakeGeoLocationService geoLocationService,
         FakeUnitOfWork unitOfWork,
         FakeEffectivePermissionsService permissionsService,
-        FakeSecurityAuditService securityAuditService)
+        FakeSecurityAuditService securityAuditService,
+        TimeProvider? timeProvider = null)
     {
         return new ProdLoginUser.LoginUserCommandHandler(
             userRepository,
@@ -140,7 +146,7 @@ internal static class LoginUserHandlerTestSupport
             geoLocationService,
             unitOfWork,
             permissionsService,
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             securityAuditService);
     }
 
@@ -348,8 +354,13 @@ internal static class LoginUserHandlerTestSupport
         }
     }
 
-    internal sealed class TestClock : IClock
+    private sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
     {
-        public DateTime UtcNow => LoginUserHandlerTestSupport.UtcNow;
+        public override DateTimeOffset GetUtcNow()
+        {
+            return new DateTimeOffset(
+                DateTime.SpecifyKind(utcNow, DateTimeKind.Utc),
+                TimeSpan.Zero);
+        }
     }
 }
