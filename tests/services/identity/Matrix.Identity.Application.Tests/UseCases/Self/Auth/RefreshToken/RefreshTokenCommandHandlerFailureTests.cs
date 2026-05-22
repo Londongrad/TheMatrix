@@ -81,6 +81,7 @@ public sealed class RefreshTokenCommandHandlerFailureTests
 
         Assert.Equal(expectedCode, exception.Code);
         Assert.True(token.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, token.RevokedAtUtc);
         Assert.Equal(expectedReason, token.RevokedReason);
     }
 
@@ -149,8 +150,10 @@ public sealed class RefreshTokenCommandHandlerFailureTests
 
         Assert.Equal("Identity.InvalidRefreshToken", exception.Code);
         Assert.True(token.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, token.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.SecurityEvent, token.RevokedReason);
         Assert.True(session.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, session.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.SecurityEvent, session.RevokedReason);
         Assert.Equal(1, unitOfWork.SaveChangesCalls);
     }

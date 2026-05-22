@@ -19,10 +19,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
         IRefreshTokenProvider refreshTokenProvider,
         IGeoLocationService geoLocationService,
         IUnitOfWork unitOfWork,
-        IClock clock,
+        TimeProvider timeProvider,
         IEffectivePermissionsService permissionsService)
         : IRequestHandler<RefreshTokenCommand, LoginUserResult>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task<LoginUserResult> Handle(
             RefreshTokenCommand request,
             CancellationToken cancellationToken)
@@ -33,7 +35,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken
                             tokenHash: hash,
                             cancellationToken: cancellationToken) ??
                         throw ApplicationErrorsFactory.InvalidRefreshToken();
-            DateTime utcNow = clock.UtcNow;
+            DateTime utcNow = _timeProvider.GetUtcNow().UtcDateTime;
 
             if (!user.CanLogin())
             {

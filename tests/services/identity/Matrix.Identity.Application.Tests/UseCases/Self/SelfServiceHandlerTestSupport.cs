@@ -338,7 +338,8 @@ internal static class SelfServiceHandlerTestSupport
         FakeRefreshTokenProvider refreshTokenProvider,
         FakeGeoLocationService geoLocationService,
         FakeUnitOfWork unitOfWork,
-        FakeEffectivePermissionsService permissionsService)
+        FakeEffectivePermissionsService permissionsService,
+        TimeProvider? timeProvider = null)
     {
         return new Matrix.Identity.Application.UseCases.Self.Auth.RefreshToken.RefreshTokenCommandHandler(
             userRepository,
@@ -347,7 +348,7 @@ internal static class SelfServiceHandlerTestSupport
             refreshTokenProvider,
             geoLocationService,
             unitOfWork,
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             permissionsService);
     }
 

@@ -103,11 +103,13 @@ public sealed class RefreshTokenCommandHandlerSuccessTests
 
         Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, currentToken.LastUsedAtUtc);
         Assert.True(currentToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, currentToken.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.SessionReplaced, currentToken.RevokedReason);
         Assert.Equal("Mozilla/5.0 (refreshed)", currentToken.DeviceInfo.UserAgent);
         Assert.Equal("203.0.113.9", currentToken.DeviceInfo.IpAddress);
 
         Assert.True(sameSessionToken.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, sameSessionToken.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.SessionReplaced, sameSessionToken.RevokedReason);
         Assert.False(sameDeviceOtherSessionToken.IsRevoked);
         Assert.False(otherDeviceToken.IsRevoked);
@@ -117,11 +119,13 @@ public sealed class RefreshTokenCommandHandlerSuccessTests
         Assert.True(currentSession.IsPersistent);
         Assert.False(currentSession.IsRevoked);
         Assert.True(replacedSession.IsRevoked);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, replacedSession.RevokedAtUtc);
         Assert.Equal(RefreshTokenRevocationReason.SessionReplaced, replacedSession.RevokedReason);
         Assert.False(otherDeviceSession.IsRevoked);
 
         DomainRefreshToken newToken = Assert.Single(user.RefreshTokens, x => x.TokenHash == refreshTokenProvider.Result.TokenHash);
         Assert.Equal(currentSession.Id, newToken.SessionId);
+        Assert.Equal(SelfServiceHandlerTestSupport.UtcNow, newToken.CreatedAtUtc);
         Assert.False(newToken.IsRevoked);
         Assert.Equal("device-1", newToken.DeviceInfo.DeviceId);
         Assert.Equal("Phone", newToken.DeviceInfo.DeviceName);
