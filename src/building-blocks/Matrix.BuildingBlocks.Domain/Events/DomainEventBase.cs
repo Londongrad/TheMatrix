@@ -5,6 +5,6 @@ namespace Matrix.BuildingBlocks.Domain.Events
     /// </summary>
     public abstract record DomainEventBase : IDomainEvent
     {
-        public DateTimeOffset OccurredAtUtc { get; init; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset OccurredAtUtc { get; init; } = TimeProvider.System.GetUtcNow();
     }
 }

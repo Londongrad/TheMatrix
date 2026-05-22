@@ -8,6 +8,8 @@ namespace Matrix.SimulationCore.Infrastructure.Tests.Economy;
 
 public sealed class CityEconomyBootstrapClientTests
 {
+    private static readonly DateTimeOffset CreatedAtUtc = new(2048, 2, 3, 4, 5, 6, TimeSpan.Zero);
+
     [Fact]
     public async Task InitializeAsync_WhenResponseIsSuccessful_ReturnsMappedResult()
     {
@@ -29,13 +31,11 @@ public sealed class CityEconomyBootstrapClientTests
         using var httpClient = HttpClientTestSupport.CreateHttpClient(handler);
         var client = HttpClientTestSupport.CreateEconomyBootstrapClient(httpClient);
         Guid cityId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        DateTimeOffset createdAtUtc = new(2048, 2, 3, 4, 5, 6, TimeSpan.Zero);
-
         var result = await client.InitializeAsync(
             cityId: cityId,
             simulationKind: "ClassicCity",
             economyProfile: "Balanced",
-            createdAtUtc: createdAtUtc,
+            createdAtUtc: CreatedAtUtc,
             cancellationToken: CancellationToken.None);
 
         HttpClientTestSupport.RecordedRequest request = Assert.Single(handler.Requests);
@@ -46,7 +46,7 @@ public sealed class CityEconomyBootstrapClientTests
         using JsonDocument json = JsonDocument.Parse(request.Body!);
         Assert.Equal("ClassicCity", json.RootElement.GetProperty("simulationKind").GetString());
         Assert.Equal("Balanced", json.RootElement.GetProperty("economyProfile").GetString());
-        Assert.Equal(createdAtUtc, json.RootElement.GetProperty("createdAtUtc").GetDateTimeOffset());
+        Assert.Equal(CreatedAtUtc, json.RootElement.GetProperty("createdAtUtc").GetDateTimeOffset());
 
         Assert.Equal("Currency", result.UnitKind);
         Assert.Equal("CR", result.UnitCode);
@@ -69,7 +69,7 @@ public sealed class CityEconomyBootstrapClientTests
                 cityId: Guid.NewGuid(),
                 simulationKind: "ClassicCity",
                 economyProfile: "Balanced",
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: CreatedAtUtc,
                 cancellationToken: CancellationToken.None));
 
         Assert.Equal(HttpStatusCode.BadGateway, exception.StatusCode);
@@ -91,7 +91,7 @@ public sealed class CityEconomyBootstrapClientTests
                 cityId: Guid.NewGuid(),
                 simulationKind: "ClassicCity",
                 economyProfile: "Balanced",
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: CreatedAtUtc,
                 cancellationToken: CancellationToken.None));
 
         Assert.Equal("Economy bootstrap response was empty.", exception.Message);
@@ -113,7 +113,7 @@ public sealed class CityEconomyBootstrapClientTests
                 cityId: Guid.NewGuid(),
                 simulationKind: "ClassicCity",
                 economyProfile: "Balanced",
-                createdAtUtc: DateTimeOffset.UtcNow,
+                createdAtUtc: CreatedAtUtc,
                 cancellationToken: CancellationToken.None));
     }
 }

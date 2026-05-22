@@ -46,9 +46,9 @@ public sealed class EntityAndAggregateTests
     [Fact]
     public void DomainEventBase_WhenCreated_SetsOccurredAtUtc()
     {
-        DateTimeOffset before = DateTimeOffset.UtcNow.AddSeconds(-1);
+        DateTimeOffset before = TimeProvider.System.GetUtcNow().AddSeconds(-1);
         IDomainEvent domainEvent = new TestDomainEvent("created");
-        DateTimeOffset after = DateTimeOffset.UtcNow.AddSeconds(1);
+        DateTimeOffset after = TimeProvider.System.GetUtcNow().AddSeconds(1);
 
         Assert.InRange(domainEvent.OccurredAtUtc, before, after);
     }

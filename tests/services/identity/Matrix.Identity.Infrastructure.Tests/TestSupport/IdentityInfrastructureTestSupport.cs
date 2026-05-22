@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -278,9 +279,9 @@ internal static class IdentityInfrastructureTestSupport
 
     internal static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
     {
-        DateTimeOffset deadline = DateTimeOffset.UtcNow.Add(timeout);
+        long startedAt = Stopwatch.GetTimestamp();
 
-        while (DateTimeOffset.UtcNow < deadline)
+        while (Stopwatch.GetElapsedTime(startedAt) < timeout)
         {
             if (condition())
                 return;
