@@ -15,9 +15,11 @@ namespace Matrix.Identity.Application.Services.Identity
         IEmailSender emailSender,
         IUnitOfWork unitOfWork,
         IFrontendLinkBuilder frontendLinkBuilder,
-        IClock clock,
+        TimeProvider timeProvider,
         ISecurityAuditService securityAuditService) : IOneTimeTokenDeliveryService
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public Task SendEmailConfirmationAsync(
             string email,
             string? ipAddress,
@@ -139,7 +141,7 @@ namespace Matrix.Identity.Application.Services.Identity
                 return;
             }
 
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
             TimeSpan cooldown = oneTimeTokenService.GetDeliveryCooldown(purpose);
             int maxAttemptsPerHour = oneTimeTokenService.GetMaxDeliveryAttemptsPerHour(purpose);
 
