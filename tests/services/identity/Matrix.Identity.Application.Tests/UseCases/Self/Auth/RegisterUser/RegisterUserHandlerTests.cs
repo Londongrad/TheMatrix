@@ -14,6 +14,8 @@ namespace Matrix.Identity.Application.Tests.UseCases.Self.Auth.RegisterUser;
 
 public sealed class RegisterUserHandlerTests
 {
+    private static readonly DateTime UtcNow = new(2047, 6, 7, 8, 9, 10, DateTimeKind.Utc);
+
     [Fact]
     public async Task Handle_WhenFirstUser_AssignsSuperAdminAndPersistsUser()
     {
@@ -24,7 +26,7 @@ public sealed class RegisterUserHandlerTests
         var assignedRole = Role.Create(
             name: SystemRoleNames.SuperAdmin,
             isSystem: true,
-            createdAtUtc: TestClock.UtcNow);
+            createdAtUtc: UtcNow);
         var roleRepository = new FakeRoleReadRepository
         {
             RolesByName =
@@ -51,6 +53,7 @@ public sealed class RegisterUserHandlerTests
 
         Assert.NotNull(userRepository.AddedUser);
         Assert.Equal("neo@matrix.local", userRepository.AddedUser!.Email.Value);
+        Assert.Equal(UtcNow, userRepository.AddedUser.CreatedAtUtc);
         Assert.Equal("Pa$$w0rd", passwordHasher.HashedPasswordInput);
         Assert.Equal("hash::Pa$$w0rd", userRepository.AddedUser.PasswordHash);
         Assert.Equal(SystemRoleNames.SuperAdmin, roleRepository.RequestedRoleNames.Single());
@@ -73,7 +76,7 @@ public sealed class RegisterUserHandlerTests
         var assignedRole = Role.Create(
             name: SystemRoleNames.User,
             isSystem: true,
-            createdAtUtc: TestClock.UtcNow);
+            createdAtUtc: UtcNow);
         var roleRepository = new FakeRoleReadRepository
         {
             RolesByName =
@@ -169,7 +172,8 @@ public sealed class RegisterUserHandlerTests
         FakeUserRolesRepository? userRolesRepository = null,
         FakeRoleReadRepository? roleReadRepository = null,
         FakePasswordHasher? passwordHasher = null,
-        FakeUnitOfWork? unitOfWork = null)
+        FakeUnitOfWork? unitOfWork = null,
+        TimeProvider? timeProvider = null)
     {
         return new RegisterUserHandler(
             userRepository ?? new FakeUserRepository(),
@@ -178,13 +182,18 @@ public sealed class RegisterUserHandlerTests
             {
                 RolesByName =
                 {
-                    [SystemRoleNames.User] = Role.Create(SystemRoleNames.User, true, TestClock.UtcNow),
-                    [SystemRoleNames.SuperAdmin] = Role.Create(SystemRoleNames.SuperAdmin, true, TestClock.UtcNow)
+                    [SystemRoleNames.User] = Role.Create(SystemRoleNames.User, true, UtcNow),
+                    [SystemRoleNames.SuperAdmin] = Role.Create(SystemRoleNames.SuperAdmin, true, UtcNow)
                 }
             },
             passwordHasher ?? new FakePasswordHasher(),
-            new TestClock(),
+            timeProvider ?? CreateTimeProvider(),
             unitOfWork ?? new FakeUnitOfWork());
+    }
+
+    private static TimeProvider CreateTimeProvider(DateTime? utcNow = null)
+    {
+        return new FrozenTimeProvider(utcNow ?? UtcNow);
     }
 
     private sealed class FakeUserRepository : IUserRepository
@@ -272,11 +281,14 @@ public sealed class RegisterUserHandlerTests
         }
     }
 
-    private sealed class TestClock : IClock
+    private sealed class FrozenTimeProvider(DateTime utcNow) : TimeProvider
     {
-        internal static readonly DateTime UtcNow = new(2047, 6, 7, 8, 9, 10, DateTimeKind.Utc);
-
-        DateTime IClock.UtcNow => UtcNow;
+        public override DateTimeOffset GetUtcNow()
+        {
+            return new DateTimeOffset(
+                DateTime.SpecifyKind(utcNow, DateTimeKind.Utc),
+                TimeSpan.Zero);
+        }
     }
 
     private sealed class FakeUnitOfWork : Matrix.BuildingBlocks.Application.Abstractions.IUnitOfWork

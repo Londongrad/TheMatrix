@@ -15,10 +15,12 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
         IUserRolesRepository userRolesRepository,
         IRoleReadRepository roleReadRepository,
         IPasswordHasher passwordHasher,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork)
         : IRequestHandler<RegisterUserCommand, RegisterUserResult>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task<RegisterUserResult> Handle(
             RegisterUserCommand request,
             CancellationToken cancellationToken)
@@ -57,12 +59,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Auth.RegisterUser
                                         throw ApplicationErrorsFactory.RequiredSystemRoleMissing(assignedRoleName);
 
                     string passwordHash = passwordHasher.Hash(request.Password);
+                    DateTime createdAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
 
                     var user = User.CreateNew(
                         email: email,
                         username: username,
                         passwordHash: passwordHash,
-                        createdAtUtc: clock.UtcNow);
+                        createdAtUtc: createdAtUtc);
 
                     await userRepository.AddAsync(
                         user: user,
