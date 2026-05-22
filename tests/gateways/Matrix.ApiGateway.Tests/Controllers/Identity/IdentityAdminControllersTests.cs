@@ -19,6 +19,8 @@ namespace Matrix.ApiGateway.Tests.Controllers.Identity;
 
 public sealed class IdentityAdminControllersTests
 {
+    private static readonly DateTime CreatedAtUtc = new(2048, 6, 1, 8, 0, 0, DateTimeKind.Utc);
+
     [Fact]
     public async Task AdminUsersControllerGetUsersPage_NormalizesAvatarUrls()
     {
@@ -171,7 +173,7 @@ public sealed class IdentityAdminControllersTests
         }
 
         public Task<UserDetailsResponse> GetUserDetailsAsync(Guid userId, CancellationToken cancellationToken)
-            => Task.FromResult(new UserDetailsResponse { Id = userId, Email = "mira@matrix.test", Username = "mira", CreatedAtUtc = DateTime.UtcNow });
+            => Task.FromResult(new UserDetailsResponse { Id = userId, Email = "mira@matrix.test", Username = "mira", CreatedAtUtc = CreatedAtUtc });
 
         public Task LockUserAsync(Guid userId, CancellationToken cancellationToken) => Task.CompletedTask;
         public Task UnlockUserAsync(Guid userId, CancellationToken cancellationToken) => Task.CompletedTask;
@@ -208,10 +210,10 @@ public sealed class IdentityAdminControllersTests
             => Task.FromResult<IReadOnlyCollection<RoleResponse>>([]);
 
         public Task<RoleResponse> CreateRoleAsync(CreateRoleRequest request, CancellationToken cancellationToken)
-            => Task.FromResult(new RoleResponse { Id = Guid.NewGuid(), Name = request.Name, CreatedAtUtc = DateTime.UtcNow });
+            => Task.FromResult(new RoleResponse { Id = Guid.NewGuid(), Name = request.Name, CreatedAtUtc = CreatedAtUtc });
 
         public Task<RoleResponse> RenameRoleAsync(Guid roleId, RenameRoleRequest request, CancellationToken cancellationToken)
-            => Task.FromResult(new RoleResponse { Id = roleId, Name = request.Name, CreatedAtUtc = DateTime.UtcNow });
+            => Task.FromResult(new RoleResponse { Id = roleId, Name = request.Name, CreatedAtUtc = CreatedAtUtc });
 
         public Task DeleteRoleAsync(Guid roleId, CancellationToken cancellationToken) => Task.CompletedTask;
 

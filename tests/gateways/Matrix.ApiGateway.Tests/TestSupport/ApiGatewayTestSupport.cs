@@ -420,7 +420,8 @@ public static class ApiGatewayTestSupport
         RecordingPopulationApiClient? populationClient = null,
         RecordingStockpilesApiClient? stockpilesClient = null,
         RecordingEnvironmentalConditionsApiClient? environmentalConditionsClient = null,
-        RecordingProvisioningService? provisioningService = null)
+        RecordingProvisioningService? provisioningService = null,
+        TimeProvider? timeProvider = null)
     {
         IInternalJwtRequestContextAccessor requestContextAccessor = new InternalJwtRequestContextAccessor();
 
@@ -433,6 +434,7 @@ public static class ApiGatewayTestSupport
             stockpilesClient: stockpilesClient ?? new RecordingStockpilesApiClient(),
             environmentalConditionsClient: environmentalConditionsClient ?? new RecordingEnvironmentalConditionsApiClient(),
             cityProvisioningService: provisioningService ?? new RecordingProvisioningService(requestContextAccessor),
+            timeProvider: timeProvider ?? TimeProvider.System,
             logger: NullLogger<CitiesController>.Instance);
     }
 

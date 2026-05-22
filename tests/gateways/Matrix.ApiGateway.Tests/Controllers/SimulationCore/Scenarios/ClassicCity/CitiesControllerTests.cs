@@ -106,12 +106,13 @@ public sealed class CitiesControllerTests
             SanitationResult = sanitation,
             UtilityIncidentResult = utilityIncidents
         };
-        var controller = CreateCitiesController(environmentalConditionsClient: environmentalConditionsClient);
-        DateTimeOffset beforeUtc = DateTimeOffset.UtcNow;
+        DateTimeOffset generatedAtUtc = new(2048, 6, 3, 14, 0, 0, TimeSpan.Zero);
+        var controller = CreateCitiesController(
+            environmentalConditionsClient: environmentalConditionsClient,
+            timeProvider: CreateTimeProvider(generatedAtUtc));
 
         ActionResult<CityDistrictInfrastructureView> actionResult = await controller.GetDistrictInfrastructure(cityId, CancellationToken.None);
 
-        DateTimeOffset afterUtc = DateTimeOffset.UtcNow;
         OkObjectResult ok = Assert.IsType<OkObjectResult>(actionResult.Result);
         CityDistrictInfrastructureView view = Assert.IsType<CityDistrictInfrastructureView>(ok.Value);
         Assert.Equal(cityId, view.CityId);
@@ -120,7 +121,7 @@ public sealed class CitiesControllerTests
         Assert.Same(power, view.PowerDistribution);
         Assert.Same(sanitation, view.Sanitation);
         Assert.Same(utilityIncidents, view.UtilityIncidents);
-        Assert.InRange(view.GeneratedAtUtc, beforeUtc, afterUtc);
+        Assert.Equal(generatedAtUtc, view.GeneratedAtUtc);
     }
 
     [Fact]

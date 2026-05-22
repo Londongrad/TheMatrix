@@ -45,6 +45,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         IStockpilesApiClient stockpilesClient,
         IEnvironmentalConditionsApiClient environmentalConditionsClient,
         ICityProvisioningService cityProvisioningService,
+        TimeProvider timeProvider,
         ILogger<CitiesController> logger) : ControllerBase
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
@@ -55,6 +56,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
         private readonly IPopulationApiClient _populationClient = populationClient;
         private readonly ISimulationApiClient _simulationClient = simulationClient;
         private readonly IStockpilesApiClient _stockpilesClient = stockpilesClient;
+        private readonly TimeProvider _timeProvider = timeProvider;
         private readonly ITripsApiClient _tripsClient = tripsClient;
 
         [HttpPost]
@@ -229,7 +231,7 @@ namespace Matrix.ApiGateway.Controllers.SimulationCore.Scenarios.ClassicCity.Cit
             return Ok(
                 new CityDistrictInfrastructureView(
                     CityId: cityId,
-                    GeneratedAtUtc: DateTimeOffset.UtcNow,
+                    GeneratedAtUtc: _timeProvider.GetUtcNow(),
                     Heating: heating,
                     WaterDistribution: water,
                     PowerDistribution: power,

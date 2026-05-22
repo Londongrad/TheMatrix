@@ -1221,7 +1221,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
 
         private async Task<DashboardServiceHealthView> ProbeGatewayHealthAsync(CancellationToken cancellationToken)
         {
-            DateTimeOffset checkedAt = DateTimeOffset.UtcNow;
+            DateTimeOffset checkedAt = _timeProvider.GetUtcNow();
 
             try
             {
@@ -1266,7 +1266,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
             string baseUrl,
             CancellationToken cancellationToken)
         {
-            DateTimeOffset checkedAt = DateTimeOffset.UtcNow;
+            DateTimeOffset checkedAt = _timeProvider.GetUtcNow();
 
             try
             {
