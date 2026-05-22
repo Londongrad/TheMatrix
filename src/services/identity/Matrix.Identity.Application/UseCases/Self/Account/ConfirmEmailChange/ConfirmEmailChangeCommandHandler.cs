@@ -14,11 +14,13 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange
         IUserRepository userRepository,
         IOneTimeTokenRepository oneTimeTokenRepository,
         IOneTimeTokenService oneTimeTokenService,
-        IClock clock,
+        TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         ISecurityAuditService securityAuditService)
         : IRequestHandler<ConfirmEmailChangeCommand>
     {
+        private readonly TimeProvider _timeProvider = timeProvider;
+
         public async Task Handle(
             ConfirmEmailChangeCommand request,
             CancellationToken cancellationToken)
@@ -91,7 +93,7 @@ namespace Matrix.Identity.Application.UseCases.Self.Account.ConfirmEmailChange
                 throw ApplicationErrorsFactory.EmailAlreadyInUse(user.PendingEmail);
             }
 
-            DateTime nowUtc = clock.UtcNow;
+            DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
             string previousEmail = user.Email.Value;
             string newEmail = user.PendingEmail;
 
