@@ -73,4 +73,51 @@ public sealed class UserRepositoryTests
         Assert.Equal(2, matchingVersion);
         Assert.Equal(1, otherVersion);
     }
+
+    [Fact]
+    public async Task StreamUserIdsByRoleAsync_WhenRoleHasMembers_YieldsOnlyMatchingUsers()
+    {
+        await using IdentityTestDatabase database = CreateDbContext();
+        var repository = new UserRepository(database.DbContext);
+        Role role = CreateRole("Moderator");
+        Role otherRole = CreateRole("Other");
+        User matchingUser1 = CreateUser("morpheus@matrix.local", "morpheus");
+        User matchingUser2 = CreateUser("trinity@matrix.local", "trinity");
+        User otherUser = CreateUser("smith@matrix.local", "smith");
+
+        await database.DbContext.Roles.AddRangeAsync(role, otherRole);
+        await database.DbContext.Users.AddRangeAsync(matchingUser1, matchingUser2, otherUser);
+        await database.DbContext.UserRoles.AddRangeAsync(
+            new UserRole(matchingUser1.Id, role.Id),
+            new UserRole(matchingUser2.Id, role.Id),
+            new UserRole(otherUser.Id, otherRole.Id));
+        await database.DbContext.SaveChangesAsync();
+
+        List<Guid> userIds = [];
+
+        await foreach (Guid userId in repository.StreamUserIdsByRoleAsync(role.Id, CancellationToken.None))
+            userIds.Add(userId);
+
+        Assert.Equal(
+            new[] { matchingUser1.Id, matchingUser2.Id }.OrderBy(id => id).ToArray(),
+            userIds.OrderBy(id => id).ToArray());
+    }
+
+    [Fact]
+    public async Task StreamUserIdsByRoleAsync_WhenRoleHasNoMembers_YieldsEmptySequence()
+    {
+        await using IdentityTestDatabase database = CreateDbContext();
+        var repository = new UserRepository(database.DbContext);
+        Role role = CreateRole("Auditor");
+
+        await database.DbContext.Roles.AddAsync(role);
+        await database.DbContext.SaveChangesAsync();
+
+        List<Guid> userIds = [];
+
+        await foreach (Guid userId in repository.StreamUserIdsByRoleAsync(role.Id, CancellationToken.None))
+            userIds.Add(userId);
+
+        Assert.Empty(userIds);
+    }
 }

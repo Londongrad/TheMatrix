@@ -222,6 +222,7 @@ public sealed class RegisterUserHandlerTests
         public Task<User?> GetByRefreshTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<User?> GetByUsernameAsync(string login, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(Guid roleId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<bool> IsEmailTakenAsync(string normalizedEmail, CancellationToken cancellationToken = default) => Task.FromResult(IsEmailTakenAsyncResult);
         public Task<bool> IsUsernameTakenAsync(string normalizedUsername, CancellationToken cancellationToken = default) => Task.FromResult(IsUsernameTakenAsyncResult);
     }

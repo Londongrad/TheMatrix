@@ -1,4 +1,5 @@
 using System.Data;
+using System.Runtime.CompilerServices;
 using Matrix.BuildingBlocks.Application.Abstractions;
 using Matrix.BuildingBlocks.Application.Models;
 using Matrix.Identity.Application.Abstractions.Persistence;
@@ -191,6 +192,21 @@ internal static class AdminRolesTestSupport
             RequestedRoleId = roleId;
             UserIdsByRoleId.TryGetValue(roleId, out IReadOnlyCollection<Guid>? userIds);
             return Task.FromResult(userIds ?? (IReadOnlyCollection<Guid>)Array.Empty<Guid>());
+        }
+
+        public async IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(
+            Guid roleId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            RequestedRoleId = roleId;
+            UserIdsByRoleId.TryGetValue(roleId, out IReadOnlyCollection<Guid>? userIds);
+
+            foreach (Guid userId in userIds ?? Array.Empty<Guid>())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return userId;
+                await Task.Yield();
+            }
         }
 
         public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default) => throw new NotSupportedException();

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Matrix.Identity.Application.Abstractions.Persistence;
 using Matrix.Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -147,6 +148,21 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                .Where(ur => ur.RoleId == roleId)
                .Select(ur => ur.UserId)
                .ToListAsync(cancellationToken);
+        }
+
+        public async IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(
+            Guid roleId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            await foreach (Guid userId in dbContext.UserRoles
+               .AsNoTracking()
+               .Where(ur => ur.RoleId == roleId)
+               .Select(ur => ur.UserId)
+               .AsAsyncEnumerable()
+               .WithCancellation(cancellationToken))
+            {
+                yield return userId;
+            }
         }
 
         public async Task<bool> BumpPermissionsVersionAsync(
