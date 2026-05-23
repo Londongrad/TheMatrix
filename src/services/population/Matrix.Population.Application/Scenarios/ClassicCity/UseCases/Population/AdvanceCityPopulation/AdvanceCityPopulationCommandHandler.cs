@@ -800,13 +800,13 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     key: person.HouseholdId,
                     value: out HouseholdEntity? household))
                 return false;
-            IReadOnlyList<CityAnchorId> preferredSchoolAnchorIds = await RankAnchorIdsByRouteAccessAsync(
+            IReadOnlyList<CityAnchorId> preferredSchoolAnchorIds = await AnchorRouteAccessRanker.RankAsync(
                 cityId: cityId,
                 residentialBuildingId: residentialBuildingId,
                 anchors: schoolAnchors,
                 commuteRoutingService: commuteRoutingService,
                 cancellationToken: cancellationToken);
-            IReadOnlyList<CityAnchorId> preferredWorkplaceAnchorIds = await RankAnchorIdsByRouteAccessAsync(
+            IReadOnlyList<CityAnchorId> preferredWorkplaceAnchorIds = await AnchorRouteAccessRanker.RankAsync(
                 cityId: cityId,
                 residentialBuildingId: residentialBuildingId,
                 anchors: workplaceAnchors,
@@ -850,46 +850,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 return changed;
             person.Retire(currentDate);
             return true;
-        }
-
-        private static async Task<IReadOnlyList<CityAnchorId>> RankAnchorIdsByRouteAccessAsync(
-            CityId cityId,
-            ResidentialBuildingId? residentialBuildingId,
-            IReadOnlyCollection<CityPopulationAnchorCatalogItem> anchors,
-            ICityPopulationCommuteRoutingService commuteRoutingService,
-            CancellationToken cancellationToken)
-        {
-            if (!residentialBuildingId.HasValue || anchors.Count == 0)
-                return [];
-
-            await commuteRoutingService.PreloadAnchorCommutesAsync(
-                cityId: cityId.Value,
-                requests: anchors
-                   .Select(anchor => new CityPopulationCommuteRouteRequest(
-                        ResidentialBuildingId: residentialBuildingId.Value,
-                        DestinationAnchorId: anchor.CityAnchorId,
-                        Profile: CityPopulationCommuteRoutingProfiles.Pedestrian))
-                   .ToArray(),
-                cancellationToken: cancellationToken);
-
-            var rankedAnchors = new List<(CityAnchorId AnchorId, CityPopulationCommuteContext Commute)>(anchors.Count);
-            foreach (CityPopulationAnchorCatalogItem anchor in anchors)
-            {
-                CityPopulationCommuteContext commute = await commuteRoutingService.ResolveAnchorCommuteAsync(
-                    cityId: cityId.Value,
-                    residentialBuildingId: residentialBuildingId,
-                    destinationAnchorId: anchor.CityAnchorId,
-                    cancellationToken: cancellationToken);
-                rankedAnchors.Add((anchor.CityAnchorId, commute));
-            }
-
-            return rankedAnchors
-               .OrderByDescending(x => x.Commute.IsAccessible)
-               .ThenByDescending(x => x.Commute.AccessibilityIndex)
-               .ThenByDescending(x => x.Commute.PassabilityIndex)
-               .ThenBy(x => x.Commute.EstimatedTravelTimeMinutes ?? decimal.MaxValue)
-               .Select(x => x.AnchorId)
-               .ToArray();
         }
 
         private static bool ApplyLivingConditionsProgression(
