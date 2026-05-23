@@ -619,6 +619,30 @@ public static class ApiGatewayTestSupport
             CurrentActiveTrip: null);
     }
 
+    public static CityPopulationDistrictPressureDto CreateCityPopulationDistrictPressureDto(Guid cityId)
+    {
+        return new CityPopulationDistrictPressureDto(
+            CityId: cityId,
+            GeneratedAtUtc: "2048-06-03T13:10:00Z",
+            Districts:
+            [
+                new CityPopulationDistrictPressureItemDto(
+                    DistrictId: Guid.Parse("d5f64075-74ec-4fd5-a932-3fb6cf9f70c5"),
+                    ResidentCount: 1200,
+                    HouseholdCount: 420,
+                    HomelessResidentCount: 25,
+                    AverageHealth: 78.5m,
+                    AverageStress: 34.2m,
+                    AverageHappiness: 62.1m,
+                    ActiveIllnessCount: 18,
+                    SevereIllnessCount: 3,
+                    UtilityContinuityIndex: 0.76m,
+                    UtilityIncidentPressureIndex: 0.34m,
+                    HousingFragilityIndex: 0.22m,
+                    PopulationPressureIndex: 0.41m)
+            ]);
+    }
+
     public static CityDistrictHeatingConditionsView CreateCityDistrictHeatingConditionsView(Guid cityId)
     {
         return new CityDistrictHeatingConditionsView(
@@ -1447,13 +1471,20 @@ public static class ApiGatewayTestSupport
     public sealed class RecordingTripsApiClient : ITripsApiClient
     {
         public IReadOnlyList<CityActiveTripView> Result { get; set; } = [];
+        public Exception? Exception { get; set; }
         public Guid? LastCityId { get; private set; }
+        public int CallCount { get; private set; }
 
         public Task<IReadOnlyList<CityActiveTripView>> GetActiveTripsAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
+            CallCount++;
             LastCityId = cityId;
+
+            if (Exception is not null)
+                throw Exception;
+
             return Task.FromResult(Result);
         }
     }
@@ -1461,9 +1492,13 @@ public static class ApiGatewayTestSupport
     public sealed class RecordingEconomyApiClient : IEconomyApiClient
     {
         public EconomySummaryView? CitySummaryResult { get; set; }
+        public CityOperationalBudgetPressureView? BudgetPressureResult { get; set; }
         public Exception? GetCitySummaryException { get; set; }
+        public Exception? BudgetPressureException { get; set; }
         public int GetCitySummaryCallCount { get; private set; }
+        public int BudgetPressureCallCount { get; private set; }
         public Guid? LastCitySummaryCityId { get; private set; }
+        public Guid? LastBudgetPressureCityId { get; private set; }
 
         public Task<EconomySummaryView?> GetSummaryAsync(CancellationToken cancellationToken = default)
         {
@@ -1487,7 +1522,13 @@ public static class ApiGatewayTestSupport
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException();
+            BudgetPressureCallCount++;
+            LastBudgetPressureCityId = cityId;
+
+            if (BudgetPressureException is not null)
+                throw BudgetPressureException;
+
+            return Task.FromResult(BudgetPressureResult);
         }
 
         public Task<IReadOnlyList<CityBusinessView>> GetCityBusinessesAsync(
@@ -1548,9 +1589,12 @@ public static class ApiGatewayTestSupport
     public sealed class RecordingPopulationApiClient : IPopulationApiClient
     {
         public CityPopulationDashboardDto? DashboardResult { get; set; }
+        public CityPopulationDistrictPressureDto? DistrictPressureResult { get; set; }
         public PagedResult<PersonDto>? ResidentsPageResult { get; set; }
         public CityResidentDetailsDto? ResidentDetailsResult { get; set; }
+        public Exception? DistrictPressureException { get; set; }
         public Guid? LastDashboardCityId { get; private set; }
+        public Guid? LastDistrictPressureCityId { get; private set; }
         public Guid? LastResidentsPageCityId { get; private set; }
         public DateOnly? LastResidentsPageCurrentDate { get; private set; }
         public int? LastResidentsPageNumber { get; private set; }
@@ -1558,6 +1602,7 @@ public static class ApiGatewayTestSupport
         public Guid? LastResidentDetailsCityId { get; private set; }
         public Guid? LastResidentDetailsPersonId { get; private set; }
         public DateOnly? LastResidentDetailsCurrentDate { get; private set; }
+        public int DistrictPressureCallCount { get; private set; }
 
         public Task<CityPopulationBootstrapSummaryDto> InitializeCityPopulationAsync(
             InitializeCityPopulationRequest request,
@@ -1585,7 +1630,13 @@ public static class ApiGatewayTestSupport
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException();
+            DistrictPressureCallCount++;
+            LastDistrictPressureCityId = cityId;
+
+            if (DistrictPressureException is not null)
+                throw DistrictPressureException;
+
+            return Task.FromResult(DistrictPressureResult ?? CreateCityPopulationDistrictPressureDto(cityId));
         }
 
         public Task<PagedResult<PersonDto>> GetCityResidentsPageAsync(
@@ -1705,16 +1756,26 @@ public static class ApiGatewayTestSupport
 
     public sealed class RecordingStockpilesApiClient : IStockpilesApiClient
     {
+        public CityStockpilesView? StockpilesResult { get; set; }
+        public Exception? StockpilesException { get; set; }
         public DispatchCityResupplyView? DispatchResult { get; set; }
         public Exception? DispatchException { get; set; }
+        public Guid? LastStockpilesCityId { get; private set; }
         public Guid? LastDispatchCityId { get; private set; }
         public DispatchCityResupplyRequest? LastDispatchRequest { get; private set; }
+        public int StockpilesCallCount { get; private set; }
 
         public Task<CityStockpilesView?> GetCityStockpilesAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException();
+            StockpilesCallCount++;
+            LastStockpilesCityId = cityId;
+
+            if (StockpilesException is not null)
+                throw StockpilesException;
+
+            return Task.FromResult(StockpilesResult);
         }
 
         public Task<DispatchCityResupplyView> DispatchCityResupplyAsync(
@@ -1739,27 +1800,58 @@ public static class ApiGatewayTestSupport
         public bool ReturnPowerNull { get; set; }
         public bool ReturnSanitationNull { get; set; }
         public bool ReturnUtilityIncidentNull { get; set; }
+        public CityEnvironmentalConditionsView? ConditionsResult { get; set; }
         public CityDistrictHeatingConditionsView? HeatingResult { get; set; }
         public CityDistrictWaterDistributionConditionsView? WaterResult { get; set; }
         public CityDistrictPowerDistributionConditionsView? PowerResult { get; set; }
         public CityDistrictSanitationConditionsView? SanitationResult { get; set; }
         public CityDistrictUtilityIncidentConditionsView? UtilityIncidentResult { get; set; }
+        public Exception? ConditionsException { get; set; }
+        public Exception? HeatingException { get; set; }
+        public Exception? WaterException { get; set; }
+        public Exception? PowerException { get; set; }
+        public Exception? SanitationException { get; set; }
+        public Exception? UtilityIncidentException { get; set; }
         public CityUtilityIncidentStatusView? DispatchResult { get; set; }
         public Exception? DispatchException { get; set; }
+        public Guid? LastConditionsCityId { get; private set; }
+        public Guid? LastHeatingCityId { get; private set; }
+        public Guid? LastWaterCityId { get; private set; }
+        public Guid? LastPowerCityId { get; private set; }
+        public Guid? LastSanitationCityId { get; private set; }
+        public Guid? LastUtilityIncidentCityId { get; private set; }
         public Guid? LastDispatchCityId { get; private set; }
         public DispatchCityUtilityIncidentResponseRequest? LastDispatchRequest { get; private set; }
+        public int ConditionsCallCount { get; private set; }
+        public int HeatingCallCount { get; private set; }
+        public int WaterCallCount { get; private set; }
+        public int PowerCallCount { get; private set; }
+        public int SanitationCallCount { get; private set; }
+        public int UtilityIncidentCallCount { get; private set; }
 
         public Task<CityEnvironmentalConditionsView?> GetCityEnvironmentalConditionsAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
-            throw new NotSupportedException();
+            ConditionsCallCount++;
+            LastConditionsCityId = cityId;
+
+            if (ConditionsException is not null)
+                throw ConditionsException;
+
+            return Task.FromResult(ConditionsResult);
         }
 
         public Task<CityDistrictHeatingConditionsView?> GetCityDistrictHeatingConditionsAsync(
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
+            HeatingCallCount++;
+            LastHeatingCityId = cityId;
+
+            if (HeatingException is not null)
+                throw HeatingException;
+
             if (ReturnHeatingNull)
                 return Task.FromResult<CityDistrictHeatingConditionsView?>(null);
 
@@ -1770,6 +1862,12 @@ public static class ApiGatewayTestSupport
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
+            WaterCallCount++;
+            LastWaterCityId = cityId;
+
+            if (WaterException is not null)
+                throw WaterException;
+
             if (ReturnWaterNull)
                 return Task.FromResult<CityDistrictWaterDistributionConditionsView?>(null);
 
@@ -1780,6 +1878,12 @@ public static class ApiGatewayTestSupport
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
+            PowerCallCount++;
+            LastPowerCityId = cityId;
+
+            if (PowerException is not null)
+                throw PowerException;
+
             if (ReturnPowerNull)
                 return Task.FromResult<CityDistrictPowerDistributionConditionsView?>(null);
 
@@ -1790,6 +1894,12 @@ public static class ApiGatewayTestSupport
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
+            SanitationCallCount++;
+            LastSanitationCityId = cityId;
+
+            if (SanitationException is not null)
+                throw SanitationException;
+
             if (ReturnSanitationNull)
                 return Task.FromResult<CityDistrictSanitationConditionsView?>(null);
 
@@ -1800,6 +1910,12 @@ public static class ApiGatewayTestSupport
             Guid cityId,
             CancellationToken cancellationToken = default)
         {
+            UtilityIncidentCallCount++;
+            LastUtilityIncidentCityId = cityId;
+
+            if (UtilityIncidentException is not null)
+                throw UtilityIncidentException;
+
             if (ReturnUtilityIncidentNull)
                 return Task.FromResult<CityDistrictUtilityIncidentConditionsView?>(null);
 
