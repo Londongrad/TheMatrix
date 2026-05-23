@@ -87,6 +87,36 @@ public sealed class SecurityStateChangeProcessorTests
     }
 
     [Fact]
+    public async Task ProcessAsync_WhenOnlyDefaultAccessChanges_WritesDefaultOutboxWithoutUserUpdates()
+    {
+        await using IdentityTestDatabase database = CreateDbContext();
+        var collector = new FakeSecurityStateChangeCollector();
+        collector.MarkDefaultUserAccessChanged();
+        var logger = new TestLogger<SecurityStateChangeProcessor>();
+        var processor = new SecurityStateChangeProcessor(
+            dbContext: database.DbContext,
+            defaultUserAccessPolicyRepository: new FakeDefaultUserAccessPolicyRepository
+            {
+                Version = 7
+            },
+            collector: collector,
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)),
+            logger: logger);
+
+        await processor.ProcessAsync(CancellationToken.None);
+        await database.DbContext.SaveChangesAsync();
+
+        var outbox = await database.DbContext.OutboxMessages.SingleAsync();
+        var payload = JsonSerializer.Deserialize<DefaultUserAccessPolicyChangedV1>(outbox.PayloadJson, Json);
+
+        Assert.Equal(InternalEventTypes.DefaultUserAccessPolicyChangedV1, outbox.Type);
+        Assert.Equal(LaterUtc, outbox.OccurredOnUtc);
+        Assert.NotNull(payload);
+        Assert.Equal(7, payload.Version);
+        Assert.DoesNotContain(logger.Entries, entry => entry.LogLevel == LogLevel.Warning);
+    }
+
+    [Fact]
     public async Task ProcessAsync_WhenCollectorContainsMissingUser_LogsWarningsAndSkipsMissingEntry()
     {
         await using IdentityTestDatabase database = CreateDbContext();

@@ -34,68 +34,70 @@ namespace Matrix.Identity.Infrastructure.Security.Processor
 
             Guid[] userIds = changedUserIds.ToArray();
             int expected = userIds.Length;
-
-            // TODO: Consider using batches if the number of users is large. "Contains" is expensive.
-            int affected = await dbContext.Users
-               .Where(u => userIds.Contains(u.Id))
-               .ExecuteUpdateAsync(
-                    setPropertyCalls: setters => setters.SetProperty(
-                        u => u.PermissionsVersion,
-                        u => u.PermissionsVersion + 1),
-                    cancellationToken: cancellationToken);
-
-            if (affected != expected)
-                logger.LogWarning(
-                    message:
-                    "PermissionsVersion bump mismatch (ExecuteUpdate). Expected to update {Expected}, but updated {Affected}.",
-                    expected,
-                    affected);
-
-            var versions = await dbContext.Users
-               .AsNoTracking()
-               .Where(u => userIds.Contains(u.Id))
-               .Select(u => new
-                {
-                    u.Id,
-                    u.PermissionsVersion
-                })
-               .ToListAsync(cancellationToken);
-
-            if (versions.Count != expected)
-            {
-                var found = versions.Select(x => x.Id)
-                   .ToHashSet();
-
-                Guid[] missing = userIds.Where(id => !found.Contains(id))
-                   .Take(MaxMissingIdsToLog)
-                   .ToArray();
-
-                int missingCount = expected - versions.Count;
-
-                logger.LogWarning(
-                    message:
-                    "PermissionsVersion bump mismatch (Select). Expected {Expected} users, but loaded {Loaded}. MissingCount={MissingCount}. MissingSample={MissingSample}.",
-                    expected,
-                    versions.Count,
-                    missingCount,
-                    missing);
-            }
-
             DateTime occurredOnUtc = _timeProvider.GetUtcNow()
                .UtcDateTime;
 
-            foreach (var version in versions)
+            if (userIds.Length > 0)
             {
-                var payload = new UserSecurityStateChangedV1(
-                    UserId: version.Id,
-                    PermissionsVersion: version.PermissionsVersion);
+                // TODO: Consider using batches if the number of users is large. "Contains" is expensive.
+                int affected = await dbContext.Users
+                   .Where(u => userIds.Contains(u.Id))
+                   .ExecuteUpdateAsync(
+                        setPropertyCalls: setters => setters.SetProperty(
+                            u => u.PermissionsVersion,
+                            u => u.PermissionsVersion + 1),
+                        cancellationToken: cancellationToken);
 
-                dbContext.OutboxMessages.Add(
-                    OutboxMessage.Create(
-                        type: InternalEventTypes.UserSecurityStateChangedV1,
-                        occurredOnUtc: occurredOnUtc,
-                        payload: payload,
-                        jsonOptions: JsonOptions));
+                if (affected != expected)
+                    logger.LogWarning(
+                        message:
+                        "PermissionsVersion bump mismatch (ExecuteUpdate). Expected to update {Expected}, but updated {Affected}.",
+                        expected,
+                        affected);
+
+                var versions = await dbContext.Users
+                   .AsNoTracking()
+                   .Where(u => userIds.Contains(u.Id))
+                   .Select(u => new
+                    {
+                        u.Id,
+                        u.PermissionsVersion
+                    })
+                   .ToListAsync(cancellationToken);
+
+                if (versions.Count != expected)
+                {
+                    var found = versions.Select(x => x.Id)
+                       .ToHashSet();
+
+                    Guid[] missing = userIds.Where(id => !found.Contains(id))
+                       .Take(MaxMissingIdsToLog)
+                       .ToArray();
+
+                    int missingCount = expected - versions.Count;
+
+                    logger.LogWarning(
+                        message:
+                        "PermissionsVersion bump mismatch (Select). Expected {Expected} users, but loaded {Loaded}. MissingCount={MissingCount}. MissingSample={MissingSample}.",
+                        expected,
+                        versions.Count,
+                        missingCount,
+                        missing);
+                }
+
+                foreach (var version in versions)
+                {
+                    var payload = new UserSecurityStateChangedV1(
+                        UserId: version.Id,
+                        PermissionsVersion: version.PermissionsVersion);
+
+                    dbContext.OutboxMessages.Add(
+                        OutboxMessage.Create(
+                            type: InternalEventTypes.UserSecurityStateChangedV1,
+                            occurredOnUtc: occurredOnUtc,
+                            payload: payload,
+                            jsonOptions: JsonOptions));
+                }
             }
 
             if (!defaultUserAccessChanged)
