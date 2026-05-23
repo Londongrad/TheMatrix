@@ -117,6 +117,60 @@ public sealed class SecurityStateChangeProcessorTests
     }
 
     [Fact]
+    public async Task ProcessAsync_WhenManyUsersChanged_BumpsVersionsAndWritesOutboxMessagesAcrossBatches()
+    {
+        const int userCount = 501;
+        await using IdentityTestDatabase database = CreateDbContext();
+        User[] users = Enumerable.Range(0, userCount)
+           .Select(index => CreateUser(
+                email: $"user-{index:0000}@matrix.local",
+                username: $"user{index:0000}"))
+           .ToArray();
+        await database.DbContext.Users.AddRangeAsync(users);
+        await database.DbContext.SaveChangesAsync();
+
+        var collector = new FakeSecurityStateChangeCollector();
+        foreach (User user in users)
+            collector.MarkUserChanged(user.Id);
+
+        var processor = new SecurityStateChangeProcessor(
+            dbContext: database.DbContext,
+            defaultUserAccessPolicyRepository: new FakeDefaultUserAccessPolicyRepository(),
+            collector: collector,
+            timeProvider: CreateTimeProvider(new DateTimeOffset(LaterUtc, TimeSpan.Zero)),
+            logger: new TestLogger<SecurityStateChangeProcessor>());
+
+        await processor.ProcessAsync(CancellationToken.None);
+        await database.DbContext.SaveChangesAsync();
+
+        User[] updatedUsers = await database.DbContext.Users
+           .AsNoTracking()
+           .OrderBy(user => user.Email.Value)
+           .ToArrayAsync();
+        var outboxes = await database.DbContext.OutboxMessages
+           .AsNoTracking()
+           .ToArrayAsync();
+        UserSecurityStateChangedV1[] payloads = outboxes
+           .Select(outbox => JsonSerializer.Deserialize<UserSecurityStateChangedV1>(outbox.PayloadJson, Json))
+           .OfType<UserSecurityStateChangedV1>()
+           .ToArray();
+
+        Assert.Equal(userCount, updatedUsers.Length);
+        Assert.All(updatedUsers, user => Assert.Equal(2, user.PermissionsVersion));
+        Assert.Equal(userCount, outboxes.Length);
+        Assert.All(outboxes, outbox =>
+        {
+            Assert.Equal(InternalEventTypes.UserSecurityStateChangedV1, outbox.Type);
+            Assert.Equal(LaterUtc, outbox.OccurredOnUtc);
+        });
+        Assert.Equal(userCount, payloads.Length);
+        Assert.All(payloads, payload => Assert.Equal(2, payload.PermissionsVersion));
+        Assert.Equal(
+            users.Select(user => user.Id).OrderBy(id => id).ToArray(),
+            payloads.Select(payload => payload.UserId).OrderBy(id => id).ToArray());
+    }
+
+    [Fact]
     public async Task ProcessAsync_WhenCollectorContainsMissingUser_LogsWarningsAndSkipsMissingEntry()
     {
         await using IdentityTestDatabase database = CreateDbContext();
