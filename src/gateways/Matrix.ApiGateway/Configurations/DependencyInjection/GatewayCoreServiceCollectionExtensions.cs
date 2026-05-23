@@ -44,6 +44,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
 
             services
                .AddScoped<ICityOperationsDashboardHealthProbe, CityOperationsDashboardHealthProbe>()
+               .AddScoped<ICityOperationsDashboardSnapshotLoader, CityOperationsDashboardSnapshotLoader>()
                .AddScoped<ICityOperationsDashboardService, CityOperationsDashboardService>()
                .AddScoped<ICityProvisioningService, CityProvisioningService>()
                .AddScoped<IClassicCitySetupSessionStore, RedisClassicCitySetupSessionStore>()
