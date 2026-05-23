@@ -1,0 +1,61 @@
+using System.Reflection;
+using Matrix.ApiGateway.Configurations.Options;
+using Matrix.ApiGateway.DownstreamClients.Economy;
+using Matrix.ApiGateway.DownstreamClients.Population.People;
+using Matrix.ApiGateway.DownstreamClients.Resources.Scenarios.ClassicCity.Stockpiles;
+using Matrix.ApiGateway.DownstreamClients.SimulationCore.Scenarios.ClassicCity.Trips;
+using Matrix.ApiGateway.DownstreamClients.SimulationSystems.Scenarios.ClassicCity.EnvironmentalConditions;
+using Matrix.ApiGateway.Services.SimulationCore.Dashboard;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+using Xunit;
+
+namespace Matrix.ApiGateway.Tests.Services.SimulationCore.Dashboard;
+
+public sealed class CityOperationsDashboardCompositionTests
+{
+    [Fact]
+    public void CityOperationsDashboardService_DoesNotDependOnExtractedDownstreamClients()
+    {
+        Type[] forbiddenTypes =
+        [
+            typeof(IEconomyApiClient),
+            typeof(IPopulationApiClient),
+            typeof(IStockpilesApiClient),
+            typeof(ITripsApiClient),
+            typeof(IEnvironmentalConditionsApiClient),
+            typeof(HealthCheckService),
+            typeof(IHttpClientFactory),
+            typeof(IOptions<DownstreamServicesOptions>)
+        ];
+        Type[] constructorParameterTypes = GetConstructorParameterTypes();
+
+        foreach (Type forbiddenType in forbiddenTypes)
+            Assert.DoesNotContain(forbiddenType, constructorParameterTypes);
+    }
+
+    [Fact]
+    public void CityOperationsDashboardService_DependsOnExtractedDashboardServices()
+    {
+        Type[] constructorParameterTypes = GetConstructorParameterTypes();
+
+        Assert.Contains(typeof(ICityOperationsDashboardHealthProbe), constructorParameterTypes);
+        Assert.Contains(typeof(ICityOperationsDashboardSnapshotLoader), constructorParameterTypes);
+        Assert.Contains(typeof(ICityOperationsDashboardAlertBuilder), constructorParameterTypes);
+        Assert.Contains(typeof(ICityOperationsDashboardRecentEventsBuilder), constructorParameterTypes);
+    }
+
+    private static Type[] GetConstructorParameterTypes()
+    {
+        ConstructorInfo constructor = Assert.Single(
+            typeof(CityOperationsDashboardService).GetConstructors(
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic));
+
+        return constructor
+           .GetParameters()
+           .Select(parameter => parameter.ParameterType)
+           .ToArray();
+    }
+}
