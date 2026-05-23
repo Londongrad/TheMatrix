@@ -74,6 +74,7 @@ public sealed class ServicesConfigurationTests
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IInternalJwtIssuer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IInternalJwtRequestContextAccessor>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityOperationsDashboardAlertBuilder>());
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityOperationsDashboardRecentEventsBuilder>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityOperationsDashboardService>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICityProvisioningService>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ICitiesApiClient>());

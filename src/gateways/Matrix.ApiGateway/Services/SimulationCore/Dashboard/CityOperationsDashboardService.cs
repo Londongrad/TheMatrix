@@ -9,12 +9,14 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
         ICityOperationsDashboardHealthProbe healthProbe,
         ICityOperationsDashboardSnapshotLoader snapshotLoader,
         ICityOperationsDashboardAlertBuilder alertBuilder,
+        ICityOperationsDashboardRecentEventsBuilder recentEventsBuilder,
         TimeProvider timeProvider) : ICityOperationsDashboardService
     {
         private readonly ICitiesApiClient _citiesClient = citiesClient;
         private readonly ICityOperationsDashboardHealthProbe _healthProbe = healthProbe;
         private readonly ICityOperationsDashboardSnapshotLoader _snapshotLoader = snapshotLoader;
         private readonly ICityOperationsDashboardAlertBuilder _alertBuilder = alertBuilder;
+        private readonly ICityOperationsDashboardRecentEventsBuilder _recentEventsBuilder = recentEventsBuilder;
         private readonly TimeProvider _timeProvider = timeProvider;
 
         public async Task<CityOperationsDashboardView> GetAsync(CancellationToken cancellationToken)
@@ -194,7 +196,7 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                     now: localNow,
                     source: allCities),
                 Services: services,
-                Events: BuildRecentEvents(allCities),
+                Events: _recentEventsBuilder.Build(allCities),
                 EnvironmentalCities: environmentalAlerts.Take(8)
                    .ToArray(),
                 PopulationDistrictCities: populationDistrictAlerts.Take(8)
@@ -340,78 +342,6 @@ namespace Matrix.ApiGateway.Services.SimulationCore.Dashboard
                 Current: current,
                 Previous: previous,
                 Delta: current - previous);
-        }
-
-        private static IReadOnlyList<DashboardRecentEventView> BuildRecentEvents(IReadOnlyList<CityListItemView> cities)
-        {
-            var events = new List<DashboardRecentEventView>(capacity: cities.Count * 4);
-
-            foreach (CityListItemView city in cities)
-            {
-                events.Add(
-                    new DashboardRecentEventView(
-                        Kind: "city-created",
-                        Severity: "info",
-                        Title: "City created",
-                        Detail: $"{city.Name} entered provisioning.",
-                        CityId: city.CityId,
-                        CityName: city.Name,
-                        CityStatus: city.Status,
-                        OccurredAtUtc: city.CreatedAtUtc));
-
-                if (city.PopulationBootstrapCompletedAtUtc is
-                    { } completedAtUtc)
-                    events.Add(
-                        new DashboardRecentEventView(
-                            Kind: "bootstrap-ready",
-                            Severity: "success",
-                            Title: "Provisioning completed",
-                            Detail: $"{city.Name} is ready for monitoring.",
-                            CityId: city.CityId,
-                            CityName: city.Name,
-                            CityStatus: city.Status,
-                            OccurredAtUtc: completedAtUtc));
-
-                if (city.PopulationBootstrapFailedAtUtc is
-                    { } failedAtUtc)
-                {
-                    string failureDetail = string.IsNullOrWhiteSpace(city.PopulationBootstrapFailureCode)
-                        ? "Population bootstrap failed before the city became ready."
-                        : city.PopulationBootstrapFailureCode!;
-
-                    events.Add(
-                        new DashboardRecentEventView(
-                            Kind: "bootstrap-failed",
-                            Severity: "danger",
-                            Title: "Provisioning failed",
-                            Detail: failureDetail,
-                            CityId: city.CityId,
-                            CityName: city.Name,
-                            CityStatus: city.Status,
-                            OccurredAtUtc: failedAtUtc));
-                }
-
-                if (city.ArchivedAtUtc is
-                    { } archivedAtUtc)
-                    events.Add(
-                        new DashboardRecentEventView(
-                            Kind: "city-archived",
-                            Severity: "warning",
-                            Title: "City archived",
-                            Detail: $"{city.Name} moved out of active monitoring.",
-                            CityId: city.CityId,
-                            CityName: city.Name,
-                            CityStatus: city.Status,
-                            OccurredAtUtc: archivedAtUtc));
-            }
-
-            return events
-               .OrderByDescending(@event => @event.OccurredAtUtc)
-               .ThenBy(
-                    keySelector: @event => @event.CityName,
-                    comparer: StringComparer.OrdinalIgnoreCase)
-               .Take(10)
-               .ToArray();
         }
 
         private static bool IsInsideWindow(
