@@ -138,18 +138,6 @@ namespace Matrix.Identity.Infrastructure.Persistence.Repositories
                .FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(
-            Guid roleId,
-            CancellationToken cancellationToken)
-        {
-            // TODO: Potential performance issue for roles with a large number of users
-            return await dbContext.UserRoles
-               .AsNoTracking()
-               .Where(ur => ur.RoleId == roleId)
-               .Select(ur => ur.UserId)
-               .ToListAsync(cancellationToken);
-        }
-
         public async IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(
             Guid roleId,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)

@@ -187,13 +187,6 @@ internal static class AdminRolesTestSupport
         public Dictionary<Guid, IReadOnlyCollection<Guid>> UserIdsByRoleId { get; } = new();
         public Guid? RequestedRoleId { get; private set; }
 
-        public Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(Guid roleId, CancellationToken cancellationToken = default)
-        {
-            RequestedRoleId = roleId;
-            UserIdsByRoleId.TryGetValue(roleId, out IReadOnlyCollection<Guid>? userIds);
-            return Task.FromResult(userIds ?? (IReadOnlyCollection<Guid>)Array.Empty<Guid>());
-        }
-
         public async IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(
             Guid roleId,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)

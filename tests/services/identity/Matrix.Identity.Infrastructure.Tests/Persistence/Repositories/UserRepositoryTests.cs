@@ -64,7 +64,11 @@ public sealed class UserRepositoryTests
         await database.DbContext.SaveChangesAsync();
 
         int affected = await repository.BumpPermissionsVersionByRoleAsync(role.Id, CancellationToken.None);
-        IReadOnlyCollection<Guid> userIds = await repository.GetUserIdsByRoleAsync(role.Id, CancellationToken.None);
+        List<Guid> userIds = [];
+
+        await foreach (Guid userId in repository.StreamUserIdsByRoleAsync(role.Id, CancellationToken.None))
+            userIds.Add(userId);
+
         int? matchingVersion = await repository.GetPermissionsVersionAsync(matchingUser.Id, CancellationToken.None);
         int? otherVersion = await repository.GetPermissionsVersionAsync(otherUser.Id, CancellationToken.None);
 

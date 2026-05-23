@@ -58,13 +58,6 @@ namespace Matrix.Identity.Application.Abstractions.Persistence
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        ///     Returns user IDs that currently have the specified role.
-        /// </summary>
-        Task<IReadOnlyCollection<Guid>> GetUserIdsByRoleAsync(
-            Guid roleId,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
         ///     Streams user IDs that currently have the specified role.
         /// </summary>
         IAsyncEnumerable<Guid> StreamUserIdsByRoleAsync(
