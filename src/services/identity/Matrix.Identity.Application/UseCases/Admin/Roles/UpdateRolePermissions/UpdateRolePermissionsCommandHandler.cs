@@ -51,12 +51,12 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.UpdateRolePermissions
                     if (!changed)
                         return;
 
-                    IReadOnlyCollection<Guid> affectedUsers = await userRepository.GetUserIdsByRoleAsync(
+                    await foreach (Guid userId in userRepository.StreamUserIdsByRoleAsync(
                         roleId: request.RoleId,
-                        cancellationToken: token);
-
-                    foreach (Guid userId in affectedUsers)
+                        cancellationToken: token))
+                    {
                         securityStateChangeCollector.MarkUserChanged(userId);
+                    }
                 },
                 cancellationToken: cancellationToken);
         }

@@ -31,12 +31,12 @@ namespace Matrix.Identity.Application.UseCases.Admin.Roles.DeleteRole
             await unitOfWork.ExecuteInTransactionAsync(
                 action: async token =>
                 {
-                    IReadOnlyCollection<Guid> affectedUsers = await userRepository.GetUserIdsByRoleAsync(
+                    await foreach (Guid userId in userRepository.StreamUserIdsByRoleAsync(
                         roleId: role.Id,
-                        cancellationToken: token);
-
-                    foreach (Guid userId in affectedUsers)
+                        cancellationToken: token))
+                    {
                         securityStateChangeCollector.MarkUserChanged(userId);
+                    }
 
                     await roleWriteRepository.DeleteAsync(
                         role: role,
