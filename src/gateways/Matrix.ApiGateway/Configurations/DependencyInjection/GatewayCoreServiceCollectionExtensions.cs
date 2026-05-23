@@ -43,6 +43,7 @@ namespace Matrix.ApiGateway.Configurations.DependencyInjection
                .ValidateOnStart();
 
             services
+               .AddScoped<ICityOperationsDashboardHealthProbe, CityOperationsDashboardHealthProbe>()
                .AddScoped<ICityOperationsDashboardService, CityOperationsDashboardService>()
                .AddScoped<ICityProvisioningService, CityProvisioningService>()
                .AddScoped<IClassicCitySetupSessionStore, RedisClassicCitySetupSessionStore>()
