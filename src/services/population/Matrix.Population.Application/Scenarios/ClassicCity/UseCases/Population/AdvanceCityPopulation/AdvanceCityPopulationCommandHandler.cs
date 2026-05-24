@@ -626,7 +626,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         {
             bool changed = false;
             if (requiresNeedsProgression &&
-                ApplyNeedsProgression(
+                ResidentNeedsProgressionStep.Apply(
                     person: person,
                     residentsById: residentsById,
                     fromSimTimeUtc: fromSimTimeUtc,
@@ -724,35 +724,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     commuteRoutingService: commuteRoutingService,
                     cancellationToken: cancellationToken))
                 changed = true;
-            return changed;
-        }
-
-        private static bool ApplyNeedsProgression(
-            PersonEntity person,
-            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
-            DateTimeOffset fromSimTimeUtc,
-            DateTimeOffset toSimTimeUtc,
-            DateOnly currentDate,
-            CityPopulationEnvironment? environment,
-            MarriageDomainService marriageDomainService,
-            PersonNeedsProgressionPolicy personNeedsProgressionPolicy)
-        {
-            int utcOffsetMinutes = environment?.UtcOffsetMinutes ?? 0;
-            PersonNeedsProgressionEffect effect = personNeedsProgressionPolicy.Calculate(
-                person: person,
-                fromSimTimeUtc: fromSimTimeUtc,
-                toSimTimeUtc: toSimTimeUtc,
-                utcOffsetMinutes: utcOffsetMinutes);
-            bool wasAlive = person.IsAlive;
-            bool changed = person.ApplyNeedsProgression(
-                effect: effect,
-                currentDate: currentDate);
-            if (wasAlive && !person.IsAlive)
-                changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
-                              deceased: person,
-                              residentsById: residentsById,
-                              marriageDomainService: marriageDomainService) ||
-                          changed;
             return changed;
         }
 
