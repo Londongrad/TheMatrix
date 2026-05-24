@@ -387,7 +387,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 occurredAtUtc: handledAtUtc,
                                 cancellationToken: ct);
 
-                            affectedPeopleCount += await ApplyHouseholdIndependenceAutonomyAsync(
+                            affectedPeopleCount += await HouseholdIndependenceAutonomyStep.ApplyAsync(
                                 cityId: cityId,
                                 residentsById: personsById,
                                 previousDate: previousDate,
@@ -724,70 +724,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cancellationToken: cancellationToken))
                 changed = true;
             return changed;
-        }
-
-        private static async Task<int> ApplyHouseholdIndependenceAutonomyAsync(
-            CityId cityId,
-            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
-            DateOnly previousDate,
-            DateOnly currentDate,
-            IHouseholdWriteRepository householdWriteRepository,
-            CityHouseholdIndependenceAutonomyPolicy householdIndependenceAutonomyPolicy,
-            ICollection<CityPopulationActivityWriteModel> activityEntries,
-            DateTimeOffset occurredAtUtc,
-            CancellationToken cancellationToken)
-        {
-            IReadOnlyCollection<ClassicCityHouseholdPlacement> placements =
-                await householdWriteRepository.ListPlacementsByCityAsync(
-                    cityId: cityId,
-                    cancellationToken: cancellationToken);
-
-            if (placements.Count == 0)
-                return 0;
-
-            var housingStatuses = placements.ToDictionary(
-                keySelector: x => x.HouseholdId,
-                elementSelector: x => x.HousingStatus);
-
-            IReadOnlyList<CityHouseholdIndependenceAutonomyDecision> decisions =
-                householdIndependenceAutonomyPolicy.Plan(
-                    residents: residentsById.Values.ToArray(),
-                    housingStatuses: housingStatuses,
-                    previousDate: previousDate,
-                    currentDate: currentDate);
-
-            if (decisions.Count == 0)
-                return 0;
-
-            int affectedResidents = 0;
-
-            foreach (CityHouseholdIndependenceAutonomyDecision decision in decisions)
-            {
-                if (!residentsById.TryGetValue(
-                        key: decision.ResidentId,
-                        value: out PersonEntity? resident) ||
-                    resident.HouseholdId != decision.SourceHouseholdId)
-                    continue;
-
-                if (!await ClassicCityHouseholdAutonomySupport.MoveResidentIntoIndependentHouseholdAsync(
-                        cityId: cityId,
-                        resident: resident,
-                        householdWriteRepository: householdWriteRepository,
-                        createdAtUtc: occurredAtUtc,
-                        cancellationToken: cancellationToken))
-                    continue;
-
-                activityEntries.Add(
-                    ClassicCityActivityFactory.ResidentFormedIndependentHousehold(
-                        cityId: cityId.Value,
-                        currentDate: currentDate,
-                        resident: resident,
-                        source: CityPopulationActivitySource.Autonomy,
-                        occurredAtUtc: occurredAtUtc));
-                affectedResidents++;
-            }
-
-            return affectedResidents;
         }
 
         private static async Task<int> ApplyHousingAutonomyAsync(
