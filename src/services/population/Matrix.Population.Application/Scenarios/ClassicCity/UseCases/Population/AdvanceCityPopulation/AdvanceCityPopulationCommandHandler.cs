@@ -12,7 +12,6 @@ using Matrix.Population.Application.Scenarios.ClassicCity.Services.World.Abstrac
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.CivilRegistry.Common;
 using Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Population.Common;
 using Matrix.Population.Domain.Enums;
-using Matrix.Population.Domain.Models;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Entities;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Enums;
 using Matrix.Population.Domain.Scenarios.ClassicCity.Models;
@@ -689,7 +688,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     marriageDomainService: marriageDomainService))
                 changed = true;
             if (exposureSegments.Count > 0 &&
-                ApplyWeatherExposure(
+                ResidentWeatherExposureStep.Apply(
                     person: person,
                     residentsById: residentsById,
                     currentDate: currentDate,
@@ -1012,59 +1011,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
         private static decimal ResolveRetailTaxRate()
         {
             return 0.08m;
-        }
-
-        private static bool ApplyWeatherExposure(
-            PersonEntity person,
-            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
-            DateOnly currentDate,
-            CityPopulationEnvironment? environment,
-            IReadOnlyCollection<CityWeatherExposureSegment> exposureSegments,
-            MarriageDomainService marriageDomainService,
-            CityPopulationWeatherExposurePolicy weatherExposurePolicy)
-        {
-            if (exposureSegments.Count == 0)
-                return false;
-            int totalHealthDelta = 0;
-            int totalHappinessDelta = 0;
-            foreach (CityWeatherExposureSegment segment in exposureSegments)
-            {
-                PersonWeatherImpact impact = weatherExposurePolicy.Calculate(
-                    person: person,
-                    currentDate: currentDate,
-                    segment: segment,
-                    environment: environment);
-                totalHealthDelta += impact.HealthDelta;
-                totalHappinessDelta += impact.HappinessDelta;
-            }
-
-            if (totalHealthDelta == 0 && totalHappinessDelta == 0)
-                return false;
-            bool changed = false;
-            if (totalHealthDelta != 0)
-            {
-                int previousHealth = person.Health.Value;
-                bool wasAlive = person.IsAlive;
-                person.ChangeHealth(
-                    delta: totalHealthDelta,
-                    currentDate: currentDate);
-                changed = previousHealth != person.Health.Value || wasAlive != person.IsAlive;
-                if (wasAlive && !person.IsAlive)
-                    changed = ClassicCityWidowhoodSupport.TryRegisterWidowhood(
-                                  deceased: person,
-                                  residentsById: residentsById,
-                                  marriageDomainService: marriageDomainService) ||
-                              changed;
-            }
-
-            if (totalHappinessDelta != 0 && person.IsAlive)
-            {
-                int previousHappiness = person.Happiness.Value;
-                person.ChangeHappiness(totalHappinessDelta);
-                changed = changed || previousHappiness != person.Happiness.Value;
-            }
-
-            return changed;
         }
 
         private static async Task<bool> ApplyHouseholdPressureProgressionAsync(
