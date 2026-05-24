@@ -375,7 +375,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                                 occurredAtUtc: handledAtUtc,
                                 cancellationToken: ct);
 
-                            affectedPeopleCount += await ApplyCivilRegistryAutonomyAsync(
+                            affectedPeopleCount += await CivilRegistryAutonomyStep.ApplyAsync(
                                 cityId: cityId,
                                 residentsById: personsById,
                                 previousDate: previousDate,
@@ -785,87 +785,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                         source: CityPopulationActivitySource.Autonomy,
                         occurredAtUtc: occurredAtUtc));
                 affectedResidents++;
-            }
-
-            return affectedResidents;
-        }
-
-        private static async Task<int> ApplyCivilRegistryAutonomyAsync(
-            CityId cityId,
-            IReadOnlyDictionary<PersonId, PersonEntity> residentsById,
-            DateOnly previousDate,
-            DateOnly currentDate,
-            IHouseholdWriteRepository householdWriteRepository,
-            MarriageDomainService marriageDomainService,
-            CityCivilRegistryAutonomyPolicy civilRegistryAutonomyPolicy,
-            ICollection<CityPopulationActivityWriteModel> activityEntries,
-            DateTimeOffset occurredAtUtc,
-            CancellationToken cancellationToken)
-        {
-            IReadOnlyList<CityCivilRegistryAutonomyDecision> decisions = civilRegistryAutonomyPolicy.Plan(
-                residents: residentsById.Values.ToArray(),
-                previousDate: previousDate,
-                currentDate: currentDate);
-            if (decisions.Count == 0)
-                return 0;
-            int affectedResidents = 0;
-            foreach (CityCivilRegistryAutonomyDecision decision in decisions)
-            {
-                if (!residentsById.TryGetValue(
-                        key: decision.FirstResidentId,
-                        value: out PersonEntity? firstResident) ||
-                    !residentsById.TryGetValue(
-                        key: decision.SecondResidentId,
-                        value: out PersonEntity? secondResident))
-                    continue;
-                switch (decision.Type)
-                {
-                    case CityCivilRegistryAutonomyDecisionType.Marriage:
-                        marriageDomainService.RegisterMarriage(
-                            person: firstResident,
-                            spouse: secondResident,
-                            currentDate: currentDate);
-                        await ClassicCityCivilRegistryHouseholdSupport.MergeSpousesIntoSharedHouseholdAsync(
-                            cityId: cityId,
-                            firstResident: firstResident,
-                            secondResident: secondResident,
-                            householdWriteRepository: householdWriteRepository,
-                            cancellationToken: cancellationToken);
-                        activityEntries.Add(
-                            ClassicCityActivityFactory.ResidentsMarried(
-                                cityId: cityId.Value,
-                                currentDate: currentDate,
-                                firstResident: firstResident,
-                                secondResident: secondResident,
-                                source: CityPopulationActivitySource.Autonomy,
-                                occurredAtUtc: occurredAtUtc));
-                        affectedResidents += 2;
-                        break;
-                    case CityCivilRegistryAutonomyDecisionType.Divorce:
-                        if (firstResident.SpouseId != secondResident.Id || secondResident.SpouseId != firstResident.Id)
-                            continue;
-                        marriageDomainService.RegisterDivorce(
-                            person: firstResident,
-                            spouse: secondResident,
-                            currentDate: currentDate);
-                        await ClassicCityCivilRegistryHouseholdSupport.SeparateDivorcedSpousesAsync(
-                            cityId: cityId,
-                            firstResident: firstResident,
-                            secondResident: secondResident,
-                            householdWriteRepository: householdWriteRepository,
-                            createdAtUtc: occurredAtUtc,
-                            cancellationToken: cancellationToken);
-                        activityEntries.Add(
-                            ClassicCityActivityFactory.ResidentsDivorced(
-                                cityId: cityId.Value,
-                                currentDate: currentDate,
-                                firstResident: firstResident,
-                                secondResident: secondResident,
-                                source: CityPopulationActivitySource.Autonomy,
-                                occurredAtUtc: occurredAtUtc));
-                        affectedResidents += 2;
-                        break;
-                }
             }
 
             return affectedResidents;
