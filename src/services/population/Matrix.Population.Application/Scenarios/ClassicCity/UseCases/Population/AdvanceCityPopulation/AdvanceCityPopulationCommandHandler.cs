@@ -659,7 +659,7 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                     cancellationToken: cancellationToken))
                 changed = true;
             if (requiresDateProgression &&
-                await ApplyHouseholdPressureProgressionAsync(
+                await ResidentHouseholdPressureProgressionStep.ApplyAsync(
                     cityId: cityId,
                     person: person,
                     residentsByHouseholdId: residentsByHouseholdId,
@@ -820,50 +820,6 @@ namespace Matrix.Population.Application.Scenarios.ClassicCity.UseCases.Populatio
                 return changed;
             person.Retire(currentDate);
             return true;
-        }
-
-        private static async Task<bool> ApplyHouseholdPressureProgressionAsync(
-            CityId cityId,
-            PersonEntity person,
-            IReadOnlyDictionary<HouseholdId, IReadOnlyCollection<PersonEntity>> residentsByHouseholdId,
-            DateOnly previousDate,
-            DateOnly currentDate,
-            IReadOnlyDictionary<HouseholdId, HousingStatus> housingByHouseholdId,
-            IReadOnlyDictionary<HouseholdId, ResidentialBuildingId?> residentialBuildingByHouseholdId,
-            IReadOnlyDictionary<HouseholdId, CityPopulationHouseholdFinancialStressState> financialStressByHouseholdId,
-            ICityPopulationCommuteRoutingService commuteRoutingService,
-            CancellationToken cancellationToken,
-            CityHouseholdPressurePolicy householdPressurePolicy)
-        {
-            if (!residentsByHouseholdId.TryGetValue(
-                    key: person.HouseholdId,
-                    value: out IReadOnlyCollection<PersonEntity>? householdResidents))
-                return false;
-
-            HousingStatus? housingStatus = housingByHouseholdId.TryGetValue(
-                key: person.HouseholdId,
-                value: out HousingStatus resolvedHousingStatus)
-                ? resolvedHousingStatus
-                : null;
-            financialStressByHouseholdId.TryGetValue(
-                key: person.HouseholdId,
-                value: out CityPopulationHouseholdFinancialStressState? financialStressState);
-            CityHouseholdCommutePressureProfile? commutePressureProfile = await HouseholdCommutePressureProfileBuilder.BuildAsync(
-                cityId: cityId,
-                householdId: person.HouseholdId,
-                householdResidents: householdResidents,
-                residentialBuildingByHouseholdId: residentialBuildingByHouseholdId,
-                commuteRoutingService: commuteRoutingService,
-                cancellationToken: cancellationToken);
-
-            return householdPressurePolicy.Apply(
-                resident: person,
-                householdResidents: householdResidents,
-                housingStatus: housingStatus,
-                financialStressState: financialStressState,
-                commutePressureProfile: commutePressureProfile,
-                previousDate: previousDate,
-                currentDate: currentDate);
         }
 
         private static async Task<int> ApplyBirthAutonomyAsync(
